@@ -8194,5 +8194,93 @@ HWTEST_F(RSMainThreadTest, SetUIMode3D_004, TestSize.Level1)
     EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
 }
 
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDirectCompositionDisableReasons();
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::BUFFER_NOT_UPDATED);
+    EXPECT_EQ(mainThread->directCompositionDisableInfo_.reasons,
+        static_cast<uint32_t>(DirectCompositionDisableReason::BUFFER_NOT_UPDATED));
+    EXPECT_TRUE(mainThread->directCompositionDisableInfo_.nodeInfoMap.empty());
+    mainThread->ResetDirectCompositionDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDirectCompositionDisableReasons();
+    std::string nodeInfo = "TestNode[12345]";
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::BUFFER_SIZE_TRANSFORM_CHANGED, nodeInfo);
+    EXPECT_EQ(mainThread->directCompositionDisableInfo_.reasons,
+        static_cast<uint32_t>(DirectCompositionDisableReason::BUFFER_SIZE_TRANSFORM_CHANGED));
+    auto it = mainThread->directCompositionDisableInfo_.nodeInfoMap.find(
+        DirectCompositionDisableReason::BUFFER_SIZE_TRANSFORM_CHANGED);
+    EXPECT_NE(it, mainThread->directCompositionDisableInfo_.nodeInfoMap.end());
+    EXPECT_EQ(it->second, nodeInfo);
+    mainThread->ResetDirectCompositionDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, ResetDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::HDR_DISABLED, "TestNode[999]");
+    EXPECT_NE(mainThread->directCompositionDisableInfo_.reasons, 0u);
+    EXPECT_FALSE(mainThread->directCompositionDisableInfo_.nodeInfoMap.empty());
+    mainThread->ResetDirectCompositionDisableReasons();
+    EXPECT_EQ(mainThread->directCompositionDisableInfo_.reasons, 0u);
+    EXPECT_TRUE(mainThread->directCompositionDisableInfo_.nodeInfoMap.empty());
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDirectCompositionDisableReasons();
+    std::string result = mainThread->FormatDirectCompositionDisableReasons();
+    EXPECT_EQ(result, "none");
+    mainThread->ResetDirectCompositionDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDirectCompositionDisableReasons();
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::BUFFER_NOT_UPDATED);
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::HDR_DISABLED);
+    std::string result = mainThread->FormatDirectCompositionDisableReasons();
+    EXPECT_NE(result.find("BUFFER_NOT_UPDATED"), std::string::npos);
+    EXPECT_NE(result.find("HDR_DISABLED"), std::string::npos);
+    EXPECT_EQ(result.find("["), std::string::npos);
+    mainThread->ResetDirectCompositionDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDirectCompositionDisableReasons();
+    std::string nodeInfo = "SurfaceNode[12345] bufferSizeChanged[1] bufferTransformChanged[0]";
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::BUFFER_SIZE_TRANSFORM_CHANGED, nodeInfo);
+    mainThread->SetDirectCompositionDisableReason(
+        DirectCompositionDisableReason::HDR_DISABLED, "HDRNode[67890]");
+    std::string result = mainThread->FormatDirectCompositionDisableReasons();
+    EXPECT_NE(result.find("BUFFER_SIZE_TRANSFORM_CHANGED"), std::string::npos);
+    EXPECT_NE(result.find("HDR_DISABLED"), std::string::npos);
+    EXPECT_NE(result.find("["), std::string::npos);
+    EXPECT_NE(result.find("SurfaceNode[12345]"), std::string::npos);
+    EXPECT_NE(result.find("HDRNode[67890]"), std::string::npos);
+    mainThread->ResetDirectCompositionDisableReasons();
+}
+
 } // namespace OHOS::Rosen
 #endif

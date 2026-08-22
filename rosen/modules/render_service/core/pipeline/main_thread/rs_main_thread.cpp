@@ -1826,8 +1826,7 @@ void RSMainThread::ProcessCommandForUniRender()
         splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer();
         if (!delegateModeFlag && !splitLayerFlag) {
             doDirectComposition_ = false;
-            RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by delegateMode or splitLayer not enabled and "
-                "transactionDataEffective not empty");
+            AddDisableReason("DELEGATE_OR_SPLIT_LAYER_DISABLED");
         }
 
         if (isWebCommandOnly_ && doDirectComposition_) {
@@ -1865,6 +1864,7 @@ void RSMainThread::ProcessCommandForUniRender()
             }
             if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 doDirectComposition_ = false;
+                AddDisableReason("CANVAS_DRAWING_BUFFER_CONSUMED[" + std::to_string(canvasDrawingNode->GetId()) + "]");
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 canvasDrawingNode->UpdateBufferInfo(buffer, surfaceHandler->GetBufferOwnerCount(),
@@ -2185,10 +2185,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 if (surfaceHandler->IsCurrentFrameBufferConsumed() && !UNLIKELY(surfaceNode->IsHardwareEnabledType())) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "buffer consumed and not HardwareEnabledType",
-                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
+                    AddDisableReason("BUFFER_CONSUMED_NOT_HW_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
@@ -2207,11 +2204,12 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         scalingModeChanged) {
                         surfaceNode->SetContentDirty();
                         doDirectComposition_ = false;
-                        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                            "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d]",
-                            surfaceNode->GetName().c_str(), surfaceNode->GetId(),
-                            surfaceHandler->GetBufferSizeChanged(), surfaceHandler->GetBufferTransformTypeChanged(),
-                            scalingModeChanged);
+                        std::string reason = "BUFFER_SIZE_TRANSFORM_CHANGED[" + surfaceNode->GetName() + "[" +
+                            std::to_string(surfaceNode->GetId()) + "] bufferSizeChanged[" +
+                            std::to_string(surfaceHandler->GetBufferSizeChanged()) + "] bufferTransformChanged[" +
+                            std::to_string(surfaceHandler->GetBufferTransformTypeChanged()) + "] scalingModeChanged[" +
+                            std::to_string(scalingModeChanged) + "]]";
+                        AddDisableReason(reason);
                         RS_LOGD_IF(DEBUG_PIPELINE,
                             "ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64 " buffer size changed, "
                                 "buffer:[%{public}d, %{public}d], preBuffer:[%{public}d, %{public}d]",
@@ -2229,9 +2227,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         surfaceNode->GetName() + " SetContentDirty for UIFirst assigning to subthread");
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "pc uifirst on", surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
+                    AddDisableReason("UIFIRST_PC_ON[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
 #ifdef RS_ENABLE_VK
             if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -2298,8 +2294,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
     hasProtectedLayer_ = RSDrmUtil::IsDRMNodesOnTheTree();
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uiCapture");
         doDirectComposition_ = false;
+        AddDisableReason("UI_CAPTURE");
     }
 #ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().ClearPendingPostNodes();
@@ -2332,20 +2328,15 @@ void RSMainThread::CollectInfoForHardwareComposer()
 
             if (!surfaceNode->GetDoDirectComposition()) {
                 doDirectComposition_ = false;
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                    "surfaceNode doDirectComposition is false", surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                surfaceNode->SetDoDirectComposition(true);
+                AddDisableReason("SURFACE_NODE_NOT_DIRECT[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
 
             if (!surfaceNode->IsOnTheTree()) {
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "surfaceNode not on the tree and buffer consumed",
-                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
-                return;
+AddDisableReason("SURFACE_NODE_NOT_ON_TREE[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("SURFACE_NODE_NOT_ON_TREE[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
             UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
@@ -2370,11 +2361,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 surfaceNode->GetVideoHdrStatus() != HdrStatus::NO_HDR &&
                 !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
                 doDirectComposition_ = false;
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by HDR",
-                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
+AddDisableReason("HDR_DISABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
-
-            if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
+                AddDisableReason("HDR_DISABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 forceUIFirstChanged_ = true;
                 surfaceNode->SetForceUIFirstChanged(false);
             }
@@ -2407,13 +2396,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT(
-                        "hwc debug: name %s, id %" PRIu64 " disable directComposition by lastFrame not enabled HWC "
-                        "and buffer consumed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
+AddDisableReason("LAST_FRAME_NOT_HWC_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 } else {
                     if (surfaceNode->GetAncoForceDoDirect()) {
-                        surfaceNode->SetContentDirty();
-                    }
+                    AddDisableReason("LAST_FRAME_NOT_HWC_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                     surfaceNode->SetHwcDelayDirtyFlag(true);
                 }
             } else { // hwc -> hwc
@@ -2424,22 +2410,18 @@ void RSMainThread::CollectInfoForHardwareComposer()
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "HwcDelayDirtyFlag is true", surfaceNode->GetName().c_str(), surfaceNode->GetId());
+AddDisableReason("HWC_DELAY_DIRTY_FLAG[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 }
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                surfaceNode->SetIntersectWithFilterNode(false);
-                surfaceNode->SetContentDirty();
+                    AddDisableReason("HWC_DELAY_DIRTY_FLAG[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 doDirectComposition_ = false;
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " surfaceNode intersects with hve filter",
-                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
+AddDisableReason("SURFACE_INTERSECTS_FILTER[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
             if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 isHardwareEnabledBufferUpdated_ = true;
             }
-        });
-    nodeMap.TraverseProtectiveSolidNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+                AddDisableReason("SURFACE_INTERSECTS_FILTER[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
         if (!surfaceNode) {
             return;
         }
@@ -2529,7 +2511,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
         doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by isMultiDisplay");
+        AddDisableReason("MULTI_DISPLAY");
     }
 }
 
@@ -2974,19 +2956,19 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
         doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by HardwareForcedDisabled");
+        AddDisableReason("HARDWARE_FORCED_DISABLED");
     }
     // need draw skipped node at cur frame
     bool uiFirstNeedNextDraw = RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
-    if (doDirectComposition_ && uiFirstNeedNextDraw) {
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uifirst needNextDrawForSkippedNode");
-    }
     doDirectComposition_ &= !uiFirstNeedNextDraw;
+    if (uiFirstNeedNextDraw) {
+        AddDisableReason("UIFIRST_NEED_NEXT_DRAW");
+    }
 
     // if screen is power-off, DirectComposition should be disabled.
     if (GetContext().GetPowerOffRenderController().GetAllScreenRenderSkipped()) {
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by PowerOff");
         doDirectComposition_ = false;
+        AddDisableReason("POWER_OFF");
     }
 
     bool needTraverseNodeTree = true;
@@ -3000,7 +2982,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (willGoDirectComposition) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (!doDirectComposition_) {
-            RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by buffer not updated");
+            AddDisableReason("BUFFER_NOT_UPDATED");
         }
         if (isHardwareEnabledBufferUpdated_) {
             if (isWebCommandOnly_) {
@@ -3036,10 +3018,12 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
+        // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
-        // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
+        RS_TRACE_NAME_FMT("disable directcomposition, reasons: %s",
+            GetDisableReasons().c_str());
         aibarNodes_.clear();
         directComposeHelper_.lastFrameDidGpuRender_ = true;
         RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
@@ -3053,7 +3037,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         RSPointerWindowManager::Instance().UpdatePointerInfo();
         doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by needTraverseNodeTree");
         uniVisitor->SetAnimateState(doWindowAnimate_);
         RS_OPTIONAL_TRACE_FMT("%s SetDirtyFlagToUniVisitor, isMainThreadDirty:%d, isAccessibilityConfigChanged:%d, "
             "forceUIFirstChanged:%d", __func__, isDirty_.load(), isAccessibilityConfigChanged_, forceUIFirstChanged_);
@@ -3228,7 +3211,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     if (!screenNode || screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenNode state error");
+        AddDisableReason("SCREEN_NODE_STATE_ERROR");
         return false;
     }
     if (UNLIKELY(screenNode->GetForceFreeze())) {
@@ -3239,7 +3222,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     const auto& screenProperty = screenNode->GetScreenProperty();
     if (screenProperty.GetState() != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenState error");
+        AddDisableReason("SCREEN_STATE_ERROR");
         return false;
     }
 
@@ -3247,7 +3230,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     // check just before CreateProcessor, otherwise the cache interval will be reduced twice
     if (auto nodeSetIter = aibarNodes_.find(screenId); nodeSetIter != aibarNodes_.end() &&
         CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second, hardwareEnabledNodes_)) {
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by aibar need update cache");
+        AddDisableReason("AIBAR_NEED_UPDATE_CACHE");
         return false;
     }
 
@@ -3256,13 +3239,13 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     auto renderEngine = GetRenderEngine();
     if (processor == nullptr || renderEngine == nullptr) {
         RS_LOGE("DoDirectComposition: RSProcessor or renderEngine is null!");
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by processor or renderEngine is null");
+        AddDisableReason("PROCESSOR_OR_ENGINE_NULL");
         return false;
     }
 
     if (!processor->Init(*screenNode, renderEngine)) {
         RS_LOGE("DoDirectComposition: processor init failed!");
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by processor init failed");
+        AddDisableReason("PROCESSOR_INIT_FAILED");
         return false;
     }
 #endif
@@ -3277,7 +3260,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #ifdef RS_ENABLE_GPU
         if (RSAncoManager::Instance()->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes_,
             ScreenRotation::ROTATION_0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight())) {
-            RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by ancoOptimizeScreenNode");
+            AddDisableReason("ANCO_OPTIMIZE_SCREEN_NODE");
             return false;
         }
 #endif
@@ -4319,7 +4302,7 @@ void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextV
     // to false.
     if (animateNeedRequestNextVsync || (!animateNeedRequestNextVsync && lastAnimateNeedRequestNextVsync_)) {
         doDirectComposition_ = false;
-        RS_TRACE_NAME("hwc debug: disable directComposition by animate");
+        AddDisableReason("ANIMATE");
     }
     lastAnimateNeedRequestNextVsync_ = animateNeedRequestNextVsync;
 }
@@ -5357,6 +5340,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
         directComposeHelper_.isLastFrameDirectComposition_ = doDirectComposition_;
         doDirectComposition_ = isHardwareForcedDisabled_ ? false : RSSystemProperties::GetDoDirectCompositionEnabled();
+        ResetDisableReasons();
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
         hasSurfaceLockLayer_ = false;
@@ -6440,6 +6424,24 @@ void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
         context_->transactionTimestamp_ = transaction->GetTimestamp();
         transaction->Process(*context_);
     }
+}
+
+void RSMainThread::AddDisableReason(const std::string& reason)
+{
+    if (!directCompositionDisableReasons_.empty()) {
+        directCompositionDisableReasons_ += "|";
+    }
+    directCompositionDisableReasons_ += reason;
+}
+
+void RSMainThread::ResetDisableReasons()
+{
+    directCompositionDisableReasons_.clear();
+}
+
+std::string RSMainThread::GetDisableReasons() const
+{
+    return directCompositionDisableReasons_.empty() ? "none" : directCompositionDisableReasons_;
 }
 } // namespace Rosen
 } // namespace OHOS

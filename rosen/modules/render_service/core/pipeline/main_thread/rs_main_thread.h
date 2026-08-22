@@ -17,6 +17,7 @@
 #define RS_MAIN_THREAD
 
 #include <event_handler.h>
+#include <cstdint>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -614,6 +615,10 @@ private:
     void SetFocusLeashWindowId();
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
+
+    void AddDisableReason(const std::string& reason);
+    void ResetDisableReasons();
+    std::string GetDisableReasons() const;
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -843,6 +848,7 @@ private:
     bool isHardwareEnabledBufferUpdated_ = false;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool doDirectComposition_ = true;
+    std::string directCompositionDisableReasons_;
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;

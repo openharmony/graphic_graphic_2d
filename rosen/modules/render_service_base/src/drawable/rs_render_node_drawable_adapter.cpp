@@ -55,8 +55,10 @@ RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdL
 std::unordered_map<NodeId, Drawing::Matrix> RSRenderNodeDrawableAdapter::unobscuredUECMatrixMap_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+thread_local NodeId RSRenderNodeDrawableAdapter::curDrawingCacheRootId_ = 0;
 #else
 RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+NodeId RSRenderNodeDrawableAdapter::curDrawingCacheRootId_ = 0;
 #endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
@@ -533,7 +535,14 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     if (drawCmdList_.empty() || curDrawingCacheRoot_ == nullptr) {
         return;
     }
-    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    // curDrawingCacheRoot_ is a raw pointer that may dangle if the object is freed while still referenced.
+    // Validate via GetDrawableById(curDrawingCacheRootId_) — weak_ptr lock returns nullptr if the object was freed.
+    auto cacheRootDrawable = GetDrawableById(curDrawingCacheRootId_);
+    if (cacheRootDrawable == nullptr || cacheRootDrawable.get() != curDrawingCacheRoot_) {
+        RS_LOGE("curDrawingCacheRoot_ may be dangling, callerNodeId=%{public}" PRIu64, GetId());
+        return;
+    }
+    auto& withoutFilterMatrixMap = cacheRootDrawable->GetWithoutFilterMatrixMap();
     withoutFilterMatrixMap[GetId()] = canvas.GetTotalMatrix();
 }
 
