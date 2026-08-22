@@ -57,8 +57,8 @@ namespace OHOS::Rosen::DrawableV2 {
 #include "include/gpu/GrBackendSurface.h"
 #endif
 
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;

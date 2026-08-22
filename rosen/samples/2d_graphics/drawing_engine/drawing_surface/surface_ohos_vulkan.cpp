@@ -22,8 +22,8 @@
 #include "vulkan/vulkan_core.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "render_context/memory_handler.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #ifdef USE_M133_SKIA

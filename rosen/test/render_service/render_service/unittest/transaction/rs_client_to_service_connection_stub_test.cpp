@@ -60,7 +60,7 @@
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "file_ex.h"
 using namespace testing;

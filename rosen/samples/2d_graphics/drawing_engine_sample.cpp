@@ -29,8 +29,8 @@
 #include "draw/canvas.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface_ohos_vulkan.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace OHOS;

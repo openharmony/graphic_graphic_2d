@@ -21,7 +21,7 @@
 #include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #include <future>
 
 using namespace testing;
