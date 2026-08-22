@@ -885,9 +885,11 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
         AppendFormat(dumpString,
-                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f\n",
+                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f"
+                     ", samplingMode=%u\n",
                      property_.GetIsSamplingOn(), property_.GetSamplingScale(),
-                     property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY());
+                     property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY(),
+                     static_cast<uint32_t>(property_.GetSamplingMode()));
         AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect=[%d,%d,%d,%d]\n",
                      property_.GetEnableVisibleRect(),
                      property_.GetMainScreenVisibleRect().x, property_.GetMainScreenVisibleRect().y,
