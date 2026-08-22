@@ -399,9 +399,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
         RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
         rscanvas->Scale(1.0f / screenProperty.GetRogWidthRatio(),
             1.0f / screenProperty.GetRogHeightRatio());
-        renderEngine->DrawScreenNodeWithParams(*rscanvas, *surfaceHandler, drawParams);
+        renderEngine->DrawScreenNodeWithParams(
+            *rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     } else {
-        renderEngine->DrawScreenNodeWithParams(*rscanvas, *surfaceHandler, drawParams);
+        renderEngine->DrawScreenNodeWithParams(
+            *rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
 }
