@@ -707,17 +707,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (enable) {
                 securityMask = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             }
-            if (securityMask != nullptr) {
-                Media::ImageInfo imageInfo;
-                securityMask->GetImageInfo(imageInfo);
-                if (imageInfo.size.width > SECURITYMASK_IMAGE_SIZE_LIMIT ||
-                    imageInfo.size.height > SECURITYMASK_IMAGE_SIZE_LIMIT) {
-                    RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SECURITY_MASK size out of limit, "
-                        "w=%{public}d h=%{public}d", imageInfo.size.width, imageInfo.size.height);
-                    ret = ERR_INVALID_DATA;
-                    break;
-                }
-            }
             int32_t result = SetScreenSecurityMask(id, std::move(securityMask));
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SECURITY_MASK Write result failed!");
