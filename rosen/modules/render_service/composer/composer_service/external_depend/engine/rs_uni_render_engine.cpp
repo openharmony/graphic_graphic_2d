@@ -156,7 +156,8 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             bool skipRogPostScale = (composerScreenInfo.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU) &&
                 layer->GetUniRenderFlag();
             if (!skipRogPostScale) {
-                params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
+                params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(),
+                    composerScreenInfo.GetRogHeightRatio());
             }
         }
         params.screenId = composerScreenInfo.id;
