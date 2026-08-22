@@ -2401,7 +2401,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    AddDisableReason("lastFrame not hwc enabled and buffer consumed[" +
+                    AddDisableReason("lastFrame not enabled HWC and buffer consumed[" +
                         surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 } else {
                     if (surfaceNode->GetAncoForceDoDirect()) {
