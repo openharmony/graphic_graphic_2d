@@ -301,6 +301,10 @@ GSError Transaction::ReadTransactionConfigFromMessageParcel(MessageParcel& parce
     if (!parcel.ReadUint32(size)) {
         return GSERROR_BINDER;
     }
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        RS_LOGE("RSBufferTransaction::ReadTransactionConfigFromMessageParcel more than limit");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
     for (uint32_t i = 0; i < size; ++i) {
         uint32_t value = 0;
         if (!parcel.ReadUint32(value)) {
