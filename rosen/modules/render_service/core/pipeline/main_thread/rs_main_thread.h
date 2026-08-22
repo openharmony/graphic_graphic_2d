@@ -849,6 +849,7 @@ private:
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool doDirectComposition_ = true;
     std::string directCompositionDisableReasons_;
+    bool isTruncated_ = false;
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;

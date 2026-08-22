@@ -6450,6 +6450,11 @@ void RSMainThread::AddDisableReason(const std::string& reason)
     const size_t MAX_TRACE_LENGTH = 364;
     const size_t TRUNCATION_MARKER_LENGTH = 6; // " | ..."
     
+    // Early return if already truncated
+    if (isTruncated_) {
+        return;
+    }
+    
     // Calculate new length after adding this reason
     size_t newLength = directCompositionDisableReasons_.length();
     if (!directCompositionDisableReasons_.empty()) {
@@ -6459,10 +6464,8 @@ void RSMainThread::AddDisableReason(const std::string& reason)
     
     // Check if adding this reason would exceed the limit
     if (newLength > MAX_TRACE_LENGTH - TRUNCATION_MARKER_LENGTH) {
-        // Add truncation marker if not already present
-        if (directCompositionDisableReasons_.find("...") == std::string::npos) {
-            directCompositionDisableReasons_ += " | ...";
-        }
+        directCompositionDisableReasons_ += " | ...";
+        isTruncated_ = true;
         return;
     }
     
@@ -6475,6 +6478,7 @@ void RSMainThread::AddDisableReason(const std::string& reason)
 void RSMainThread::ResetDisableReasons()
 {
     directCompositionDisableReasons_.clear();
+    isTruncated_ = false;
 }
 
 std::string RSMainThread::GetDisableReasons() const
