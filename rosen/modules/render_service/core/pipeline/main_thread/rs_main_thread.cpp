@@ -250,7 +250,7 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MAX_CAPTURE_COUNT = 5;
-constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
+constexpr int32_t SYSTEM_animateD_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
@@ -268,7 +268,7 @@ constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
-constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
+constexpr uint32_t MAX_animateD_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
@@ -1826,7 +1826,7 @@ void RSMainThread::ProcessCommandForUniRender()
         splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer();
         if (!delegateModeFlag && !splitLayerFlag) {
             doDirectComposition_ = false;
-            AddDisableReason("DELEGATE_OR_SPLIT_LAYER_DISABLED");
+            AddDisableReason("delegateMode or splitLayer not enabled");
         }
 
         if (isWebCommandOnly_ && doDirectComposition_) {
@@ -1864,7 +1864,7 @@ void RSMainThread::ProcessCommandForUniRender()
             }
             if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 doDirectComposition_ = false;
-                AddDisableReason("CANVAS_DRAWING_BUFFER_CONSUMED[" + std::to_string(canvasDrawingNode->GetId()) + "]");
+                AddDisableReason("canvas drawing buffer consumed[" + std::to_string(canvasDrawingNode->GetId()) + "]");
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 canvasDrawingNode->UpdateBufferInfo(buffer, surfaceHandler->GetBufferOwnerCount(),
@@ -2185,7 +2185,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 if (surfaceHandler->IsCurrentFrameBufferConsumed() && !UNLIKELY(surfaceNode->IsHardwareEnabledType())) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    AddDisableReason("BUFFER_CONSUMED_NOT_HW_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("buffer consumed and not HardwareEnabledType[" +
+                        surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
@@ -2227,7 +2228,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         surfaceNode->GetName() + " SetContentDirty for UIFirst assigning to subthread");
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    AddDisableReason("UIFIRST_PC_ON[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("pc uifirst on[" + surfaceNode->GetName() +
+                        "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
 #ifdef RS_ENABLE_VK
             if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -2295,7 +2297,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
         doDirectComposition_ = false;
-        AddDisableReason("UI_CAPTURE");
+        AddDisableReason("uiCapture");
     }
 #ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().ClearPendingPostNodes();
@@ -2328,15 +2330,17 @@ void RSMainThread::CollectInfoForHardwareComposer()
 
             if (!surfaceNode->GetDoDirectComposition()) {
                 doDirectComposition_ = false;
-                AddDisableReason("SURFACE_NODE_NOT_DIRECT[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                AddDisableReason("surfaceNode doDirectComposition is false[" +
+                    surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
 
             if (!surfaceNode->IsOnTheTree()) {
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
                     doDirectComposition_ = false;
-AddDisableReason("SURFACE_NODE_NOT_ON_TREE[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
-                    AddDisableReason("SURFACE_NODE_NOT_ON_TREE[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("surfaceNode not on the tree and buffer consumed[" +
+                        surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                }
             }
             UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
@@ -2361,9 +2365,10 @@ AddDisableReason("SURFACE_NODE_NOT_ON_TREE[" + surfaceNode->GetName() + "[" + st
                 surfaceNode->GetVideoHdrStatus() != HdrStatus::NO_HDR &&
                 !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
                 doDirectComposition_ = false;
-AddDisableReason("HDR_DISABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                AddDisableReason("HDR[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
-                AddDisableReason("HDR_DISABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+
+            if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
                 forceUIFirstChanged_ = true;
                 surfaceNode->SetForceUIFirstChanged(false);
             }
@@ -2396,10 +2401,12 @@ AddDisableReason("HDR_DISABLED[" + surfaceNode->GetName() + "[" + std::to_string
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-AddDisableReason("LAST_FRAME_NOT_HWC_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("lastFrame not hwc enabled and buffer consumed[" +
+                        surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 } else {
                     if (surfaceNode->GetAncoForceDoDirect()) {
-                    AddDisableReason("LAST_FRAME_NOT_HWC_ENABLED[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                        surfaceNode->SetContentDirty();
+                    }
                     surfaceNode->SetHwcDelayDirtyFlag(true);
                 }
             } else { // hwc -> hwc
@@ -2410,18 +2417,22 @@ AddDisableReason("LAST_FRAME_NOT_HWC_ENABLED[" + surfaceNode->GetName() + "[" + 
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;
-AddDisableReason("HWC_DELAY_DIRTY_FLAG[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                    AddDisableReason("HwcDelayDirtyFlag is true[" + surfaceNode->GetName() +
+                        "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 }
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                    AddDisableReason("HWC_DELAY_DIRTY_FLAG[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                surfaceNode->SetIntersectWithFilterNode(false);
+                surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
-AddDisableReason("SURFACE_INTERSECTS_FILTER[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                AddDisableReason("surfaceNode intersects with hve filter[" +
+                    surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
             }
             if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 isHardwareEnabledBufferUpdated_ = true;
             }
-                AddDisableReason("SURFACE_INTERSECTS_FILTER[" + surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+        });
+    nodeMap.TraverseProtectiveSolidNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
         if (!surfaceNode) {
             return;
         }
@@ -2511,7 +2522,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
         doDirectComposition_ = false;
-        AddDisableReason("MULTI_DISPLAY");
+        AddDisableReason("isMultiDisplay");
     }
 }
 
@@ -2956,19 +2967,19 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
         doDirectComposition_ = false;
-        AddDisableReason("HARDWARE_FORCED_DISABLED");
+        AddDisableReason("HardwareForcedDisabled");
     }
     // need draw skipped node at cur frame
     bool uiFirstNeedNextDraw = RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
     doDirectComposition_ &= !uiFirstNeedNextDraw;
     if (uiFirstNeedNextDraw) {
-        AddDisableReason("UIFIRST_NEED_NEXT_DRAW");
+        AddDisableReason("uifirst needNextDrawForSkippedNode");
     }
 
     // if screen is power-off, DirectComposition should be disabled.
     if (GetContext().GetPowerOffRenderController().GetAllScreenRenderSkipped()) {
         doDirectComposition_ = false;
-        AddDisableReason("POWER_OFF");
+        AddDisableReason("PowerOff");
     }
 
     bool needTraverseNodeTree = true;
@@ -2982,7 +2993,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (willGoDirectComposition) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (!doDirectComposition_) {
-            AddDisableReason("BUFFER_NOT_UPDATED");
+            AddDisableReason("buffer not updated");
         }
         if (isHardwareEnabledBufferUpdated_) {
             if (isWebCommandOnly_) {
@@ -3211,7 +3222,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     if (!screenNode || screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
-        AddDisableReason("SCREEN_NODE_STATE_ERROR");
+        AddDisableReason("screenNode state error");
         return false;
     }
     if (UNLIKELY(screenNode->GetForceFreeze())) {
@@ -3222,7 +3233,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     const auto& screenProperty = screenNode->GetScreenProperty();
     if (screenProperty.GetState() != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");
-        AddDisableReason("SCREEN_STATE_ERROR");
+        AddDisableReason("screenState error");
         return false;
     }
 
@@ -3230,7 +3241,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     // check just before CreateProcessor, otherwise the cache interval will be reduced twice
     if (auto nodeSetIter = aibarNodes_.find(screenId); nodeSetIter != aibarNodes_.end() &&
         CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second, hardwareEnabledNodes_)) {
-        AddDisableReason("AIBAR_NEED_UPDATE_CACHE");
+        AddDisableReason("aibar need update cache");
         return false;
     }
 
@@ -3239,13 +3250,13 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     auto renderEngine = GetRenderEngine();
     if (processor == nullptr || renderEngine == nullptr) {
         RS_LOGE("DoDirectComposition: RSProcessor or renderEngine is null!");
-        AddDisableReason("PROCESSOR_OR_ENGINE_NULL");
+        AddDisableReason("processor or renderEngine is null");
         return false;
     }
 
     if (!processor->Init(*screenNode, renderEngine)) {
         RS_LOGE("DoDirectComposition: processor init failed!");
-        AddDisableReason("PROCESSOR_INIT_FAILED");
+        AddDisableReason("processor init failed");
         return false;
     }
 #endif
@@ -3260,7 +3271,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #ifdef RS_ENABLE_GPU
         if (RSAncoManager::Instance()->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes_,
             ScreenRotation::ROTATION_0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight())) {
-            AddDisableReason("ANCO_OPTIMIZE_SCREEN_NODE");
+            AddDisableReason("ancoOptimizeScreenNode");
             return false;
         }
 #endif
@@ -4302,7 +4313,7 @@ void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextV
     // to false.
     if (animateNeedRequestNextVsync || (!animateNeedRequestNextVsync && lastAnimateNeedRequestNextVsync_)) {
         doDirectComposition_ = false;
-        AddDisableReason("ANIMATE");
+        AddDisableReason("animate");
     }
     lastAnimateNeedRequestNextVsync_ = animateNeedRequestNextVsync;
 }
@@ -5297,7 +5308,7 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
-                if (threeFingerScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                if (threeFingerScenesList_.size() > MAX_animateD_SCENES_NUM) {
                     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: threeFingerScenesList is over max size!", __func__);
                     return false;
                 }
@@ -5306,7 +5317,7 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER &&
                 systemAnimatedScenes != SystemAnimatedScenes::ENTER_RECENTS &&
                 systemAnimatedScenes != SystemAnimatedScenes::EXIT_RECENTS) {
-                if (systemAnimatedScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                if (systemAnimatedScenesList_.size() > MAX_animateD_SCENES_NUM) {
                     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: systemAnimatedScenesList is over max size!", __func__);
                     return false;
                 }
