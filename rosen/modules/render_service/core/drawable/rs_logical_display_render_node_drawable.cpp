@@ -395,10 +395,12 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
     // DEVICE_GPU: screen buffer is at physical resolution but canvas is at logical resolution,
     // need to scale up the buffer to fill the logical canvas.
     const auto& screenProperty = screenParams->GetScreenProperty();
-    if (screenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU) {
+    auto widthRatio = screenProperty.GetRogWidthRatio();
+    auto heightRatio = screenProperty.GetRogHeightRatio();
+    if (screenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
+        ROSEN_GE(widthRatio, 0.f) && ROSEN_GE(heightRatio, 0.f)) {
         RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-        rscanvas->Scale(1.0f / screenProperty.GetRogWidthRatio(),
-            1.0f / screenProperty.GetRogHeightRatio());
+        rscanvas->Scale(1.0f / widthRatio, 1.0f / heightRatio);
         renderEngine->DrawScreenNodeWithParams(
             *rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     } else {
