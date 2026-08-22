@@ -2187,6 +2187,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     doDirectComposition_ = false;
                     AddDisableReason("buffer consumed and not HardwareEnabledType[" +
                         surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                }
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
@@ -2230,6 +2231,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     doDirectComposition_ = false;
                     AddDisableReason("pc uifirst on[" + surfaceNode->GetName() +
                         "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                }
             }
 #ifdef RS_ENABLE_VK
             if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
