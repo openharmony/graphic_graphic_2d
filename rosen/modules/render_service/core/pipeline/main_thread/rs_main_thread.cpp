@@ -6439,7 +6439,14 @@ void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
 
 void RSMainThread::AddDisableReason(const std::string& reason)
 {
-    const size_t MAX_TRACE_LENGTH = 400;
+    // Total trace format: "disable directcomposition, reasons: " + reasons
+    // Prefix length: 36 characters
+    // Target total length: <= 400 characters
+    // So reasons max length: 400 - 36 = 364
+    // Reserve space for truncation marker " | ...": 6 characters
+    // Actual max for reasons: 364 - 6 = 358
+    const size_t MAX_TRACE_LENGTH = 364;
+    const size_t TRUNCATION_MARKER_LENGTH = 6; // " | ..."
     
     // Calculate new length after adding this reason
     size_t newLength = directCompositionDisableReasons_.length();
@@ -6449,7 +6456,7 @@ void RSMainThread::AddDisableReason(const std::string& reason)
     newLength += reason.length();
     
     // Check if adding this reason would exceed the limit
-    if (newLength > MAX_TRACE_LENGTH) {
+    if (newLength > MAX_TRACE_LENGTH - TRUNCATION_MARKER_LENGTH) {
         // Add truncation marker if not already present
         if (directCompositionDisableReasons_.find("...") == std::string::npos) {
             directCompositionDisableReasons_ += " | ...";
