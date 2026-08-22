@@ -561,12 +561,20 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (isNonSystemAppCalling && (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE)) &&
-                (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE)) &&
-                !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
-                ret = ERR_INVALID_DATA;
-                break;
+            if (isNonSystemAppCalling && !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                // cross-process UIExtension: the guest (UEC) creates a surface node with a host-owned
+                // NodeId, which requires the host to authorize the guest pid in advance
+                bool isAuthorizedUIExtension =
+                    (type == static_cast<uint8_t>(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) ||
+                     type == static_cast<uint8_t>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE)) &&
+                    RSMainThread::Instance()->GetContext().GetNodeMap().IsUIExtensionAuthorized(
+                        nodeId, callingPid);
+                if (!isAuthorizedUIExtension) {
+                    RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]",
+                        nodeId, static_cast<int32_t>(callingPid));
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
             }
             RSSurfaceRenderNodeConfig config = { .id = nodeId,
                 .name = surfaceName,

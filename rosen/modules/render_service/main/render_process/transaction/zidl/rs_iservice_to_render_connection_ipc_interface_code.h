@@ -92,6 +92,7 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     SET_HDR_FORCE_HWC_ENABLED = 0X00F014,
     SET_APS_CONFIG_PARAMS = 0X00F016,
     NOTIFY_WINDOW_MODE_TYPE_EVENT = 0X00F017,
+    AUTHORIZE_UIEXTENSION_PID = 0X00F018,
 };
 
 } // namespace Rosen
