@@ -6440,7 +6440,7 @@ void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
 void RSMainThread::AddDisableReason(const std::string& reason)
 {
     if (!directCompositionDisableReasons_.empty()) {
-        directCompositionDisableReasons_ += "|";
+        directCompositionDisableReasons_ += " | ";
     }
     directCompositionDisableReasons_ += reason;
 }
