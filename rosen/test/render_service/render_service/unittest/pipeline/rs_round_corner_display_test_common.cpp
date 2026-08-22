@@ -87,15 +87,13 @@ bool LoadBitmapFromFile(const char* path, Drawing::Bitmap& bitmap)
     }
 
     std::shared_ptr<Drawing::Image> image;
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
-    rcdInstance.LoadImg(path, image);
+    RCDBitmapUtils::LoadImg(path, image);
     if (image == nullptr) {
         std::cout << "LoadBitmapFromFile: current os no rcd source" << std::endl;
         return false;
     }
 
-    return rcdInstance.DecodeBitmap(image, bitmap);
+    return RCDBitmapUtils::DecodeAlphaBitmap(image, bitmap);
 }
 
 void InitRcdRenderParamsInvalid01(HardwareLayerInfo* layerInfo, RcdExtInfo* extInfo)

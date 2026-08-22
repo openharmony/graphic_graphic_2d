@@ -210,13 +210,13 @@ std::shared_ptr<Drawing::Bitmap> LoadBitmapFromFile(const char* path)
     std::shared_ptr<Drawing::Bitmap> bitmap;
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     rcdInstance.Init();
-    rcdInstance.LoadImg(path, image);
+    RCDBitmapUtils::LoadImg(path, image);
     if (image == nullptr) {
         std::cout << "LoadBitmapFromFile: current os no rcd source" << std::endl;
         return nullptr;
     }
 
-    rcdInstance.DecodeBitmap(image, bitmap);
+    RCDBitmapUtils::DecodeAlphaBitmap(image, bitmap);
     return bitmap;
 }
 
@@ -233,12 +233,12 @@ void SetBitmapToRcdRenderParams(RSRenderParams *params, const char* path)
     std::shared_ptr<Drawing::Bitmap> bitmap;
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     rcdInstance.Init();
-    rcdInstance.LoadImg(path, image);
+    RCDBitmapUtils::LoadImg(path, image);
     if (image == nullptr) {
         std::cout << "RSRcdSurfaceRenderNodeDrawableTest: current os no rcd source" << std::endl;
         return;
     }
-    rcdInstance.DecodeBitmap(image, bitmap);
+    RCDBitmapUtils::DecodeAlphaBitmap(image, bitmap);
 
     rcdParams->SetSrcRect(RectI(0, 0, bitmap->GetWidth(), bitmap->GetHeight()));
     rcdParams->SetDstRect(RectI(0, 0, bitmap->GetWidth(), bitmap->GetHeight()));
