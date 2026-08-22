@@ -250,7 +250,7 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MAX_CAPTURE_COUNT = 5;
-constexpr int32_t SYSTEM_animateD_SCENES_RATE = 2;
+constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
@@ -268,7 +268,7 @@ constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
-constexpr uint32_t MAX_animateD_SCENES_NUM = 0xFFFF;
+constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
@@ -1826,7 +1826,7 @@ void RSMainThread::ProcessCommandForUniRender()
         splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer();
         if (!delegateModeFlag && !splitLayerFlag) {
             doDirectComposition_ = false;
-            AddDisableReason("delegateMode or splitLayer not enabled");
+            AddDisableReason("delegateMode or splitLayer not enabled and transactionDataEffective not empty");
         }
 
         if (isWebCommandOnly_ && doDirectComposition_) {
@@ -3029,10 +3029,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
-        // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
         RS_TRACE_NAME_FMT("disable directcomposition, reasons: %s",
             GetDisableReasons().c_str());
         aibarNodes_.clear();
@@ -5308,7 +5308,7 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
-                if (threeFingerScenesList_.size() > MAX_animateD_SCENES_NUM) {
+                if (threeFingerScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
                     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: threeFingerScenesList is over max size!", __func__);
                     return false;
                 }
@@ -5317,7 +5317,7 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER &&
                 systemAnimatedScenes != SystemAnimatedScenes::ENTER_RECENTS &&
                 systemAnimatedScenes != SystemAnimatedScenes::EXIT_RECENTS) {
-                if (systemAnimatedScenesList_.size() > MAX_animateD_SCENES_NUM) {
+                if (systemAnimatedScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
                     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: systemAnimatedScenesList is over max size!", __func__);
                     return false;
                 }
