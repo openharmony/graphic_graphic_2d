@@ -2589,14 +2589,18 @@ void RSSurfaceRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
+        return;
+    }
     if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams == nullptr) {
-            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
-            return;
-        }
         surfaceParams->SetNeedSync(true);
         surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
+    }
+
+    if (IsMainWindowType() || IsLeashWindow()) {
+        surfaceParams->ClipAndScaleDirtyManager(syncDirtyManager);
     }
     RSRenderNode::OnSync();
 #endif

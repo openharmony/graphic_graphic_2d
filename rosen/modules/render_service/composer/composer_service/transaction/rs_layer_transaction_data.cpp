@@ -61,6 +61,9 @@ bool RSLayerTransactionData::UnMarshallingComposerScreenInfo(OHOS::MessageParcel
     result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.activeRect);
     result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.maskRect);
     result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.reviseRect);
+    uint32_t samplingMode = 0;
+    result = result && parcel.ReadUint32(samplingMode);
+    composerInfo_.composerScreenInfo.samplingMode = static_cast<ScreenSamplingMode>(samplingMode);
 
     return result;
 }
@@ -79,6 +82,7 @@ bool RSLayerTransactionData::MarshallingComposerScreenInfo(std::shared_ptr<OHOS:
     result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.activeRect);
     result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.maskRect);
     result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.reviseRect);
+    result = result && parcel->WriteUint32(static_cast<uint32_t>(composerInfo_.composerScreenInfo.samplingMode));
 
     return result;
 }

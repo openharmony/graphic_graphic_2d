@@ -237,6 +237,9 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!params->GetNeedOffscreen()) {
         params->ApplyAlphaAndMatrixToCanvas(*curCanvas_);
     }
+    if (screenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU) {
+        curCanvas_->Scale(screenProperty.GetRogWidthRatio(), screenProperty.GetRogHeightRatio());
+    }
 
     ClearCanvasStencil(*curCanvas_, *params, *uniParam, screenProperty);
 
@@ -389,7 +392,17 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
         ? RSUniRenderUtil::CreateBufferDrawParam(virtualBuffer, virtualFence, false)
         : RSUniRenderUtil::CreateBufferDrawParam(*screenDrawable->GetRSSurfaceHandlerOnDraw(), false);
     RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
-    renderEngine->DrawScreenNodeWithParams(*rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
+    // DEVICE_GPU: screen buffer is at physical resolution but canvas is at logical resolution,
+    // need to scale up the buffer to fill the logical canvas.
+    const auto& screenProperty = screenParams->GetScreenProperty();
+    if (screenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU) {
+        RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+        rscanvas->Scale(1.0f / screenProperty.GetRogWidthRatio(),
+            1.0f / screenProperty.GetRogHeightRatio());
+        renderEngine->DrawScreenNodeWithParams(*rscanvas, *surfaceHandler, drawParams);
+    } else {
+        renderEngine->DrawScreenNodeWithParams(*rscanvas, *surfaceHandler, drawParams);
+    }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
 }
 
@@ -477,6 +490,25 @@ void RSLogicalDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(std::shared_p
     dirtyManager->UpdateDirty(useAlignedDirtyRegion);
 }
 
+void RSLogicalDisplayRenderNodeDrawable::MapDamageRegionRects(const std::vector<RectI>& damageRegionRects,
+    const ScreenInfo& mainScreenInfo, Occlusion::Region& mappedDamageRegion, Drawing::Matrix canvasMatrix) const
+{
+    if (mainScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) {
+        float rogWidthRatio = mainScreenInfo.GetRogWidthRatio();
+        float rogHeightRatio = mainScreenInfo.GetRogHeightRatio();
+        if (rogWidthRatio > 0.f && rogHeightRatio > 0.f) {
+            canvasMatrix.PreScale(1.0f / rogWidthRatio, 1.0f / rogHeightRatio);
+        } else {
+            RS_LOGW("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip virtual dirty scale",
+                __func__, rogWidthRatio, rogHeightRatio);
+        }
+    }
+    for (auto& rect : damageRegionRects) {
+        RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), canvasMatrix);
+        mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(mappedRect)));
+    }
+}
+
 std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSScreenRenderNodeDrawable& curScreenDrawable,
     RSLogicalDisplayRenderParams& params, Drawing::Matrix canvasMatrix)
@@ -525,11 +557,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     std::vector<RectI> damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
         *mirroredDrawable, bufferAge, mainScreenInfo, params.GetScreenId(), false);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
-    for (auto& rect : damageRegionRects) {
-        RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
-        mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(mappedRect)));
-    }
-
+    MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
     RectI hwcRect = mirroredDrawable->GetSyncDirtyManager()->GetHwcDirtyRegion();
     const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
         mirroredDrawable->GetSyncDirtyManager()->GetTypeHwcDirtyRegion();
@@ -612,10 +640,9 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForW
     // merge history dirty and map to mirrored wired screen by matrix
     auto tempDamageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
         *mirroredDrawable, bufferAge, mainScreenInfo, true);
-    for (auto& rect : tempDamageRegionRects) {
-        RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
-        damageRegionRects.emplace_back(mappedRect);
-    }
+    Occlusion::Region mappedDamageRegion;
+    MapDamageRegionRects(tempDamageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    damageRegionRects = mappedDamageRegion.GetRegionRectIs();
 
     auto syncDirtyManager = curScreenDrawable.GetSyncDirtyManager();
     // reset dirty rect as mirrored wired screen size when first time connection or matrix changed

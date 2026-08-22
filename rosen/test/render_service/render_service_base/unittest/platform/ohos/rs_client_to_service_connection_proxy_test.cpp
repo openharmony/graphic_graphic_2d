@@ -838,13 +838,13 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolutionTest001, Te
     uint32_t height = 1080;
 
     // case 1: without mock method
-    proxy->SetRogScreenResolution(id, width, height);
+    proxy->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
 
     // case 2: with mock method: SendRequest()
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
-    auto ret = mockproxy->SetRogScreenResolution(id, width, height);
+    auto ret = mockproxy->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 

@@ -202,9 +202,10 @@ ErrCode RSServiceToRenderConnection::RepaintEverything()
     return errCode;
 }
 
-ErrCode RSServiceToRenderConnection::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+ErrCode RSServiceToRenderConnection::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
-    ErrCode errCode = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height);
+    ErrCode errCode = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height, samplingMode);
     RS_LOGI("%{public}s call renderPipelineAgent_ screenId: %{public}" PRIu64 " width: %{public}u, height: %{public}u, "
         "errCode: %{public}d", __func__, screenId, width, height, errCode);
     return errCode;

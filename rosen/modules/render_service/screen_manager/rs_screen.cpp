@@ -452,7 +452,7 @@ bool RSScreen::CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& revi
     return false;
 }
 
-void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
+void RSScreen::SetRogResolution(uint32_t width, uint32_t height, ScreenSamplingMode samplingMode)
 {
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
@@ -477,6 +477,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     isRogResolution_ = true;
     UPDATE_PROPERTY(IsRogResolution, true);
     UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
+    UPDATE_PROPERTY(SamplingMode, samplingMode);
     UpdateSamplingScale(property_.GetPhyWidth(), property_.GetPhyHeight(), width, height);
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
         " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",

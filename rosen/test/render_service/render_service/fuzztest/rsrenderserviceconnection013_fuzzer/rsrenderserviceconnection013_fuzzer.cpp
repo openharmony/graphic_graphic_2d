@@ -238,6 +238,8 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     dataP.WriteUint32(width);
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     dataP.WriteUint32(height);
+    uint32_t samplingMode = fdp.ConsumeIntegral<uint32_t>() % static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU);
+    dataP.WriteUint32(samplingMode);
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
 }
 

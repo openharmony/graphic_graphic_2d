@@ -1129,12 +1129,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             ScreenId id{INVALID_SCREEN_ID};
             uint32_t width{0};
             uint32_t height{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+            uint32_t samplingMode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height) ||
+                !data.ReadUint32(samplingMode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetRogScreenResolution(id, width, height);
+            int32_t status = SetRogScreenResolution(id, width, height, static_cast<ScreenSamplingMode>(samplingMode));
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Write status failed!");
                 ret = ERR_INVALID_REPLY;

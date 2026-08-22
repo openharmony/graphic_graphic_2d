@@ -246,7 +246,8 @@ std::string RSRenderServiceClient::GetRefreshInfoByPidAndUniqueId(pid_t pid, uin
     return "";
 }
 
-int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     return 0;
 }

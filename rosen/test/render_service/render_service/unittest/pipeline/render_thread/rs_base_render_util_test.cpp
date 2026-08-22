@@ -443,7 +443,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
     screenInfo.width = 480;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    BufferRequestConfig config = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
+    BufferRequestConfig config =RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
         false, colorGamut, pixelFormat);
     ASSERT_EQ(static_cast<int32_t>(screenInfo.width), config.width);
     ASSERT_EQ(colorGamut, config.colorGamut);
@@ -2850,4 +2850,94 @@ HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_PaddingHeight001, TestSize.
     bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
     EXPECT_TRUE(result);
 }
+/**
+ * @tc.name: GetFrameBufferRequestConifg_DeviceGpuSampling
+ * @tc.desc: Test GetFrameBufferRequestConifg when SamplingMode is DEVICE_GPU, usePhysicalSize should be true
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_DeviceGpuSampling, TestSize.Level2)
+{
+    constexpr uint32_t RENDER_WIDTH = 100;
+    constexpr uint32_t RENDER_HEIGHT = 200;
+    constexpr uint32_t PHY_WIDTH = 200;
+    constexpr uint32_t PHY_HEIGHT = 400;
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = RENDER_WIDTH;
+    screenInfo.height = RENDER_HEIGHT;
+    screenInfo.phyWidth = PHY_WIDTH;
+    screenInfo.phyHeight = PHY_HEIGHT;
+    screenInfo.isSamplingOn = false;
+    screenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    BufferRequestConfig config =
+        RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, false, colorGamut, pixelFormat);
+
+    EXPECT_EQ(config.width, static_cast<int32_t>(PHY_WIDTH));
+    EXPECT_EQ(config.height, static_cast<int32_t>(PHY_HEIGHT));
+}
+
+/**
+ * @tc.name: GetFrameBufferRequestConifg_SamplingOn
+ * @tc.desc: Test GetFrameBufferRequestConifg when isSamplingOn is true, usePhysicalSize should be true
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_SamplingOn, TestSize.Level2)
+{
+    constexpr uint32_t RENDER_WIDTH = 100;
+    constexpr uint32_t RENDER_HEIGHT = 200;
+    constexpr uint32_t PHY_WIDTH = 200;
+    constexpr uint32_t PHY_HEIGHT = 400;
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = RENDER_WIDTH;
+    screenInfo.height = RENDER_HEIGHT;
+    screenInfo.phyWidth = PHY_WIDTH;
+    screenInfo.phyHeight = PHY_HEIGHT;
+    screenInfo.isSamplingOn = true;
+    screenInfo.samplingMode = ScreenSamplingMode::OFFSCREEN;
+
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    BufferRequestConfig config =
+        RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, false, colorGamut, pixelFormat);
+
+    EXPECT_EQ(config.width, static_cast<int32_t>(PHY_WIDTH));
+    EXPECT_EQ(config.height, static_cast<int32_t>(PHY_HEIGHT));
+}
+
+/**
+ * @tc.name: GetFrameBufferRequestConifg_NoPhysicalSize
+ * @tc.desc: Test GetFrameBufferRequestConifg when neither isSamplingOn nor DEVICE_GPU, usePhysicalSize should be false
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_NoPhysicalSize, TestSize.Level2)
+{
+    constexpr uint32_t RENDER_WIDTH = 100;
+    constexpr uint32_t RENDER_HEIGHT = 200;
+    constexpr uint32_t PHY_WIDTH = 200;
+    constexpr uint32_t PHY_HEIGHT = 400;
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = RENDER_WIDTH;
+    screenInfo.height = RENDER_HEIGHT;
+    screenInfo.phyWidth = PHY_WIDTH;
+    screenInfo.phyHeight = PHY_HEIGHT;
+    screenInfo.isSamplingOn = false;
+    screenInfo.samplingMode = ScreenSamplingMode::OFFSCREEN;
+
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    BufferRequestConfig config =
+        RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, false, colorGamut, pixelFormat);
+
+    EXPECT_EQ(config.width, static_cast<int32_t>(PHY_WIDTH));
+    EXPECT_EQ(config.height, static_cast<int32_t>(PHY_HEIGHT));
+}
+
 } // namespace OHOS::Rosen

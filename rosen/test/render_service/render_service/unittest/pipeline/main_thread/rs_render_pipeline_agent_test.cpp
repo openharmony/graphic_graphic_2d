@@ -1791,7 +1791,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetRogScreenResolution_NonMatchingScreenId, 
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.screenNodeMap_[nodeId] = screenNode;
  
-    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.screenNodeMap_.erase(nodeId);
@@ -1821,12 +1822,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithBootAnimationN
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: AdjustBootAnimationBounds_WithoutBootAnimationNode
  * @tc.desc: Verify AdjustBootAnimationBounds handles case when no boot animation node exists.
@@ -1851,12 +1853,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithoutBootAnimati
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: SetBootAnimationBounds_NullModifier
  * @tc.desc: Verify SetBootAnimationBounds handles null modifier gracefully.
@@ -1881,7 +1884,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetBootAnimationBounds_NullModifier, TestSiz
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.UnregisterRenderNode(surfaceNodeId);

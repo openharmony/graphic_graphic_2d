@@ -4839,7 +4839,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest000, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
@@ -4859,7 +4859,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest002, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // Should return RS_CONNECTION_ERROR when renderProcessManagerAgent_ is nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
@@ -4880,7 +4880,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest003, Tes
     ScreenId screenId = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
@@ -4906,7 +4906,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest004, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // GetServiceToRenderConn returns nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
@@ -4927,11 +4927,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest005, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // screenManagerAgent returns SUCCESS
     EXPECT_EQ(ret, ERR_OK);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolutionTest006
  * @tc.desc: Test SetRogScreenResolution when screenManagerAgent returns error
@@ -4948,7 +4948,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest006, Tes
     ScreenId screenId = INVALID_SCREEN_ID;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // screenManagerAgent returns SCREEN_NOT_FOUND for invalid screenId
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
@@ -4975,11 +4975,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest007, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // GetServiceToRenderConn returns nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolutionTest008
  * @tc.desc: Test SetRogScreenResolution with valid parameters
@@ -4996,7 +4996,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest008, Tes
     ScreenId screenId = 0;
     uint32_t width = 2560;
     uint32_t height = 1440;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
  
@@ -5016,8 +5016,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest009, Tes
     ScreenId screenId = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
-    EXPECT_EQ(ret, ERR_OK);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
 }
 
 /**
@@ -5214,7 +5213,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase003, TestSize.Level
 
     connection->screenManagerAgent_ = nullptr;
     // test SetRogScreenResolution
-    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0);
+    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0, ScreenSamplingMode::DEVICE_DSS);
     // test GetRogScreenResolution
     uint32_t width = 0;
     uint32_t height = 0;

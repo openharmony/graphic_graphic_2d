@@ -23,6 +23,7 @@
 #include "message_parcel.h"
 #include "params/rs_render_params.h"
 #include "rs_layer_parcel.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
 class RSComposerContext;
@@ -41,6 +42,12 @@ struct ComposerScreenInfo {
     RectI activeRect;
     RectI maskRect;
     RectI reviseRect;
+    ScreenSamplingMode samplingMode = ScreenSamplingMode::OFFSCREEN;
+
+    ScreenSamplingMode GetSamplingMode() const
+    {
+        return samplingMode;
+    }
 
     float GetRogWidthRatio() const
     {

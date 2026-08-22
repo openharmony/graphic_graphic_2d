@@ -476,11 +476,12 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
     return false;
 }
 
-int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
-    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u", __func__, id,
-            width, height);
-    return renderServiceClient_->SetRogScreenResolution(id, width, height);
+    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u, "
+        "samplingMode:%{public}u", __func__, id, width, height, static_cast<uint32_t>(samplingMode));
+    return renderServiceClient_->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 int32_t RSInterfaces::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)

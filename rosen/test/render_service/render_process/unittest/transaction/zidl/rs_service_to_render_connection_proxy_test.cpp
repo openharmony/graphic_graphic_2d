@@ -3207,10 +3207,10 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetRogScreenResolution_SendReques
     constexpr uint32_t width = 1920;
     constexpr uint32_t height = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, width, height);
+    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, NO_ERROR);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolution_SendRequestFail
  * @tc.desc: Test SetRogScreenResolution when SendRequest fails
@@ -3227,7 +3227,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetRogScreenResolution_SendReques
     constexpr uint32_t width = 1920;
     constexpr uint32_t height = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, width, height);
+    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 

@@ -962,7 +962,8 @@ int32_t RSClientToServiceConnection::SetVirtualScreenResolution(ScreenId id, uin
     return screenManagerAgent_->SetVirtualScreenResolution(id, width, height);
 }
 
-int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is null", __func__);
@@ -974,7 +975,7 @@ int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_
         return RS_CONNECTION_ERROR;
     }
 
-    ErrCode code = serviceToRenderConn->SetRogScreenResolution(id, width, height);
+    ErrCode code = serviceToRenderConn->SetRogScreenResolution(id, width, height, samplingMode);
     if (code != ERR_OK) {
         RS_LOGE("%{public}s serviceToRenderConns has error", __func__);
         return RS_CONNECTION_ERROR;
@@ -984,7 +985,7 @@ int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr", __func__);
         return RS_CONNECTION_ERROR;
     }
-    int32_t res = screenManagerAgent_->SetRogScreenResolution(id, width, height);
+    int32_t res = screenManagerAgent_->SetRogScreenResolution(id, width, height, samplingMode);
     if (res != ERR_OK) {
         RS_LOGE("%{public}s screenManagerAgent_->SetRogScreenResolution failed, res:%{public}d, "
             "screenId:%{public}" PRIu64 ", width:%{public}" PRIu32 ", height:%{public}" PRIu32,

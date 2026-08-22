@@ -2165,16 +2165,17 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         RS_LOGE("GetPidGpuMemoryInMB pipeline is nullptr, return");
         return ERR_INVALID_VALUE;
     }
-    auto task = [screenId, width, height, renderPipeline = pipeline, this]() -> void {
+    auto task = [screenId, width, height, samplingMode, renderPipeline = pipeline, this]() -> void {
         auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-        UpdateScreenNodesResolution(nodeMap, screenId, width, height);
+        UpdateScreenNodesResolution(nodeMap, screenId, width, height, samplingMode);
         AdjustBootAnimationBounds(nodeMap, width, height);
     };
     pipeline->PostMainThreadSyncTask(task);
@@ -2182,21 +2183,27 @@ ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_
 }
  
 void RSRenderPipelineAgent::UpdateScreenNodesResolution(
-    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height)
+    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto resolution = std::make_pair(width, height);
-    auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
-    auto updateNode = [screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+    auto resolutionProperty = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
+    auto samplingModeProperty = sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(samplingMode));
+    auto updateNode = [screenId, width, height, resolutionProperty, samplingMode, samplingModeProperty](
+        const std::shared_ptr<RSScreenRenderNode>& node) {
         if (node && node->GetScreenId() == screenId) {
             auto screenInfo = node->GetScreenInfo();
             screenInfo.width = width;
             screenInfo.height = height;
+            screenInfo.samplingMode = samplingMode;
             node->SetScreenInfo(screenInfo);
-            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
+            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, resolutionProperty);
+            node->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE, samplingModeProperty);
             node->SetDirty();
             RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, "
-                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u",
-                screenId, width, height);
+                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u, "
+                "samplingMode:%{public}u",
+                screenId, width, height, static_cast<uint32_t>(samplingMode));
         }
     };
     nodeMap.TraverseScreenNodes(updateNode);
