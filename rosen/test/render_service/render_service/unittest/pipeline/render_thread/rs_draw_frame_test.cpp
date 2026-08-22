@@ -334,6 +334,8 @@ HWTEST_F(RSDrawFrameTest, TimeoutRender_StateTransitionTest, TestSize.Level1)
  */
 HWTEST_F(RSDrawFrameTest, LockClient_BranchesTest, TestSize.Level1)
 {
+    RSMainThread::Instance()->handler_ =
+        std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     RSDrawFrame drawFrame;
     auto& tr = drawFrame.timeoutRender_;
     // Branch: IsStatFinished()=false → early return, hasLockedClient_ unchanged
@@ -358,6 +360,7 @@ HWTEST_F(RSDrawFrameTest, LockClient_BranchesTest, TestSize.Level1)
     ASSERT_TRUE(drawFrame.hasLockedClient_.load());
     ASSERT_EQ(tr.renderTime, 0); // Reset() called
     ASSERT_EQ(tr.frameCount, 0);
+    usleep(100000);
 }
 
 /**
@@ -367,6 +370,8 @@ HWTEST_F(RSDrawFrameTest, LockClient_BranchesTest, TestSize.Level1)
  */
 HWTEST_F(RSDrawFrameTest, LockThenUnlock_SequenceTest, TestSize.Level1)
 {
+    RSMainThread::Instance()->handler_ =
+        std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     RSDrawFrame drawFrame;
     // Branch: UnlockClient with hasLockedClient_=false → early return
     ASSERT_FALSE(drawFrame.hasLockedClient_.load());
@@ -386,6 +391,7 @@ HWTEST_F(RSDrawFrameTest, LockThenUnlock_SequenceTest, TestSize.Level1)
     // Branch: UnlockClient with hasLockedClient_=true and non-empty lockedClientSet_ → posts unlock task
     drawFrame.UnlockClient();
     ASSERT_TRUE(drawFrame.hasLockedClient_.load()); // still true before PostTask runs
+    usleep(100000);
 }
 #endif
 }
