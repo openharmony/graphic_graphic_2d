@@ -6445,32 +6445,32 @@ void RSMainThread::AddDisableReason(const std::string& reason)
     // Prefix length: 36 characters
     // Target total length: <= 400 characters
     // So reasons max length: 400 - 36 = 364
-    // Reserve space for truncation marker " | ...": 6 characters
-    // Actual max for reasons: 364 - 6 = 358
+    // Reserve space for truncation marker "|...": 4 characters
+    // Actual max for reasons: 364 - 4 = 360
     const size_t MAX_TRACE_LENGTH = 364;
-    const size_t TRUNCATION_MARKER_LENGTH = 6; // " | ..."
+    const size_t TRUNCATION_MARKER_LENGTH = 4; // "|..."
     
     // Early return if already truncated
-    if (isTruncated_) {
+    if (isDirectCompositionDisableTraceTruncated_) {
         return;
     }
     
     // Calculate new length after adding this reason
     size_t newLength = directCompositionDisableReasons_.length();
     if (!directCompositionDisableReasons_.empty()) {
-        newLength += 3; // " | "
+        newLength += 1; // "|"
     }
     newLength += reason.length();
     
     // Check if adding this reason would exceed the limit
     if (newLength > MAX_TRACE_LENGTH - TRUNCATION_MARKER_LENGTH) {
-        directCompositionDisableReasons_ += " | ...";
-        isTruncated_ = true;
+        directCompositionDisableReasons_ += "|...";
+        isDirectCompositionDisableTraceTruncated_ = true;
         return;
     }
     
     if (!directCompositionDisableReasons_.empty()) {
-        directCompositionDisableReasons_ += " | ";
+        directCompositionDisableReasons_ += "|";
     }
     directCompositionDisableReasons_ += reason;
 }
@@ -6478,7 +6478,7 @@ void RSMainThread::AddDisableReason(const std::string& reason)
 void RSMainThread::ResetDisableReasons()
 {
     directCompositionDisableReasons_.clear();
-    isTruncated_ = false;
+    isDirectCompositionDisableTraceTruncated_ = false;
 }
 
 std::string RSMainThread::GetDisableReasons() const
