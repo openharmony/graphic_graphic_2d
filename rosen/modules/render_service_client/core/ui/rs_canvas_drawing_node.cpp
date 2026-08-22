@@ -489,7 +489,7 @@ bool RSCanvasDrawingNode::RenderInClient(Drawing::DrawCmdListPtr drawCmdList)
         return false;
     }
 
-    if (drawCmdList != nullptr && !drawCmdList->IsEmpty()) {
+    if (drawCmdList != nullptr) {
         std::unique_lock<std::mutex> uiLock(uiContext->uiMutex_);
         uiContext->uiCV_.wait(uiLock, [uiContext] { return !uiContext->canBlockUIThread_; });
         canvasModifiersDrawAgent->UpdateCanvasContent(GetId(), drawCmdList);
