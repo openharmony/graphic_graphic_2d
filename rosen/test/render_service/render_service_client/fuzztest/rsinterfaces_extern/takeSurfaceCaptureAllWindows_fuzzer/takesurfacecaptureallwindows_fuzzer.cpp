@@ -60,7 +60,8 @@ void DoTakeSurfaceCaptureWithAllWindows(FuzzedDataProvider& fdp)
         .isMirrored = fdp.ConsumeBool(),
         .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
         .isSync = fdp.ConsumeBool(),
-        .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>()
+        .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>(),
+        .positionZ = fdp.ConsumeFloatingPoint<float>()
     };
 
     // Create RSDisplayNode using the config

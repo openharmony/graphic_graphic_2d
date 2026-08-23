@@ -678,6 +678,17 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
     bool isSync = false;
     uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
+    float positionZ = 0.0f;
+
+    std::string ToString() const
+    {
+        return std::string("Config[screenId:") + std::to_string(screenId) +
+               ", isMirrored:" + std::to_string(isMirrored) +
+               ", sourceDisplayNodeId:" + std::to_string(mirrorNodeId) +
+               ", isSync:" + std::to_string(isSync) +
+               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) +
+               ", positionZ:" + std::to_string(positionZ) + "]";
+    }
 };
 
 // ability state of surface node
