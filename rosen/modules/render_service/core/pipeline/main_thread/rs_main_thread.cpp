@@ -723,9 +723,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     if (ret != 0) {
         RS_LOGW("Add watchdog thread failed");
     }
-#ifdef RES_SCHED_ENABLE
-    SubScribeSystemAbility();
-#endif
     InitRSEventDetector();
     receiver_ = receiver;
     if (!isUniRender_) {
@@ -1547,34 +1544,6 @@ void RSMainThread::PrintCurrentStatus()
     RS_LOGE("PrintCurrentStatus: drawing is opened, gpu type is %{public}s", gpuType.c_str());
 #endif
 }
-
-#ifdef RES_SCHED_ENABLE
-void RSMainThread::SubScribeSystemAbility()
-{
-    RS_LOGI("%{public}s", __func__);
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
-        return;
-    }
-    std::string threadName = "RSMainThread";
-    std::string strUid = std::to_string(getuid());
-    std::string strPid = std::to_string(getpid());
-    std::string strTid = std::to_string(gettid());
-
-    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
-    if (saStatusChangeListener_ == nullptr) {
-        RS_LOGE("SubScribeSystemAbility new VSyncSystemAbilityListener failed");
-        return;
-    }
-    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
-    if (ret != ERR_OK) {
-        RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
-        saStatusChangeListener_ = nullptr;
-    }
-}
-#endif
 
 void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex)
 {

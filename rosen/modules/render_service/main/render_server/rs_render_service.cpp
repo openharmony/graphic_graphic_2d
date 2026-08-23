@@ -61,6 +61,14 @@
 #include "screen_manager/touch_screen.h"
 #endif
 
+#ifdef RES_SCHED_ENABLE
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#include "res_sched_client.h"
+#include "res_type.h"
+#include "system_ability_definition.h"
+#endif
+
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
 
@@ -201,6 +209,10 @@ void RSRenderService::HgmInit()
 void RSRenderService::FeatureComponentInit()
 {
     RS_LOGI("%{public}s", __func__);
+
+#ifdef RES_SCHED_ENABLE
+    SubScribeSystemAbility();
+#endif
 
     // touch screen init
 #ifdef TP_FEATURE_ENABLE
@@ -573,5 +585,33 @@ void RSRenderService::ScreenManagerListener::OnProcessDisconnected(ScreenId scre
     }
     renderService_.vsyncManager_->OnScreenDisconnected(screenId, renderService_.handler_);
 }
+
+#ifdef RES_SCHED_ENABLE
+void RSRenderService::SubScribeSystemAbility()
+{
+    RS_LOGI("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "RSMainThread";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    if (saStatusChangeListener_ == nullptr) {
+        RS_LOGE("SubScribeSystemAbility new VSyncSystemAbilityListener failed");
+        return;
+    }
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

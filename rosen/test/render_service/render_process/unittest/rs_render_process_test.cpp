@@ -295,4 +295,21 @@ HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest004, TestSize.Level1)
     EXPECT_TRUE(dataMap->at(RSIpcPersistenceType::ON_HWC_EVENT).empty());
 }
 
+#ifdef RES_SCHED_ENABLE
+/**
+ * @tc.name: SubScribeSystemAbility001
+ * @tc.desc: Test RSRenderProcess::SubScribeSystemAbility
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, SubScribeSystemAbilityTest001, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    ASSERT_EQ(renderProcess->saStatusChangeListener_, nullptr);
+    renderProcess->SubScribeSystemAbility();
+    EXPECT_NE(renderProcess->saStatusChangeListener_, nullptr);
+}
+#endif
+
 } // namespace OHOS::Rosen

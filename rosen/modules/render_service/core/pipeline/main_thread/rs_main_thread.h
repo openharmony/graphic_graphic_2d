@@ -60,10 +60,6 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
 
-#ifdef RES_SCHED_ENABLE
-#include "vsync_system_ability_listener.h"
-#endif
-
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
@@ -614,9 +610,6 @@ private:
     void SetFocusLeashWindowId();
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
-#ifdef RES_SCHED_ENABLE
-    void SubScribeSystemAbility();
-#endif
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     void ConnectChipsetVsyncSer();
     void SetVsyncInfo(uint64_t timestamp);
@@ -921,9 +914,6 @@ private:
     std::atomic<uint32_t> currentNum_ = 0;
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
