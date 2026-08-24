@@ -906,6 +906,8 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
 
+    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
@@ -946,8 +948,6 @@ private:
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> removeSurfaceFpsOpMap_;
-
-    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
 
     std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
