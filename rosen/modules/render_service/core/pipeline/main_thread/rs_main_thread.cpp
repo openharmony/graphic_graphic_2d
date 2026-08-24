@@ -4071,7 +4071,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
             std::chrono::steady_clock::now().time_since_epoch()).count());
     RS_PROFILER_PATCH_TIME(timestamp_);
     RS_PROFILER_PATCH_TIME(curTime_);
-    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_.exchange(0));
+    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
+    requestNextVsyncNum_ = 0;
     vsyncId_ = frameCount;
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
