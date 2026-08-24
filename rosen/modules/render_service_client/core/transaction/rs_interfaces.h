@@ -523,7 +523,7 @@ public:
      * @return StatusCode. Returns value, return value == 0 success, otherwise, failed.
      */
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
-        ScreenSamplingMode samplingMode);
+        ScreenSamplingMode samplingMode = ScreenSamplingMode::DEVICE_DSS);
 
     /**
      * @brief Get rog resolution of screen.
