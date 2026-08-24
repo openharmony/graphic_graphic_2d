@@ -510,10 +510,11 @@ void RSMainThread::TraverseCanvasDrawingNodes()
     }
 #endif
 
+    canvasDrawingNodeOpCountMap_.clear();
     const auto& nodeMap = context_->GetNodeMap();
     bool hasCachedOp = false;
     nodeMap.TraverseCanvasDrawingNodes(
-        [&hasCachedOp](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
+        [this, &hasCachedOp](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
             if (canvasDrawingNode == nullptr) {
                 return;
             }
@@ -521,6 +522,9 @@ void RSMainThread::TraverseCanvasDrawingNodes()
             hasCachedOp |= canvasDrawingNode->CheckCachedOp();
             // Check on tree status
             canvasDrawingNode->ContentStyleSlotUpdate();
+
+            auto pid = ExtractPid(canvasDrawingNode->GetId());
+            canvasDrawingNodeOpCountMap_[pid] += canvasDrawingNode->GetCurrentOpCount();
         });
     if (hasCachedOp) {
         hasCanvasDrawingNodeCachedOp_ = true;
