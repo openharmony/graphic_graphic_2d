@@ -42,12 +42,7 @@ struct ComposerScreenInfo {
     RectI activeRect;
     RectI maskRect;
     RectI reviseRect;
-    ScreenSamplingMode samplingMode = ScreenSamplingMode::OFFSCREEN;
-
-    ScreenSamplingMode GetSamplingMode() const
-    {
-        return samplingMode;
-    }
+    ScreenSamplingMode samplingMode = ScreenSamplingMode::DEVICE_DSS;
 
     float GetRogWidthRatio() const
     {
