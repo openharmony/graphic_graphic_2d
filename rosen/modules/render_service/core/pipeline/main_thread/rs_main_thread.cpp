@@ -4066,12 +4066,12 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
     vsyncRsTimestamp_.store(timestamp_);
+    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
     RS_PROFILER_PATCH_TIME(timestamp_);
     RS_PROFILER_PATCH_TIME(curTime_);
-    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
     requestNextVsyncNum_ = 0;
     vsyncId_ = frameCount;
     if (isUniRender_) {
