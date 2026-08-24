@@ -19,6 +19,8 @@
 #include "draw/prim_list.h"
 #include "draw/ui_color.h"
 #include "effect/particle_builder.h"
+#include "recording/draw_cmd_list.h"
+#include "recording/record_cmd.h"
 #include "text/font.h"
 #include "text/glyph_cache.h"
 
@@ -1810,6 +1812,82 @@ HWTEST_F(CanvasTest, DrawPrimList002, TestSize.Level1)
     canvas->DrawRect(rect);
     auto primList = canvas->EndPrimListCollecting();
     EXPECT_TRUE(primList == nullptr);
+}
+
+/**
+ * @tc.name: CanvasDrawRecordCmdTest001
+ * @tc.desc: Test for DrawRecordCmd with nullptr recordCmd.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, CanvasDrawRecordCmdTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    std::shared_ptr<RecordCmd> recordCmd = nullptr;
+    canvas->DrawRecordCmd(recordCmd);
+}
+
+/**
+ * @tc.name: CanvasDrawRecordCmdTest002
+ * @tc.desc: Test for DrawRecordCmd with empty DrawCmdList.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, CanvasDrawRecordCmdTest002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    auto drawCmdList = std::make_shared<DrawCmdList>();
+    ASSERT_TRUE(drawCmdList != nullptr);
+    Rect bounds(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+    auto recordCmd = std::make_shared<RecordCmd>(drawCmdList, bounds);
+    ASSERT_TRUE(recordCmd != nullptr);
+    canvas->DrawRecordCmd(recordCmd);
+}
+
+/**
+ * @tc.name: CanvasDrawRecordCmdTest003
+ * @tc.desc: Test for DrawRecordCmd with identity matrix.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, CanvasDrawRecordCmdTest003, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    auto drawCmdList = std::make_shared<DrawCmdList>();
+    ASSERT_TRUE(drawCmdList != nullptr);
+    Rect bounds(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+    auto recordCmd = std::make_shared<RecordCmd>(drawCmdList, bounds);
+    ASSERT_TRUE(recordCmd != nullptr);
+    Matrix matrix;
+    canvas->DrawRecordCmd(recordCmd, &matrix);
+}
+
+/**
+ * @tc.name: CanvasDrawRecordCmdTest004
+ * @tc.desc: Test for DrawRecordCmd with custom matrix and brush.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, CanvasDrawRecordCmdTest004, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    auto drawCmdList = std::make_shared<DrawCmdList>();
+    ASSERT_TRUE(drawCmdList != nullptr);
+    Rect bounds(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+    auto recordCmd = std::make_shared<RecordCmd>(drawCmdList, bounds);
+    ASSERT_TRUE(recordCmd != nullptr);
+    Matrix matrix;
+    matrix.SetMatrix(0.8, 0, 0, 0, 1.5, 0, 0.01, -0.003, 1); // custom matrix values
+    Brush brush(Color::COLOR_RED);
+    canvas->DrawRecordCmd(recordCmd, &matrix, &brush);
 }
 
 } // namespace Drawing
