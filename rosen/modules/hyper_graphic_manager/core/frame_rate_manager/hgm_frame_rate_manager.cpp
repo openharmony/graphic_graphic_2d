@@ -45,6 +45,8 @@ constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
 constexpr int32_t LAST_TOUCH_CNT = 1;
+// Allow VOTER_LTPO to vote 30 Hz
+constexpr uint32_t LTPO_VOTE_MIN_REFRESH_RATE = 30;
 
 constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
 constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
@@ -392,7 +394,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
     frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
-        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
+        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRateForLtpoVote(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
         RS_TRACE_NAME_FMT("%s: isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d], desc: [%s]",
@@ -493,6 +495,10 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         "%s: VoteRes: %s[%d, %d]", __func__, lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+    uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
+    if (rsFrameRateLinker_->GetFrameRate() != rsFrameRate) {
+        rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
+    }
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
@@ -591,11 +597,15 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate, lastRefreshRate);
     }
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = softVSyncManager_.GetSoftAppChangeData();
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData;
+    if (rsFrameRateControlEnabled_.load()) {
+        rsChangeData = softVSyncManager_.GetSoftRsChangeData();
+    }
     if (delayTime != 0) {
-        DVSyncTaskProcessor(delayTime, targetTime, appChangeData, controllerRate);
+        DVSyncTaskProcessor(delayTime, targetTime, appChangeData, rsChangeData, controllerRate);
     } else if (controller_) {
         vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
-            controllerRate, appChangeData, targetTime, isNeedUpdateAppOffset_);
+            controllerRate, appChangeData, rsChangeData, targetTime, isNeedUpdateAppOffset_);
     }
     // End of DVSync
     isNeedUpdateAppOffset_ = false;
@@ -604,13 +614,15 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
 }
 
 void HgmFrameRateManager::DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
-    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate)
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData,
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData,
+    int64_t controllerRate)
 {
     bool needUpdate = isNeedUpdateAppOffset_;
-    RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
+    RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, rsChangeData, needUpdate]() {
         if (controller_) {
-            vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
-                appChangeData, targetTime, needUpdate);
+            vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
+                controllerRate, appChangeData, rsChangeData, targetTime, needUpdate);
         }
         CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
     };
@@ -744,6 +756,42 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     return refreshRate;
 }
 
+uint32_t HgmFrameRateManager::CalcRefreshRateForLtpoVote(const ScreenId id, const FrameRateRange& range) const
+{
+    if (!rsFrameRateControlEnabled_.load()) {
+        return CalcRefreshRate(id, range);
+    }
+
+    // Allow VOTER_LTPO to vote 30 Hz on LTPS device
+    if (static_cast<uint32_t>(range.preferred_) <= LTPO_VOTE_MIN_REFRESH_RATE) {
+        RS_TRACE_NAME_FMT("%s: use ltpo vote min rate, range=(%d,%d,%d), voteMin=%u",
+            __func__, range.min_, range.max_, range.preferred_, LTPO_VOTE_MIN_REFRESH_RATE);
+        return LTPO_VOTE_MIN_REFRESH_RATE;
+    }
+
+    return CalcRefreshRate(id, range);
+}
+
+uint32_t HgmFrameRateManager::CalcRsFrameRate(const FrameRateRange& range, uint32_t refreshRate) const
+{
+    if (!rsFrameRateControlEnabled_.load()) {
+        return 0;
+    }
+
+    if (static_cast<uint32_t>(range.preferred_) >= refreshRate) {
+        return 0;
+    }
+
+    uint32_t rsFrameRate = HgmSoftVSyncManager::GetDrawingFrameRate(refreshRate, range);
+    if (rsFrameRate > 0 && rsFrameRate < refreshRate) {
+        RS_TRACE_NAME_FMT("%s: enable RS framerate control, range=(%d,%d,%d), refreshRate=%u, rsFrameRate=%u",
+            __func__, range.min_, range.max_, range.preferred_, refreshRate, rsFrameRate);
+        return rsFrameRate;
+    }
+
+    return 0;
+}
+
 void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
@@ -787,6 +835,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     } else if (eventName == "VOTER_LOW_POWER_SLIDE") {
         HandleLowPowerSlideSceneEvent(eventInfo.description, eventInfo.eventStatus);
+        return;
+    } else if (eventName == "RS_FRAME_RATE_CONTROL_ENABLE") {
+        rsFrameRateControlEnabled_.store(eventInfo.eventStatus);
         return;
     }
     const auto& voters = frameVoter_.GetVoters();
@@ -1295,7 +1346,15 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = { resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max };
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    if (refreshRate == currRefreshRate_ && !voterTouchEffective_) {
+    uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
+    bool rsFrameRateChanged = false;
+    if (rsFrameRateLinker_ != nullptr) {
+        rsFrameRateChanged = rsFrameRateLinker_->GetFrameRate() != rsFrameRate;
+        if (rsFrameRateChanged) {
+            rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
+    }
+    }
+    if (refreshRate == currRefreshRate_ && !voterTouchEffective_ && !rsFrameRateChanged) {
         return;
     }
 

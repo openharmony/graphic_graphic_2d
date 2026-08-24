@@ -47,6 +47,7 @@ public:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const uint32_t currRefreshRate);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftAppChangeData();
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftRsChangeData();
     void UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap,
                                const FrameRateLinkerMap& appFrameRateLinkers);
     void InitController(std::weak_ptr<HgmVSyncGeneratorController> controller,
@@ -64,10 +65,11 @@ public:
     void SetQosVSyncRate(const uint32_t currRefreshRate, const FrameRateLinkerMap& appFrameRateLinkers);
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
+    static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     void EraseGameRateDiscountMap(pid_t pid);
     void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; }
 
-private:
+prihgm_soft_vsync_manager.vate:
     void Reset();
     void HandleLinkers();
     void DeliverSoftVote(FrameRateLinkerId linkerId, const VoteInfo& voteInfo, bool eventStatus);
@@ -75,7 +77,6 @@ private:
     bool CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
     bool CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange,
         const uint32_t currRefreshRate);
-    static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     void CalcAppFrameRate(
         const std::pair<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& linker,
         FrameRateRange& expectedRange,
@@ -96,6 +97,7 @@ private:
     std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, bool>> appVoteData_;
     std::unordered_set<VsyncName> disableAppFrameVsyncNames_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
+    std::unordered_map<FrameRateLinkerId, uint32_t> rsChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
@@ -108,6 +110,7 @@ private:
     std::unordered_map<uint64_t, uint32_t> gameRateDiscountMap_;
 
     uint32_t controllerRate_ = 0;
+    uint32_t rsFrameRate_ = 0;
 
     std::atomic<bool> isPerformanceFirst_;
     std::function<void(bool)> updateSoftVSyncFunc_ { nullptr };

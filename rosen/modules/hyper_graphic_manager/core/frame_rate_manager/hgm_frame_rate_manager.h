@@ -213,7 +213,9 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate);
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData,
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData,
+        int64_t controllerRate);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
@@ -347,6 +349,7 @@ private:
 
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+    std::atomic<bool> rsFrameRateControlEnabled_ = true;
 
     ScreenId activeRectScreenId_ = INVALID_SCREEN_ID;
     Rect activeRect_ { 0, 0, 0, 0 };

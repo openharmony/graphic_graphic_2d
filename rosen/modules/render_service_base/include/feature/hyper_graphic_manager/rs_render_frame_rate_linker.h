@@ -55,7 +55,7 @@ public:
     void SetWindowNodeId(uint64_t windowNodeId) { windowNodeId_ = windowNodeId; }
     void SetExpectedRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedRange() const;
-    void SetFrameRate(uint32_t rate);
+    void SetFrameRate(uint32_t rate, bool isNeedNotify = true);
 
     void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UpdateNativeVSyncTimePoint();

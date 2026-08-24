@@ -105,12 +105,14 @@ const FrameRateRange& RSRenderFrameRateLinker::GetExpectedRange() const
     return expectedRange_;
 }
 
-void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate)
+void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate, bool isNeedNotify)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (frameRate_ != rate) {
         frameRate_ = rate;
-        Notify();
+        if (isNeedNotify) {
+            Notify();
+        }
     }
 }
 

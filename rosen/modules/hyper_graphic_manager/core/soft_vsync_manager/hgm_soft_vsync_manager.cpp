@@ -185,17 +185,18 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
     Reset();
     bool frameRateChanged = false;
     bool controllerRateChanged = false;
-    auto rsFrameRate = HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, finalRange);
-    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : sharedController->GetCurrentRate();
-    if (controllerRate_ != sharedController->GetCurrentRate()) {
-        rsFrameRateLinker->SetFrameRate(controllerRate_);
-        controllerRateChanged = true;
+    auto rsFrameRate = rsFrameRateLinker->GetFrameRate();
+    controllerRate_ = currRefreshRate > 0 ? currRefreshRate : sharedController->GetCurrentRate();
+    if (controllerRate_ != sharedController->GetCurrentRate() || rsFrameRate_ != rsFrameRate) {
+        controllerRateChanged = controllerRate_ != sharedController->GetCurrentRate();
         frameRateChanged = true;
+        rsChangeData_[RS_FRAME_RATE_LINKER_ID] = rsFrameRate;
+        rsFrameRate_ = rsFrameRate;
     }
 
     RS_TRACE_NAME_FMT("CollectFrameRateChange rsFrameRate: %u, finalRange = (%d, %d, %d)",
         rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
-    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
+    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(currRefreshRate));
 
     appChangeData_.clear();
     for (auto linker : appFrameRateLinkers) {
@@ -360,10 +361,17 @@ std::vector<std::pair<FrameRateLinkerId, uint32_t>> HgmSoftVSyncManager::GetSoft
     return appData;
 }
 
+std::vector<std::pair<FrameRateLinkerId, uint32_t>> HgmSoftVSyncManager::GetSoftRsChangeData()
+{
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsData(rsChangeData_.begin(), rsChangeData_.end());
+    return rsData;
+}
+
 void HgmSoftVSyncManager::Reset()
 {
     controllerRate_ = 0;
     appChangeData_.clear();
+    rsChangeData_.clear();
 }
 
 void HgmSoftVSyncManager::UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap,

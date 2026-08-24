@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+hgm_vsync_generator_controller. */
 
 #ifndef HGM_VSYNC_GENERATOR_CONTROLLER_H
 #define HGM_VSYNC_GENERATOR_CONTROLLER_H
@@ -34,9 +34,10 @@ public:
     static int32_t GetAppOffset(const uint32_t controllerRate);
     uint64_t CalcVSyncQuickTriggerTime(uint64_t lastVSyncTime, uint32_t lastRate);
     int64_t ChangeGeneratorRate(const uint32_t controllerRate,
-                                const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
-                                uint64_t targetTime = 0,
-                                bool isNeedUpdateAppOffset = false);
+        const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
+        const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& rsData,
+        uint64_t targetTime = 0,
+        bool isNeedUpdateAppOffset = false);
     uint32_t GetCurrentRate() const { return currentRate_; }
     int64_t GetCurrentOffset() const { return currentOffset_; }
     int32_t GetPulseNum() const { return pulseNum_; }
