@@ -6443,11 +6443,11 @@ void RSMainThread::AddDisableReason(const std::string& reason)
 {
     // Total trace format: "disable directcomposition, reasons: " + reasons
     // Prefix length: 36 characters
-    // Target total length: <= 400 characters
-    // So reasons max length: 400 - 36 = 364
+    // Target total length: <= 380 characters
+    // So reasons max length: 380 - 36 = 344
     // Reserve space for truncation marker "|...": 4 characters
-    // Actual max for reasons: 364 - 4 = 360
-    const size_t MAX_TRACE_LENGTH = 364;
+    // Actual max for reasons: 344 - 4 = 340
+    const size_t MAX_TRACE_LENGTH = 344;
     const size_t TRUNCATION_MARKER_LENGTH = 4; // "|..."
     
     // Early return if already truncated
