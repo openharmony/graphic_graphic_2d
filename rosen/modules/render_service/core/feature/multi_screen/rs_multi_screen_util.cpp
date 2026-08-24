@@ -683,7 +683,7 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
     auto widthRatio = mirroredScreenProperty.GetRogWidthRatio();
     auto heightRatio = mirroredScreenProperty.GetRogHeightRatio();
     if (mirroredScreenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
-        ROSEN_GE(widthRatio, 0.f) && ROSEN_GE(heightRatio, 0.f)) {
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
         curCanvas->Scale(1.0f / widthRatio, 1.0f / heightRatio);
     }
 
