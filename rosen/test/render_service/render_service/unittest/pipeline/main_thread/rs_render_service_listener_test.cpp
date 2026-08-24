@@ -491,4 +491,145 @@ HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged003, TestSize.Leve
 
     RSTunnelRuntimeStore::Erase(node->GetId());
 }
+
+/**
+ * @tc.name: OnCleanCache002
+ * @tc.desc: Test OnCleanCache when surfaceBufferInterface_ is nullptr, should set PENDING_ON_CLEAN_CACHE_BIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnCleanCache002, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    ASSERT_NE(surfaceHandler->GetBuffer(), nullptr);
+
+    std::weak_ptr<RSSurfaceRenderNode> emptyNode;
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(emptyNode, surfaceHandler, clientComposer);
+    ASSERT_NE(rsListener, nullptr);
+
+    rsListener->pendingCallbackBits_ = 0;
+    uint32_t bufSeqNum = 0;
+    rsListener->OnCleanCache(&bufSeqNum);
+
+    EXPECT_TRUE((rsListener->pendingCallbackBits_ & rsListener->PENDING_ON_CLEAN_CACHE_BIT) != 0);
+    EXPECT_EQ(rsListener->cleanCacheBufSeqNum_, bufSeqNum);
+}
+
+/**
+ * @tc.name: OnCleanCache003
+ * @tc.desc: Test OnCleanCache when surfaceBufferInterface_ is valid, should NOT set PENDING_ON_CLEAN_CACHE_BIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnCleanCache003, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, clientComposer);
+    ASSERT_NE(rsListener, nullptr);
+
+    rsListener->pendingCallbackBits_ = 0;
+    uint32_t bufSeqNum = 0;
+    rsListener->OnCleanCache(&bufSeqNum);
+
+    EXPECT_TRUE((rsListener->pendingCallbackBits_ & rsListener->PENDING_ON_CLEAN_CACHE_BIT) == 0);
+}
+
+/**
+ * @tc.name: ProcessPendingCallbacks003
+ * @tc.desc: Test ProcessPendingCallbacks when curBuffer is nullptr, should early return without calling OnCleanCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, ProcessPendingCallbacks003, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    ASSERT_EQ(surfaceHandler->GetBuffer(), nullptr);
+
+    std::weak_ptr<RSSurfaceRenderNode> emptyNode;
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(emptyNode, surfaceHandler, clientComposer);
+    ASSERT_NE(rsListener, nullptr);
+
+    rsListener->isInterfaceDirty_ = true;
+    rsListener->pendingCallbackBits_ = rsListener->PENDING_ON_CLEAN_CACHE_BIT;
+    rsListener->cleanCacheBufSeqNum_ = 0;
+
+    rsListener->ProcessPendingCallbacks();
+
+    EXPECT_EQ(rsListener->pendingCallbackBits_, 0);
+}
+
+/**
+ * @tc.name: ProcessPendingCallbacks004
+ * @tc.desc: Test ProcessPendingCallbacks when curBuffer SeqNum mismatches, should early return.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, ProcessPendingCallbacks004, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto curBuffer = surfaceHandler->GetBuffer();
+    ASSERT_NE(curBuffer, nullptr);
+
+    std::weak_ptr<RSSurfaceRenderNode> emptyNode;
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(emptyNode, surfaceHandler, clientComposer);
+    ASSERT_NE(rsListener, nullptr);
+
+    constexpr uint32_t mismatchSeqNum = 0xFFFFFFFF;
+    ASSERT_NE(mismatchSeqNum, curBuffer->GetSeqNum());
+
+    rsListener->isInterfaceDirty_ = true;
+    rsListener->pendingCallbackBits_ = rsListener->PENDING_ON_CLEAN_CACHE_BIT;
+    rsListener->cleanCacheBufSeqNum_ = mismatchSeqNum;
+
+    rsListener->ProcessPendingCallbacks();
+
+    EXPECT_EQ(rsListener->pendingCallbackBits_, 0);
+}
+
+/**
+ * @tc.name: ProcessPendingCallbacks005
+ * @tc.desc: Test ProcessPendingCallbacks when curBuffer SeqNum matches, should call OnCleanCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, ProcessPendingCallbacks005, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto curBuffer = surfaceHandler->GetBuffer();
+    ASSERT_NE(curBuffer, nullptr);
+    uint32_t realSeqNum = curBuffer->GetSeqNum();
+
+    std::weak_ptr<RSSurfaceRenderNode> emptyNode;
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(emptyNode, surfaceHandler, clientComposer);
+    ASSERT_NE(rsListener, nullptr);
+
+    rsListener->isInterfaceDirty_ = true;
+    rsListener->pendingCallbackBits_ = rsListener->PENDING_ON_CLEAN_CACHE_BIT;
+    rsListener->cleanCacheBufSeqNum_ = realSeqNum;
+
+    rsListener->ProcessPendingCallbacks();
+
+    EXPECT_TRUE((rsListener->pendingCallbackBits_ & rsListener->PENDING_ON_CLEAN_CACHE_BIT) != 0);
+}
 } // namespace OHOS::Rosen
