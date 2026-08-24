@@ -4175,6 +4175,7 @@ void RSNode::MoveChild(SharedPtr child, int index)
 
 void RSNode::RemoveChild(SharedPtr child)
 {
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     if (child == nullptr || child->parent_.lock().get() != this) {
         ROSEN_LOGI("RSNode::RemoveChild, child is nullptr");
         return;
@@ -4246,6 +4247,10 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, SharedPtr newParent)
     // set the newParentId to rebuild the parent-child relationship.
     if (child == nullptr) {
         ROSEN_LOGI("RSNode::RemoveCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (newParent == nullptr) {
+        ROSEN_LOGE("RSNode::RemoveCrossScreenChild, newParent is nullptr");
         return;
     }
     if (!this->IsInstanceOf<RSDisplayNode>()) {
@@ -4366,6 +4371,7 @@ void RSNode::RemoveFromTree()
 
 void RSNode::ClearChildren()
 {
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     RS_OPTIONAL_TRACE_NAME_FMT("RSNode::ClearChildren id:%" PRIu64 "", GetId());
     for (auto child : children_) {
         auto childPtr = child.lock();

@@ -124,7 +124,7 @@ sptr<IRemoteObject> RSRenderServiceProxy::RegisterRenderProcessConnection()
         return nullptr;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return nullptr;
