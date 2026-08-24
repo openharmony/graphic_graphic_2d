@@ -4010,8 +4010,8 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
         if (lines[i].find(TARGET_STRING) != std::string::npos) {
             foundTargetStr = true;
             int start = std::max(0, i - CONTEXT_LINES);
-            int end = std::min(static_cast<int>(lines.size() - 1), i + CONTEXT_LINES);
-            for (int j = start; j < end; ++j) {
+            int end = std::min(static_cast<int>(lines.size()) - 1, i + CONTEXT_LINES);
+            for (int j = start; j <= end; ++j) {
                 result += lines[j] + "\n";
             }
             break;
@@ -4020,8 +4020,8 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
     if (!foundTargetStr) {
         RS_LOGW("SubHistoryEventQueue No task is being executed");
         // If the TARGET_STRING is not found, dump the information of the first 10 lines.
-        int end = std::min(static_cast<int>(lines.size() - 1) - 1, 9);
-        for (int j = 0; j <= end; ++j) {
+        int end = std::min(static_cast<int>(lines.size()), 10);
+        for (int j = 0; j < end; ++j) {
             result += lines[j] + "\n";
         }
     }
@@ -4066,13 +4066,12 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
     vsyncRsTimestamp_.store(timestamp_);
-    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
     RS_PROFILER_PATCH_TIME(timestamp_);
     RS_PROFILER_PATCH_TIME(curTime_);
-    requestNextVsyncNum_ = 0;
+    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_.exchange(0));
     vsyncId_ = frameCount;
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU

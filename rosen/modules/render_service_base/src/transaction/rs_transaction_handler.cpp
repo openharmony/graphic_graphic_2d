@@ -96,15 +96,16 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
                 "renderThreadClient_ is nullptr)");
         return;
     }
+    if (transactionHandler == nullptr) {
+        RS_LOGE("RSTransactionHandler::MoveCommandByNodeId transactionHandler is nullptr");
+        return;
+    }
 
-    std::unique_lock<std::mutex> cmdLock(mutex_);
+    std::scoped_lock cmdLock(mutex_, transactionHandler->mutex_);
     if (renderPipelineClient_ != nullptr) {
-        // Add a lock to the destination handler to prevent multiple threads from reading and writing commands.
-        std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
     }
     if (renderThreadClient_ != nullptr) {
-        std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
         MoveCommonCommandByNodeId(transactionHandler, nodeId);
     }
 }
@@ -116,8 +117,11 @@ void RSTransactionHandler::MoveCommandByNodeIdExcludeTreeCommands(
         RS_LOGE("RSTransactionHandler::MoveCommandByNodeIdExcludeTreeCommands GetCommand fail");
         return;
     }
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
+    if (transactionHandler == nullptr) {
+        RS_LOGE("RSTransactionHandler::MoveCommandByNodeIdExcludeTreeCommands transactionHandler is nullptr");
+        return;
+    }
+    std::scoped_lock cmdLock(mutex_, transactionHandler->mutex_);
     if (renderPipelineClient_ != nullptr) {
         MoveRemoteCommandByNodeIdExcludeTreeCommands(transactionHandler, nodeId);
     }

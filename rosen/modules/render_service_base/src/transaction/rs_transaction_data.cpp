@@ -122,13 +122,13 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
         }
         if (!command) {
-            parcel.WriteUint8(0);
+            success = success && parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
         } else if (command->indexVerifier_ != marshallingIndex_) {
-            parcel.WriteUint8(0);
+            success = success && parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
-            parcel.WriteUint8(1);
+            success = success && parcel.WriteUint8(1);
             if (Rosen::RSAnimationTraceUtils::GetTestModeEnabled()) {
                 RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
                     command->GetNodeId(), command->PrintType().c_str());

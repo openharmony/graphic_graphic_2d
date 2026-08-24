@@ -318,7 +318,7 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
             auto bufferQueueDataEnd = std::tuple {
                 data.bufferIds.end(), data.isRenderedFlags.end(),
                 data.releaseFences.end(), data.rootNodeIds.end() };
-            static auto runCondition = [rootNodeId](auto iterTuple) {
+            auto runCondition = [rootNodeId](auto iterTuple) {
                 return rootNodeId == *std::get<ROOTNODEIDS_POS>(iterTuple);
             };
             (void) RSSurfaceBufferCallbackMgrUtil::CopyIf(

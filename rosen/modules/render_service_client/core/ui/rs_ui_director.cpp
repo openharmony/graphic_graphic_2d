@@ -120,7 +120,9 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
-        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
+        if (auto fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode()) {
+            fallbackNode->isRenderServiceNode_ = true;
+        }
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);

@@ -86,7 +86,9 @@ ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTra
     };
     if (transactionData->IsNeedSync() && transactionData->IsEmpty()) {
         RS_TRACE_NAME("Commit empty syncTransaction");
-        func();
+        if (!func()) {
+            return ERR_INVALID_VALUE;
+        }
     } else {
         while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
             if (!func()) {

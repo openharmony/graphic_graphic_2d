@@ -41,6 +41,10 @@ std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcessP
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteUint64 tokenMaskId err.");
         return {nullptr, INVALID_TOKEN_MASK_ID};
     }
+    if (!token) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection token is nullptr.");
+        return {nullptr, INVALID_TOKEN_MASK_ID};
+    }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
         return {nullptr, INVALID_TOKEN_MASK_ID};

@@ -2481,7 +2481,8 @@ int32_t RSClientToServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback
         return ERR_INVALID_VALUE;
     }
     if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
-        ipcPersistenceManager->UnregisterByType(RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+        ipcPersistenceManager->UnregisterByTypeAndCallingPid(
+            RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK, remotePid_);
     }
     int32_t result = StatusCode::SUCCESS;
     for (auto conn : serviceToRenderConns) {

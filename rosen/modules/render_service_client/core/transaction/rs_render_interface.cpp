@@ -170,7 +170,7 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback == nullptr!");
         return false;
     }
-    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, specifiedAreaRect, this]() -> void {
+    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, specifiedAreaRect]() -> void {
         ROSEN_LOGD(
             "RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
             "[%{public}" PRIu64 "]", id);
