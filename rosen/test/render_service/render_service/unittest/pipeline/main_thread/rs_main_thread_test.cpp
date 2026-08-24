@@ -8214,7 +8214,7 @@ HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason002, TestSize.Level1
     mainThread->AddDisableReason(
         "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
     std::string result = mainThread->GetDisableReasons();
-    EXPECT_NE(result.find("buffer size transform changed"), std::string::npos);
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
     EXPECT_NE(result.find(nodeInfo), std::string::npos);
     mainThread->ResetDisableReasons();
 }
@@ -8262,7 +8262,7 @@ HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Le
         "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
     mainThread->AddDisableReason("HDR[HDRNode[67890]]");
     std::string result = mainThread->GetDisableReasons();
-    EXPECT_NE(result.find("buffer size transform changed"), std::string::npos);
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
     EXPECT_NE(result.find("HDR"), std::string::npos);
     EXPECT_NE(result.find("SurfaceNode[12345]"), std::string::npos);
     EXPECT_NE(result.find("HDRNode[67890]"), std::string::npos);

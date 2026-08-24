@@ -6483,7 +6483,7 @@ void RSMainThread::ResetDisableReasons()
 
 std::string RSMainThread::GetDisableReasons() const
 {
-    return directCompositionDisableReasons_.empty() ? "none" : directCompositionDisableReasons_;
+    return directCompositionDisableReasons_;
 }
 } // namespace Rosen
 } // namespace OHOS
