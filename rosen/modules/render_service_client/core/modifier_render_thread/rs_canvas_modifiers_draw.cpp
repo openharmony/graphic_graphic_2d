@@ -44,7 +44,6 @@ void RSCanvasModifiersDrawable::Reset()
     height_ = 0;
     forceFlushBuffer_ = false;
     needResetCanvas_ = false;
-    drawingSurface_ = nullptr;
     surfaceFrame_ = nullptr;
     semaphore_ = VK_NULL_HANDLE;
     if (drawCmdListCache_ != nullptr) {

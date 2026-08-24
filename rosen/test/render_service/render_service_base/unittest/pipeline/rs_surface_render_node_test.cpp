@@ -3484,7 +3484,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSingleFrameComposerTest, TestSize.L
 
 /**
  * @tc.name: SurfaceNodeSelfAddedForSubSurfaceTest
- * @tc.desc: Verify isSelfAddedForSubSurface_ flag is correctly set and used
+ * @tc.desc: Verify selfAddForSubSurfaceCnt_ flag is correctly set and used
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3493,12 +3493,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSelfAddedForSubSurfaceTest, TestSiz
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
-    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
-    node->isSelfAddedForSubSurface_ = true;
-    ASSERT_TRUE(node->isSelfAddedForSubSurface_);
+    ASSERT_FALSE(node->selfAddForSubSurfaceCnt_);
+    node->selfAddForSubSurfaceCnt_ = true;
+    ASSERT_TRUE(node->selfAddForSubSurfaceCnt_);
 
-    node->isSelfAddedForSubSurface_ = false;
-    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
+    node->selfAddForSubSurfaceCnt_ = false;
+    ASSERT_FALSE(node->selfAddForSubSurfaceCnt_);
 }
 
 /**

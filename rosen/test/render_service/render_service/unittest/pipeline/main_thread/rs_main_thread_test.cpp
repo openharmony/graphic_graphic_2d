@@ -2240,6 +2240,50 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UniRender005
+ * @tc.desc: UniRender keeps needDrawFrame when pending sync capture tasks disable direct composition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UniRender005, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
+    bool doDirectComposition = mainThread->doDirectComposition_;
+    bool isDirty = mainThread->isDirty_;
+    bool isAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
+    bool isCachedSurfaceUpdated = mainThread->isCachedSurfaceUpdated_;
+    bool isHardwareEnabledBufferUpdated = mainThread->isHardwareEnabledBufferUpdated_;
+    bool needDrawFrame = mainThread->needDrawFrame_;
+    mainThread->doDirectComposition_ = true;
+    mainThread->isDirty_ = false;
+    mainThread->isAccessibilityConfigChanged_ = false;
+    mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    mainThread->pendingSyncWindowCaptureTasks_.emplace_back(1, []() {});
+    mainThread->UniRender(rootNode);
+    EXPECT_TRUE(mainThread->needDrawFrame_);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->doDirectComposition_ = doDirectComposition;
+    mainThread->isDirty_ = isDirty;
+    mainThread->isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    mainThread->isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
+    mainThread->isHardwareEnabledBufferUpdated_ = isHardwareEnabledBufferUpdated;
+    mainThread->needDrawFrame_ = needDrawFrame;
+}
+
+/**
  * @tc.name: UniRender003
  * @tc.desc: UniRender test
  * @tc.type: FUNC
@@ -2494,7 +2538,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp001, TestSize.Le
     consumer->Init();
     int64_t resultValue = 100;
     int64_t desiredPresentTimestamp = resultValue;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
     ASSERT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2516,7 +2561,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp002, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.clear();
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = true;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
     ASSERT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2531,7 +2577,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp003, TestSize.Le
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     int64_t desiredPresentTimestamp = -1;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(nullptr, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(nullptr, desiredPresentTimestamp, pid);
     EXPECT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2554,7 +2601,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp004, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = false;
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 }
 
@@ -2570,6 +2618,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp005, TestSize.Le
     ASSERT_NE(mainThread, nullptr);
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test5");
     consumer->Init();
+    int32_t pid = 12345;
     int64_t desiredPresentTimestamp = 100000000;
     int64_t getDesiredPresentTimestamp = -1;
     uint32_t seqId = 1;
@@ -2580,23 +2629,23 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp005, TestSize.Le
 
     uint64_t vsyncRsTimestamp = mainThread->vsyncRsTimestamp_.load(); // record
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp - 1);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1000000000); // add 1s
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1000000001); // add 1+s
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp); // reset
@@ -2615,7 +2664,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp006, TestSize.Le
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test6");
     consumer->Init();
     int64_t getDesiredPresentTimestamp = -1;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     int64_t desiredPresentTimestamp = -1;
@@ -2624,7 +2674,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp006, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = false;
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 }
 
@@ -2641,6 +2691,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test7");
     consumer->Init();
     uint32_t seqId = 1;
+    int32_t pid = 12345;
     int64_t desiredPresentTimestamp = 999999999; // 0.999ms
     consumer->consumer_->bufferQueue_->dirtyList_.clear();
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
@@ -2650,7 +2701,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     int64_t getDesiredPresentTimestamp = -1;
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp / 2);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 
     desiredPresentTimestamp = 1100000000; // 1.1ms
@@ -3553,6 +3604,30 @@ HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer003, TestSize.Level1)
     mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node5);
     mainThread->CollectInfoForHardwareComposer();
     mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: CollectInfoForHardwareComposer004
+ * @tc.desc: CollectInfoForHardwareComposer disables directComposition when sync window capture pending
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    bool doDirectComposition = mainThread->doDirectComposition_;
+    mainThread->isUniRender_ = true;
+    mainThread->doDirectComposition_ = true;
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    mainThread->pendingSyncWindowCaptureTasks_.emplace_back(1, []() {});
+    mainThread->CollectInfoForHardwareComposer();
+    EXPECT_FALSE(mainThread->doDirectComposition_);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->isUniRender_ = isUniRender;
+    mainThread->doDirectComposition_ = doDirectComposition;
 }
 
 /**
@@ -4936,7 +5011,7 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
@@ -4945,11 +5020,11 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
-    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->PrepareSyncCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
@@ -4971,7 +5046,7 @@ HWTEST_F(RSMainThreadTest, AddUiCaptureTasksTest, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
@@ -4982,11 +5057,11 @@ HWTEST_F(RSMainThreadTest, AddUiCaptureTasksTest, TestSize.Level2)
 
     node1->SetDirty();
     mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->PrepareSyncCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
@@ -5797,7 +5872,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt002, TestSize.Level2)
 
     mainThread->UpdateSubSurfaceCnt();
     // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
-    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
 }
 
 /**
@@ -5832,7 +5907,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
     context->nodeMap.RegisterRenderNode(appNode);
 
     mainThread->UpdateSubSurfaceCnt();
-    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
 }
 
 /**
@@ -6700,8 +6775,8 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostTryReclaimLastBuffer005
- * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.name: CheckUiCaptureNodeTest
+ * @tc.desc: Test CheckUiCaptureNode
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -6713,8 +6788,8 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     auto task = []() {};
     auto node = RSTestUtil::CreateSurfaceNode();
     mainThread->context_->nodeMap.RegisterRenderNode(node);
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     NodeId id = node->GetId();
     bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
@@ -6724,16 +6799,16 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     node->isOnTheTree_ = false;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     // case 2
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
     node->isOnTheTree_ = false;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
 
     // case 3
@@ -6741,18 +6816,125 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     node->isOnTheTree_ = true;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     // case 4
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     node->isOnTheTree_ = true;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: AddSyncWindowCaptureTask001
+ * @tc.desc: Test AddSyncWindowCaptureTask with node not registered / buffer reclaim variants
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSyncWindowCaptureTask001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    while (!mainThread->syncWindowCaptureTasks_.empty()) {
+        mainThread->syncWindowCaptureTasks_.pop();
+    }
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    // case 1: node not registered (nullptr branch)
+    NodeId invalidId = 88888;
+    auto task = []() {};
+    mainThread->AddSyncWindowCaptureTask(invalidId, task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 2: node registered, buffer reclaim disabled, not on tree
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = false;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 3: node registered, buffer reclaim enabled, not on tree -> AddUICaptureNode
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = false;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+    RSBufferReclaim::GetInstance().RemoveUICaptureNode(node->GetId());
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 4: node registered, buffer reclaim enabled, on tree -> not AddUICaptureNode
+    node->isOnTheTree_ = true;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PrepareCaptureQueue001
+ * @tc.desc: Test PrepareCaptureQueue with empty / remain / node dirty / node null branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PrepareCaptureQueue001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<std::tuple<NodeId, std::function<void()>>> pending;
+    std::queue<std::tuple<NodeId, std::function<void()>>> ready;
+
+    // case 1: empty pending -> early return
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_TRUE(ready.empty());
+
+    // case 2: cmd not processed (flag=false) -> remain in pending
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    NodeId id = node->GetId();
+    mainThread->context_->GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
+    pending.emplace_back(id, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_FALSE(pending.empty());
+    EXPECT_TRUE(ready.empty());
+    mainThread->context_->GetSyncCaptureHelper().EraseCaptureCmdsExecutedFlag(id);
+    pending.clear();
+
+    // case 3: cmd processed (default true) + node dirty -> moved to ready
+    node->SetDirty();
+    pending.emplace_back(id, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_EQ(ready.size(), 1u);
+
+    // case 4: node not registered (null) -> moved to ready
+    while (!ready.empty()) {
+        ready.pop();
+    }
+    pending.clear();
+    NodeId invalidId = 77777;
+    pending.emplace_back(invalidId, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_EQ(ready.size(), 1u);
+
+    while (!ready.empty()) {
+        ready.pop();
+    }
+    mainThread->context_->nodeMap.UnregisterRenderNode(id);
 }
 
 /**
@@ -6839,7 +7021,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks002, TestSize.Level1)
     NodeId nodeId = 99999;
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6875,7 +7057,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks003, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6913,7 +7095,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks004, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6950,7 +7132,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks005, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs() - 200;
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs() - 200;
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6996,7 +7178,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks006, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(appNodeId, task, startTime, 0, false);
 
@@ -7033,7 +7215,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -7070,7 +7252,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 

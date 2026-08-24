@@ -457,7 +457,7 @@ void TakeSurfaceCaptureForUiParallel(
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
-        context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
+        context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
         return;
     }
@@ -552,6 +552,30 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RSMainThread::Instance()->SetDirtyFlag();
             RSMainThread::Instance()->RequestNextVSync();
             RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture SetNeedSyncCaptureWindow");
+            return;
+        }
+
+        if (captureConfig.isSync) {
+            RS_LOGD("RSRenderPipelineAgent::TakeSurfaceCapture isSync branch, "
+                "id:%{public}" PRIu64 ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                id, selfCapture, isSystemCalling);
+            auto& context = RSMainThread::Instance()->GetContext();
+            context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
+            std::function<void()> syncWindowCaptureTask =
+                [id, callback, captureConfig, blurParam, isSystemCalling, selfCapture]() {
+                    RS_LOGI("syncWindowCaptureTask execute, id:%{public}" PRIu64
+                        ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                        id, selfCapture, isSystemCalling);
+                    RSSurfaceCaptureParam captureParam;
+                    captureParam.id = id;
+                    captureParam.config = captureConfig;
+                    captureParam.isSystemCalling = isSystemCalling;
+                    captureParam.isSelfCapture = selfCapture;
+                    captureParam.blurParam = blurParam;
+                    RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+            RSMainThread::Instance()->AddSyncWindowCaptureTask(id, syncWindowCaptureTask);
             return;
         }
 
@@ -1188,7 +1212,7 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
             }
         }
     };
-    pipeline->PostUniRenderThreadTask(getPixelMapTask);
+    pipeline->PostMainThreadTask(getPixelMapTask);
 #endif
     success = future.get();
     return ERR_OK;
@@ -1409,6 +1433,34 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
 #endif
     sptr<IBufferProducer> producer = surface->GetProducer();
     sfc = Surface::CreateSurfaceAsProducer(producer);
+    return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized,
+    bool enforceQuota)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    // the node map authorization interfaces are mutex-protected and safe to call on IPC threads
+    auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+    if (authorized && pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
+        // insert the entry only into render processes the guest has connected to: entries in
+        // other render processes would linger uncleaned if the guest dies without ever
+        // connecting there; the host must authorize after the guest establishes its connection
+        RS_LOGI("RSRenderPipelineAgent::AuthorizeUIExtensionPid skipped, guest pid %{public}d has no"
+            " client-to-render connection in this process", static_cast<int32_t>(guestPid));
+        return ERR_OK;
+    }
+    bool success = authorized ? nodeMap.AuthorizeUIExtensionPid(nodeId, guestPid, enforceQuota) :
+                                nodeMap.RevokeUIExtensionPid(nodeId, guestPid);
+    if (!success) {
+        RS_LOGW("RSRenderPipelineAgent::AuthorizeUIExtensionPid failed, nodeId:%{public}" PRIu64
+                " guestPid:%{public}d authorized:%{public}d",
+            nodeId, static_cast<int32_t>(guestPid), authorized);
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 

@@ -597,6 +597,10 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     BufferDrawParam params;
 
     auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!useRenderParams && surfaceHandler == nullptr) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam surfaceHandler is nullptr");
+        return params;
+    }
     const RSProperties& property = node.GetRenderProperties();
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable;
     RSSurfaceRenderParams* surfaceParams = nullptr;
@@ -627,11 +631,6 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
     if (surfaceParams != nullptr) {
         params.splitLayerTag = surfaceParams->GetSplitLayerTag();
-    }
-
-    if (!useRenderParams && surfaceHandler == nullptr) {
-        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam surfaceHandler is nullptr");
-        return params;
     }
 
     const sptr<SurfaceBuffer> buffer = useRenderParams ? surfaceParams->GetBuffer() : surfaceHandler->GetBuffer();
@@ -1792,11 +1791,11 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
     offscreenCanvas->DrawImage(*originSurfaceImage, 0.f, 0.f, Drawing::SamplingOptions());
     offscreenCanvas->DetachBrush();
 
-    if (offscreenCanvas->GetSurface() == nullptr) {
+    if (UNLIKELY(offscreenCanvas->GetSurface() == nullptr)) {
         return;
     }
     auto offscreenImage = offscreenCanvas->GetSurface()->GetImageSnapshot();
-    if (offscreenImage == nullptr) {
+    if (UNLIKELY(offscreenImage == nullptr)) {
         return;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);

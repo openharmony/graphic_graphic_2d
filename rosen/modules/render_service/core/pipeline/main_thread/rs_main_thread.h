@@ -234,7 +234,8 @@ public:
     void ReleaseImageMem();
 
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
-    void ProcessUiCaptureTasks();
+    void AddSyncWindowCaptureTask(NodeId id, std::function<void()> task);
+    void ProcessSyncCaptureTasks();
 
     void AddWindowCapTask(NodeId id, std::function<void()> task);
     void CheckWindowCapTasks();
@@ -472,7 +473,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void SetBufferInfo(const BufferInfo& bufferInfo);
     void GetFrontBufferDesiredPresentTimeStamp(
-        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
+        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp, pid_t pid);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
@@ -638,7 +639,10 @@ private:
     void UpdateLuminanceAndColorTemp();
     void UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
 
-    void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareSyncCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareCaptureQueue(
+        std::vector<std::tuple<NodeId, std::function<void()>>>& pending,
+        std::queue<std::tuple<NodeId, std::function<void()>>>& ready);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
     void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
@@ -894,10 +898,13 @@ private:
     // used for watermark
     std::mutex watermarkMutex_;
 
-    // for ui captures
+    // for ui captures (UICAPTURE type, isSync)
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
-    // for window captures
+    // for sync window captures (DEFAULT_CAPTURE type, isSync)
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSyncWindowCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> syncWindowCaptureTasks_;
+    // for window captures waiting cache
     std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension

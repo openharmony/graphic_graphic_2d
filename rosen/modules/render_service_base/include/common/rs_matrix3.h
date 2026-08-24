@@ -62,6 +62,8 @@ public:
     bool operator==(const Matrix3& other) const;
     bool operator!=(const Matrix3& other) const;
     bool IsNearEqual(const Matrix3& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsAbsNearEqual(const Matrix3& target, const Matrix3& threshold) const;
+    void TakeAbsMaxFrom(const Matrix3& target);
     T* GetData();
     const T* GetConstData() const;
     T Determinant() const;
@@ -407,6 +409,36 @@ bool Matrix3<T>::IsNearEqual(const Matrix3& other, T threshold) const
     auto result = std::equal(data_, data_ + 9, otherData,
         [&threshold](const T& left, const T& right) { return ROSEN_EQ<T>(left, right, threshold); });
     return result;
+}
+
+template<typename T>
+bool Matrix3<T>::IsAbsNearEqual(const Matrix3& target, const Matrix3& threshold) const { return false; }
+
+template<>
+inline bool Matrix3<float>::IsAbsNearEqual(const Matrix3<float>& target, const Matrix3<float>& threshold) const
+{
+    const float* targetData = target.data_;
+    const float* thresholdData = threshold.data_;
+    for (int i = 0; i < MATRIX3_SIZE; i++) {
+        if (fabs(data_[i] - targetData[i]) > fabs(thresholdData[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+void Matrix3<T>::TakeAbsMaxFrom(const Matrix3& target) {}
+
+template<>
+inline void Matrix3<float>::TakeAbsMaxFrom(const Matrix3<float>& target)
+{
+    const float* targetData = target.data_;
+    for (int i = 0; i < MATRIX3_SIZE; i++) {
+        if (fabs(data_[i]) < fabs(targetData[i])) {
+            data_[i] = targetData[i];
+        }
+    }
 }
 
 template<typename T>

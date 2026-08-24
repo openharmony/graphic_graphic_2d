@@ -2215,7 +2215,6 @@ private:
     bool hasSurfaceBuffer_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
-    bool isSelfAddedForSubSurface_ = false;
     bool isNodeSingleFrameComposer_ = false;
     mutable std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_;
     bool isNodeToBeCaptured_ = false;

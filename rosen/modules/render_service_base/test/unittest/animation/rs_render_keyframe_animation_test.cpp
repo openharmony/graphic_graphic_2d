@@ -52,9 +52,10 @@ public:
         : RSRenderKeyframeAnimation(id, propertyId, originValue)
     {}
     ~RSRenderKeyframeAnimationMock() {}
-    void OnAnimate(float fraction)
+    bool OnAnimate(float fraction)
     {
         RSRenderKeyframeAnimation::OnAnimate(fraction);
+        return false;
     }
 };
 

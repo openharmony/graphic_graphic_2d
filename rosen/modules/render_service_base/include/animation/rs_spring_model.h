@@ -37,8 +37,9 @@ constexpr float SPRING_MAX_DURATION = 300.0f;
 constexpr float SPRING_MIN_RESPONSE = 1e-8;
 constexpr float SPRING_MIN_AMPLITUDE_RATIO = 1e-3f;
 constexpr float SPRING_MIN_AMPLITUDE = 1e-5f;
+constexpr float SPRING_TRAIL_END_THRESHOLD = 0.0002f;
+constexpr float SPRING_DAMPING_RATIO_EPSILON = 1e-6f;
 constexpr float FLOAT_PI = 3.14159265f;
-
 
 } // namespace
 
@@ -95,8 +96,10 @@ inline std::vector<float> operator/(const std::vector<float> &first, float scale
 }
 
 struct ConvergeParams {
-    float convergeResponseFactor_ { 0.0f };
+    // Determine when to start converging.
     float convergeProgressThreshold_ { 0.0f };
+    // In convergence mode, each frame is multiplied by the response to accelerate the convergence of the spring.
+    float convergeResponseFactor_ { 0.0f };
 };
 
 // RSAnimatableType should have following operators: + - *float ==
@@ -134,6 +137,11 @@ public:
             double coeffDecayAlt = exp(coeffDecayAlt_ * time);
             return coeffScale_ * coeffDecay + coeffScaleAlt_ * coeffDecayAlt;
         }
+    }
+
+    RSAnimatableType GetFrameThreshold(double time) const
+    {
+        return CalculateDisplacement(time);
     }
 
     float EstimateDuration() const
@@ -183,6 +191,12 @@ public:
         return std::clamp(estimatedDuration, SPRING_MIN_DURATION, SPRING_MAX_DURATION);
     }
 
+    // Determine whether the direction of velocity will change.
+    bool WillOverShoot() const
+    {
+        return WillOvershootInner(response_, dampingRatio_, initialOffset_, initialVelocity_);
+    }
+
 protected:
     void CalculateSpringParameters()
     {
@@ -228,6 +242,7 @@ protected:
     float dampingRatio_ { 0.0f };
     RSAnimatableType initialOffset_ {};
     RSAnimatableType initialVelocity_ {};
+    float coeffDecay_ { 0.0f };
 
     // estimated duration until the spring is at rest
     float minimumAmplitudeRatio_ { SPRING_MIN_AMPLITUDE_RATIO };
@@ -250,12 +265,22 @@ private:
         return 0.0f;
     }
 
+    static bool WillOvershootInner(float response, float dampingRatio, const RSAnimatableType& initialOffset,
+        const RSAnimatableType& initialVelocity)
+    {
+        return false;
+    }
+
+    static inline RSAnimatableType Sqrt(RSAnimatableType value)
+    {
+        return {};
+    }
+
     static inline float toFloat(RSAnimatableType value)
     {
         return 1.0f;
     }
     // calculated intermediate coefficient
-    float coeffDecay_ { 0.0f };
     RSAnimatableType coeffScale_ {};
     float dampedAngularVelocity_ { 0.0f };
     RSAnimatableType coeffScaleAlt_ {};
@@ -278,6 +303,72 @@ template<>
 float RSSpringModel<float>::EstimateDurationForCriticalDampedModel() const;
 template<>
 float RSSpringModel<float>::EstimateDurationForOverDampedModel() const;
+
+template<>
+bool RSSpringModel<float>::WillOvershootInner(
+    float response, float dampingRatio, const float& initialOffset, const float& initialVelocity);
+template<>
+bool RSSpringModel<Vector2f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector2f& initialOffset, const Vector2f& initialVelocity);
+template<>
+bool RSSpringModel<Vector3f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector3f& initialOffset, const Vector3f& initialVelocity);
+template<>
+bool RSSpringModel<Vector4f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector4f& initialOffset, const Vector4f& initialVelocity);
+template<>
+bool RSSpringModel<Quaternion>::WillOvershootInner(
+    float response, float dampingRatio, const Quaternion& initialOffset, const Quaternion& initialVelocity);
+template<>
+bool RSSpringModel<Matrix3f>::WillOvershootInner(
+    float response, float dampingRatio, const Matrix3f& initialOffset, const Matrix3f& initialVelocity);
+template<>
+bool RSSpringModel<Color>::WillOvershootInner(
+    float response, float dampingRatio, const Color& initialOffset, const Color& initialVelocity);
+template<>
+bool RSSpringModel<Vector4<Color>>::WillOvershootInner(
+    float response, float dampingRatio, const Vector4<Color>& initialOffset, const Vector4<Color>& initialVelocity);
+template<>
+bool RSSpringModel<RRect>::WillOvershootInner(
+    float response, float dampingRatio, const RRect& initialOffset, const RRect& initialVelocity);
+
+template<>
+float RSSpringModel<float>::Sqrt(float value);
+template<>
+Vector2f RSSpringModel<Vector2f>::Sqrt(Vector2f value);
+template<>
+Vector3f RSSpringModel<Vector3f>::Sqrt(Vector3f value);
+template<>
+Vector4f RSSpringModel<Vector4f>::Sqrt(Vector4f value);
+template<>
+Quaternion RSSpringModel<Quaternion>::Sqrt(Quaternion value);
+template<>
+Matrix3f RSSpringModel<Matrix3f>::Sqrt(Matrix3f value);
+template<>
+Color RSSpringModel<Color>::Sqrt(Color value);
+template<>
+Vector4<Color> RSSpringModel<Vector4<Color>>::Sqrt(Vector4<Color> value);
+template<>
+RRect RSSpringModel<RRect>::Sqrt(RRect value);
+
+template<>
+float RSSpringModel<float>::GetFrameThreshold(double time) const;
+template<>
+Vector2f RSSpringModel<Vector2f>::GetFrameThreshold(double time) const;
+template<>
+Vector3f RSSpringModel<Vector3f>::GetFrameThreshold(double time) const;
+template<>
+Vector4f RSSpringModel<Vector4f>::GetFrameThreshold(double time) const;
+template<>
+Quaternion RSSpringModel<Quaternion>::GetFrameThreshold(double time) const;
+template<>
+Matrix3f RSSpringModel<Matrix3f>::GetFrameThreshold(double time) const;
+template<>
+Color RSSpringModel<Color>::GetFrameThreshold(double time) const;
+template<>
+Vector4<Color> RSSpringModel<Vector4<Color>>::GetFrameThreshold(double time) const;
+template<>
+RRect RSSpringModel<RRect>::GetFrameThreshold(double time) const;
 
 template<>
 void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParameters();

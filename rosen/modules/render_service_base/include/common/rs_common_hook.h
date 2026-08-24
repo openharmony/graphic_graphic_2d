@@ -78,11 +78,6 @@ public:
         const std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams>& imageEnhanceAlgoParams);
     RSImageDetailEnhanceAlgoParams GetImageEnhanceAlgoParams(const std::string& key) const;
     bool IsImageEnhanceParamsValid();
-
-    // LayerPartRender white list
-    void SetLayerPartRenderWhiteList(const std::unordered_set<std::string>& whiteList);
-    bool IsInLayerPartRenderWhiteList(const std::string& bundleName) const;
-
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
@@ -113,9 +108,6 @@ private:
     std::unordered_set<pid_t> imageEnhancePidList_{};
     RSImageDetailEnhanceParams imageEnhanceParams_{};
     std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams> imageEnhanceAlgoParams_{};
-
-    // LayerPartRender white list
-    std::unordered_set<std::string> layerPartRenderWhiteList_{};
 };
 } // namespace OHOS::Rosen
 #endif

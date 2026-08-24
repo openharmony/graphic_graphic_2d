@@ -53,6 +53,7 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "info_collection/rs_hdr_collection.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
@@ -2305,6 +2306,44 @@ int32_t RSClientToServiceConnection::RegisterUIExtensionCallback(uint64_t userId
     return ret;
 }
 
+int32_t RSClientToServiceConnection::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
+{
+    pid_t callingPid = GetCallingPid();
+    if (callingPid <= 0) {
+        // asynchronous binder calls may report callingPid == 0; fall back to the connection-level
+        // trusted identity established when this connection was created
+        callingPid = remotePid_;
+    }
+    // only the owner (host) process of the NodeId may authorize or revoke a guest pid
+    if (ExtractPid(nodeId) != callingPid) {
+        RS_LOGW("RSClientToServiceConnection::AuthorizeUIExtensionPid denied, nodeId[%{public}" PRIu64
+                "] callingPid[%{public}d]",
+            nodeId, static_cast<int32_t>(callingPid));
+        return ERR_INVALID_DATA;
+    }
+    // per-host quota applies to non-system apps; if the caller identity cannot be determined
+    // (e.g. asynchronous call with invalid token), conservatively enforce the quota
+    bool isTokenTypeValid = true;
+    bool isNonSystemAppCalling = false;
+    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    bool enforceQuota = !isTokenTypeValid || isNonSystemAppCalling;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    int32_t ret = ERR_OK;
+    for (auto conn : serviceToRenderConns) {
+        int32_t retTmp = conn->AuthorizeUIExtensionPid(remotePid_, nodeId, guestPid, authorized, enforceQuota);
+        ret = (ret != ERR_OK) ? ret : retTmp;
+    }
+    return ret;
+}
+
 ErrCode RSClientToServiceConnection::SetVirtualScreenStatus(ScreenId id,
     VirtualScreenStatus screenStatus, bool& res)
 {
@@ -2592,6 +2631,7 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
         if (resultPid.ec == std::errc() && pid > 0) {
             DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+            HgmEnergyConsumptionPolicy::Instance().NotifyVideoParams(videoRateInfo);
         }
     }
 #endif

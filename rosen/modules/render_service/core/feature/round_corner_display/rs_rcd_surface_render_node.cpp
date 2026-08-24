@@ -16,12 +16,14 @@
 #include "rs_rcd_surface_render_node.h"
 #include <fstream>
 #include "common/rs_singleton.h"
+#include "feature/round_corner_display/rs_rcd_bitmap_utils.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "render/rs_pixel_map_util.h"
 #include "rs_round_corner_display_manager.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_trace.h"
 #include "v2_3/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
@@ -160,7 +162,8 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
     return config;
 }
 
-bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo)
+bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
+    Drawing::Bitmap& layerBitmap)
 {
     RS_LOGD("RCD: Start PrepareHardwareResourceBuffer");
 
@@ -178,7 +181,16 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
         RS_LOGE("layerInfo->curBitmap is nullptr");
         return false;
     }
-    layerBitmap = *(layerInfo->curBitmap);
+    if (layerInfo->curBitmap->GetColorType() == Drawing::ColorType::COLORTYPE_ALPHA_8) {
+        // alpha8 bitmap cannot be used directly by hardware resource buffer, convert to rgba8888
+        if (!RCDBitmapUtils::ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
+            RS_LOGE("RCD: convert alpha8 bitmap to rgba8888 bitmap failed");
+            return false;
+        }
+        RS_LOGD("RCD: convert alpha8 bitmap to rgba8888 bitmap success");
+    } else {
+        layerBitmap = *(layerInfo->curBitmap);
+    }
     uint32_t bitmapHeight = static_cast<uint32_t>(layerBitmap.GetHeight());
     uint32_t bitmapWidth = static_cast<uint32_t>(layerBitmap.GetWidth());
     if (bitmapHeight <= 0 || bitmapWidth <= 0 || displayRect_.GetHeight() <= 0) {
@@ -205,13 +217,14 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
 RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
 {
-    if (src.GetPixels() == nullptr || (src.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
-        src.GetColorType() != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
+    auto srcType = src.GetColorType();
+    if (src.GetPixels() == nullptr || (srcType != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
+        srcType != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
         return nullptr;
     }
     Media::InitializationOptions opts;
-    opts.pixelFormat = src.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
+    opts.pixelFormat = srcType == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
         Media::PixelFormat::BGRA_8888;
     opts.size.width = src.GetWidth();
     opts.size.height = src.GetHeight();
@@ -231,7 +244,7 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
     return pixelMap;
 }
 
-bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
+bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer(const Drawing::Bitmap& layerBitmap)
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer");
     if (layerBitmap.IsValid()) {
@@ -343,7 +356,7 @@ bool RSRcdSurfaceRenderNode::SetRCDMetaData() const
     return true;
 }
 
-void RSRcdSurfaceRenderNode::PrintRcdNodeInfo()
+void RSRcdSurfaceRenderNode::PrintRcdNodeInfo(const Drawing::Bitmap& layerBitmap)
 {
     std::string surfaceName = (IsTopSurface() ? "RCDTopSurfaceNode" : "RCDBottomSurfaceNode")  +
         std::to_string(renerTargetId_);

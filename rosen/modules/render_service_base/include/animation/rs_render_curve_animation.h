@@ -46,7 +46,7 @@ protected:
 
     void UpdateFractionAfterContinue() override;
 
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
 
     void RebuildPropertyValue(float fraction) override;
 

@@ -154,6 +154,7 @@ void HgmRenderContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> ser
         hgmRPEnergy_->HgmConfigUpdateCallback(serviceToProcessInfo->rpHgmConfigData);
     }
     hgmRPEnergy_->SetTouchState(serviceToProcessInfo->isPowerIdle);
+    hgmRPEnergy_->SetVideoCallPid(serviceToProcessInfo->videoCallPid);
 }
 
 void HgmRenderContext::UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,

@@ -1760,4 +1760,753 @@ HWTEST_F(RSRenderPropertyTest, CastToAnimatablePropertyOfTypeMatch001, TestSize.
     auto mismatched = prop->CastToAnimatablePropertyOf<Vector4f>(__func__);
     EXPECT_EQ(mismatched, nullptr);
 }
+
+/**
+ * @tc.name: IsAbsNearEqualFloat001
+ * @tc.desc: Test IsAbsNearEqual for float type with valid target and threshold
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualFloat001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property(10.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<float>>(12.0f);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    // |10 - 12| = 2 <= |5| -> true
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    // |10 - 12| = 2 > |1| -> false
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // exact match
+    auto sameTarget = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    auto zeroThreshold = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    EXPECT_TRUE(property.IsAbsNearEqual(sameTarget, zeroThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualFloat002
+ * @tc.desc: Test IsAbsNearEqual for float with nullptr target/threshold
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualFloat002, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property(10.0f);
+    auto validThreshold = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    // nullptr target -> false
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, validThreshold));
+
+    // nullptr threshold -> false
+    auto validTarget = std::make_shared<RSRenderAnimatableProperty<float>>(12.0f);
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(validTarget, nullThreshold));
+
+    // both nullptr -> false
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualVector2f001
+ * @tc.desc: Test IsAbsNearEqual for Vector2f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualVector2f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector2f> property(Vector2f(10.0f, 20.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(12.0f, 18.0f));
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(5.0f, 5.0f));
+    // |10-12|=2 <= 5, |20-18|=2 <= 5 -> true
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.0f, 1.0f));
+    // |10-12|=2 > 1 -> false
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualVector3f001
+ * @tc.desc: Test IsAbsNearEqual for Vector3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualVector3f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector3f> property(Vector3f(10.0f, 20.0f, 30.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(12.0f, 18.0f, 33.0f));
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(5.0f, 5.0f, 5.0f));
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(1.0f, 1.0f, 1.0f));
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualVector4f001
+ * @tc.desc: Test IsAbsNearEqual for Vector4f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualVector4f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector4f> property(Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(12.0f, 18.0f, 33.0f, 38.0f));
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(5.0f, 5.0f, 5.0f, 5.0f));
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualQuaternion001
+ * @tc.desc: Test IsAbsNearEqual for Quaternion type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualQuaternion001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Quaternion> property(Quaternion(10.0f, 20.0f, 30.0f, 40.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(12.0f, 18.0f, 33.0f, 38.0f));
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(5.0f, 5.0f, 5.0f, 5.0f));
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(1.0f, 1.0f, 1.0f, 1.0f));
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualMatrix3f001
+ * @tc.desc: Test IsAbsNearEqual for Matrix3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualMatrix3f001, TestSize.Level1)
+{
+    Matrix3f propVal(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f, 90.0f);
+    RSRenderAnimatableProperty<Matrix3f> property(propVal);
+    Matrix3f tgtVal(12.0f, 18.0f, 33.0f, 38.0f, 48.0f, 58.0f, 68.0f, 78.0f, 88.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(tgtVal);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(
+        Matrix3f(5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f));
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(
+        Matrix3f(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualColor001
+ * @tc.desc: Test IsAbsNearEqual for Color type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualColor001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Color> property(Color(100, 100, 100, 100));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(105, 95, 110, 90));
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(10, 10, 10, 10));
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(2, 2, 2, 2));
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualColor002
+ * @tc.desc: Test IsAbsNearEqual for Color with BT2020 cross-color-space conversion path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualColor002, TestSize.Level1)
+{
+    // BT2020 vs SRGB: different colorspace triggers BT2020 conversion in RSColor::IsAbsNearEqual
+    Color bt2020Color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSRenderAnimatableProperty<Color> property(bt2020Color);
+    Color srgbColor(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto target = std::make_shared<RSRenderAnimatableProperty<Color>>(srgbColor);
+    // large threshold -> close after conversion -> true
+    Color thrColor(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Color>>(thrColor);
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    // zero threshold -> not exactly equal after conversion -> false
+    Color zeroThr(0.0f, 0.0f, 0.0f, 0.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    auto zeroThreshold = std::make_shared<RSRenderAnimatableProperty<Color>>(zeroThr);
+    EXPECT_FALSE(property.IsAbsNearEqual(target, zeroThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualVector4Color001
+ * @tc.desc: Test IsAbsNearEqual for Vector4<Color> type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualVector4Color001, TestSize.Level1)
+{
+    Color baseColor(100, 100, 100, 100);
+    Vector4<Color> val(baseColor, baseColor, baseColor, baseColor);
+    RSRenderAnimatableProperty<Vector4<Color>> property(val);
+    Color tgtColor(105, 95, 110, 90);
+    Vector4<Color> tgtVal(tgtColor, tgtColor, tgtColor, tgtColor);
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(tgtVal);
+    Color thrColor(10, 10, 10, 10);
+    Vector4<Color> thrVal(thrColor, thrColor, thrColor, thrColor);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(thrVal);
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    Color smallThrColor(2, 2, 2, 2);
+    Vector4<Color> smallThrVal(smallThrColor, smallThrColor, smallThrColor, smallThrColor);
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(smallThrVal);
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualVector4Color002
+ * @tc.desc: Test IsAbsNearEqual for Vector4<Color> with BT2020 cross-color-space path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualVector4Color002, TestSize.Level1)
+{
+    Color bt2020Color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    Vector4<Color> bt2020Val(bt2020Color, bt2020Color, bt2020Color, bt2020Color);
+    RSRenderAnimatableProperty<Vector4<Color>> property(bt2020Val);
+    Color srgbColor(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    Vector4<Color> srgbVal(srgbColor, srgbColor, srgbColor, srgbColor);
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(srgbVal);
+    Color thrColor(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    Vector4<Color> thrVal(thrColor, thrColor, thrColor, thrColor);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(thrVal);
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    Color zeroThr(0.0f, 0.0f, 0.0f, 0.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    Vector4<Color> zeroVal(zeroThr, zeroThr, zeroThr, zeroThr);
+    auto zeroThreshold = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(zeroVal);
+    EXPECT_FALSE(property.IsAbsNearEqual(target, zeroThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualRRect001
+ * @tc.desc: Test IsAbsNearEqual for RRect type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsAbsNearEqualRRect001, TestSize.Level1)
+{
+    RectF rect1;
+    rect1.SetAll(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect rrect1(rect1, 5.0f, 5.0f);
+    RSRenderAnimatableProperty<RRect> property(rrect1);
+    RectF rect2;
+    rect2.SetAll(12.0f, 18.0f, 33.0f, 38.0f);
+    RRect rrect2(rect2, 7.0f, 3.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect2);
+    RectF rect3;
+    rect3.SetAll(5.0f, 5.0f, 5.0f, 5.0f);
+    RRect rrect3(rect3, 5.0f, 5.0f);
+    auto threshold = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect3);
+    EXPECT_TRUE(property.IsAbsNearEqual(target, threshold));
+
+    RectF rect4;
+    rect4.SetAll(1.0f, 1.0f, 1.0f, 1.0f);
+    RRect rrect4(rect4, 1.0f, 1.0f);
+    auto smallThreshold = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect4);
+    EXPECT_FALSE(property.IsAbsNearEqual(target, smallThreshold));
+
+    // nullptr target
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(nullTarget, threshold));
+
+    // nullptr threshold
+    const std::shared_ptr<RSRenderPropertyBase> nullThreshold = nullptr;
+    EXPECT_FALSE(property.IsAbsNearEqual(target, nullThreshold));
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromFloat001
+ * @tc.desc: Test TakeAbsMaxFrom for float type with larger target
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromFloat001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property(10.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<float>>(50.0f);
+    property.TakeAbsMaxFrom(target);
+    // |10| < |50| -> takes 50
+    EXPECT_EQ(property.Get(), 50.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromFloat002
+ * @tc.desc: Test TakeAbsMaxFrom for float with smaller target (no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromFloat002, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property(100.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    property.TakeAbsMaxFrom(target);
+    // |100| > |10| -> stays 100
+    EXPECT_EQ(property.Get(), 100.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromFloat003
+ * @tc.desc: Test TakeAbsMaxFrom for float with nullptr target
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromFloat003, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<float> property(10.0f);
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    property.TakeAbsMaxFrom(nullTarget);
+    // nullptr -> no change
+    EXPECT_EQ(property.Get(), 10.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromVector2f001
+ * @tc.desc: Test TakeAbsMaxFrom for Vector2f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromVector2f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector2f> property(Vector2f(10.0f, 20.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(50.0f, 5.0f));
+    property.TakeAbsMaxFrom(target);
+    // x: |10| < |50| -> 50; y: |20| > |5| -> stays 20
+    EXPECT_FLOAT_EQ(property.Get().x_, 50.0f);
+    EXPECT_FLOAT_EQ(property.Get().y_, 20.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromVector3f001
+ * @tc.desc: Test TakeAbsMaxFrom for Vector3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromVector3f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector3f> property(Vector3f(10.0f, 20.0f, 30.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(50.0f, 5.0f, 60.0f));
+    property.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(property.Get().x_, 50.0f);
+    EXPECT_FLOAT_EQ(property.Get().y_, 20.0f);
+    EXPECT_FLOAT_EQ(property.Get().z_, 60.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromVector4f001
+ * @tc.desc: Test TakeAbsMaxFrom for Vector4f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromVector4f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector4f> property(Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(50.0f, 5.0f, 60.0f, 3.0f));
+    property.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(property.Get().x_, 50.0f);
+    EXPECT_FLOAT_EQ(property.Get().y_, 20.0f);
+    EXPECT_FLOAT_EQ(property.Get().z_, 60.0f);
+    EXPECT_FLOAT_EQ(property.Get().w_, 40.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromQuaternion001
+ * @tc.desc: Test TakeAbsMaxFrom for Quaternion type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromQuaternion001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Quaternion> property(Quaternion(10.0f, 20.0f, 30.0f, 40.0f));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(50.0f, 5.0f, 60.0f, 3.0f));
+    property.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(property.Get().x_, 50.0f);
+    EXPECT_FLOAT_EQ(property.Get().y_, 20.0f);
+    EXPECT_FLOAT_EQ(property.Get().z_, 60.0f);
+    EXPECT_FLOAT_EQ(property.Get().w_, 40.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromMatrix3f001
+ * @tc.desc: Test TakeAbsMaxFrom for Matrix3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromMatrix3f001, TestSize.Level1)
+{
+    Matrix3f propVal(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f, 90.0f);
+    RSRenderAnimatableProperty<Matrix3f> property(propVal);
+    auto target = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(
+        Matrix3f(100.0f, 5.0f, 110.0f, 5.0f, 120.0f, 5.0f, 130.0f, 5.0f, 140.0f));
+    property.TakeAbsMaxFrom(target);
+    const float* data = property.Get().GetConstData();
+    EXPECT_FLOAT_EQ(data[0], 100.0f);
+    EXPECT_FLOAT_EQ(data[1], 20.0f);
+    EXPECT_FLOAT_EQ(data[2], 110.0f);
+    EXPECT_FLOAT_EQ(data[3], 40.0f);
+    EXPECT_FLOAT_EQ(data[4], 120.0f);
+    EXPECT_FLOAT_EQ(data[5], 60.0f);
+    EXPECT_FLOAT_EQ(data[6], 130.0f);
+    EXPECT_FLOAT_EQ(data[7], 80.0f);
+    EXPECT_FLOAT_EQ(data[8], 140.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromColor001
+ * @tc.desc: Test TakeAbsMaxFrom for Color type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromColor001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Color> property(Color(10, 20, 30, 40));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(50, 5, 60, 3));
+    property.TakeAbsMaxFrom(target);
+    EXPECT_EQ(property.Get().GetRed(), 50);
+    EXPECT_EQ(property.Get().GetGreen(), 20);
+    EXPECT_EQ(property.Get().GetBlue(), 60);
+    EXPECT_EQ(property.Get().GetAlpha(), 40);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromVector4Color001
+ * @tc.desc: Test TakeAbsMaxFrom for Vector4<Color> type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromVector4Color001, TestSize.Level1)
+{
+    Vector4<Color> val(Color(10, 20, 30, 40), Color(10, 20, 30, 40), Color(10, 20, 30, 40), Color(10, 20, 30, 40));
+    RSRenderAnimatableProperty<Vector4<Color>> property(val);
+    Vector4<Color> tgtVal(Color(50, 5, 60, 3), Color(50, 5, 60, 3), Color(50, 5, 60, 3), Color(50, 5, 60, 3));
+    auto target = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(tgtVal);
+    property.TakeAbsMaxFrom(target);
+    for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; i++) {
+        EXPECT_EQ(property.Get().data_[i].GetRed(), 50);
+        EXPECT_EQ(property.Get().data_[i].GetGreen(), 20);
+        EXPECT_EQ(property.Get().data_[i].GetBlue(), 60);
+        EXPECT_EQ(property.Get().data_[i].GetAlpha(), 40);
+    }
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromRRect001
+ * @tc.desc: Test TakeAbsMaxFrom for RRect type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromRRect001, TestSize.Level1)
+{
+    RectF rect1;
+    rect1.SetAll(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect rrect1(rect1, 5.0f, 10.0f);
+    RSRenderAnimatableProperty<RRect> property(rrect1);
+    RectF rect2;
+    rect2.SetAll(100.0f, 5.0f, 110.0f, 3.0f);
+    RRect rrect2(rect2, 50.0f, 3.0f);
+    auto target = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect2);
+    property.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(property.Get().rect_.GetLeft(), 100.0f);
+    EXPECT_FLOAT_EQ(property.Get().rect_.GetTop(), 20.0f);
+    EXPECT_FLOAT_EQ(property.Get().rect_.GetWidth(), 110.0f);
+    EXPECT_FLOAT_EQ(property.Get().rect_.GetHeight(), 40.0f);
+    // radius: |5| < |50| -> 50; |10| > |3| -> stays 10
+    for (int i = 0; i < 4; i++) {
+        EXPECT_FLOAT_EQ(property.Get().radius_[i].x_, 50.0f);
+        EXPECT_FLOAT_EQ(property.Get().radius_[i].y_, 10.0f);
+    }
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromNullptr001
+ * @tc.desc: Test TakeAbsMaxFrom with nullptr for various types
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, TakeAbsMaxFromNullptr001, TestSize.Level1)
+{
+    const std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    RSRenderAnimatableProperty<Vector2f> prop2(Vector2f(10.0f, 20.0f));
+    prop2.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(prop2.Get().x_, 10.0f);
+
+    RSRenderAnimatableProperty<Color> propColor(Color(10, 20, 30, 40));
+    propColor.TakeAbsMaxFrom(nullTarget);
+    EXPECT_EQ(propColor.Get().GetRed(), 10);
+
+    RSRenderAnimatableProperty<Vector4<Color>> propV4C(
+        Vector4<Color>(Color(10, 20, 30, 40), Color(10, 20, 30, 40), Color(10, 20, 30, 40), Color(10, 20, 30, 40)));
+    propV4C.TakeAbsMaxFrom(nullTarget);
+    EXPECT_EQ(propV4C.Get().data_[0].GetRed(), 10);
+
+    RSRenderAnimatableProperty<Vector3f> propV3(Vector3f(10.0f, 20.0f, 30.0f));
+    propV3.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(propV3.Get().x_, 10.0f);
+
+    RSRenderAnimatableProperty<Vector4f> propV4(Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    propV4.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(propV4.Get().x_, 10.0f);
+
+    RSRenderAnimatableProperty<Quaternion> propQ(Quaternion(10.0f, 20.0f, 30.0f, 40.0f));
+    propQ.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(propQ.Get().x_, 10.0f);
+
+    RSRenderAnimatableProperty<Matrix3f> propM(Matrix3f(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f, 90.0f));
+    propM.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(propM.Get().GetConstData()[0], 10.0f);
+
+    RectF rect;
+    rect.SetAll(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect rrect(rect, 5.0f, 10.0f);
+    RSRenderAnimatableProperty<RRect> propRRect(rrect);
+    propRRect.TakeAbsMaxFrom(nullTarget);
+    EXPECT_FLOAT_EQ(propRRect.Get().rect_.GetLeft(), 10.0f);
+}
+
+/**
+ * @tc.name: IsReachProgressFloat001
+ * @tc.desc: Test IsReachProgress for float type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressFloat001, TestSize.Level1)
+{
+    // start=0, end=100, threshold=0.5 -> need |value-end| <= |end-start| * 0.5 = 50
+    // If value=60: |60-100|=40 <= 50 -> true
+    // If value=10: |10-100|=90 > 50 -> false
+    RSRenderAnimatableProperty<float> property(60.0f);
+    auto start = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto end = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RSRenderAnimatableProperty<float> property2(10.0f);
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+
+    // threshold=1.0 -> need |value-end| <= |end-start| * 1.0 = 100
+    // value=10: |10-100|=90 <= 100 -> true
+    EXPECT_TRUE(property2.IsReachProgress(start, end, 1.0f));
+}
+
+/**
+ * @tc.name: IsReachProgressVector2f001
+ * @tc.desc: Test IsReachProgress for Vector2f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressVector2f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector2f> property(Vector2f(60.0f, 60.0f));
+    auto start = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.0f, 0.0f));
+    auto end = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(100.0f, 100.0f));
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RSRenderAnimatableProperty<Vector2f> property2(Vector2f(10.0f, 10.0f));
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressVector3f001
+ * @tc.desc: Test IsReachProgress for Vector3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressVector3f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector3f> property(Vector3f(60.0f, 60.0f, 60.0f));
+    auto start = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(0.0f, 0.0f, 0.0f));
+    auto end = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(100.0f, 100.0f, 100.0f));
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RSRenderAnimatableProperty<Vector3f> property2(Vector3f(10.0f, 10.0f, 10.0f));
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressVector4f001
+ * @tc.desc: Test IsReachProgress for Vector4f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressVector4f001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector4f> property(Vector4f(60.0f, 60.0f, 60.0f, 60.0f));
+    auto start = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.0f, 0.0f, 0.0f, 0.0f));
+    auto end = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.0f, 100.0f, 100.0f, 100.0f));
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RSRenderAnimatableProperty<Vector4f> property2(Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressQuaternion001
+ * @tc.desc: Test IsReachProgress for Quaternion type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressQuaternion001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Quaternion> property(Quaternion(60.0f, 60.0f, 60.0f, 60.0f));
+    auto start = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+    auto end = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion(100.0f, 100.0f, 100.0f, 100.0f));
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    // value far from end -> false
+    RSRenderAnimatableProperty<Quaternion> property2(Quaternion(10.0f, 10.0f, 10.0f, 10.0f));
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressMatrix3f001
+ * @tc.desc: Test IsReachProgress for Matrix3f type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressMatrix3f001, TestSize.Level1)
+{
+    Matrix3f propM(60.0f, 60.0f, 60.0f, 60.0f, 60.0f, 60.0f, 60.0f, 60.0f, 60.0f);
+    RSRenderAnimatableProperty<Matrix3f> property(propM);
+    Matrix3f startM(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    auto start = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(startM);
+    Matrix3f endM(100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f);
+    auto end = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(endM);
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    // value far from end -> false
+    Matrix3f farM(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f);
+    RSRenderAnimatableProperty<Matrix3f> property2(farM);
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressColor001
+ * @tc.desc: Test IsReachProgress for Color type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressColor001, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Color> property(Color(60, 60, 60, 60));
+    auto start = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(0, 0, 0, 0));
+    auto end = std::make_shared<RSRenderAnimatableProperty<Color>>(Color(100, 100, 100, 100));
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RSRenderAnimatableProperty<Color> property2(Color(10, 10, 10, 10));
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressVector4Color001
+ * @tc.desc: Test IsReachProgress for Vector4<Color> type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressVector4Color001, TestSize.Level1)
+{
+    Color midC(60, 60, 60, 60);
+    Vector4<Color> val(midC, midC, midC, midC);
+    RSRenderAnimatableProperty<Vector4<Color>> property(val);
+    Color startC(0, 0, 0, 0);
+    Vector4<Color> startVal(startC, startC, startC, startC);
+    auto start = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(startVal);
+    Color endC(100, 100, 100, 100);
+    Vector4<Color> endVal(endC, endC, endC, endC);
+    auto end = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(endVal);
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    Color farC(10, 10, 10, 10);
+    Vector4<Color> farVal(farC, farC, farC, farC);
+    RSRenderAnimatableProperty<Vector4<Color>> property2(farVal);
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressRRect001
+ * @tc.desc: Test IsReachProgress for RRect type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressRRect001, TestSize.Level1)
+{
+    RectF rect60;
+    rect60.SetAll(60.0f, 60.0f, 60.0f, 60.0f);
+    RRect rrect60(rect60, 60.0f, 60.0f);
+    RSRenderAnimatableProperty<RRect> property(rrect60);
+
+    RectF rect0;
+    rect0.SetAll(0.0f, 0.0f, 0.0f, 0.0f);
+    RRect rrect0(rect0, 0.0f, 0.0f);
+    auto start = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect0);
+
+    RectF rect100;
+    rect100.SetAll(100.0f, 100.0f, 100.0f, 100.0f);
+    RRect rrect100(rect100, 100.0f, 100.0f);
+    auto end = std::make_shared<RSRenderAnimatableProperty<RRect>>(rrect100);
+
+    EXPECT_TRUE(property.IsReachProgress(start, end, 0.5f));
+
+    RectF rect10;
+    rect10.SetAll(10.0f, 10.0f, 10.0f, 10.0f);
+    RRect rrect10(rect10, 10.0f, 10.0f);
+    RSRenderAnimatableProperty<RRect> property2(rrect10);
+    EXPECT_FALSE(property2.IsReachProgress(start, end, 0.5f));
+}
+
+/**
+ * @tc.name: IsReachProgressColor002
+ * @tc.desc: Test IsReachProgress for Color with BT2020 cross-color-space (operator- BT2020 path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, IsReachProgressColor002, TestSize.Level1)
+{
+    // property=BT2020, end=SRGB: IsAbsNearEqual triggers BT2020 cross-color-space path
+    // operator- on (end - start) uses BT2020 conversion when either operand is BT2020
+    Color bt2020Color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSRenderAnimatableProperty<Color> property(bt2020Color);
+    Color srgbStart(0, 0, 0, 0, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto start = std::make_shared<RSRenderAnimatableProperty<Color>>(srgbStart);
+    Color srgbEnd(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto end = std::make_shared<RSRenderAnimatableProperty<Color>>(srgbEnd);
+    // threshold=1.0: threshold_value = (end - start) * 1.0 ≈ end
+    // |property_BT2020 - end_BT2020| is small -> true
+    EXPECT_TRUE(property.IsReachProgress(start, end, 1.0f));
+
+    // threshold=0.0: threshold_value = 0, exact match required -> false
+    EXPECT_FALSE(property.IsReachProgress(start, end, 0.0f));
+}
 } // namespace OHOS::Rosen

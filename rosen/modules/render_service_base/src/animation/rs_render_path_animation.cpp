@@ -123,11 +123,11 @@ void RSRenderPathAnimation::SetRotationId(const PropertyId id)
     rotationId_ = id;
 }
 
-void RSRenderPathAnimation::OnAnimate(float fraction)
+bool RSRenderPathAnimation::OnAnimate(float fraction)
 {
     if (animationPath_ == nullptr || GetOriginValue() == nullptr) {
         ROSEN_LOGE("Failed to animate motion path, path or originValue is null!");
-        return;
+        return false;
     }
 
     Vector2f position;
@@ -141,16 +141,16 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         if (!isNeedPath_) {
             if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
                 ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, valueEstimator or interpolator is null");
-                return;
+                return false;
             }
             valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
-            return;
+            return false;
         }
         GetPosTanValue(fraction, position, tangent);
         auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
         if (vector4fValueEstimator == nullptr || interpolator_ == nullptr) {
             ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, vector4fValueEstimator or interpolator is null");
-            return;
+            return false;
         }
         auto animationValue =
             vector4fValueEstimator->GetAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
@@ -160,6 +160,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, unsupported property type:%{public}d",
             static_cast<int>(propertyType));
     }
+    return false;
 }
 
 void RSRenderPathAnimation::RebuildPropertyValue(float fraction)

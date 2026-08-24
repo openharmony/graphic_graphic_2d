@@ -289,8 +289,18 @@ public:
     }
 
     // used for RenderGroup
-    void SetCacheSize(Vector2f size);
-    Vector2f GetCacheSize() const;
+    void SetCacheSize(Vector2f size)
+    {
+        if (cacheSize_ == size) {
+            return;
+        }
+        cacheSize_ = size;
+        needSync_ = true;
+    }
+    Vector2f GetCacheSize() const
+    {
+        return cacheSize_;
+    }
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const
     {
@@ -590,6 +600,7 @@ private:
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+    Vector2f cacheSize_;
     std::unique_ptr<RSRenderGroupCache> renderGroupCache_ = nullptr;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincSuggestFlag_ = false;

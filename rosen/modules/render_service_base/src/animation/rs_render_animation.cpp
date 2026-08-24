@@ -392,7 +392,9 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     }
 
     RecordLastAnimateValue();
-    OnAnimate(fraction);
+    if (OnAnimate(fraction)) {
+        isFinished = true;
+    }
     DumpFraction(fraction, time);
     UpdateAnimateVelocity(frameInterval);
 

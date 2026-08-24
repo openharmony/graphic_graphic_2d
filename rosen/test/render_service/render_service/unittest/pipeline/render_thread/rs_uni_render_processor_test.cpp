@@ -1752,6 +1752,34 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayer_AllBranchesCoveredTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateLayer_NullSurfaceHandlerTest001
+ * @tc.desc: Test CreateLayer when surfaceHandler is nullptr
+ *           The if (surfaceHandler == nullptr) branch should be hit and return early
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateLayer_NullSurfaceHandlerTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        surfaceNode->surfaceHandler_.reset();
+        EXPECT_NO_FATAL_FAILURE(renderProcessor->CreateLayer(*surfaceNode, *params));
+        EXPECT_FALSE(params->GetLayerCreated());
+    }
+}
+
+/**
  * @tc.name: CreateLayerForRenderThread_NullBufferTest001
  * @tc.desc: Test CreateLayerForRenderThread when buffer is nullptr
  *           The if (buffer == nullptr || consumer == nullptr) branch at line 199 should be true
@@ -2652,6 +2680,24 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_SurfaceDrawableAsyncTest0
 
         bool async = true;
         bool result = renderProcessor->ProcessOfflineLayer(surfaceDrawable, async);
+        EXPECT_EQ(result, false);
+    }
+}
+
+/**
+ * @tc.name: ProcessOfflineLayer_NullSurfaceDrawableTest001
+ * @tc.desc: Test ProcessOfflineLayer with null surfaceDrawable
+ *           The if (surfaceDrawable == nullptr) branch should be hit and return false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_NullSurfaceDrawableTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        ASSERT_NE(renderProcessor, nullptr);
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nullDrawable;
+        bool async = true;
+        bool result = renderProcessor->ProcessOfflineLayer(nullDrawable, async);
         EXPECT_EQ(result, false);
     }
 }

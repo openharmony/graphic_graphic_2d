@@ -147,6 +147,17 @@ bool RoundCornerLayer::ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std:
     return true;
 }
 
+bool RoundCornerLayer::IsResourceEqual(const RoundCornerLayer& other) const
+{
+    return fileName == other.fileName &&
+        offsetX == other.offsetX &&
+        offsetY == other.offsetY &&
+        binFileName == other.binFileName &&
+        bufferSize == other.bufferSize &&
+        cldWidth == other.cldWidth &&
+        cldHeight == other.cldHeight;
+}
+
 bool RogPortrait::ReadXmlNode(const xmlNodePtr& portraitNodePtr)
 {
     if (portraitNodePtr == nullptr) {
@@ -248,7 +259,7 @@ bool ROGSetting::HavePortrait(const std::string& name) const
 bool ROGSetting::HaveLandscape(const std::string& name) const
 {
     if (landscapeMap.count(name) < 1) {
-        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] LANDSACPE layerUp %{public}s do not configured \n", __func__,
+        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] LANDSCAPE layerUp %{public}s do not configured \n", __func__,
             name.c_str());
         return false;
     }
@@ -336,6 +347,23 @@ bool HardwareComposerConfig::ReadXmlNode(const xmlNodePtr& hardwareComposerNodep
     return true;
 }
 
+bool ImageLoadModeConfig::ReadXmlNode(const xmlNodePtr& imageLoadeModeNodePtr)
+{
+    if (imageLoadeModeNodePtr == nullptr) {
+        RS_LOGE("[%{public}s] ImageLoadModeConfig node is null! \n", __func__);
+        return false;
+    }
+    auto imageLoadPtr = XMLReader::FindNode(imageLoadeModeNodePtr, std::string(NODE_IMGLOADMODE));
+    if (imageLoadPtr == nullptr) {
+        RS_LOGE("[%{public}s] ImageLoadeMode node is null! \n", __func__);
+        return false;
+    }
+    int data = XMLReader::ReadAttrInt(imageLoadPtr, std::string(ATTR_MODE));
+    mode = (data < ImageLoadType::ROG_FULLY_LOAD || data >= ImageLoadType::END) ? ImageLoadType::ROG_FULLY_LOAD :
+        static_cast<ImageLoadType>(data);
+    return true;
+}
+
 LCDModel::~LCDModel()
 {
     for (auto& rog : rogs) {
@@ -371,6 +399,11 @@ bool LCDModel::ReadXmlNode(const xmlNodePtr& lcdNodePtr)
     }
     hardwareConfig.ReadXmlNode(hardwareComposerConfigPtr);
 
+    auto imageLoadConfigPtr = XMLReader::FindNode(lcdNodePtr, std::string(NODE_IMGLOADMODECONFIG));
+    if (imageLoadConfigPtr == nullptr) {
+        RS_LOGW("no imageload mode found \n");
+    }
+    imageLoadConfig.ReadXmlNode(imageLoadConfigPtr);
     xmlNodePtr startPtr = lcdNodePtr->children;
     while (startPtr != nullptr) {
         auto name = startPtr->name;

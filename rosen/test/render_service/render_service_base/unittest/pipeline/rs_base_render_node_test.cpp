@@ -648,7 +648,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetContainBootAnimation, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     bool isContainBootAnimation = true;
     node->SetContainBootAnimation(isContainBootAnimation);
-    ASSERT_FALSE(node->IsContainBootAnimation());
+    ASSERT_FALSE(node->isContainBootAnimation_);
 }
 
 /**

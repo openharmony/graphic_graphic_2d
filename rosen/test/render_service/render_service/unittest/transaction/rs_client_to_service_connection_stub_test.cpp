@@ -660,6 +660,45 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 }
 
 /**
+ * @tc.name: AuthorizeUIExtensionPidTest001
+ * @tc.desc: Test AUTHORIZE_UIEXTENSION_PID interface code path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AuthorizeUIExtensionPidTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
+    MessageParcel reply;
+    MessageOption option;
+
+    // case 1: parcel too short, read params failed
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data1, reply, option), ERR_INVALID_DATA);
+
+    // case 2: caller is not the owner of the NodeId, denied before forwarding
+    constexpr pid_t otherHostPid = 1; // differs from the test process pid
+    NodeId foreignNodeId = (static_cast<NodeId>(otherHostPid) << 32) | 1;
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(foreignNodeId);
+    data2.WriteInt32(otherHostPid + 1);
+    data2.WriteBool(true);
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data2, reply, option), ERR_INVALID_DATA);
+
+    // case 3: owner passes the ownership check; the forward result depends on the render
+    // process connections available in the test environment, but must not be ERR_INVALID_DATA
+    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | 1;
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint64(nodeId);
+    data3.WriteInt32(static_cast<int32_t>(getpid() + 1));
+    data3.WriteBool(true);
+    EXPECT_NE(connectionStub_->OnRemoteRequest(code, data3, reply, option), ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: TestRSRenderServiceConnectionStub007
  * @tc.desc: Test render pipeline related transaction (node/dirty region/hwc etc.), with non empty data.
  * @tc.type: FUNC
@@ -6858,6 +6897,125 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetDisplayEngineControlStubTest, T
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetScreenSecurityMask001
+ * @tc.desc: Test SET_SCREEN_SECURITY_MASK with nullptr and normal size securityMask
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenSecurityMask001, TestSize.Level1)
+{
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
+
+    constexpr ScreenId screenId = 1;
+    constexpr bool enable = true;
+
+    // case 1: nullptr securityMask
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(ret, ERR_NONE);
+    }
+
+    // case 2: normal size PixelMap
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = 100;
+        opts.size.height = 100;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_NONE);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetScreenSecurityMask002
+ * @tc.desc: Test SET_SCREEN_SECURITY_MASK with oversized securityMask
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenSecurityMask002, TestSize.Level1)
+{
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
+
+    constexpr ScreenId screenId = 1;
+    constexpr bool enable = true;
+
+    // case 3: width over limit
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+        opts.size.height = 1;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_INVALID_DATA);
+        }
+    }
+
+    // case 4: height over limit
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = 1;
+        opts.size.height = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_INVALID_DATA);
+        }
+    }
 }
 } // namespace OHOS::Rosen
 #endif

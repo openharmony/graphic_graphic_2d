@@ -2494,6 +2494,22 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
 }
 
 /*
+ * @tc.name: AuthorizeUIExtensionPid_001
+ * @tc.desc: Test AuthorizeUIExtensionPid sends the request without crashing; the interface is
+ *           asynchronous, so the return value only indicates the request was sent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, AuthorizeUIExtensionPid_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | 1;
+    pid_t guestPid = getpid() + 1;
+    rsInterfaces->AuthorizeUIExtensionPid(nodeId, guestPid, true);
+    rsInterfaces->AuthorizeUIExtensionPid(nodeId, guestPid, false);
+    SUCCEED();
+}
+
+/*
  * @tc.name: SetVirtualScreenStatus
  * @tc.desc: Test SetVirtualScreenStatus
  * @tc.type: FUNC
@@ -2850,6 +2866,74 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
     uint32_t *color;
     color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
     memset_s(color, colorWidth * colorHeight, 0xffffffff, colorWidth * colorHeight * 2);
+    uint32_t colorLength = colorWidth * colorHeight;
+    Media::InitializationOptions opts;
+    opts.size.width = colorWidth;
+    opts.size.height = colorHeight;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    if (pixelMap) {
+        int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    }
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_004
+ * @tc.desc: Test SetScreenSecurityMask with height exceeding limit only.
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_004, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, nullptr, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    constexpr uint32_t colorWidth = 1;
+    constexpr uint32_t colorHeight = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+    uint32_t *color;
+    color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
+    memset_s(color, colorWidth * colorHeight * sizeof(uint32_t), 0xffffffff,
+        colorWidth * colorHeight * sizeof(uint32_t));
+    uint32_t colorLength = colorWidth * colorHeight;
+    Media::InitializationOptions opts;
+    opts.size.width = colorWidth;
+    opts.size.height = colorHeight;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    if (pixelMap) {
+        int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    }
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_005
+ * @tc.desc: Test SetScreenSecurityMask with width exceeding limit only.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_005, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, nullptr, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    constexpr uint32_t colorWidth = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+    constexpr uint32_t colorHeight = 1;
+    uint32_t *color;
+    color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
+    memset_s(color, colorWidth * colorHeight * sizeof(uint32_t), 0xffffffff,
+        colorWidth * colorHeight * sizeof(uint32_t));
     uint32_t colorLength = colorWidth * colorHeight;
     Media::InitializationOptions opts;
     opts.size.width = colorWidth;

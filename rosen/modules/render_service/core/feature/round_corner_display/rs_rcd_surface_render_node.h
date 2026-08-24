@@ -120,9 +120,10 @@ public:
     void ClearBufferCache();
     void ResetCurrFrameState();
     void Reset();
-    bool SetHardwareResourceToBuffer();
+    bool SetHardwareResourceToBuffer(const Drawing::Bitmap& layerBitmap);
     BufferRequestConfig GetHardenBufferRequestConfig() const;
-    bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
+    bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
+        Drawing::Bitmap& layerBitmap);
     bool IsBottomSurface() const;
     bool IsTopSurface() const;
     bool IsInvalidSurface() const;
@@ -146,7 +147,7 @@ public:
         return pixelMap_;
     }
 
-    void PrintRcdNodeInfo();
+    void PrintRcdNodeInfo(const Drawing::Bitmap& layerBitmap);
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
@@ -154,7 +155,6 @@ private:
     void SetRCDInfo(HardwareLayerInfo &cldLayerInfo, int height, int width, uint32_t offset);
     bool SetRCDMetaData() const;
     HardwareLayerInfo cldLayerInfo;
-    Drawing::Bitmap layerBitmap;
     PixelMapPtr pixelMap_ = nullptr;
 
     uint32_t GetRcdBufferWidth() const;

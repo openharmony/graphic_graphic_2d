@@ -41,6 +41,7 @@ static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map s
 static constexpr int ZERO = 0; // empty map size
 static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
 #endif
 }
 
@@ -1379,11 +1380,9 @@ std::vector<int32_t> RSClientToServiceConnectionProxy::GetScreenSupportedRefresh
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates Read rateCount failed");
         return screenSupportedRates;
     }
-    size_t readableSize = reply.GetReadableBytes();
-    size_t len = static_cast<size_t>(rateCount);
-    if (len > readableSize || len > screenSupportedRates.max_size()) {
-        RS_LOGE("RSClientToServiceConnectionProxy::GetDescriptor() GetScreenSupportedRefreshRates "
-            "fail read vector, size : %{public}zu, readableSize : %{public}zu", len, readableSize);
+    if (rateCount > MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE) {
+        RS_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates "
+            "fail read vector, size : %{public}" PRIu64, rateCount);
         return screenSupportedRates;
     }
     screenSupportedRates.resize(rateCount);
@@ -5052,6 +5051,37 @@ int32_t RSClientToServiceConnectionProxy::RegisterUIExtensionCallback(
         ROSEN_LOGE("RegisterUIExtensionCallback: WriteUint64[userId] OR WriteRemoteObject[callback] err.");
         return RS_CONNECTION_ERROR;
     }
+}
+
+int32_t RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(nodeId) || !data.WriteInt32(static_cast<int32_t>(guestPid)) ||
+        !data.WriteBool(authorized)) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: Write parcel err.");
+        return RS_CONNECTION_ERROR;
+    }
+    // synchronous: the result reflects whether render_service accepted the request and the
+    // render process applied the authorization to its node map
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: SendRequest err %{public}d.", err);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id,

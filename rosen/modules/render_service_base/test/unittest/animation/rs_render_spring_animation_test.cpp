@@ -73,9 +73,10 @@ public:
     {
         RSRenderSpringAnimation::OnSetFraction(fraction);
     }
-    void OnAnimate(float fraction)
+    bool OnAnimate(float fraction)
     {
         RSRenderSpringAnimation::OnAnimate(fraction);
+        return false;
     }
     void OnAttach()
     {
@@ -1649,5 +1650,657 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling015, TestSize.Level1)
     EXPECT_NE(result, nullptr);
 }
 
+/**
+ * @tc.name: SetSpringParametersConverge001
+ * @tc.desc: Verify SetSpringParameters with valid convergeParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParametersConverge001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params);
+    EXPECT_TRUE(anim->convergeParams_.has_value());
+    EXPECT_FLOAT_EQ(anim->convergeParams_->convergeProgressThreshold_, 0.5f);
+}
+
+/**
+ * @tc.name: SetSpringParametersConverge002
+ * @tc.desc: Verify SetSpringParameters rejects invalid convergeParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParametersConverge002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    // NaN progressThreshold
+    ConvergeParams params1;
+    params1.convergeProgressThreshold_ = NAN;
+    params1.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params1);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+
+    // progressThreshold < 0
+    ConvergeParams params2;
+    params2.convergeProgressThreshold_ = -0.5f;
+    params2.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params2);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+
+    // progressThreshold > 1
+    ConvergeParams params3;
+    params3.convergeProgressThreshold_ = 1.5f;
+    params3.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params3);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+
+    // NaN responseFactor
+    ConvergeParams params4;
+    params4.convergeProgressThreshold_ = 0.5f;
+    params4.convergeResponseFactor_ = NAN;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params4);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+
+    // responseFactor < 0
+    ConvergeParams params5;
+    params5.convergeProgressThreshold_ = 0.5f;
+    params5.convergeResponseFactor_ = -0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params5);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+}
+
+/**
+ * @tc.name: SetSpringParametersConverge003
+ * @tc.desc: Verify SetSpringParameters skips when both converge values are 1.0 (default)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParametersConverge003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    // Both being 1.0 is the default value -> should not set convergeParams_
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 1.0f;
+    params.convergeResponseFactor_ = 1.0f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+
+    // Either being 1.0 is treated as default and should not set convergeParams_
+    ConvergeParams params2;
+    params2.convergeProgressThreshold_ = 1.0f;
+    params2.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, params2);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+}
+
+/**
+ * @tc.name: SetSpringParametersConverge004
+ * @tc.desc: Verify SetSpringParameters with nullopt convergeParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParametersConverge004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    anim->SetSpringParameters(1.0f, 0.5f, 0.5f, 0.001f, std::nullopt);
+    EXPECT_FALSE(anim->convergeParams_.has_value());
+}
+
+/**
+ * @tc.name: ProcessOnRepeatFinish001
+ * @tc.desc: Verify ProcessOnRepeatFinish resets convergence state
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, ProcessOnRepeatFinish001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    // Set convergence state manually
+    anim->isConverging_ = true;
+    anim->lastConvergeTime_ = 5.0f;
+    anim->ProcessOnRepeatFinish();
+    EXPECT_FALSE(anim->isConverging_);
+    EXPECT_FLOAT_EQ(anim->lastConvergeTime_, 0.0f);
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget001
+ * @tc.desc: Verify IsConvergeCloseToTarget with null endThreshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    // endThreshold_ is null by default
+    EXPECT_FALSE(anim->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget002
+ * @tc.desc: Verify IsConvergeCloseToTarget with null endValue
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+
+    // endThreshold_ is null by default after init
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+
+    // Set endThreshold_ to valid, but endValue_ to null
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    animMock->endValue_ = nullptr;
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget003
+ * @tc.desc: Verify IsConvergeCloseToTarget with valid endThreshold_ and normal comparison
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // GetAnimationProperty returns lastValue_ (0.0f, the origin value)
+    // IsAbsNearEqual: |0.0 - 1.0| = 1.0 <= |1.0| → true
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    EXPECT_TRUE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget004
+ * @tc.desc: Verify IsConvergeCloseToTarget returns false when value is genuinely far from target
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // GetAnimationProperty returns lastValue_ (0.0f), endValue_ is 1.0f
+    // Small endThreshold_ -> |0.0 - 1.0| = 1.0 > 0.001 -> false
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(0.001f);
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: CheckStartConverge001
+ * @tc.desc: Verify CheckStartConverge does nothing without convergeParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckStartConverge001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    // No convergeParams -> should return immediately, isConverging_ stays false
+    anim->CheckStartConverge();
+    EXPECT_FALSE(anim->isConverging_);
+}
+
+/**
+ * @tc.name: CheckStartConverge002
+ * @tc.desc: Verify CheckStartConverge returns early when already converging
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckStartConverge002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    anim->SetSpringParameters(1.0f, 0.5f, 0.0f, 0.001f, params);
+    anim->isConverging_ = true; // already converging
+    anim->lastConvergeTime_ = 1.0f;
+    anim->CheckStartConverge();
+    // Should return early, lastConvergeTime_ unchanged
+    EXPECT_FLOAT_EQ(anim->lastConvergeTime_, 1.0f);
+}
+
+/**
+ * @tc.name: CheckStartConverge003
+ * @tc.desc: Verify CheckStartConverge starts convergence when IsStartConverging returns true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckStartConverge003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    animMock->RSRenderSpringAnimation::SetSpringParameters(1.0f, 0.5f, 0.0f, 0.001f, params);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Large prevMappedTime_ → IsStartConverging returns true
+    animMock->prevMappedTime_ = 10.0f;
+    animMock->CheckStartConverge();
+    EXPECT_TRUE(animMock->isConverging_);
+    EXPECT_FLOAT_EQ(animMock->lastConvergeTime_, 10.0f);
+    EXPECT_NE(animMock->endThreshold_, nullptr);
+}
+
+/**
+ * @tc.name: CheckStartConverge004
+ * @tc.desc: Verify CheckStartConverge does nothing when IsStartConverging returns false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckStartConverge004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    animMock->RSRenderSpringAnimation::SetSpringParameters(1.0f, 0.5f, 0.0f, 0.001f, params);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Small prevMappedTime_ -> IsStartConverging returns false
+    animMock->prevMappedTime_ = 0.0f;
+    animMock->CheckStartConverge();
+    EXPECT_FALSE(animMock->isConverging_);
+}
+
+/**
+ * @tc.name: CheckStartConverge005
+ * @tc.desc: Verify CheckStartConverge enters blendDuration_ branch when converging starts during blend
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckStartConverge005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    // Non-zero blendDuration -> blendDuration_ != 0 after OnInitialize
+    animMock->RSRenderSpringAnimation::SetSpringParameters(1.0f, 0.5f, 1.0f, 0.001f, params);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Large prevMappedTime_ -> IsStartConverging returns true
+    animMock->prevMappedTime_ = 10.0f;
+    animMock->CheckStartConverge();
+    // isConverging_ set to true, blendDuration_ branch calls SetDuration + OnInitialize
+    EXPECT_TRUE(animMock->isConverging_);
+    EXPECT_FLOAT_EQ(animMock->lastConvergeTime_, 10.0f);
+    EXPECT_NE(animMock->endThreshold_, nullptr);
+}
+
+/**
+ * @tc.name: CheckConvergeStatus001
+ * @tc.desc: Verify CheckConvergeStatus returns false when not converging
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckConvergeStatus001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    anim->isConverging_ = false;
+    EXPECT_FALSE(anim->CheckConvergeStatus(1.0f));
+}
+
+/**
+ * @tc.name: CheckConvergeStatus002
+ * @tc.desc: Verify CheckConvergeStatus updates lastConvergeTime when not converged
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckConvergeStatus002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+
+    animMock->isConverging_ = true;
+    animMock->lastConvergeTime_ = 0.0f;
+    // endThreshold_ is null -> IsConvergeCloseToTarget returns false -> IsConvergeEnd returns false
+    EXPECT_FALSE(animMock->CheckConvergeStatus(2.0f));
+    // lastConvergeTime_ should be updated
+    EXPECT_FLOAT_EQ(animMock->lastConvergeTime_, 2.0f);
+}
+
+/**
+ * @tc.name: CheckConvergeStatus003
+ * @tc.desc: Verify CheckConvergeStatus returns true when IsConvergeEnd is satisfied
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CheckConvergeStatus003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    animMock->isConverging_ = true;
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    // GetAnimationProperty returns lastValue_ (0.0f, the origin value)
+    // IsAbsNearEqual: |0.0 - 1.0| = 1.0 <= |1.0| → true
+    // WillOverShoot: underdamped → false → !false = true
+    // IsConvergeEnd: true && true → true
+    EXPECT_TRUE(animMock->CheckConvergeStatus(1.0f));
+}
+
+/**
+ * @tc.name: OnAnimateConverge001
+ * @tc.desc: Verify OnAnimate returns false for GetPropertyId == 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID_3, property, property1, property2);
+    anim->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    EXPECT_FALSE(anim->OnAnimate(0.5f));
+}
+
+/**
+ * @tc.name: OnAnimateConverge002
+ * @tc.desc: Verify OnAnimate returns false when springValueEstimator is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // springValueEstimator_ is null by default (not initialized)
+    EXPECT_FALSE(anim->OnAnimate(0.5f));
+}
+
+/**
+ * @tc.name: OnAnimateConverge003
+ * @tc.desc: Verify OnAnimate returns true when fraction is 1.0 and not converging
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // fraction == 1.0 without converging -> should return true
+    bool result = animMock->RSRenderSpringAnimation::OnAnimate(1.0f);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: OnAnimateConverge004
+ * @tc.desc: Verify OnAnimate returns true when fraction is 1.0 and converging
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    animMock->isConverging_ = true;
+    animMock->lastConvergeTime_ = 0.1f;
+    // fraction == 1.0 with converging -> should return true
+    bool result = animMock->RSRenderSpringAnimation::OnAnimate(1.0f);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: OnAnimateConverge005
+ * @tc.desc: Verify OnAnimate with isConverging triggers UpdateSpringConvergeParameters
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    animMock->RSRenderSpringAnimation::SetSpringParameters(1.0f, 0.5f, 0.0f, 0.001f, params);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Manually set converging to trigger UpdateSpringConvergeParameters path
+    animMock->isConverging_ = true;
+    animMock->lastConvergeTime_ = 0.0f;
+    // Non-1.0 fraction with isConverging_ -> calls UpdateSpringConvergeParameters
+    bool result = animMock->RSRenderSpringAnimation::OnAnimate(0.5f);
+    EXPECT_FALSE(result); // not converged yet
+}
+
+/**
+ * @tc.name: OnAnimateConverge006
+ * @tc.desc: Verify OnAnimate returns true when convergence is complete
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateConverge006, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ConvergeParams params;
+    params.convergeProgressThreshold_ = 0.5f;
+    params.convergeResponseFactor_ = 0.5f;
+    animMock->RSRenderSpringAnimation::SetSpringParameters(1.0f, 0.5f, 0.0f, 0.001f, params);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    animMock->isConverging_ = true;
+    animMock->lastConvergeTime_ = 0.0f;
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
+    bool result = animMock->RSRenderSpringAnimation::OnAnimate(0.5f);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: OnInitializeConverge001
+ * @tc.desc: Verify OnInitialize skips blend when isConverging_ is true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnInitializeConverge001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 1.0f); // blendDuration = 1.0 → blendDuration_ != 0
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->isConverging_ = true; // blendDuration_ && !isConverging_ → false → blend skipped
+    animMock->OnInitialize(0);
+    // blend skipped → RSRenderPropertyAnimation::OnInitialize called → needInitialize_ = false
+    EXPECT_FALSE(animMock->needInitialize_);
+}
+
+/**
+ * @tc.name: OnInitializeConverge002
+ * @tc.desc: Verify OnInitialize with isCustom=true sets isCustom_ and uses animationScale=1.0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnInitializeConverge002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 1.0f); // blendDuration = 1.0 → blendDuration_ != 0
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    // Call OnInitialize with isCustom=true → isCustom_ set, blend branch uses animationScale=1.0
+    animMock->OnInitialize(0, true);
+    EXPECT_TRUE(animMock->isCustom_);
+}
+
+/**
+ * @tc.name: IsConvergeEnd001
+ * @tc.desc: Verify IsConvergeEnd with underdamped model (WillOverShoot=false)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeEnd001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f); // underdamped → WillOverShoot=false
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+
+    // endThreshold_ is null → IsConvergeCloseToTarget returns false → IsConvergeEnd false
+    EXPECT_FALSE(animMock->IsConvergeEnd());
+
+    // large endThreshold_ → IsConvergeCloseToTarget true, WillOverShoot false → IsConvergeEnd true
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
+    EXPECT_TRUE(animMock->IsConvergeEnd());
+}
+
+/**
+ * @tc.name: IsConvergeEnd002
+ * @tc.desc: Verify IsConvergeEnd returns false when WillOverShoot is true (critical damping with velocity)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeEnd002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animMock->SetSpringParameters(1.0f, 1.0f, 0.0f); // critical damping
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    // Set non-zero initial velocity so that WillOverShoot returns true for critical damping.
+    // initialVelocity_ must be set before OnInitialize, otherwise OnInitialize overrides it to zero.
+    animMock->initialVelocity_ = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    animMock->OnInitialize(0);
+    // WillOverShoot=true → IsConvergeEnd returns false even with large threshold
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
+    EXPECT_FALSE(animMock->IsConvergeEnd());
+}
 } // namespace Rosen
 } // namespace OHOS

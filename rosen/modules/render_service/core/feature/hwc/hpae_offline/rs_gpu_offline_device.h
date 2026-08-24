@@ -88,6 +88,13 @@ struct GPUOfflineSubThreadData {
     NodeId nodeId = 0; // only used in GPUOfflineThread (copy)
     std::shared_ptr<RSGPUOfflineBuffer> offlineBuffer = nullptr; // only used in GPUOfflineThread (copy)
     GPUOfflineDrawParams drawParams; // only used in GPUOfflineThread (copy)
+    // snapshot of surface params for async processing
+    sptr<SurfaceBuffer> srcBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    GraphicIRect srcRect = {0};
+    GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    std::string nodeName = "";
 };
 
 struct GPUOfflineContext {
@@ -122,17 +129,17 @@ private:
 
     void CheckAndPostPreAllocBuffersTask();
     void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr, NodeId nodeId);
-    void OfflineTaskFuncWithData(RSSurfaceRenderParams* surfaceParams,
+    void OfflineTaskFuncWithData(
         std::shared_ptr<ProcessOfflineFuture>& futurePtr, const GPUOfflineSubThreadData& taskContext);
-    bool DoProcessOfflineWithContext(RSSurfaceRenderParams& surfaceParams,
+    bool DoProcessOfflineWithContext(
         ProcessOfflineResult& result, const GPUOfflineSubThreadData& taskContext);
     bool SetResultWhenSkipDraw(std::shared_ptr<GPUOfflineContext>& offlineContext,
-        RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
+        const GPUOfflineSubThreadData& taskContext, offlineTaskId taskId);
     bool FillOfflineResult(std::shared_ptr<RSGPUOfflineBuffer>& offlineBuffer,
-        RSSurfaceRenderParams* surfaceParams, ProcessOfflineResult& result);
+        const GPUOfflineSubThreadData& taskContext, ProcessOfflineResult& result);
     bool PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext>& offlineContext,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
-    bool DrawHDRImage(RSSurfaceRenderParams& surfaceParams, const GPUOfflineSubThreadData& taskContext);
+    bool DrawHDRImage(const GPUOfflineSubThreadData& taskContext);
     BufferDrawParam CreateBufferDrawParam(const GPUOfflineSubThreadData& taskContext);
     std::shared_ptr<GPUOfflineContext> GetOrCreateOfflineContext(NodeId nodeId);
     std::shared_ptr<GPUOfflineContext> GetOfflineContext(NodeId nodeId);

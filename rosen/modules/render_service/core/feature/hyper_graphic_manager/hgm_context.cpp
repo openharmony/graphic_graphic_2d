@@ -134,6 +134,7 @@ void HgmContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceTo
     }
 
     serviceToProcessInfo->isPowerIdle = HgmEnergyConsumptionPolicy::Instance().GetPowerIdle();
+    serviceToProcessInfo->videoCallPid = HgmEnergyConsumptionPolicy::Instance().GetVideoCallPid();
 
     hgmDataChangeTypes_.reset();
     RS_TRACE_NAME_FMT("%s: %d, %s", __func__,

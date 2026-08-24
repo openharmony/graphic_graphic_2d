@@ -52,6 +52,7 @@ public:
     Vector3& operator*=(const Vector3<T>& other);
     Vector3& operator*=(T s);
     Vector3 operator*(T s) const;
+    Vector3 operator*(const Vector3<T>& other) const;
     Vector3 operator+(const Vector3<T>& other) const;
     Vector3& operator+=(const Vector3<T>& other);
     Vector3& operator=(const Vector3<T>& other);
@@ -60,6 +61,8 @@ public:
     T& operator[](int index);
     bool operator==(const Vector3& other) const;
     bool IsNearEqual(const Vector3& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsAbsNearEqual(const Vector3& target, const Vector3& threshold) const;
+    void TakeAbsMaxFrom(const Vector3& target);
     T* GetData();
 
     static const Vector3 ZERO;
@@ -207,6 +210,18 @@ Vector3<T> Vector3<T>::operator*(T s) const
 }
 
 template<typename T>
+Vector3<T> Vector3<T>::operator*(const Vector3<T>& other) const
+{
+    Vector3<T> rMulti(*this);
+    T* rData = rMulti.data_;
+
+    rData[0] *= other.data_[0];
+    rData[1] *= other.data_[1];
+    rData[2] *= other.data_[2];
+    return rMulti;
+}
+
+template<typename T>
 Vector3<T> Vector3<T>::operator+(const Vector3<T>& other) const
 {
     Vector3<T> rVec = *this;
@@ -271,6 +286,37 @@ bool Vector3<T>::IsNearEqual(const Vector3& other, T threshold) const
 
     return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1], threshold)) &&
            (ROSEN_EQ<T>(data_[2], otherData[2], threshold)); // 2 index data
+}
+
+template<typename T>
+bool Vector3<T>::IsAbsNearEqual(const Vector3& target, const Vector3& threshold) const { return false; }
+
+template<>
+inline bool Vector3<float>::IsAbsNearEqual(const Vector3<float>& target, const Vector3<float>& threshold) const
+{
+    const float* targetData = target.data_;
+    const float* thresholdData = threshold.data_;
+
+    for (uint32_t i = 0; i < V3SIZE; i++) {
+        if (fabs(data_[i] - targetData[i]) > fabs(thresholdData[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+void Vector3<T>::TakeAbsMaxFrom(const Vector3& target) {}
+
+template<>
+inline void Vector3<float>::TakeAbsMaxFrom(const Vector3<float>& target)
+{
+    const float* targetData = target.data_;
+    for (uint32_t i = 0; i < V3SIZE; i++) {
+        if (fabs(data_[i]) < fabs(targetData[i])) {
+            data_[i] = targetData[i];
+        }
+    }
 }
 
 template<typename T>

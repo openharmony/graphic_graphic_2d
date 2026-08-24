@@ -1640,7 +1640,7 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
 {
     static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     return canvasEnabled;
 }
 
