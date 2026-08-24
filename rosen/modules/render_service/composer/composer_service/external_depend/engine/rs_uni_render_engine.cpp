@@ -153,7 +153,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         if (!rotationFixed) {
             // Skip ROG post-scale when DEVICE_GPU sampling with uni-render,
             // as GPU has already applied scaling to avoid double scaling.
-            bool skipRogPostScale = (composerScreenInfo.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU) &&
+            bool skipRogPostScale = (composerScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) &&
                 layer->GetUniRenderFlag();
             if (!skipRogPostScale) {
                 params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(),
