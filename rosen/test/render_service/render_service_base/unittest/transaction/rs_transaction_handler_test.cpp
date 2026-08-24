@@ -941,7 +941,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdNullHandler, TestSize.Leve
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeId(nullptr, nodeId);
-    SUCCEED();
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
 }
 
 /**
@@ -2003,7 +2003,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommandsNullHan
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeIdExcludeTreeCommands(nullptr, nodeId);
-    SUCCEED();
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
 }
 
 /**
