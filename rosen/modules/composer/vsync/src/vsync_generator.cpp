@@ -1046,7 +1046,6 @@ void VSyncGenerator::UpdateChangeRefreshRatesLocked(
                 [&refreshRate](const auto& rate) {
                     return rate.first == refreshRate.first;
                 });
-
             if (it != changingListenerIter->refreshRates.end()) {
                 it->second = refreshRate.second;
             } else {
