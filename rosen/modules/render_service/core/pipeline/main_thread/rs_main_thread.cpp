@@ -2403,7 +2403,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
-                    AddDisableReason("lastFrame not enabled HWC and buffer consumed[" +
+                    AddDisableReason("lastFrame not hardwareEnable and buffer consumed[" +
                         surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 } else {
                     if (surfaceNode->GetAncoForceDoDirect()) {
@@ -6456,8 +6456,9 @@ void RSMainThread::AddDisableReason(const std::string& reason)
     }
     
     // Calculate new length after adding this reason
-    size_t newLength = directCompositionDisableReasons_.length();
-    if (!directCompositionDisableReasons_.empty()) {
+    size_t originalLength = directCompositionDisableReasons_.length();
+    size_t newLength = originalLength;
+    if (originalLength > 0) {
         newLength += 1; // "|"
     }
     newLength += reason.length();
@@ -6469,7 +6470,7 @@ void RSMainThread::AddDisableReason(const std::string& reason)
         return;
     }
     
-    if (!directCompositionDisableReasons_.empty()) {
+    if (originalLength > 0) {
         directCompositionDisableReasons_ += "|";
     }
     directCompositionDisableReasons_ += reason;
