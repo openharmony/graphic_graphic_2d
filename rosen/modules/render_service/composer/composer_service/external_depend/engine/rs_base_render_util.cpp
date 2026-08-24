@@ -913,7 +913,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const Composer
 {
     BufferRequestConfig config {};
     bool usePhysicalSize = composerScreenInfo.isSamplingOn ||
-        (composerScreenInfo.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU);
+        (composerScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU);
     auto width = usePhysicalSize ? composerScreenInfo.phyWidth : composerScreenInfo.width;
     auto height = usePhysicalSize ? composerScreenInfo.phyHeight : composerScreenInfo.height;
     config.width = static_cast<int32_t>(width);
