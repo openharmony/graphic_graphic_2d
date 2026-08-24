@@ -28,6 +28,20 @@
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+class TestRenderContext : public RenderContext {
+public:
+    bool Init(RenderEngineType type, const std::string& cacheDir) override { return true; }
+    bool AbandonContext() override { return true; }
+    RenderEngineType GetType() override { return RenderEngineType::BASIC_RENDER; }
+    bool SetUpGpuContext(const std::string& cacheDir) override { return true; }
+    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override { return true; }
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingGPUContext(const std::string& cacheDir) override
+    {
+        return nullptr;
+    }
+    void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext) override {}
+};
+
 class RenderContextTest : public testing::Test {
 public:
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RenderContextTest" };
@@ -375,5 +389,106 @@ HWTEST_F(RenderContextTest, ConvertColorGamutToColorSpaceTest001, Level1)
     EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_BT2020), nullptr);
     EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_BT2100_HLG), nullptr);
     EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_SRGB), nullptr);
+}
+
+/**
+ * @tc.name: ConvertColorGamutToColorSpaceTest002
+ * @tc.desc: Verify ConvertColorGamutToColorSpace with invalid gamut hits default branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ConvertColorGamutToColorSpaceTest002, Level1)
+{
+    auto colorSpace = RenderContext::ConvertColorGamutToColorSpace(
+        static_cast<GraphicColorGamut>(999));
+    EXPECT_NE(colorSpace, nullptr);
+}
+
+/**
+ * @tc.name: SetUniRenderModeTest
+ * @tc.desc: Verify SetUniRenderMode sets isUniRender_ field
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, SetUniRenderModeTest, Level1)
+{
+    auto renderContext = std::make_shared<TestRenderContext>();
+    ASSERT_NE(renderContext, nullptr);
+    renderContext->SetUniRenderMode(true);
+    EXPECT_TRUE(renderContext->isUniRender_);
+    renderContext->SetUniRenderMode(false);
+    EXPECT_FALSE(renderContext->isUniRender_);
+}
+
+/**
+ * @tc.name: GetSurfaceTest
+ * @tc.desc: Verify GetSurface returns surface_ field
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, GetSurfaceTest, Level1)
+{
+    auto renderContext = std::make_shared<TestRenderContext>();
+    ASSERT_NE(renderContext, nullptr);
+    EXPECT_EQ(renderContext->GetSurface(), nullptr);
+    renderContext->surface_ = std::make_shared<Drawing::Surface>();
+    EXPECT_NE(renderContext->GetSurface(), nullptr);
+}
+
+/**
+ * @tc.name: GetSharedDrGPUContextTest
+ * @tc.desc: Verify GetSharedDrGPUContext and GetDrGPUContext return drGPUContext_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, GetSharedDrGPUContextTest, Level1)
+{
+    auto renderContext = std::make_shared<TestRenderContext>();
+    ASSERT_NE(renderContext, nullptr);
+    EXPECT_EQ(renderContext->GetSharedDrGPUContext(), nullptr);
+    EXPECT_EQ(renderContext->GetDrGPUContext(), nullptr);
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    renderContext->drGPUContext_ = gpuContext;
+    EXPECT_EQ(renderContext->GetSharedDrGPUContext(), gpuContext);
+    EXPECT_EQ(renderContext->GetDrGPUContext(), gpuContext.get());
+}
+
+/**
+ * @tc.name: BaseVirtualDefaultsTest
+ * @tc.desc: Verify base class virtual default implementations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, BaseVirtualDefaultsTest, Level1)
+{
+    auto renderContext = std::make_shared<TestRenderContext>();
+    ASSERT_NE(renderContext, nullptr);
+    EXPECT_EQ(renderContext->AcquireSurface(0, 0), nullptr);
+    renderContext->RenderFrame();
+    renderContext->DamageFrame({});
+    renderContext->ClearRedundantResources();
+    renderContext->DestroyShareContext();
+    EXPECT_EQ(renderContext->QueryEglBufferAge(), 0);
+    renderContext->SetRenderContextType(0);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: GetTypeTest
+ * @tc.desc: Verify GetType returns the engine type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, GetTypeTest, Level1)
+{
+    auto testContext = std::make_shared<TestRenderContext>();
+    EXPECT_EQ(testContext->GetType(), RenderEngineType::BASIC_RENDER);
+}
+
+/**
+ * @tc.name: CreateDrawingGPUContextTest
+ * @tc.desc: Verify CreateDrawingGPUContext and ReleaseDrawingGPUContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, CreateDrawingGPUContextTest, Level1)
+{
+    auto testContext = std::make_shared<TestRenderContext>();
+    EXPECT_EQ(testContext->CreateDrawingGPUContext(""), nullptr);
+    testContext->ReleaseDrawingGPUContext(nullptr);
+    SUCCEED();
 }
 } // namespace OHOS::Rosen
