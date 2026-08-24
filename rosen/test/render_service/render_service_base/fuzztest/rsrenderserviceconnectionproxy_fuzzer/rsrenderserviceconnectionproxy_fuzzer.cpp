@@ -233,7 +233,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsClientToServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsClientToServiceConnectionProxy.SetRogScreenResolution(id1, width, height, static_cast<ScreenSamplingMode>(
-        fdp.ConsumeIntegral<uint32_t>() % static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU)));
+        fdp.ConsumeIntegral<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1)));
     rsClientToServiceConnectionProxy.SetScreenPowerStatus(id1, status);
     rsClientToRenderConnectionProxy.RegisterApplicationAgent(width, app);
     rsClientToServiceConnectionProxy.GetVirtualScreenResolution(id1);
