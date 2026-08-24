@@ -2334,6 +2334,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 doDirectComposition_ = false;
                 AddDisableReason("surfaceNode doDirectComposition is false[" +
                     surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
+                surfaceNode->SetDoDirectComposition(true);
             }
 
             if (!surfaceNode->IsOnTheTree()) {
