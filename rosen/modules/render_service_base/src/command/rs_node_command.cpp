@@ -181,7 +181,14 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
 
 void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
 {
-    context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(nodeId, true);
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        RS_LOGW("SetTakeSurfaceForUIFlag node not found, nodeId: %{public}" PRIu64, nodeId);
+        return;
+    }
+    RS_LOGD("SetTakeSurfaceForUIFlag cmd executed, nodeId: %{public}" PRIu64, nodeId);
+    context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(nodeId, true);
 }
 
 void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId nodeId, bool needUseCmdlistDrawRegion)

@@ -103,7 +103,7 @@ void RSDrawFrame::RenderFrame()
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
         unirenderInstance_.GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
-    RSMainThread::Instance()->ProcessUiCaptureTasks();
+    RSMainThread::Instance()->ProcessSyncCaptureTasks();
 #ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
 #endif

@@ -457,7 +457,7 @@ void TakeSurfaceCaptureForUiParallel(
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
-        context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
+        context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
         return;
     }
@@ -552,6 +552,30 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RSMainThread::Instance()->SetDirtyFlag();
             RSMainThread::Instance()->RequestNextVSync();
             RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture SetNeedSyncCaptureWindow");
+            return;
+        }
+
+        if (captureConfig.isSync) {
+            RS_LOGD("RSRenderPipelineAgent::TakeSurfaceCapture isSync branch, "
+                "id:%{public}" PRIu64 ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                id, selfCapture, isSystemCalling);
+            auto& context = RSMainThread::Instance()->GetContext();
+            context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
+            std::function<void()> syncWindowCaptureTask =
+                [id, callback, captureConfig, blurParam, isSystemCalling, selfCapture]() {
+                    RS_LOGI("syncWindowCaptureTask execute, id:%{public}" PRIu64
+                        ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                        id, selfCapture, isSystemCalling);
+                    RSSurfaceCaptureParam captureParam;
+                    captureParam.id = id;
+                    captureParam.config = captureConfig;
+                    captureParam.isSystemCalling = isSystemCalling;
+                    captureParam.isSelfCapture = selfCapture;
+                    captureParam.blurParam = blurParam;
+                    RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+            RSMainThread::Instance()->AddSyncWindowCaptureTask(id, syncWindowCaptureTask);
             return;
         }
 

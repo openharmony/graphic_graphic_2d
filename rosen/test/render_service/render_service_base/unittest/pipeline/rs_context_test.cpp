@@ -418,4 +418,21 @@ HWTEST_F(RSContextTest, DestoryUIRenderDirectorByPidTest, TestSize.Level1)
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token2), nullptr);
 }
 
+/**
+ * @tc.name: GetSyncCaptureHelperTest001
+ * @tc.desc: test GetSyncCaptureHelper returns same instance across multiple calls
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSContextTest, GetSyncCaptureHelperTest001, TestSize.Level1)
+{
+    RSContext rsContext;
+    auto& helper1 = rsContext.GetSyncCaptureHelper();
+    auto& helper2 = rsContext.GetSyncCaptureHelper();
+    EXPECT_EQ(&helper1, &helper2);
+    helper1.InsertCaptureCmdsExecutedFlag(1, true);
+    auto cmdFlag = helper2.GetCaptureCmdsExecutedFlag(1);
+    EXPECT_EQ(cmdFlag.first, true);
+}
+
 } // namespace OHOS::Rosen
