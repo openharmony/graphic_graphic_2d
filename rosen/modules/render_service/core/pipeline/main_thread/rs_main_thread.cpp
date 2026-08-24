@@ -2343,6 +2343,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                     AddDisableReason("surfaceNode not on the tree and buffer consumed[" +
                         surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
                 }
+                return;
             }
             UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
