@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-hgm_vsync_generator_controller. */
+ */
 
 #ifndef HGM_VSYNC_GENERATOR_CONTROLLER_H
 #define HGM_VSYNC_GENERATOR_CONTROLLER_H

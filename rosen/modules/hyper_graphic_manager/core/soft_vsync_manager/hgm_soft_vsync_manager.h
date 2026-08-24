@@ -34,6 +34,7 @@ namespace Rosen {
 using WindowId = uint64_t;
 using VsyncName = std::string;
 using FrameRateLinkerMap = std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>;
+constexpr FrameRateLinkerId RS_FRAME_RATE_LINKER_ID = 0;
 
 class HgmSoftVSyncManager {
 public:
