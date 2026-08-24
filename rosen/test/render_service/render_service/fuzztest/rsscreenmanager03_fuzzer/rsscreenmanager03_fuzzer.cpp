@@ -79,7 +79,7 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     ScreenSamplingMode samplingMode = static_cast<ScreenSamplingMode>(
         fdp.ConsumeIntegral<uint32_t>() %
-        (static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU) + 1));
+        (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1));
     g_screenManager->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
