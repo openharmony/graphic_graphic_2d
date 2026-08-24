@@ -500,7 +500,7 @@ void RSLogicalDisplayRenderNodeDrawable::MapDamageRegionRects(const std::vector<
     if (mainScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) {
         float rogWidthRatio = mainScreenInfo.GetRogWidthRatio();
         float rogHeightRatio = mainScreenInfo.GetRogHeightRatio();
-        if (rogWidthRatio > 0.f && rogHeightRatio > 0.f) {
+        if (ROSEN_GNE(rogWidthRatio, 0.f) && ROSEN_GNE(rogHeightRatio, 0.f)) {
             canvasMatrix.PreScale(1.0f / rogWidthRatio, 1.0f / rogHeightRatio);
         } else {
             RS_LOGW("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip virtual dirty scale",
