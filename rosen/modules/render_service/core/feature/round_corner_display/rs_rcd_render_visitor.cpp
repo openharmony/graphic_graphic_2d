@@ -83,6 +83,31 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(
     uniProcessor_->ProcessRcdSurface(node);
 }
 
+void RSRcdRenderVisitor::CleanCache(std::shared_ptr<RSSurfaceOhos>& rsSurface)
+{
+    if (rsSurface == nullptr) {
+        RS_LOGE("RSRcdRenderVisitor::CleanCache no RSSurface found");
+        return;
+    }
+    auto surfaceTarget = rsSurface->GetSurface();
+    if (surfaceTarget == nullptr) {
+        RS_LOGE("RSRcdRenderVisitor::CleanCache no RSSurface found");
+        return;
+    }
+    surfaceTarget->CleanCache(true);
+}
+
+void RSRcdRenderVisitor::SetScalingMode(RSRcdSurfaceRenderNode& node)
+{
+    auto consumer = node.GetConsumer();
+    auto buffer = node.GetBuffer();
+    if (consumer == nullptr || buffer == nullptr) {
+        return;
+    }
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    consumer->SetScalingMode(buffer->GetSeqNum(), scalingMode);
+}
+
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
     bool resourceChanged)
@@ -124,9 +149,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     rsSurface->SetTimeOut(node.GetHardenBufferRequestConfig().timeout);
     auto renderFrame = renderEngine_->RequestFrame(rsSurface, node.GetHardenBufferRequestConfig(), true, false);
     if (renderFrame == nullptr) {
-        if (rsSurface->GetSurface() != nullptr) {
-            rsSurface->GetSurface()->CleanCache(true);
-        }
+        CleanCache(rsSurface);
         RS_LOGE("RSRcdRenderVisitor Request Frame Failed");
         return false;
     }
@@ -135,11 +158,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         RS_LOGE("RSRcdRenderVisitor ConsumeAndUpdateBuffer Failed");
         return false;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    if (node.GetConsumer() && node.GetBuffer()) {
-        node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
-    }
-
+    SetScalingMode(node);
     uniProcessor_->ProcessRcdSurface(node);
     node.PrintRcdNodeInfo(layerBitmap);
     return true;

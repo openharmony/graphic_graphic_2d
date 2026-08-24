@@ -49,6 +49,8 @@ const char NODE_BOTTOMSURFACE[] = "BottomSurface";
 const char NODE_SIDEREGIONCONFIG[] = "SideRegionConfig";
 const char NODE_SIDEREGION[] = "SideRegion";
 const char NODE_HARDWARECOMPOSERCONFIG[] = "HardwareComposerConfig";
+const char NODE_IMGLOADMODECONFIG[] = "ImageLoadModeConfig";
+const char NODE_IMGLOADMODE[] = "ImageLoadMode";
 const char NODE_HARDWARECOMPOSER[] = "HardwareComposer";
 const char NODE_ROG[] = "ROG";
 const char NODE_PORTRAIT[] = "Portrait";
@@ -60,6 +62,7 @@ const char NODE_LAYERDOWN[] = "LayerDown";
 const char NODE_LAYERHIDE[] = "LayerHide";
 const char NODE_CAMERAAUO[] = "CameraAuo";
 
+const char ATTR_MODE[] = "Mode";
 const char ATTR_SUPPORT[] = "Support";
 const char ATTR_DISPLAYMODE[] = "DisplayMode";
 const char ATTR_REGIONMODE[] = "RegionMode";
@@ -157,6 +160,17 @@ struct HardwareComposerConfig {
     bool ReadXmlNode(const xmlNodePtr& hardwareComposerNodePtr);
 };
 
+enum ImageLoadType {
+    ROG_FULLY_LOAD = 0, // default mode
+    ROG_PARTIALLY_LOAD,
+    END
+};
+
+struct ImageLoadModeConfig {
+    ImageLoadType mode = ImageLoadType::ROG_FULLY_LOAD;
+    bool ReadXmlNode(const xmlNodePtr& imageLoadeModeNodePtr);
+};
+
 struct LCDModel {
     LCDModel() {}
     virtual ~LCDModel();
@@ -164,6 +178,7 @@ struct LCDModel {
     SurfaceConfig surfaceConfig;
     SideRegionConfig sideRegionConfig;
     HardwareComposerConfig hardwareConfig;
+    ImageLoadModeConfig imageLoadConfig;
     std::vector<ROGSetting*> rogs;
     bool ReadXmlNode(const xmlNodePtr& lcdNodePtr);
     SurfaceConfig GetSurfaceConfig() const;

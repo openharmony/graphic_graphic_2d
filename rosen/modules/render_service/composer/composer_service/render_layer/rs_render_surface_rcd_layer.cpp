@@ -43,6 +43,10 @@ DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP)
 
 void RSRenderSurfaceRCDLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)
 {
+    if (command == nullptr) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s cmd null", __func__);
+        return;
+    }
     auto type = command->GetRSRenderLayerCmdType();
     auto property = command->GetRSRenderLayerProperty();
     std::shared_ptr<RSRenderSurfaceRCDLayer> rsRenderLayer =
@@ -54,7 +58,7 @@ void RSRenderSurfaceRCDLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLay
     if (it != cmdHandlers_.end()) {
         it->second(rsRenderLayer, property);
     } else {
-        ROSEN_LOGD("%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
     }
 }
 

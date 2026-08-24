@@ -183,7 +183,7 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
     }
     if (layerInfo->curBitmap->GetColorType() == Drawing::ColorType::COLORTYPE_ALPHA_8) {
         // alpha8 bitmap cannot be used directly by hardware resource buffer, convert to rgba8888
-        if (!ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
+        if (!RCDBitmapUtils::ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
             RS_LOGE("RCD: convert alpha8 bitmap to rgba8888 bitmap failed");
             return false;
         }
@@ -217,13 +217,14 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
 RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
 {
-    if (src.GetPixels() == nullptr || (src.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
-        src.GetColorType() != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
+    auto srcType = src.GetColorType();
+    if (src.GetPixels() == nullptr || (srcType != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
+        srcType != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
         return nullptr;
     }
     Media::InitializationOptions opts;
-    opts.pixelFormat = src.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
+    opts.pixelFormat = srcType == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
         Media::PixelFormat::BGRA_8888;
     opts.size.width = src.GetWidth();
     opts.size.height = src.GetHeight();

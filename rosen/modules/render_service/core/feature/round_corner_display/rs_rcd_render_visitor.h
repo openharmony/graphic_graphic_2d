@@ -54,7 +54,9 @@ public:
         RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo, bool resourceChanged);
     void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
-
+private:
+    void CleanCache(std::shared_ptr<RSSurfaceOhos>& rsSurface);
+    void SetScalingMode(RSRcdSurfaceRenderNode& node);
 private:
     std::mutex bufferMut_;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
