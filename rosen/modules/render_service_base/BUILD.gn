@@ -425,7 +425,7 @@ ohos_source_set("render_service_base_src") {
     "src/monitor/self_drawing_node_monitor.cpp",
 
     #feature
-    "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/capture/rs_sync_capture_helper.cpp",
     "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
