@@ -69,7 +69,7 @@ public:
     void EraseGameRateDiscountMap(pid_t pid);
     void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; }
 
-prihgm_soft_vsync_manager.vate:
+private:
     void Reset();
     void HandleLinkers();
     void DeliverSoftVote(FrameRateLinkerId linkerId, const VoteInfo& voteInfo, bool eventStatus);
