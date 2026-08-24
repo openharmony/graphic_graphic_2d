@@ -6469,7 +6469,6 @@ void RSMainThread::AddDisableReason(const std::string& reason)
         isDirectCompositionDisableTraceTruncated_ = true;
         return;
     }
-    
     if (originalLength > 0) {
         directCompositionDisableReasons_ += "|";
     }
