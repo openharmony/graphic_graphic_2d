@@ -814,6 +814,14 @@ void RSSurfaceOhosVulkan::ReleasePreAllocateBuffer()
 
 void RSSurfaceOhosVulkan::CopyContentBuffer(sptr<SurfaceBuffer> surfaceBufferSrc)
 {
+    if (mSurfaceList.empty()) {
+        RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: mSurfaceList is empty");
+        return;
+    }
+    if (surfaceBufferSrc == nullptr) {
+        RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: surfaceBufferSrc is nullptr");
+        return;
+    }
     auto windowBuffer = mSurfaceList.back();
     if (windowBuffer == nullptr || windowBuffer->sfbuffer == nullptr) {
         RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: windowBuffer or sfbuffer is nullptr!");
@@ -822,6 +830,10 @@ void RSSurfaceOhosVulkan::CopyContentBuffer(sptr<SurfaceBuffer> surfaceBufferSrc
     auto surfaceBufferDst = windowBuffer->sfbuffer;
     void* dstData = surfaceBufferDst->GetVirAddr();
     void* srcData = surfaceBufferSrc->GetVirAddr();
+    if (dstData == nullptr || srcData == nullptr) {
+        RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: dstData or srcData is nullptr");
+        return;
+    }
  
     auto srcSize = surfaceBufferSrc->GetSize();
     auto dstSize = surfaceBufferDst->GetSize();
