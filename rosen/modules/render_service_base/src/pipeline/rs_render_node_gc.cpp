@@ -15,10 +15,12 @@
 
 #include "pipeline/rs_render_node_gc.h"
 
+#include "common/rs_background_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include <csignal>
 
@@ -67,6 +69,21 @@ void RSRenderNodeGC::AddNodeToBucket(RSRenderNode* ptr)
     }
 }
 
+void RSRenderNodeGC::AddNodeToBgBucket(RSRenderNode* ptr)
+{
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    if (nodeBgBucket_.size() > 0) {
+        auto& bucket = nodeBgBucket_.back();
+        if (bucket.size() < BUCKET_MAX_SIZE) {
+            bucket.push_back(ptr);
+        } else {
+            nodeBgBucket_.push({ptr});
+        }
+    } else {
+        nodeBgBucket_.push({ptr});
+    }
+}
+
 RSRenderNodeGC& RSRenderNodeGC::Instance()
 {
     static RSRenderNodeGC instance;
@@ -83,7 +100,11 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     if (ptr == nullptr) {
         return;
     }
-    AddNodeToBucket(ptr);
+    if (ptr->MustReleaseOnMainThread() || !RSSystemProperties::GetBgNodeReleaseEnabled()) {
+        AddNodeToBucket(ptr);
+    } else {
+        AddNodeToBgBucket(ptr);
+    }
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
 
@@ -146,6 +167,36 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
+void RSRenderNodeGC::ReleaseNodeOnBgThread()
+{
+    RS_TRACE_NAME_FMT("ReleaseNodeOnBgThread start");
+    while (true) {
+        std::vector<RSRenderNode*> toDele;
+        {
+            std::lock_guard<std::mutex> lock(nodeMutex_);
+            if (nodeBgBucket_.empty()) {
+                return;
+            }
+            toDele.swap(nodeBgBucket_.front());
+            nodeBgBucket_.pop();
+        }
+        for (auto ptr : toDele) {
+            if (ptr == nullptr) {
+                continue;
+            }
+            if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
+                continue;
+            }
+#if defined(__aarch64__)
+            auto* hook = reinterpret_cast<MemoryHook*>(ptr);
+            hook->Protect();
+#endif
+            delete ptr;
+            ptr = nullptr;
+        }
+    }
+}
+
 void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
@@ -162,12 +213,13 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
-            return;
+            remainBucketSize = 0;
+        } else {
+            remainBucketSize = nodeBucket_.size();
         }
-        remainBucketSize = nodeBucket_.size();
     }
-    nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
-    if (mainTask_) {
+    if (remainBucketSize > 0 && mainTask_) {
+        nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
         auto task = [this, highPriority]() {
             if (isEnable_.load() == false &&
                 nodeGCLevel_ != GCLevel::IMMEDIATE) {
@@ -188,9 +240,20 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
         auto taskPriority = highPriority ? AppExecFwk::EventQueue::Priority::HIGH :
                             static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_);
         mainTask_(task, DELETE_NODE_TASK, 0, taskPriority);
-    } else {
+    } else if (remainBucketSize > 0) {
         ReleaseNodeBucket();
     }
+    if (!RSSystemProperties::GetBgNodeReleaseEnabled()) {
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(nodeMutex_);
+        if (nodeBgBucket_.empty()) {
+            return;
+        }
+        RS_TRACE_NAME_FMT("PostBgReleaseTask, bgBuckets=%zu", nodeBgBucket_.size());
+    }
+    RSBackgroundThread::Instance().PostTask([this]() { ReleaseNodeOnBgThread(); });
 }
 
 void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr)

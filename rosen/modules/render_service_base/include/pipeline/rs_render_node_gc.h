@@ -66,6 +66,7 @@ public:
     void NodeDestructorInner(RSRenderNode* ptr);
     bool IsBucketQueueEmpty();
     void ReleaseNodeBucket();
+    void ReleaseNodeOnBgThread();
     void ReleaseNodeMemory(bool highPriority = false);
     void SetMainTask(gcTask hook) {
         mainTask_ = hook;
@@ -124,6 +125,7 @@ private:
     void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
     void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
     void AddNodeToBucket(RSRenderNode* ptr);
+    void AddNodeToBgBucket(RSRenderNode* ptr);
     void ReleaseNodePid(pid_t pid);
     bool CheckHasNodeNotOnTree();
 
@@ -141,6 +143,7 @@ private:
     std::queue<std::vector<RSRenderNode*>> nodeBucket_;
     RSThresholdDetector<uint32_t> nodeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
         NODE_BUCKET_THR_LOW, NODE_BUCKET_THR_HIGH);
+    std::queue<std::vector<RSRenderNode*>> nodeBgBucket_;
     std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> drawableBucket_;
     RSThresholdDetector<uint32_t> drawableBucketThrDetector_ = RSThresholdDetector<uint32_t>(
         DRAWABLE_BUCKET_THR_LOW, DRAWABLE_BUCKET_THR_HIGH);

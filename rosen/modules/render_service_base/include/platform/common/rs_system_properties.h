@@ -401,6 +401,7 @@ public:
     static bool GetBootCompleted();
     static bool GetClipRRectOptimizationEnabled();
     static bool GetNodeMemClearEnabled();
+    static bool GetBgNodeReleaseEnabled();
     static bool GetTransactionDataTraceEnabled();
     static bool GetDefaultMemClearEnabled();
     static bool GetSceneBoardIsPcMode();

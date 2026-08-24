@@ -1821,6 +1821,11 @@ RSRenderNode::~RSRenderNode()
     }
 }
 
+bool RSRenderNode::MustReleaseOnMainThread() const
+{
+    return HasAnimation();
+}
+
 void RSRenderNode::FallbackAnimationsToRoot()
 {
     if (!animationManager_ || animationManager_->animations_.empty()) {
