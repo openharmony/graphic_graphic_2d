@@ -398,7 +398,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
     auto widthRatio = screenProperty.GetRogWidthRatio();
     auto heightRatio = screenProperty.GetRogHeightRatio();
     if (screenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
-        ROSEN_GE(widthRatio, 0.f) && ROSEN_GE(heightRatio, 0.f)) {
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
         RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
         rscanvas->Scale(1.0f / widthRatio, 1.0f / heightRatio);
         renderEngine->DrawScreenNodeWithParams(
