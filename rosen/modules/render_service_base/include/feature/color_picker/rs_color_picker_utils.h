@@ -37,6 +37,10 @@ class RSSurfaceRenderNode;
 class RSRenderNodeMap;
 using NodeId = uint64_t;
 
+namespace DrawableV2 {
+class RSColorPickerDrawable;
+}
+
 namespace RSColorPickerUtils {
 /**
  * @brief Calculate the luminance of a color using standard coefficients.
@@ -140,6 +144,8 @@ RSB_EXPORT std::unordered_set<NodeId> CollectColorPickerNodeIds(
  * @brief Check if color picker needs to execute based on the current surface dirty region.
  */
 RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect);
+RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect,
+    const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable);
 /**
  * @brief Check if color picker needs to execute based on dirty region intersection from surfaces below.
  */
