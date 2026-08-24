@@ -1571,6 +1571,42 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLayerTop_Normal_Success
+ * @tc.desc: Test SetLayerTop with normal case
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop_Normal_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    std::string nodeIdStr = "test_node";
+    bool isTop = true;
+    ErrCode ret = mockProxy->SetLayerTop(nodeIdStr, isTop);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetLayerTop_SendRequestFail
+ * @tc.desc: Test SetLayerTop when SendRequest fails
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop_SendRequestFail, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::string nodeIdStr = "test_node";
+    bool isTop = true;
+    ErrCode ret = mockProxy->SetLayerTop(nodeIdStr, isTop);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: SetHdrForceHwcEnabled_Normal_Success
  * @tc.desc: Test SetHdrForceHwcEnabled with normal case
  * @tc.type: FUNC

@@ -5129,13 +5129,19 @@ ErrCode RSClientToServiceConnectionProxy::SetLayerTop(const std::string &nodeIdS
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
-        uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
-        int32_t err = SendRequest(code, data, reply, option);
-        if (err != NO_ERROR) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
-            return ERR_INVALID_VALUE;
-        }
+    if (!data.WriteString(nodeIdStr)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteString failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isTop)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteBool failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
