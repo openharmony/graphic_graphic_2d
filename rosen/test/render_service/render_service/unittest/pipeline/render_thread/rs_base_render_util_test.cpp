@@ -2936,8 +2936,8 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_NoPhysicalSize, TestS
     BufferRequestConfig config =
         RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, false, colorGamut, pixelFormat);
 
-    EXPECT_EQ(config.width, static_cast<int32_t>(PHY_WIDTH));
-    EXPECT_EQ(config.height, static_cast<int32_t>(PHY_HEIGHT));
+    EXPECT_EQ(config.width, static_cast<int32_t>(RENDER_WIDTH));
+    EXPECT_EQ(config.height, static_cast<int32_t>(RENDER_HEIGHT));
 }
 
 } // namespace OHOS::Rosen
