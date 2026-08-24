@@ -6462,7 +6462,6 @@ void RSMainThread::AddDisableReason(const std::string& reason)
         newLength += 1; // "|"
     }
     newLength += reason.length();
-    
     // Check if adding this reason would exceed the limit
     if (newLength > MAX_TRACE_LENGTH - TRUNCATION_MARKER_LENGTH) {
         directCompositionDisableReasons_ += "|...";
