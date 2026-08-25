@@ -28,7 +28,7 @@
 #include "rs_render_composer.h"
 #include "rs_render_composer_context.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"

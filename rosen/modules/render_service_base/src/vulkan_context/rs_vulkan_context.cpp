@@ -20,7 +20,7 @@
  * 提供CreateOrGet静态方法实现三种类型单例
  */
 
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #include <memory>
 

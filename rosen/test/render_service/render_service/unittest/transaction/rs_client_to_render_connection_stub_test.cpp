@@ -19,7 +19,7 @@
 #include <parameters.h>
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"

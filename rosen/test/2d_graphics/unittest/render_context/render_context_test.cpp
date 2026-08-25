@@ -22,7 +22,7 @@
 #include "new_render_context/render_context_gl.h"
 #ifdef RS_ENABLE_VK
 #include "new_render_context/render_context_vk.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing::ext;

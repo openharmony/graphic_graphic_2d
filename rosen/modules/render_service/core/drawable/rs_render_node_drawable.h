@@ -30,7 +30,7 @@
 #include "pipeline/rs_render_node.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 #endif
 #include "pipeline/rs_paint_filter_canvas.h"
 

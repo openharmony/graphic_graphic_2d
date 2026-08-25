@@ -16,8 +16,8 @@
 #include "render_context_vk.h"
 
 #include "render_context/render_context_log.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"

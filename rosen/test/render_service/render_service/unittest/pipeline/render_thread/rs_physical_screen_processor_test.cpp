@@ -32,7 +32,7 @@
 #include "pipeline/rs_test_util.h"
 #include "screen_manager/rs_screen_info.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_node_gc.h"
 

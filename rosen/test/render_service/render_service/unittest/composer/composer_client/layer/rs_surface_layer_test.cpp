@@ -30,7 +30,7 @@
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "layer_backend/hdi_output.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "layer/rs_surface_layer.h"
 #include "surface_buffer.h"

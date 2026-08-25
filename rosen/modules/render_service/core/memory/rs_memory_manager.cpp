@@ -68,7 +68,7 @@
 
 #ifdef RS_ENABLE_VK
 #include "gpuComposition/rs_vk_image_manager.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 // LCOV_EXCL_START
 static inline const char* GetThreadName()

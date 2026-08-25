@@ -66,8 +66,8 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_pixel_map_util.h"

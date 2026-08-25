@@ -24,13 +24,13 @@
 #include <optional>
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "sync_fence.h"
-#include "native_buffer_utils.h"
 #include "image/image.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "rs_surface_frame_ohos_vulkan.h"
 #include "rs_trace.h"
+#include "vulkan_context/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
 #include <surface.h>
 
 #if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
