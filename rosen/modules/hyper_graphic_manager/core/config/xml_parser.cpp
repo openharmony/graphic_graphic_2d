@@ -174,6 +174,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
         setResult = ParseSimplex(node, mParsedData_->vRateControlList_);
     } else if (paraName == "hover_frame_up_config") {
         mParsedData_->hoverFrameUpSwitch_ = ExtractPropertyValue("switch", node) == "1";
+    } else if (paraName == "dimming_config") {
+        setResult = ParseSimplex(node, mParsedData_->dimmingConfig_);
     } else {
         setResult = EXEC_SUCCESS;
     }

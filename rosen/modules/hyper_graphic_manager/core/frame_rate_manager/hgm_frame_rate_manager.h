@@ -25,6 +25,7 @@
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
+#include "hgm_dimming_manager.h"
 #include "hgm_frame_voter.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
@@ -310,6 +311,7 @@ private:
     HgmFrameVoter frameVoter_;
     HgmUserDefine userDefine_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
+    HgmDimmingManager dimmingManager_;
 
     std::atomic<bool> voterTouchEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
