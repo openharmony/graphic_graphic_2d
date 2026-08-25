@@ -202,6 +202,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     uint32_t powerStatus = GetData<uint32_t>();
     int32_t backlightlevel = GetData<int32_t>();
     uint64_t screenId = GetData<uint64_t>();
+    ScreenSamplingMode samplingMode = static_cast<ScreenSamplingMode>(
+        GetData<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1))
     RSScreenModeInfo modeInfo;
     int32_t resCode;
 
@@ -232,8 +234,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetRefreshInfoToSP(id1, getRefreshInfoToSPEnable);
     rsClientToServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsClientToServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
-    rsClientToServiceConnectionProxy.SetRogScreenResolution(id1, width, height, static_cast<ScreenSamplingMode>(
-        fdp.ConsumeIntegral<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1)));
+    rsClientToServiceConnectionProxy.SetRogScreenResolution(id1, width, height, samplingMode);
     rsClientToServiceConnectionProxy.SetScreenPowerStatus(id1, status);
     rsClientToRenderConnectionProxy.RegisterApplicationAgent(width, app);
     rsClientToServiceConnectionProxy.GetVirtualScreenResolution(id1);
