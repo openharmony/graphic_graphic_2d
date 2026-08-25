@@ -8376,5 +8376,80 @@ HWTEST_F(RSMainThreadTest, SetUIMode3D_004, TestSize.Level1)
     EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
 }
 
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    mainThread->AddDisableReason("buffer not updated");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("buffer not updated"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string nodeInfo = "TestNode[12345]";
+    mainThread->AddDisableReason(
+        "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
+    EXPECT_NE(result.find(nodeInfo), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, ResetDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->AddDisableReason("HDR[TestNode[999]]");
+    EXPECT_FALSE(mainThread->GetDisableReasons().empty());
+    mainThread->ResetDisableReasons();
+    EXPECT_TRUE(mainThread->GetDisableReasons().empty());
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_TRUE(result.empty());
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    mainThread->AddDisableReason("buffer not updated");
+    mainThread->AddDisableReason("HDR");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("buffer not updated"), std::string::npos);
+    EXPECT_NE(result.find("HDR"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string nodeInfo = "SurfaceNode[12345] bufferSizeChanged[1] bufferTransformChanged[0]";
+    mainThread->AddDisableReason(
+        "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
+    mainThread->AddDisableReason("HDR[HDRNode[67890]]");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
+    EXPECT_NE(result.find("HDR"), std::string::npos);
+    EXPECT_NE(result.find("SurfaceNode[12345]"), std::string::npos);
+    EXPECT_NE(result.find("HDRNode[67890]"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
 } // namespace OHOS::Rosen
 #endif
