@@ -5017,6 +5017,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest009, Tes
     uint32_t width = 0;
     uint32_t height = 0;
     int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**
