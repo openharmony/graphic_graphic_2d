@@ -258,7 +258,7 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
             errno_t status = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
             if (status != EOK) {
                 WLOGE("memcpy_s failed");
-                return ret;
+                return 0;
             }
             auto moveblob = it->first;
             moveblob->prev_->next_ = moveblob->next_;
