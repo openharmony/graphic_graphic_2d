@@ -109,15 +109,11 @@ public:
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-        std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+        RenderEngineType type,
         std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
     static void OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-        std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+        RenderEngineType type,
         std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, sptr<SyncFence>& acquireFence, bool optFenceWait = true);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);

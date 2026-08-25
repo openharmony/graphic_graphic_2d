@@ -618,8 +618,7 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit001, TestSize.Level2)
     ASSERT_NE(surface, nullptr);
     Drawing::GPUContext* gpuContext = nullptr;
     bool optFenceWait = false;
-    auto vkInterface = std::make_shared<RsVulkanInterface>(false, true, RenderEngineType::BASIC_RENDER);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext, optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(RenderEngineType::BASIC_RENDER, surface, gpuContext, optFenceWait);
 }
 
 /*
@@ -633,14 +632,13 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
     RSUniRenderUtil rsUniRenderUtil;
     bool optFenceWait = false;
     std::shared_ptr<Drawing::Surface> surface = nullptr;
-    auto vkInterface = std::make_shared<RsVulkanInterface>(false, true, RenderEngineType::BASIC_RENDER);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, nullptr, optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(RenderEngineType::BASIC_RENDER, surface, nullptr, optFenceWait);
     std::shared_ptr<Drawing::GPUContext> gpuContext = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(gpuContext, nullptr);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext.get(), optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(RenderEngineType::BASIC_RENDER, surface, gpuContext.get(), optFenceWait);
     surface = std::make_shared<Drawing::Surface>();
     ASSERT_NE(surface, nullptr);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext.get(), optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(RenderEngineType::BASIC_RENDER, surface, gpuContext.get(), optFenceWait);
 }
 #endif
 
