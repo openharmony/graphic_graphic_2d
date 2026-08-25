@@ -4010,8 +4010,8 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
         if (lines[i].find(TARGET_STRING) != std::string::npos) {
             foundTargetStr = true;
             int start = std::max(0, i - CONTEXT_LINES);
-            int end = std::min(static_cast<int>(lines.size()) - 1, i + CONTEXT_LINES);
-            for (int j = start; j <= end; ++j) {
+            int end = std::min(static_cast<int>(lines.size() - 1), i + CONTEXT_LINES);
+            for (int j = start; j < end; ++j) {
                 result += lines[j] + "\n";
             }
             break;
@@ -4020,8 +4020,8 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
     if (!foundTargetStr) {
         RS_LOGW("SubHistoryEventQueue No task is being executed");
         // If the TARGET_STRING is not found, dump the information of the first 10 lines.
-        int end = std::min(static_cast<int>(lines.size()), 10);
-        for (int j = 0; j < end; ++j) {
+        int end = std::min(static_cast<int>(lines.size() - 1) - 1, 9);
+        for (int j = 0; j <= end; ++j) {
             result += lines[j] + "\n";
         }
     }
