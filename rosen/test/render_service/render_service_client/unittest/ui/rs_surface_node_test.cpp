@@ -1280,15 +1280,15 @@ HWTEST_F(RSSurfaceNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetGlobalPositionEnabled Test
+ * @tc.name: SetGlobalPositionEnabledTest001
  * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
  * @tc.type: FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabled, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledTest001, TestSize.Level1)
 {
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->SetGlobalPositionEnabled(true);
     ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
     surfaceNode->SetGlobalPositionEnabled(false);
@@ -1937,17 +1937,17 @@ HWTEST_F(RSSurfaceNodeTest, SetApiCompatibleVersion, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSourceVirtualScreenId
+ * @tc.name: SetSourceVirtualScreenIdTest001
  * @tc.desc: Test function SetSourceVirtualScreenId
  * @tc.type: FUNC
  * @tc.require: issueIBIK1X
  */
-HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualScreenId, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualScreenIdTest001, TestSize.Level1)
 {
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ScreenId id = {};
-    surfaceNode->SetSourceVirtualDisplayId(id);
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    ScreenId screenId = 0;
+    surfaceNode->SetSourceVirtualDisplayId(screenId);
     ASSERT_NE(surfaceNode, nullptr);
 }
 

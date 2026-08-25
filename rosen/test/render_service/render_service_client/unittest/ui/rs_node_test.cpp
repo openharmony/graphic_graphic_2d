@@ -7714,9 +7714,13 @@ HWTEST_F(RSNodeTest, AddCrossParentChild, TestSize.Level1)
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
+/**
  * @tc.name: RemoveCrossParentChildTest001
  * @tc.desc: Branch A - child is nullptr, function returns early, children_ unchanged
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
+{
     struct RSDisplayNodeConfig config;
     auto displayNode = RSDisplayNode::Create(config);
     ASSERT_NE(displayNode, nullptr);
@@ -7727,6 +7731,7 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
     displayNode->RemoveCrossParentChild(nullptr, newParent);
     EXPECT_EQ(displayNode->children_.size(), countBefore);
 }
+
 /**
  * @tc.name: RemoveCrossParentChildTest002
  * @tc.desc: Branch B - newParent is nullptr, function returns early, children_ unchanged
@@ -7743,6 +7748,7 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest002, TestSize.Level1)
     displayNode->RemoveCrossParentChild(child, nullptr);
     EXPECT_EQ(displayNode->children_.size(), countBefore);
 }
+
 /**
  * @tc.name: RemoveCrossParentChildTest003
  * @tc.desc: Branch C - this is not a DisplayNode, returns early, children_ unchanged
@@ -7775,14 +7781,29 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest004, TestSize.Level1)
     displayNode->children_.push_back(child);
     displayNode->RemoveCrossParentChild(child, newParent);
     EXPECT_EQ(child->GetParent(), newParent);
+}
 
 /**
- * @tc.name: AddCrossScreenChild
+ * @tc.name: SetIsCrossNodeTest001
+ * @tc.desc: Test SetIsCrossNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetIsCrossNodeTest001, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetIsCrossNode(true);
+    displayNode->SetIsCrossNode(false);
+}
+
+/**
+ * @tc.name: AddCrossScreenChildTest001
  * @tc.desc: test results of AddCrossScreenChild
  * @tc.type: FUNC
  * @tc.require: issueIBF3VR
  */
-HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, AddCrossScreenChildTest001, TestSize.Level1)
 {
     struct RSDisplayNodeConfig displayNodeConfig;
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
@@ -7797,12 +7818,12 @@ HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
 }
 
 /**
- * @tc.name: RemoveCrossScreenChild
+ * @tc.name: RemoveCrossScreenChildTest001
  * @tc.desc: test results of RemoveCrossScreenChild
  * @tc.type: FUNC
  * @tc.require: issueIBF3VR
  */
-HWTEST_F(RSNodeTest, RemoveCrossScreenChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, RemoveCrossScreenChildTest001, TestSize.Level1)
 {
     struct RSDisplayNodeConfig config;
     auto displayNode = RSDisplayNode::Create(config);
