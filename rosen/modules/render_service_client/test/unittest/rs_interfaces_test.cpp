@@ -164,7 +164,7 @@ HWTEST_F(RSInterfacesTest, SetRogScreenResolution001, Function | SmallTest | Lev
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
-    rsInterfaces->SetRogScreenResolution(screenId, newWidth, newHeight);
+    rsInterfaces->SetRogScreenResolution(screenId, newWidth, newHeight, ScreenSamplingMode::DEVICE_DSS);
 }
 
 /*

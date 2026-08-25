@@ -679,6 +679,13 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
         mirrorSourceDisplayDrawable->GetId());
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcNodes, *curCanvas, *mirrorSourceScreenParams);
     curCanvas->Restore();
+    const auto& mirroredScreenProperty = mirrorSourceScreenParams->GetScreenProperty();
+    auto widthRatio = mirroredScreenProperty.GetRogWidthRatio();
+    auto heightRatio = mirroredScreenProperty.GetRogHeightRatio();
+    if (mirroredScreenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
+        curCanvas->Scale(1.0f / widthRatio, 1.0f / heightRatio);
+    }
 
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME_FMT("%s, use cacheImage, hwcNodes[%zu], hwcTopNodes[%zu], slrManager[%d]",

@@ -302,7 +302,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest001, TestSiz
     constexpr uint32_t kWidth = 1920;
     constexpr uint32_t kHeight = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight);
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -317,7 +318,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest002, TestSiz
     constexpr uint32_t kWidth = 0;
     constexpr uint32_t kHeight = 0;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight);
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 

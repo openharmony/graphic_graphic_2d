@@ -3345,4 +3345,46 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSiz
     ASSERT_EQ(_, nullptr);
     ASSERT_EQ(screenParams, nullptr);
 }
+/**
+ * @tc.name: OnDrawRogScale
+ * @tc.desc: Test OnDraw when SamplingMode is DEVICE_GPU, Scale is apply without crash
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawRogScale, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    renderParams->shouldPaint_ = true;
+    renderParams->contentEmpty_ = false;
+
+    renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
+    mirroredDisplayDrawable_->renderParams_ = nullptr;
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_MODE>(
+        static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU));
+    constexpr int32_t PHY_WIDTH = 200;
+    constexpr int32_t PHY_HEIGHT = 400;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({RENDER_WIDTH, RENDER_HEIGHT});
+    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {PHY_WIDTH, PHY_HEIGHT, 60});
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
+    uniParams->SetRSProcessor(processor);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    EXPECT_NO_FATAL_FAILURE(displayDrawable_->OnDraw(*drawingFilterCanvas_));
+    EXPECT_EQ(screenParams->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
+    EXPECT_NE(screenParams->screenProperty_.GetRogWidthRatio(), 1.0f);
+    EXPECT_NE(screenParams->screenProperty_.GetRogHeightRatio(), 1.0f);
+}
 }

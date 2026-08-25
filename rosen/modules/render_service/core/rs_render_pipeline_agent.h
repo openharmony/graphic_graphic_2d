@@ -182,9 +182,11 @@ public:
     bool UnRegisterTypeface(uint64_t globalUniqueId);
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
-    ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height);
+    ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void UpdateScreenNodesResolution(RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height);
+    void UpdateScreenNodesResolution(RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     void AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height);
     void SetBootAnimationBounds(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t width, uint32_t height);
     void Clean(pid_t pid, bool forRefresh = false);

@@ -899,12 +899,21 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             ScreenId screenId{INVALID_SCREEN_ID};
             uint32_t width{0};
             uint32_t height{0};
-            if (!data.ReadUint64(screenId) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+            uint32_t samplingMode{0};
+            if (!data.ReadUint64(screenId) || !data.ReadUint32(width) || !data.ReadUint32(height) ||
+                !data.ReadUint32(samplingMode)) {
                 RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto replyMessage = SetRogScreenResolution(screenId, width, height);
+            if (samplingMode > static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN)) {
+                RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Invalid parameter,"
+                    " samplingMode: %{public}u", samplingMode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto replyMessage = SetRogScreenResolution(screenId, width, height,
+                static_cast<ScreenSamplingMode>(samplingMode));
             RS_LOGI("SET_ROG_SCREEN_RESOLUTION replyMsg: %{public}d", replyMessage);
             reply.WriteInt32(replyMessage);
             break;

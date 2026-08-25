@@ -92,6 +92,12 @@ enum class ScreenScaleMode : uint32_t {
     INVALID_MODE,
 };
 
+enum class ScreenSamplingMode : uint32_t {
+    DEVICE_DSS = 0,
+    DEVICE_GPU,
+    OFFSCREEN,
+};
+
 typedef enum : uint32_t {
     BUILT_IN_TYPE_SCREEN = 0,
     EXTERNAL_TYPE_SCREEN,

@@ -1026,7 +1026,8 @@ int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width,
     return SUCCESS;
 }
 
-int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1034,7 +1035,7 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
         return SCREEN_NOT_FOUND;
     }
     RS_LOGI("%{public}s: set rog screen resolution success", __func__);
-    screen->SetRogResolution(width, height);
+    screen->SetRogResolution(width, height, samplingMode);
     return SUCCESS;
 }
 

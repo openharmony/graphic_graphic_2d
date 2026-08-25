@@ -1546,7 +1546,8 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     return replyMessage;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+ErrCode RSServiceToRenderConnectionProxy::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1566,6 +1567,10 @@ ErrCode RSServiceToRenderConnectionProxy::SetRogScreenResolution(ScreenId screen
     }
     if (!data.WriteUint32(height)) {
         ROSEN_LOGE("%{public}s: Write height failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(samplingMode))) {
+        ROSEN_LOGE("%{public}s: Write samplingMode failed.", __func__);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
