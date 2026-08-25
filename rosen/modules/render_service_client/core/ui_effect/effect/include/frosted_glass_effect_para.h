@@ -302,46 +302,6 @@ public:
         return materialColor_;
     }
 
-    void SetColorBlendMode(int colorBlendMode)
-    {
-        colorBlendMode_ = colorBlendMode;
-    }
-
-    int GetColorBlendMode() const
-    {
-        return colorBlendMode_;
-    }
-
-    void SetVibrancyStrength(float vibrancyStrength)
-    {
-        vibrancyStrength_ = vibrancyStrength;
-    }
-
-    float GetVibrancyStrength() const
-    {
-        return vibrancyStrength_;
-    }
-
-    void SetLumaParams(Vector3f& lumaParams)
-    {
-        lumaParams_ = lumaParams;
-    }
-
-    const Vector3f GetLumaParams() const
-    {
-        return lumaParams_;
-    }
-
-    void SetMaterialColorFraction(float materialColorFraction)
-    {
-        materialColorFraction_ = materialColorFraction;
-    }
-
-    float GetMaterialColorFraction() const
-    {
-        return materialColorFraction_;
-    }
-
     void SetMask(std::shared_ptr<MaskPara> maskPara)
     {
         maskPara_ = maskPara;
@@ -356,6 +316,7 @@ public:
     {
         return enableSDFCache_;
     }
+    
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
