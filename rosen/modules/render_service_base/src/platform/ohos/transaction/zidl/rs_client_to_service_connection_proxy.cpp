@@ -5053,37 +5053,6 @@ int32_t RSClientToServiceConnectionProxy::RegisterUIExtensionCallback(
     }
 }
 
-int32_t RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("AuthorizeUIExtensionPid: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
-    }
-    if (!data.WriteUint64(nodeId) || !data.WriteInt32(static_cast<int32_t>(guestPid)) ||
-        !data.WriteBool(authorized)) {
-        ROSEN_LOGE("AuthorizeUIExtensionPid: Write parcel err.");
-        return RS_CONNECTION_ERROR;
-    }
-    // synchronous: the result reflects whether render_service accepted the request and the
-    // render process applied the authorization to its node map
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("AuthorizeUIExtensionPid: SendRequest err %{public}d.", err);
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result{0};
-    if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid Read result failed");
-        return READ_PARCEL_ERR;
-    }
-    return result;
-}
-
 ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id,
     VirtualScreenStatus screenStatus, bool& success)
 {

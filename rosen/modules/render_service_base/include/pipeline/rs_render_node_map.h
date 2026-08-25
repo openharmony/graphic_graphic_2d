@@ -80,15 +80,7 @@ public:
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
-    // UIExtension cross-process authorization: the host (UEA) owns the NodeId, the guest (UEC) pid
-    // must be explicitly authorized by the host before it can create the node or send commands.
-    bool IsUIExtensionAuthorized(NodeId id, pid_t callingPid) const;
-    // enforcePerHostQuota: true for untrusted (non-system or unidentified) hosts, limiting how many
-    // entries one host pid may hold so a malicious app cannot block other apps' authorizations
-    bool AuthorizeUIExtensionPid(NodeId id, pid_t guestPid, bool enforcePerHostQuota);
-    bool RevokeUIExtensionPid(NodeId id, pid_t guestPid);
-    // returns the authorized guest (UEC) pid of the node, 0 if not authorized
-    pid_t GetUIExtensionGuestPid(NodeId id) const;
+    bool IsUIExtensionSurfaceNode(NodeId id) const;
     void DestroyTokenNode(pid_t pid, uint64_t token);
 
     // Pending buffer map keyed by AppWindow NodeId, value is LeashWindow NodeId for sibling grouping
@@ -178,16 +170,10 @@ private:
 
     void Initialize(const std::weak_ptr<RSContext>& context);
 
+    void AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void CollectSelfDrawingNodeOfSubTree(std::vector<NodeId>& vec, const std::shared_ptr<RSBaseRenderNode> rootNode);
-    // key: UIExtension surface node id, value: authorized guest (UEC) pid; entries are created
-    // only by AuthorizeUIExtensionPid (pre-authorization before node registration is allowed)
-    std::unordered_map<NodeId, pid_t> uiExtensionSurfaceNodes_;
-    // entry count per host pid, kept in sync with uiExtensionSurfaceNodes_ under the same mutex
-    // so the per-host quota check in AuthorizeUIExtensionPid is O(1)
-    std::unordered_map<pid_t, size_t> uiExtensionHostEntryCounts_;
-    // caller must hold uiExtensionSurfaceNodesMutex_
-    void DecreaseUIExtensionHostEntryCount(pid_t hostPid);
+    std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> needAttachedNode_;
 

@@ -32,8 +32,6 @@ namespace Rosen {
 
 using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
 
-static constexpr size_t MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST = 500;
-
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
@@ -134,69 +132,17 @@ bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
         [nodePid](const auto& pair) -> bool { return ExtractPid(pair.first) == nodePid; });
 }
 
-bool RSRenderNodeMap::IsUIExtensionAuthorized(NodeId id, pid_t callingPid) const
+bool RSRenderNodeMap::IsUIExtensionSurfaceNode(NodeId id) const
 {
     std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-    auto iter = uiExtensionSurfaceNodes_.find(id);
-    return iter != uiExtensionSurfaceNodes_.end() && iter->second == callingPid;
+    return uiExtensionSurfaceNodes_.find(id) != uiExtensionSurfaceNodes_.end();
 }
 
-bool RSRenderNodeMap::AuthorizeUIExtensionPid(NodeId id, pid_t guestPid, bool enforcePerHostQuota)
+void RSRenderNodeMap::AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
 {
-    pid_t hostPid = ExtractPid(id);
-    if (guestPid <= 0 || guestPid == hostPid) {
-        RS_LOGW("RSRenderNodeMap::AuthorizeUIExtensionPid invalid guestPid %{public}d, nodeId %{public}" PRIu64,
-            static_cast<int32_t>(guestPid), id);
-        return false;
-    }
-    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-    if (uiExtensionSurfaceNodes_.find(id) == uiExtensionSurfaceNodes_.end()) {
-        // per-host quota for untrusted callers: the low 32 bits of an authorized NodeId are
-        // caller-controlled, an uncapped map would let a malicious host exhaust render process
-        // memory or block other applications from authorizing their UIExtension nodes
-        size_t hostEntryCount = 0;
-        if (auto countIter = uiExtensionHostEntryCounts_.find(hostPid);
-            countIter != uiExtensionHostEntryCounts_.end()) {
-            hostEntryCount = countIter->second;
-        }
-        if (enforcePerHostQuota && hostEntryCount >= MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST) {
-            RS_LOGW("RSRenderNodeMap::AuthorizeUIExtensionPid host %{public}d entries exceed limit %{public}zu,"
-                " reject", static_cast<int32_t>(hostPid), MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST);
-            return false;
-        }
-        uiExtensionHostEntryCounts_[hostPid] = hostEntryCount + 1;
-    }
-    uiExtensionSurfaceNodes_[id] = guestPid;
-    return true;
-}
-
-bool RSRenderNodeMap::RevokeUIExtensionPid(NodeId id, pid_t guestPid)
-{
-    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-    auto iter = uiExtensionSurfaceNodes_.find(id);
-    if (iter == uiExtensionSurfaceNodes_.end() || iter->second != guestPid) {
-        return false;
-    }
-    DecreaseUIExtensionHostEntryCount(ExtractPid(id));
-    uiExtensionSurfaceNodes_.erase(iter);
-    return true;
-}
-
-pid_t RSRenderNodeMap::GetUIExtensionGuestPid(NodeId id) const
-{
-    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-    auto iter = uiExtensionSurfaceNodes_.find(id);
-    return iter != uiExtensionSurfaceNodes_.end() ? iter->second : 0;
-}
-
-void RSRenderNodeMap::DecreaseUIExtensionHostEntryCount(pid_t hostPid)
-{
-    auto iter = uiExtensionHostEntryCounts_.find(hostPid);
-    if (iter == uiExtensionHostEntryCounts_.end()) {
-        return;
-    }
-    if (--(iter->second) == 0) {
-        uiExtensionHostEntryCounts_.erase(iter);
+    if (surfaceNode && surfaceNode->IsUIExtension()) {
+        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+        uiExtensionSurfaceNodes_.insert(surfaceNode->GetId());
     }
 }
 
@@ -204,9 +150,7 @@ void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfa
 {
     if (surfaceNode && surfaceNode->IsUIExtension()) {
         std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-        if (uiExtensionSurfaceNodes_.erase(surfaceNode->GetId()) > 0) {
-            DecreaseUIExtensionHostEntryCount(ExtractPid(surfaceNode->GetId()));
-        }
+        uiExtensionSurfaceNodes_.erase(surfaceNode->GetId());
     }
 }
 
@@ -247,6 +191,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
         }
+        AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::PROTECTIVE_SOLID_NODE) {
@@ -449,20 +394,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         return ExtractPid(nodeId) == pid;
     });
     RS_TRACE_END();
-
-    // recycle authorization entries of the dead process: both entries it owned as host
-    // (including pre-authorizations whose node was never registered) and entries where
-    // it was the authorized guest
-    {
-        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-        EraseIf(uiExtensionSurfaceNodes_, [pid, this](const auto& pair) -> bool {
-            bool shouldErase = ExtractPid(pair.first) == pid || pair.second == pid;
-            if (shouldErase) {
-                DecreaseUIExtensionHostEntryCount(ExtractPid(pair.first));
-            }
-            return shouldErase;
-        });
-    }
 
     EraseIf(backgroundSurfaceNodeMap_, [pid](const auto& pair) -> bool {
         return pair.first == pid;

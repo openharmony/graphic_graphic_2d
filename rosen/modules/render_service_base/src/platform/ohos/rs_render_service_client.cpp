@@ -1897,16 +1897,6 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return clientToService->RegisterUIExtensionCallback(userId, cb, unobscured);
 }
 
-bool RSRenderServiceClient::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
-{
-    auto clientToService = RSConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::AuthorizeUIExtensionPid clientToService == nullptr!");
-        return false;
-    }
-    return clientToService->AuthorizeUIExtensionPid(nodeId, guestPid, authorized) == ERR_OK;
-}
-
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

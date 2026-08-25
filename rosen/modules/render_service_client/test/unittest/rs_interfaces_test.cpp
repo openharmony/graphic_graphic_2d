@@ -2494,22 +2494,6 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
 }
 
 /*
- * @tc.name: AuthorizeUIExtensionPid_001
- * @tc.desc: Test AuthorizeUIExtensionPid sends the request without crashing; the interface is
- *           asynchronous, so the return value only indicates the request was sent.
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, AuthorizeUIExtensionPid_001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | 1;
-    pid_t guestPid = getpid() + 1;
-    rsInterfaces->AuthorizeUIExtensionPid(nodeId, guestPid, true);
-    rsInterfaces->AuthorizeUIExtensionPid(nodeId, guestPid, false);
-    SUCCEED();
-}
-
-/*
  * @tc.name: SetVirtualScreenStatus
  * @tc.desc: Test SetVirtualScreenStatus
  * @tc.type: FUNC

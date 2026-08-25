@@ -83,7 +83,7 @@ HWTEST_F(RSProxyNodeCommandTest, ProxyNodeCommandHelper_Create_CrossPidUIExtensi
 {
     NodeId id = (static_cast<uint64_t>(CALLING_PID) << 32) | CALLING_UNIQUE_ID;
     NodeId targetId = (static_cast<uint64_t>(TARGET_PID) << 32) | TARGET_UNIQUE_ID;
-    context.GetMutableNodeMap().AuthorizeUIExtensionPid(targetId, CALLING_PID, true);
+    context.GetMutableNodeMap().uiExtensionSurfaceNodes_.insert(targetId);
     ProxyNodeCommandHelper::Create(context, id, targetId);
     auto node = context.GetNodeMap().GetRenderNode<RSProxyRenderNode>(id);
     EXPECT_NE(node, nullptr);

@@ -380,11 +380,6 @@ public:
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
 
-    // Host (UEA) authorizes/revokes a guest (UEC) pid for a UIExtension surface node it owns;
-    // render_service forwards it to the render process. Synchronous: the return value reflects
-    // whether the render process accepted and applied the request.
-    virtual int32_t AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized) = 0;
-
     virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
 
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;

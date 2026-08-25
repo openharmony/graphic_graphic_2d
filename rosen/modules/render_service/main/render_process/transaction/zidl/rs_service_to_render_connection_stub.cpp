@@ -753,25 +753,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID): {
-            int32_t pid{0};
-            uint64_t nodeId{0};
-            int32_t guestPid{0};
-            bool authorized{false};
-            bool enforceQuota{false};
-            if (!data.ReadInt32(pid) || !data.ReadUint64(nodeId) || !data.ReadInt32(guestPid) ||
-                !data.ReadBool(authorized) || !data.ReadBool(enforceQuota)) {
-                RS_LOGE("RSServiceToRenderStub::AUTHORIZE_UIEXTENSION_PID Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            int32_t status = AuthorizeUIExtensionPid(pid, nodeId, guestPid, authorized, enforceQuota);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSServiceToRenderStub::AUTHORIZE_UIEXTENSION_PID Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D): {
             uint32_t modeVal = 0;
             if (!data.ReadUint32(modeVal)) {

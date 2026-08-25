@@ -400,11 +400,6 @@ public:
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
-    // Host (UEA) authorizes/revokes a guest (UEC) pid for a UIExtension surface node it owns;
-    // goes through the client-to-service connection, synchronous; the return value reflects
-    // whether the render process accepted and applied the request.
-    bool AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized);
-
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
     void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);

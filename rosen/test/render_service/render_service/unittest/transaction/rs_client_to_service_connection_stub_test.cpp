@@ -660,45 +660,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 }
 
 /**
- * @tc.name: AuthorizeUIExtensionPidTest001
- * @tc.desc: Test AUTHORIZE_UIEXTENSION_PID interface code path
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, AuthorizeUIExtensionPidTest001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
-    MessageParcel reply;
-    MessageOption option;
-
-    // case 1: parcel too short, read params failed
-    MessageParcel data1;
-    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data1, reply, option), ERR_INVALID_DATA);
-
-    // case 2: caller is not the owner of the NodeId, denied before forwarding
-    constexpr pid_t otherHostPid = 1; // differs from the test process pid
-    NodeId foreignNodeId = (static_cast<NodeId>(otherHostPid) << 32) | 1;
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteUint64(foreignNodeId);
-    data2.WriteInt32(otherHostPid + 1);
-    data2.WriteBool(true);
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data2, reply, option), ERR_INVALID_DATA);
-
-    // case 3: owner passes the ownership check; the forward result depends on the render
-    // process connections available in the test environment, but must not be ERR_INVALID_DATA
-    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | 1;
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data3.WriteUint64(nodeId);
-    data3.WriteInt32(static_cast<int32_t>(getpid() + 1));
-    data3.WriteBool(true);
-    EXPECT_NE(connectionStub_->OnRemoteRequest(code, data3, reply, option), ERR_INVALID_DATA);
-}
-
-/**
  * @tc.name: TestRSRenderServiceConnectionStub007
  * @tc.desc: Test render pipeline related transaction (node/dirty region/hwc etc.), with non empty data.
  * @tc.type: FUNC

@@ -324,7 +324,9 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, IsCallingPidValid001,
     EXPECT_FALSE(animation.IsCallingPidValid(0, context.GetNodeMap()));
     EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 
-    EXPECT_TRUE(context.nodeMap.AuthorizeUIExtensionPid(0, 1, true));
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
     EXPECT_FALSE(animation.IsCallingPidValid(0, context.GetNodeMap()));
     EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 }
@@ -344,7 +346,9 @@ HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, IsCallingPidValid001, T
     animation.Process(context);
     EXPECT_TRUE(animation.IsCallingPidValid(0, context.GetNodeMap()));
     EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
-    EXPECT_TRUE(context.nodeMap.AuthorizeUIExtensionPid(0, 1, true));
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
     EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 }
 
@@ -362,7 +366,9 @@ HWTEST_F(RSNodeGetAnimationsValueFractionTest, IsCallingPidValid001, TestSize.Le
     animation.animationId_ = 0;
     EXPECT_TRUE(animation.IsCallingPidValid(0, context.GetNodeMap()));
     EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
-    EXPECT_TRUE(context.nodeMap.AuthorizeUIExtensionPid(0, 1, true));
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
     EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 }
 

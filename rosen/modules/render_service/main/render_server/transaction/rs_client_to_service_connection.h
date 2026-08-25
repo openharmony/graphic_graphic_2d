@@ -372,7 +372,6 @@ private:
     ErrCode SetUIMode3D(UIMode3D mode) override;
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
-    int32_t AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized) override;
 
 #ifdef TP_FEATURE_ENABLE
     ErrCode SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) override;

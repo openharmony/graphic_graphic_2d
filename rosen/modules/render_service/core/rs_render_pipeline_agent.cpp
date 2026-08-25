@@ -1436,34 +1436,6 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized,
-    bool enforceQuota)
-{
-    auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return ERR_INVALID_VALUE;
-    }
-    // the node map authorization interfaces are mutex-protected and safe to call on IPC threads
-    auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-    if (authorized && pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
-        // insert the entry only into render processes the guest has connected to: entries in
-        // other render processes would linger uncleaned if the guest dies without ever
-        // connecting there; the host must authorize after the guest establishes its connection
-        RS_LOGI("RSRenderPipelineAgent::AuthorizeUIExtensionPid skipped, guest pid %{public}d has no"
-            " client-to-render connection in this process", static_cast<int32_t>(guestPid));
-        return ERR_OK;
-    }
-    bool success = authorized ? nodeMap.AuthorizeUIExtensionPid(nodeId, guestPid, enforceQuota) :
-                                nodeMap.RevokeUIExtensionPid(nodeId, guestPid);
-    if (!success) {
-        RS_LOGW("RSRenderPipelineAgent::AuthorizeUIExtensionPid failed, nodeId:%{public}" PRIu64
-                " guestPid:%{public}d authorized:%{public}d",
-            nodeId, static_cast<int32_t>(guestPid), authorized);
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
 int32_t RSRenderPipelineAgent::SetBrightnessInfoChangeCallback(pid_t pid,
     sptr<RSIBrightnessInfoChangeCallback> callback)
 {

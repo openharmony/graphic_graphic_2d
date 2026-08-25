@@ -717,11 +717,6 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return {};
 }
 
-bool RSRenderServiceClient::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
-{
-    return {};
-}
-
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     return false;

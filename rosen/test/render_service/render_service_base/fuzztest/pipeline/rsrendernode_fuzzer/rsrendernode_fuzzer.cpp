@@ -361,7 +361,7 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
     std::shared_ptr<RSRenderNodeMap> nodeMap = std::make_shared<RSRenderNodeMap>();
     nodeMap->GetSize();
     NodeId targetId = GetData<NodeId>();
-    nodeMap->IsUIExtensionAuthorized(targetId, GetData<pid_t>());
+    nodeMap->IsUIExtensionSurfaceNode(targetId);
     nodeMap->RemoveUIExtensionSurfaceNode(nullptr);
 
     pid_t pid = GetData<pid_t>();

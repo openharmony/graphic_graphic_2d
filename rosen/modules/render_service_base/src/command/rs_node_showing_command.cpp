@@ -96,7 +96,7 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
 bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
     const RSRenderNodeMap& nodeMap) const
 {
-    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionAuthorized(targetId_, callingPid)) {
+    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(targetId_)) {
         ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
@@ -184,7 +184,7 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid(pid_t calli
 {
     for (auto& [key, _] : propertiesMap_) {
         auto& nodeId = key.first;
-        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
             ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
@@ -269,7 +269,7 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
 bool RSNodeGetAnimationsValueFraction::IsCallingPidValid(pid_t callingPid,
     const RSRenderNodeMap& nodeMap) const
 {
-    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId_, callingPid)) {
+    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId_)) {
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
