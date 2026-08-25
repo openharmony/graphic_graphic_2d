@@ -621,9 +621,7 @@ private:
     void AddDisableReason(const std::string& reason);
     void ResetDisableReasons();
     std::string GetDisableReasons() const;
-#ifdef RES_SCHED_ENABLE
-    void SubScribeSystemAbility();
-#endif
+
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     void ConnectChipsetVsyncSer();
     void SetVsyncInfo(uint64_t timestamp);
