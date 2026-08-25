@@ -609,7 +609,6 @@ public:
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
     RSB_EXPORT static bool IsHrpServiceEnabled();
-    RSB_EXPORT static void SetHrpServiceEnabled(bool enabled);
     RSB_EXPORT static void JobMarshallingKillPid(pid_t pid);
     RSB_EXPORT static void JobMarshallingKillPidEnd();
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
