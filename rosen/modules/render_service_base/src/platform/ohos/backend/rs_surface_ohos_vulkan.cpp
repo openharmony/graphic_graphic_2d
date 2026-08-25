@@ -680,7 +680,7 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
     fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
     auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(frame.get());
-    if (frameOhosVulkan && mReservedFlushFd != -1) {
+    if (frameOhosVulkan) {
         sptr<SyncFence> acquireFence = sptr<SyncFence>(new SyncFence(::dup(fenceFd)));
         frameOhosVulkan->SetAcquireFence(acquireFence);
     }
