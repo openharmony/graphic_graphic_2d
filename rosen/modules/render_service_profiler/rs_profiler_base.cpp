@@ -125,6 +125,11 @@ bool RSProfiler::IsHrpServiceEnabled()
     return hrpServiceEnabled_;
 }
 
+void RSProfiler::SetHrpServiceEnabled(bool enabled)
+{
+    hrpServiceEnabled_ = enabled;
+}
+
 bool RSProfiler::IsBetaRecordEnabled()
 {
 #ifdef RS_PROFILER_BETA_ENABLED
