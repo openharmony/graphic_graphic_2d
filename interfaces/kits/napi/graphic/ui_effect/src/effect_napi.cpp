@@ -1078,7 +1078,7 @@ bool EffectNapi::FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared
 
     Vector4f materialColor;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_24], materialColor), false,
-        UIEFFECT_LOG_E("FillFrostedGlassMatColor: materialColor parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassEdl: materialColor parse fail"));
     para->SetMaterialColor(materialColor);
 
     return true;
