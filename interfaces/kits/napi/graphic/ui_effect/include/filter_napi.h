@@ -103,7 +103,6 @@ private:
     static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
     static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
     static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
     static bool GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue);
     static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
         uint32_t arraySize);
