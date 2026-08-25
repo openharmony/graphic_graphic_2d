@@ -20,7 +20,7 @@
  * 只负责Vulkan API封装，不创建GPUContext
  */
 
-#include "platform/ohos/backend/rs_vulkan_interface.h"
+#include "vulkan_context/rs_vulkan_interface.h"
 
 #include <dlfcn.h>
 #include <memory>
@@ -34,8 +34,8 @@
 
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "utils/system_properties.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hdr_pattern_manager.h"

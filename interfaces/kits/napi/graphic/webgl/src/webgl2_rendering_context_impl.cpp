@@ -42,6 +42,7 @@ constexpr GLint SINGLE_SLICE_DEPTH = 1;
 constexpr GLint MAX_TRACKED_GL_STATE_COUNT = 65536;
 constexpr GLint MAX_GL_NAME_LENGTH = 1024 * 1024;
 constexpr size_t MAX_UNIFORM_COUNT = 65536;
+constexpr size_t MAX_VERTEX_ARRAY_OBJECT_COUNT = 1024;
 
 bool IsActiveUniformPname(GLenum pname)
 {
@@ -449,6 +450,11 @@ napi_value WebGL2RenderingContextImpl::GetSamplerParameter(napi_env env, napi_va
 
 napi_value WebGL2RenderingContextImpl::CreateVertexArray(napi_env env)
 {
+    if (objects_[WebGLVertexArrayObject::objectType].size() >= MAX_VERTEX_ARRAY_OBJECT_COUNT) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::OUT_OF_MEMORY,
+            "vertex array object count exceeds the context quota");
+        return NVal::CreateNull(env).val_;
+    }
     WebGLVertexArrayObject* webGLVertexArrayObject = nullptr;
     napi_value objVertexArrayObject = WebGLVertexArrayObject::CreateObjectInstance(env, &webGLVertexArrayObject).val_;
     if (webGLVertexArrayObject == nullptr) {

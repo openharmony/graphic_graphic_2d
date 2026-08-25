@@ -40,8 +40,8 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_drawing_filter.h"
 #include "ge_render.h"

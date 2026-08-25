@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 #include "image/gpu_context.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {

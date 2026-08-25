@@ -137,6 +137,12 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_UIEXTENSION_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AUTHORIZE_UIEXTENSION_PID): {
+            // allowed for any app process: ownership is enforced by RSClientToServiceConnection
+            // via ExtractPid(nodeId) == callingPid, so a caller can only authorize its own NodeIds
+            hasPermission = true;
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN");
             break;

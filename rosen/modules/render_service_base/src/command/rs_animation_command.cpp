@@ -334,7 +334,7 @@ bool AnimationCommandHelper::IsAnimationsPidValid(const RSContext& context, Inte
     pid_t callingPid = ExtractPid(callerId);
     const auto& nodeMap = context.GetNodeMap();
     for (auto [nodeId, animationId] : animations) {
-        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
             ROSEN_LOGE("%{public}s, callingPid [%{public}d] no permission on node [%{public}" PRIu64 "]",
                 funcName, static_cast<int>(callingPid), nodeId);
             return false;

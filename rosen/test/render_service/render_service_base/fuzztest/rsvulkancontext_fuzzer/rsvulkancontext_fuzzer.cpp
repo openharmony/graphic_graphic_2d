@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <iostream>
 
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 namespace OHOS {
 namespace Rosen {
 namespace {

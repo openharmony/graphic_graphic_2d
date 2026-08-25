@@ -546,4 +546,112 @@ HWTEST_F(Vector4Test, IsValid, TestSize.Level1)
     Vector4 vec3(normalNum);
     EXPECT_TRUE(vec3.IsValid());
 }
+
+/**
+ * @tc.name: IsAbsNearEqual001
+ * @tc.desc: test results of Vector4<float>::IsAbsNearEqual
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, IsAbsNearEqual001, TestSize.Level1)
+{
+    Vector4f value(10.0f, 20.0f, 30.0f, 40.0f);
+    Vector4f target(12.0f, 18.0f, 33.0f, 38.0f);
+    // all diffs are <= 5 -> true
+    Vector4f threshold(5.0f, 5.0f, 5.0f, 5.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(target, threshold));
+
+    // all diffs are > 1 -> false
+    Vector4f smallThreshold(1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_FALSE(value.IsAbsNearEqual(target, smallThreshold));
+
+    // only w outside threshold -> false
+    Vector4f mixedThreshold(5.0f, 5.0f, 5.0f, 1.0f);
+    EXPECT_FALSE(value.IsAbsNearEqual(target, mixedThreshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqual002
+ * @tc.desc: test Vector4<float>::IsAbsNearEqual with exact match and negative threshold
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, IsAbsNearEqual002, TestSize.Level1)
+{
+    Vector4f value(10.0f, 20.0f, 30.0f, 40.0f);
+    // exact match with zero threshold -> true
+    Vector4f zeroThreshold(0.0f, 0.0f, 0.0f, 0.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(value, zeroThreshold));
+
+    // negative threshold: abs is used, so -5 behaves like 5
+    Vector4f target(12.0f, 18.0f, 33.0f, 38.0f);
+    Vector4f negThreshold(-5.0f, -5.0f, -5.0f, -5.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(target, negThreshold));
+}
+
+/**
+ * @tc.name: TakeAbsMaxFrom001
+ * @tc.desc: test results of Vector4<float>::TakeAbsMaxFrom with mixed values
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, TakeAbsMaxFrom001, TestSize.Level1)
+{
+    Vector4f value(10.0f, 20.0f, 30.0f, 40.0f);
+    Vector4f target(50.0f, 5.0f, 60.0f, 3.0f);
+    value.TakeAbsMaxFrom(target);
+    // x: |10| < |50| -> 50; y: |20| > |5| -> stays 20; z: |30| < |60| -> 60; w: |40| > |3| -> stays 40
+    EXPECT_FLOAT_EQ(value.x_, 50.0f);
+    EXPECT_FLOAT_EQ(value.y_, 20.0f);
+    EXPECT_FLOAT_EQ(value.z_, 60.0f);
+    EXPECT_FLOAT_EQ(value.w_, 40.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFrom002
+ * @tc.desc: test Vector4<float>::TakeAbsMaxFrom with all smaller target (no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, TakeAbsMaxFrom002, TestSize.Level1)
+{
+    Vector4f value(100.0f, 100.0f, 100.0f, 100.0f);
+    Vector4f target(10.0f, 20.0f, 30.0f, 40.0f);
+    value.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(value.x_, 100.0f);
+    EXPECT_FLOAT_EQ(value.y_, 100.0f);
+    EXPECT_FLOAT_EQ(value.z_, 100.0f);
+    EXPECT_FLOAT_EQ(value.w_, 100.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFrom003
+ * @tc.desc: test Vector4<float>::TakeAbsMaxFrom with negative values (sign preserved)
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, TakeAbsMaxFrom003, TestSize.Level1)
+{
+    Vector4f value(10.0f, 10.0f, 10.0f, 10.0f);
+    Vector4f target(-50.0f, -5.0f, -60.0f, -3.0f);
+    value.TakeAbsMaxFrom(target);
+    // x: |10| < |−50|=50 -> -50; y: |10| > |−5|=5 -> stays 10
+    // z: |10| < |−60|=60 -> -60; w: |10| > |−3|=3 -> stays 10
+    EXPECT_FLOAT_EQ(value.x_, -50.0f);
+    EXPECT_FLOAT_EQ(value.y_, 10.0f);
+    EXPECT_FLOAT_EQ(value.z_, -60.0f);
+    EXPECT_FLOAT_EQ(value.w_, 10.0f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFrom004
+ * @tc.desc: test Vector4<float>::TakeAbsMaxFrom with equal magnitude (strict <, no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, TakeAbsMaxFrom004, TestSize.Level1)
+{
+    Vector4f value(50.0f, -50.0f, 50.0f, -50.0f);
+    Vector4f target(-50.0f, 50.0f, -50.0f, 50.0f);
+    value.TakeAbsMaxFrom(target);
+    // all |50| == |−50|, strict < means no change
+    EXPECT_FLOAT_EQ(value.x_, 50.0f);
+    EXPECT_FLOAT_EQ(value.y_, -50.0f);
+    EXPECT_FLOAT_EQ(value.z_, 50.0f);
+    EXPECT_FLOAT_EQ(value.w_, -50.0f);
+}
 } // namespace OHOS::Rosen

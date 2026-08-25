@@ -120,6 +120,11 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController, sptr<VSyncCon
     });
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
     userDefine_.Init();
+    dimmingManager_.RegisterDimmingEventCallback([this](int32_t dimmingTimeoutMs) {
+        HgmTaskHandleThread::Instance().PostEvent("DimmingTask", [this]() {
+            UpdateSoftVSync(false);
+        }, dimmingTimeoutMs);
+    });
 }
 
 void HgmFrameRateManager::InitConfig()
@@ -157,6 +162,7 @@ void HgmFrameRateManager::InitConfig()
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         SetTimeoutParamsFromConfig(configData);
+        dimmingManager_.SetDimmingTimeoutConfig(configData);
         GetLowBrightVec(configData);
         GetAncoLowBrightVec(configData);
         GetStylusVec(configData);
@@ -495,10 +501,12 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         "%s: VoteRes: %s[%d, %d]", __func__, lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+    refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
     uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
     if (rsFrameRateLinker_->GetFrameRate() != rsFrameRate) {
         rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
     }
+
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
@@ -805,6 +813,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
+    dimmingManager_.SetLightFactorStatus(state);
     multiAppStrategy_.SetScreenType(isLtpo_.load());
     multiAppStrategy_.HandleLightFactorStatus(state);
     isAmbientStatus_ = state;
@@ -1346,13 +1355,14 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = { resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max };
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+    refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
     uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
     bool rsFrameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
         rsFrameRateChanged = rsFrameRateLinker_->GetFrameRate() != rsFrameRate;
         if (rsFrameRateChanged) {
             rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
-    }
+        }
     }
     if (refreshRate == currRefreshRate_ && !voterTouchEffective_ && !rsFrameRateChanged) {
         return;
@@ -1824,6 +1834,7 @@ void HgmFrameRateManager::AddScreenInit()
         GetAncoLowBrightVec(configData);
         GetStylusVec(configData);
     }
+    dimmingManager_.SetRefreshRateVec(HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load()));
 }
 } // namespace Rosen
 } // namespace OHOS

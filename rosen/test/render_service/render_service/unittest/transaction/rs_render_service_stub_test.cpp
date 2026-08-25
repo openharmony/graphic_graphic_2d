@@ -28,6 +28,26 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockRenderProcessManager : public RSRenderProcessManager {
+public:
+    explicit MockRenderProcessManager(RSRenderService& renderService) : RSRenderProcessManager(renderService) {}
+    ~MockRenderProcessManager() noexcept override = default;
+
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId) const override { return nullptr; }
+    std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override { return {}; }
+    sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId) const override { return nullptr; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t) override { return nullptr; }
+
+    sptr<IRemoteObject> OnScreenConnected(ScreenId, const std::shared_ptr<HdiOutput>&,
+        const sptr<RSScreenProperty>&) override { return nullptr; }
+    void OnScreenDisconnected(ScreenId) override {}
+    void OnScreenPropertyChanged(ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&) override {}
+    void OnScreenRefresh(ScreenId) override {}
+    void OnVirtualScreenConnected(ScreenId, ScreenId, const sptr<RSScreenProperty>&) override {}
+    void OnVirtualScreenDisconnected(ScreenId) override {}
+};
+}
 class RSRenderServiceStubTest : public testing::Test {
 public:
     static void SetUpTestCase();

@@ -79,9 +79,6 @@ public:
     // handle rcdDirtyType_ and assign dirty rect
     bool HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type);
 
-    // run rcd hardwareComposer buffer prepare task via rendertarget ID
-    void RunHardwareTask(NodeId id, const std::function<void()>& task);
-
     // get the hardware info via rendertarget ID which rcd hardwareComposer buffer prepare task needed
     rs_rcd::RoundCornerHardware GetHardwareInfo(NodeId id, bool preparing = false);
 

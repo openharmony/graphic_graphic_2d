@@ -432,4 +432,240 @@ HWTEST_F(RSRectTest, IsValid, TestSize.Level1)
     RectF rect3(normalNum, normalNum, normalNum, normalNum);
     EXPECT_TRUE(rect3.IsValid());
 }
+
+/**
+ * @tc.name: RRectOperatorMultiply001
+ * @tc.desc: test results of RRectT::operator*(const RRectT&)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectOperatorMultiply001, TestSize.Level1)
+{
+    RectF rect1;
+    rect1.SetAll(2.0f, 3.0f, 4.0f, 5.0f);
+    RRect a(rect1, 6.0f, 7.0f);
+
+    RectF rect2;
+    rect2.SetAll(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect b(rect2, 50.0f, 60.0f);
+
+    RRect result = a * b;
+    EXPECT_FLOAT_EQ(result.rect_.GetLeft(), 20.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetTop(), 60.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetWidth(), 120.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetHeight(), 200.0f);
+    EXPECT_FLOAT_EQ(result.radius_[0].x_, 300.0f);
+    EXPECT_FLOAT_EQ(result.radius_[0].y_, 420.0f);
+}
+
+/**
+ * @tc.name: RRectOperatorMultiply002
+ * @tc.desc: test RRectT::operator*(const RRectT&) with zeros
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectOperatorMultiply002, TestSize.Level1)
+{
+    RectF zeroRect;
+    zeroRect.SetAll(0.0f, 0.0f, 0.0f, 0.0f);
+    RRect zero(zeroRect, 0.0f, 0.0f);
+
+    RectF rect;
+    rect.SetAll(5.0f, 6.0f, 7.0f, 8.0f);
+    RRect other(rect, 9.0f, 10.0f);
+
+    RRect result = zero * other;
+    EXPECT_FLOAT_EQ(result.rect_.GetLeft(), 0.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetTop(), 0.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetWidth(), 0.0f);
+    EXPECT_FLOAT_EQ(result.rect_.GetHeight(), 0.0f);
+    EXPECT_FLOAT_EQ(result.radius_[0].x_, 0.0f);
+    EXPECT_FLOAT_EQ(result.radius_[0].y_, 0.0f);
+}
+
+/**
+ * @tc.name: RectIsAbsNearEqual001
+ * @tc.desc: test results of RectT<float>::IsAbsNearEqual
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectIsAbsNearEqual001, TestSize.Level1)
+{
+    RectF value(10.0f, 20.0f, 30.0f, 40.0f);
+    RectF target(12.0f, 18.0f, 33.0f, 38.0f);
+    // all diffs are <= 5 -> true
+    RectF threshold(5.0f, 5.0f, 5.0f, 5.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(target, threshold));
+
+    // all diffs are > 1 -> false
+    RectF smallThreshold(1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_FALSE(value.IsAbsNearEqual(target, smallThreshold));
+}
+
+/**
+ * @tc.name: RectIsAbsNearEqual002
+ * @tc.desc: test RectT<float>::IsAbsNearEqual with exact match and negative threshold
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectIsAbsNearEqual002, TestSize.Level1)
+{
+    RectF value(10.0f, 20.0f, 30.0f, 40.0f);
+    // exact match with zero threshold -> true
+    RectF zeroThreshold(0.0f, 0.0f, 0.0f, 0.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(value, zeroThreshold));
+
+    // negative threshold: abs is used, so -5 behaves like 5
+    RectF target(12.0f, 18.0f, 33.0f, 38.0f);
+    RectF negThreshold(-5.0f, -5.0f, -5.0f, -5.0f);
+    EXPECT_TRUE(value.IsAbsNearEqual(target, negThreshold));
+}
+
+/**
+ * @tc.name: RectTakeAbsMaxFrom001
+ * @tc.desc: test results of RectT<float>::TakeAbsMaxFrom with mixed values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectTakeAbsMaxFrom001, TestSize.Level1)
+{
+    RectF value(10.0f, 20.0f, 30.0f, 40.0f);
+    RectF target(50.0f, 5.0f, 60.0f, 3.0f);
+    value.TakeAbsMaxFrom(target);
+    // left: |10| < |50| -> 50; top: |20| > |5| -> stays 20
+    // width: |30| < |60| -> 60; height: |40| > |3| -> stays 40
+    EXPECT_FLOAT_EQ(value.GetLeft(), 50.0f);
+    EXPECT_FLOAT_EQ(value.GetTop(), 20.0f);
+    EXPECT_FLOAT_EQ(value.GetWidth(), 60.0f);
+    EXPECT_FLOAT_EQ(value.GetHeight(), 40.0f);
+}
+
+/**
+ * @tc.name: RectTakeAbsMaxFrom002
+ * @tc.desc: test RectT<float>::TakeAbsMaxFrom with all smaller target (no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectTakeAbsMaxFrom002, TestSize.Level1)
+{
+    RectF value(100.0f, 100.0f, 100.0f, 100.0f);
+    RectF target(10.0f, 20.0f, 30.0f, 40.0f);
+    value.TakeAbsMaxFrom(target);
+    EXPECT_FLOAT_EQ(value.GetLeft(), 100.0f);
+    EXPECT_FLOAT_EQ(value.GetTop(), 100.0f);
+    EXPECT_FLOAT_EQ(value.GetWidth(), 100.0f);
+    EXPECT_FLOAT_EQ(value.GetHeight(), 100.0f);
+}
+
+/**
+ * @tc.name: RectTakeAbsMaxFrom003
+ * @tc.desc: test RectT<float>::TakeAbsMaxFrom with negative values (sign preserved)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectTakeAbsMaxFrom003, TestSize.Level1)
+{
+    RectF value(10.0f, 10.0f, 10.0f, 10.0f);
+    RectF target(-50.0f, -5.0f, -60.0f, -3.0f);
+    value.TakeAbsMaxFrom(target);
+    // left: |10| < |−50|=50 -> -50; top: |10| > |−5|=5 -> stays 10
+    EXPECT_FLOAT_EQ(value.GetLeft(), -50.0f);
+    EXPECT_FLOAT_EQ(value.GetTop(), 10.0f);
+    EXPECT_FLOAT_EQ(value.GetWidth(), -60.0f);
+    EXPECT_FLOAT_EQ(value.GetHeight(), 10.0f);
+}
+
+/**
+ * @tc.name: RectTakeAbsMaxFrom004
+ * @tc.desc: test RectT<float>::TakeAbsMaxFrom with equal magnitude (strict <, no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RectTakeAbsMaxFrom004, TestSize.Level1)
+{
+    RectF value(50.0f, -50.0f, 50.0f, -50.0f);
+    RectF target(-50.0f, 50.0f, -50.0f, 50.0f);
+    value.TakeAbsMaxFrom(target);
+    // all |50| == |−50|, strict < means no change
+    EXPECT_FLOAT_EQ(value.GetLeft(), 50.0f);
+    EXPECT_FLOAT_EQ(value.GetTop(), -50.0f);
+    EXPECT_FLOAT_EQ(value.GetWidth(), 50.0f);
+    EXPECT_FLOAT_EQ(value.GetHeight(), -50.0f);
+}
+
+/**
+ * @tc.name: RRectIsAbsNearEqual001
+ * @tc.desc: test results of RRectT<float>::IsAbsNearEqual
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectIsAbsNearEqual001, TestSize.Level1)
+{
+    RectF rect1(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect value(rect1, 5.0f, 6.0f);
+    RectF rect2(12.0f, 18.0f, 33.0f, 38.0f);
+    RRect target(rect2, 7.0f, 3.0f);
+    RectF rect3(5.0f, 5.0f, 5.0f, 5.0f);
+    RRect threshold(rect3, 5.0f, 5.0f);
+    // all rect diffs <= 5, all radius diffs <= 5 -> true
+    EXPECT_TRUE(value.IsAbsNearEqual(target, threshold));
+
+    RectF rect4(1.0f, 1.0f, 1.0f, 1.0f);
+    RRect smallThreshold(rect4, 1.0f, 1.0f);
+    // radius diff |5-7|=2 > 1 -> false
+    EXPECT_FALSE(value.IsAbsNearEqual(target, smallThreshold));
+}
+
+/**
+ * @tc.name: RRectIsAbsNearEqual002
+ * @tc.desc: test RRectT<float>::IsAbsNearEqual with exact match
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectIsAbsNearEqual002, TestSize.Level1)
+{
+    RectF rect(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect value(rect, 5.0f, 6.0f);
+    RectF zeroRect(0.0f, 0.0f, 0.0f, 0.0f);
+    RRect zeroThreshold(zeroRect, 0.0f, 0.0f);
+    // exact match with zero threshold -> true
+    EXPECT_TRUE(value.IsAbsNearEqual(value, zeroThreshold));
+}
+
+/**
+ * @tc.name: RRectTakeAbsMaxFrom001
+ * @tc.desc: test results of RRectT<float>::TakeAbsMaxFrom with mixed values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectTakeAbsMaxFrom001, TestSize.Level1)
+{
+    RectF rect1(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect value(rect1, 5.0f, 10.0f);
+    RectF rect2(100.0f, 5.0f, 110.0f, 3.0f);
+    RRect target(rect2, 50.0f, 3.0f);
+    value.TakeAbsMaxFrom(target);
+    // rect: left |10|<|100|->100, top |20|>|5|->20, width |30|<|110|->110, height |40|>|3|->40
+    EXPECT_FLOAT_EQ(value.rect_.GetLeft(), 100.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetTop(), 20.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetWidth(), 110.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetHeight(), 40.0f);
+    // radius: x |5|<|50|->50, y |10|>|3|->10
+    for (int i = 0; i < 4; i++) {
+        EXPECT_FLOAT_EQ(value.radius_[i].x_, 50.0f);
+        EXPECT_FLOAT_EQ(value.radius_[i].y_, 10.0f);
+    }
+}
+
+/**
+ * @tc.name: RRectTakeAbsMaxFrom002
+ * @tc.desc: test RRectT<float>::TakeAbsMaxFrom with all smaller target (no change)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, RRectTakeAbsMaxFrom002, TestSize.Level1)
+{
+    RectF rect1(100.0f, 100.0f, 100.0f, 100.0f);
+    RRect value(rect1, 50.0f, 60.0f);
+    RectF rect2(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect target(rect2, 5.0f, 3.0f);
+    value.TakeAbsMaxFrom(target);
+    // all target abs values are smaller -> no change
+    EXPECT_FLOAT_EQ(value.rect_.GetLeft(), 100.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetTop(), 100.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetWidth(), 100.0f);
+    EXPECT_FLOAT_EQ(value.rect_.GetHeight(), 100.0f);
+    for (int i = 0; i < 4; i++) {
+        EXPECT_FLOAT_EQ(value.radius_[i].x_, 50.0f);
+        EXPECT_FLOAT_EQ(value.radius_[i].y_, 60.0f);
+    }
+}
 } // namespace OHOS::Rosen

@@ -470,7 +470,7 @@ void RSTransactionData::CheckNonSystemCommand(RSCommand* command, pid_t callingP
 {
     for (const NodeId nodeId : command->GetAllNodeIds()) {
         pid_t commandPid = ExtractPid(nodeId);
-        if (callingPid != commandPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+        if (callingPid != commandPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
             inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
             command->SetCallingPidValid(false);
             return;

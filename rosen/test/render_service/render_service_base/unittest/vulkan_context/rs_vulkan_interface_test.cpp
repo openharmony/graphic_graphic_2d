@@ -16,8 +16,8 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#include "platform/ohos/backend/rs_vulkan_interface.h"
+#include "vulkan_context/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_interface.h"
 
 using namespace testing;
 using namespace testing::ext;

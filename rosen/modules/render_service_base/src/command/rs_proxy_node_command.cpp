@@ -26,7 +26,7 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
 {
     pid_t callingPid = ExtractPid(id);
     pid_t targetPid = ExtractPid(targetId);
-    if (callingPid != targetPid && !context.GetNodeMap().IsUIExtensionSurfaceNode(targetId) &&
+    if (callingPid != targetPid && !context.GetNodeMap().IsUIExtensionAuthorized(targetId, callingPid) &&
         !context.GetNodeMap().IsResidentProcessNode(id)) {
         ROSEN_LOGE("ProxyNodeCommandHelper::Create cross-pid proxy denied,"
             " callingPid=%{public}d, targetPid=%{public}d, targetId=%{public}" PRIu64,

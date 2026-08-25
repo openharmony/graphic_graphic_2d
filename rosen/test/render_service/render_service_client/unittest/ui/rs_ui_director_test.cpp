@@ -31,10 +31,6 @@
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-
 using namespace testing;
 using namespace testing::ext;
 

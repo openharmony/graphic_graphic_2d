@@ -21,6 +21,9 @@
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 #include "rs_render_pipeline.h"
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,12 +46,19 @@ private:
 
     void ApplyIpcPersistenceData(const sptr<RSRenderPipelineAgent>& renderPipelineAgent,
         const IpcPersistenceTypeToDataMap& replayData);
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+#endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
+
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 
     friend class RSRenderProcessAgent;
 };

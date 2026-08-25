@@ -559,6 +559,54 @@ HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync002, TestSize.Le
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureIsSync001
+ * @tc.desc: Test TakeSurfaceCapture with isSync enabled posts sync window capture task
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureIsSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    while (!mainThread->syncWindowCaptureTasks_.empty()) {
+        mainThread->syncWindowCaptureTasks_.pop();
+    }
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000310;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    captureConfig.isSync = true;
+    captureConfig.isSyncRender = false;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+    usleep(DEFAULT_TIME);
+    EXPECT_FALSE(mainThread->pendingSyncWindowCaptureTasks_.empty());
+
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+}
+
+/**
  * @tc.name: GetFrameStabilityResult_NullPipeline
  * @tc.desc: Verify GetFrameStabilityResult returns error when pipeline is null
  * @tc.type: FUNC

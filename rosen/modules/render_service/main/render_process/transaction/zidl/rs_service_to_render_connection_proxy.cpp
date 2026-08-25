@@ -577,6 +577,36 @@ int32_t RSServiceToRenderConnectionProxy::RegisterUIExtensionCallback(pid_t pid,
     }
 }
 
+int32_t RSServiceToRenderConnectionProxy::AuthorizeUIExtensionPid(pid_t pid, NodeId nodeId, pid_t guestPid,
+    bool authorized, bool enforceQuota)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteInt32(pid) || !data.WriteUint64(nodeId) ||
+        !data.WriteInt32(static_cast<int32_t>(guestPid)) || !data.WriteBool(authorized) ||
+        !data.WriteBool(enforceQuota)) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: Write parcel err.");
+        return RS_CONNECTION_ERROR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::AuthorizeUIExtensionPid Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 ErrCode RSServiceToRenderConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
 {
     MessageParcel data;

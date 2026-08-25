@@ -225,11 +225,11 @@ ohos_unittest("RSOpincManagerLayerPartTest") {
   subsystem_name = "graphic"
 }
 
-##############################  RSUiCaptureHelperTest  ##################################
-ohos_unittest("RSUiCaptureHelperTest") {
+##############################  RSSyncCaptureHelperTest  ##################################
+ohos_unittest("RSSyncCaptureHelperTest") {
   module_out_path = module_output_path
 
-  sources = [ "capture/rs_ui_capture_helper_test.cpp" ]
+  sources = [ "capture/rs_sync_capture_helper_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -608,7 +608,7 @@ group("unittest") {
     ":RSOpincRootCacheTest",
     ":RSOpincManagerTest",
     ":RSOpincManagerLayerPartTest",
-    ":RSUiCaptureHelperTest",
+    ":RSSyncCaptureHelperTest",
     ":RSColorSpaceUtilTest",
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",

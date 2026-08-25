@@ -858,5 +858,241 @@ HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineStepsInterpolator00
     EXPECT_LT(result, 1.0f);
 }
 
+/**
+ * @tc.name: GetInitialOffset001
+ * @tc.desc: Verify GetInitialOffset returns nullptr when springModel_ is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetInitialOffset001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    // Constructor calls InitSpringModel() which creates springModel_.
+    // Explicitly null it to test the !springModel_ guard branch.
+    estimator->springModel_ = nullptr;
+    EXPECT_EQ(estimator->GetInitialOffset(), nullptr);
+}
+
+/**
+ * @tc.name: GetInitialOffset002
+ * @tc.desc: Verify GetInitialOffset returns valid property when springModel_ exists
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetInitialOffset002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(0.5f);
+    estimator->InitSpringModel();
+    ASSERT_NE(estimator->springModel_, nullptr);
+    auto result = estimator->GetInitialOffset();
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: GetLastFrameThreshold001
+ * @tc.desc: Verify GetLastFrameThreshold returns nullptr when springModel_ is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetLastFrameThreshold001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    // Constructor calls InitSpringModel() which creates springModel_.
+    // Explicitly null it to test the !springModel_ guard branch.
+    estimator->springModel_ = nullptr;
+    EXPECT_EQ(estimator->GetLastFrameThreshold(), nullptr);
+}
+
+/**
+ * @tc.name: GetLastFrameThreshold002
+ * @tc.desc: Verify GetLastFrameThreshold returns valid property when springModel_ exists
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetLastFrameThreshold002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(0.5f);
+    estimator->InitSpringModel();
+    ASSERT_NE(estimator->springModel_, nullptr);
+    auto result = estimator->GetLastFrameThreshold();
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: IsStartConverging001
+ * @tc.desc: Verify IsStartConverging returns false when springModel_ is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, IsStartConverging001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    // Constructor calls InitSpringModel() which creates springModel_.
+    // Explicitly null it to test the !springModel_ guard branch.
+    estimator->springModel_ = nullptr;
+    EXPECT_FALSE(estimator->IsStartConverging(0.5f, 0.5f));
+}
+
+/**
+ * @tc.name: IsStartConverging002
+ * @tc.desc: Verify IsStartConverging for underdamped model (amplitude-based)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, IsStartConverging002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(0.5f); // underdamped
+    estimator->InitSpringModel();
+    estimator->UpdateSpringParameters(); // calls CalculateSpringParameters() to compute coeffDecay_
+    ASSERT_NE(estimator->springModel_, nullptr);
+    // At time=0, expCoeffDecay=1, 1-1=0 < threshold -> false
+    EXPECT_FALSE(estimator->IsStartConverging(0.0f, 0.5f));
+    // At large time, expCoeffDecay approaches 0, 1-0=1 >= threshold -> true
+    EXPECT_TRUE(estimator->IsStartConverging(10.0f, 0.5f));
+}
+
+/**
+ * @tc.name: IsStartConverging003
+ * @tc.desc: Verify IsStartConverging for critical/overdamped model (progress-based)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, IsStartConverging003, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(1.0f); // critically damped
+    estimator->InitSpringModel();
+    ASSERT_NE(estimator->springModel_, nullptr);
+    // threshold=0.0 means IsReachProgress uses 1-0=1.0 as multiplier.
+    // GetAnimationProperty returns lastValue_ (10.0, explicitly set via InitRSSpringValueEstimator)
+    // and IsAbsNearEqual(end, (end-start)*1.0) checks |10-10|<=|10| -> true.
+    EXPECT_TRUE(estimator->IsStartConverging(0.5f, 0.0f));
+}
+
+/**
+ * @tc.name: IsStartConverging004
+ * @tc.desc: Verify IsStartConverging for overdamped model (dampingRatio > 1.0, progress-based)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, IsStartConverging004, TestSize.Level1)
+{
+    // Overdamped: dampingRatio = 2.0 -> takes ROSEN_GE branch (progress-based)
+    // startValue=0, endValue=10, convergeProgressThreshold=0.5
+    // threshold = 1 - 0.5 = 0.5, (end-start)*0.5 = 5.0
+    // |currentValue - end| <= 5.0 ?
+
+    // lastValue=8.0: |8-10|=2 <= 5 -> true
+    auto estimatorClose = std::make_shared<RSSpringValueEstimator<float>>();
+    auto propertyClose = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    auto lastValueClose = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    estimatorClose->InitRSSpringValueEstimator(propertyClose, startValue, endValue, lastValueClose);
+    estimatorClose->SetResponse(1.0f);
+    estimatorClose->SetDampingRatio(2.0f); // overdamped
+    estimatorClose->InitSpringModel();
+    ASSERT_NE(estimatorClose->springModel_, nullptr);
+    EXPECT_TRUE(estimatorClose->IsStartConverging(0.5f, 0.5f));
+
+    // lastValue=2.0: |2-10|=8 > 5 -> false
+    auto estimatorFar = std::make_shared<RSSpringValueEstimator<float>>();
+    auto propertyFar = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto lastValueFar = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    estimatorFar->InitRSSpringValueEstimator(propertyFar, startValue, endValue, lastValueFar);
+    estimatorFar->SetResponse(1.0f);
+    estimatorFar->SetDampingRatio(2.0f); // overdamped
+    estimatorFar->InitSpringModel();
+    ASSERT_NE(estimatorFar->springModel_, nullptr);
+    EXPECT_FALSE(estimatorFar->IsStartConverging(0.5f, 0.5f));
+}
+
+/**
+ * @tc.name: WillOverShoot001
+ * @tc.desc: Verify WillOverShoot returns false when springModel_ is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, WillOverShoot001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    // Constructor calls InitSpringModel() which creates springModel_.
+    // Explicitly null it to test the !springModel_ guard branch.
+    estimator->springModel_ = nullptr;
+    EXPECT_FALSE(estimator->WillOverShoot());
+}
+
+/**
+ * @tc.name: WillOverShoot002
+ * @tc.desc: Verify WillOverShoot delegates to springModel_ for underdamped/critical
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, WillOverShoot002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(0.5f); // underdamped -> false
+    estimator->InitSpringModel();
+    ASSERT_NE(estimator->springModel_, nullptr);
+    EXPECT_FALSE(estimator->WillOverShoot());
+
+    // Critical with positive velocity -> true
+    estimator->springModel_ = std::make_shared<RSSpringModel<float>>(1.0f, 1.0f, 1.0f, 10.0f, 1.0f);
+    EXPECT_TRUE(estimator->WillOverShoot());
+}
+
+/**
+ * @tc.name: WillOverShoot003
+ * @tc.desc: Verify WillOverShoot for overdamped model (dampingRatio > 1.0)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, WillOverShoot003, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    estimator->SetResponse(1.0f);
+    estimator->SetDampingRatio(2.0f); // overdamped
+    estimator->InitSpringModel();
+    ASSERT_NE(estimator->springModel_, nullptr);
+
+    // Overdamped with positive velocity -> extremumTime > 0 -> true
+    estimator->springModel_ = std::make_shared<RSSpringModel<float>>(1.0f, 2.0f, 1.0f, 10.0f, 1.0f);
+    EXPECT_TRUE(estimator->WillOverShoot());
+
+    // Overdamped with zero velocity -> extremumTime == 0 -> false
+    estimator->springModel_ = std::make_shared<RSSpringModel<float>>(1.0f, 2.0f, 1.0f, 0.0f, 1.0f);
+    EXPECT_FALSE(estimator->WillOverShoot());
+
+    // Overdamped with small negative velocity -> extremumTime < 0 -> false
+    estimator->springModel_ = std::make_shared<RSSpringModel<float>>(1.0f, 2.0f, 1.0f, -0.5f, 1.0f);
+    EXPECT_FALSE(estimator->WillOverShoot());
+}
 } // namespace Rosen
 } // namespace OHOS

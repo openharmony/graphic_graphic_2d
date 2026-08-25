@@ -35,6 +35,7 @@
 #include "ui/rs_proxy_node.h"
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 #include "ui/rs_ui_context.h"
+#include "ui/rs_root_node.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -60,6 +61,46 @@ RSRenderInterface::~RSRenderInterface() noexcept
 {
 }
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSRenderInterface::RebuildInactiveRootNodeIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+    RSSurfaceCaptureConfig& captureConfig)
+{
+    auto uiContext = node->GetRSUIContext();
+    if (!uiContext) {
+        ROSEN_LOGE("%{public}s Interface UiContext is nullptr", __func__);
+        return;
+    }
+    NodeId rootNodeId = uiContext->GetRootNodeId();
+    if (rootNodeId == 0) {
+        ROSEN_LOGW("%{public}s rootNodeId is 0, RootNode not set in UIContext", __func__);
+        return;
+    }
+    auto rootNode = uiContext->GetNodeMap().GetNode<RSRootNode>(rootNodeId);
+    if (!rootNode) {
+        ROSEN_LOGW("%{public}s RootNode id=%{public}" PRIu64 " found but node is expired",
+            __func__, rootNodeId);
+        return;
+    }
+    ROSEN_LOGD("%{public}s Found RootNode from SurfaceNode, rootNodeId=%{public}" PRIu64,
+        __func__, rootNodeId);
+    if (rootNode->GetNodeState() == RSNodeState::INACTIVE) {
+        ROSEN_LOGI("%{public}s RootNode is INACTIVE, Rebuild from RootNode", __func__);
+        rootNode->RebuildTree();
+        uiContext->FlushCanvasDrawingNodeBuffers();
+        captureConfig.isSync = true;
+    }
+}
+
+void RSRenderInterface::PrepareSyncCaptureIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+    RSSurfaceCaptureConfig& captureConfig)
+{
+    RebuildInactiveRootNodeIfNeeded(node, captureConfig);
+    if (RSSystemProperties::GetUniRenderEnabled() && captureConfig.isSync) {
+        node->SetTakeSurfaceForUIFlag();
+    }
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
+
 bool RSRenderInterface::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
@@ -67,6 +108,9 @@ bool RSRenderInterface::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    PrepareSyncCaptureIfNeeded(node, captureConfig);
+#endif // RS_MODIFIERS_DRAW_ENABLE
     return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
@@ -84,6 +128,9 @@ bool RSRenderInterface::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    PrepareSyncCaptureIfNeeded(node, captureConfig);
+#endif // RS_MODIFIERS_DRAW_ENABLE
     return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
 }
 
@@ -284,6 +331,9 @@ bool RSRenderInterface::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> no
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    PrepareSyncCaptureIfNeeded(node, captureConfig);
+#endif // RS_MODIFIERS_DRAW_ENABLE
     return renderPipelineClient_->TakeSelfSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 

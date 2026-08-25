@@ -60,10 +60,6 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
 
-#ifdef RES_SCHED_ENABLE
-#include "vsync_system_ability_listener.h"
-#endif
-
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
@@ -233,7 +229,8 @@ public:
     void ReleaseImageMem();
 
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
-    void ProcessUiCaptureTasks();
+    void AddSyncWindowCaptureTask(NodeId id, std::function<void()> task);
+    void ProcessSyncCaptureTasks();
 
     void AddWindowCapTask(NodeId id, std::function<void()> task);
     void CheckWindowCapTasks();
@@ -526,6 +523,11 @@ public:
     void ProcessPendingCommandsDuringRebuild(pid_t pid); // replay normal transactions cached during the pid's rebuild
     void ClearRebuildTransactionData(pid_t pid); // clear this pid's rebuild queue and cached commands
 
+    const std::unordered_map<pid_t, size_t>& GetCanvasDrawingNodeOpCountMap() const
+    {
+        return canvasDrawingNodeOpCountMap_;
+    }
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -614,9 +616,6 @@ private:
     void SetFocusLeashWindowId();
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
-#ifdef RES_SCHED_ENABLE
-    void SubScribeSystemAbility();
-#endif
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     void ConnectChipsetVsyncSer();
     void SetVsyncInfo(uint64_t timestamp);
@@ -633,7 +632,10 @@ private:
     void UpdateLuminanceAndColorTemp();
     void UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
 
-    void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareSyncCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareCaptureQueue(
+        std::vector<std::tuple<NodeId, std::function<void()>>>& pending,
+        std::queue<std::tuple<NodeId, std::function<void()>>>& ready);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
     void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
@@ -887,10 +889,13 @@ private:
     // used for watermark
     std::mutex watermarkMutex_;
 
-    // for ui captures
+    // for ui captures (UICAPTURE type, isSync)
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
-    // for window captures
+    // for sync window captures (DEFAULT_CAPTURE type, isSync)
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSyncWindowCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> syncWindowCaptureTasks_;
+    // for window captures waiting cache
     std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
@@ -900,6 +905,8 @@ private:
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
+
+    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
@@ -921,9 +928,6 @@ private:
     std::atomic<uint32_t> currentNum_ = 0;
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;

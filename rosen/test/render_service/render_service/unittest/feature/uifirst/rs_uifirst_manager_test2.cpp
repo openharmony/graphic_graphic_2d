@@ -2800,10 +2800,10 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable001, TestSize.Level1)
     config.id = MakeNodeId(rebuildPid, 1);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
     ASSERT_NE(surfaceNode, nullptr);
- 
+
     // no rebuild: false
     EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
- 
+
     // start rebuild for the node's pid: true
     auto txn = std::make_unique<RSTransactionData>();
     txn->SetSendingPid(rebuildPid);
@@ -2811,7 +2811,7 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable001, TestSize.Level1)
     mainThread->AddSplitTransaction(std::move(txn));
     ASSERT_TRUE(mainThread->IsPidRebuilding(rebuildPid));
     EXPECT_TRUE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
- 
+
     // rebuild done: false again
     mainThread->ProcessSplitTransactionCommands();
     EXPECT_FALSE(mainThread->IsPidRebuilding(rebuildPid));

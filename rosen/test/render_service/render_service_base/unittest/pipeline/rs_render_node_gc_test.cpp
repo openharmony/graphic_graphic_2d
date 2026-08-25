@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <atomic>
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_curve_animation.h"
@@ -776,6 +779,185 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket007, TestSize.Level1)
     nodeGC.AddToOffTreeNodeBucket(pid, renderNodeMap);
     nodeGC.ReleaseOffTreeNodeBucket();
     EXPECT_TRUE(true);
+}
+
+namespace {
+constexpr size_t MAX_CHECK_SIZE = 50;
+std::atomic<uint32_t> g_offTreeTaskCount(0);
+
+RSRenderNodeGC::gcTask MakeCountingTask()
+{
+    return [](RSTaskMessage::RSTask task, const std::string& name, int64_t,
+        AppExecFwk::EventQueue::Priority) {
+        if (name == DELETE_NODE_OFF_TREE_TASK) {
+            g_offTreeTaskCount++;
+        }
+        task();
+    };
+}
+
+class MainTaskGuard {
+public:
+    explicit MainTaskGuard(RSRenderNodeGC::gcTask task) : original_(RSRenderNodeGC::Instance().mainTask_)
+    {
+        RSRenderNodeGC::Instance().SetMainTask(task);
+    }
+
+    ~MainTaskGuard()
+    {
+        RSRenderNodeGC::Instance().SetMainTask(original_);
+    }
+
+private:
+    RSRenderNodeGC::gcTask original_;
+};
+
+void ClearNotOnTreeState()
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    nodeGC.backgroundPidSet_.clear();
+    nodeGC.notOnTreeNodeMap_.clear();
+    nodeGC.isEnable_.store(true);
+}
+} // namespace
+
+/**
+ * @tc.name: CheckHasNodeNotOnTreeTest001
+ * @tc.desc: Test CheckHasNodeNotOnTree returns false when loop finishes without hit,
+ *           including empty set, background pid without node and non-background pid ignored
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, CheckHasNodeNotOnTreeTest001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    EXPECT_FALSE(nodeGC.CheckHasNodeNotOnTree());
+
+    pid_t backgroundPid = 5;
+    pid_t foregroundPid = 6;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(backgroundPid);
+    nodeGC.notOnTreeNodeMap_[foregroundPid][node->GetId()] = node->weak_from_this();
+    EXPECT_FALSE(nodeGC.CheckHasNodeNotOnTree());
+    // mutex must be released after each return path
+    EXPECT_TRUE(nodeGC.nodeNotOnTreeMutex_.try_lock());
+    nodeGC.nodeNotOnTreeMutex_.unlock();
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: CheckHasNodeNotOnTreeTest002
+ * @tc.desc: Test CheckHasNodeNotOnTree returns true when a background pid has node not on tree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, CheckHasNodeNotOnTreeTest002, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    pid_t noNodePid = 5;
+    pid_t hasNodePid = 6;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(noNodePid);
+    nodeGC.backgroundPidSet_.insert(hasNodePid);
+    nodeGC.notOnTreeNodeMap_[hasNodePid][node->GetId()] = node->weak_from_this();
+    EXPECT_TRUE(nodeGC.CheckHasNodeNotOnTree());
+    EXPECT_TRUE(nodeGC.nodeNotOnTreeMutex_.try_lock());
+    nodeGC.nodeNotOnTreeMutex_.unlock();
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: CheckHasNodeNotOnTreeTest003
+ * @tc.desc: Test CheckHasNodeNotOnTree returns true when background pid count exceeds MAX_CHECK_SIZE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, CheckHasNodeNotOnTreeTest003, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    for (size_t i = 0; i <= MAX_CHECK_SIZE; i++) {
+        nodeGC.backgroundPidSet_.insert(static_cast<pid_t>(i));
+    }
+    EXPECT_TRUE(nodeGC.CheckHasNodeNotOnTree());
+    EXPECT_TRUE(nodeGC.nodeNotOnTreeMutex_.try_lock());
+    nodeGC.nodeNotOnTreeMutex_.unlock();
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: CheckHasNodeNotOnTreeTest004
+ * @tc.desc: Test CheckHasNodeNotOnTree returns true when nodeNotOnTreeMutex_ is held by another thread
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, CheckHasNodeNotOnTreeTest004, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    bool result = false;
+    nodeGC.nodeNotOnTreeMutex_.lock();
+    std::thread checkThread([&nodeGC, &result]() { result = nodeGC.CheckHasNodeNotOnTree(); });
+    checkThread.join();
+    nodeGC.nodeNotOnTreeMutex_.unlock();
+    EXPECT_TRUE(result);
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseNodeMemoryOffTreeTest001
+ * @tc.desc: Test ReleaseNodeMemory skips posting off-tree task when no node is pending release
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryOffTreeTest001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    g_offTreeTaskCount.store(0);
+    MainTaskGuard guard(MakeCountingTask());
+    nodeGC.ReleaseNodeMemory(true);
+    EXPECT_EQ(g_offTreeTaskCount.load(), 0);
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseNodeMemoryOffTreeTest002
+ * @tc.desc: Test ReleaseNodeMemory posts and executes off-tree task when background node exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryOffTreeTest002, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    g_offTreeTaskCount.store(0);
+    pid_t pid = 5;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(pid);
+    nodeGC.notOnTreeNodeMap_[pid][node->GetId()] = node->weak_from_this();
+    {
+        MainTaskGuard guard(MakeCountingTask());
+        nodeGC.ReleaseNodeMemory(true);
+    }
+    EXPECT_EQ(g_offTreeTaskCount.load(), 1);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.find(pid), nodeGC.notOnTreeNodeMap_.end());
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseNodeMemoryOffTreeTest003
+ * @tc.desc: Test ReleaseNodeMemory releases off-tree node directly when mainTask_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryOffTreeTest003, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    pid_t pid = 5;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(pid);
+    nodeGC.notOnTreeNodeMap_[pid][node->GetId()] = node->weak_from_this();
+    MainTaskGuard guard(nullptr);
+    nodeGC.ReleaseNodeMemory(true);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.find(pid), nodeGC.notOnTreeNodeMap_.end());
+    ClearNotOnTreeState();
 }
 
 } // namespace Rosen

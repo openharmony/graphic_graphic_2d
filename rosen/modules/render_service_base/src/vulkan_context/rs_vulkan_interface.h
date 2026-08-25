@@ -28,12 +28,12 @@
 #include "include/gpu/vk/VulkanBackendContext.h"
 #include "include/gpu/vk/VulkanExtensions.h"
 #include "platform/ohos/backend/rs_engine_header_ext.h"
-#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 #include "rs_vulkan_mem_statistic.h"
 #include "sync_fence.h"
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
+#include "rs_vulkan_header_ext.h"
 
 #define VK_NO_PROTOTYPES 1
 

@@ -22,7 +22,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "rs_surface_layer.h"
 

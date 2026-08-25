@@ -935,4 +935,37 @@ HWTEST_F(RSNodeCommandTest, UpdateModifierNGDrawCmdListTypeMismatch001, TestSize
 
     EXPECT_EQ(floatProperty->Get(), initialValue);
 }
+
+/**
+ * @tc.name: SetTakeSurfaceForUIFlag001
+ * @tc.desc: test SetTakeSurfaceForUIFlag when node is not found, flag should not be inserted
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 99999;
+    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
+    auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
+    EXPECT_EQ(cmdFlag.first, true);
+    EXPECT_EQ(cmdFlag.second, 0u);
+}
+
+/**
+ * @tc.name: SetTakeSurfaceForUIFlag002
+ * @tc.desc: test SetTakeSurfaceForUIFlag when node exists, flag should be inserted with true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
+    auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
+    EXPECT_EQ(cmdFlag.first, true);
+    EXPECT_NE(cmdFlag.second, 0u);
+}
 } // namespace OHOS::Rosen

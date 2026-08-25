@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "common/rs_common_hook.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -887,67 +886,5 @@ HWTEST_F(RSOpincManagerLayerPartTest, SubTreeSkipPrepareWithLayerPartDirtyManage
     node->SubTreeSkipPrepare(dirtyManager, true, true, DEFAULT_ABS_RECT, layerPartDirtyManager);
 
     ASSERT_FALSE(layerPartDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNodeEmptyWhiteList
- * @tc.desc: Verify MarkSuggestLayerPartRenderNode returns early when white list is empty
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeEmptyWhiteList, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config = {
-        .id = DEFAULT_NODE_ID,
-        .bundleName = "com.example.test.app"
-    };
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
-
-    // Set empty white list
-    std::unordered_set<std::string> emptyWhiteList = {};
-    RsCommonHook::Instance().SetLayerPartRenderWhiteList(emptyWhiteList);
-
-    // Empty white list, should return early
-    surfaceNode->MarkSuggestLayerPartRenderNode(true);
-
-    // Verify that opincCache is not marked
-    ASSERT_FALSE(surfaceNode->GetLayerPartRenderCache().IsLayerPartRender());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeTrue
- * @tc.desc: Verify MarkSuggestLayerPartRenderNode(true) auto sets strategy to NODE_GROUP
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeTrue, TestSize.Level1)
-{
-    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
-    auto& layerPartRenderCache = node->GetLayerPartRenderCache();
-
-    layerPartRenderCache.MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_TRUE(layerPartRenderCache.IsSuggestLayerPartRenderNode());
-    ASSERT_EQ(layerPartRenderCache.GetLayerPartRenderNodeStrategyType(), NodeStrategyType::NODE_GROUP);
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeFalse
- * @tc.desc: Verify MarkSuggestLayerPartRenderNode(false) auto sets strategy to CACHE_DISABLE
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeFalse, TestSize.Level1)
-{
-    auto node = CreateCanvasNode(SECOND_NODE_ID);
-    auto& layerPartRenderCache = node->GetLayerPartRenderCache();
-    layerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
-
-    layerPartRenderCache.MarkSuggestLayerPartRenderNode(false);
-
-    ASSERT_FALSE(layerPartRenderCache.IsSuggestLayerPartRenderNode());
-    ASSERT_EQ(layerPartRenderCache.GetLayerPartRenderNodeStrategyType(), NodeStrategyType::CACHE_DISABLE);
 }
 } // namespace OHOS::Rosen

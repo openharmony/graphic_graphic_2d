@@ -193,6 +193,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HDR_ON_DURATION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
@@ -3062,6 +3063,24 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             int32_t status = RegisterUIExtensionCallback(userId, callback, unobscured);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_UIEXTENSION_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID): {
+            uint64_t nodeId { 0 };
+            int32_t guestPid { 0 };
+            bool authorized { false };
+            if (!data.ReadUint64(nodeId) || !data.ReadInt32(guestPid) || !data.ReadBool(authorized)) {
+                RS_LOGE("RSClientToServiceConnectionStub::AUTHORIZE_UIEXTENSION_PID Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            // the ownership check lives in the connection implementation: asynchronous binder calls
+            // may report callingPid == 0, where the connection-level identity is used instead
+            int32_t status = AuthorizeUIExtensionPid(nodeId, static_cast<pid_t>(guestPid), authorized);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSClientToServiceConnectionStub::AUTHORIZE_UIEXTENSION_PID Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

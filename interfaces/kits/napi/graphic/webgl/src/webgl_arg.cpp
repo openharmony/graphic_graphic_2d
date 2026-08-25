@@ -512,7 +512,6 @@ bool WebGLImageSource::BuildPixelMapFromSource(
     if (errorCode != 0) {
         return false;
     }
-    errorCode = imageSource->GetImageInfo(imageInfo);
     LOGD("WebGl ImageSource  [%{public}u %{public}u] pixelFormat %{public}u colorSpace %{public}u"
         " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
         imageInfo.colorSpace, imageInfo.alphaType);

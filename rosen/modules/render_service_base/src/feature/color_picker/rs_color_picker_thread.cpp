@@ -24,7 +24,7 @@
 #include "render_context/render_context.h"
 #endif
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #endif
 

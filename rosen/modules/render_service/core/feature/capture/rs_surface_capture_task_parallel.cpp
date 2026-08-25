@@ -25,7 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "common/rs_obj_abs_geometry.h"
 #include "engine/rs_base_render_engine.h"

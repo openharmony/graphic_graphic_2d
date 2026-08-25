@@ -554,7 +554,7 @@ HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid005, TestSize.Level1)
     RSContext context;
     InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
     NodeId uiExtNodeId = (2ULL << 32) | 1;
-    context.GetMutableNodeMap().uiExtensionSurfaceNodes_.insert(uiExtNodeId);
+    context.GetMutableNodeMap().AuthorizeUIExtensionPid(uiExtNodeId, 1, true);
     std::vector<std::pair<NodeId, AnimationId>> animations = {{uiExtNodeId, 1}};
     bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
         animations, __PRETTY_FUNCTION__);

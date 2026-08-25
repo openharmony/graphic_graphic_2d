@@ -40,6 +40,10 @@
 #include "transaction/zidl/rs_render_service_stub.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 
+#ifdef RES_SCHED_ENABLE
+#include "vsync_system_ability_listener.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class RSRenderComposerManager;
@@ -118,6 +122,10 @@ private:
     // Game Scene Handler
     void InitGameFrameHandler();
 
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+#endif
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     sptr<RSScreenManager> screenManager_ = nullptr;
@@ -142,6 +150,10 @@ private:
     std::unordered_map<pid_t, uint32_t> pidConnectionCounts_;
 
     sptr<RsGameFrameHandler> rsGameFrameHandler_ = nullptr;
+
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;

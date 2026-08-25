@@ -495,6 +495,12 @@ private:
     {
         return renderPipelineClient_;
     }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    void RebuildInactiveRootNodeIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+        RSSurfaceCaptureConfig& captureConfig);
+    void PrepareSyncCaptureIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+        RSSurfaceCaptureConfig& captureConfig);
+#endif // RS_MODIFIERS_DRAW_ENABLE
 
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;

@@ -24,7 +24,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;

@@ -97,6 +97,16 @@ public:
     }
 
     /**
+     * @brief Gets the root node ID associated with this context.
+     *
+     * @return The NodeId of the root node.
+     */
+    inline NodeId GetRootNodeId() const
+    {
+        return rootNodeId_;
+    }
+
+    /**
      * @brief Gets the RSTransactionHandler associated with this context.
      *
      * @return A shared pointer to the RSTransactionHandler instance.

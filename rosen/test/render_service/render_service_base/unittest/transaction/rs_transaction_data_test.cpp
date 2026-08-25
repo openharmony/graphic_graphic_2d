@@ -872,9 +872,7 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid007, TestSize.Level1)
     NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
     rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(childId);
-    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
-    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_TRUE(context.nodeMap.AuthorizeUIExtensionPid(childId, callingPid, true));
     EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
 }
 

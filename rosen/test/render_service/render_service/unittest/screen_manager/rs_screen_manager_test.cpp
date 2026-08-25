@@ -28,7 +28,7 @@
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "rs_render_composer_manager.h"
 

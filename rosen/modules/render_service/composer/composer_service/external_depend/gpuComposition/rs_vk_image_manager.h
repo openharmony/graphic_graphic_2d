@@ -27,11 +27,11 @@
 #include "draw/surface.h"
 #include "engine/rs_base_render_util.h"
 #include "native_window.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "vulkan/vulkan_core.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 namespace OHOS {
 namespace Rosen {

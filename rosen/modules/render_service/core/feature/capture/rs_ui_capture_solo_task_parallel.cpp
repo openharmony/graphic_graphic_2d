@@ -48,7 +48,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 #endif
 
 namespace OHOS {

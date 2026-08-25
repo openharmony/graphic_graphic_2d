@@ -22,14 +22,16 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 // RGBA_8888/BGRA_8888: 4 bytes per pixel, the alpha channel is the 4th byte (index 3).
 constexpr int32_t BYTES_PER_PIXEL_RGBA8888 = 4;
 constexpr int32_t BYTES_PER_PIXEL_ALPHA8 = 1;
 // Alpha channel offset within a 8888 pixel; for both RGBA_8888 (R,G,B,A) and
 // BGRA_8888 (B,G,R,A) the alpha is the 4th byte (index 3).
 constexpr int32_t ALPHA_CHANNEL_OFFSET = 3;
+}
 
-bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
+bool RCDBitmapUtils::ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
 {
     RS_OPTIONAL_TRACE_FMT("ExtractAlphaChannel");
 
@@ -84,7 +86,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
     return true;
 }
 
-bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
+bool RCDBitmapUtils::ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
 {
     RS_OPTIONAL_TRACE_FMT("ConvertAlpha8ToRgba8888");
 
@@ -119,6 +121,103 @@ bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& 
     }
 
     return true;
+}
+
+bool RCDBitmapUtils::LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img)
+{
+    if (path == nullptr) {
+        RS_LOGE("[%{public}s] null path! \n", __func__);
+        return false;
+    }
+    std::string filePath = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + path;
+    RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Read Img(%{public}s) \n", __func__, filePath.c_str());
+    std::shared_ptr<Drawing::Data> drData = Drawing::Data::MakeFromFileName(filePath.c_str());
+    if (drData == nullptr) {
+        RS_LOGE("[%{public}s] Open picture file failed! \n", __func__);
+        return false;
+    }
+    img = std::make_shared<Drawing::Image>();
+    if (!img->MakeFromEncoded(drData)) {
+        img = nullptr;
+        RS_LOGE("[%{public}s] Decode picture file failed! \n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RCDBitmapUtils::DecodeAlphaBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap)
+{
+    if (image == nullptr) {
+        RS_LOGE("[%{public}s] No image found \n", __func__);
+        return false;
+    }
+    Drawing::Bitmap srcBitmap;
+    if (!image->AsLegacyBitmap(srcBitmap)) {
+        RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
+        return false;
+    }
+    // If the image color type is RGBA_8888 or BGRA_8888, extract its alpha channel
+    // to an Alpha8 bitmap to reduce memory and match the hardware layer mask format.
+    // If extraction fails, fall back to using the original bitmap directly, which is
+    // still acceptable for downstream hardware resource processing.
+    bool succeeded = ExtractAlphaChannel(srcBitmap, bitmap);
+    if (!succeeded) {
+        bitmap = srcBitmap;
+    }
+    return true;
+}
+
+bool RCDBitmapUtils::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap)
+{
+    if (image == nullptr) {
+        RS_LOGE("[%{public}s] No image found \n", __func__);
+        return false;
+    }
+    if (!image->AsLegacyBitmap(bitmap)) {
+        RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<Drawing::Bitmap> RCDBitmapUtils::LoadBitmap(const char* path)
+{
+    std::shared_ptr<Drawing::Image> imgTmp = nullptr;
+    LoadImg(path, imgTmp);
+    auto bitmapPtr = std::make_shared<Drawing::Bitmap>();
+    if (!DecodeBitmap(imgTmp, *bitmapPtr)) {
+        return nullptr;
+    }
+    return bitmapPtr;
+}
+
+void RCDBitmapUtils::LoadOrReuseImage(const rs_rcd::RoundCornerLayer& target,
+    const std::initializer_list<std::pair<const rs_rcd::RoundCornerLayer&,
+    std::shared_ptr<Drawing::Image>>>& candidates,
+    std::shared_ptr<Drawing::Image>& outImage)
+{
+    for (const auto& candidate : candidates) {
+        if (target.IsResourceEqual(candidate.first)) {
+            outImage = candidate.second;
+            return;
+        }
+    }
+    LoadImg(target.fileName.c_str(), outImage);
+}
+
+void RCDBitmapUtils::DecodeOrReuseBitmap(const std::shared_ptr<Drawing::Image>& targetImage,
+    const std::initializer_list<std::pair<std::shared_ptr<Drawing::Image>,
+    std::shared_ptr<Drawing::Bitmap>>>& candidates,
+    std::shared_ptr<Drawing::Bitmap>& outBitmap)
+{
+    for (const auto& candidate : candidates) {
+        if (targetImage == candidate.first && candidate.second != nullptr) {
+            outBitmap = candidate.second;
+            return;
+        }
+    }
+    outBitmap = std::make_shared<Drawing::Bitmap>();
+    DecodeAlphaBitmap(targetImage, *outBitmap);
 }
 } // namespace Rosen
 } // namespace OHOS

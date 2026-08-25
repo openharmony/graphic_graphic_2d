@@ -27,8 +27,8 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "native_buffer_inner.h"
 #include "native_window.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 namespace OHOS {

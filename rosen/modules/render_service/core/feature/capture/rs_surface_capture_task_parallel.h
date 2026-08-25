@@ -23,7 +23,7 @@
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_interface.h"
+#include "vulkan_context/rs_vulkan_interface.h"
 #endif
 
 namespace OHOS {

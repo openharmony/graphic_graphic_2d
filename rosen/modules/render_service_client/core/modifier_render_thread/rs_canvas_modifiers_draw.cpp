@@ -24,10 +24,10 @@
 #include "qos.h"
 
 #include "platform/common/rs_log.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "render_context/render_context.h"
 #include "render_context/shader_cache.h"
+#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,7 +44,6 @@ void RSCanvasModifiersDrawable::Reset()
     height_ = 0;
     forceFlushBuffer_ = false;
     needResetCanvas_ = false;
-    drawingSurface_ = nullptr;
     surfaceFrame_ = nullptr;
     semaphore_ = VK_NULL_HANDLE;
     if (drawCmdListCache_ != nullptr) {

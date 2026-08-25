@@ -1085,6 +1085,11 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback, unobscured);
 }
 
+bool RSInterfaces::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
+{
+    return renderServiceClient_->AuthorizeUIExtensionPid(nodeId, guestPid, authorized);
+}
+
 bool RSInterfaces::SetAncoForceDoDirect(bool direct)
 {
     return false;

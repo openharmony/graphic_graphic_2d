@@ -125,6 +125,7 @@ private:
     void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
     void AddNodeToBucket(RSRenderNode* ptr);
     void ReleaseNodePid(pid_t pid);
+    bool CheckHasNodeNotOnTree();
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;

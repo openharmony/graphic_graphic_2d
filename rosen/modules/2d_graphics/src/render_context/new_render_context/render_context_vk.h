@@ -19,13 +19,13 @@
 #include <atomic>
 
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
 
-#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 #include "render_context/render_context.h"
+#include "vulkan_context/rs_vulkan_header_ext.h"
 
 namespace OHOS {
 namespace Rosen {

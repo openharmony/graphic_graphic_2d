@@ -147,6 +147,10 @@ public:
     virtual ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) = 0;
     virtual int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
+    // forwarded from render_service: host (pid) authorizes/revokes a guest pid for a
+    // UIExtension surface node it owns; enforceQuota is true for non-system hosts
+    virtual int32_t AuthorizeUIExtensionPid(pid_t pid, NodeId nodeId, pid_t guestPid, bool authorized,
+        bool enforceQuota) = 0;
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
     virtual void SetCacheEnabledForRotation(bool enabled) = 0;
     virtual ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height) = 0;

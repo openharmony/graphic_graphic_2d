@@ -47,7 +47,7 @@
 
 #ifdef RS_ENABLE_VK
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
