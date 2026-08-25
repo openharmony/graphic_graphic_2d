@@ -316,7 +316,7 @@ public:
     {
         return enableSDFCache_;
     }
-    
+
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
@@ -350,10 +350,6 @@ private:
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
-    int colorBlendMode_ = 0; // 0: LINEAR_MIX, 1: TILTED_GLASS
-    float vibrancyStrength_ = 0.0f;
-    Vector3f lumaParams_ = Vector3f(0.0f, 0.0f, 0.0f);
-    float materialColorFraction_ = 0.0f;
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
     bool enableSDFCache_ = false;
 };
