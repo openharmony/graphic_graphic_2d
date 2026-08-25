@@ -2709,7 +2709,7 @@ bool RSClientToServiceConnection::ProfilerIsSecureScreen()
 {
     // 遗漏，车机是直接删掉
 #ifdef RS_PROFILER_ENABLED
-    if (!RSSystemProperties::GetProfilerEnabled()) {
+    if (!RSProfiler::IsHrpServiceEnabled()) {
         return false;
     }
     return RSProfiler::IsSecureScreen();

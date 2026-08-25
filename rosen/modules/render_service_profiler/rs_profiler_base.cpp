@@ -125,6 +125,11 @@ bool RSProfiler::IsHrpServiceEnabled()
     return hrpServiceEnabled_;
 }
 
+bool RSProfiler::SetHrpServiceEnabled(bool enabled)
+{
+    hrpServiceEnabled_ = enabled;
+}
+
 bool RSProfiler::IsBetaRecordEnabled()
 {
 #ifdef RS_PROFILER_BETA_ENABLED
@@ -146,7 +151,7 @@ bool RSProfiler::IsReadMode()
 
 bool RSProfiler::IsReadEmulationMode()
 {
-    return GetSubMode() == SubMode::READ_EMUL;
+    return GetThreadSubMode() == SubMode::READ_EMUL;
 }
 
 bool RSProfiler::IsWriteMode()
@@ -156,7 +161,7 @@ bool RSProfiler::IsWriteMode()
 
 bool RSProfiler::IsWriteEmulationMode()
 {
-    return GetSubMode() == SubMode::WRITE_EMUL;
+    return GetThreadSubMode() == SubMode::WRITE_EMUL;
 }
 
 bool RSProfiler::IsSavingMode()
@@ -306,17 +311,17 @@ uint32_t RSProfiler::GetCommandExecuteCount()
     return count;
 }
 
-void RSProfiler::EnableSharedMemory()
+void RSProfiler::EnableThreadSharedMemory()
 {
     RSMarshallingHelper::EndNoSharedMem();
 }
 
-void RSProfiler::DisableSharedMemory()
+void RSProfiler::DisableThreadSharedMemory()
 {
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
 }
 
-bool RSProfiler::IsSharedMemoryEnabled()
+bool RSProfiler::IsThreadSharedMemoryEnabled()
 {
     return RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id());
 }
@@ -409,12 +414,12 @@ Mode RSProfiler::GetMode()
     return static_cast<Mode>(mode_.load());
 }
 
-void RSProfiler::SetSubMode(SubMode subMode)
+void RSProfiler::SetThreadSubMode(SubMode subMode)
 {
     g_subMode = static_cast<uint32_t>(subMode);
 }
 
-SubMode RSProfiler::GetSubMode()
+SubMode RSProfiler::GetThreadSubMode()
 {
     return static_cast<SubMode>(g_subMode);
 }
@@ -1465,7 +1470,7 @@ uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
 void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
     std::shared_ptr<Drawing::Data>& compressData)
 {
-    if (IsEnabled() && !IsSharedMemoryEnabled()) {
+    if (IsEnabled() && !IsThreadSharedMemoryEnabled()) {
         image = nullptr;
         compressData = nullptr;
     }

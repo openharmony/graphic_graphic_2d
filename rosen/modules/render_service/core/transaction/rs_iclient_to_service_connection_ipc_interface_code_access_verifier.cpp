@@ -14,6 +14,7 @@
  */
 
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -590,18 +591,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PID_GPU_MEMORY_IN_MB");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_OPEN_FILE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_POPULATE_FILES");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
             break;
@@ -641,6 +630,12 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
             hasPermission = true;
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
+            hasPermission = RS_PROFILER_HRP_SERVICE_ENABLED();
             break;
         }
         default: {

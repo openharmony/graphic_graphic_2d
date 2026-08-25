@@ -29,6 +29,7 @@
 #include "sys_binder.h"
 #include "sandbox_utils.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#include "rs_profiler.h"
 
 #ifndef MFD_CLOEXEC
 #define MFD_CLOEXEC 0x0001U
@@ -627,7 +628,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         return nullptr;
     }
     // the parcel owns the buffer via DefaultAllocator (freed on destruction)
-    auto dataParcel = std::make_shared<MessageParcel>();
+    auto dataParcel = RS_PROFILER_COPY_PARCEL(*ashmemParcel);
     dataParcel->ParseFrom(reinterpret_cast<uintptr_t>(data), dataSize);
 
     int32_t offsetSize = ashmemParcel->ReadInt32();
