@@ -163,19 +163,23 @@ bool RSImageDetailEnhancerThread::GetSharpness(RSImageDetailEnhanceAlgoParams& p
 }
 
 void RSImageDetailEnhancerThread::ResetStatus(int srcWidth, int srcHeight,
-    int dstWidth, int dstHeight, uint64_t imageId)
+    int dstWidth, int dstHeight, ImageKey imageKey)
 {
-    if (GetProcessStatus(imageId) && GetProcessReady(imageId) &&
+    if (GetProcessStatus(imageKey) && GetProcessReady(imageKey) &&
         IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight)) {
-        std::shared_ptr<Drawing::Image> dstImage = GetScaledImage(imageId);
+        std::shared_ptr<Drawing::Image> dstImage = nullptr;
+        {
+            std::lock_guard<std::mutex> mapMutex(mapMutex_);
+            dstImage = GetScaledImageLocked(imageKey.imageId, imageKey.nodeId);
+        }
         if (dstImage != nullptr) {
             int dstImageWidth = dstImage->GetWidth();
             int dstImageHeight = dstImage->GetHeight();
             if (dstImageWidth != dstWidth && dstImageHeight != dstHeight &&
                 abs(dstImageWidth - dstWidth) > IMAGE_DIFF_VALUE &&
                 abs(dstImageHeight - dstHeight) > IMAGE_DIFF_VALUE) {
-                SetProcessStatus(imageId, false);
-                SetProcessReady(imageId, false);
+                SetProcessStatus(imageKey, false);
+                SetProcessReady(imageKey, false);
             }
         }
     }
@@ -304,7 +308,7 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
     if (dstImage != nullptr) {
         RS_LOGD("RSImageDetailEnhancerThread SetOutImage, imageId=%{public}" PRIu64 ", srcSize=(%{public}d,%{public}d),"
             "dstSize=(%{public}d,%{public}d)", imageId, srcWidth, srcHeight, dstWidth, dstHeight);
-        SetScaledImage(imageId, dstImage);
+        SetScaledImage(imageId, nodeId, dstImage);
         DumpImage(dstImage, imageId);
         MarkScaledImageDirty(nodeId);
     }
@@ -322,7 +326,11 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(b
     }
     ScaleImageAsync(RSImageParams.mPixelMap, RSImageParams.mDst,
         RSImageParams.mNodeId, RSImageParams.mUniqueId, RSImageParams.mImage);
-    std::shared_ptr<Drawing::Image> dstImage = GetScaledImage(RSImageParams.mUniqueId);
+    std::shared_ptr<Drawing::Image> dstImage = nullptr;
+    {
+        std::lock_guard<std::mutex> mapMutex(mapMutex_);
+        dstImage = GetScaledImageLocked(RSImageParams.mUniqueId, RSImageParams.mNodeId);
+    }
     if (dstImage == nullptr) {
         isScaledImageAsync = false;
         return nullptr;
@@ -352,9 +360,9 @@ void RSImageDetailEnhancerThread::ScaleImageAsync(const std::shared_ptr<Media::P
     int srcHeight = image->GetHeight();
     int dstWidth = static_cast<int>(dst.GetWidth());
     int dstHeight = static_cast<int>(dst.GetHeight());
-    ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
-    if (IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight) && !GetProcessStatus(imageId)) {
-        SetProcessStatus(imageId, true);
+    ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
+    if (IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight) && !GetProcessStatus({imageId, nodeId})) {
+        SetProcessStatus({imageId, nodeId}, true);
         auto asyncEnhancerTask = [this, dst, image, nodeId, imageId, pixelMap]() {
             ExecuteTaskAsync(dst, image, nodeId, imageId, pixelMap);
         };
@@ -377,10 +385,14 @@ void RSImageDetailEnhancerThread::DumpImage(const std::shared_ptr<Drawing::Image
     DetailEnhancerUtils::Instance().SavePixelmapToFile(bitmap, "/data/scaledPixelmap_");
 }
 
-void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId)
+void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId, uint64_t nodeId)
 {
     RS_TRACE_NAME("RSImageDetailEnhancerThread::ImageSamplingDump");
-    std::shared_ptr<Drawing::Image> image = GetScaledImage(imageId);
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    {
+        std::lock_guard<std::mutex> mapMutex(mapMutex_);
+        image = GetScaledImageLocked(imageId, nodeId);
+    }
     if (image == nullptr) {
         return;
     }
@@ -413,27 +425,32 @@ void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId)
 }
 #endif
 
-void RSImageDetailEnhancerThread::SetScaledImage(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image)
+void RSImageDetailEnhancerThread::SetScaledImage(uint64_t imageId, uint64_t nodeId,
+    const std::shared_ptr<Drawing::Image>& image)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
     if (image == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread image is nullptr!");
         return;
     }
-    if (keyMap_.find(imageId) != keyMap_.end()) {
-        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageId]->second;
+    ImageKey imageKey = {imageId, nodeId};
+    if (keyMap_.find(imageKey) != keyMap_.end()) {
+        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageKey]->second;
         curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
-        imageList_.erase(keyMap_[imageId]);
+        imageList_.erase(keyMap_[imageKey]);
+        keyMap_.erase(imageKey);
     }
-    PushImageList(imageId, image);
+    PushImageList(imageId, nodeId, image);
     RS_LOGD("RSImageDetailEnhancerThreadTest SetOutImage2,imageId=%{public}" PRIu64
         ",mapSize=%{public}zu, curCacheSize2=%{public}f M ", imageId, imageList_.size(), curCache_);
 }
 
-void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image)
+void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, uint64_t nodeId,
+    const std::shared_ptr<Drawing::Image>& image)
 {
-    processStatusMap_[imageId] = true;
-    processReadyMap_[imageId] = true;
+    imageNodeMap_[imageId].insert(nodeId);
+    processStatusMap_[{imageId, nodeId}] = true;
+    processReadyMap_[{imageId, nodeId}] = true;
     curCache_ += DetailEnhancerUtils::Instance().GetImageSize(image);
     while (static_cast<int>(curCache_) >= static_cast<int>(MAX_IMAGE_CACHE) && imageList_.size() > 0) {
         std::shared_ptr<Drawing::Image> cachedImage = imageList_.back().second;
@@ -443,32 +460,59 @@ void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, const std::sha
         keyMap_.erase(imageList_.back().first);
         imageList_.pop_back();
     }
-    imageList_.emplace_front(imageId, image);
-    keyMap_[imageId] = imageList_.begin();
+    imageList_.emplace_front(ImageKey{imageId, nodeId}, image);
+    keyMap_[{imageId, nodeId}] = imageList_.begin();
 }
 
 std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::GetScaledImage(uint64_t imageId)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    if (keyMap_.find(imageId) == keyMap_.end()) {
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    if (imageNodeMap_.find(imageId) != imageNodeMap_.end()) {
+        auto nodeList = imageNodeMap_[imageId];
+        for (uint64_t nodeId : nodeList) {
+            image = GetScaledImageLocked(imageId, nodeId);
+        }
+    }
+    return image;
+}
+ 
+std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::GetScaledImageLocked(uint64_t imageId, uint64_t nodeId)
+{
+    if (keyMap_.find({imageId, nodeId}) == keyMap_.end()) {
         return nullptr;
     }
-    imageList_.splice(imageList_.begin(), imageList_, keyMap_[imageId]);
-    return keyMap_[imageId]->second;
+    imageList_.splice(imageList_.begin(), imageList_, keyMap_[{imageId, nodeId}]);
+    return keyMap_[{imageId, nodeId}]->second;
 }
 
 void RSImageDetailEnhancerThread::ReleaseScaledImage(uint64_t imageId)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    if (keyMap_.find(imageId) != keyMap_.end()) {
-        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageId]->second;
+    if (imageNodeMap_.find(imageId) != imageNodeMap_.end()) {
+        auto nodeList = imageNodeMap_[imageId];
+        for (uint64_t nodeId : nodeList) {
+            ReleaseScaledImageLocked(imageId, nodeId);
+        }
+        imageNodeMap_.erase(imageId);
+    }
+}
+ 
+void RSImageDetailEnhancerThread::ReleaseScaledImageLocked(uint64_t imageId, uint64_t nodeId)
+{
+    if (keyMap_.find({imageId, nodeId}) != keyMap_.end()) {
+        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[{imageId, nodeId}]->second;
         curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
-        imageList_.erase(keyMap_[imageId]);
-        keyMap_.erase(imageId);
-        processStatusMap_.erase(imageId);
-        processReadyMap_.erase(imageId);
+        imageList_.erase(keyMap_[{imageId, nodeId}]);
+        keyMap_.erase({imageId, nodeId});
+        processStatusMap_.erase({imageId, nodeId});
+        processReadyMap_.erase({imageId, nodeId});
         RS_LOGD("RSImageDetailEnhancerThreadTest ReleaseScaledImage, imageId=%{public}" PRIu64
             ",mapSize=%{public}zu, curCacheSize=%{public}f M", imageId, imageList_.size(), curCache_);
+        auto it = imageNodeMap_.find(imageId);
+        if (it != imageNodeMap_.end()) {
+            it->second.erase(nodeId);
+        }
     }
 }
 
@@ -487,34 +531,35 @@ void RSImageDetailEnhancerThread::ReleaseAllScaledImage()
         keyMap_.clear();
         processStatusMap_.clear();
         processReadyMap_.clear();
+        imageNodeMap_.clear();
         releaseTime_ = 0;
         RS_LOGE("RSImageDetailEnhancerThreadTest ReleaseAllScaledImage");
     }
 }
 
-void RSImageDetailEnhancerThread::SetProcessStatus(uint64_t imageId, bool flag)
+void RSImageDetailEnhancerThread::SetProcessStatus(ImageKey imageKey, bool flag)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    processStatusMap_[imageId] = flag;
+    processStatusMap_[imageKey] = flag;
 }
 
-bool RSImageDetailEnhancerThread::GetProcessStatus(uint64_t imageId) const
+bool RSImageDetailEnhancerThread::GetProcessStatus(ImageKey imageKey) const
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    auto it = processStatusMap_.find(imageId);
+    auto it = processStatusMap_.find(imageKey);
     return it != processStatusMap_.end() ? it->second : false;
 }
 
-void RSImageDetailEnhancerThread::SetProcessReady(uint64_t imageId, bool flag)
+void RSImageDetailEnhancerThread::SetProcessReady(ImageKey imageKey, bool flag)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    processReadyMap_[imageId] = flag;
+    processReadyMap_[imageKey] = flag;
 }
 
-bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
+bool RSImageDetailEnhancerThread::GetProcessReady(ImageKey imageKey) const
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    auto it = processReadyMap_.find(imageId);
+    auto it = processReadyMap_.find(imageKey);
     return it != processReadyMap_.end() ? it->second : false;
 }
 
