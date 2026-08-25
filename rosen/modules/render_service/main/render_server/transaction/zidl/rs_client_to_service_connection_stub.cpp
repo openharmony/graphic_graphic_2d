@@ -1140,6 +1140,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Invalid parameter,"
                     " samplingMode: %{public}u", samplingMode);
                 ret = ERR_INVALID_DATA;
+                break;
             }
             int32_t status = SetRogScreenResolution(id, width, height, static_cast<ScreenSamplingMode>(samplingMode));
             if (!reply.WriteInt32(status)) {
