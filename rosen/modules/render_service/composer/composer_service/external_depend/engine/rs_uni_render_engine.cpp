@@ -151,8 +151,9 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         // if rotation fixed or use hpae offline, no further scaling will be performed
         bool rotationFixed = layer->GetRotationFixed();
         if (!rotationFixed) {
-            // Skip ROG post-scale when DEVICE_GPU sampling with uni-render,
-            // as GPU has already applied scaling to avoid double scaling.
+            // Case 1: DEVICE_GPU sampling with uni-render — GPU has already applied scaling,
+            //         skip ROG post-scale to avoid double scaling
+            // Case 2: Other sampling modes or non-uni-render — apply ROG post-scale normally
             bool skipRogPostScale = (composerScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) &&
                 layer->GetUniRenderFlag();
             if (!skipRogPostScale) {
