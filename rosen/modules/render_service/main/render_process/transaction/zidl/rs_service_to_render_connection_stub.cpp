@@ -910,6 +910,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Invalid parameter,"
                     " samplingMode: %{public}u", samplingMode);
                 ret = ERR_INVALID_DATA;
+                break;
             }
             auto replyMessage = SetRogScreenResolution(screenId, width, height,
                 static_cast<ScreenSamplingMode>(samplingMode));
