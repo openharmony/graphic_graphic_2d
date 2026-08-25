@@ -203,7 +203,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t backlightlevel = GetData<int32_t>();
     uint64_t screenId = GetData<uint64_t>();
     ScreenSamplingMode samplingMode = static_cast<ScreenSamplingMode>(
-        GetData<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1))
+        GetData<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1));
     RSScreenModeInfo modeInfo;
     int32_t resCode;
 
