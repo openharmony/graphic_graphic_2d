@@ -61,10 +61,6 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
 
-#ifdef RES_SCHED_ENABLE
-#include "vsync_system_ability_listener.h"
-#endif
-
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
@@ -528,6 +524,11 @@ public:
     void ProcessPendingCommandsDuringRebuild(pid_t pid); // replay normal transactions cached during the pid's rebuild
     void ClearRebuildTransactionData(pid_t pid); // clear this pid's rebuild queue and cached commands
 
+    const std::unordered_map<pid_t, size_t>& GetCanvasDrawingNodeOpCountMap() const
+    {
+        return canvasDrawingNodeOpCountMap_;
+    }
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -915,6 +916,8 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
 
+    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
@@ -935,9 +938,6 @@ private:
     std::atomic<uint32_t> currentNum_ = 0;
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;

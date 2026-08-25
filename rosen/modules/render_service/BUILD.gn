@@ -67,6 +67,13 @@ config("render_service_link_config") {
   }
 }
 
+config("render_service_config") {
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    defines = [ "RES_SCHED_ENABLE" ]
+  }
+}
+
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
   branch_protector_ret = "pac_ret"
@@ -693,10 +700,10 @@ ohos_shared_library("librender_service") {
     defines += [ "SOC_PERF_ENABLE" ]
   }
 
+  public_configs = [ ":render_service_config" ]
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
-    defines += [ "RES_SCHED_ENABLE" ]
   }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

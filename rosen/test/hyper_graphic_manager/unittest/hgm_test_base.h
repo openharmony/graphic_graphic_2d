@@ -163,6 +163,9 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="video_call_layer_config">
         <App name="aaa" value="1"/>
     </Params>
+    <Params name="dimming_config">
+        <App name="aaa" value="1"/>
+    </Params>
     <Params name="xxx">
         <App name="aaa" value="1"/>
     </Params>
@@ -316,6 +319,9 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
         <App name="aaa" value="1"/>
     </Params>
     <Params name="video_call_layer_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="dimming_config">
         <App name="aaa" value="1"/>
     </Params>
     <Params name="xxx">

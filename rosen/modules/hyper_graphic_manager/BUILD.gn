@@ -88,6 +88,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config/hgm_user_define.cpp",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config/xml_parser.cpp",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_app_page_url_strategy.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_dimming_manager.cpp",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_frame_rate_manager.cpp",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_idle_detector.cpp",
