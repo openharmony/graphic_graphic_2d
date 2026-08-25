@@ -197,7 +197,6 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     auto it = mBlobMap_.find(keyBlob);
     if (it != mBlobMap_.end()) {
         free(it->second->data);
-        it->second->data = nullptr;
         it->second->data = malloc(valueSize);
         if (it->second->data != nullptr) {
             it->second->dataSize = valueSize;
