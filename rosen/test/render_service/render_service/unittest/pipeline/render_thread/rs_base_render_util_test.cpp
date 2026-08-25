@@ -2851,12 +2851,12 @@ HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_PaddingHeight001, TestSize.
     EXPECT_TRUE(result);
 }
 /**
- * @tc.name: GetFrameBufferRequestConifg_DeviceGpuSampling
- * @tc.desc: Test GetFrameBufferRequestConifg when SamplingMode is DEVICE_GPU, usePhysicalSize should be true
+ * @tc.name: GetFrameBufferRequestConfig_DeviceGpuSampling
+ * @tc.desc: Test GetFrameBufferRequestConfig when SamplingMode is DEVICE_GPU, usePhysicalSize should be true
  * @tc.type: FUNC
  * @tc.require: issue no.
  */
-HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_DeviceGpuSampling, TestSize.Level2)
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_DeviceGpuSampling, TestSize.Level2)
 {
     constexpr uint32_t RENDER_WIDTH = 100;
     constexpr uint32_t RENDER_HEIGHT = 200;
@@ -2881,12 +2881,12 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_DeviceGpuSampling, Te
 }
 
 /**
- * @tc.name: GetFrameBufferRequestConifg_SamplingOn
- * @tc.desc: Test GetFrameBufferRequestConifg when isSamplingOn is true, usePhysicalSize should be true
+ * @tc.name: GetFrameBufferRequestConfig_SamplingOn
+ * @tc.desc: Test GetFrameBufferRequestConfig when isSamplingOn is true, usePhysicalSize should be true
  * @tc.type: FUNC
  * @tc.require: issue no.
  */
-HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_SamplingOn, TestSize.Level2)
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_SamplingOn, TestSize.Level2)
 {
     constexpr uint32_t RENDER_WIDTH = 100;
     constexpr uint32_t RENDER_HEIGHT = 200;
@@ -2911,12 +2911,12 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_SamplingOn, TestSize.
 }
 
 /**
- * @tc.name: GetFrameBufferRequestConifg_NoPhysicalSize
- * @tc.desc: Test GetFrameBufferRequestConifg when neither isSamplingOn nor DEVICE_GPU, usePhysicalSize should be false
+ * @tc.name: GetFrameBufferRequestConfig_NoPhysicalSize
+ * @tc.desc: Test GetFrameBufferRequestConfig when neither isSamplingOn nor DEVICE_GPU, usePhysicalSize should be false
  * @tc.type: FUNC
  * @tc.require: issue no.
  */
-HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConifg_NoPhysicalSize, TestSize.Level2)
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_NoPhysicalSize, TestSize.Level2)
 {
     constexpr uint32_t RENDER_WIDTH = 100;
     constexpr uint32_t RENDER_HEIGHT = 200;
