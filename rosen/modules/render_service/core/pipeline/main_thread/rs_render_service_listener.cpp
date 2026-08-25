@@ -175,8 +175,11 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         return;
     }
 
-    std::lock_guard<std::mutex> lock(pendingStateMutex_);
-    pendingCallbackBits_ |= PENDING_ON_CLEAN_CACHE_BIT;
+    auto node = surfaceBufferInterface_.lock();
+    if (node == nullptr) {
+        std::lock_guard<std::mutex> lock(pendingStateMutex_);
+        pendingCallbackBits_ |= PENDING_ON_CLEAN_CACHE_BIT;
+    }
 
     uint64_t curBufferId = 0;
     auto curBuffer = surfaceHandler->GetBuffer();
@@ -367,6 +370,10 @@ void RSRenderServiceListener::ProcessPendingCallbacks()
     }
 
     if ((pendingCallbackBits & PENDING_ON_CLEAN_CACHE_BIT) != 0) {
+        auto curBuffer = surfaceHandler->GetBuffer();
+        if (curBuffer == nullptr || curBuffer->GetSeqNum() != cleanCacheBufSeqNum) {
+            return;
+        }
         OnCleanCache(&cleanCacheBufSeqNum);
     }
 }
