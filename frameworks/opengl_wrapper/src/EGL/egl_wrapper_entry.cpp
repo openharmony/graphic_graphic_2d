@@ -212,7 +212,6 @@ EGLBoolean EglGetConfigsImpl(EGLDisplay dpy, EGLConfig *configs,
     if (numConfig == nullptr) {
         WLOGE("EGLint *numConfig is nullptr.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
-        return EGL_FALSE;
     }
 
     EGLBoolean ret = EGL_FALSE;
