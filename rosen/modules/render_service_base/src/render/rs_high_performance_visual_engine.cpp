@@ -126,7 +126,8 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
     return HasValidEffect(node->GetParent().lock().get());
 }
 
-bool HveFilter::CheckSceneConditions(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect) {
+bool HveFilter::CheckSceneConditions(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
+{
     return !apsConfigParamsEnabled_ && (!hwcNode.GetArsrTag() ||
         (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE));
 }
