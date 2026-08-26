@@ -71,6 +71,7 @@
 #endif
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pixel_map_from_surface.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_typeface_cache.h"
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_unmarshal_thread.h"
@@ -2032,6 +2033,12 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
 ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    if (event == ApsEventType::HVE) {
+        auto it = params.find("ENABLE");
+        bool enabled = (it != params.end() && it->second == "true");
+        HveFilter::GetHveFilter().SetApsConfigParamsEnabled(enabled);
+        return ERR_OK;
+    }
     if (event == ApsEventType::SPLIT_LAYER) {
         if (auto layerSplitManager = RSLayerSplitManager::GetInstance(); layerSplitManager != nullptr) {
             auto it = params.find("ENABLE");
