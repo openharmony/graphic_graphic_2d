@@ -46,15 +46,26 @@ public:
 
     void Sync();
     void ClearSurfaceNodeInfo();
+    void ClearSurfaceToFilterNodeMap();
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
+    const std::vector<NodeId>& GetFilterIds(NodeId surfaceId) const;
+    bool CheckSceneConditions(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
     bool HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);
     std::shared_ptr<Drawing::Image> SampleLayer(
         RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
+    
+    void SetApsConfigParamsEnabled(bool enabled) {
+        apsConfigParamsEnabled_ = enabled;
+    }
+
+    bool IsApsConfigParamsEnabled() const {
+        return apsConfigParamsEnabled_;
+    }
 
 private:
     bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
@@ -62,12 +73,14 @@ private:
     void DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
         SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect);
     HveFilter() = default;
-    std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
+    bool apsConfigParamsEnabled_ = false;
     mutable std::mutex hveFilterMtx_;
     mutable std::mutex surfaceInfoMtx_;
+    std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
 
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
+    std::unordered_map<NodeId, std::vector<NodeId>> hveSurfaceToFilterNodeMap_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS
