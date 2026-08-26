@@ -119,6 +119,8 @@ public:
     RSRenderNode& operator=(const RSRenderNode&) = delete;
     RSRenderNode& operator=(const RSRenderNode&&) = delete;
     virtual ~RSRenderNode();
+    // Whether this node must be released on the main thread during GC.
+    bool MustReleaseOnMainThread() const;
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);

@@ -1780,6 +1780,13 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
     return enable;
 }
 
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.bg.node.release.enabled", "1")).c_str()) != 0;
+    return enable;
+}
+
 bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";

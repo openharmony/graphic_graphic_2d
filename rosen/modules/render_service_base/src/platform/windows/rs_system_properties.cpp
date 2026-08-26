@@ -809,6 +809,11 @@ bool RSSystemProperties::GetBootCompleted()
     return false;
 }
 
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetClipRRectOptimizationEnabled()
 {
     return false;

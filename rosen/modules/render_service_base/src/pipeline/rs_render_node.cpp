@@ -1821,9 +1821,14 @@ RSRenderNode::~RSRenderNode()
     }
 }
 
+bool RSRenderNode::MustReleaseOnMainThread() const
+{
+    return HasAnimation() || !RSSystemProperties::GetBgNodeReleaseEnabled();
+}
+
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    if (!animationManager_ || animationManager_->animations_.empty()) {
+    if (!HasAnimation()) {
         return;
     }
     if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {

@@ -21,6 +21,7 @@
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,6 +56,7 @@ private:
     void AddCanvasNodes(uint32_t nums, NodeId startId);
     void ClearOffTreeBucket();
     void ClearOffTreeBucketMap();
+    void ClearBgBucket();
 };
 
 void RSRenderNodeGCTest::ClearResource()
@@ -62,6 +64,7 @@ void RSRenderNodeGCTest::ClearResource()
     ClearOffTreeBucket();
     ClearOffTreeBucketMap();
     ClearNodeBucket();
+    ClearBgBucket();
 }
 
 void RSRenderNodeGCTest::ClearNodeBucket()
@@ -86,6 +89,15 @@ void RSRenderNodeGCTest::ClearOffTreeBucketMap()
     while (!nodeGC.offTreeBucketMap_.empty()) {
         nodeGC.offTreeBucketMap_.pop();
     }
+}
+
+void RSRenderNodeGCTest::ClearBgBucket()
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    while (!nodeGC.nodeBgBucket_.empty()) {
+        nodeGC.nodeBgBucket_.pop();
+    }
+    nodeGC.bgReleasePending_ = false;
 }
 
 void RSRenderNodeGCTest::AddNodes(uint32_t nums, pid_t pid, NodeId startId,
@@ -958,6 +970,185 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryOffTreeTest003, TestSize.Level1)
     nodeGC.ReleaseNodeMemory(true);
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_.find(pid), nodeGC.notOnTreeNodeMap_.end());
     ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: AddNodeToBgBucket001
+ * @tc.desc: test results of AddNodeToBgBucket
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, AddNodeToBgBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+
+    // Add one node, bg bucket should have 1 bucket with 1 element
+    auto ptr1 = nodeAllocator.CreateRSCanvasRenderNode(0);
+    gc.AddNodeToBgBucket(ptr1.get());
+    EXPECT_EQ(gc.nodeBgBucket_.size(), 1u);
+    EXPECT_EQ(gc.nodeBgBucket_.front().size(), 1u);
+
+    // Add BUCKET_MAX_SIZE - 1 more nodes, still 1 bucket
+    for (int i = 1; i < BUCKET_MAX_SIZE; ++i) {
+        auto ptr = nodeAllocator.CreateRSCanvasRenderNode(i);
+        gc.AddNodeToBgBucket(ptr.get());
+    }
+    EXPECT_EQ(gc.nodeBgBucket_.size(), 1u);
+    EXPECT_EQ(gc.nodeBgBucket_.front().size(), static_cast<size_t>(BUCKET_MAX_SIZE));
+
+    // Add one more, should split into 2 buckets
+    auto ptr2 = nodeAllocator.CreateRSCanvasRenderNode(BUCKET_MAX_SIZE);
+    gc.AddNodeToBgBucket(ptr2.get());
+    EXPECT_EQ(gc.nodeBgBucket_.size(), 2u);
+    ClearBgBucket();
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread001
+ * @tc.desc: test ReleaseNodeOnBgThread with empty bg bucket returns directly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread002
+ * @tc.desc: test ReleaseNodeOnBgThread drains all bg buckets
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread002, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    ClearBgBucket();
+
+    // Add multiple buckets
+    auto ptr1 = nodeAllocator.CreateRSCanvasRenderNode(0);
+    auto ptr2 = nodeAllocator.CreateRSCanvasRenderNode(1);
+    gc.AddNodeToBgBucket(ptr1.get());
+    // Force a new bucket by filling the first one
+    for (int i = 1; i < BUCKET_MAX_SIZE; ++i) {
+        auto ptr = nodeAllocator.CreateRSCanvasRenderNode(i + 100);
+        gc.AddNodeToBgBucket(ptr.get());
+    }
+    gc.AddNodeToBgBucket(ptr2.get());
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 2u);
+
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread003
+ * @tc.desc: test ReleaseNodeOnBgThread with nullptr nodes in bucket
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread003, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    ClearBgBucket();
+
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(0);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({nullptr, ptr.get(), nullptr});
+    gc.nodeBgBucket_.swap(tempQueue);
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 1u);
+
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+}
+
+/**
+ * @tc.name: NodeDestructorInnerBgBucket001
+ * @tc.desc: test NodeDestructorInner routes to bg bucket for non-animation node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, NodeDestructorInnerBgBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    ClearBgBucket();
+
+    // RSRenderNode without animation -> MustReleaseOnMainThread returns false
+    // -> routes to bg bucket when GetBgNodeReleaseEnabled is true (default)
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(0);
+    gc.NodeDestructorInner(ptr.get());
+    EXPECT_TRUE(gc.nodeBucket_.empty());
+    EXPECT_EQ(gc.nodeBgBucket_.size(), 1u);
+    ClearBgBucket();
+}
+
+/**
+ * @tc.name: NodeDestructorInnerBgBucket002
+ * @tc.desc: test NodeDestructorInner routes to main bucket for animation node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, NodeDestructorInnerBgBucket002, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    ClearBgBucket();
+
+    // Node with animation -> MustReleaseOnMainThread returns true -> main bucket
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    gc.NodeDestructorInner(node.get());
+    EXPECT_FALSE(gc.nodeBucket_.empty());
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+    ClearNodeBucket();
+}
+
+/**
+ * @tc.name: ReleaseNodeMemoryBgBucket001
+ * @tc.desc: test ReleaseNodeMemory with non-empty bg bucket posts background task
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryBgBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    ClearBgBucket();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+
+    // Add nodes to bg bucket
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(0);
+    gc.AddNodeToBgBucket(ptr.get());
+    ASSERT_FALSE(gc.nodeBgBucket_.empty());
+
+    // ReleaseNodeMemory should post bg task when switch is on (default)
+    gc.ReleaseNodeMemory();
+    // After PostTask, bg bucket will be drained by background thread asynchronously
+    // Verify no crash and main bucket was not affected
+    EXPECT_TRUE(gc.nodeBucket_.empty());
+}
+
+/**
+ * @tc.name: ReleaseNodeMemoryBgBucket002
+ * @tc.desc: test ReleaseNodeMemory with empty bg bucket does not post task
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryBgBucket002, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    ClearBgBucket();
+
+    // bg bucket is empty, ReleaseNodeMemory should return early for bg path
+    gc.ReleaseNodeMemory();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+    EXPECT_TRUE(gc.nodeBucket_.empty());
 }
 
 } // namespace Rosen
