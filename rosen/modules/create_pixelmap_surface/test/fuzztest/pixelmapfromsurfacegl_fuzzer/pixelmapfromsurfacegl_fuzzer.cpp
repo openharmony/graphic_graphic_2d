@@ -21,11 +21,13 @@
 #include <mutex>
 #include <securec.h>
 
-#include "core/pipeline/render_thread/rs_render_engine.h"
 #include "iconsumer_surface.h"
 #include "pixel_map_from_surface.h"
 
 #include "common/rs_background_thread.h"
+#ifdef RS_ENABLE_GL
+#include "render_context/new_render_context/render_context_gl.h"
+#endif
 
 namespace OHOS {
 namespace {
@@ -81,14 +83,11 @@ struct SurfaceFixture {
 
 void EnsureGpuContext()
 {
-#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
     static std::once_flag contextFlag;
-    static std::shared_ptr<RSRenderEngine> renderEngine;
     std::call_once(contextFlag, []() {
-        renderEngine = std::make_shared<RSRenderEngine>();
-        renderEngine->Init();
-        const auto& context = renderEngine->GetRenderContext();
-        if (context == nullptr) {
+        auto context = std::make_shared<RenderContextGL>();
+        if (!context->Init()) {
             return;
         }
         RSBackgroundThread::Instance().InitRenderContext(context);
