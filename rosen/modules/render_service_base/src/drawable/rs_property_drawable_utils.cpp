@@ -51,6 +51,152 @@ namespace Rosen {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
 constexpr int PARAM_DOUBLE = 2;
+
+constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
+        uniform half darkenWeight;
+        uniform half fraction;
+        uniform float activeRatesX;
+        uniform float activeRatesY;
+        uniform float activeKBSx;
+        uniform float activeKBSy;
+        uniform float activeKBSz;
+        uniform half activePosX;
+        uniform half activePosY;
+        uniform half activePosZ;
+        uniform half activeNegX;
+        uniform half activeNegY;
+        uniform half activeNegZ;
+        uniform half lumaDiff;
+        uniform half colorLimit;
+
+        const vec3 lumaWeight = vec3(0.2126, 0.7152, 0.0722);
+        const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
+        const half eps = 1e-5;
+        const half penetration = 0.1538;
+        const half lumaMapK = 0.6628;
+        const half lumaMapB = 0.3137;
+        const half grayMapK = -0.15;
+        const half grayMapB = 0.2;
+        const half darkModeBrightness = 0.4;
+
+        vec3 Sat(vec3 inColor, half n, vec3 pos, vec3 neg) {
+            vec3 r = (1.0 - n) * inColor;
+            float base = dot(r, baseVec);
+            vec3 delta = base - r;
+            vec3 v = mix(neg, pos, step(0.0, delta));
+            return inColor + delta * v;
+        }
+
+        vec3 Vibrancy(vec3 color) {
+            vec3 grayColor = ((activeRatesX * color + activeRatesY) * color + activeKBSx) * color + activeKBSy;
+            return Sat(grayColor, activeKBSz, vec3(activePosX, activePosY, activePosZ),
+                vec3(activeNegX, activeNegY, activeNegZ));
+        }
+
+        float GetMaxChannelValue(float luma, float ref, float colorMax, float colorMin) {
+            float k1 = max(5.55 * colorMax - 4.37, 0.0);
+            float k2 = max(0.28 * colorMax - 0.24, 0.0);
+            float y1 = ref + k1 * colorMin;
+            float y2 = ref + k2 * colorMin;
+            return min(mix(y1, y2, luma), 1.0);
+        }
+
+        float GetMinChannelValue(float luma, float resMax, float s1, float colorMax) {
+            float s0 = clamp(max(1.4 * colorMax, 1.75 * s1), 0.5, 1.0);
+            s0 = mix(s0, 1.0, step(0.5, s1));
+            float k = min(-0.46 * s1 + 1.46, 1.23);
+            float newS = mix(s0, s1, luma) + 2.0 * (k - 1.0) * (s0 + s1) * luma * (1.0 - luma);
+            return resMax*(1.0 - newS);
+        }
+
+        float GetMidChannelValue(float luma, float ref, float resMax, float resMin,
+            float colorMax, float colorMin, float colorMid) {
+            float anchor = mix(colorMin, colorMax, 0.39);
+            float range = colorMax - anchor;
+            float isRangeValid = step(0.0001, range);
+            float t = (colorMid - anchor) / (range + 0.0001);
+            float midMin = max(mix(resMin, resMax, t), resMin);
+            float result = mix(midMin, ref, luma);
+            return mix(resMin, result, isRangeValid);
+        }
+
+        vec3 sdrColorFilter(vec3 dst, float dstLuma, vec3 src, half darkenWeight) {
+            float srcMax = max(max(src.r, src.g), src.b);
+            float srcMin = min(min(src.r, src.g), src.b);
+            float saturation = srcMax > 0.0 ? (srcMax - srcMin) / srcMax : 0.0;
+            half m = mix(grayMapK * srcMax + grayMapB, 0.0, smoothstep(0.0, 0.03, saturation));
+            half lightModeNewLuma = dstLuma * lumaMapK + lumaMapB;
+            half dstNewLuma = mix(1.0, lightModeNewLuma, darkenWeight);
+            half n = mix(dstLuma * darkModeBrightness, 0.0, darkenWeight);
+            vec3 baseColor = src * (dstNewLuma + (dst - dstLuma) * penetration) + m * dst + n;
+
+            vec3 isMax = step(vec3(srcMax), src);
+            isMax.g *= (1.0 - isMax.r);
+            isMax.b *= (1.0 - isMax.r) * (1.0 - isMax.g);
+            vec3 isMin = step(src, vec3(srcMin));
+            isMin *= (1.0 - isMax);
+            isMin.g *= (1.0 - isMin.r);
+            isMin.b *= (1.0 - isMin.r) * (1.0 - isMin.g);
+            vec3 isMid = 1.0 - isMax - isMin;
+
+            float srcMid = dot(src, isMid);
+            float resColorMax = dot(baseColor, isMax);
+            float resColorMid = dot(baseColor, isMid);
+
+            float resMax = GetMaxChannelValue(dstLuma, resColorMax, srcMax, srcMin);
+            float resMin = GetMinChannelValue(dstLuma, resMax, saturation, srcMax);
+            float resMid = GetMidChannelValue(dstLuma, resColorMid, resMax, resMin, srcMax, srcMin, srcMid);
+
+            float midMappedAsMax = GetMaxChannelValue(dstLuma, resColorMid, srcMax, srcMin);
+            float blendMax = smoothstep(0.0, 0.05, abs(srcMax - srcMid));
+            resMid = mix(midMappedAsMax, resMid, blendMax);
+            float blendMin = smoothstep(0.0, 0.05, abs(srcMid - srcMin));
+            resMid = mix(resMin, resMid, blendMin);
+
+            vec3 reorderedColor = isMax * resMax + isMin * resMin + isMid * resMid;
+            float t1 = smoothstep(0.0, 0.05, saturation);
+            float t2 = 1.0 - smoothstep(0.95, 1.0, saturation);
+            vec3 finalLightModeColor = mix(baseColor, reorderedColor, t1 * t2);
+            return mix(baseColor, finalLightModeColor, darkenWeight);
+        }
+
+        vec3 keepLumaDiff(vec3 inColor, float bgLuma, half darkenWeight) {
+            float inputLuma = dot(inColor, lumaWeight);
+            float lightLuma = min(inputLuma, max(0.0, bgLuma - lumaDiff));
+            float darkLuma = max(inputLuma, min(1.0, bgLuma + lumaDiff));
+            float resLuma = mix(darkLuma, lightLuma, darkenWeight);
+            return max(inColor + vec3(resLuma - inputLuma), 0.0);
+        }
+
+        half4 main(half4 srcColor, half4 dstColor) {
+            half factorSrc = 1.0 / (max(srcColor.a, eps));
+            vec3 fgRgb = vec3(saturate(srcColor.rgb * factorSrc));
+            float fgA = float(srcColor.a);
+
+            half factorDst = 1.0 / (max(dstColor.a, eps));
+            vec3 bgRgb = vec3(saturate(dstColor.rgb * factorDst));
+            float bgA = float(dstColor.a);
+
+            float bgMaxChannelVal = max(max(bgRgb.r, bgRgb.g), bgRgb.b);
+            float hdrExposure = max(bgMaxChannelVal, 1.0);
+            vec3 bgSdrColor = max(bgRgb / hdrExposure, 0.0);
+            float bgLuma = dot(bgSdrColor, lumaWeight);
+
+            vec3 resColor = sdrColorFilter(bgSdrColor, bgLuma, fgRgb, darkenWeight);
+            resColor = mix(bgSdrColor, resColor, fgA);
+            resColor = Vibrancy(resColor);
+            resColor = keepLumaDiff(resColor, bgLuma, darkenWeight);
+            resColor = clamp(resColor, 0.0, colorLimit);
+
+            vec3 straightGlassRgb = resColor * hdrExposure;
+            
+            vec3 pmaNormalBlend = vec3(srcColor.rgb) * bgA + vec3(dstColor.rgb) * (1.0 - fgA);
+            vec3 pmaGlassBlend = straightGlassRgb * bgA;
+            vec3 finalPmaRgb = mix(pmaGlassBlend, pmaNormalBlend, fraction);
+            
+            return half4(finalPmaRgb, bgA);
+        }
+    )";
 } // namespace
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
@@ -1133,6 +1279,47 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeHdrDarkenBlender(
     builder->SetUniform("grayscaleFactors_b", params.grayscaleFactor_.z_);
     RS_OPTIONAL_TRACE_FMT("RSPropertyDrawableUtils::MakeHdrDarkenBlender params[%f,%f,%f,%f]",
         params.hdrBrightnessRatio_, params.grayscaleFactor_.x_, params.grayscaleFactor_.y_, params.grayscaleFactor_.z_);
+    return builder->MakeBlender();
+}
+
+std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeColorfulBrightnessBlender(
+    const RSColorfulBrightnessBlenderPara& params)
+{
+    static thread_local auto colorfulBrightnessBlenderEffect =
+        Drawing::RuntimeEffect::CreateForBlender(COLORFUL_BRIGHTNESS_BLENDER_PROG);
+    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder =
+        std::make_shared<Drawing::RuntimeBlenderBuilder>(colorfulBrightnessBlenderEffect);
+    auto mixF = [](float x, float y, float t) { return x * (1.0f - t) + y * t; };
+    float vs = params.vibrancyStrength_;
+    float activeRatesX = mixF(0.0f, params.cubicRate_, vs);
+    float activeRatesY = mixF(0.0f, params.quadRate_, vs);
+    float activeKBSx = mixF(1.0f, params.linearRate_, vs);
+    float activeKBSy = mixF(0.0f, params.degree_, vs);
+    float activeKBSz = mixF(1.0f, params.saturation_, vs);
+    float activePosX = mixF(0.0f, params.positiveCoeff_.x_, vs);
+    float activePosY = mixF(0.0f, params.positiveCoeff_.y_, vs);
+    float activePosZ = mixF(0.0f, params.positiveCoeff_.z_, vs);
+    float activeNegX = mixF(0.0f, params.negativeCoeff_.x_, vs);
+    float activeNegY = mixF(0.0f, params.negativeCoeff_.y_, vs);
+    float activeNegZ = mixF(0.0f, params.negativeCoeff_.z_, vs);
+
+    builder->SetUniform("darkenWeight", params.darkenWeight_);
+    builder->SetUniform("fraction", params.fraction_);
+    builder->SetUniform("activeRatesX", activeRatesX);
+    builder->SetUniform("activeRatesY", activeRatesY);
+    builder->SetUniform("activeKBSx", activeKBSx);
+    builder->SetUniform("activeKBSy", activeKBSy);
+    builder->SetUniform("activeKBSz", activeKBSz);
+    builder->SetUniform("activePosX", activePosX);
+    builder->SetUniform("activePosY", activePosY);
+    builder->SetUniform("activePosZ", activePosZ);
+    builder->SetUniform("activeNegX", activeNegX);
+    builder->SetUniform("activeNegY", activeNegY);
+    builder->SetUniform("activeNegZ", activeNegZ);
+    builder->SetUniform("lumaDiff", params.lumaDiff_);
+    builder->SetUniform("colorLimit", params.hdrEnabled_ ? 2.0f : 1.0f);
+    RS_OPTIONAL_TRACE_FMT("RSPropertyDrawableUtils::MakeColorfulBrightnessBlender dw=%f,fr=%f,vs=%f",
+        params.darkenWeight_, params.fraction_, params.vibrancyStrength_);
     return builder->MakeBlender();
 }
 

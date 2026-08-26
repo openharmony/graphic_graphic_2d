@@ -178,7 +178,7 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     bool shouldClipToBounds = node.IsInstanceOf<RSSurfaceRenderNode>() || properties.GetClipToBounds() ||
                               properties.GetClipToRRect() || properties.GetClipBounds() != nullptr ||
                               properties.GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE) ||
-                              properties.IsFgBrightnessValid();
+                              properties.IsFgBlenderEffectValid();
     if (shouldClipToBounds) {
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }

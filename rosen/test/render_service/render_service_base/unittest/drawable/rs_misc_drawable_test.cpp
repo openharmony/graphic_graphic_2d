@@ -448,6 +448,37 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSBeginBlenderDrawable007
+ * @tc.desc: Test OnGenerate/OnUpdate for colorful blender. Covers the new
+ *           IsColorfulBrightnessBlenderValid() branch (E1) in OnUpdate. The debug-trace-level
+ *           check (E2/E3) is environment-dependent and only one path is exercised.
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable007, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
+
+    auto paramValue = RSColorfulBrightnessBlenderPara(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
+        Vector3f(0.6f, 0.7f, 0.8f), Vector3f(0.9f, 0.1f, 0.2f), 0.33f, 0.88f);
+    node.GetMutableRenderProperties().SetColorfulBrightnessBlenderParams(
+        std::make_unique<RSColorfulBrightnessBlenderPara>(paramValue));
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    const auto* params1 = node.GetMutableRenderProperties().GetColorfulBrightnessBlenderParams();
+    ASSERT_NE(params1, nullptr);
+    ASSERT_EQ(*params1, paramValue);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
  * @tc.name: RSEndBlenderDrawable001
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC

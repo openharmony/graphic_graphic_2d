@@ -121,6 +121,8 @@ public:
     static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params);
     static std::shared_ptr<Drawing::Blender> MakeShadowBlender(const RSShadowBlenderPara& params);
     static std::shared_ptr<Drawing::Blender> MakeHdrDarkenBlender(const RSHdrDarkenBlenderPara& params);
+    static std::shared_ptr<Drawing::Blender> MakeColorfulBrightnessBlender(
+        const RSColorfulBrightnessBlenderPara& params);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode);
