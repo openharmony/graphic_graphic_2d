@@ -97,6 +97,7 @@ void RSRenderNodeGCTest::ClearBgBucket()
     while (!nodeGC.nodeBgBucket_.empty()) {
         nodeGC.nodeBgBucket_.pop();
     }
+    nodeGC.bgReleasePending_ = false;
 }
 
 void RSRenderNodeGCTest::AddNodes(uint32_t nums, pid_t pid, NodeId startId,

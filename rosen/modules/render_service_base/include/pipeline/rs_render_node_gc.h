@@ -130,6 +130,8 @@ private:
     bool CheckHasNodeNotOnTree();
 
     std::atomic<bool> isEnable_ = true;
+    // Guarded by nodeMutex_, no need for atomic
+    bool bgReleasePending_ = false;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;

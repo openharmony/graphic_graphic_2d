@@ -100,7 +100,7 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     if (ptr == nullptr) {
         return;
     }
-    if (ptr->MustReleaseOnMainThread() || !RSSystemProperties::GetBgNodeReleaseEnabled()) {
+    if (ptr->MustReleaseOnMainThread()) {
         AddNodeToBucket(ptr);
     } else {
         AddNodeToBgBucket(ptr);
@@ -175,6 +175,7 @@ void RSRenderNodeGC::ReleaseNodeOnBgThread()
         {
             std::lock_guard<std::mutex> lock(nodeMutex_);
             if (nodeBgBucket_.empty()) {
+                bgReleasePending_ = false;
                 return;
             }
             toDele.swap(nodeBgBucket_.front());
@@ -248,9 +249,11 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     }
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
-        if (nodeBgBucket_.empty()) {
+        if (nodeBgBucket_.empty() || bgReleasePending_) {
             return;
         }
+        // Mark pending before PostTask to prevent duplicate posting
+        bgReleasePending_ = true;
         RS_TRACE_NAME_FMT("PostBgReleaseTask, bgBuckets=%zu", nodeBgBucket_.size());
     }
     RSBackgroundThread::Instance().PostTask([this]() { ReleaseNodeOnBgThread(); });
