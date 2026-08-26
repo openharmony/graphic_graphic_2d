@@ -1181,24 +1181,16 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+    RenderEngineType type,
     std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
     auto acquireFence = SyncFence::InvalidFence();
-    OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-        vkInterface,
-#endif
-        surface, grContext, acquireFence, optFenceWait);
+    OptimizedFlushAndSubmit(type, surface, grContext, acquireFence, optFenceWait);
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+    RenderEngineType type,
     std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, sptr<SyncFence>& acquireFence, bool optFenceWait)
 {
@@ -1212,6 +1204,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
+        auto vkInterface = RsVulkanContext::Get(type).GetRsVulkanInterface();
         VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
         exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
         exportSemaphoreCreateInfo.pNext = nullptr;

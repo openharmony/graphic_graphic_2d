@@ -423,12 +423,10 @@ void RSUniRenderThread::Render()
     }
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-#ifdef RS_ENABLE_VK
     auto rc = GetRenderEngine() ? GetRenderEngine()->GetRenderContext() : nullptr;
     if (rc) {
         paintFilterCanvas.SetRenderEngineType(rc->GetType());
     }
-#endif
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();

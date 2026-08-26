@@ -47,10 +47,12 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
             static RsVulkanContext unprotectedRedrawSingleton = RsVulkanContext(false, false, type);
             return unprotectedRedrawSingleton;
         }
+#ifdef IS_USE_DRM
         case RenderEngineType::PROTECTED_REDRAW: {
             static RsVulkanContext protectedRedrawSingleton = RsVulkanContext(true, false, type);
             return protectedRedrawSingleton;
         }
+#endif
         case RenderEngineType::BASIC_RENDER:
         default:
         {

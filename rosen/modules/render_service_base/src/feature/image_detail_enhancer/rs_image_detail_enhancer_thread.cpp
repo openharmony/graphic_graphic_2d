@@ -556,7 +556,9 @@ DetailEnhancerUtils& DetailEnhancerUtils::Instance()
 DetailEnhancerUtils::DetailEnhancerUtils()
 {
 #ifdef RS_ENABLE_VK
-    gpuContext_ = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).CreateDrawingGPUContext();
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        gpuContext_ = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).CreateDrawingGPUContext();
+    }
 #endif
 }
 

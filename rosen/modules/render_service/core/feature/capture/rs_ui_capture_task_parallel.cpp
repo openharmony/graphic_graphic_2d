@@ -464,9 +464,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     if (snapshotDmaEnabled && isEnableFeature) {
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
-#endif
+            renderContext->GetType(),
             surface, grContext, acquireFence,
             GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));

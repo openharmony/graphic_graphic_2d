@@ -362,7 +362,7 @@ skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
         if (device == VK_NULL_HANDLE) {
             return reinterpret_cast<PFN_vkVoidFunction>(vkGetInstanceProcAddr(instance, proc_name));
         }
-        std::string_view s{proc_name};
+        std::string_view s { proc_name };
         if (s.find("vkQueueSubmit") == 0) {
             if (type_ == RenderEngineType::BASIC_RENDER) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForBasicRender;
@@ -608,7 +608,6 @@ bool RsVulkanInterface::CreateSkiaBackendContext(bool isProtected)
     backendContext_.fDevice = device_;
     backendContext_.fQueue = queue_;
     backendContext_.fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
-    backendContext_.fGetProc = std::move(getProc);
     backendContext_.fMaxAPIVersion = VK_API_VERSION_1_2;
 
     skVkExtensions_.init(getProc, instance_, physicalDevice_,
@@ -617,6 +616,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(bool isProtected)
 
     backendContext_.fVkExtensions = &skVkExtensions_;
     backendContext_.fDeviceFeatures2 = &physicalDeviceFeatures2_;
+    backendContext_.fGetProc = std::move(getProc);
     backendContext_.fProtectedContext = isProtected ? skgpu::Protected::kYes : skgpu::Protected::kNo;
     return true;
 }
@@ -656,8 +656,10 @@ VKAPI_ATTR VkResult RsVulkanInterface::HookedVkQueueSubmitForUnprotectedRedraw(V
 {
     auto vkInterface = RsVulkanContext::Get(RenderEngineType::UNPROTECTED_REDRAW).GetRsVulkanInterface();
     std::lock_guard<std::mutex> lock(vkInterface->graphicsQueueMutex_);
-    RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d", __func__, 1);
-    RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d", __func__, 1);
+    RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d",
+        __func__, static_cast<int>(RenderEngineType::UNPROTECTED_REDRAW));
+    RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d",
+        __func__, static_cast<int>(RenderEngineType::UNPROTECTED_REDRAW));
     return vkInterface->vkQueueSubmit(queue, submitCount, pSubmits, fence);
 }
 
