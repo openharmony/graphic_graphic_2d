@@ -217,7 +217,8 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     {
         std::lock_guard<std::mutex> lock(hveFilterMtx_);
         auto it = hveFilterToSurfaceNodeMap_.find(filterId);
-        std::vector<NodeId> surfaceNodeIds = (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
+        std::vector<NodeId> surfaceNodeIds =
+            (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
 
         for (size_t i = 0; i < surfaceNodeSize; i++) {
             auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
