@@ -126,16 +126,16 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
     return HasValidEffect(node->GetParent().lock().get());
 }
 
-bool HveFilter::CheckSceneConditions(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
+bool HveFilter::AreSceneConditionsDisabled(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
 {
     return !apsConfigParamsEnabled_ && (!hwcNode.GetArsrTag() ||
         (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE));
 }
 
-bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
+bool HveFilter::AreSceneConditionsDisabled(const RSRenderNode& renderNode,
     const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
-    RS_TRACE_NAME_FMT("%s apsConfigParamsEnabled: %d", __func__, apsConfigParamsEnabled_);
+    RS_TRACE_NAME_FMT("%s apsConfigParamsEnabled: %d", __func__, apsConfigParamsEnabled_.load());
     // Check basic conditions for hwcNode and filter size
     if (CheckSceneConditions(hwcNode, filterRect)) {
         RS_LOGD("%{public}s scene conditions not met", __func__);
