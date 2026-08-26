@@ -132,12 +132,12 @@ bool HveFilter::AreSceneConditionsDisabled(const RSSurfaceRenderNode& hwcNode, c
         (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE));
 }
 
-bool HveFilter::AreSceneConditionsDisabled(const RSRenderNode& renderNode,
+bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
     RS_TRACE_NAME_FMT("%s apsConfigParamsEnabled: %d", __func__, apsConfigParamsEnabled_.load());
     // Check basic conditions for hwcNode and filter size
-    if (CheckSceneConditions(hwcNode, filterRect)) {
+    if (AreSceneConditionsDisabled(hwcNode, filterRect)) {
         RS_LOGD("%{public}s scene conditions not met", __func__);
         return false;
     }
