@@ -171,7 +171,9 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
             std::make_shared<RSDividedUICapture>(id, scaleX, scaleY, specifiedAreaRect);
         std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        callback->OnSurfaceCapture(pixelmap);
+        if (callback) {
+            callback->OnSurfaceCapture(pixelmap);
+        }
     };
     RSRenderThread::Instance().PostTask(offscreenRenderTask);
     return true;
@@ -303,6 +305,10 @@ bool RSRenderInterface::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> 
 {
     if (renderPipelineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: renderPipelineClient_ is nullptr");
+        return false;
+    }
+    if (rect == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: rect is nullptr");
         return false;
     }
     return renderPipelineClient_->GetPixelmap(id, pixelmap, rect, drawCmdList);
