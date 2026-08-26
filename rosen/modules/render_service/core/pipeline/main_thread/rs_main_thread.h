@@ -642,6 +642,7 @@ private:
     std::string SubPriorityEventQueue(std::string input);
 
     // Enable HWCompose
+    void HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void CollectInfoForHardwareComposer();
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
