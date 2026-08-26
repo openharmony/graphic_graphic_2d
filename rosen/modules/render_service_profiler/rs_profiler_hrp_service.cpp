@@ -79,7 +79,7 @@ static RetCodeHrpService CreateSubDirs(std::string& path,
 RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
     const std::string& fileName, uint32_t flags, int& outFd)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);
@@ -169,7 +169,7 @@ static RetCodeHrpService GetFilesFromDir(const std::string& path,
 RetCodeHrpService RSProfiler::HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
     uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);

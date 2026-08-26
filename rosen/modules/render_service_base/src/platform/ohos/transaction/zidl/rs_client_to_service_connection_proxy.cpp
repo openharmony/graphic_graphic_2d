@@ -5611,7 +5611,14 @@ RetCodeHrpService RSClientToServiceConnectionProxy::ProfilerServicePopulateFiles
         return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
     }
 
+    const uint32_t MAX_POPULATE_FILES_COUNT = 1024;
+    if (retCount > MAX_POPULATE_FILES_COUNT) {
+        ROSEN_LOGE("retCount too large: %{public}u", retCount);
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+
     std::vector<HrpServiceFileInfo> retFiles;
+    retFiles.reserve(retCount);
     for (uint32_t i = 0; i < retCount; i++) {
         HrpServiceFileInfo fi {};
         if (!reply.ReadString(fi.name) || !reply.ReadUint32(fi.size) || !reply.ReadBool(fi.isDir) ||

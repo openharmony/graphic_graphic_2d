@@ -877,7 +877,7 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return false;
     }
 
-    if (IsSharedMemoryEnabled()) {
+    if (IsThreadSharedMemoryEnabled()) {
         return true;
     }
 
