@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#include "pipeline/mock/mock_rs_luminance_control.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -1355,6 +1356,130 @@ HWTEST_F(RSTvShutter3DManagerTest, Release3DContext_001, TestSize.Level1)
     EXPECT_FALSE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
     EXPECT_EQ(RSTvShutter3DManager::Instance().GetOffscreenCanvas(), nullptr);
     EXPECT_EQ(RSTvShutter3DManager::Instance().GetBackupCanvas(), nullptr);
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_001
+ * @tc.desc: Test ShouldForceCloseHdr returns false with default MODE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_001, TestSize.Level1)
+{
+    const NodeId screenNodeId = 5001;
+    const ScreenId screenId = 6001;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_2D);
+
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_002
+ * @tc.desc: Test ShouldForceCloseHdr returns false with MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_002, TestSize.Level2)
+{
+    const NodeId screenNodeId = 5002;
+    const ScreenId screenId = 6002;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_003
+ * @tc.desc: Test ShouldForceCloseHdr returns false with invalid UIMode3D values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_003, TestSize.Level2)
+{
+    const NodeId screenNodeId = 5003;
+    const ScreenId screenId = 6003;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+
+    screenNode->SetUIMode3D(UIMode3D::MODE_TYPE_BUTT);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_TYPE_BUTT);
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+
+    screenNode->SetUIMode3D(static_cast<UIMode3D>(100));
+    ASSERT_EQ(screenNode->GetUIMode3D(), static_cast<UIMode3D>(100));
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_004
+ * @tc.desc: Test ShouldForceCloseHdr returns true with MODE_SHUTTER_3D when hdr ratio is default
+ *           and RGBA1010108 is disabled in unittest environment
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_004, TestSize.Level1)
+{
+    const NodeId screenNodeId = 5004;
+    const ScreenId screenId = 6004;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    EXPECT_TRUE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_005
+ * @tc.desc: Test ShouldForceCloseHdr returns false with MODE_SHUTTER_3D when hdr brightness
+ *           ratio is not 1.0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_005, TestSize.Level2)
+{
+    const NodeId screenNodeId = 5005;
+    const ScreenId screenId = 6005;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    ON_CALL(mockInterface, GetNonlinearRatio(_, _)).WillByDefault(Return(0.5));
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: ShouldForceCloseHdr_006
+ * @tc.desc: Test ShouldForceCloseHdr returns true with MODE_SHUTTER_3D when hdr brightness
+ *           ratio is exactly 1.0 and RGBA1010108 is disabled in unittest environment
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTvShutter3DManagerTest, ShouldForceCloseHdr_006, TestSize.Level1)
+{
+    const NodeId screenNodeId = 5006;
+    const ScreenId screenId = 6006;
+    auto screenNode = CreateScreenNode(screenNodeId, screenId);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ASSERT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    ON_CALL(mockInterface, GetNonlinearRatio(_, _)).WillByDefault(Return(1.0));
+    EXPECT_TRUE(RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode));
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 
 } // namespace OHOS::Rosen

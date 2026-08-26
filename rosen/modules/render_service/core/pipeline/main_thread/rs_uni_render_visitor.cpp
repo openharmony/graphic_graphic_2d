@@ -456,6 +456,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
     bool forceCloseHDR = node.GetForceCloseHdr();
     bool isCloseHdr = forceCloseHDR || (RSLuminanceControl::Get().IsHardwareHdrDisabled() && !drmNodes_.empty());
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    isCloseHdr |= RSTvShutter3DManager::Instance().ShouldForceCloseHdr(node);
+#endif
     RSLuminanceControl::Get().SetHdrStatus(screenId, isCloseHdr ? HdrStatus::NO_HDR : node.GetDisplayHdrStatus());
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);

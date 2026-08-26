@@ -3402,8 +3402,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 __func__, presentCount, tunnelCount, isSole);
             RSTunnelRouteArbiter::SetTunnelSolePresentLayer(isSole);
         }
+        bool forceCloseHdr = screenNode->GetForceCloseHdr();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+        forceCloseHdr = forceCloseHdr || RSTvShutter3DManager::Instance().ShouldForceCloseHdr(*screenNode);
+#endif
         rsLuminance.SetHdrStatus(screenId,
-            screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
+            forceCloseHdr ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
         if (!screenNode->GetHDRPresent()) {
             screenNode->SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         }

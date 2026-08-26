@@ -1834,7 +1834,10 @@ ohos_unittest("RSTvShutter3DManagerTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(graphic_2d_feature_tv_shutter_3d_enable) && graphic_2d_feature_tv_shutter_3d_enable) {
-    sources += [ "video_3d/rs_tv_shutter_3d_manager_test.cpp" ]
+    sources += [
+      "../pipeline/mock/mock_rs_luminance_control.cpp",
+      "video_3d/rs_tv_shutter_3d_manager_test.cpp",
+    ]
     defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
   }
 }
