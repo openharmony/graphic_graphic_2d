@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 
+#include <atomic>
 #include <mutex>
 
 #include "draw/canvas.h"
@@ -51,7 +52,7 @@ public:
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
     const std::vector<NodeId>& GetFilterIds(NodeId surfaceId) const;
-    bool CheckSceneConditions(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
+    bool AreSceneConditionsDisabled(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
     bool HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
@@ -73,9 +74,9 @@ private:
     void DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
         SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect);
     HveFilter() = default;
-    bool apsConfigParamsEnabled_ = false;
     mutable std::mutex hveFilterMtx_;
     mutable std::mutex surfaceInfoMtx_;
+    std::atomic<bool> apsConfigParamsEnabled_ = false;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
 
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
