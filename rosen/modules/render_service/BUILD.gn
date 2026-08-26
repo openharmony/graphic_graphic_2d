@@ -228,8 +228,6 @@ ohos_shared_library("librender_service") {
     "core/transaction/zidl/rs_connect_to_render_process_stub.cpp",
     "main/render_process/rs_render_process.cpp",
     "main/render_process/rs_render_process_agent.cpp",
-    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_data.cpp",
-    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.cpp",
     "main/render_process/transaction/rs_service_to_render_connection.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_proxy.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_stub.cpp",
@@ -255,6 +253,21 @@ ohos_shared_library("librender_service") {
     "screen_manager/rs_screen.cpp",
     "screen_manager/rs_screen_manager.cpp",
     "screen_manager/rs_screen_thread_safe_property.cpp",
+  ]
+
+  #ipc_persistence
+  sources += [
+    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.cpp",
+  ]
+
+  #transfers
+  sources += [
+    "main/render_process/transaction/zidl/transfers/rs_set_watermark_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_show_watermark_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_on_hwc_event_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_set_behind_window_filter_enabled_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_set_show_refresh_rate_enabled_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_self_drawing_node_rect_change_callback_transfer.cpp",
   ]
 
   #feature_cfg
@@ -771,6 +784,8 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "main",
+    "main/render_process/transaction/ipc_persistence",
+    "main/render_process/transaction/zidl",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
@@ -849,6 +864,7 @@ if (graphic_2d_feature_product == "phone" || graphic_2d_feature_product == "tabl
     include_dirs = [
       "core",
       "main",
+      "main/render_process/transaction/zidl",
       "$graphic_2d_root/interfaces/inner_api/common",
       "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
       "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",

@@ -25,17 +25,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class MockIpcPersistenceData : public RSIpcPersistenceDataBase {
-public:
-    RSIpcPersistenceType GetType() const override { return RSIpcPersistenceType::DEFAULT; }
-    bool Marshalling(Parcel& parcel) const override { return true; }
-    void Apply(const sptr<RSRenderPipelineAgent>& renderPipelineAgent) override
-    {
-        applyCount++;
-    }
-    int applyCount = 0;
-};
-
 class RSRenderProcessTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -217,82 +206,82 @@ HWTEST_F(RSRenderProcessTest, InitTest003, TestSize.Level1)
     EXPECT_NE(renderProcess->handler_, nullptr);
 }
 
+namespace {
+class FakeTransfer : public RSIpcTransferBase {
+public:
+    explicit FakeTransfer(bool applyResult) : applyResult_(applyResult) {}
+
+    RSIServiceToRenderConnectionInterfaceCode GetTypeId() const override
+    {
+        return RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED;
+    }
+    bool IsPersistent() const override { return false; }
+    bool IsSync() const override { return true; }
+    FanoutPolicy GetFanoutPolicy() const override { return FanoutPolicy::ANY_SUCCESS; }
+    bool Apply(const sptr<RSRenderPipelineAgent>&) override
+    {
+        applyCount++;
+        return applyResult_;
+    }
+    bool ProxyMarshalling(Parcel&) const override { return true; }
+    bool StubMarshalling(Parcel&) const override { return true; }
+    bool ProxyUnmarshalling(Parcel&) override { return true; }
+    std::shared_ptr<RSIpcTransferBase> CopyTransfer() const override { return nullptr; }
+protected:
+    void Persist(IpcPersistenceMap&, std::mutex&) override {}
+    void ClearPid(pid_t) override {}
+public:
+    int32_t applyCount = 0;
+private:
+    bool applyResult_;
+};
+} // namespace
+
 /**
  * @tc.name: ApplyIpcPersistenceDataTest001
- * @tc.desc: Test ApplyIpcPersistenceData with empty data map
+ * @tc.desc: every non-null entry's Apply is called exactly once and the replay map is not mutated
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest001, TestSize.Level1)
 {
     auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
     ASSERT_NE(renderProcess, nullptr);
-    auto emptyData = std::make_shared<IpcPersistenceTypeToDataMap>();
+    IpcPersistenceMap replayData;
+    auto entry1 = std::make_shared<FakeTransfer>(true);
+    auto entry2 = std::make_shared<FakeTransfer>(true);
+    auto entry3 = std::make_shared<FakeTransfer>(true);
+    replayData[RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED] = entry1;
+    replayData[RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED] = entry2;
+    replayData[RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT] = entry3;
     sptr<RSRenderPipelineAgent> nullAgent = nullptr;
-    renderProcess->ApplyIpcPersistenceData(nullAgent, emptyData);
-    EXPECT_TRUE(emptyData->empty());
+    EXPECT_NO_FATAL_FAILURE(renderProcess->ApplyIpcPersistenceData(nullAgent, replayData));
+    EXPECT_EQ(entry1->applyCount, 1); // every entry's Apply must be called
+    EXPECT_EQ(entry2->applyCount, 1);
+    EXPECT_EQ(entry3->applyCount, 1);
+    EXPECT_EQ(replayData.size(), 3u); // Apply does not mutate the replay map
 }
 
 /**
  * @tc.name: ApplyIpcPersistenceDataTest002
- * @tc.desc: Test ApplyIpcPersistenceData with single entry verifies Apply is called
+ * @tc.desc: null transfer entries are skipped; a transfer whose Apply fails does not abort iteration
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest002, TestSize.Level1)
+HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest002, TestSize.Level2)
 {
     auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
     ASSERT_NE(renderProcess, nullptr);
-    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
-    auto mockData = std::make_shared<MockIpcPersistenceData>();
-    (*dataMap)[RSIpcPersistenceType::DEFAULT].push_back(mockData);
+    IpcPersistenceMap replayData;
+    // null transfer entry -> skipped (continue)
+    replayData[RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED] = nullptr;
+    // failing transfer -> Apply returns false, logged, iteration continues
+    auto failTransfer = std::make_shared<FakeTransfer>(false);
+    replayData[RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED] = failTransfer;
     sptr<RSRenderPipelineAgent> nullAgent = nullptr;
-    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
-    EXPECT_EQ(mockData->applyCount, 1);
-    EXPECT_EQ(dataMap->size(), 1u);
-}
-
-/**
- * @tc.name: ApplyIpcPersistenceDataTest003
- * @tc.desc: Test ApplyIpcPersistenceData with multiple entries across types
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest003, TestSize.Level1)
-{
-    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    ASSERT_NE(renderProcess, nullptr);
-    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
-    auto mockData1 = std::make_shared<MockIpcPersistenceData>();
-    auto mockData2 = std::make_shared<MockIpcPersistenceData>();
-    auto mockData3 = std::make_shared<MockIpcPersistenceData>();
-    (*dataMap)[RSIpcPersistenceType::SET_WATERMARK].push_back(mockData1);
-    (*dataMap)[RSIpcPersistenceType::SET_WATERMARK].push_back(mockData2);
-    (*dataMap)[RSIpcPersistenceType::SHOW_WATERMARK].push_back(mockData3);
-    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
-    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
-    EXPECT_EQ(mockData1->applyCount, 1);
-    EXPECT_EQ(mockData2->applyCount, 1);
-    EXPECT_EQ(mockData3->applyCount, 1);
-    EXPECT_EQ(dataMap->size(), 2u);
-}
-
-/**
- * @tc.name: ApplyIpcPersistenceDataTest004
- * @tc.desc: Test ApplyIpcPersistenceData with empty vector in data map
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest004, TestSize.Level1)
-{
-    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    ASSERT_NE(renderProcess, nullptr);
-    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
-    (*dataMap)[RSIpcPersistenceType::ON_HWC_EVENT] = {};
-    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
-    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
-    EXPECT_EQ(dataMap->size(), 1u);
-    EXPECT_TRUE(dataMap->at(RSIpcPersistenceType::ON_HWC_EVENT).empty());
+    EXPECT_NO_FATAL_FAILURE(renderProcess->ApplyIpcPersistenceData(nullAgent, replayData));
+    EXPECT_EQ(failTransfer->applyCount, 1); // failing entry was still applied exactly once
+    EXPECT_EQ(replayData.size(), 2u); // Apply does not mutate the replay map
 }
 
 #ifdef RES_SCHED_ENABLE

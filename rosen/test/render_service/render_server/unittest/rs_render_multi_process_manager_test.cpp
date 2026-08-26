@@ -18,11 +18,13 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_def.h"
 #include "render_server/rs_render_multi_process_manager.h"
 #include "render_server/rs_render_multi_process_manager_repository.h"
 #include "rs_render_pipeline_agent.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_property.h"
+#include "screen_manager/screen_types.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
 #include "rs_composer_to_render_connection.h"
@@ -1073,5 +1075,280 @@ HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise002Success
     EXPECT_EQ(multiProcessManager_->stateStore_.renderProcessReadyPromises_.count(TEST_PROCESS_UNIQUE_ID), 0u);
     multiProcessManager_->stateStore_.serviceToRenderConnections_.erase(TEST_PROCESS_UNIQUE_ID);
     multiProcessManager_->stateStore_.connectToRenderConnections_.erase(TEST_PROCESS_UNIQUE_ID);
+}
+
+namespace {
+// Fanout fake: Apply result / reply result / policy / persist flags are configurable, and every
+// Apply (on the original or on a per-connection copy) is logged so the fanout behavior of the real
+// RSMultiRenderProcessManager::SendTransfer can be asserted without mocking RSIServiceToRenderConnection.
+class FanoutFakeTransfer : public RSIpcTransferBase {
+public:
+    FanoutFakeTransfer(FanoutPolicy policy, bool sync, bool persistent, bool applyResult,
+        int32_t replyResult, bool nullCopy = false)
+        : policy_(policy), sync_(sync), persistent_(persistent), applyResult_(applyResult),
+          replyResult_(replyResult), nullCopy_(nullCopy),
+          applyLog_(std::make_shared<std::vector<int32_t>>()) {}
+
+    RSIServiceToRenderConnectionInterfaceCode GetTypeId() const override
+    {
+        return RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED;
+    }
+    bool IsPersistent() const override { return persistent_; }
+    bool IsSync() const override { return sync_; }
+    FanoutPolicy GetFanoutPolicy() const override { return policy_; }
+    int32_t GetReplyResult() const override { return replyResult_; }
+    bool Apply(const sptr<RSRenderPipelineAgent>&) override
+    {
+        selfApplyCount_++;
+        applyLog_->push_back(applyResult_ ? 1 : 0);
+        return applyResult_;
+    }
+    bool ProxyMarshalling(Parcel&) const override { return true; }
+    bool StubMarshalling(Parcel&) const override { return true; }
+    bool ProxyUnmarshalling(Parcel&) override { return true; }
+    std::shared_ptr<RSIpcTransferBase> CopyTransfer() const override
+    {
+        if (nullCopy_) {
+            return nullptr;
+        }
+        auto copy = std::make_shared<FanoutFakeTransfer>(
+            policy_, sync_, persistent_, applyResult_, replyResult_, nullCopy_);
+        copy->applyLog_ = applyLog_; // share the log so Apply calls on copies stay observable
+        return copy;
+    }
+    void Persist(IpcPersistenceMap& map, std::mutex& mutex) override
+    {
+        if (!persistent_) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(mutex);
+        map[GetTypeId()] = CopyTransfer();
+    }
+    void ClearPid(pid_t) override {}
+
+    size_t ApplyCount() const { return applyLog_->size(); } // applies on this instance and its copies
+    int32_t SelfApplyCount() const { return selfApplyCount_; } // applies on this instance only
+
+private:
+    FanoutPolicy policy_;
+    bool sync_;
+    bool persistent_;
+    bool applyResult_;
+    int32_t replyResult_;
+    bool nullCopy_;
+    std::shared_ptr<std::vector<int32_t>> applyLog_;
+    int32_t selfApplyCount_ = 0;
+};
+
+sptr<RSServiceToRenderConnection> MakeServiceToRenderConn(bool withAgent)
+{
+    if (!withAgent) {
+        sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+        return sptr<RSServiceToRenderConnection>::MakeSptr(nullAgent);
+    }
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    return sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+}
+} // namespace
+
+/**
+ * @tc.name: SendTransfer001
+ * @tc.desc: null transfer is rejected with RS_CONNECTION_ERROR before any fanout
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer001, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(nullptr), StatusCode::RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: SendTransfer002
+ * @tc.desc: empty connection set is rejected with RS_CONNECTION_ERROR
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer002, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    // serviceToRenderConnections_ is empty after TearDown
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::RS_CONNECTION_ERROR);
+    EXPECT_EQ(transfer->ApplyCount(), 0u);
+}
+
+/**
+ * @tc.name: SendTransfer003
+ * @tc.desc: FAIL_FAST returns on the first failing connection and skips the remaining ones
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer003, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID_2] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::FAIL_FAST, false, false, false, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::RS_CONNECTION_ERROR);
+    // whichever connection comes first fails -> fanout stops immediately, the other is never served
+    EXPECT_EQ(transfer->ApplyCount(), 1u);
+}
+
+/**
+ * @tc.name: SendTransfer004
+ * @tc.desc: ANY_SUCCESS with all connections failing aggregates the first error and tries every connection
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer004, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID_2] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, false, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::RS_CONNECTION_ERROR);
+    // no early exit: every connection received the transfer
+    EXPECT_EQ(transfer->ApplyCount(), 2u);
+}
+
+/**
+ * @tc.name: SendTransfer005
+ * @tc.desc: ANY_SUCCESS with partial failure (null-agent conn fails, real conn succeeds) returns SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer005, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(false); // SendTransfer fails, Apply never called
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID_2] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::SUCCESS);
+    EXPECT_EQ(transfer->ApplyCount(), 1u); // only the succeeding connection applied
+}
+
+/**
+ * @tc.name: SendTransfer006
+ * @tc.desc: null entries in the connection map are skipped without aborting the fanout
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer006, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] = nullptr;
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID_2] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::SUCCESS);
+    EXPECT_EQ(transfer->ApplyCount(), 1u);
+}
+
+/**
+ * @tc.name: SendTransfer007
+ * @tc.desc: sync reply result carrying a business error is passed through under FAIL_FAST
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer007, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    constexpr int32_t businessError = StatusCode::INVALID_ARGUMENTS;
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::FAIL_FAST, true, false, true, businessError);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), businessError);
+}
+
+/**
+ * @tc.name: SendTransfer008
+ * @tc.desc: sync reply result PENDING is not an error and still aggregates to SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer008, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, true, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SendTransfer009
+ * @tc.desc: fanout applies per-connection copies and never touches the original transfer
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer009, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::SUCCESS);
+    EXPECT_EQ(transfer->ApplyCount(), 1u); // the per-connection copy was applied
+    EXPECT_EQ(transfer->SelfApplyCount(), 0); // the original transfer itself was never applied
+}
+
+/**
+ * @tc.name: SendTransfer010
+ * @tc.desc: CopyTransfer returning nullptr makes that connection fail without crashing the fanout
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer010, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    auto transfer = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING, true);
+    // null copy -> conn->SendTransfer(nullptr) -> RS_CONNECTION_ERROR, no other connection succeeds
+    EXPECT_EQ(multiProcessManager_->SendTransfer(transfer), StatusCode::RS_CONNECTION_ERROR);
+    EXPECT_EQ(transfer->ApplyCount(), 0u);
+}
+
+/**
+ * @tc.name: SendTransfer011
+ * @tc.desc: persistent transfer is stored in the manager's persistence map before fanout; non-persistent is not
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer011, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    constexpr auto typeId = RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED;
+    auto ipcManager = multiProcessManager_->GetIpcPersistenceManager();
+    ASSERT_NE(ipcManager, nullptr);
+    multiProcessManager_->stateStore_.serviceToRenderConnections_[TEST_PROCESS_UNIQUE_ID] =
+        MakeServiceToRenderConn(true);
+    auto persistent = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, true, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(persistent), StatusCode::SUCCESS);
+    EXPECT_EQ(ipcManager->GetPersistenceMap().count(typeId), 1u); // stored before fanout
+    ipcManager->persistedData_.clear(); // keep the shared manager clean for other tests
+
+    auto nonPersistent = std::make_shared<FanoutFakeTransfer>(
+        FanoutPolicy::ANY_SUCCESS, false, false, true, Detail::REPLY_RESULT_PENDING);
+    EXPECT_EQ(multiProcessManager_->SendTransfer(nonPersistent), StatusCode::SUCCESS);
+    EXPECT_EQ(ipcManager->GetPersistenceMap().count(typeId), 0u); // non-persistent is ignored
 }
 } // namespace OHOS::Rosen

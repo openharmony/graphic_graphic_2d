@@ -199,21 +199,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetRealtimeRefreshRateTest, TestSize.L
 }
 
 /**
- * @tc.name: SetBehindWindowFilterEnabledTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
-{
-    bool enabled = true;
-    bool enabled1 = false;
-    g_rsConn->SetBehindWindowFilterEnabled(enabled);
-    g_rsConn->SetBehindWindowFilterEnabled(enabled1);
-    ASSERT_TRUE(g_rsConn);
-}
-
-/**
  * @tc.name: GetBehindWindowFilterEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -225,22 +210,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetBehindWindowFilterEnabledTest, Test
     bool enabled1 = false;
     g_rsConn->GetBehindWindowFilterEnabled(enabled);
     g_rsConn->GetBehindWindowFilterEnabled(enabled1);
-    ASSERT_TRUE(g_rsConn);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabledTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionTest, SetShowRefreshRateEnabledTest, TestSize.Level1)
-{
-    bool enabled = true;
-    bool enabled1 = false;
-    int32_t type = 1;
-    g_rsConn->SetShowRefreshRateEnabled(enabled, type);
-    g_rsConn->SetShowRefreshRateEnabled(enabled1, type);
     ASSERT_TRUE(g_rsConn);
 }
 

@@ -139,12 +139,6 @@ void RSServiceToRenderConnection::ReportGameStateData(GameStateData info)
     FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
-ErrCode RSServiceToRenderConnection::SetBehindWindowFilterEnabled(bool enabled)
-{
-    renderPipelineAgent_->SetBehindWindowFilterEnabled(enabled);
-    return ERR_OK;
-}
-
 ErrCode RSServiceToRenderConnection::GetBehindWindowFilterEnabled(bool& enabled)
 {
     enabled = renderPipelineAgent_->GetBehindWindowFilterEnabled();
@@ -187,12 +181,6 @@ bool RSServiceToRenderConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 void RSServiceToRenderConnection::HgmForceUpdateTask(bool flag, const std::string& fromWhom)
 {
     renderPipelineAgent_->HgmForceUpdateTask(flag, fromWhom);
-}
-
-void RSServiceToRenderConnection::HandleHwcEvent(uint32_t deviceId, uint32_t eventId,
-    const std::vector<int32_t>& eventData)
-{
-    renderPipelineAgent_->NotifyHwcEventToRender(deviceId, eventId, eventData);
 }
 
 ErrCode RSServiceToRenderConnection::RepaintEverything()
@@ -296,21 +284,10 @@ ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMap
     return renderPipelineAgent_->GetPixelMapByProcessId(pixelMapInfoVector, pid, repCode);
 }
 
-ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
-{
-    return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success, rowCount, colCount);
-}
-
 ErrCode RSServiceToRenderConnection::SetUifirstScale(float scaleFactor)
 {
     RS_LOGD("RSServiceToRenderConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
     return renderPipelineAgent_->SetUifirstScale(scaleFactor);
-}
-
-void RSServiceToRenderConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
-{
-    renderPipelineAgent_->ShowWatermark(watermarkImg, isShow);
 }
 
 ErrCode RSServiceToRenderConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
@@ -324,25 +301,9 @@ ErrCode RSServiceToRenderConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
     return ERR_OK;
 }
 
-int32_t RSServiceToRenderConnection::RegisterSelfDrawingNodeRectChangeCallback(
-    pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
-{
-    return renderPipelineAgent_->RegisterSelfDrawingNodeRectChangeCallback(remotePid, constraint, callback);
-}
-
-int32_t RSServiceToRenderConnection::UnRegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid)
-{
-    return renderPipelineAgent_->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-}
-
 uint32_t RSServiceToRenderConnection::GetRealtimeRefreshRate(ScreenId screenId)
 {
     return renderPipelineAgent_->GetRealtimeRefreshRate(screenId);
-}
-
-void RSServiceToRenderConnection::SetShowRefreshRateEnabled(bool enabled, int32_t type)
-{
-    renderPipelineAgent_->SetShowRefreshRateEnabled(enabled, type);
 }
 
 ErrCode RSServiceToRenderConnection::GetShowRefreshRateEnabled(bool& enable)
@@ -398,6 +359,14 @@ void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_
 void RSServiceToRenderConnection::SetCacheEnabledForRotation(bool enabled)
 {
     renderPipelineAgent_->SetCacheEnabledForRotation(enabled);
+}
+
+int32_t RSServiceToRenderConnection::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (renderPipelineAgent_ == nullptr || !transfer) {
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    return transfer->Apply(renderPipelineAgent_) ? StatusCode::SUCCESS : StatusCode::RS_CONNECTION_ERROR;
 }
 } // namespace Rosen
 } // namespace OHOS

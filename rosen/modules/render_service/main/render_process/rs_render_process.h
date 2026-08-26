@@ -45,7 +45,7 @@ private:
     sptr<RSIRenderToServiceConnection> ConnectToRenderService();
 
     void ApplyIpcPersistenceData(const sptr<RSRenderPipelineAgent>& renderPipelineAgent,
-        const IpcPersistenceTypeToDataMap& replayData);
+        const IpcPersistenceMap& replayData);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif

@@ -23,7 +23,9 @@
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
 #include "render_server/rs_render_multi_process_manager_repository.h"
+#include "rs_render_pipeline_agent.h"
 #include "screen_manager/rs_screen_property.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -278,7 +280,8 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise
 
 /**
  * @tc.name: SetRenderProcessReadyPromise006
- * @tc.desc: Test deathRecipient replacement in map after SetRenderProcessReadyPromise with null binderObject
+ * @tc.desc: deathRecipient replacement path: when AddDeathRecipient on the binder object fails
+ *           (local stub objects reject death recipients), the previously registered recipient is kept
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise006, TestSize.Level1)
@@ -289,22 +292,27 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise
     auto future = promise.get_future();
     auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
         { TEST_SCREEN_ID, output, property }, std::move(promise));
-    
+
     auto oldDeathRecipient = sptr<MockDeathRecipient>::MakeSptr();
     store_->deathRecipients_[uid] = oldDeathRecipient;
 
-    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSIServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
     sptr<RSIConnectToRenderProcess> connectConn = nullptr;
     auto newDeathRecipient = sptr<MockDeathRecipient>::MakeSptr();
     auto factory = [newDeathRecipient](ProcessUniqueId) -> sptr<IRemoteObject::DeathRecipient> {
         return newDeathRecipient;
     };
 
-    bool result = store_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn, factory, nullptr);
+    // A local stub's AsObject() cannot take a death recipient (AddDeathRecipient returns false),
+    // so the failure branch must keep the previously registered recipient untouched.
+    bool result = store_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn, factory,
+        serviceConn->AsObject());
     EXPECT_TRUE(result);
     EXPECT_EQ(store_->deathRecipients_[uid].GetRefPtr(), oldDeathRecipient.GetRefPtr());
-    store_->deathRecipients_[uid] = newDeathRecipient;
-    EXPECT_EQ(store_->deathRecipients_[uid].GetRefPtr(), oldDeathRecipient.GetRefPtr());
+    EXPECT_NE(store_->deathRecipients_[uid].GetRefPtr(), newDeathRecipient.GetRefPtr());
 
     auto status = future.wait_for(std::chrono::seconds(1));
     EXPECT_EQ(status, std::future_status::ready);
@@ -347,14 +355,18 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, IsValidRenderProcessPid003, 
     auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
     auto property = sptr<RSScreenProperty>::MakeSptr();
     std::promise<bool> promise;
-    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+    // Register the real forked child pid: only a registered direct child passes the
+    // ppid check AND the processToScreenOutputMap wait.
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, pid,
         { TEST_SCREEN_ID, output, property }, std::move(promise));
     EXPECT_TRUE(store_->IsValidRenderProcessPid(pid));
     store_->HandleRenderProcessDeath(uid);
-    EXPECT_FALSE(store_->IsValidRenderProcessPid(pid));
-
+    EXPECT_EQ(store_->processToScreenOutputMap_.count(uid), 0u);
     int status = 0;
     waitpid(pid, &status, 0);
+    // The reaped child no longer has a /proc entry, so the ppid check fails immediately
+    // (no 5s condition-variable wait) and IsValidRenderProcessPid returns false.
+    EXPECT_FALSE(store_->IsValidRenderProcessPid(pid));
 }
 
 /**

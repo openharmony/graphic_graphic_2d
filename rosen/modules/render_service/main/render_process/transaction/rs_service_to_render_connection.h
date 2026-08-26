@@ -19,6 +19,7 @@
 #include "rs_render_process_agent.h"
 #include "core/rs_render_pipeline_agent.h"
 #include "zidl/rs_service_to_render_connection_stub.h"
+#include "ipc_persistence/rs_ipc_persistence_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,7 +45,6 @@ public:
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
-    void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
@@ -74,12 +74,6 @@ public:
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
-    // Watermark
-    ErrCode SetWatermark(
-        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
-        uint32_t rowCount = 0, uint32_t colCount = 0) override;
-    void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
-
     // uifirstcale
     ErrCode SetUifirstScale(float scaleFactor) override;
 
@@ -96,7 +90,6 @@ public:
     void NotifyWindowModeTypeEvent(uint8_t windowModeType) override;
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom) override;
     uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
-    void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
     ErrCode GetShowRefreshRateEnabled(bool& enable) override;
 
     // Overlay
@@ -107,9 +100,6 @@ public:
     ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
 #endif
     // Energy Consumption
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid, const RectConstraint& constraint,
-        sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
-    int32_t UnRegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid) override;
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
     LayerComposeInfo GetLayerComposeInfo() override;
@@ -121,7 +111,6 @@ public:
     void ReportGameStateData(GameStateData info) override;
 
     // Behind Window Filter
-    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     // Aps
@@ -145,6 +134,8 @@ public:
         bool enforceQuota) override;
     void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
+
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override;
 
 private:
     const sptr<RSRenderProcessAgent> renderProcessAgent_;
