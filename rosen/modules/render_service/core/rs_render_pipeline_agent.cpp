@@ -1437,7 +1437,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
 }
 
 ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized,
-    bool enforceQuota)
+    bool enforceQuota, bool requireGuestConnection)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
@@ -1445,10 +1445,14 @@ ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t gues
     }
     // the node map authorization interfaces are mutex-protected and safe to call on IPC threads
     auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-    if (authorized && pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
-        // insert the entry only into render processes the guest has connected to: entries in
-        // other render processes would linger uncleaned if the guest dies without ever
-        // connecting there; the host must authorize after the guest establishes its connection
+    if (authorized && requireGuestConnection &&
+        pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
+        // multi-process render subprocesses only observe the death of clients that explicitly
+        // established a client-to-render connection to them: entries inserted for other guests
+        // would linger uncleaned if the guest dies without ever connecting here, so the host
+        // must authorize after the guest establishes its connection. single-process pipelines
+        // (uni render or divided render) observe every client's death via the connection created
+        // by RSRenderService::CreateConnection and do not need this check
         RS_LOGI("RSRenderPipelineAgent::AuthorizeUIExtensionPid skipped, guest pid %{public}d has no"
             " client-to-render connection in this process", static_cast<int32_t>(guestPid));
         return ERR_OK;

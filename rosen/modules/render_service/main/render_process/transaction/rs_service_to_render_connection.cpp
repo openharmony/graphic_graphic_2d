@@ -270,7 +270,12 @@ int32_t RSServiceToRenderConnection::AuthorizeUIExtensionPid(pid_t pid, NodeId n
             nodeId, static_cast<int32_t>(pid));
         return ERR_INVALID_DATA;
     }
-    return renderPipelineAgent_->AuthorizeUIExtensionPid(nodeId, guestPid, authorized, enforceQuota);
+    // only render subprocesses (renderProcessAgent_ != nullptr, multi-process mode) require the
+    // guest to hold a client-to-render connection before accepting the authorization; the
+    // single-process pipeline observes every client's death via RSRenderService::CreateConnection
+    // and recycles entries there (divided render clients never call CreateRenderConnection)
+    return renderPipelineAgent_->AuthorizeUIExtensionPid(
+        nodeId, guestPid, authorized, enforceQuota, renderProcessAgent_ != nullptr);
 }
 
 ErrCode RSServiceToRenderConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
