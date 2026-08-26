@@ -142,10 +142,12 @@ const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& RSPointerWindowMan
     return hardCursorNodeMap_;
 }
 
-void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor)
+void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor,
+    NodeId screenNodeId)
 {
 #ifdef RS_ENABLE_GPU
     auto& hardCursorNodeMap = GetHardCursorNode();
+    bool hasHardCursorCommit = false;
     for (auto& [_, hardCursorNode] :  hardCursorNodeMap) {
         bool isHardCursorEnabled = hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface() &&
             hardCursorNode->GetHardCursorStatus();
@@ -163,8 +165,10 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
                 hardCursorNode->AddToPendingSyncList();
             }
             processor->CreateLayer(*hardCursorNode, *params);
+            hasHardCursorCommit = params->GetLayerCreated();
         }
     }
+    hardCursorCommitResultMap_[screenNodeId] = hasHardCursorCommit;
 #endif
 }
 
@@ -174,6 +178,7 @@ void RSPointerWindowManager::HardCursorCreateLayer(std::shared_ptr<RSProcessor> 
     if (hardCursorDrawable == nullptr) {
         RS_LOGD("RSPointerWindowManager::HardCursorCreateLayer no hardCursor screenNodeId:%{public}" PRIu64,
             screenNodeId);
+        hardCursorCommitResultMap_[screenNodeId] = false;
         return;
     }
     processor->CreateLayerForRenderThread(*hardCursorDrawable);

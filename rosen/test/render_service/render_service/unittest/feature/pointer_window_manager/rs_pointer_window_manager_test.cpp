@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr NodeId DEFAULT_SCREEN_ID = 1;
 
 class RSPointerWindowManagerTest : public testing::Test {
 public:
@@ -196,7 +197,7 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirectTest, TestSiz
         auto hardCursorNode = drawable;
         hardCursorNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
     }
-    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor, DEFAULT_SCREEN_ID);
 }
 
 /**
@@ -219,7 +220,7 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect008, TestSize
     rsPointerWindowManager.hardCursorNodeMap_.clear();
     rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
     ASSERT_NE(rsPointerWindowManager.GetHardCursorNode().size(), 0);
-    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor, DEFAULT_SCREEN_ID);
 }
  
 /**
@@ -243,7 +244,7 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect009, TestSize
     rsPointerWindowManager.hardCursorNodeMap_.clear();
     rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
     ASSERT_NE(rsPointerWindowManager.GetHardCursorNode().size(), 0);
-    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor, DEFAULT_SCREEN_ID);
 }
 
 /**
