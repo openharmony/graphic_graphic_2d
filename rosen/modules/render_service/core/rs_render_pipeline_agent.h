@@ -130,7 +130,8 @@ public:
     ErrCode AvcodecVideoGet(uint64_t uniqueId);
     ErrCode AvcodecVideoGetRecent();
     ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false);
-    ErrCode AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized, bool enforceQuota);
+    ErrCode AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized, bool enforceQuota,
+        bool requireGuestConnection = true);
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
