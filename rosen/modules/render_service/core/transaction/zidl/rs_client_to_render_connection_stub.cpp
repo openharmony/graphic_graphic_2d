@@ -809,15 +809,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-                RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-                "::SET_HIDE_PRIVACY_CONTENT");
-            if (!isSystemCalling) {
-                if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NONSYSTEM_CALLING))) {
-                    ret = ERR_INVALID_REPLY;
-                }
-                break;
-            }
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);

@@ -324,7 +324,7 @@ ADD_COMMAND(RSSurfaceNodeSetHardwareEnable,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLED,
         SurfaceNodeCommandHelper::SetHardwareEnabled, NodeId, bool, SelfDrawingNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeSetHidePrivacyContent,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT,
         SurfaceNodeCommandHelper::SetHidePrivacyContent, NodeId, bool))
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeRecreateNodeAndSurface,
