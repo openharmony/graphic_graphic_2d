@@ -40,7 +40,6 @@ public:
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
     void SetSkipVirtualDisplay(bool isSkipVirtualDisplay);
-    bool IsSkipVirtualDisplay() const { return isSkipVirtualDisplay_; }
     bool IsSkipVirtualDisplayChanged() const { return isSkipVirtualDisplay_ != prevSkipVirtualDisplay_; }
     void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
     {

@@ -124,6 +124,9 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
         } else if (voteInfo.voterName == "VOTER_PACKAGES") {
             // force update cause VOTER_PACKAGES is flag of safe_voter
             MarkVoteChange(voter);
+        } else if (voteInfo.voterName == "VOTER_GAMES" && IsSkipVirtualDisplayChanged()) {
+            // refresh rate unchanged but skip virtual display toggled, force reprocess
+            MarkVoteChange(voter);
         }
         return;
     }
