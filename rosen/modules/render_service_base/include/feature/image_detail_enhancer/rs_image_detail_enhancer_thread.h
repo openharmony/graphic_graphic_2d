@@ -52,6 +52,8 @@ public:
     struct ImageKey {
         uint64_t imageId;
         uint64_t nodeId;
+
+        ImageKey(uint64_t imageId, uint64_t nodeId) : imageId(imageId), nodeId(nodeId) {}
  
         bool operator==(const ImageKey& other) const {
             return nodeId == other.nodeId && imageId == other.imageId;

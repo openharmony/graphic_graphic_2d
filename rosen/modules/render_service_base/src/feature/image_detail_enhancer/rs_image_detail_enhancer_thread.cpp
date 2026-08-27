@@ -457,8 +457,19 @@ void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, uint64_t nodeI
         if (cachedImage) {
             curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
         }
-        keyMap_.erase(imageList_.back().first);
+        auto evictedKey = imageList_.back().first;
+        keyMap_.erase(evictedKey);
+        processStatusMap_.erase(evictedKey);
+        processReadyMap_.erase(evictedKey);
+        auto it = imageNodeMap_.find(evictedKey.imageId);
+        if (it != imageNodeMap_.end()) {
+            it->second.erase(evictedKey.nodeId);
+            if (it->second.empty()) {
+                imageNodeMap_.erase(it);
+            }
+        }
         imageList_.pop_back();
+
     }
     imageList_.emplace_front(ImageKey{imageId, nodeId}, image);
     keyMap_[{imageId, nodeId}] = imageList_.begin();
@@ -472,6 +483,9 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::GetScaledImage(uint
         auto nodeList = imageNodeMap_[imageId];
         for (uint64_t nodeId : nodeList) {
             image = GetScaledImageLocked(imageId, nodeId);
+            if (image != nullptr) {
+                break;
+            }
         }
     }
     return image;
@@ -490,7 +504,7 @@ void RSImageDetailEnhancerThread::ReleaseScaledImage(uint64_t imageId)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
     if (imageNodeMap_.find(imageId) != imageNodeMap_.end()) {
-        auto nodeList = imageNodeMap_[imageId];
+        const auto& nodeList = imageNodeMap_[imageId];
         for (uint64_t nodeId : nodeList) {
             ReleaseScaledImageLocked(imageId, nodeId);
         }

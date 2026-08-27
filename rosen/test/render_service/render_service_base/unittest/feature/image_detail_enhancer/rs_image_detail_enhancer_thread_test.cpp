@@ -929,7 +929,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest01, TestSize.Leve
     EXPECT_EQ(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
 
     rsImageParams.mImage = image2;
-    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image->nodeId_, image1);S
+    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image->nodeId_, image1);
     EXPECT_NE(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
 
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
