@@ -1799,11 +1799,11 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams)
 {
     if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
-        !screenParams.GetLayerSkipContext().screenLayerInvalid_) {
+        !screenParams.GetLayerSkipContext().virtualScreenLayerInvalid_) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s disabled or screenLayer is invalid", __func__);
         return false;
     }
-    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
+    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().virtualRelevantSurfaceNodeIds_;
     // only handle a single self drawing node
     if (targetSurfaceNodeIds.size() != 1) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s more than one full-screen self drawing node exists", __func__);
@@ -1875,7 +1875,7 @@ bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     const auto& specialLayerMgr = surfaceParams->GetSpecialLayerMgr();
     if (displayParams.IsSecurityDisplay() && (specialLayerMgr.Find(HAS_GENERAL_SPECIAL) ||
         specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST) ||
-        !whiteList.empty())) {
+        (!whiteList.empty() && surfaceDrawable->IsWhiteListNode()))) {
         return false;
     }
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
