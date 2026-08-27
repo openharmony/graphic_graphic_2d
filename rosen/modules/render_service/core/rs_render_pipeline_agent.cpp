@@ -162,7 +162,7 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transactionData);
 #endif
 
@@ -2289,7 +2289,7 @@ void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
     pipeline->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RemoveAllListenerbyPid(pid);
 #endif
     RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
@@ -2838,19 +2838,23 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
             return;
         }
         node->SetDelegateMode(isSetDelegateMode);
+#ifdef RS_ENABLE_DELEGATE_COMPOSITE
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (consumer) {
             RsDelegateCompositeCallbackManager::GetInstance().SetInfo(consumer, id, pid);
         }
+#endif
         RS_TRACE_NAME_FMT("SetDelegateMode %llu, success", id);
     };
     pipeline->PostMainThreadSyncTask(task);
 
+#ifdef RS_ENABLE_DELEGATE_COMPOSITE
     auto node = pipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
     if (node && node->GetRSSurfaceHandler()) {
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
     }
+#endif
     return true;
 #else
     return false;
@@ -2860,7 +2864,7 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
 bool RSRenderPipelineAgent::RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
     uint64_t listenerId, uint32_t pid, uint32_t tid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceTransactionListener(
         listener, listenerId, pid, tid);
     return true;
@@ -2871,7 +2875,7 @@ bool RSRenderPipelineAgent::RegisterSurfaceTransactionListener(sptr<RSISurfaceTr
 
 bool RSRenderPipelineAgent::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceTransactionListener(listenerId);
     return true;
 #else
@@ -2882,7 +2886,7 @@ bool RSRenderPipelineAgent::UnRegisterSurfaceTransactionListener(uint64_t listen
 bool RSRenderPipelineAgent::RegisterSurfaceNodeBufferReleaseListener(
     pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceNodeBufferReleaseListener(pid, listener);
     return true;
 #else
@@ -2892,7 +2896,7 @@ bool RSRenderPipelineAgent::RegisterSurfaceNodeBufferReleaseListener(
 
 bool RSRenderPipelineAgent::UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceNodeBufferReleaseListener(pid);
     return true;
 #else

@@ -630,7 +630,7 @@ void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLaye
     composerClientManager_->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
     NotifyScreenNodeBufferReleased(curScreenId);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 #endif
 }
