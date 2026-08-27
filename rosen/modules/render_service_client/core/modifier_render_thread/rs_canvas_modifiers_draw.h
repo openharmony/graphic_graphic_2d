@@ -70,16 +70,14 @@ private:
     void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface,
         std::shared_ptr<Drawing::GPUContext> gpuContext, size_t& maxGpuResourceBytes);
     void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
-    DestroySemaphoreInfo* ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
-    DestroySemaphoreInfo* UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
-    DestroySemaphoreInfo* Draw();
+    void ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
+    void UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
+    void Draw();
     std::unique_ptr<RSSurfaceFrame> RequestBufferAndDrawHistory();
     void Playback(const Drawing::DrawCmdListPtr& cmdList);
-    DestroySemaphoreInfo* FlushSurfaceWithSemaphore();
 
-    sptr<SurfaceBuffer> OnFlushBuffer();
+    sptr<SurfaceBuffer> GetBuffer(bool needFlushBuffer);
     void OnDirtyBufferCollected(int64_t lastFlushBufferTime);
-    int32_t GetFenceFd();
 
     bool IsFree(int64_t now, int64_t maxDuration);
     void CleanBuffer();
@@ -92,8 +90,6 @@ private:
     std::shared_ptr<Drawing::Image> GetImage(
         const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
 
-    static std::shared_ptr<Drawing::GPUContext> CreateGPUContext(const std::string& cacheDir);
-
     NodeId nodeId_ = 0;
     int width_ = 0;
     int height_ = 0;
@@ -104,10 +100,8 @@ private:
     std::shared_ptr<RSSurface> producerSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> drawingSurface_ = nullptr;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_ = nullptr;
-    VkSemaphore semaphore_ = VK_NULL_HANDLE;
     std::unique_ptr<std::vector<Drawing::DrawCmdListPtr>> drawCmdListCache_ = nullptr;
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
-
 
     friend class RSCanvasModifiersDraw;
 };
@@ -158,11 +152,14 @@ private:
 
     void UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList);
 
+    DestroySemaphoreInfo* FlushSurfaceWithSemaphore(
+        VkSemaphore& semaphore, std::shared_ptr<Drawing::Surface> drawingSurface);
+
+    int32_t GetFenceFd(VkSemaphore& semaphore);
+
     void SubmitAndCollectCanvasBuffers();
 
     void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd);
-
-    void DestroyCanvasSemaphore();
 
     void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
 
@@ -191,10 +188,6 @@ private:
     int64_t lastUpdateCanvasContentTime_ = 0;
 
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
-
-    std::vector<DestroySemaphoreInfo*> canvasNewSemaphoreInfos_;
-
-    std::vector<DestroySemaphoreInfo*> canvasExpiredSemaphoreInfos_;
 
     std::vector<RSTransactionConfig> transactionConfigList_;
 
