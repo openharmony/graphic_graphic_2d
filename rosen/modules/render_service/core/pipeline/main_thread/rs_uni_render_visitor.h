@@ -212,6 +212,7 @@ private:
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    void SetSwingEnabled(ScreenId screenId, bool isEnabled);
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckCurtainScreenUsingStatusChange() const;

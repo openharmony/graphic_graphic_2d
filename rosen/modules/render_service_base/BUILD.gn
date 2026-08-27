@@ -507,6 +507,9 @@ ohos_source_set("render_service_base_src") {
       #luminance
       "src/display_engine/rs_luminance_control.cpp",
 
+      #swing
+      "src/display_engine/rs_display_effect_swing_control.cpp",
+
       "src/transaction/rs_buffer_transaction.cpp",
     ]
   } else {
@@ -516,6 +519,9 @@ ohos_source_set("render_service_base_src") {
 
       #luminance
       "src/display_engine/mingw/rs_luminance_control.cpp",
+
+      #swing
+      "src/display_engine/mingw/rs_display_effect_swing_control.cpp",
     ]
   }
 

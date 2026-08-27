@@ -19,6 +19,7 @@
 #include "v2_2/cm_color_space.h"
 
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_display_effect_swing_control.h"
 #include "display_engine/rs_luminance_control.h"
 #ifdef RS_ENABLE_GPU
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -797,6 +798,8 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
     bool isFullScreen = (absWidth == canvas.GetWidth() && ROSEN_EQ(absRect.GetLeft(), 0.0f) &&
         absHeight * 2 > canvas.GetHeight()) || (absHeight == canvas.GetHeight() &&
         ROSEN_EQ(absRect.GetTop(), 0.0f) && absWidth * 2 > canvas.GetWidth());
+    SwingData swingData = RSDisplayEffectSwingControl::Get().GetSwingData(canvas.GetScreenId());
+    std::string panelName = RSLuminanceControl::Get().GetPanelName(canvas.GetScreenId());
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
         .width = absWidth,
@@ -805,10 +808,10 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
         .screenHeight = canvas.GetWidth(),
         .coordX = absRect.GetLeft(),
         .coordY = absRect.GetTop(),
-        .swingX = 0.0f, // Need VPE interface
-        .swingY = 0.0f, // Need VPE interface
-        .swingZ = 0.0f, // Need VPE interface
-        .panelName = "", // Need VPE interface
+        .swingX = swingData.eye_x,
+        .swingY = swingData.eye_y,
+        .swingZ = swingData.eye_z,
+        .panelName = panelName,
         .converterType = params.use3DShader && isFullScreen ? 1 : 0, // 1 means 3D, 0 means 2D
         .u_matrix = { matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SKEW_X),
             matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),

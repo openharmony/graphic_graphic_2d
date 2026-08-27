@@ -126,6 +126,7 @@ public:
         HdrStatus hdrStatus) = 0;
 #endif
     virtual int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values) = 0;
+    virtual std::string GetPanelName(ScreenId screenId) const = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -178,6 +179,7 @@ public:
     RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler, HdrStatus hdrStatus);
 #endif
     RSB_EXPORT int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
+    RSB_EXPORT std::string GetPanelName(ScreenId screenId) const;
 
 private:
     RSLuminanceControl() = default;

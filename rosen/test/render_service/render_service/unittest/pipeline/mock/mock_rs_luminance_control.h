@@ -65,6 +65,7 @@ public:
         HdrStatus hdrStatus), (override));
     MOCK_METHOD(int32_t, NotifyDEStatusChange, (const uint32_t sceneKey, const std::vector<uint8_t>& values),
         (override));
+    MOCK_METHOD(std::string, GetPanelName, (ScreenId screenId), (override, const));
 
     bool IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) override;
     bool SetHdrStatus(ScreenId screenId, HdrStatus curDisplayHdrStatus) override;

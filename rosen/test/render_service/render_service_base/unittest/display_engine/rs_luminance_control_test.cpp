@@ -71,6 +71,7 @@ public:
         HdrStatus hdrStatus), (override));
     MOCK_METHOD(int32_t, NotifyDEStatusChange, (const uint32_t sceneKey, const std::vector<uint8_t>& values),
         (override));
+    MOCK_METHOD(std::string, GetPanelName, (ScreenId screenId), (override, const));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -466,5 +467,22 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl020, TestSize.Level1)
     uint32_t sceneKey = 123;
     std::vector<uint8_t> values = {1, 2, 3};
     ASSERT_EQ(luminCtrl.NotifyDEStatusChange(sceneKey, values), 0);
+}
+
+/**
+ * @tc.name: LuminanceControl021
+ * @tc.desc: Test LuminanceControl GetPanelName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl021, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+ 
+    ScreenId screenId{};
+    ASSERT_NE(luminCtrl.GetPanelName(screenId), "");
 }
 } // namespace OHOS::Rosen
