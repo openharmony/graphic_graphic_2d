@@ -338,7 +338,7 @@ HWTEST_F(RSRenderPipelineAgentTest, GetMaxGpuBufferSize_NullPipeline, TestSize.L
 
 /**
  * @tc.name: SetApsConfigParams
- * @tc.desc: SetApsConfigParams Test
+ * @tc.desc: Verify function SetApsConfigParams
  * @tc.type: FUNC
  * @tc.require: 22984
  */
