@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 #include "connection/rs_render_to_composer_connection.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "consumer_surface.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"

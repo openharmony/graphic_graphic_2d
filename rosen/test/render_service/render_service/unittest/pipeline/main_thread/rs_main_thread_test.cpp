@@ -26,7 +26,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -48,6 +48,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -8451,5 +8452,173 @@ HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Le
     mainThread->ResetDisableReasons();
 }
 
+namespace {
+class ScopedTunnelSwitch {
+public:
+    explicit ScopedTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+    }
+    ~ScopedTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+    }
+private:
+    bool oldValue_ = false;
+};
+} // namespace
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NewTunnelDisabled_SkipsArbiterUpdate
+ * @tc.desc: Cover the false branch of `if (IsNewTunnelEnabled())` in
+ *          RSMainThread::SetTunnelSolePresentLayer. When the new-tunnel feature is off, the
+ *          function must return without touching the arbiter state regardless of node contents.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_SkipsArbiterUpdate, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(false);
+    ASSERT_TRUE(IsNewTunnelEnabled());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    auto savedHardwareEnabledNodes = std::move(mainThread->hardwareEnabledNodes_);
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->hardwareEnabledNodes_.emplace_back(nullptr);
+
+    mainThread->SetTunnelSolePresentLayer();
+    EXPECT_TRUE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    mainThread->hardwareEnabledNodes_ = std::move(savedHardwareEnabledNodes);
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NewTunnelEnabled_SkipsNullSurfaceNode
+ * @tc.desc: Cover the true branch of `if (surfaceNode == nullptr)` inside SetTunnelSolePresentLayer
+ *          plus the true branch of the outer `if (IsNewTunnelEnabled())`. Null entries in
+ *          hardwareEnabledNodes_ must be skipped without crashing, leaving the empty presentCount
+ *          -> tunnelCount pair to drive the sole-present signal to true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelEnabled_SkipsNullSurfaceNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    ASSERT_TRUE(IsNewTunnelEnabled());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    auto savedHardwareEnabledNodes = std::move(mainThread->hardwareEnabledNodes_);
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->hardwareEnabledNodes_.emplace_back(nullptr);
+    mainThread->hardwareEnabledNodes_.emplace_back(nullptr);
+
+    mainThread->SetTunnelSolePresentLayer();
+    EXPECT_TRUE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    mainThread->hardwareEnabledNodes_ = std::move(savedHardwareEnabledNodes);
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount
+ * @tc.desc: Cover the true branch of `if (!consumed)` in SetTunnelSolePresentLayer. A valid
+ *          surfaceNode whose IsCurrentFrameBufferConsumed() returns false must be skipped so
+ *          presentCount stays at zero (and the empty -> isSole=true contract is preserved).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    ASSERT_TRUE(IsNewTunnelEnabled());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    auto savedHardwareEnabledNodes = std::move(mainThread->hardwareEnabledNodes_);
+    mainThread->hardwareEnabledNodes_.clear();
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    EXPECT_FALSE(node->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
+    mainThread->hardwareEnabledNodes_.emplace_back(node);
+
+    mainThread->SetTunnelSolePresentLayer();
+    EXPECT_TRUE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    mainThread->hardwareEnabledNodes_ = std::move(savedHardwareEnabledNodes);
+    RSTunnelRuntimeStore::Erase(node->GetId());
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedNonTunnelNode_ReportsNotSole
+ * @tc.desc: Cover the false branches of `if (!consumed)` and `if (isTunnel)` in
+ *          SetTunnelSolePresentLayer. A consumed surfaceNode that is not a tunnel layer must
+ *          increment presentCount only, leaving tunnelCount at zero so isSole=false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_ReportsNotSole, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    ASSERT_TRUE(IsNewTunnelEnabled());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    auto savedHardwareEnabledNodes = std::move(mainThread->hardwareEnabledNodes_);
+    mainThread->hardwareEnabledNodes_.clear();
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    EXPECT_TRUE(surfaceHandler->IsCurrentFrameBufferConsumed());
+    mainThread->hardwareEnabledNodes_.emplace_back(node);
+
+    mainThread->SetTunnelSolePresentLayer();
+    EXPECT_FALSE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    mainThread->hardwareEnabledNodes_ = std::move(savedHardwareEnabledNodes);
+    RSTunnelRuntimeStore::Erase(node->GetId());
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedTunnelNode_ReportsSole
+ * @tc.desc: Cover the true branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ *          surfaceNode that carries a valid new-tunnel layer info must increment both
+ *          presentCount and tunnelCount so isSole=true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_ReportsSole, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    ASSERT_TRUE(IsNewTunnelEnabled());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    auto savedHardwareEnabledNodes = std::move(mainThread->hardwareEnabledNodes_);
+    mainThread->hardwareEnabledNodes_.clear();
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    constexpr uint64_t testTunnelLayerId = 8801;
+    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+    mainThread->hardwareEnabledNodes_.emplace_back(node);
+
+    mainThread->SetTunnelSolePresentLayer();
+    EXPECT_TRUE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    mainThread->hardwareEnabledNodes_ = std::move(savedHardwareEnabledNodes);
+    RSTunnelRuntimeStore::Erase(node->GetId());
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+}
 } // namespace OHOS::Rosen
 #endif

@@ -18,7 +18,7 @@
 #include <cstring>
 #include <securec.h>
 #include "common/rs_optional_trace.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "hdi_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"

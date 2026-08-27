@@ -19,8 +19,9 @@
 #include <cinttypes>
 #include <cmath>
 
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "params/rs_surface_render_params.h"
+#include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -113,6 +114,9 @@ bool HasNonMirrorVirtualScreen(RSMainThread* mainThread)
 RouteDecision CheckGlobalTriggers()
 {
     if (auto* cause = RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(RSMainThread::Instance())) {
+        RS_LOGD_IF(DEBUG_TUNNEL,  "%{public}s %{public}s ComputeClobalForbiddenCause cause %{public}s",
+            TUNNEL_DEBUG_PREFIX, __func__, cause);
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s ComputeGlobalForbiddenCause cause %s", __func__, cause);
         return {true, cause};
     }
     return {};
@@ -351,6 +355,21 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     return MainThreadOutcome::GO_NORMAL;
 }
 
+std::atomic<bool> RSTunnelRouteArbiter::tunnelSolePresentLayer_{false};
+
+bool RSTunnelRouteArbiter::GetTunnelSolePresentLayer()
+{
+    bool value = tunnelSolePresentLayer_.load(std::memory_order_acquire);
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s value %d", __func__, value);
+    return value;
+}
+
+void RSTunnelRouteArbiter::SetTunnelSolePresentLayer(bool isSole)
+{
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s isSole %d", __func__, isSole);
+    tunnelSolePresentLayer_.store(isSole, std::memory_order_release);
+}
+
 void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
@@ -365,7 +384,7 @@ void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRen
         mainThread->RequestNextVSync("tunnel-abandon-claim");
     }
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64, __func__, node->GetId());
-    RS_LOGD("TUNNEL_DEBUG %{public}s nodeId:%{public}" PRIu64, __func__, node->GetId());
+    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s nodeId:%{public}" PRIu64, __func__, node->GetId());
 }
 
 void RSTunnelRouteArbiter::OnRenderCommitDone(ScreenId screenId)

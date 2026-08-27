@@ -690,6 +690,7 @@ private:
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
+    void SetTunnelSolePresentLayer();
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;

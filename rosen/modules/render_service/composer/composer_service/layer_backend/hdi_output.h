@@ -241,6 +241,7 @@ private:
     void MarkTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation);
     void ClearTunnelDeclinedLocked(uint64_t surfaceId);
     void FinalizePostCommit(bool commitSucceeded = true);
+    void InitTunnelProperty();
 
     bool isActiveRectSwitching_ = false;
     void DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer);
