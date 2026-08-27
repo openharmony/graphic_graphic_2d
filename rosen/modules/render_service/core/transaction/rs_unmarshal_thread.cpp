@@ -98,6 +98,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
         RSMarshallingHelper::SetCallingPid(callingPid);
         AshmemFdContainer::SetIsUnmarshalThread(true);
+        AshmemFdContainer::Instance().Clear();
         if (ashmemFdWorker) {
             ashmemFdWorker->PushFdsToContainer();
         }
