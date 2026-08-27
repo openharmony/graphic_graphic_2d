@@ -423,6 +423,7 @@ private:
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
     std::vector<EventInfo> currentFrameEvent_;
+    bool hasNewResponseEvent_ = false;
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
