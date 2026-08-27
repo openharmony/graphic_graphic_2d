@@ -353,7 +353,7 @@ private:
 
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
-    std::atomic<bool> rsFrameRateControlEnabled_ = true;
+    std::atomic<bool> rsFrameRateControlEnabled_ { true };
 
     ScreenId activeRectScreenId_ = INVALID_SCREEN_ID;
     Rect activeRect_ { 0, 0, 0, 0 };
