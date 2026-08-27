@@ -52,6 +52,12 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
+void HgmFrameVoter::SetSkipVirtualDisplay(bool isSkipVirtualDisplay)
+{
+    prevSkipVirtualDisplay_ = isSkipVirtualDisplay_;
+    isSkipVirtualDisplay_ = isSkipVirtualDisplay;
+}
+
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
