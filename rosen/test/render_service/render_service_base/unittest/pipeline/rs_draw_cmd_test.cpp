@@ -26,6 +26,7 @@
 
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -519,6 +520,35 @@ HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
         drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888);
     ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
     ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+}
+
+/**
+ * @tc.name: DrawSurfaceBufferOpItemPidOverride001
+ * @tc.desc: test forged pid in DrawSurfaceBufferOpItem is overridden by calling pid in uni render
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawCmdTest, DrawSurfaceBufferOpItemPidOverride001, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    Drawing::PaintHandle paintHandle;
+    Drawing::Rect srcRect { 0, 0, 1, 1 };
+    uint32_t surfaceBufferId = 1;
+    uint64_t uid = 1;
+    pid_t callingPid = 1234;
+    pid_t forgedPid = 9999;
+    RSMarshallingHelper::SetCallingPid(callingPid);
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(surfaceBufferId, 0, 0, 1, 1,
+        forgedPid, uid, GraphicTransformType::GRAPHIC_ROTATE_NONE, srcRect, false, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+    EXPECT_EQ(drawSurfaceBufferOpItem.surfaceBufferInfo_.pid_, callingPid);
+
+    // pid 0 means local drawing without remote callback, it must be kept untouched
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle zeroPidHandle(surfaceBufferId, 0, 0, 1, 1,
+        0, uid, GraphicTransformType::GRAPHIC_ROTATE_NONE, srcRect, false, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem zeroPidOpItem(list, &zeroPidHandle);
+    EXPECT_EQ(zeroPidOpItem.surfaceBufferInfo_.pid_, 0);
+    RSMarshallingHelper::SetCallingPid(0);
 }
 
 /**
