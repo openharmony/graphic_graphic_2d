@@ -3668,6 +3668,8 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (!isForced && !RSSystemProperties::GetNodeGroupGroupedByUIEnabled()) {
         return;
     }
+    RS_TRACE_NAME_FMT("RSNode::MarkNodeGroup id:%" PRIu64 ", isNodeGroup:%d, isForced:%d, includeProperty:%d",
+        GetId(), isNodeGroup, isForced, includeProperty);
     isNodeGroup_ = isNodeGroup;
     SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
         isNodeGroup, isForced, includeProperty
