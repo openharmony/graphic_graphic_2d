@@ -34,6 +34,9 @@
 #include <rs_trace.h>
 #include "qos.h"
 
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -97,6 +100,7 @@ VsyncError VSyncReceiver::Init(bool needAddFd)
         hasVsyncThread = true;
     }
     VsyncError ret = connection_->GetReceiveFd(fd_);
+    fdsan_exchange_owner_tag(fd_, 0, LOG_DOMAIN);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
     }
@@ -148,7 +152,7 @@ void VSyncReceiver::RemoveAndCloseFdLocked()
 
     std::lock_guard<std::mutex> locker(listener_->fdMutex_);
     if (fd_ >= 0) {
-        close(fd_);
+        fdsan_close_with_tag(fd_, LOG_DOMAIN);
         listener_->SetFdClosedFlagLocked(true);
         fd_ = INVALID_FD;
     }
