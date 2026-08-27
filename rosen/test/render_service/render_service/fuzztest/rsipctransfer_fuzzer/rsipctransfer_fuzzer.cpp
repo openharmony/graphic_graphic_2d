@@ -41,6 +41,7 @@ constexpr uint8_t SELECTOR_SELF_DRAWING_UNREGISTER = 6;
 constexpr uint8_t SELECTOR_UNREGISTER_REPLY_PARSE = 7;
 constexpr uint8_t SELECTOR_REGISTER_REPLY_PARSE = 8;
 constexpr uint8_t SELECTOR_COUNT = 9;
+constexpr pid_t FUZZ_CALLBACK_PID = 42;
 
 void FuzzTransferStubUnmarshalling(const uint8_t* data, size_t size, uint8_t selector, uint32_t maxEntries)
 {
@@ -89,7 +90,7 @@ void FuzzTransferStubUnmarshalling(const uint8_t* data, size_t size, uint8_t sel
         case SELECTOR_UNREGISTER_REPLY_PARSE: {
             // reply-parse fuzzing: UnRegister reply carries an int32 result
             std::shared_ptr<UnRegisterSelfDrawingNodeRectChangeCallbackInput> input =
-                std::make_shared<UnRegisterSelfDrawingNodeRectChangeCallbackInput>(42);
+                std::make_shared<UnRegisterSelfDrawingNodeRectChangeCallbackInput>(FUZZ_CALLBACK_PID);
             UnRegisterSelfDrawingNodeRectChangeCallbackTransfer transfer(input);
             transfer.ProxyUnmarshalling(parcel);
             break;
@@ -101,6 +102,8 @@ void FuzzTransferStubUnmarshalling(const uint8_t* data, size_t size, uint8_t sel
             transfer.ProxyUnmarshalling(parcel);
             break;
         }
+        default:
+            break;
     }
     (void)errCode;
 }

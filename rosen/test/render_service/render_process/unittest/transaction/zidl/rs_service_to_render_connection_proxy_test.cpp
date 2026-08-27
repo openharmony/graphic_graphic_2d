@@ -2921,7 +2921,8 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SendTransfer_SyncSuccess, TestSiz
 
 /**
  * @tc.name: SendTransfer_ProxyUnmarshallingFail
- * @tc.desc: SYNC transfer with non-empty reply format: SendRequest ok but empty reply -> ProxyUnmarshalling fails -> READ_PARCEL_ERR
+ * @tc.desc: SYNC transfer with non-empty reply format: SendRequest ok but empty reply
+ *           -> ProxyUnmarshalling fails -> READ_PARCEL_ERR
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
