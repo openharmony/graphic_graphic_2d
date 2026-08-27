@@ -232,7 +232,7 @@ void RSUIDirector::AddUIDirectorCommand()
 
 void RSUIDirector::GoCreate()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoCreate CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoCreate CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoCreate CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -248,7 +248,7 @@ void RSUIDirector::ExecuteGoCreate()
 
 void RSUIDirector::GoResume()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoResume CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoResume CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoResume CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -301,7 +301,7 @@ void RSUIDirector::RebuildNodeTree()
 
 void RSUIDirector::GoForeground(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoForeground CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoForeground CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoForeground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -356,7 +356,7 @@ void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
 
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoBackground CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoBackground CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoBackground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -416,7 +416,7 @@ void RSUIDirector::ExecuteGoBackground(bool isTextureExport)
 
 void RSUIDirector::GoStop()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoStop CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoStop CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoStop CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -477,7 +477,7 @@ void RSUIDirector::ReleaseRenderNode()
 
 void RSUIDirector::Destroy(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::Destroy CurrentState:%d, UIContext:%" PRIu64 ",
+    RS_TRACE_NAME_FMT("RSUIDirector::Destroy CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::Destroy CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
