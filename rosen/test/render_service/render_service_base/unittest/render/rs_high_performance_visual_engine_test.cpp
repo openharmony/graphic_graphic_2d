@@ -114,6 +114,22 @@ HWTEST_F(RSHveFilterTest, GetSurfaceNodeSizeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasValidFilterNodeTest
+ * @tc.desc: Verify function HasValidFilterNode
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHveFilterTest, HasValidFilterNodeTest, TestSize.Level1)
+{
+    HveFilter filter;
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.SetIsParallelCanvas(true);
+    filter.ClearSurfaceToFilterNodeMap();
+    EXPECT_FALSE(filter.HasValidFilterNode(RSPaintFilterCanvas, 1001));
+}
+
+/**
  * @tc.name: HasValidEffectTest
  * @tc.desc: Verify function HasValidEffect
  * @tc.type:FUNC
