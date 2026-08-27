@@ -288,7 +288,7 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
         Drawing::DrawOpItem::Type invalidType) -> bool {
         auto slot = GetModifiersNG(type);
         if (slot.empty()) {
-            RS_LOGW("solidLayer: CheckCmdIn2Modifier no slot");
+            RS_LOGD("solidLayer: CheckCmdIn2Modifier no slot");
             return true;
         }
         auto typeString = ModifierNG::RSModifierTypeString::GetModifierTypeString(type);
@@ -299,11 +299,11 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
             }
             const auto& drawOpItems = cmdList->GetDrawOpItems();
             if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
-                RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
+                RS_LOGD("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
                 return true;
             }
         }
-        RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is true %{public}s", typeString.c_str());
+        RS_LOGD("solidLayer: CheckCmdIn2Modifier ret is true %{public}s", typeString.c_str());
         return false;
     };
 
