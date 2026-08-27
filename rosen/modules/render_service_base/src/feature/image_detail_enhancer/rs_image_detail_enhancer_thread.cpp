@@ -469,7 +469,6 @@ void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, uint64_t nodeI
             }
         }
         imageList_.pop_back();
-
     }
     imageList_.emplace_front(ImageKey{imageId, nodeId}, image);
     keyMap_[{imageId, nodeId}] = imageList_.begin();
