@@ -23,6 +23,8 @@
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
+#include "parameters.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
 
@@ -50,6 +52,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     // update pid of pkg
     for (const auto& it : foregroundPidAppMap_) {
         backgroundPid_.Put(it.first);
+    }
+    // update foreground app for frame stats
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled() && !pkgs_.empty())) {
+        RSFrameStatsCollection::GetInstance().SetForegroundApp(pkgs_);
     }
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();

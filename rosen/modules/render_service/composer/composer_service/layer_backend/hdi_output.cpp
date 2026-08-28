@@ -20,6 +20,7 @@
 #include "common/rs_common_hook.h"
 #include "hdi_log.h"
 #include "hdi_output.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "metadata_helper.h"
 #include "rs_trace.h"
 #include "string_utils.h"
@@ -936,6 +937,11 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     CHECK_DEVICE_NULL(device_);
     layersId_.clear();
     fences_.clear();
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSRenderComposer::CommitAndGetReleaseFence));
+    }
+
     int32_t ret = device_->CommitAndGetReleaseFence(
         screenId_, fbFence, skipState, needFlush, layersId_, fences_, isValidated);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {

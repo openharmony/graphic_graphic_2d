@@ -26,6 +26,7 @@
 #include "feature/opinc/rs_layer_part_draw_cache_helper.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -280,6 +281,14 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         RS_TRACE_NAME_FMT("UpdateCacheSurface id:%" PRIu64 ", isForegroundFilter:%d, isOpinc:%d, isFreeze:[%d, %d]",
             nodeId_, isForegroundFilterCache, opincCachedMark, params.GetRSFreezeFlag(),
             params.IsFreezedByUser());
+        if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+            RSFrameStatsCollection::GetInstance().Increment(
+                FrameStatsCounter::ToIndex(FrameStatsCounter::RSUniRenderThread::UpdateCacheSurface));
+            if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+                RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                    params.GetInstanceRootNodeName(), "UpdateCacheSurface");
+            }
+        }
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         NodeId rootId = curDrawingCacheRootId_;
         curDrawingCacheRoot_ = this;

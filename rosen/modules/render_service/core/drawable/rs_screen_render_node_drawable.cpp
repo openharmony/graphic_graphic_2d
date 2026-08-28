@@ -56,6 +56,7 @@
 #include "params/rs_surface_render_params.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -367,12 +368,20 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         "byHardCursor: %d", forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hardCursorNeedCommit);
     if (!layersNeedCommit && !hardCursorNeedCommit) {
         RS_TRACE_NAME("ScreenNodeSkip skip commit");
+        if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+            RSFrameStatsCollection::GetInstance().Increment(
+                FrameStatsCounter::ToIndex(FrameStatsCounter::RSUniRenderThread::SkipCommitFrames));
+        }
         return true;
     }
 
     if (!processor->InitForRenderThread(*this, RSUniRenderThread::Instance().GetRenderEngine())) {
         RS_LOGE("RSScreenRenderNodeDrawable::CheckScreenNodeSkip processor init failed");
         return false;
+    }
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSUniRenderThread::SkipForceCommitFrames));
     }
     RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
     auto& hardwareDrawables =
@@ -752,6 +761,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSUniRenderThread::TotalFrames));
+    }
     RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64"] zoomed(%d)",
         paramScreenId, GetId(), params->GetZoomed());
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
@@ -869,6 +882,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RectVectorToString(damageRegionrects).substr(0, MAX_DAMAGE_REGION_INFO).c_str());
         if (LIKELY(needSetDamageForPartialRender && !uniParam->IsRegionDebugEnabled())) {
             renderFrame->SetDamageRegion(damageRegionrects);
+        }
+        if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+            uint64_t damageArea = 0;
+            for (const auto& rect : damageRegionrects) {
+                damageArea += static_cast<uint64_t>(rect.width_) * static_cast<uint64_t>(rect.height_);
+            }
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                "ScreenNode", "SetDamageRegionArea", damageArea);
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                "ScreenNode", "SetDamageRegionNums", damageRegionrects.size());
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode("ScreenNode", "SetDamageRegionCount");
         }
     }
 

@@ -50,6 +50,7 @@
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
 #include "feature/layer/rs_layer_cache_manager_base.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
@@ -3457,6 +3458,13 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     }
     UpdateSDFTransformRectInfo();
     UpdateDrawableVecV2();
+    if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+        auto &drawableMap = GetDrawableVec(__func__);
+        const auto &surfaceNodeName = stagingRenderParams_->GetInstanceRootNodeName();
+        for (const auto &[slot, drawable] : drawableMap) {
+            RSFrameStatsCollection::GetInstance().IncrementDrawableBySurfaceNode(surfaceNodeName, slot);
+        }
+    }
 
     UpdateFilterCacheWithBackgroundDirty();
     UpdateFilterRectInfo();

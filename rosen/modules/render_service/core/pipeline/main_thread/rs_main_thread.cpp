@@ -88,6 +88,7 @@
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #include "memory/rs_memory_graphic.h"
@@ -536,6 +537,10 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     RS_LOGI("RSMainThread init.");
     mainLoop_ = [&]() {
         RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
+        if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+            RSFrameStatsCollection::GetInstance().Increment(
+                FrameStatsCounter::ToIndex(FrameStatsCounter::RSMainThread::TotalFrames));
+        }
         if (isUniRender_ && !renderThreadParams_) {
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
@@ -3016,6 +3021,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             needDrawFrame_ = false;
             RS_LOGD_IF(DEBUG_PIPELINE, "Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
+            if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+                RSFrameStatsCollection::GetInstance().Increment(
+                    FrameStatsCounter::ToIndex(FrameStatsCounter::RSMainThread::NothingToUpdateFrames));
+            }
             RSMainThread::Instance()->SetFrameIsRender(false);
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
             // "Nothing to update" — no composition happened, no HdiOutput conflict.
@@ -3217,6 +3226,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSMainThread::DirectCompositionFrames));
+    }
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
     for (const auto& child : children) {
         auto node = child.lock();
@@ -4273,6 +4286,10 @@ void RSMainThread::Animate(uint64_t timestamp)
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
         GpuDirtyRegionCollection::GetInstance().AddFrameAnimationNumberForDFX();
+        if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+            RSFrameStatsCollection::GetInstance().Increment(
+                FrameStatsCounter::ToIndex(FrameStatsCounter::RSMainThread::AnimationRunningEmpty));
+        }
     }
 
     doWindowAnimate_ = curWinAnim;

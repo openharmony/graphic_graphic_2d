@@ -41,6 +41,7 @@
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "dfx/rs_pipeline_dump_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -192,6 +193,7 @@ void RSPipelineDumper::RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpMana
     RegisterSurfaceInfoFuncs(rpDumpManager);
     RegisterFpsFuncs(rpDumpManager);
     RegisterContextStatesFuncs(rpDumpManager);
+    RegisterFrameStatsFuncs(rpDumpManager);
 }
 
 void RSPipelineDumper::RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
@@ -777,6 +779,31 @@ void RSPipelineDumper::DumpFps(std::string& dumpString, std::string& layerName) 
             (*iter)->DumpFps(dumpString, layerName);
         }
     });
+}
+
+void RSPipelineDumper::RegisterFrameStatsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
+{
+    RSDumpFunc frameStatsInfoFunc = [this](const std::u16string &cmd,
+                                            std::unordered_set<std::u16string> &argSets,
+                                            std::string &dumpString) -> void {
+        RS_TRACE_NAME("RSPipelineDumper::DumpFrameStats");
+        dumpString.append(RSFrameStatsCollection::GetInstance().DumpFrameStats());
+    };
+
+    RSDumpFunc frameStatsClearFunc = [this](const std::u16string &cmd,
+                                             std::unordered_set<std::u16string> &argSets,
+                                             std::string &dumpString) -> void {
+        RS_TRACE_NAME("RSPipelineDumper::ResetFrameStats");
+        RSFrameStatsCollection::GetInstance().ResetFrameStats();
+        dumpString.append("Framestats counters cleared.\n");
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::FRAME_STATS_INFO, frameStatsInfoFunc },
+        { RSDumpID::FRAME_STATS_CLEAR, frameStatsClearFunc },
+    };
+
+    rpDumpManager->Register(handers);
 }
 
 void RSPipelineDumper::ScheduleTask(std::function<void()> task) const

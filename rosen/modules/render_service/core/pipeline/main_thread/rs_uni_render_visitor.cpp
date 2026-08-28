@@ -54,6 +54,7 @@
 #ifdef RS_ENABLE_TV_SHUTTER_3D
 #include "feature/video_3d/rs_tv_shutter_3d_manager.h"
 #endif
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
@@ -880,6 +881,12 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     PrepareForMultiScreenViewDisplayNode(node);
     node.ResetDirtyFlag();
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareScreenRenderNode childNumber: %d", rsScreenNodeChildNum_);
+    if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+        RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+            "ScreenNode", "QuickPrepareChildNumber", rsScreenNodeChildNum_, FrameStatsDetail::MainThread);
+        RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+            "ScreenNode", "ScreenNodeQuickPrepareNums", 1, FrameStatsDetail::MainThread);
+    }
 }
 
 bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node)
