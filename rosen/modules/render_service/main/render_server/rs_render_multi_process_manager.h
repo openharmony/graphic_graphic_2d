@@ -53,6 +53,7 @@ public:
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
     std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const override;
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override;
 
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override;
 

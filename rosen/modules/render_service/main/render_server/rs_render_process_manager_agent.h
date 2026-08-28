@@ -32,8 +32,10 @@ public:
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;
 
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer);
+
     std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const;
-    std::pair<sptr<RSScreenProperty>, std::shared_ptr<IpcPersistenceTypeToDataMap>> GetProcessInfo(
+    sptr<RSScreenProperty> GetProcessInfo(
         pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection);
 
 private:

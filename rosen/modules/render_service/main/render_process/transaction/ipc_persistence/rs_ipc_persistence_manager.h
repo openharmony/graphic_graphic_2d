@@ -16,44 +16,78 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_IPC_PERSISTENCE_RS_IPC_PERSISTENCE_MANAGER_H
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_IPC_PERSISTENCE_RS_IPC_PERSISTENCE_MANAGER_H
 
+#include <cstdint>
+#include <limits>
 #include <mutex>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
+#include <parcel.h>
+#include "ipc_types.h"
 
 #include "rs_ipc_persistence_def.h"
 
 namespace OHOS {
 namespace Rosen {
+
 class RSIpcPersistenceManager {
 public:
+    using TransferFactory = std::shared_ptr<RSIpcTransferBase>(*)(Parcel&, uint32_t, int32_t&);
+
     RSIpcPersistenceManager() = default;
     ~RSIpcPersistenceManager() noexcept = default;
 
-    IpcPersistenceTypeToDataMap GetReplayData() const;
+    RSIpcPersistenceManager(const RSIpcPersistenceManager&) = delete;
+    RSIpcPersistenceManager& operator=(const RSIpcPersistenceManager&) = delete;
+    RSIpcPersistenceManager(RSIpcPersistenceManager&&) = delete;
+    RSIpcPersistenceManager& operator=(RSIpcPersistenceManager&&) = delete;
 
-    // used to register a IPC with calling PID
-    void RegisterWithCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data);
-    // used to register a IPC without calling PID
-    void RegisterWithoutCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data);
+    static void RegisterFactory(RSIServiceToRenderConnectionInterfaceCode typeId, TransferFactory factory);
+    static std::shared_ptr<const std::vector<RSIServiceToRenderConnectionInterfaceCode>> GetRegisteredTypeIds();
+    static std::shared_ptr<std::mutex> GetTypeMutex(RSIServiceToRenderConnectionInterfaceCode typeId);
+    static std::shared_ptr<RSIpcTransferBase> CreateTransferByTypeId(
+        RSIServiceToRenderConnectionInterfaceCode typeId, Parcel& parcel,
+        int32_t& errCode, uint32_t maxEntries = std::numeric_limits<uint32_t>::max());
+    void PersistTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer);
+    void ClearPid(pid_t pid);
 
-    // unregister all IPCs of a specific type
-    void UnregisterByType(RSIpcPersistenceType type);
-    // unregister all IPCs with calling PID
-    void UnregisterByCallingPid(pid_t pid);
-
-    // unregister IPC with calling PID of a specific type
-    void UnregisterByTypeAndCallingPid(RSIpcPersistenceType type, pid_t pid);
-    // unregister IPC without calling PID of a specific type
-    void UnregisterWithoutCallingPidByType(RSIpcPersistenceType type);
-
-    static bool Marshalling(Parcel& parcel, const IpcPersistenceTypeToDataMap& typeToDataMap);
-    static std::optional<IpcPersistenceTypeToDataMap> Unmarshalling(Parcel& parcel);
+    IpcPersistenceMap GetPersistenceMap() const;
+    static bool Marshalling(Parcel& parcel, const IpcPersistenceMap& map);
+    [[nodiscard]] static std::optional<IpcPersistenceMap> Unmarshalling(Parcel& parcel);
 
 private:
-    void UnregisterByTypeAndCallingPidLocked(RSIpcPersistenceType type, pid_t pid);
-    void UnregisterWithoutCallingPidByTypeLocked(RSIpcPersistenceType type);
+    using FactoryMap = std::unordered_map<RSIServiceToRenderConnectionInterfaceCode, TransferFactory>;
+    using TypeMutexMap = std::unordered_map<RSIServiceToRenderConnectionInterfaceCode, std::shared_ptr<std::mutex>>;
+    struct FactoryRegistry {
+        std::mutex mutex;
+        FactoryMap map;
+        TypeMutexMap typeMutexes;
+        std::shared_ptr<const std::vector<RSIServiceToRenderConnectionInterfaceCode>> typeIds =
+            std::make_shared<std::vector<RSIServiceToRenderConnectionInterfaceCode>>();
+    };
+    static FactoryRegistry& GetFactoryRegistry();
 
     mutable std::mutex mutex_;
-    IpcPersistenceTypeToDataMap replayData_;
+    IpcPersistenceMap persistedData_;
 };
+
+template<RSIServiceToRenderConnectionInterfaceCode TypeId, typename TransferClass>
+class RSIpcPersistentTransferRegister {
+public:
+    RSIpcPersistentTransferRegister()
+    {
+        RSIpcPersistenceManager::RegisterFactory(
+            TypeId,
+            [](Parcel& parcel, uint32_t maxEntries, int32_t& errCode) -> std::shared_ptr<RSIpcTransferBase> {
+                return TransferClass::StubUnmarshalling(parcel, maxEntries, errCode);
+            });
+    }
+};
+
+template<typename TransferClass>
+const RSIpcPersistentTransferRegister<TransferClass::TypeId, TransferClass>
+    TransferRegistrationChecker<TransferClass>::registrar;
 } // namespace Rosen
 } // namespace OHOS
 

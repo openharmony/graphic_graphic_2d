@@ -19,7 +19,7 @@
 #include "iremote_object.h"
 #include "message_parcel.h"
 
-#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_def.h"
 #include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
@@ -28,9 +28,9 @@ struct ReplyToRenderInfo : public Parcelable {
 public:
     ReplyToRenderInfo() = default;
     ReplyToRenderInfo(const sptr<IRemoteObject>& composerConnection, const sptr<RSScreenProperty>& rsScreenProperty,
-        const sptr<IRemoteObject>& vsyncConn, const std::shared_ptr<IpcPersistenceTypeToDataMap>& replayData)
+        const sptr<IRemoteObject>& vsyncConn, IpcPersistenceMap persistenceData)
         : composeConnection_(composerConnection), rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn),
-          replayData_(replayData) {}
+          persistenceData_(std::move(persistenceData)) {}
     ~ReplyToRenderInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
@@ -39,7 +39,7 @@ public:
     sptr<IRemoteObject> composeConnection_ = nullptr;
     sptr<RSScreenProperty> rsScreenProperty_ = nullptr;
     sptr<IRemoteObject> vsyncConn_ = nullptr;
-    std::shared_ptr<IpcPersistenceTypeToDataMap> replayData_ = nullptr;
+    IpcPersistenceMap persistenceData_;
 };
 
 struct ConnectToServiceInfo : public Parcelable {

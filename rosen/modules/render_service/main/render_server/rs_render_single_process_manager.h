@@ -39,6 +39,7 @@ public:
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId = 0) const override;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override;
 
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
 

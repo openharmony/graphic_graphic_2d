@@ -343,6 +343,64 @@ std::shared_ptr<RSIpcPersistenceManager> RSMultiRenderProcessManager::GetIpcPers
     return ipcPersistenceManager_;
 }
 
+int32_t RSMultiRenderProcessManager::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (!transfer) {
+        RS_LOGE("%{public}s: transfer is nullptr", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+
+    auto persistenceManager = GetIpcPersistenceManager();
+    bool needPersist = persistenceManager && transfer->IsPersistent();
+    if (needPersist) {
+        persistenceManager->PersistTransfer(transfer);
+    }
+
+    auto conns = GetServiceToRenderConns();
+    if (conns.empty()) {
+        RS_LOGE("%{public}s: serviceToRenderConns is empty", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    auto policy = transfer->GetFanoutPolicy();
+    bool anySuccess = false;
+    int32_t firstErr = StatusCode::RS_CONNECTION_ERROR;
+    for (const auto& conn : conns) {
+        if (!conn) {
+            RS_LOGE("%{public}s: conn is nullptr", __func__);
+            continue;
+        }
+        auto perConnTransfer = transfer->CopyTransfer();
+        int32_t ret = conn->SendTransfer(perConnTransfer);
+        if (ret != StatusCode::SUCCESS) {
+            RS_LOGE("%{public}s: SendTransfer failed, err=%{public}d", __func__, ret);
+            if (policy == FanoutPolicy::FAIL_FAST) {
+                return ret;
+            }
+            if (firstErr == StatusCode::RS_CONNECTION_ERROR) {
+                firstErr = ret;
+            }
+            continue;
+        }
+        anySuccess = true;
+        int32_t result = perConnTransfer->GetReplyResult();
+        bool isReplyErr =
+            result != Detail::REPLY_RESULT_PENDING && result != StatusCode::SUCCESS;
+        if (!isReplyErr) {
+            continue;
+        }
+        if (policy == FanoutPolicy::FAIL_FAST) {
+            return result;
+        }
+        if (firstErr == StatusCode::RS_CONNECTION_ERROR) {
+            firstErr = result;
+        }
+    }
+    if (anySuccess) {
+        return StatusCode::SUCCESS;
+    }
+    return firstErr;
+}
+
 void RSMultiRenderProcessManager::RenderProcessDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remoteObject)
 {
     auto remoteObjectSptr = remoteObject.promote();

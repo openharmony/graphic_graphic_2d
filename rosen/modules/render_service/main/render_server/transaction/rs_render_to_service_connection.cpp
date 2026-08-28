@@ -70,7 +70,7 @@ sptr<ReplyToRenderInfo> RSRenderToServiceConnection::SendProcessInfo(
     }
     // preparing required infos
     RS_LOGI("%{public}s: Preparing Required Infos", __func__);
-    auto [rsScreenProperty, replayData] = renderProcessManagerAgent_->GetProcessInfo(remotePid, composerToRenderConn);
+    auto rsScreenProperty = renderProcessManagerAgent_->GetProcessInfo(remotePid, composerToRenderConn);
     if (!rsScreenProperty) {
         RS_LOGE("%{public}s: rsScreenProperty is nullptr", __func__);
         return nullptr;
@@ -81,8 +81,14 @@ sptr<ReplyToRenderInfo> RSRenderToServiceConnection::SendProcessInfo(
         RS_LOGE("%{public}s: renderToComposerConnection or vsyncConnection is nullptr", __func__);
         return nullptr;
     }
+    auto manager = renderProcessManagerAgent_->GetIpcPersistenceManager();
+    if (!manager) {
+        RS_LOGE("%{public}s: manager is nullptr", __func__);
+        return nullptr;
+    }
+    auto snapshot = manager->GetPersistenceMap();
     return sptr<ReplyToRenderInfo>::MakeSptr(
-        renderToComposerConnection->AsObject(), rsScreenProperty, vsyncConnection->AsObject(), replayData);
+        renderToComposerConnection->AsObject(), rsScreenProperty, vsyncConnection->AsObject(), std::move(snapshot));
 }
 
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(uint64_t timestamp,

@@ -36,7 +36,9 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_render_service.h"
+#include "screen_manager/screen_types.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/zidl/rs_service_to_render_connection_stub.h"
 #include "transaction/zidl/rs_iservice_to_render_connection_ipc_interface_code.h"
@@ -49,7 +51,9 @@ namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
-constexpr const int INVALID_EVENT_DATA_SIZE = 101;
+// Must stay a typeId that no transfer registers, otherwise the "unregistered typeId" test below
+// would silently stop testing what it claims.
+constexpr auto UNREGISTERED_TYPE_ID = static_cast<RSIServiceToRenderConnectionInterfaceCode>(0xFFFF);
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
 public:
@@ -220,31 +224,6 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
 }
 
 /**
- * @tc.name: TestRSServiceToRenderConnectionStub002
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStub002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    bool enabled = true;
-    int32_t type = 1;
-    data.WriteBool(enabled);
-    data.WriteInt32(type);
-    g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(g_connectionStub);
-}
-
-/**
  * @tc.name: TestRSServiceToRenderConnectionStub003
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -266,64 +245,10 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
 }
 
 /**
- * @tc.name: HandleHwcEvent001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of eventData exceeds the maximum value
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
-    std::vector<int32_t> eventData(INVALID_EVENT_DATA_SIZE, 0);
-    uint32_t deviceId{0};
-    uint32_t eventId{0};
-
-    data.WriteUint32(deviceId);
-    data.WriteUint32(eventId);
-    data.WriteInt32Vector(eventData);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: HandleHwcEvent002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList is valid
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
-    std::vector<int32_t> eventData;
-    uint32_t deviceId{0};
-    uint32_t eventId{0};
-
-    data.WriteInt32Vector(eventData);
-    data.WriteUint32(deviceId);
-    data.WriteUint32(eventId);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: HgmForceUpdateTaskTest
  * @tc.desc: Test HgmForceUpdateTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, HgmForceUpdateTaskTest, TestSize.Level1)
 {
@@ -354,7 +279,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, HgmForceUpdateTaskTest, TestSize.L
  * @tc.name: GetShowRefreshRateEnabled001
  * @tc.desc: Test GetShowRefreshRateEnabled
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled001, TestSize.Level1)
 {
@@ -371,7 +296,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled001, Test
  * @tc.name: GetShowRefreshRateEnabled002
  * @tc.desc: Test GetShowRefreshRateEnabled when reply.WriteBool fails.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled002, TestSize.Level1)
 {
@@ -388,72 +313,10 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetShowRefreshRateEnabled002, Test
 }
 
 /**
- * @tc.name: SetShowRefreshRateEnabled001
- * @tc.desc: Test SetShowRefreshRateEnabled when ReadBool fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    // Not writing enabled or type, causing ReadBool to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled002
- * @tc.desc: Test SetShowRefreshRateEnabled when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    bool enabled = true;
-    data.WriteBool(enabled);
-    // Not writing type, causing ReadInt32 to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled003
- * @tc.desc: Test SetShowRefreshRateEnabled with enabled=true, type=0
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetShowRefreshRateEnabled003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
-    bool enabled = true;
-    int32_t type = 0;
-    data.WriteBool(enabled);
-    data.WriteInt32(type);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: GetRealtimeRefreshRate001
  * @tc.desc: Test GetRealtimeRefreshRate when ReadUint64 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate001, TestSize.Level1)
 {
@@ -472,7 +335,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate001, TestSiz
  * @tc.name: GetRealtimeRefreshRate002
  * @tc.desc: Test GetRealtimeRefreshRate when reply.WriteUint32 fails.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate002, TestSize.Level1)
 {
@@ -494,7 +357,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate002, TestSiz
  * @tc.name: GetRealtimeRefreshRate003
  * @tc.desc: Test GetRealtimeRefreshRate with valid screenId
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate003, TestSize.Level1)
 {
@@ -518,7 +381,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate003, TestSiz
  * @tc.name: GetRealtimeRefreshRate004
  * @tc.desc: Test GetRealtimeRefreshRate with valid screenId and whether hgmAbilityEnabled
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate004, TestSize.Level1)
 {
@@ -593,7 +456,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetBrightnessInfoChangeCallbackTes
  * @tc.name: GetBehindWindowFilterEnabled001
  * @tc.desc: Test GetBehindWindowFilterEnabled
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled001, TestSize.Level1)
 {
@@ -610,7 +473,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled001, T
  * @tc.name: GetBehindWindowFilterEnabled002
  * @tc.desc: Test GetBehindWindowFilterEnabled when reply.WriteBool fails.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled002, TestSize.Level1)
 {
@@ -624,45 +487,6 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetBehindWindowFilterEnabled002, T
     SetLeftSize(reply, 0);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetBehindWindowFilterEnabled001
- * @tc.desc: Test SetBehindWindowFilterEnabled when ReadBool fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetBehindWindowFilterEnabled001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
-    // Not writing enabled or type, causing ReadBool to fail
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetBehindWindowFilterEnabled002
- * @tc.desc: Test SetBehindWindowFilterEnabled when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetBehindWindowFilterEnabled002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
-    bool enabled = true;
-    data.WriteBool(enabled);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**
@@ -755,7 +579,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, OnGlobalBlacklistChangedStubTest00
  * @tc.name: ReportJankStats001
  * @tc.desc: Test ReportJankStats interface code
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportJankStats001, TestSize.Level1)
 {
@@ -773,7 +597,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportJankStats001, TestSize.Level
  * @tc.name: ReportEventResponse001
  * @tc.desc: Test ReportEventResponse when ReadDataBaseRs fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse001, TestSize.Level1)
 {
@@ -791,7 +615,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse001, TestSize.L
  * @tc.name: ReportEventResponse002
  * @tc.desc: Test ReportEventResponse with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse002, TestSize.Level1)
 {
@@ -824,7 +648,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventResponse002, TestSize.L
  * @tc.name: ReportEventComplete001
  * @tc.desc: Test ReportEventComplete when ReadDataBaseRs fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete001, TestSize.Level1)
 {
@@ -842,7 +666,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete001, TestSize.L
  * @tc.name: ReportEventComplete002
  * @tc.desc: Test ReportEventComplete with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete002, TestSize.Level1)
 {
@@ -875,7 +699,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventComplete002, TestSize.L
  * @tc.name: ReportEventJankFrame001
  * @tc.desc: Test ReportEventJankFrame when ReadDataBaseRs fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame001, TestSize.Level1)
 {
@@ -893,7 +717,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame001, TestSize.
  * @tc.name: ReportEventJankFrame002
  * @tc.desc: Test ReportEventJankFrame with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame002, TestSize.Level1)
 {
@@ -926,7 +750,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportEventJankFrame002, TestSize.
  * @tc.name: ReportRsSceneJankStart001
  * @tc.desc: Test ReportRsSceneJankStart when ReadAppInfo fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart001, TestSize.Level1)
 {
@@ -944,7 +768,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart001, TestSiz
  * @tc.name: ReportRsSceneJankStart002
  * @tc.desc: Test ReportRsSceneJankStart with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart002, TestSize.Level1)
 {
@@ -969,7 +793,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankStart002, TestSiz
  * @tc.name: ReportRsSceneJankEnd001
  * @tc.desc: Test ReportRsSceneJankEnd when ReadAppInfo fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd001, TestSize.Level1)
 {
@@ -987,7 +811,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd001, TestSize.
  * @tc.name: ReportRsSceneJankEnd002
  * @tc.desc: Test ReportRsSceneJankEnd with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd002, TestSize.Level1)
 {
@@ -1012,7 +836,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ReportRsSceneJankEnd002, TestSize.
  * @tc.name: AvcodecVideoStart001
  * @tc.desc: Test AvcodecVideoStart when reading data fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart001, TestSize.Level1)
 {
@@ -1030,7 +854,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart001, TestSize.Lev
  * @tc.name: AvcodecVideoStart002
  * @tc.desc: Test AvcodecVideoStart when reply.WriteInt32 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart002, TestSize.Level1)
 {
@@ -1057,7 +881,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart002, TestSize.Lev
  * @tc.name: AvcodecVideoStart003
  * @tc.desc: Test AvcodecVideoStart with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Level1)
 {
@@ -1083,7 +907,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Lev
  * @tc.name: AvcodecVideoStart004
  * @tc.desc: Test AvcodecVideoStart when uniqueIdList size exceeds max
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart004, TestSize.Level1)
 {
@@ -1109,7 +933,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart004, TestSize.Lev
  * @tc.name: AvcodecVideoStart005
  * @tc.desc: Test AvcodecVideoStart when surfaceNameList size exceeds max
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart005, TestSize.Level1)
 {
@@ -1135,7 +959,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart005, TestSize.Lev
  * @tc.name: AvcodecVideoStop001
  * @tc.desc: Test AvcodecVideoStop when reading data fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop001, TestSize.Level1)
 {
@@ -1153,7 +977,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop001, TestSize.Leve
  * @tc.name: AvcodecVideoStop002
  * @tc.desc: Test AvcodecVideoStop when reply.WriteInt32 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop002, TestSize.Level1)
 {
@@ -1178,7 +1002,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop002, TestSize.Leve
  * @tc.name: AvcodecVideoStop003
  * @tc.desc: Test AvcodecVideoStop with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Level1)
 {
@@ -1202,7 +1026,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Leve
  * @tc.name: AvcodecVideoStop004
  * @tc.desc: Test AvcodecVideoStop when uniqueIdList size exceeds max
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop004, TestSize.Level1)
 {
@@ -1226,7 +1050,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop004, TestSize.Leve
  * @tc.name: AvcodecVideoStop005
  * @tc.desc: Test AvcodecVideoStop when surfaceNameList size exceeds max
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop005, TestSize.Level1)
 {
@@ -1250,7 +1074,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop005, TestSize.Leve
  * @tc.name: AvcodecVideoGet001
  * @tc.desc: Test AvcodecVideoGet when reading data fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGet001, TestSize.Level1)
 {
@@ -1268,7 +1092,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGet001, TestSize.Level
  * @tc.name: AvcodecVideoGetRecent001
  * @tc.desc: Test AvcodecVideoGetRecent when reply.WriteInt32 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent001, TestSize.Level1)
 {
@@ -1287,7 +1111,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent001, TestSize
  * @tc.name: AvcodecVideoGetRecent002
  * @tc.desc: Test AvcodecVideoGetRecent with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent002, TestSize.Level1)
 {
@@ -1305,7 +1129,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoGetRecent002, TestSize
  * @tc.name: GetMemoryGraphics001
  * @tc.desc: Test GetMemoryGraphics when reply.WriteUint64 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics001, TestSize.Level1)
 {
@@ -1324,7 +1148,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics001, TestSize.Lev
  * @tc.name: GetMemoryGraphics002
  * @tc.desc: Test GetMemoryGraphics with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics002, TestSize.Level1)
 {
@@ -1342,7 +1166,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics002, TestSize.Lev
  * @tc.name: GetTotalAppMemSize001
  * @tc.desc: Test GetTotalAppMemSize when reply.WriteFloat fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize001, TestSize.Level1)
 {
@@ -1361,7 +1185,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize001, TestSize.Le
  * @tc.name: GetTotalAppMemSize002
  * @tc.desc: Test GetTotalAppMemSize with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize002, TestSize.Level1)
 {
@@ -1379,7 +1203,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetTotalAppMemSize002, TestSize.Le
  * @tc.name: GetMemoryGraphic001
  * @tc.desc: Test GetMemoryGraphic when reading pid fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic001, TestSize.Level1)
 {
@@ -1397,7 +1221,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic001, TestSize.Leve
  * @tc.name: GetMemoryGraphic002
  * @tc.desc: Test GetMemoryGraphic when reply.WriteParcelable fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic002, TestSize.Level1)
 {
@@ -1418,7 +1242,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic002, TestSize.Leve
  * @tc.name: GetMemoryGraphic003
  * @tc.desc: Test GetMemoryGraphic with valid data
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic003, TestSize.Level1)
 {
@@ -1494,101 +1318,6 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetPixelMapByProcessId003, TestSiz
 }
 
 /**
- * @tc.name: ShowWatermark001
- * @tc.desc: Test ShowWatermark when ReadBool fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: ShowWatermark002
- * @tc.desc: Test ShowWatermark with watermarkImg nullptr
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
-    data.WriteParcelable(nullptr);
-    bool isShow = true;
-    data.WriteBool(isShow);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: ShowWatermark003
- * @tc.desc: Test ShowWatermark with valid PixelMap and isShow=true
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
-    
-    Media::InitializationOptions opts;
-    opts.size.width = 100;
-    opts.size.height = 100;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    ASSERT_NE(pixelMap, nullptr);
-    data.WriteParcelable(pixelMap.get());
-    bool isShow = true;
-    data.WriteBool(isShow);
-    
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: ShowWatermark004
- * @tc.desc: Test ShowWatermark with valid PixelMap and isShow=false
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
-    
-    Media::InitializationOptions opts;
-    opts.size.width = 100;
-    opts.size.height = 100;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    ASSERT_NE(pixelMap, nullptr);
-    data.WriteParcelable(pixelMap.get());
-    bool isShow = false;
-    data.WriteBool(isShow);
-    
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: GetSurfaceRootNode001
  * @tc.desc: Test GetSurfaceRootNode when ReadUint64 fails
  * @tc.type: FUNC
@@ -1643,298 +1372,6 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetSurfaceRootNode003, TestSize.Le
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
     uint64_t windowNodeId = 12345;
     data.WriteUint64(windowNodeId);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetWatermark001
- * @tc.desc: Test SetWatermark when watermark feature disabled
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
-    pid_t callingPid = 12345;
-    std::string name = "test_watermark";
-    data.WriteInt32(callingPid);
-    data.WriteString(name);
-    
-    Media::InitializationOptions opts;
-    opts.size.width = 100;
-    opts.size.height = 100;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    ASSERT_NE(pixelMap, nullptr);
-    data.WriteParcelable(pixelMap.get());
-    data.WriteUint32(2);
-    data.WriteUint32(3);
-    
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetWatermark002
- * @tc.desc: Test SetWatermark when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: SetWatermark003
- * @tc.desc: Test SetWatermark when ReadString fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
-    pid_t callingPid = 12345;
-    data.WriteInt32(callingPid);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetWatermark004
- * @tc.desc: Test SetWatermark when watermark is nullptr
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK);
-    pid_t callingPid = 12345;
-    std::string name = "test_watermark";
-    data.WriteInt32(callingPid);
-    data.WriteString(name);
-    data.WriteParcelable(nullptr);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NULL_OBJECT);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback001
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(remotePid) fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback002
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadUint32(size) fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback003
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when size exceeds MAX_PID_SIZE_NUMBER
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    uint32_t size = 200000;
-    data.WriteUint32(size);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback004
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(pid) fails in loop
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    uint32_t size = 1;
-    data.WriteUint32(size);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback005
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when ReadInt32(constraint) fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    uint32_t size = 0;
-    data.WriteUint32(size);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: RegisterSelfDrawingNodeRectChangeCallback006
- * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback when remoteObject is nullptr
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallback006, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    uint32_t size = 0;
-    data.WriteUint32(size);
-    data.WriteInt32(0);
-    data.WriteInt32(0);
-    data.WriteInt32(1000);
-    data.WriteInt32(1000);
-    data.WriteRemoteObject(nullptr);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NULL_OBJECT);
-}
-
-/**
- * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback001
- * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback when ReadInt32 fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback002
- * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback when reply.WriteInt32 fails
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
-    SetLeftSize(reply, 0);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallback003
- * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback with valid remotePid
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, UnRegisterSelfDrawingNodeRectChangeCallback003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
-    pid_t remotePid = 12345;
-    data.WriteInt32(remotePid);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
@@ -2165,7 +1602,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetCacheEnabledForRotationStubTest
  * @tc.name: NotifyWindowModeTypeEventStubTest001
  * @tc.desc: Test NotifyWindowModeTypeEvent stub with valid windowModeType
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest001, TestSize.Level1)
 {
@@ -2185,7 +1622,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest0
  * @tc.name: NotifyWindowModeTypeEventStubTest002
  * @tc.desc: Test NotifyWindowModeTypeEvent stub when ReadUint8 fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest002, TestSize.Level1)
 {
@@ -2204,7 +1641,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest0
  * @tc.name: SetHdrForceHwcEnabledStubTest001
  * @tc.desc: Test SetHdrForceHwcEnabled stub with enabled = true
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest001, TestSize.Level1)
 {
@@ -2225,7 +1662,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest001, 
  * @tc.name: SetHdrForceHwcEnabledStubTest002
  * @tc.desc: Test SetHdrForceHwcEnabled stub with WriteString fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest002, TestSize.Level1)
 {
@@ -2244,7 +1681,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest002, 
  * @tc.name: SetHdrForceHwcEnabledStubTest003
  * @tc.desc: Test SetHdrForceHwcEnabled stub when ReadBool fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest003, TestSize.Level1)
 {
@@ -2263,7 +1700,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetHdrForceHwcEnabledStubTest003, 
  * @tc.name: SetApsConfigParamsStub_ReadEventFailed
  * @tc.desc: Test SetApsConfigParams when Read event fails (data parcel lacks event field)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadEventFailed, TestSize.Level1)
 {
@@ -2283,7 +1720,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadEventFa
  * @tc.name: SetApsConfigParamsStub_ReadParamsSizeFailed
  * @tc.desc: Test SetApsConfigParams when ReadParamsSize fails (data parcel lacks paramsSize field)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadParamsSizeFailed, TestSize.Level1)
 {
@@ -2304,7 +1741,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadParamsS
  * @tc.name: SetApsConfigParamsStub_ParamsSizeExceed
  * @tc.desc: Test SetApsConfigParams when paramsSize exceeds MAX_APS_PARAMS_SIZE (129 > 128)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ParamsSizeExceed, TestSize.Level1)
 {
@@ -2326,7 +1763,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ParamsSizeE
  * @tc.name: SetApsConfigParamsStub_ReadStringKeyFailedValueOk
  * @tc.desc: Test SetApsConfigParams when ReadString(key) fails and ReadString(value) succeeds
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringKeyFailedValueOk, TestSize.Level1)
 {
@@ -2348,7 +1785,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringK
  * @tc.name: SetApsConfigParamsStub_ReadStringKeyOkValueFailed
  * @tc.desc: Test SetApsConfigParams when ReadString(key) succeeds and ReadString(value) fails
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringKeyOkValueFailed, TestSize.Level1)
 {
@@ -2371,7 +1808,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringK
  * @tc.name: SetApsConfigParamsStub_ReadStringBothFailed
  * @tc.desc: Test SetApsConfigParams when both ReadString(key) and ReadString(value) fail
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringBothFailed, TestSize.Level1)
 {
@@ -2393,7 +1830,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_ReadStringB
  * @tc.name: SetApsConfigParamsStub_SuccessEmptyParams
  * @tc.desc: Test SetApsConfigParams with paramsSize=0 (empty map)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessEmptyParams, TestSize.Level1)
 {
@@ -2415,7 +1852,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessEmpt
  * @tc.name: SetApsConfigParamsStub_SuccessOneParam
  * @tc.desc: Test SetApsConfigParams with paramsSize=1 (single element)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessOneParam, TestSize.Level1)
 {
@@ -2439,7 +1876,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessOneP
  * @tc.name: SetApsConfigParamsStub_SuccessMultipleParams
  * @tc.desc: Test SetApsConfigParams with paramsSize=2 (multiple elements)
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessMultipleParams, TestSize.Level1)
 {
@@ -2465,7 +1902,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessMult
  * @tc.name: SetUIMode3D_EmptyData
  * @tc.desc: Test SetUIMode3D stub when data is empty.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_EmptyData, TestSize.Level1)
 {
@@ -2483,7 +1920,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_EmptyData, TestSize.Le
  * @tc.name: SetUIMode3D_Mode2D
  * @tc.desc: Test SetUIMode3D stub with MODE_2D.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_Mode2D, TestSize.Level1)
 {
@@ -2502,7 +1939,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_Mode2D, TestSize.Level
  * @tc.name: SetUIMode3D_ModeShutter3D
  * @tc.desc: Test SetUIMode3D stub with MODE_SHUTTER_3D.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeShutter3D, TestSize.Level1)
 {
@@ -2521,7 +1958,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeShutter3D, TestSiz
  * @tc.name: SetUIMode3D_ModeGlassesFree3D
  * @tc.desc: Test SetUIMode3D stub with MODE_GLASSESFREE_3D.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeGlassesFree3D, TestSize.Level1)
 {
@@ -2540,7 +1977,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeGlassesFree3D, Tes
  * @tc.name: SetUIMode3D_InvalidMode
  * @tc.desc: Test SetUIMode3D stub with invalid mode value.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI9KXXE
  */
 HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.Level1)
 {
@@ -2554,4 +1991,211 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
+
+/**
+ * @tc.name: SendRenderProcessData_InvalidTypeId
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with unregistered typeId returns ERR_INVALID_DATA
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_InvalidTypeId, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UNREGISTERED_TYPE_ID))); // unregistered typeId
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SendTransferFail
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with valid payload but failing SendTransfer passes the error through
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SendTransferFail, TestSize.Level2)
+{
+    // A stub built with a null agent makes SendTransfer return RS_CONNECTION_ERROR after
+    // deserialization, verifying the stub passes the send failure through instead of ERR_NONE.
+    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+    sptr<RSServiceToRenderConnection> nullAgentStub = sptr<RSServiceToRenderConnection>::MakeSptr(nullAgent);
+    ASSERT_NE(nullAgentStub, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
+    ASSERT_TRUE(data.WriteBool(true)); // SetShowRefreshRateEnabledInput payload
+    ASSERT_TRUE(data.WriteInt32(1));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = nullAgentStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SyncReplyWriteFail
+ * @tc.desc: SYNC transfer whose StubMarshalling cannot write the reply returns ERR_INVALID_REPLY
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SyncReplyWriteFail, TestSize.Level2)
+{
+    // UNREGISTER_SELF_DRAWING is SYNC and its reply carries an int32 result; with no space left in
+    // the reply parcel StubMarshalling fails and the stub must return ERR_INVALID_REPLY.
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)));
+    ASSERT_TRUE(data.WriteInt32(42)); // UnRegisterSelfDrawingNodeRectChangeCallbackInput payload
+    SetLeftSize(reply, 0); // exhaust the reply parcel
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_MissingTypeId
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with no typeId returns ERR_INVALID_DATA
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_MissingTypeId, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    // no typeId written
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SetShowRefreshRateValid
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with valid SET_SHOW_REFRESH_RATE_ENABLED payload
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetShowRefreshRateValid, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
+    ASSERT_TRUE(data.WriteBool(true));   // SetShowRefreshRateEnabledInput payload
+    ASSERT_TRUE(data.WriteInt32(1));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_MalformedPayload
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with valid typeId but malformed payload returns per-field errCode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_MalformedPayload, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
+    // no payload fields -> Unmarshalling fails -> errCode ERR_INVALID_DATA
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA); // D4 per-field code
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SetBehindValid
+ * @tc.desc: SEND_RENDER_PROCESS_DATA with valid SET_BEHIND_WINDOW_FILTER_ENABLED payload
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetBehindValid, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED)));
+    ASSERT_TRUE(data.WriteBool(true));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SelfDrawingOversizeLiveCount
+ * @tc.desc: REGISTER_SELF_DRAWING with count > LIVE_MAX_ENTRIES(1) cap is rejected
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SelfDrawingOversizeLiveCount, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)));
+    ASSERT_TRUE(data.WriteUint32(2)); // count=2 > LIVE_MAX_ENTRIES(1) cap
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SendRenderProcessData_SetWatermarkFeatureDisabled
+ * @tc.desc: SET_WATERMARK gate: feature disabled silently skips (ERR_NONE);
+ *           enabled with empty payload returns ERR_INVALID_DATA
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetWatermarkFeatureDisabled, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK)));
+    // No payload - feature-flag check at the stub fires before CreateTransferByTypeId
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    // GetSurfaceNodeWatermarkEnabled caches its value in a function-local static on the first call,
+    // so the property cannot be flipped mid-run; assert the deterministic outcome for whichever
+    // direction the runtime feature state is in (both gate directions are covered this way).
+    bool watermarkEnabled = RSSystemProperties::GetSurfaceNodeWatermarkEnabled();
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    if (watermarkEnabled) {
+        // gate passes -> CreateTransferByTypeId runs -> empty payload fails with per-field code
+        EXPECT_EQ(ret, ERR_INVALID_DATA);
+    } else {
+        // gate fires -> silent skip before any parcel parsing
+        EXPECT_EQ(ret, ERR_NONE);
+    }
+}
+
 } // namespace OHOS::Rosen

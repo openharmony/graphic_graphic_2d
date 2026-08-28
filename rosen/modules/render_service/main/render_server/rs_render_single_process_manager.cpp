@@ -117,5 +117,28 @@ sptr<RSIConnectToRenderProcess> RSSingleRenderProcessManager::GetConnectToRender
 {
     return connectToRenderConnection_;
 }
+
+int32_t RSSingleRenderProcessManager::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (!transfer) {
+        RS_LOGE("%{public}s: transfer is nullptr", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+
+    if (!serviceToRenderConnection_) {
+        RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+
+    int32_t ret = serviceToRenderConnection_->SendTransfer(transfer);
+    if (ret != StatusCode::SUCCESS) {
+        return ret;
+    }
+    if (!transfer->IsSync()) {
+        return StatusCode::SUCCESS;
+    }
+    int32_t result = transfer->GetReplyResult();
+    return result != Detail::REPLY_RESULT_PENDING ? result : StatusCode::SUCCESS;
+}
 } // namespace Rosen
 } // namespace OHOS
