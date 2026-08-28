@@ -316,6 +316,8 @@ HWTEST_F(HgmFrameVoterTest, TestSkipVirtualDisplay, Function | SmallTest | Level
     int32_t mode = 1;
 
     hgmFrameVoter.DeliverVote({ "VOTER_VIRTUALDISPLAY", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    hgmFrameVoter.DeliverVote({ "VOTER_VIRTUALDISPLAY", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
     hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
 
     // Without skip: VOTER_VIRTUALDISPLAY wins (higher priority than VOTER_GAMES)
@@ -325,6 +327,7 @@ HWTEST_F(HgmFrameVoterTest, TestSkipVirtualDisplay, Function | SmallTest | Level
 
     // With skip + VOTER_GAMES effective: VOTER_VIRTUALDISPLAY skipped, VOTER_GAMES wins
     hgmFrameVoter.SetSkipVirtualDisplay(true);
+    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
     auto [voteInfo2, voteRange2] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
     EXPECT_EQ(voteRange2.first, OLED_120_HZ);
     EXPECT_EQ(voteRange2.second, OLED_120_HZ);
