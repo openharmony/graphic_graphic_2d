@@ -103,7 +103,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 #endif
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),

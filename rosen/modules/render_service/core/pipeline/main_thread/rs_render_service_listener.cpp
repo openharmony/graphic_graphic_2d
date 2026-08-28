@@ -392,7 +392,7 @@ void RSRenderServiceListener::SetRSSurfaceBufferInterface(
 
 void RSRenderServiceListener::OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr || !node->GetDelegateMode()) {
         return;

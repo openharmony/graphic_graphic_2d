@@ -605,7 +605,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSRenderNodeGC::Instance().ReleaseFromTree();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
         RsDelegateCompositeCallbackManager::GetInstance().NotifySurfaceTransactionListener(timestamp_);
 #endif
         if (!isUniRender_) {
@@ -1862,7 +1862,7 @@ void RSMainThread::ProcessCommandForUniRender()
 bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(
     std::shared_ptr<TransactionDataMap>& transactionDataEffective)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     isWebCommandOnly_ =
         RsDelegateCompositeCallbackManager::GetInstance().CheckIsDelegateCompositeOnly(transactionDataEffective);
     return isWebCommandOnly_;
@@ -1872,7 +1872,7 @@ bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(
 
 bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     if (!isWebCommandOnly_) {
         return false;
     }
@@ -1891,7 +1891,7 @@ bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<
 
 void RSMainThread::ProcessDelegateCompositeCommand()
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     if (RsDelegateCompositeCallbackManager::GetInstance().ProcessDelegateCompositeCommand(GetContext())) {
         RS_TRACE_NAME("ProcessDelegateCompositeCommand processed a delegate composite command, trigger next vsync");
         RequestNextVSync();

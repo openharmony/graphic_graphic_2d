@@ -312,7 +312,7 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
         RsDelegateCompositeCallbackManager::GetInstance().DumpInfo(dumpString);
 #endif
     }

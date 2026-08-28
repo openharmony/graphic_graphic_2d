@@ -63,6 +63,7 @@ declare_args() {
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
   graphic_2d_feature_enable_swap_ycbcr_channel = false
+  graphic_2d_feature_enable_delegate_composite = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -216,6 +217,10 @@ if (graphic_2d_feature_tv_metadata_enable) {
 
 if (graphic_2d_feature_enable_swap_ycbcr_channel) {
   gpu_defines += [ "RS_ENABLE_SWAP_YCBCR_CHANNEL" ]
+}
+
+if (graphic_2d_feature_enable_delegate_composite) {
+  gpu_defines += [ "RS_ENABLE_DELEGATE_COMPOSITE" ]
 }
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {

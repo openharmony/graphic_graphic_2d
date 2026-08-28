@@ -42,7 +42,6 @@ static uint64_t CreateUniqueId()
 
 std::unique_ptr<OHOS::Rosen::RSCommand> SurfaceTransactionListener::GetCommand(uint64_t& cmdSeqNum)
 {
-#ifndef ROSEN_CROSS_PLATFORM
     std::lock_guard<std::mutex> lock(mutex_);
     if (workTid_ != gettid()) {
         return nullptr;
@@ -51,9 +50,6 @@ std::unique_ptr<OHOS::Rosen::RSCommand> SurfaceTransactionListener::GetCommand(u
     RS_TRACE_NAME_FMT("SurfaceTransactionCommand GetCommand: uniqueId=%llu, commandSeqNum=%llu",
         uniqueId_, cmdSeqNum);
     return std::make_unique<SurfaceTransactionCommand>(uniqueId_, cmdSeqNum, workPid_, workTid_);
-#else
-    return nullptr;
-#endif
 }
 
 SurfaceTransactionListener::SurfaceTransactionListener(sptr<IRemoteObject> connectToRender)
