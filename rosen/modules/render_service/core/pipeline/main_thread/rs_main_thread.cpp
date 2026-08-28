@@ -3379,7 +3379,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
         RSLuminanceControl::Get().HdrDimmingPostProcess(screenId);
         screenNode->SetLastDisplayHdrStatus(screenNode->GetDisplayHdrStatus());
-        RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
+        RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor, screenNode->GetId());
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
         RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(screenId, refreshRects,
