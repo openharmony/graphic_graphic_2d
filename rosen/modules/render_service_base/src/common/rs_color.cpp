@@ -422,16 +422,6 @@ RSColor RSColor::Sqrt() const
 
 uint32_t RSColor::AsRgbaInt() const
 {
-    if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        return (static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetAlphaF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) |
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetRedF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 24) |   // 24 red
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetGreenF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 16) | // 16 green
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetBlueF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 8);    // 8 blue
-    }
     return (static_cast<uint32_t>(std::clamp<int16_t>(GetAlpha(), 0, UINT8_MAX))) |
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetRed(), 0, UINT8_MAX))) << 24) |    // 24 red shift
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetGreen(), 0, UINT8_MAX))) << 16) |  // 16 green shift
@@ -445,16 +435,6 @@ RSColor RSColor::FromRgbaInt(uint32_t rgba)
 
 uint32_t RSColor::AsArgbInt() const
 {
-    if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        return ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetAlphaF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 24) |   // 24 alpha
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetRedF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 16) |     // 16 red
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetGreenF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 8) |    // 8 green
-               (static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetBlueF() * RGB_MAX_VALUE)), 0, UINT8_MAX)));
-    }
     return ((static_cast<uint32_t>(std::clamp<int16_t>(GetAlpha(), 0, UINT8_MAX))) << 24) |   // 24 alpha shift
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetRed(), 0, UINT8_MAX))) << 16) |     // 16 red shift
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetGreen(), 0, UINT8_MAX))) << 8) |    // 8 green shift
@@ -469,16 +449,6 @@ RSColor RSColor::FromArgbInt(uint32_t argb)
 
 uint32_t RSColor::AsBgraInt() const
 {
-    if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        return (static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetAlphaF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) |
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetRedF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 8) |      // 8 red
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetGreenF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 16) |   // 16 green
-               ((static_cast<uint32_t>(std::clamp<int16_t>(
-                    static_cast<int16_t>(round(GetBlueF() * RGB_MAX_VALUE)), 0, UINT8_MAX))) << 24);     // 24 blue
-    }
     return (static_cast<uint32_t>(std::clamp<int16_t>(GetAlpha(), 0, UINT8_MAX))) |
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetRed(), 0, UINT8_MAX))) << 8) |      // 8 red shift
            ((static_cast<uint32_t>(std::clamp<int16_t>(GetGreen(), 0, UINT8_MAX))) << 16) |   // 16 green shift
