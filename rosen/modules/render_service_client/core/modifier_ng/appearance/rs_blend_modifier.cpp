@@ -116,4 +116,54 @@ std::optional<RSHdrDarkenBlenderPara> RSBlendModifier::GetHdrDarkenBlenderParams
     return GetterOptional<RSHdrDarkenBlenderPara>(RSPropertyType::HDR_DARKEN_BLENDER_PARAMS);
 }
 
+void RSBlendModifier::SetColorfulBrightnessDarkenWeight(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT, val);
+}
+void RSBlendModifier::SetColorfulBrightnessFraction(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION, val);
+}
+void RSBlendModifier::SetColorfulBrightnessCubicRate(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE, val);
+}
+void RSBlendModifier::SetColorfulBrightnessQuadRate(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE, val);
+}
+void RSBlendModifier::SetColorfulBrightnessLinearRate(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE, val);
+}
+void RSBlendModifier::SetColorfulBrightnessDegree(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE, val);
+}
+void RSBlendModifier::SetColorfulBrightnessSaturation(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION, val);
+}
+void RSBlendModifier::SetColorfulBrightnessPositiveCoeff(const Vector3f& val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF, val);
+}
+void RSBlendModifier::SetColorfulBrightnessNegativeCoeff(const Vector3f& val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF, val);
+}
+void RSBlendModifier::SetColorfulBrightnessVibrancyStrength(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH, val);
+}
+void RSBlendModifier::SetColorfulBrightnessLumaDiff(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF, val);
+}
+
+void RSBlendModifier::SetColorfulBrightnessHdrEnabled(bool val)
+{
+    Setter<RSProperty>(RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED, val);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

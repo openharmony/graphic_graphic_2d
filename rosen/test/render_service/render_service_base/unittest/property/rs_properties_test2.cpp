@@ -1754,6 +1754,124 @@ HWTEST_F(PropertiesTest, HdrDarkenBlenderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ColorfulBrightnessBlenderParamsTest
+ * @tc.desc: test ColorfulBrightnessBlender SetColorfulBrightnessBlenderParams/Get/
+ *           IsValid/Description and member setters.
+ *           Covers: SetColorfulBrightnessBlenderParams has-value/nullopt branches, GetColorfulBrightnessBlenderParams
+ *           effect_/no-effect branches, GetColorfulBrightnessBlenderDescription nullopt/value branches,
+ *           SetColorfulBrightnessBlenderMember template first-init/already-init branches, all 11 member setters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderParamsTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // GetColorfulBrightnessBlenderParams: effect_ is nullptr branch (C2)
+    EXPECT_EQ(properties.GetColorfulBrightnessBlenderParams(), nullptr);
+    EXPECT_FALSE(properties.IsColorfulBrightnessBlenderValid());
+    // GetColorfulBrightnessBlenderDescription: nullopt branch (D1)
+    EXPECT_EQ(std::string("colorfulBrightnessBlenderParams is nullopt"),
+        properties.GetColorfulBrightnessBlenderDescription());
+
+    // SetColorfulBrightnessBlenderParams with nullopt: params.has_value() false branch (B2)
+    properties.SetColorfulBrightnessBlenderParams(nullptr);
+    EXPECT_FALSE(properties.isDrawn_);
+
+    // SetColorfulBrightnessBlenderParams with value: params.has_value() true branch (B1)
+    float darkenWeight = 1.0f;
+    float fraction = 0.5f;
+    float cubicRate = 0.1f;
+    float quadRate = 0.2f;
+    float linearRate = 0.3f;
+    float degree = 0.4f;
+    float saturation = 0.5f;
+    Vector3f pos(0.6f, 0.7f, 0.8f);
+    Vector3f neg(0.9f, 0.11f, 0.22f);
+    float vibrancyStrength = 0.33f;
+    float lumaDiff = 0.88f;
+    auto params = std::make_unique<RSColorfulBrightnessBlenderPara>(darkenWeight, fraction, cubicRate, quadRate,
+        linearRate, degree, saturation, pos, neg, vibrancyStrength, lumaDiff);
+    properties.SetColorfulBrightnessBlenderParams(std::move(params));
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_NE(properties.GetColorfulBrightnessBlenderParams(), nullptr);
+    EXPECT_TRUE(properties.IsColorfulBrightnessBlenderValid());
+    // GetColorfulBrightnessBlenderParams: effect_ valid branch (C1)
+    const auto* gotParams = properties.GetColorfulBrightnessBlenderParams();
+    EXPECT_NE(gotParams, nullptr);
+    EXPECT_EQ(gotParams->darkenWeight_, darkenWeight);
+    EXPECT_EQ(gotParams->fraction_, fraction);
+    EXPECT_EQ(gotParams->cubicRate_, cubicRate);
+    // GetColorfulBrightnessBlenderDescription: has-value branch (D2)
+    std::string description = "ColorfulBrightnessBlender, darkenWeight: " + std::to_string(darkenWeight) +
+        ", fraction: " + std::to_string(fraction) +
+        ", cubicRate: " + std::to_string(cubicRate) +
+        ", quadRate: " + std::to_string(quadRate) +
+        ", linearRate: " + std::to_string(linearRate) +
+        ", degree: " + std::to_string(degree) +
+        ", saturation: " + std::to_string(saturation) +
+        ", positiveCoeff.x: " + std::to_string(pos.x_) +
+        ", positiveCoeff.y: " + std::to_string(pos.y_) +
+        ", positiveCoeff.z: " + std::to_string(pos.z_) +
+        ", negativeCoeff.x: " + std::to_string(neg.x_) +
+        ", negativeCoeff.y: " + std::to_string(neg.y_) +
+        ", negativeCoeff.z: " + std::to_string(neg.z_) +
+        ", vibrancyStrength: " + std::to_string(vibrancyStrength) +
+        ", lumaDiff: " + std::to_string(lumaDiff) +
+        ", hdrEnabled: " + std::to_string(true);
+    EXPECT_EQ(description, properties.GetColorfulBrightnessBlenderDescription());
+}
+
+/**
+ * @tc.name: ColorfulBrightnessBlenderMemberSettersTest
+ * @tc.desc: test all 11 ColorfulBrightnessBlender member setters via SetColorfulBrightnessBlenderMember template.
+ *           First setter triggers params init (nullopt->value branch A1), subsequent setters
+ *           hit already-init branch (A2). Verifies values are stored correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderMemberSettersTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorfulBrightnessBlenderParams(), nullptr);
+
+    // First member setter: SetColorfulBrightnessBlenderMember template, params nullopt->init branch (A1)
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::darkenWeight_, 1.0f);
+    const auto* params = properties.GetColorfulBrightnessBlenderParams();
+    EXPECT_NE(params, nullptr);
+    EXPECT_EQ(params->darkenWeight_, 1.0f);
+    EXPECT_TRUE(properties.isDrawn_);
+
+    // Subsequent setters: params already has_value branch (A2)
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::fraction_, 0.5f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::cubicRate_, 0.1f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::quadRate_, 0.2f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::linearRate_, 0.3f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::degree_, 0.4f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::saturation_, 0.5f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::positiveCoeff_,
+        Vector3f(0.6f, 0.7f, 0.8f));
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::negativeCoeff_,
+        Vector3f(0.9f, 0.11f, 0.22f));
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::vibrancyStrength_, 0.33f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::lumaDiff_, 0.88f);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::hdrEnabled_, false);
+
+    const auto* got = properties.GetColorfulBrightnessBlenderParams();
+    EXPECT_NE(got, nullptr);
+    EXPECT_EQ(got->darkenWeight_, 1.0f);
+    EXPECT_EQ(got->fraction_, 0.5f);
+    EXPECT_EQ(got->cubicRate_, 0.1f);
+    EXPECT_EQ(got->quadRate_, 0.2f);
+    EXPECT_EQ(got->linearRate_, 0.3f);
+    EXPECT_EQ(got->degree_, 0.4f);
+    EXPECT_EQ(got->saturation_, 0.5f);
+    EXPECT_EQ(got->positiveCoeff_, Vector3f(0.6f, 0.7f, 0.8f));
+    EXPECT_EQ(got->negativeCoeff_, Vector3f(0.9f, 0.11f, 0.22f));
+    EXPECT_EQ(got->vibrancyStrength_, 0.33f);
+    EXPECT_EQ(got->lumaDiff_, 0.88f);
+    EXPECT_EQ(got->hdrEnabled_, false);
+    EXPECT_TRUE(properties.IsColorfulBrightnessBlenderValid());
+}
+
+/**
  * @tc.name: NeedClipHoleForFilterTest
  * @tc.desc: test NeedClipHoleForFilter with different filter configurations
  * @tc.type: FUNC

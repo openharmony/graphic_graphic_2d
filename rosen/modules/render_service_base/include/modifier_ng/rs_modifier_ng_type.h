@@ -221,6 +221,18 @@ public:
             case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
             case RSPropertyType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
             case RSPropertyType::HDR_DARKEN_BLENDER_PARAMS: return "HdrDarkenBlenderParams";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT: return "ColorfulBrightnessDarkenWeight";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION: return "ColorfulBrightnessFraction";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE: return "ColorfulBrightnessCubicRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE: return "ColorfulBrightnessQuadRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE: return "ColorfulBrightnessLinearRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE: return "ColorfulBrightnessDegree";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION: return "ColorfulBrightnessSaturation";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF: return "ColorfulBrightnessPositiveCoeff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF: return "ColorfulBrightnessNegativeCoeff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH: return "ColorfulBrightnessVibrancyStrength";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF: return "ColorfulBrightnessLumaDiff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED: return "ColorfulBrightnessHdrEnabled";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";

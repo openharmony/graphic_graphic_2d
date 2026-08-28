@@ -40,6 +40,18 @@ public:
     void SetFgBrightnessHdr(bool hdr);
     void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
     void SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params);
+    void SetColorfulBrightnessDarkenWeight(float val);
+    void SetColorfulBrightnessFraction(float val);
+    void SetColorfulBrightnessCubicRate(float val);
+    void SetColorfulBrightnessQuadRate(float val);
+    void SetColorfulBrightnessLinearRate(float val);
+    void SetColorfulBrightnessDegree(float val);
+    void SetColorfulBrightnessSaturation(float val);
+    void SetColorfulBrightnessPositiveCoeff(const Vector3f& val);
+    void SetColorfulBrightnessNegativeCoeff(const Vector3f& val);
+    void SetColorfulBrightnessVibrancyStrength(float val);
+    void SetColorfulBrightnessLumaDiff(float val);
+    void SetColorfulBrightnessHdrEnabled(bool val);
 
     RSColorBlendMode GetColorBlendMode() const;
     RSColorBlendApplyType GetColorBlendApplyType() const;

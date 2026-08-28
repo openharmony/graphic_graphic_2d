@@ -244,6 +244,17 @@ protected:
         (properties.*Setter)(value);
     }
 
+    template<typename T, auto Setter, auto Member>
+    static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
+    {
+        auto propertyPtr = property.CastToPropertyOf<T>(__func__);
+        if (!propertyPtr) {
+            return;
+        }
+        const auto& value = propertyPtr->GetRef();
+        (properties.*Setter)(Member, value);
+    }
+
     template<typename T, auto Setter, auto Getter>
     static void PropertyApplyHelperAdd(RSProperties& properties, RSRenderPropertyBase& property)
     {
