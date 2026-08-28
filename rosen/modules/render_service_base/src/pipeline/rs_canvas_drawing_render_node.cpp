@@ -752,9 +752,17 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
     opCountAfterReset_ = 0;
 }
 
-const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRenderNode::GetDrawCmdListsNG() const
+void RSCanvasDrawingRenderNode::AddDrawCmdListTo(
+    std::vector<SimpleDrawCmdListPtr>& targetVec, ModifierNG::RSModifierType modifierType) const
 {
-    return drawCmdListsNG_;
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    auto itr = drawCmdListsNG_.find(modifierType);
+    if (itr == drawCmdListsNG_.end() || itr->second.empty()) {
+        return;
+    }
+    for (auto& cmd : itr->second) {
+        targetVec.emplace_back(cmd);
+    }
 }
 
 void RSCanvasDrawingRenderNode::OnApplyModifiers()
@@ -806,6 +814,7 @@ void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
     RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node [%" PRIu64 "] CheckCanvasDrawingPostPlaybacked", GetId());
     // add empty drawop, only used in unirender mode
     dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     auto contentCmdList = drawCmdListsNG_.find(ModifierNG::RSModifierType::CONTENT_STYLE);
     if (contentCmdList != drawCmdListsNG_.end()) {
         auto cmd = std::make_shared<RSSimpleDrawCmdList>();

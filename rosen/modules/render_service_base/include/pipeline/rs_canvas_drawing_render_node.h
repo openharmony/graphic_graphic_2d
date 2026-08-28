@@ -66,7 +66,7 @@ public:
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
-    const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
+    void AddDrawCmdListTo(std::vector<SimpleDrawCmdListPtr>& targetVec, ModifierNG::RSModifierType modifierType) const;
     void AccumulateLastDirtyTypes() override;
     void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
@@ -156,7 +156,7 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::mutex imageMutex_;
     std::mutex taskMutex_;
-    std::mutex drawCmdListsMutex_;
+    mutable std::mutex drawCmdListsMutex_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
     ModifierCmdList outOfLimitCmdList_;
     size_t cachedOpCount_ = 0;
