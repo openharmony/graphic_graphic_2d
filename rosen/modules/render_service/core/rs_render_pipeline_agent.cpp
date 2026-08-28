@@ -2823,7 +2823,7 @@ std::shared_ptr<RSSurfaceHandler> RSRenderPipelineAgent::CreateCanvasSurfaceHand
 #endif // RS_MODIFIERS_DRAW_ENABLE
 bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RS_TRACE_NAME_FMT("RSRenderPipelineAgent::SetDelegateMode: NodeId=%llu, isSetDelegateMode=%d, pid=%u",
         id, isSetDelegateMode, pid);
     auto pipeline = rsRenderPipeline_.lock();
@@ -2838,23 +2838,19 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
             return;
         }
         node->SetDelegateMode(isSetDelegateMode);
-#ifdef RS_ENABLE_DELEGATE_COMPOSITE
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (consumer) {
             RsDelegateCompositeCallbackManager::GetInstance().SetInfo(consumer, id, pid);
         }
-#endif
         RS_TRACE_NAME_FMT("SetDelegateMode %llu, success", id);
     };
     pipeline->PostMainThreadSyncTask(task);
 
-#ifdef RS_ENABLE_DELEGATE_COMPOSITE
     auto node = pipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
     if (node && node->GetRSSurfaceHandler()) {
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
     }
-#endif
     return true;
 #else
     return false;
