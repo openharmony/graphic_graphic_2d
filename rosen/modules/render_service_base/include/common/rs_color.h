@@ -85,6 +85,7 @@ public:
     RSColor operator/(float scale) const;
     RSColor& operator*=(float scale);
     RSColor& operator*=(const RSColor& other);
+    RSColor Sqrt() const;
     uint32_t AsRgbaInt() const;
     static RSColor FromRgbaInt(uint32_t rgba);
     uint32_t AsArgbInt() const;

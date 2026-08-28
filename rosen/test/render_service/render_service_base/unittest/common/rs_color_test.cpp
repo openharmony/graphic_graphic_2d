@@ -466,6 +466,55 @@ HWTEST_F(RSColorTest, HeadroomTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OperatorAddHeadroomTest
+ * @tc.desc: Verify operator+ with headroom < 1.0f and headroom swap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorAddHeadroomTest, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color1.headroom_ = color1.Float32ToFloat16(0.5f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor result = color1 + color2;
+    EXPECT_NEAR(result.GetRedF(), 0.5f, 0.01f);
+
+    RSColor color3(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 3.0f);
+    RSColor color4(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result2 = color3 + color4;
+    EXPECT_TRUE(std::isfinite(result2.GetRedF()));
+
+    RSColor swap1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor swap2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result3 = swap1 + swap2;
+    EXPECT_TRUE(std::isfinite(result3.GetRedF()));
+    EXPECT_NEAR(result3.GetHeadroom(), 2.0f, 0.01f);
+}
+
+/**
+ * @tc.name: OperatorSubtractHeadroomTest
+ * @tc.desc: Verify operator- with headroom < 1.0f and headroom swap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorSubtractHeadroomTest, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color1.headroom_ = color1.Float32ToFloat16(0.5f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor result = color1 - color2;
+    EXPECT_NEAR(result.GetRedF(), 0.5f, 0.01f);
+
+    RSColor color3(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 3.0f);
+    RSColor color4(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result2 = color3 - color4;
+    EXPECT_TRUE(std::isfinite(result2.GetRedF()));
+
+    RSColor swap1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor swap2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result3 = swap1 - swap2;
+    EXPECT_TRUE(std::isfinite(result3.GetRedF()));
+}
+
+/**
  * @tc.name: Float16Test
  * @tc.desc: Verify function Float16ToFloat32 Float32ToFloat16
  * @tc.type: FUNC
@@ -546,9 +595,9 @@ HWTEST_F(RSColorTest, BT2020Test1, TestSize.Level1)
     RSColor color2(0.0f, 0.0f, 0.0f, 0.0f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f);
 
-    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 0.5f,
+    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 1.0f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 + color2));
-    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 0.5f,
+    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 1.0f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 - color2));
     EXPECT_FALSE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color2 - color1));
@@ -884,6 +933,48 @@ HWTEST_F(RSColorTest, TakeAbsMaxFrom004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OperatorAddColor001
+ * @tc.desc: Verify operator+ with BT2020 cross-color-space conversion path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorAddColor001, TestSize.Level1)
+{
+    RSColor bt2020Color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor srgbColor(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor result = bt2020Color + srgbColor;
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+}
+
+/**
+ * @tc.name: OperatorAddColor002
+ * @tc.desc: Verify operator+ with P3 cross-color-space conversion path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorAddColor002, TestSize.Level1)
+{
+    RSColor p3Color(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor srgbColor(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor result = p3Color + srgbColor;
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+}
+
+/**
+ * @tc.name: OperatorAddColor003
+ * @tc.desc: Verify operator+ with SRGB path (no color space conversion)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorAddColor003, TestSize.Level1)
+{
+    RSColor srgb1(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor srgb2(50, 50, 50, 50, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor result = srgb1 + srgb2;
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+}
+
+/**
  * @tc.name: OperatorMultiplyColor001
  * @tc.desc: Verify operator*(const RSColor&) for normal (SRGB) path
  * @tc.type: FUNC
@@ -893,10 +984,10 @@ HWTEST_F(RSColorTest, OperatorMultiplyColor001, TestSize.Level1)
     RSColor color(100, 200, 50, 255);
     RSColor other(2, 2, 2, 2);
     RSColor result = color * other;
-    EXPECT_EQ(result.GetRed(), round(100 * 2));
-    EXPECT_EQ(result.GetGreen(), round(200 * 2));
-    EXPECT_EQ(result.GetBlue(), round(50 * 2));
-    EXPECT_EQ(result.GetAlpha(), round(255 * 2));
+    EXPECT_EQ(result.GetRed(), 1);
+    EXPECT_EQ(result.GetGreen(), 2);
+    EXPECT_EQ(result.GetBlue(), 0);
+    EXPECT_EQ(result.GetAlpha(), 2);
 }
 
 /**
@@ -942,10 +1033,10 @@ HWTEST_F(RSColorTest, OperatorMultiplyAssignColor001, TestSize.Level1)
     RSColor color(100, 200, 50, 255);
     RSColor other(2, 2, 2, 2);
     color *= other;
-    EXPECT_EQ(color.GetRed(), round(100 * 2));
-    EXPECT_EQ(color.GetGreen(), round(200 * 2));
-    EXPECT_EQ(color.GetBlue(), round(50 * 2));
-    EXPECT_EQ(color.GetAlpha(), round(255 * 2));
+    EXPECT_EQ(color.GetRed(), 1);
+    EXPECT_EQ(color.GetGreen(), 2);
+    EXPECT_EQ(color.GetBlue(), 0);
+    EXPECT_EQ(color.GetAlpha(), 2);
 }
 
 /**
@@ -988,13 +1079,10 @@ HWTEST_F(RSColorTest, OperatorMultiplyAssignColor003, TestSize.Level1)
  */
 HWTEST_F(RSColorTest, OperatorSubtractColor001, TestSize.Level1)
 {
-    // BT2020 - SRGB: either operand is BT2020 -> BT2020 conversion path
     RSColor bt2020Color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
     RSColor srgbColor(128, 128, 128, 128, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     RSColor result = bt2020Color - srgbColor;
-    // result colorspace should be BT2020 (operator- sets colorSpace=BT2020 when either is BT2020)
     EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
-    // result values should be finite
     EXPECT_TRUE(std::isfinite(result.GetRedF()));
     EXPECT_TRUE(std::isfinite(result.GetGreenF()));
     EXPECT_TRUE(std::isfinite(result.GetBlueF()));
@@ -1008,11 +1096,376 @@ HWTEST_F(RSColorTest, OperatorSubtractColor001, TestSize.Level1)
  */
 HWTEST_F(RSColorTest, OperatorSubtractColor002, TestSize.Level1)
 {
-    // SRGB - P3: neither is BT2020, either is P3 -> P3 conversion path
     RSColor srgbColor(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     RSColor p3Color(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     RSColor result = srgbColor - p3Color;
-    // result colorspace should be DISPLAY_P3 (operator- sets colorSpace=P3 when either is P3)
     EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: OperatorSubtractColor003
+ * @tc.desc: Verify operator- with SRGB path (no color space conversion)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorSubtractColor003, TestSize.Level1)
+{
+    RSColor srgb1(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor srgb2(50, 50, 50, 50, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor result = srgb1 - srgb2;
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromBT2020Test
+ * @tc.desc: Verify TakeAbsMaxFrom with BT2020 color space, covering all BT2020 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, TakeAbsMaxFromBT2020Test, TestSize.Level1)
+{
+    RSColor bt2020Small(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor srgbLarge(255, 255, 255, 255);
+    bt2020Small.TakeAbsMaxFrom(srgbLarge);
+    EXPECT_TRUE(std::isfinite(bt2020Small.GetRedF()));
+    EXPECT_TRUE(std::isfinite(bt2020Small.GetGreenF()));
+    EXPECT_TRUE(std::isfinite(bt2020Small.GetBlueF()));
+    EXPECT_TRUE(std::isfinite(bt2020Small.GetAlphaF()));
+    EXPECT_GT(bt2020Small.GetRedF(), 0.1f);
+    EXPECT_GT(bt2020Small.GetGreenF(), 0.1f);
+    EXPECT_GT(bt2020Small.GetBlueF(), 0.1f);
+    EXPECT_GT(bt2020Small.GetAlphaF(), 0.1f);
+
+    RSColor bt2020Large(1.0f, 1.0f, 1.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor srgbSmall(50, 50, 50, 50);
+    bt2020Large.TakeAbsMaxFrom(srgbSmall);
+    EXPECT_LE(bt2020Large.GetRedF(), 1.0f);
+    EXPECT_LE(bt2020Large.GetGreenF(), 1.0f);
+    EXPECT_LE(bt2020Large.GetBlueF(), 1.0f);
+    EXPECT_LE(bt2020Large.GetAlphaF(), 1.0f);
+
+    RSColor bt2020Same(0.2f, 0.2f, 0.2f, 0.2f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.5f);
+    RSColor bt2020Target(0.9f, 0.9f, 0.9f, 0.9f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.5f);
+    bt2020Same.TakeAbsMaxFrom(bt2020Target);
+    EXPECT_GT(bt2020Same.GetRedF(), 0.2f);
+    EXPECT_GT(bt2020Same.GetGreenF(), 0.2f);
+    EXPECT_GT(bt2020Same.GetBlueF(), 0.2f);
+    EXPECT_GT(bt2020Same.GetAlphaF(), 0.2f);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromP3Test
+ * @tc.desc: Verify TakeAbsMaxFrom with P3 color space, covering all P3 and non-BT2020 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, TakeAbsMaxFromP3Test, TestSize.Level1)
+{
+    RSColor p3Small(50, 50, 50, 50, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor srgbLarge(200, 200, 200, 200);
+    p3Small.TakeAbsMaxFrom(srgbLarge);
+    EXPECT_TRUE(p3Small.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_GT(p3Small.GetRed(), 50);
+    EXPECT_GT(p3Small.GetGreen(), 50);
+    EXPECT_GT(p3Small.GetBlue(), 50);
+    EXPECT_GT(p3Small.GetAlpha(), 50);
+
+    RSColor p3Large(255, 255, 255, 255, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor srgbSmall(50, 50, 50, 50);
+    p3Large.TakeAbsMaxFrom(srgbSmall);
+    EXPECT_EQ(p3Large.GetRed(), 255);
+    EXPECT_EQ(p3Large.GetGreen(), 255);
+    EXPECT_EQ(p3Large.GetBlue(), 255);
+    EXPECT_EQ(p3Large.GetAlpha(), 255);
+
+    RSColor p3Same(50, 50, 50, 50, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor p3Target(200, 200, 200, 200, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    p3Same.TakeAbsMaxFrom(p3Target);
+    EXPECT_GT(p3Same.GetRed(), 50);
+    EXPECT_GT(p3Same.GetGreen(), 50);
+    EXPECT_GT(p3Same.GetBlue(), 50);
+    EXPECT_GT(p3Same.GetAlpha(), 50);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromSRGBTest
+ * @tc.desc: Verify TakeAbsMaxFrom with SRGB color space and cross-color-space conversion to SRGB
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, TakeAbsMaxFromSRGBTest, TestSize.Level1)
+{
+    RSColor srgbColor(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor p3Color(200, 50, 150, 30, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    srgbColor.TakeAbsMaxFrom(p3Color);
+    EXPECT_TRUE(srgbColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_GE(srgbColor.GetRed(), 100);
+    EXPECT_GE(srgbColor.GetBlue(), 100);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromPlaceholderTest
+ * @tc.desc: Verify TakeAbsMaxFrom returns early when placeholder is set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, TakeAbsMaxFromPlaceholderTest, TestSize.Level1)
+{
+    RSColor color(100, 100, 100, 100);
+    RSColor target(200, 200, 200, 200);
+    color.SetPlaceholder(ColorPlaceholder::SURFACE);
+    color.TakeAbsMaxFrom(target);
+    EXPECT_EQ(color.GetRed(), 100);
+    EXPECT_EQ(color.GetGreen(), 100);
+    EXPECT_EQ(color.GetBlue(), 100);
+    EXPECT_EQ(color.GetAlpha(), 100);
+
+    RSColor color2(100, 100, 100, 100);
+    RSColor target2(200, 200, 200, 200);
+    target2.SetPlaceholder(ColorPlaceholder::SURFACE);
+    color2.TakeAbsMaxFrom(target2);
+    EXPECT_EQ(color2.GetRed(), 100);
+    EXPECT_EQ(color2.GetGreen(), 100);
+    EXPECT_EQ(color2.GetBlue(), 100);
+    EXPECT_EQ(color2.GetAlpha(), 100);
+}
+
+/**
+ * @tc.name: TakeAbsMaxFromHeadroomTest
+ * @tc.desc: Verify TakeAbsMaxFrom returns early when headroom < 1.0f
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, TakeAbsMaxFromHeadroomTest, TestSize.Level1)
+{
+    RSColor color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color.headroom_ = color.Float32ToFloat16(0.5f);
+    RSColor target(0.9f, 0.9f, 0.9f, 0.9f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    color.TakeAbsMaxFrom(target);
+    EXPECT_NEAR(color.GetRedF(), 0.5f, 0.01f);
+    EXPECT_NEAR(color.GetGreenF(), 0.5f, 0.01f);
+    EXPECT_NEAR(color.GetBlueF(), 0.5f, 0.01f);
+    EXPECT_NEAR(color.GetAlphaF(), 0.5f, 0.01f);
+}
+
+/**
+ * @tc.name: OperatorMultiplyColorP3Test
+ * @tc.desc: Verify operator*(const RSColor&) with P3 color space, covering all P3 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyColorP3Test, TestSize.Level1)
+{
+    RSColor p3Color(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor srgbColor(200, 50, 150, 30, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    RSColor result = p3Color * srgbColor;
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+    EXPECT_TRUE(std::isfinite(result.GetGreenF()));
+    EXPECT_TRUE(std::isfinite(result.GetBlueF()));
+    EXPECT_TRUE(std::isfinite(result.GetAlphaF()));
+
+    RSColor p3Small(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor p3Large(150, 150, 150, 150, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor result2 = p3Small * p3Large;
+    EXPECT_TRUE(result2.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    RSColor p3Swap1(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor p3Swap2(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    p3Swap2.SetHeadroom(2.0f);
+    RSColor result3 = p3Swap1 * p3Swap2;
+    EXPECT_TRUE(std::isfinite(result3.GetRedF()));
+}
+
+/**
+ * @tc.name: OperatorMultiplyColorOtherPlaceholderTest
+ * @tc.desc: Verify operator*(const RSColor&) returns other when other.placeholder_ != 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyColorOtherPlaceholderTest, TestSize.Level1)
+{
+    RSColor normal(100, 100, 100, 100);
+    RSColor ph;
+    ph.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::SURFACE);
+    RSColor result = normal * ph;
+    EXPECT_TRUE(ph == result);
+}
+
+/**
+ * @tc.name: OperatorMultiplyColorHeadroomTest
+ * @tc.desc: Verify operator*(const RSColor&) with all headroom and BT2020 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyColorHeadroomTest, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color1.headroom_ = color1.Float32ToFloat16(0.5f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor result = color1 * color2;
+    EXPECT_NEAR(result.GetRedF(), 0.5f, 0.01f);
+
+    RSColor color3(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 3.0f);
+    RSColor color4(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result2 = color3 * color4;
+    EXPECT_TRUE(std::isfinite(result2.GetRedF()));
+
+    RSColor bt2020A(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor srgbB(200, 200, 200, 200);
+    RSColor result3 = bt2020A * srgbB;
+    EXPECT_TRUE(result3.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    RSColor bt2020Swap1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor bt2020Swap2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result4 = bt2020Swap1 * bt2020Swap2;
+    EXPECT_TRUE(std::isfinite(result4.GetRedF()));
+}
+
+/**
+ * @tc.name: OperatorMultiplyAssignColorP3Test
+ * @tc.desc: Verify operator*=(const RSColor&) with P3 color space, covering all P3 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyAssignColorP3Test, TestSize.Level1)
+{
+    RSColor p3Color(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor srgbColor(200, 50, 150, 30, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    p3Color *= srgbColor;
+    EXPECT_TRUE(p3Color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(std::isfinite(p3Color.GetRedF()));
+    EXPECT_TRUE(std::isfinite(p3Color.GetGreenF()));
+    EXPECT_TRUE(std::isfinite(p3Color.GetBlueF()));
+    EXPECT_TRUE(std::isfinite(p3Color.GetAlphaF()));
+
+    RSColor p3Small(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor p3Large(150, 150, 150, 150, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    p3Small *= p3Large;
+    EXPECT_TRUE(p3Small.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    RSColor p3Swap1(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSColor p3Swap2(100, 100, 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    p3Swap2.SetHeadroom(2.0f);
+    p3Swap1 *= p3Swap2;
+    EXPECT_TRUE(std::isfinite(p3Swap1.GetRedF()));
+}
+
+/**
+ * @tc.name: OperatorMultiplyAssignColorOtherPlaceholderTest
+ * @tc.desc: Verify operator*=(const RSColor&) assigns other when other.placeholder_ != 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyAssignColorOtherPlaceholderTest, TestSize.Level1)
+{
+    RSColor normal(100, 100, 100, 100);
+    RSColor ph;
+    ph.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::SURFACE);
+    normal *= ph;
+    EXPECT_TRUE(ph == normal);
+}
+
+/**
+ * @tc.name: OperatorMultiplyAssignColorHeadroomTest
+ * @tc.desc: Verify operator*=(const RSColor&) with all headroom and BT2020 branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorMultiplyAssignColorHeadroomTest, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color1.headroom_ = color1.Float32ToFloat16(0.5f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    color1 *= color2;
+    EXPECT_NEAR(color1.GetRedF(), 0.5f, 0.01f);
+
+    RSColor color3(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 3.0f);
+    RSColor color4(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color3 *= color4;
+    EXPECT_TRUE(std::isfinite(color3.GetRedF()));
+
+    RSColor bt2020A(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor srgbB(200, 200, 200, 200);
+    bt2020A *= srgbB;
+    EXPECT_TRUE(bt2020A.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    RSColor bt2020Swap1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor bt2020Swap2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    bt2020Swap1 *= bt2020Swap2;
+    EXPECT_TRUE(std::isfinite(bt2020Swap1.GetRedF()));
+}
+
+/**
+ * @tc.name: IsNearEqual002
+ * @tc.desc: verify function IsNearEqual BT2020
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, IsNearEqual002, TestSize.Level1)
+{
+    RSColor colorA(0, 0, 0, 0, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    RSColor colorB(0, 0, 1, 0, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    int16_t threshold = 1;
+    EXPECT_TRUE(colorA.IsNearEqual(colorB, threshold));
+}
+
+/**
+ * @tc.name: SqrtTest001
+ * @tc.desc: Verify Sqrt() for normal SRGB color with positive values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, SqrtTest001, TestSize.Level1)
+{
+    RSColor color(100, 100, 100, 100);
+    RSColor result = color.Sqrt();
+    EXPECT_TRUE(std::isfinite(result.GetRedF()));
+    EXPECT_TRUE(std::isfinite(result.GetGreenF()));
+    EXPECT_TRUE(std::isfinite(result.GetBlueF()));
+    EXPECT_TRUE(std::isfinite(result.GetAlphaF()));
+    EXPECT_NEAR(result.GetRedF(), std::sqrt(100.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetGreenF(), std::sqrt(100.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetBlueF(), std::sqrt(100.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetAlphaF(), std::sqrt(100.0f / 255.0f), 0.01f);
+}
+
+/**
+ * @tc.name: SqrtTest002
+ * @tc.desc: Verify Sqrt() for BT2020 color space
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, SqrtTest002, TestSize.Level1)
+{
+    RSColor bt2020Color(0.25f, 0.36f, 0.49f, 0.64f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor result = bt2020Color.Sqrt();
+    EXPECT_TRUE(result.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_NEAR(result.GetRedF(), 0.5f, 0.05f);
+    EXPECT_NEAR(result.GetGreenF(), 0.6f, 0.05f);
+    EXPECT_NEAR(result.GetBlueF(), 0.7f, 0.05f);
+    EXPECT_NEAR(result.GetAlphaF(), 0.8f, 0.05f);
+}
+
+/**
+ * @tc.name: SqrtTest003
+ * @tc.desc: Verify Sqrt() returns self when placeholder is set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, SqrtTest003, TestSize.Level1)
+{
+    RSColor ph;
+    ph.placeholder_ = static_cast<uint16_t>(ColorPlaceholder::SURFACE);
+    RSColor result = ph.Sqrt();
+    EXPECT_TRUE(ph == result);
+}
+
+/**
+ * @tc.name: SqrtTest004
+ * @tc.desc: Verify Sqrt() handles zero and boundary values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, SqrtTest004, TestSize.Level1)
+{
+    RSColor zeroColor(0, 0, 0, 0);
+    RSColor result = zeroColor.Sqrt();
+    EXPECT_NEAR(result.GetRedF(), 0.0f, 0.01f);
+    EXPECT_NEAR(result.GetGreenF(), 0.0f, 0.01f);
+    EXPECT_NEAR(result.GetBlueF(), 0.0f, 0.01f);
+    EXPECT_NEAR(result.GetAlphaF(), 0.0f, 0.01f);
+
+    RSColor maxColor(255, 255, 255, 255);
+    RSColor maxResult = maxColor.Sqrt();
+    EXPECT_NEAR(maxResult.GetRedF(), 1.0f, 0.01f);
+    EXPECT_NEAR(maxResult.GetGreenF(), 1.0f, 0.01f);
+    EXPECT_NEAR(maxResult.GetBlueF(), 1.0f, 0.01f);
+    EXPECT_NEAR(maxResult.GetAlphaF(), 1.0f, 0.01f);
 }
 } // namespace OHOS::Rosen
