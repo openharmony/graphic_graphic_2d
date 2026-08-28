@@ -3243,38 +3243,27 @@ bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& no
 }
 } // namespace
 
-void RSMainThread::SetTunnelSolePresentLayer()
+void RSMainThread::SetTunnelSolePresentLayer(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    uint32_t& presentCount, uint32_t& tunnelCount)
 {
     if (Rosen::IsNewTunnelEnabled()) {
-        uint32_t presentCount = 0;
-        uint32_t tunnelCount = 0;
-        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s hwNodes size:%" PRIu64, __func__, hardwareEnabledNodes_.size());
-        for (const auto& surfaceNode : hardwareEnabledNodes_) {
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-            bool consumed = surfaceHandler != nullptr &&
-                surfaceHandler->IsCurrentFrameBufferConsumed();
-            RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "consumed:%d", __func__, surfaceNode->GetId(), consumed);
-            if (!consumed) {
-                continue;
-            }
-            ++presentCount;
-            uint64_t tunnelLayerId = 0;
-            uint32_t property = TUNNEL_PROP_INVALID;
-            bool isTunnel = RSTunnelRuntimeStore::GetLayerInfoIfPresent(
-                surfaceNode->GetId(), tunnelLayerId, property) && IsNewTunnelProperty(property);
-            RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "presentCount:%u isTunnel:%d tunnelLayerId:%" PRIu64
-                " property:%u", __func__, surfaceNode->GetId(), presentCount, isTunnel, tunnelLayerId, property);
-            if (isTunnel) {
-                ++tunnelCount;
-            }
+        auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+        bool consumed = surfaceHandler != nullptr &&
+            surfaceHandler->IsCurrentFrameBufferConsumed();
+        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "consumed:%d", __func__, surfaceNode->GetId(), consumed);
+        if (!consumed) {
+            return;
         }
-        bool isSole = tunnelCount == presentCount;
-        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s presentCount:%u tunnelCount:%u is Sole:%d",
-            __func__, presentCount, tunnelCount, isSole);
-        RSTunnelRouteArbiter::SetTunnelSolePresentLayer(isSole);
+        ++presentCount;
+        uint64_t tunnelLayerId = 0;
+        uint32_t property = TUNNEL_PROP_INVALID;
+        bool isTunnel = RSTunnelRuntimeStore::GetLayerInfoIfPresent(
+            surfaceNode->GetId(), tunnelLayerId, property) && IsNewTunnelProperty(property);
+        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "presentCount:%u isTunnel:%d tunnelLayerId:%" PRIu64
+            " property:%u", __func__, surfaceNode->GetId(), presentCount, isTunnel, tunnelLayerId, property);
+        if (isTunnel) {
+            ++tunnelCount;
+        }
     }
 }
 
@@ -3354,7 +3343,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             RSSystemProperties::DvsyncSkipRsCommitDelayEnabled() &&
             rsVsyncManagerAgent_ != nullptr && rsVsyncManagerAgent_->DvsyncNeedSkipRsCommitDelay();
 
-    SetTunnelSolePresentLayer();
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode]() mutable {
         RS_TRACE_NAME("DoDirectComposition PostProcess");
@@ -3362,11 +3350,14 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         screenNode->ResetVideoHeadroomInfo();
         auto& rsLuminance = RSLuminanceControl::Get();
         std::vector<RectI> refreshRects;
+        uint32_t presentCount = 0;
+        uint32_t tunnelCount = 0;
         for (auto& surfaceNode : hardwareEnabledNodes_) {
             if (surfaceNode == nullptr) {
                 RS_LOGE("DoDirectComposition: surfaceNode is null!");
                 continue;
             }
+            SetTunnelSolePresentLayer(surfaceNode, presentCount, tunnelCount);
             SetHasSurfaceLockLayer(surfaceNode->GetFixRotationByUser());
             HdrStatus status = surfaceNode->GetVideoHdrStatus();
             if (float scaler; RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId, scaler)) {
@@ -3407,6 +3398,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 // buffer is synced to directComposition
                 params->SetBufferSynced(true);
             }
+        }
+        if (Rosen::IsNewTunnelEnabled()) {
+            bool isSole = tunnelCount == presentCount;
+            RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s presentCount:%u tunnelCount:%u is Sole:%d",
+                __func__, presentCount, tunnelCount, isSole);
+            RSTunnelRouteArbiter::SetTunnelSolePresentLayer(isSole);
         }
         rsLuminance.SetHdrStatus(screenId,
             screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());

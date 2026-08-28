@@ -405,6 +405,8 @@ RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfac
     if (layer->GetBuffer()) {
         uniBufferCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
     }
+    // When switching to GPU in tunnel mode, the self-drawn buffer must be bound with the unified rendering buffer
+    // for buffer release, ensuring consistency with the passthrough logic.
     if (bufferEntry.bufferOwnerCount_) {
         bufferEntry.bufferOwnerCount_->SetUniBufferOwner(uniBufferCount->bufferId_, node->GetScreenId());
     }
