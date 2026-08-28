@@ -468,9 +468,6 @@ public:
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
 
-    void SetScreenId(ScreenId screenId);
-    ScreenId GetScreenId() const;
-
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) override;
@@ -1090,7 +1087,6 @@ private:
     RectI delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
 
-    ScreenId screenId_ = INVALID_SCREEN_ID;
     // for layer splitter
     bool splitLayerTag_ = false;
 };

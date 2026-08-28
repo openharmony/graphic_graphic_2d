@@ -163,10 +163,7 @@ public:
 
     void ResetRenderParams();
 
-    ScreenId GetScreenId() const
-    {
-        return screenId_;
-    }
+    ScreenId GetScreenId() const;
 
     bool IsAbilityComponent() const
     {
@@ -1394,8 +1391,6 @@ public:
         bool filterCacheOcclusionEnabled);
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
-
-    void FindScreenId();
 
     void OnTreeStateChanged() override;
 

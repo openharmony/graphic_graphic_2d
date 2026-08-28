@@ -4142,7 +4142,6 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
 
 void RSMainThread::AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode)
 {
-    selfDrawingNode->FindScreenId();
     selfDrawingNodes_.emplace_back(selfDrawingNode);
 }
 
