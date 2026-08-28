@@ -216,6 +216,11 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     if (inNode == nullptr || outNode == nullptr) {
+        ROSEN_LOGE("RegisterGeometryTransitionPair node not found inNodeId:%{public}" PRIu64
+            " outNodeId:%{public}" PRIu64 " inNodeFound:%{public}d outNodeFound:%{public}d",
+            inNodeId, outNodeId, inNode != nullptr, outNode != nullptr);
+        RS_TRACE_NAME_FMT("RegisterGeometryTransitionPair node not found inNodeId: %" PRIu64 " outNodeId: %" PRIu64
+            " inNodeFound: %d outNodeFound: %d", inNodeId, outNodeId, inNode != nullptr, outNode != nullptr);
         return;
     }
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, isInSameWindow);

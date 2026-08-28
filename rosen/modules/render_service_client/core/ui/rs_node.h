@@ -2414,6 +2414,8 @@ private:
     void FinishAnimationByProperty(const PropertyId& id);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
+    void ResetTransitionPairInfoBoth();
+    void RebuildTransitionPairInRender();
     void RebuildAnimationInRender();
     void RemoveParticleAnimations();
 
@@ -2503,6 +2505,12 @@ private:
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
+    struct TransitionPairInfo {
+        NodeId inNodeId = 0;
+        NodeId outNodeId = 0;
+        bool isInSameWindow = false;
+    };
+    std::optional<TransitionPairInfo> transitionPairInfo_;
     struct CommandInfo {
         CommandInfo()
             : command_(nullptr), isRenderServiceCommand_(false),

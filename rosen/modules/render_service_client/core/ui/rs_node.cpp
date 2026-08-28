@@ -1058,6 +1058,7 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::SANDBOX);
         }
+        ResetTransitionPairInfoBoth();
         return;
     }
     SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetSandBox>(
@@ -3644,6 +3645,12 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);
     }
+    if (auto inNode = rsUIContext->GetNodeMap().GetNode<RSNode>(inNodeId)) {
+        inNode->transitionPairInfo_ = TransitionPairInfo{ inNodeId, outNodeId, isInSameWindow };
+    }
+    if (auto outNode = rsUIContext->GetNodeMap().GetNode<RSNode>(outNodeId)) {
+        outNode->transitionPairInfo_ = TransitionPairInfo{ inNodeId, outNodeId, isInSameWindow };
+    }
 }
 
 void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
@@ -3656,6 +3663,12 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
     auto transaction = rsUIContext->GetRSTransaction();
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);
+    }
+    if (auto inNode = rsUIContext->GetNodeMap().GetNode<RSNode>(inNodeId)) {
+        inNode->transitionPairInfo_.reset();
+    }
+    if (auto outNode = rsUIContext->GetNodeMap().GetNode<RSNode>(outNodeId)) {
+        outNode->transitionPairInfo_.reset();
     }
 }
 
@@ -4411,31 +4424,65 @@ bool RSNode::ReCreateNodeInRender()
     SetNodeState(RSNodeState::ACTIVE);
     // 恢复node
     CreateRenderNode();
- 
+
     SetUIContextToken();
  
     SetSkipContentModifierDraw(true);
     // 恢复modifier
     DoFlushModifier();
     SetSkipContentModifierDraw(false);
- 
+
     // 恢复其他特性变量（使用 RSCmdModifier）
     UpdateAllRSCmdModifiersToRender();
- 
+
     RebuildAnimationInRender();
- 
+
     return true;
+}
+
+void RSNode::ResetTransitionPairInfoBoth()
+{
+    if (!transitionPairInfo_.has_value()) {
+        return;
+    }
+    if (auto rsUIContext = GetRSUIContext()) {
+        auto otherNodeId = (GetId() == transitionPairInfo_->inNodeId) ?
+            transitionPairInfo_->outNodeId : transitionPairInfo_->inNodeId;
+        if (auto otherNode = rsUIContext->GetNodeMap().GetNode<RSNode>(otherNodeId)) {
+            otherNode->transitionPairInfo_.reset();
+        }
+    }
+    transitionPairInfo_.reset();
+}
+
+void RSNode::RebuildTransitionPairInRender()
+{
+    if (!transitionPairInfo_.has_value()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("RSNode::RebuildTransitionPairInRender inNodeId: %" PRIu64 " outNodeId: %" PRIu64,
+        transitionPairInfo_->inNodeId, transitionPairInfo_->outNodeId);
+    auto rsUIContext = GetRSUIContext();
+    RegisterTransitionPair(rsUIContext,
+        transitionPairInfo_->inNodeId, transitionPairInfo_->outNodeId, transitionPairInfo_->isInSameWindow);
 }
 
 void RSNode::RebuildAnimationInRender()
 {
     static constexpr int REPEAT_COUNT_INFINITE = -1;
-    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
-    for (const auto& [animationId, animation] : animations_) {
-        if (animation->IsUiAnimation() || animation->GetRepeatCount() != REPEAT_COUNT_INFINITE) {
-            continue;
+    bool hasInfiniteAnimation = false;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation->IsUiAnimation() || animation->GetRepeatCount() != REPEAT_COUNT_INFINITE) {
+                continue;
+            }
+            hasInfiniteAnimation = true;
+            animation->RebuildInRender();
         }
-        animation->RebuildInRender();
+    }
+    if (hasInfiniteAnimation) {
+        RebuildTransitionPairInRender();
     }
 }
 

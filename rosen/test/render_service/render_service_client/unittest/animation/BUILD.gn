@@ -29,6 +29,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_node_animation_test.cpp",
+    "rs_node_transition_pair_test.cpp",
     "rs_path_animation_test.cpp",
   ]
 
