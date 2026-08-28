@@ -126,7 +126,7 @@ HWTEST_F(RSHveFilterTest, HasValidFilterNodeTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     paintFilterCanvas.SetIsParallelCanvas(true);
     filter.ClearSurfaceToFilterNodeMap();
-    EXPECT_FALSE(filter.HasValidFilterNode(RSPaintFilterCanvas, 1001));
+    EXPECT_FALSE(filter.HasValidFilterNode(paintFilterCanvas, 1001));
 }
 
 /**
