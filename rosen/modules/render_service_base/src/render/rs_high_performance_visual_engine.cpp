@@ -77,15 +77,25 @@ void HveFilter::ClearSurfaceToFilterNodeMap()
 
 bool HveFilter::HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId)
 {
+    if (canvas.GetIsParallelCanvas()) {
+        return false;
+    }
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     const auto filterIter = hveFilterToSurfaceNodeMap_.find(filterId);
-    if (canvas.GetIsParallelCanvas() || filterIter == hveFilterToSurfaceNodeMap_.end()) {
+    if (filterIter == hveFilterToSurfaceNodeMap_.end()) {
         return false;
+    }
+
+    std::vector<SurfaceNodeInfo> vecSurfaceNode = GetSurfaceNodeInfo();
+    std::unordered_set<NodeId> validSurfaceNodeIds;
+    validSurfaceNodeIds.reserve(vecSurfaceNode.size());
+    for (const auto& node : vecSurfaceNode) {
+        validSurfaceNodeIds.insert(node.surfaceNodeId_);
     }
 
     const auto& surfaceNodeIds = filterIter->second;
     for (NodeId surfaceNodeId : surfaceNodeIds) {
-        if (hveSurfaceToFilterNodeMap_.find(surfaceNodeId) != hveSurfaceToFilterNodeMap_.end()) {
+        if (validSurfaceNodeIds.count(surfaceNodeId) > 0) {
             return true;
         }
     }
