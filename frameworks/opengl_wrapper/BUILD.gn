@@ -114,6 +114,7 @@ if (current_os != "ohos") {
       "egl:libEGL",
       "jsoncpp:jsoncpp",
       "opengles:libGLES",
+      "bounds_checking_function:libsec_shared",
     ]
 
     if (is_emulator) {
