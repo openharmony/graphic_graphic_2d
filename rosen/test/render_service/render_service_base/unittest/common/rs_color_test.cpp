@@ -97,11 +97,11 @@ HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAbsNearEqualBT2020Test
+ * @tc.name: IsAbsNearEqualBT2020Test001
  * @tc.desc: Verify IsAbsNearEqual with BT2020 colors
  * @tc.type: FUNC
  */
-HWTEST_F(RSColorTest, IsAbsNearEqualBT2020Test, TestSize.Level1)
+HWTEST_F(RSColorTest, IsAbsNearEqualBT2020Test001, TestSize.Level1)
 {
     RSColor color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
     RSColor target(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
