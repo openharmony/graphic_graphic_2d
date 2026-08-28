@@ -740,6 +740,19 @@ HWTEST_F(RSScreenRenderNodeTest, SetHasGlassFree3DLayer_WithStagingParams, TestS
 }
 
 /**
+ * @tc.name: SetSwingEnabled
+ * @tc.desc: Test SetSwingEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetSwingEnabled, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->SetSwingEnabled(true);
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: UpdateDisplayDirtyManager
  * @tc.desc: test results of UpdateDisplayDirtyManager
  * @tc.type:FUNC

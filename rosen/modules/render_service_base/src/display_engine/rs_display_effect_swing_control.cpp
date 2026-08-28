@@ -41,17 +41,16 @@ void RSDisplayEffectSwingControl::Init()
 {
     std::lock_guard<std::mutex> lock(mLibMutex);
     if (isInited_) {
-        RS_LOGI("DisplayEffectSwingControl has been inited");
         return;
     }
     if (!LoadLibrary()) {
-        RS_LOGI("DisplayEffectSwingControl LoadLibrary failed");
+        RS_LOGE("DisplayEffectSwingControl LoadLibrary failed");
         return;
     }
     if (create_ != nullptr) {
         swingControlInterface_ = create_();
         if (swingControlInterface_ == nullptr) {
-            RS_LOGI("DisplayEffectSwingControl Create Interface failed");
+            RS_LOGE("DisplayEffectSwingControl Create Interface failed");
             CloseLibrary();
             return;
         }
@@ -64,7 +63,6 @@ void RSDisplayEffectSwingControl::Deinit()
 {
     std::lock_guard<std::mutex> lock(mLibMutex);
     if (!isInited_) {
-        RS_LOGI("no need to deinit");
         return;
     }
     if (destroy_ != nullptr) {
@@ -82,7 +80,7 @@ bool RSDisplayEffectSwingControl::LoadLibrary()
     }
     extLibHandle_ = dlopen(SWING_EXT_LIB_PATH.data(), RTLD_NOW);
     if (extLibHandle_ == nullptr) {
-        RS_LOGI("DisplayEffectSwingControl dlopen error:%{public}s", dlerror());
+        RS_LOGE("DisplayEffectSwingControl dlopen error:%{public}s", dlerror());
         return false;
     }
     create_ = reinterpret_cast<CreateFunc>(dlsym(extLibHandle_, "Create"));

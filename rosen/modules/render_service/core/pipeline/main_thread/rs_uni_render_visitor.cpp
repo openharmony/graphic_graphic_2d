@@ -34,7 +34,6 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "common/rs_special_layer_manager.h"
-#include "display_engine/rs_display_effect_swing_control.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
 #include "feature/drm/rs_drm_util.h"
@@ -2476,7 +2475,7 @@ void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
     bool hasGlassFree3DLayer = false;
     if (RSMainThread::Instance()->GetUIMode3D() != UIMode3D::MODE_GLASSESFREE_3D) {
         node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
-        SetSwingEnabled(node.GetScreenId(), hasGlassFree3DLayer);
+        node.SetSwingEnabled(hasGlassFree3DLayer);
         return;
     }
     bool isOnInternalScreen =
@@ -2507,15 +2506,7 @@ void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
         }
     }
     node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
-    SetSwingEnabled(node.GetScreenId(), hasGlassFree3DLayer);
-}
-
-void RSUniRenderVisitor::SetSwingEnabled(ScreenId screenId, bool isEnabled)
-{
-    auto& swingControl = RSDisplayEffectSwingControl::Get();
-    if (isEnabled != swingControl.IsSwingRegistered(screenId)) {
-        swingControl.SetSwingEnabled(screenId, isEnabled);
-    }
+    node.SetSwingEnabled(hasGlassFree3DLayer);
 }
 
 bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
