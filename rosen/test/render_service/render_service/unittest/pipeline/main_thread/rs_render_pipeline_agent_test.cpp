@@ -353,8 +353,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams, TestSize.Level1)
         params["key" + std::to_string(i)] = "value" + std::to_string(i);
     }
 
-    EXPECT_EQ(agent->SetApsConfigParams(ApsEventTypr::HVE, params), 0);
-    EXPECT_EQ(agent->SetApsConfigParams(ApsEventTypr::SPLIT_LAYER, params), 0);
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::HVE, params), 0);
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params), 0);
 }
 
 /**
