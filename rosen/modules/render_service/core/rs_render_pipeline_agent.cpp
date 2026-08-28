@@ -2841,16 +2841,12 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (consumer) {
             RsDelegateCompositeCallbackManager::GetInstance().SetInfo(consumer, id, pid);
+            RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
         }
         RS_TRACE_NAME_FMT("SetDelegateMode %llu, success", id);
     };
     pipeline->PostMainThreadSyncTask(task);
 
-    auto node = pipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-    if (node && node->GetRSSurfaceHandler()) {
-        sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
-        RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
-    }
     return true;
 #else
     return false;
