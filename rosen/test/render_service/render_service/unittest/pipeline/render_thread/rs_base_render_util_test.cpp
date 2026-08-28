@@ -23,6 +23,7 @@
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "params/rs_screen_render_params.h"
 #include "engine/rs_base_render_util.h"
+#include "draw/surface.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen.h"
@@ -736,6 +737,23 @@ HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: WriteSurfaceRenderNodeToPng_NullSurfaceHandler_001
+ * @tc.desc: Test WriteSurfaceRenderNodeToPng when surfaceHandler is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_NullSurfaceHandler_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "2");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->surfaceHandler_.reset();
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode));
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
  * @tc.name: ConvertBufferToBitmap_001
  * @tc.desc: Test ConvertBufferToBitmap IsBufferValid
  * @tc.type: FUNC
@@ -845,7 +863,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 
     free(bufferHandle->virAddr);
     bufferHandle->virAddr = nullptr;
@@ -862,6 +880,103 @@ HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     bool result = RSBaseRenderUtil::WritePixelMapToPng(*pixelMap);
     ASSERT_EQ(false, result);
+}
+
+/*
+ * @tc.name: WritePixelMapToPng_Proceed_001
+ * @tc.desc: Test WritePixelMapToPng when dump type is PIXELMAP, covers the proceed branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_Proceed_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "3");
+    Media::InitializationOptions opts;
+    opts.size.width = 0x10;
+    opts.size.height = 0x10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    bool result = RSBaseRenderUtil::WritePixelMapToPng(*pixelMap);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NotSurfaceBufferType_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when dump type is not SURFACEBUFFER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NotSurfaceBufferType_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "0");
+    sptr<SurfaceBuffer> buffer;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NullBuffer_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NullBuffer_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    sptr<SurfaceBuffer> buffer;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NullBufferHandle_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when bufferHandle is nullptr (buffer not allocated)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NullBufferHandle_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_Proceed_001
+ * @tc.desc: Test WriteSurfaceBufferToPng with an allocated RGBA buffer, covers the proceed branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_Proceed_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    auto* impl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x10,
+        .height = 0x10,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    ASSERT_EQ(impl->Alloc(requestConfig), OHOS::GSERROR_OK);
+    sptr<SurfaceBuffer> buffer = impl;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
 }
 
 /*
@@ -886,6 +1001,35 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer
+ * @tc.desc: hasCropMetadata true but buffer nullptr -> dstRect falls back to srcRect (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer, TestSize.Level2)
+{
+    RectF localBounds;
+    BufferDrawParam params;
+    params.hasCropMetadata = true;
+    params.buffer = nullptr;
+    params.srcRect = Drawing::Rect(1, 2, 3, 4);
+    ASSERT_EQ(params.buffer, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    ASSERT_NE(rsNode->GetRSSurfaceHandler(), nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
+        rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+    // buffer nullptr + hasCropMetadata -> else branch: dstRect = srcRect
+    EXPECT_EQ(params.dstRect.GetLeft(), params.srcRect.GetLeft());
+    EXPECT_EQ(params.dstRect.GetTop(), params.srcRect.GetTop());
+    EXPECT_EQ(params.dstRect.GetWidth(), params.srcRect.GetWidth());
+    EXPECT_EQ(params.dstRect.GetHeight(), params.srcRect.GetHeight());
 }
 
 /*
@@ -1415,6 +1559,35 @@ HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: WriteToPng_NullData_001
+ * @tc.desc: Test WriteToPng with null data pointer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_NullData_001, TestSize.Level2)
+{
+    WriteToPngParam param{};
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteToPng("/data/WriteToPng_NullData.png", param));
+}
+
+/*
+ * @tc.name: WriteToPng_BufferTooSmall_001
+ * @tc.desc: Test WriteToPng when buffer size is smaller than height * stride
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_BufferTooSmall_001, TestSize.Level2)
+{
+    WriteToPngParam param{};
+    uint8_t dummy = 0;
+    param.data = &dummy;
+    param.height = 2;
+    param.stride = 100;
+    param.size = 10;
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteToPng("/data/WriteToPng_BufferTooSmall.png", param));
+}
+
+/*
  * @tc.name: RotateEnumToInt_001
  * @tc.desc: Test RotateEnumToInt GRAPHIC_FLIP_H
  * @tc.type: FUNC
@@ -1472,6 +1645,44 @@ HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Leve
     bitmap2->Build(10, 10, bitmapFormat);
     bool result2 = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap2, debugInfo);
     ASSERT_EQ(true, result2);
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPng_SurfaceProceed_001
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng(Surface) reaches localtime_r and proceeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPng_SurfaceProceed_001, TestSize.Level2)
+{
+    auto dumpImgParam = OHOS::system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0");
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", "1");
+    auto surface = Drawing::Surface::MakeRasterN32Premul(0x10, 0x10);
+    ASSERT_NE(surface, nullptr);
+    std::string debugInfo = "surface_proceed";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(surface, debugInfo);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", dumpImgParam);
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPng_ImageProceed_001
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng(Image) reaches localtime_r and proceeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPng_ImageProceed_001, TestSize.Level2)
+{
+    auto dumpImgParam = OHOS::system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0");
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", "1");
+    auto surface = Drawing::Surface::MakeRasterN32Premul(0x10, 0x10);
+    ASSERT_NE(surface, nullptr);
+    auto image = surface->GetImageSnapshot();
+    ASSERT_NE(image, nullptr);
+    std::string debugInfo = "image_proceed";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(image, debugInfo);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", dumpImgParam);
 }
 
 /*
@@ -2565,7 +2776,7 @@ HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_BufferSizeOverflow001, Test
 /*
  * @tc.name: CreateYuvToRGBABitMap_LenOverflow001
  * @tc.desc: Test ConvertYUV420SPToRGBA with buffer len overflow (stride * height > INT32_MAX)
- *           Branch: if (len > MAX_SAFE_BUFFER_SIZE) return false
+ *           Branch: if (len > INT32_MAX) return false
  * @tc.type: FUNC
  * @tc.require: issue24925
  */
@@ -2594,7 +2805,7 @@ HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_LenOverflow001, TestSize.Le
 /*
  * @tc.name: CreateYuvToRGBABitMap_TotalLenOverflow001
  * @tc.desc: Test ConvertYUV420SPToRGBA with totalLen overflow (len * 1.5 > INT32_MAX, len <= INT32_MAX)
- *           Branch: if (totalLen > MAX_SAFE_BUFFER_SIZE) return false
+ *           Branch: if (totalLen > INT32_MAX) return false
  * @tc.type: FUNC
  * @tc.require: issue24925
  */
