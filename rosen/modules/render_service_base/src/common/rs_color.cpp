@@ -221,33 +221,33 @@ RSColor RSColor::operator+(const RSColor& rhs) const
     if (UNLIKELY(rhs.placeholder_ != 0)) {
         return rhs;
     }
-    RSColor max_headroom_color(rhs);
-    RSColor min_headroom_color(*this);
-    if (min_headroom_color.GetHeadroom() > max_headroom_color.GetHeadroom()) {
-        max_headroom_color = *this;
-        min_headroom_color = rhs;
+    RSColor highColor(rhs);
+    RSColor lowColor(*this);
+    if (lowColor.GetHeadroom() > highColor.GetHeadroom()) {
+        highColor = *this;
+        lowColor = rhs;
     }
-    if (max_headroom_color.GetHeadroom() < 1.0f || min_headroom_color.GetHeadroom() < 1.0f) {
+    if (highColor.GetHeadroom() < 1.0f || lowColor.GetHeadroom() < 1.0f) {
         return *this;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        max_headroom_color.ConvertToBT2020ColorSpace();
-        min_headroom_color.ConvertToBT2020ColorSpace();
+    if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        highColor.ConvertToBT2020ColorSpace();
+        lowColor.ConvertToBT2020ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
-    } else if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        max_headroom_color.ConvertToP3ColorSpace();
-        min_headroom_color.ConvertToP3ColorSpace();
+    } else if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        highColor.ConvertToP3ColorSpace();
+        lowColor.ConvertToP3ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return RSColor(
-        min_headroom_color.GetRedF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() + max_headroom_color.GetRedF(),
-        min_headroom_color.GetGreenF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() + max_headroom_color.GetGreenF(),
-        min_headroom_color.GetBlueF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() + max_headroom_color.GetBlueF(),
-        min_headroom_color.GetAlphaF() + max_headroom_color.GetAlphaF(),
-        colorSpace, max_headroom_color.GetHeadroom());
+        lowColor.GetRedF() * lowColor.GetHeadroom() / highColor.GetHeadroom() + highColor.GetRedF(),
+        lowColor.GetGreenF() * lowColor.GetHeadroom() / highColor.GetHeadroom() + highColor.GetGreenF(),
+        lowColor.GetBlueF() * lowColor.GetHeadroom() / highColor.GetHeadroom() + highColor.GetBlueF(),
+        lowColor.GetAlphaF() + highColor.GetAlphaF(),
+        colorSpace, highColor.GetHeadroom());
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
@@ -315,33 +315,33 @@ RSColor RSColor::operator*(const RSColor& other) const
     if (UNLIKELY(other.placeholder_ != 0)) {
         return other;
     }
-    RSColor max_headroom_color(other);
-    RSColor min_headroom_color(*this);
-    if (min_headroom_color.GetHeadroom() > max_headroom_color.GetHeadroom()) {
-        max_headroom_color = *this;
-        min_headroom_color = other;
+    RSColor highColor(other);
+    RSColor lowColor(*this);
+    if (lowColor.GetHeadroom() > highColor.GetHeadroom()) {
+        highColor = *this;
+        lowColor = other;
     }
-    if (min_headroom_color.GetHeadroom() < 1.0f) {
+    if (lowColor.GetHeadroom() < 1.0f) {
         return *this;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        max_headroom_color.ConvertToBT2020ColorSpace();
-        min_headroom_color.ConvertToBT2020ColorSpace();
+    if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        highColor.ConvertToBT2020ColorSpace();
+        lowColor.ConvertToBT2020ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
-    } else if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        max_headroom_color.ConvertToP3ColorSpace();
-        min_headroom_color.ConvertToP3ColorSpace();
+    } else if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        highColor.ConvertToP3ColorSpace();
+        lowColor.ConvertToP3ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return RSColor(
-        min_headroom_color.GetRedF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetRedF(),
-        min_headroom_color.GetGreenF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetGreenF(),
-        min_headroom_color.GetBlueF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetBlueF(),
-        min_headroom_color.GetAlphaF() * max_headroom_color.GetAlphaF(),
-        colorSpace, max_headroom_color.GetHeadroom());
+        lowColor.GetRedF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetRedF(),
+        lowColor.GetGreenF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetGreenF(),
+        lowColor.GetBlueF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetBlueF(),
+        lowColor.GetAlphaF() * highColor.GetAlphaF(),
+        colorSpace, highColor.GetHeadroom());
 }
 
 RSColor& RSColor::operator*=(float scale)
@@ -372,33 +372,33 @@ RSColor& RSColor::operator*=(const RSColor& other)
         *this = other;
         return *this;
     }
-    RSColor max_headroom_color(other);
-    RSColor min_headroom_color(*this);
-    if (min_headroom_color.GetHeadroom() > max_headroom_color.GetHeadroom()) {
-        max_headroom_color = *this;
-        min_headroom_color = other;
+    RSColor highColor(other);
+    RSColor lowColor(*this);
+    if (lowColor.GetHeadroom() > highColor.GetHeadroom()) {
+        highColor = *this;
+        lowColor = other;
     }
-    if (min_headroom_color.GetHeadroom() < 1.0f) {
+    if (lowColor.GetHeadroom() < 1.0f) {
         return *this;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        max_headroom_color.ConvertToBT2020ColorSpace();
-        min_headroom_color.ConvertToBT2020ColorSpace();
+    if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        highColor.ConvertToBT2020ColorSpace();
+        lowColor.ConvertToBT2020ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
-    } else if (max_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
-        min_headroom_color.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        max_headroom_color.ConvertToP3ColorSpace();
-        min_headroom_color.ConvertToP3ColorSpace();
+    } else if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
+        lowColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        highColor.ConvertToP3ColorSpace();
+        lowColor.ConvertToP3ColorSpace();
         colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     *this = RSColor(
-        min_headroom_color.GetRedF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetRedF(),
-        min_headroom_color.GetGreenF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetGreenF(),
-        min_headroom_color.GetBlueF() * min_headroom_color.GetHeadroom() / max_headroom_color.GetHeadroom() * max_headroom_color.GetBlueF(),
-        min_headroom_color.GetAlphaF() * max_headroom_color.GetAlphaF(),
-        colorSpace, max_headroom_color.GetHeadroom());
+        lowColor.GetRedF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetRedF(),
+        lowColor.GetGreenF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetGreenF(),
+        lowColor.GetBlueF() * lowColor.GetHeadroom() / highColor.GetHeadroom() * highColor.GetBlueF(),
+        lowColor.GetAlphaF() * highColor.GetAlphaF(),
+        colorSpace, highColor.GetHeadroom());
     return *this;
 }
 
