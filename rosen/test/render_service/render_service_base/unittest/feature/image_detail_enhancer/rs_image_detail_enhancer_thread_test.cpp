@@ -216,15 +216,16 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, GetProcessReadyTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
-    rsImageDetailEnhancerThread.processReadyMap_[imageId] = true;
-    bool result = rsImageDetailEnhancerThread.GetProcessReady(imageId);
+    uint64_t nodeId = 99999;
+    rsImageDetailEnhancerThread.processReadyMap_[{imageId, nodeId}] = true;
+    bool result = rsImageDetailEnhancerThread.GetProcessReady({imageId, nodeId});
     EXPECT_TRUE(result);
     imageId = 23456;
-    rsImageDetailEnhancerThread.processReadyMap_[imageId] = false;
-    result = rsImageDetailEnhancerThread.GetProcessReady(imageId);
+    rsImageDetailEnhancerThread.processReadyMap_[{imageId, nodeId}] = false;
+    result = rsImageDetailEnhancerThread.GetProcessReady({imageId, nodeId});
     EXPECT_FALSE(result);
     imageId = 34567;
-    result = rsImageDetailEnhancerThread.GetProcessReady(imageId);
+    result = rsImageDetailEnhancerThread.GetProcessReady({imageId, nodeId});
     EXPECT_FALSE(result);
 }
 
@@ -238,22 +239,26 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, SetProcessReadyTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
+    RSImageDetailEnhancerThread::ImageKey imageKey = {imageId, nodeId};
     bool flag = true;
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, flag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageId], flag);
+    rsImageDetailEnhancerThread.SetProcessReady(imageKey, flag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageKey], flag);
     imageId = 23456;
     bool oldFlag = true;
     bool newFlag = false;
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, oldFlag);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, newFlag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageId], newFlag);
+    imageKey = {imageId, nodeId};
+    rsImageDetailEnhancerThread.SetProcessReady(imageKey, oldFlag);
+    rsImageDetailEnhancerThread.SetProcessReady(imageKey, newFlag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageKey], newFlag);
     imageId = 0;
     flag = true;
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, flag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageId], flag);
+    imageKey = {imageId, nodeId};
+    rsImageDetailEnhancerThread.SetProcessReady(imageKey, flag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processReadyMap_[imageKey], flag);
 }
 
 /**
@@ -266,15 +271,16 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, GetProcessStatusTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
-    rsImageDetailEnhancerThread.processStatusMap_[imageId] = true;
-    bool result = rsImageDetailEnhancerThread.GetProcessStatus(imageId);
+    uint64_t nodeId = 99999;
+    rsImageDetailEnhancerThread.processStatusMap_[{imageId, nodeId}] = true;
+    bool result = rsImageDetailEnhancerThread.GetProcessStatus({imageId, nodeId});
     EXPECT_TRUE(result);
     imageId = 23456;
-    rsImageDetailEnhancerThread.processStatusMap_[imageId] = false;
-    result = rsImageDetailEnhancerThread.GetProcessStatus(imageId);
+    rsImageDetailEnhancerThread.processStatusMap_[{imageId, nodeId}] = false;
+    result = rsImageDetailEnhancerThread.GetProcessStatus({imageId, nodeId});
     EXPECT_FALSE(result);
     imageId = 34567;
-    result = rsImageDetailEnhancerThread.GetProcessStatus(imageId);
+    result = rsImageDetailEnhancerThread.GetProcessStatus({imageId, nodeId});
     EXPECT_FALSE(result);
 }
 
@@ -288,22 +294,26 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, SetProcessStatusTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
+    RSImageDetailEnhancerThread::ImageKey imageKey = {imageId, nodeId};
     bool flag = true;
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, flag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageId], flag);
+    rsImageDetailEnhancerThread.SetProcessStatus(imageKey, flag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageKey], flag);
     imageId = 12345;
     bool oldFlag = true;
     bool newFlag = false;
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, oldFlag);
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, newFlag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageId], newFlag);
+    imageKey = {imageId, nodeId};
+    rsImageDetailEnhancerThread.SetProcessStatus(imageKey, oldFlag);
+    rsImageDetailEnhancerThread.SetProcessStatus(imageKey, newFlag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageKey], newFlag);
     imageId = 0;
     flag = true;
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, flag);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageId), 1);
-    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageId], flag);
+    imageKey = {imageId, nodeId};
+    rsImageDetailEnhancerThread.SetProcessStatus(imageKey, flag);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_.count(imageKey), 1);
+    EXPECT_EQ(rsImageDetailEnhancerThread.processStatusMap_[imageKey], flag);
 }
 
 /**
@@ -316,17 +326,19 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, SetScaledImageTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     auto image = std::make_shared<Drawing::Image>();
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, image);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, image);
     imageId = 23456;
     auto dstImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(dstImage, nullptr);
-    rsImageDetailEnhancerThread.imageList_.emplace_front(imageId, dstImage);
-    rsImageDetailEnhancerThread.keyMap_[imageId] = rsImageDetailEnhancerThread.imageList_.begin();
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
+    rsImageDetailEnhancerThread.imageList_.emplace_front(RSImageDetailEnhancerThread::ImageKey{imageId, nodeId},
+        dstImage);
+    rsImageDetailEnhancerThread.keyMap_[{imageId, nodeId}] = rsImageDetailEnhancerThread.imageList_.begin();
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, dstImage);
     imageId = 34567;
     dstImage = nullptr;
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, dstImage);
 }
 
 /**
@@ -341,7 +353,8 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ReleaseScaledImageTest, TestSize.Level
     auto image = std::make_shared<Drawing::Image>();
     EXPECT_NE(image, nullptr);
     uint64_t imageId = 1234567;
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, image);
+    uint64_t nodeId = 99999;
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, image);
     rsImageDetailEnhancerThread.ReleaseScaledImage(imageId);
     imageId = 567890;
     rsImageDetailEnhancerThread.ReleaseScaledImage(imageId);
@@ -357,8 +370,9 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, GetScaledImageTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     auto image = std::make_shared<Drawing::Image>();
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, image);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, image);
     auto result = rsImageDetailEnhancerThread.GetScaledImage(imageId);
     imageId = 56789;
     result = rsImageDetailEnhancerThread.GetScaledImage(imageId);
@@ -374,6 +388,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, GetScaledImageTest, TestSize.Level1)
 HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest001, TestSize.Level1)
 {
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
@@ -385,36 +400,36 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest001, TestSize.Level1)
     int srcHeight = 1000;
     int dstWidth = 800;
     int dstHeight = 800;
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 800, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 801, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 810, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 790, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 801, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 799, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 800, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 810, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 790, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 810, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 801, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 799, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 790, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 799, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 810, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 801, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 800, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 790, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 799, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 800, imageId);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 810, imageId);
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, dstImage);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 800, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 801, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 810, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 800, 790, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 801, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 799, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 800, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 810, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 801, 790, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 810, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 801, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 799, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 810, 790, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 799, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 810, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 801, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 799, 800, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 790, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 799, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 800, {imageId, nodeId});
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, 790, 810, {imageId, nodeId});
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
     dstImage = nullptr;
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 }
 
 /**
@@ -426,6 +441,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest001, TestSize.Level1)
 HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest002, TestSize.Level1)
 {
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     int srcWidth = 1920;
     int srcHeight = 1080;
     int dstWidth = 0;
@@ -433,40 +449,40 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest002, TestSize.Level1)
     auto dstImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(dstImage, nullptr);
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, dstImage);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
     dstImage = nullptr;
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
     dstImage = std::make_shared<Drawing::Image>();
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 }
 
 /**
@@ -478,6 +494,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest002, TestSize.Level1)
 HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest003, TestSize.Level1)
 {
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
@@ -489,36 +506,36 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest003, TestSize.Level1)
     int srcHeight = 1000;
     int dstWidth = 800;
     int dstHeight = 800;
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, dstImage);
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, true);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 
-    rsImageDetailEnhancerThread.SetProcessStatus(imageId, false);
-    rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, nullptr);
-    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
+    rsImageDetailEnhancerThread.SetProcessStatus({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetProcessReady({imageId, nodeId}, false);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, nullptr);
+    rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
 }
 
 /**
@@ -861,7 +878,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest, TestSize.Level1
     Drawing::ReleaseContext releaseContext = nullptr;
     auto dstImage = Drawing::Image::MakeFromRaster(pixmap1, rasterReleaseProc, releaseContext);
     uint64_t imageId = image->GetUniqueId();
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, dstImage);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, image->nodeId_, dstImage);
     rsImageParams.mImage = dstImage;
     result = rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams);
     EXPECT_NE(result, nullptr);
@@ -908,11 +925,11 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest01, TestSize.Leve
     };
 
     rsImageParams.mImage = image1;
-    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image2);
+    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image->nodeId_, image2);
     EXPECT_EQ(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
 
     rsImageParams.mImage = image2;
-    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image1);
+    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image->nodeId_, image1);
     EXPECT_NE(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
 
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
@@ -964,10 +981,11 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest02, TestSize.Leve
         image->pixelMap_, image->nodeId_, image->dst_, image->uniqueId_, image->image_, 1.0f
     };
     rsImageParams.mImage = image1;
-    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image2);
+    uint64_t nodeId = 99999;
+    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, nodeId, image2);
     EXPECT_EQ(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
     rsImageParams.mImage = image2;
-    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, image1);
+    rsImageDetailEnhancerThread.SetScaledImage(image->uniqueId_, nodeId, image1);
     EXPECT_EQ(rsImageDetailEnhancerThread.EnhanceImageAsync(image->isScaledImageAsync_, rsImageParams), nullptr);
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
@@ -996,11 +1014,11 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleImageAsyncTest, TestSize.Level1)
     Drawing::Rect dst(0, 0, 1200, 1200);
     uint64_t nodeId = 12345;
     uint64_t imageId = 45678;
-    rsImageDetailEnhancerThread.processStatusMap_[imageId] = false;
+    rsImageDetailEnhancerThread.processStatusMap_[{imageId, nodeId}] = false;
     rsImageDetailEnhancerThread.ScaleImageAsync(pixelMap, dst, nodeId, imageId, image);
-    rsImageDetailEnhancerThread.processStatusMap_[imageId] = true;
+    rsImageDetailEnhancerThread.processStatusMap_[{imageId, nodeId}] = true;
     rsImageDetailEnhancerThread.ScaleImageAsync(pixelMap, dst, nodeId, imageId, image);
-    rsImageDetailEnhancerThread.processStatusMap_[imageId] = false;
+    rsImageDetailEnhancerThread.processStatusMap_[{imageId, nodeId}] = false;
     pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
     rsImageDetailEnhancerThread.ScaleImageAsync(pixelMap, dst, nodeId, imageId, image);
     pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
@@ -1025,19 +1043,22 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, PushImageListTest, TestSize.Level1)
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     rsImageDetailEnhancerThread.curCache_ = 150;
     uint64_t imageId = 12345;
+    uint64_t nodeId = 99999;
     auto dstImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(dstImage, nullptr);
-    rsImageDetailEnhancerThread.imageList_.emplace_front(imageId, dstImage);
-    rsImageDetailEnhancerThread.keyMap_[imageId] = rsImageDetailEnhancerThread.imageList_.begin();
-    rsImageDetailEnhancerThread.PushImageList(imageId, dstImage);
+    rsImageDetailEnhancerThread.imageList_.emplace_front(RSImageDetailEnhancerThread::ImageKey{imageId, nodeId},
+        dstImage);
+    rsImageDetailEnhancerThread.keyMap_[{imageId, nodeId}] = rsImageDetailEnhancerThread.imageList_.begin();
+    rsImageDetailEnhancerThread.PushImageList(imageId, nodeId, dstImage);
     dstImage = nullptr;
-    rsImageDetailEnhancerThread.PushImageList(imageId, dstImage);
+    rsImageDetailEnhancerThread.PushImageList(imageId, nodeId, dstImage);
 
     auto image = nullptr;
     imageId = 23456;
-    rsImageDetailEnhancerThread.imageList_.emplace_front(imageId, image);
-    rsImageDetailEnhancerThread.keyMap_[imageId] = rsImageDetailEnhancerThread.imageList_.begin();
-    rsImageDetailEnhancerThread.PushImageList(imageId, image);
+    rsImageDetailEnhancerThread.imageList_.emplace_front(RSImageDetailEnhancerThread::ImageKey{imageId, nodeId},
+        image);
+    rsImageDetailEnhancerThread.keyMap_[{imageId, nodeId}] = rsImageDetailEnhancerThread.imageList_.begin();
+    rsImageDetailEnhancerThread.PushImageList(imageId, nodeId, image);
 }
 
 /**
@@ -1299,33 +1320,34 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ImageSamplingDumpTest, TestSize.Level1
     auto image = std::make_shared<Drawing::Image>();
     image->BuildFromBitmap(bmp);
     uint64_t imageId = 123456;
-    rsImageDetailEnhancerThread.ImageSamplingDump(imageId);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId, image);
-    rsImageDetailEnhancerThread.ImageSamplingDump(imageId);
+    uint64_t nodeId = 99999;
+    rsImageDetailEnhancerThread.ImageSamplingDump(imageId, nodeId);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId, nodeId, image);
+    rsImageDetailEnhancerThread.ImageSamplingDump(imageId, nodeId);
 
     uint64_t imageId1 = 234567;
     Drawing::Bitmap bmp1;
     bmp1.Build(0, 0, format);
     auto image1 = std::make_shared<Drawing::Image>();
     image1->BuildFromBitmap(bmp1);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId1, image1);
-    rsImageDetailEnhancerThread.ImageSamplingDump(imageId1);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId1, nodeId, image1);
+    rsImageDetailEnhancerThread.ImageSamplingDump(imageId1, nodeId);
 
     uint64_t imageId3 = 456789;
     Drawing::Bitmap bmp3;
     bmp3.Build(1, 0, format);
     auto image3 = std::make_shared<Drawing::Image>();
     image3->BuildFromBitmap(bmp3);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId3, image3);
-    rsImageDetailEnhancerThread.ImageSamplingDump(imageId3);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId3, nodeId, image3);
+    rsImageDetailEnhancerThread.ImageSamplingDump(imageId3, nodeId);
 
     uint64_t imageId2 = 345678;
     Drawing::Bitmap bmp2;
     bmp2.Build(0, 1, format);
     auto image2 = std::make_shared<Drawing::Image>();
     image2->BuildFromBitmap(bmp2);
-    rsImageDetailEnhancerThread.SetScaledImage(imageId2, image2);
-    rsImageDetailEnhancerThread.ImageSamplingDump(imageId2);
+    rsImageDetailEnhancerThread.SetScaledImage(imageId2, nodeId, image2);
+    rsImageDetailEnhancerThread.ImageSamplingDump(imageId2, nodeId);
 }
 #endif
 #endif

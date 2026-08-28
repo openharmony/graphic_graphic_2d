@@ -593,10 +593,10 @@ std::string RSImage::PixelSamplingDump() const
     return oss.str().c_str();
 }
 
-void RSImage::ImageSamplingDump(uint64_t imageId) const
+void RSImage::ImageSamplingDump(uint64_t imageId, uint64_t nodeId) const
 {
 #if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    RSImageDetailEnhancerThread::Instance().ImageSamplingDump(imageId);
+    RSImageDetailEnhancerThread::Instance().ImageSamplingDump(imageId, nodeId);
 #endif
 }
 
