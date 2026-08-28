@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include "parse_render_int.h"
 
 #include "config_policy_utils.h"
 
@@ -42,15 +43,6 @@ std::optional<std::string> GetConfigPath()
     return resPath;
 }
 
-bool IsNumber(const std::string& str)
-{
-    if (str.empty()) {
-        return false;
-    }
-    auto number { static_cast<uint32_t>(
-        std::count_if(str.begin(), str.end(), [](unsigned char c) { return std::isdigit(c); })) };
-    return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
-}
 } // namespace
 
 RSRenderModeConfigParser::~RSRenderModeConfigParser()
@@ -139,16 +131,17 @@ bool RSRenderModeConfigParser::ParseInternal(xmlNode& node)
     xmlNode* currNode { &node };
 
     std::string valueStr { ExtractPropertyValue("value", *currNode) };
-    if (!IsNumber(valueStr)) {
+    int32_t value = 0;
+    if (!ParseRenderInt32(valueStr, value)) {
         RS_LOGE("%{public}s: ParseInternal failed. valueStr[%{public}s]", __func__, valueStr.c_str());
         return false;
     }
-    const auto value { std::stoi(valueStr) };
     isMultiProcessModeEnabled_ = (value == 0 || value == 1) ? value : 0;
 
     std::string defaultGroupStr { ExtractPropertyValue("default_group", *currNode) };
-    bool hasDefaultGroup = IsNumber(defaultGroupStr);
-    GroupId defaultGroupId { hasDefaultGroup ? std::stoi(defaultGroupStr) : DEFAULT_RENDER_PROCESS };
+    int32_t parsedDefault = 0;
+    bool hasDefaultGroup = ParseRenderInt32(defaultGroupStr, parsedDefault);
+    GroupId defaultGroupId { hasDefaultGroup ? parsedDefault : DEFAULT_RENDER_PROCESS };
 
     bool isFirstGroup { true };
     for (currNode = currNode->xmlChildrenNode; currNode; currNode = currNode->next) {
@@ -161,10 +154,11 @@ bool RSRenderModeConfigParser::ParseInternal(xmlNode& node)
 
         std::string groupIdStr { ExtractPropertyValue("id", *currNode) };
         GroupId groupId {};
-        if (!IsNumber(groupIdStr)) {
+        int32_t parsedGroup = 0;
+        if (!ParseRenderInt32(groupIdStr, parsedGroup)) {
             groupId = defaultGroupId;
         } else {
-            groupId = std::stoi(groupIdStr);
+            groupId = parsedGroup;
             if (isFirstGroup && !hasDefaultGroup) {
                 defaultGroupId = groupId;
             }
@@ -212,11 +206,11 @@ int32_t RSRenderModeConfigParser::ParseGroup(xmlNode& node, GroupId groupId)
         }
         std::string screenName { ExtractPropertyValue("name", *currNode) };
         std::string screenIdStr { ExtractPropertyValue("id", *currNode) };
-        if (!IsNumber(screenIdStr)) {
+        int32_t screenId = 0;
+        if (!ParseRenderInt32(screenIdStr, screenId)) {
             RS_LOGE("%{public}s: screenIdStr[%{public}s] is not a valid number", __func__, screenIdStr.c_str());
             return RENDER_MODE_PARSE_ERROR;
         }
-        int32_t screenId { std::stoi(screenIdStr) };
         builder.SetScreenIdToGroupId(screenId, groupId);
         ScreenInfoConfig screenInfo { std::move(screenName), screenId };
         groupInfo.screenInfos.emplace_back(std::move(screenInfo));
