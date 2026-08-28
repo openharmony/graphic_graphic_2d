@@ -542,6 +542,27 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
     }
 }
 
+void RSUniHwcVisitor::UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+{
+    if (hwcNode->IsHardwareForcedDisabled()) {
+        return;
+    }
+    auto& displayNode = uniRenderVisitor_.curLogicalDisplayNode_;
+    if (!displayNode) {
+        return;
+    }
+    float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
+    if (ROSEN_EQ(brightnessFactor, 0.0f) && RSBaseHdrUtil::CheckAIHDRStatus(hwcNode->GetVideoHdrStatus())) {
+        auto parentNode = hwcNode->GetParent().lock();
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64
+            " disabled by HDR brightnessFactor:%f",
+            hwcNode->GetName().c_str(), hwcNode->GetId(),
+            parentNode ? parentNode->GetId() : 0, brightnessFactor);
+        PrintHiperfLog(hwcNode, "zero HDR brightness factor for AI HDR");
+        hwcNode->SetHardwareForcedDisabledState(true);
+    }
+}
+
 void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes)
 {
@@ -597,6 +618,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         auto firstLevelNodeId = hwcNodePtr->GetFirstLevelNodeId();
         auto& hwcRects = hwcRectsByApp[firstLevelNodeId];
         UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
+        UpdateHwcNodeEnableByForceDisableHdr(hwcNodePtr);
         if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
             ancoNodes.push_back(hwcNodePtr);
         }

@@ -47,6 +47,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "hdr/rs_base_hdr_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3982,5 +3984,219 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalPosition_003, TestSize.
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalPosition(*surfaceNode);
 
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_HardwareForcedDisabled_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when hwcNode is already hardware forced disabled.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_HardwareForcedDisabled_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(true);
+    ASSERT_TRUE(hwcNode->IsHardwareForcedDisabled());
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_NoDisplayNode_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when curLogicalDisplayNode_ is null.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_NoDisplayNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+
+    rsUniRenderVisitor->curLogicalDisplayNode_ = nullptr;
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGtm_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_GTM.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGtm_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGainmap_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_GAINMAP.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(
+    RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGainmap_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRAi2020_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_AI2020.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(
+    RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRAi2020_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_AI2020);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NonAIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is HDR_VIDEO (non-AI HDR).
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NonAIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorNonZero_AIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is non-zero (not off-peak).
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorNonZero_AIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NoHdr_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is NO_HDR.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NoHdr_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::NO_HDR);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
 }
 } // namespace OHOS::Rosen
