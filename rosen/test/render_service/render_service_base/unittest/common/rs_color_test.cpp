@@ -97,6 +97,73 @@ HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsAbsNearEqualBT2020Test
+ * @tc.desc: Verify IsAbsNearEqual with BT2020 colors
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, IsAbsNearEqualBT2020Test, TestSize.Level1)
+{
+    RSColor color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor target(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor threshold(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    EXPECT_TRUE(color.IsAbsNearEqual(target, threshold));
+
+    RSColor diffTarget(0.6f, 0.6f, 0.6f, 0.6f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    EXPECT_FALSE(color.IsAbsNearEqual(diffTarget, threshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualHeadroomTest001
+ * @tc.desc: Verify IsAbsNearEqual with headroom at epsilon boundary
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, IsAbsNearEqualHeadroomTest001, TestSize.Level1)
+{
+    RSColor color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    float epsilon = std::numeric_limits<float>::epsilon();
+    RSColor target(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f + epsilon);
+    RSColor threshold(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    EXPECT_TRUE(color.IsAbsNearEqual(target, threshold));
+}
+
+/**
+ * @tc.name: IsAbsNearEqualHeadroomTest002
+ * @tc.desc: Verify IsAbsNearEqual with headroom difference greater than epsilon
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, IsAbsNearEqualHeadroomTest002, TestSize.Level1)
+{
+    RSColor color(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor target(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.01f);
+    RSColor threshold(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    EXPECT_FALSE(color.IsAbsNearEqual(target, threshold));
+}
+
+/**
+ * @tc.name: OperatorEqualHeadroomTest002
+ * @tc.desc: Verify operator== with headroom difference greater than epsilon
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorEqualHeadroomTest002, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.001f);
+    EXPECT_FALSE(color1 == color2);
+}
+
+/**
+ * @tc.name: OperatorEqualHeadroomTest003
+ * @tc.desc: Verify operator== with same headroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, OperatorEqualHeadroomTest003, TestSize.Level1)
+{
+    RSColor color1(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    RSColor color2(0.5f, 0.5f, 0.5f, 0.5f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    EXPECT_TRUE(color1 == color2);
+}
+
+/**
  * @tc.name: RSColorCreateTest
  * @tc.desc: Verify function RSColor
  * @tc.type: FUNC
@@ -1397,6 +1464,33 @@ HWTEST_F(RSColorTest, IsNearEqual002, TestSize.Level1)
     RSColor colorB(0, 0, 1, 0, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     int16_t threshold = 1;
     EXPECT_TRUE(colorA.IsNearEqual(colorB, threshold));
+}
+
+/**
+ * @tc.name: IsNearEqualHeadroomTest001
+ * @tc.desc: Verify IsNearEqual with headroom difference at epsilon boundary
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, IsNearEqualHeadroomTest001, TestSize.Level1)
+{
+    RSColor color1(100, 100, 100, 100);
+    float epsilon = std::numeric_limits<float>::epsilon();
+    RSColor color2(100, 100, 100, 100);
+    color2.SetHeadroom(1.0f + epsilon);
+    EXPECT_TRUE(color1.IsNearEqual(color2, 0));
+}
+
+/**
+ * @tc.name: IsNearEqualHeadroomTest002
+ * @tc.desc: Verify IsNearEqual with different headroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorTest, IsNearEqualHeadroomTest002, TestSize.Level1)
+{
+    RSColor color1(100, 100, 100, 100);
+    RSColor color2(100, 100, 100, 100);
+    color2.SetHeadroom(1.01f);
+    EXPECT_FALSE(color1.IsNearEqual(color2, 0));
 }
 
 /**

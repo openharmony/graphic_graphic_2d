@@ -82,24 +82,24 @@ bool RSColor::operator==(const RSColor& rhs) const
         RSColor rhsColor(rhs);
         lhsColor.ConvertToBT2020ColorSpace();
         rhsColor.ConvertToBT2020ColorSpace();
-        return OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetRedF(), rhsColor.GetRedF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetGreenF(), rhsColor.GetGreenF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetBlueF(), rhsColor.GetBlueF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetAlphaF(), rhsColor.GetAlphaF()) &&
+        return ROSEN_EQ<float>(lhsColor.GetRedF(), rhsColor.GetRedF()) &&
+               ROSEN_EQ<float>(lhsColor.GetGreenF(), rhsColor.GetGreenF()) &&
+               ROSEN_EQ<float>(lhsColor.GetBlueF(), rhsColor.GetBlueF()) &&
+               ROSEN_EQ<float>(lhsColor.GetAlphaF(), rhsColor.GetAlphaF()) &&
                lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+               ROSEN_EQ<float>(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
     }
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        return OHOS::ColorManager::FloatNearlyEqual(GetRedF(), rhs.GetRedF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(GetGreenF(), rhs.GetGreenF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(GetBlueF(), rhs.GetBlueF()) &&
-               OHOS::ColorManager::FloatNearlyEqual(GetAlphaF(), rhs.GetAlphaF()) &&
+        return ROSEN_EQ<float>(GetRedF(), rhs.GetRedF()) &&
+               ROSEN_EQ<float>(GetGreenF(), rhs.GetGreenF()) &&
+               ROSEN_EQ<float>(GetBlueF(), rhs.GetBlueF()) &&
+               ROSEN_EQ<float>(GetAlphaF(), rhs.GetAlphaF()) &&
                GetPlaceholder() == rhs.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), rhs.GetHeadroom());
+               ROSEN_EQ<float>(GetHeadroom(), rhs.GetHeadroom());
     }
     return GetRed() == rhs.GetRed() && GetGreen() == rhs.GetGreen() && GetBlue() == rhs.GetBlue() &&
            GetAlpha() == rhs.GetAlpha() && GetPlaceholder() == rhs.GetPlaceholder() &&
-           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), rhs.GetHeadroom());
+           ROSEN_EQ<float>(GetHeadroom(), rhs.GetHeadroom());
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
@@ -115,7 +115,7 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
                (std::fabs(lhsColor.GetBlueF() - rhsColor.GetBlueF()) <= thresholdF) &&
                (std::fabs(lhsColor.GetAlphaF() - rhsColor.GetAlphaF()) <= thresholdF) &&
                lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+               ROSEN_EQ<float>(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
     }
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         float thresholdF = static_cast<float>(threshold) / static_cast<float>(RGB_MAX_VALUE);
@@ -124,14 +124,14 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
                (std::fabs(GetBlueF() - other.GetBlueF()) <= thresholdF) &&
                (std::fabs(GetAlphaF() - other.GetAlphaF()) <= thresholdF) &&
                GetPlaceholder() == other.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), other.GetHeadroom());
+               ROSEN_EQ<float>(GetHeadroom(), other.GetHeadroom());
     }
     return (std::abs(GetRed() - other.GetRed()) <= threshold) &&
            (std::abs(GetGreen() - other.GetGreen()) <= threshold) &&
            (std::abs(GetBlue() - other.GetBlue()) <= threshold) &&
            (std::abs(GetAlpha() - other.GetAlpha()) <= threshold) &&
            (GetPlaceholder() == other.GetPlaceholder()) &&
-           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), other.GetHeadroom());
+           ROSEN_EQ<float>(GetHeadroom(), other.GetHeadroom());
 }
 
 bool RSColor::IsAbsNearEqual(const RSColor& target, const RSColor& threshold) const
@@ -146,7 +146,7 @@ bool RSColor::IsAbsNearEqual(const RSColor& target, const RSColor& threshold) co
                (std::fabs(lhsColor.GetBlueF() - rhsColor.GetBlueF()) <= std::fabs(threshold.GetBlueF())) &&
                (std::fabs(lhsColor.GetAlphaF() - rhsColor.GetAlphaF()) <= std::fabs(threshold.GetAlphaF())) &&
                lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+               ROSEN_EQ<float>(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
     }
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         return (std::fabs(GetRedF() - target.GetRedF()) <= std::fabs(threshold.GetRedF())) &&
@@ -154,14 +154,14 @@ bool RSColor::IsAbsNearEqual(const RSColor& target, const RSColor& threshold) co
                (std::fabs(GetBlueF() - target.GetBlueF()) <= std::fabs(threshold.GetBlueF())) &&
                (std::fabs(GetAlphaF() - target.GetAlphaF()) <= std::fabs(threshold.GetAlphaF())) &&
                GetPlaceholder() == target.GetPlaceholder() &&
-               OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), target.GetHeadroom());
+               ROSEN_EQ<float>(GetHeadroom(), target.GetHeadroom());
     }
     return (std::abs(GetRed() - target.GetRed()) <= std::abs(threshold.GetRed())) &&
            (std::abs(GetGreen() - target.GetGreen()) <= std::abs(threshold.GetGreen())) &&
            (std::abs(GetBlue() - target.GetBlue()) <= std::abs(threshold.GetBlue())) &&
            (std::abs(GetAlpha() - target.GetAlpha()) <= std::abs(threshold.GetAlpha())) &&
            (GetPlaceholder() == target.GetPlaceholder()) &&
-           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), target.GetHeadroom());
+           ROSEN_EQ<float>(GetHeadroom(), target.GetHeadroom());
 }
 
 void RSColor::TakeAbsMaxFrom(const RSColor& target)
@@ -711,7 +711,7 @@ void RSColor::Dump(std::string& out) const
     if (IsPlaceholder()) {
         out += " placeholder[" + std::to_string(placeholder_) + "]";
     }
-    if (!OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), 1.0f)) {
+    if (!ROSEN_EQ<float>(GetHeadroom(), 1.0f)) {
         out += " headroom[" + std::to_string(GetHeadroom()) + "]";
     }
 }
