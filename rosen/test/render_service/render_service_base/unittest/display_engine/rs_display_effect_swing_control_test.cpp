@@ -20,7 +20,7 @@
  
 using namespace testing;
 using namespace testing::ext;
- 
+
 namespace OHOS::Rosen {
 class MockRSDisplayEffectSwingControl : public RSDisplayEffectSwingControlInterface {
 public:
@@ -58,13 +58,13 @@ void RSDisplayEffectSwingControlTest::TearDown() {}
 HWTEST_F(RSDisplayEffectSwingControlTest, SwingControl001, TestSize.Level1)
 {
     ScreenId screenId{};
-    auto& swingControl = RSDisplayEffectSwingControl::Get();
+    auto& swingControl = RSDisplayEffectSwingControl::Get(); 
     swingControl.Init();
     swingControl.SetSwingEnabled(screenId, false);
  
     auto mockRSDisplayEffectSwingControl = MockRSDisplayEffectSwingControl::GetInstance();
-    swingControl.rSDisplayEffectSwingControlInterface_ = mockRSDisplayEffectSwingControl.get();
-    ASSERT_NE(swingControl.rSDisplayEffectSwingControlInterface_, nullptr);
+    swingControl.swingControlInterface_ = mockRSDisplayEffectSwingControl.get();
+    ASSERT_NE(swingControl.swingControlInterface_, nullptr);
     swingControl.SetSwingEnabled(screenId, false);
  
     ASSERT_NE((&swingControl), nullptr);
@@ -80,8 +80,8 @@ HWTEST_F(RSDisplayEffectSwingControlTest, SwingControl002, TestSize.Level1)
 {
     auto& swingControl = RSDisplayEffectSwingControl::Get();
     auto mockRSDisplayEffectSwingControl = MockRSDisplayEffectSwingControl::GetInstance();
-    swingControl.rSDisplayEffectSwingControlInterface_ = mockRSDisplayEffectSwingControl.get();
-    ASSERT_NE(swingControl.rSDisplayEffectSwingControlInterface_, nullptr);
+    swingControl.swingControlInterface_ = mockRSDisplayEffectSwingControl.get();
+    ASSERT_NE(swingControl.swingControlInterface_, nullptr);
     EXPECT_CALL(*mockRSDisplayEffectSwingControl, IsSwingRegistered(0)).WillOnce(Return(false));
     ASSERT_EQ(swingControl.IsSwingRegistered(0), false);
 }
@@ -96,8 +96,8 @@ HWTEST_F(RSDisplayEffectSwingControlTest, SwingControl003, TestSize.Level1)
 {
     auto& swingControl = RSDisplayEffectSwingControl::Get();
     auto mockRSDisplayEffectSwingControl = MockRSDisplayEffectSwingControl::GetInstance();
-    swingControl.rSDisplayEffectSwingControlInterface_ = mockRSDisplayEffectSwingControl.get();
-    ASSERT_NE(swingControl.rSDisplayEffectSwingControlInterface_, nullptr);
+    swingControl.swingControlInterface_ = mockRSDisplayEffectSwingControl.get();
+    ASSERT_NE(swingControl.swingControlInterface_, nullptr);
     EXPECT_CALL(*mockRSDisplayEffectSwingControl, IsSwingRegistered(0)).WillOnce(Return(true));
     ASSERT_EQ(swingControl.IsSwingRegistered(0), true);
 }
@@ -112,8 +112,8 @@ HWTEST_F(RSDisplayEffectSwingControlTest, SwingControl004, TestSize.Level1)
 {
     auto& swingControl = RSDisplayEffectSwingControl::Get();
     auto mockRSDisplayEffectSwingControl = MockRSDisplayEffectSwingControl::GetInstance();
-    swingControl.rSDisplayEffectSwingControlInterface_ = mockRSDisplayEffectSwingControl.get();
-    ASSERT_NE(swingControl.rSDisplayEffectSwingControlInterface_, nullptr);
+    swingControl.swingControlInterface_ = mockRSDisplayEffectSwingControl.get();
+    ASSERT_NE(swingControl.swingControlInterface_, nullptr);
     SwingData swingData  = {0.0f, 0.0f, 1.0f};
     EXPECT_CALL(*mockRSDisplayEffectSwingControl, GetSwingData(0)).WillOnce(Return(swingData));
     ASSERT_EQ(swingControl.GetSwingData(0), swingData);

@@ -18,7 +18,7 @@
  
 #include "display_engine/rs_display_effect_swing_control.h"
 #include <gmock/gmock.h>
- 
+
 namespace OHOS {
 namespace Rosen {
 namespace Mock {

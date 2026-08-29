@@ -69,6 +69,7 @@ void RSDisplayEffectSwingControl::Deinit()
         destroy_();
     }
     CloseLibrary();
+    swingControlInterface_ = nullptr;
     isInited_ = false;
     RS_LOGI("DisplayEffectSwingControl Deinit success");
 }
