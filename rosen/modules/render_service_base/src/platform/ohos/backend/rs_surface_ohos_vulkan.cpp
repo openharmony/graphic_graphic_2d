@@ -674,9 +674,6 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
     callbackInfo->mFenceFd = ::dup(fenceFd);
     RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.fetch_add(+1, std::memory_order_relaxed);
     mReservedFlushFd = ::dup(fenceFd);
-    if (mReservedFlushFd == -1) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan::FlushBuffer dup fence failed, errno=%{public}d", errno);
-    }
     fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
     auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(frame.get());
