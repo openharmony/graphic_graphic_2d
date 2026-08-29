@@ -2221,6 +2221,8 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
     if (node.IsOnTheTree()) {
         return;
     }
+    // Clear uifirstDrawCmdList_ when node is removed from the tree; otherwise, it may cause a memory leak.
+    node.SetUifirstNeedSync(true);
     RSUifirstManager::Instance().DisableUifirstNode(node);
     RSUifirstManager::Instance().ForceClearSubthreadRes();
     RSUifirstManager::Instance().RemoveCardNodes(node.GetId());

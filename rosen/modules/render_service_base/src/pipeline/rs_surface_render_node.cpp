@@ -505,7 +505,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
-        uifirstState_.needSync = true;
     }
 #endif
     if (IsAbilityComponent()) {
