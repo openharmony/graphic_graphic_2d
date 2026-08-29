@@ -101,7 +101,6 @@ void FuzzSurfaceWithoutWindow(FuzzData& fuzzData)
 {
     auto* surface = new EglWrapperSurface(GetInitializedDisplay(), EGL_NO_SURFACE, nullptr, SelectColorSpace(fuzzData));
     ExerciseSurface(surface, fuzzData);
-    EglWrapperSurface::Disconnect(nullptr);
     surface->Destroy();
 }
 
@@ -125,9 +124,8 @@ void FuzzSurfaceWithWindow(FuzzData& fuzzData)
     }
     auto* surface = new EglWrapperSurface(GetInitializedDisplay(), EGL_NO_SURFACE, window, SelectColorSpace(fuzzData));
     ExerciseSurface(surface, fuzzData);
-    if (fuzzData.Select(BOOL_OPTION_COUNT) != 0) {
-        EglWrapperSurface::Disconnect(window);
-    }
+    OHNativeWindow* disconnectWindow = fuzzData.Select(BOOL_OPTION_COUNT) == 0 ? nullptr : window;
+    EglWrapperSurface::Disconnect(disconnectWindow);
     surface->Destroy();
     OH_NativeWindow_DestroyNativeWindow(window);
 }
