@@ -769,12 +769,10 @@ bool RSRenderComposer::IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLaye
         return false;
     }
 
-    auto rect = composerScreenInfo_.activeRect;
-    if (rect.IsEmpty()) {
+    if (activeRect_.IsEmpty()) {
         RS_LOGW("%{public}s: activeRect is empty", __func__);
         return false;
     }
-    GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_};
     if (layers.empty()) {
         RS_LOGI("%{public}s: layers is empty", __func__);
         return false;
@@ -784,10 +782,11 @@ bool RSRenderComposer::IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLaye
             continue;
         }
         auto layerSize = rsLayer->GetLayerSize();
-        if (rsLayer->GetUniRenderFlag() && !(activeRect == layerSize)) {
-            RS_LOGI("%{public}s: Drop dirty frame cause activeRect:[%{public}d, %{public}d, %{public}d, %{public}d]" \
-                "layerSize:[%{public}d, %{public}d, %{public}d, %{public}d]", __func__, activeRect.x, activeRect.y,
-                activeRect.w, activeRect.h, layerSize.x, layerSize.y, layerSize.w, layerSize.h);
+        RectI layerRect = {layerSize.x, layerSize.y, layerSize.w, layerSize.h};
+        // active rect must cover the whole uni render layer
+        if (rsLayer->GetUniRenderFlag() && !layerRect.IsInsideOf(activeRect_)) {
+            RS_LOGI("%{public}s: Drop dirty frame cause activeRect:%{public}s layerSize:%{public}s",
+                __func__, activeRect_.ToString().c_str(), layerRect.ToString().c_str());
             return true;
         }
     }
@@ -1392,13 +1391,6 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
         }
     }
 
-    if (composerScreenInfo_.activeRect != transactionData->GetComposerScreenInfo().activeRect) {
-        auto reviseRect = transactionData->GetComposerScreenInfo().reviseRect;
-        const GraphicIRect graphicIRect = {
-            reviseRect.left_, reviseRect.top_, reviseRect.width_, reviseRect.height_
-        };
-        hdiOutput_->SetActiveRectSwitchStatus(true, graphicIRect);
-    }
     composerScreenInfo_ = transactionData->GetComposerScreenInfo();
     UpdateForSurfaceFps(transactionData->GetPipelineParam());
 }
@@ -1575,5 +1567,21 @@ void RSRenderComposer::DumpVKImageInfo(std::string& dumpString)
         return;
     }
     uniRenderEngine_->DumpVkImageInfo(dumpString);
+}
+
+void RSRenderComposer::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGE("%{public}s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    RS_TRACE_NAME_FMT("%s screenId[%" PRIu64 "], flag[%d], rect%s", __func__, screenId_, flag,
+        activeRect.ToString().c_str());
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s screenId[%{public}" PRIu64 "], flag[%{public}d], rect%{public}s",
+        __func__, screenId_, flag, activeRect.ToString().c_str());
+    activeRect_ = activeRect;
+    // RectI is used along the whole pipeline; convert to HDI rect only at the last hop
+    GraphicIRect graphicActiveRect = {activeRect.left_, activeRect.top_, activeRect.width_, activeRect.height_};
+    hdiOutput_->SetActiveRectSwitchStatus(true, graphicActiveRect);
 }
 }

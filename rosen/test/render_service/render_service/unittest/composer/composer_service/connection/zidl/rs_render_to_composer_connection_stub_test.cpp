@@ -464,4 +464,107 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, MarkTunnelSurfaceInvalidSurfaceId
     int32_t ret = conn.MarkTunnelSurfaceInvalidSurfaceIdStub(parcel);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
+
+/**
+ * @tc.name: OnRemoteRequest_SetActiveRectSwitchStatus_Success
+ * @tc.desc: Test stub deserializes flag and active rect and calls SetActiveRectSwitchStatus.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetActiveRectSwitchStatus_Success, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+    data.WriteBool(true);
+    data.WriteInt32(10); // x
+    data.WriteInt32(20); // y
+    data.WriteInt32(30); // w
+    data.WriteInt32(40); // h
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_ACTIVE_RECT_SWITCH_STATUS,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_SetActiveRectSwitchStatus_ReadFail
+ * @tc.desc: Test stub returns binder error when active rect payload is missing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetActiveRectSwitchStatus_ReadFail, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+    // Missing flag and rect payload on purpose.
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_ACTIVE_RECT_SWITCH_STATUS,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_SetActiveRectSwitchStatus_PartialPayload_ReadFail
+ * @tc.desc: Test stub returns binder error when only part of the rect payload is written.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetActiveRectSwitchStatus_PartialPayload_ReadFail,
+    TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+    data.WriteBool(true);
+    data.WriteInt32(10); // x
+    // Missing y/w/h on purpose.
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_ACTIVE_RECT_SWITCH_STATUS,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: SetActiveRectSwitchStatusStub_ReadFailure_ReturnsError
+ * @tc.desc: Test SetActiveRectSwitchStatusStub returns error on read failure.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, SetActiveRectSwitchStatusStub_ReadFailure_ReturnsError, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel parcel;
+
+    int32_t ret = conn.SetActiveRectSwitchStatusStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: SetActiveRectSwitchStatusStub_ValidPayload_ReturnsOk
+ * @tc.desc: Test SetActiveRectSwitchStatusStub returns OK with valid flag and rect payload.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, SetActiveRectSwitchStatusStub_ValidPayload_ReturnsOk, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel parcel;
+
+    parcel.WriteBool(false);
+    parcel.WriteInt32(1); // x
+    parcel.WriteInt32(2); // y
+    parcel.WriteInt32(3); // w
+    parcel.WriteInt32(4); // h
+
+    int32_t ret = conn.SetActiveRectSwitchStatusStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
 } // namespace OHOS::Rosen

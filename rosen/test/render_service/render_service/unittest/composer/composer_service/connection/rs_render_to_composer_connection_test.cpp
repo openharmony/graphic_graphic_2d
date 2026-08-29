@@ -219,4 +219,35 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_MarkTunnelSurfaceInvalid_V
     EXPECT_NO_FATAL_FAILURE(conn.MarkTunnelSurfaceInvalid(surfaceId));
     ASSERT_NE(agent, nullptr);
 }
+
+/**
+ * @tc.name: Connection_SetActiveRectSwitchStatus_NullAgent_EarlyReturn
+ * @tc.desc: Test SetActiveRectSwitchStatus with null agent returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetActiveRectSwitchStatus_NullAgent_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerAgent> agent = nullptr;
+    RSRenderToComposerConnection conn("conn", 11u, agent);
+    RectI activeRect(1, 2, 3, 4);
+    EXPECT_NO_FATAL_FAILURE(conn.SetActiveRectSwitchStatus(true, activeRect));
+    ASSERT_EQ(agent, nullptr);
+}
+
+/**
+ * @tc.name: Connection_SetActiveRectSwitchStatus_ValidAgent_ForwardsCall
+ * @tc.desc: Test SetActiveRectSwitchStatus with valid agent forwards call without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetActiveRectSwitchStatus_ValidAgent_ForwardsCall,
+    TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(std::shared_ptr<RSRenderComposer>(nullptr));
+    RSRenderToComposerConnection conn("conn", 12u, agent);
+    RectI activeRect(5, 6, 7, 8);
+    // agent holds a null composer, so the agent itself early-returns; connection still forwards
+    EXPECT_NO_FATAL_FAILURE(conn.SetActiveRectSwitchStatus(false, activeRect));
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+}
 } // namespace OHOS::Rosen

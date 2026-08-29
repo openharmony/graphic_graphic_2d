@@ -1329,5 +1329,143 @@ HWTEST_F(RsRenderComposerAgentTest, DumpVKImageInfo_AgentNotNull_ComposerNull, T
     dumpThread.join();
     EXPECT_EQ(agent->rsRenderComposer_, nullptr);
 }
+
+/**
+ * Function: SetActiveRectSwitchStatus_NullComposer_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with null RSRenderComposer
+ *                  2. call SetActiveRectSwitchStatus
+ *                  3. verify early return without crash (outer if branch true)
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetActiveRectSwitchStatus_NullComposer_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposer> nullComposer = nullptr;
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullComposer);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+
+    RectI activeRect(1, 2, 3, 4);
+    EXPECT_NO_FATAL_FAILURE(agent->SetActiveRectSwitchStatus(true, activeRect));
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_ValidComposer_ForwardsCall
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create a local RSRenderComposer and an agent holding it
+ *                  2. call SetActiveRectSwitchStatus (outer if branch false)
+ *                  3. wait for the posted task and verify composer activeRect_ is updated
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetActiveRectSwitchStatus_ValidComposer_ForwardsCall, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(composer, nullptr);
+    ASSERT_NE(composer->hdiOutput_, nullptr);
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(composer);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    RectI activeRect(100, 100, 100, 100);
+    agent->SetActiveRectSwitchStatus(true, activeRect);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_EQ(composer->activeRect_.left_, activeRect.left_);
+    EXPECT_EQ(composer->activeRect_.top_, activeRect.top_);
+    EXPECT_EQ(composer->activeRect_.width_, activeRect.width_);
+    EXPECT_EQ(composer->activeRect_.height_, activeRect.height_);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_AgentExpired_LambdaGuard
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create a local composer and an agent holding it
+ *                  2. occupy the composer thread with a blocking task so the lambda is queued
+ *                  3. call SetActiveRectSwitchStatus, then destroy the agent
+ *                  4. release the blocker so the lambda runs with an expired weakThis
+ *                  5. verify the inner guard (renderComposerAgent == nullptr) returns early
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetActiveRectSwitchStatus_AgentExpired_LambdaGuard, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(composer, nullptr);
+
+    // Post a blocking task to occupy the composer's event handler thread.
+    std::atomic<bool> releaseBlocker { false };
+    composer->PostTask([&releaseBlocker]() {
+        while (!releaseBlocker.load()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(composer);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    // outer check passes, the lambda task is queued behind the blocking task
+    RectI activeRect(7, 8, 9, 10);
+    agent->SetActiveRectSwitchStatus(true, activeRect);
+    // destroy the agent before the queued lambda runs
+    agent.reset();
+
+    releaseBlocker.store(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // lambda hit the renderComposerAgent == nullptr guard, composer member keeps default value
+    EXPECT_EQ(composer->activeRect_.left_, 0);
+    EXPECT_EQ(composer->activeRect_.width_, 0);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_ComposerNulledWhileQueued_LambdaGuard
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create a local composer and an agent holding it
+ *                  2. occupy the composer thread with a blocking task so the lambda is queued
+ *                  3. call SetActiveRectSwitchStatus, then null the agent's composer member
+ *                  4. release the blocker so the lambda runs with rsRenderComposer_ == nullptr
+ *                  5. verify the inner guard returns early without crash
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetActiveRectSwitchStatus_ComposerNulledWhileQueued_LambdaGuard, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(composer, nullptr);
+
+    std::atomic<bool> releaseBlocker { false };
+    composer->PostTask([&releaseBlocker]() {
+        while (!releaseBlocker.load()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(composer);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    RectI activeRect(11, 12, 13, 14);
+    agent->SetActiveRectSwitchStatus(true, activeRect);
+    // null the agent's composer member while the lambda is still queued
+    agent->rsRenderComposer_ = nullptr;
+
+    releaseBlocker.store(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // lambda hit the rsRenderComposer_ == nullptr guard, composer member keeps default value
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+    EXPECT_EQ(composer->activeRect_.left_, 0);
+    EXPECT_EQ(composer->activeRect_.width_, 0);
+}
 } // namespace Rosen
 } // namespace OHOS
