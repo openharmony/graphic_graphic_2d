@@ -363,6 +363,8 @@ public:
     void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
+    void SetCrossNodeDraw(bool isCrossNodeDraw);
+    bool IsCrossNodeDraw() const;
     void RecordState(const RSPaintFilterCanvas& other);
     std::weak_ptr<Drawing::Surface> GetWeakSurface();
     // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
@@ -597,6 +599,7 @@ protected:
 
 private:
     bool isParallelCanvas_ = false;
+    bool isCrossNodeDraw_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;

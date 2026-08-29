@@ -42,7 +42,12 @@ private:
     static Registrar instance_;
     bool GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
         Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
-    inline bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
+    // Whether the background blur merge for this effect node can be skipped.
+    // Blur is forced (returns false) when:
+    // - UI capture is on;
+    // - there are effect children, and any merge trigger is set: non-empty-rect
+    //   children, parallel canvas, or cross-node draw.
+    bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
     {
         if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
             !RSFilterCacheManager::isCCMEffectMergeEnable_) {
@@ -51,8 +56,11 @@ private:
         if (paintFilterCanvas->GetUICapture()) {
             return false;
         }
-        return !effectParams->GetHasEffectChildren() ||
-            (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !paintFilterCanvas->GetIsParallelCanvas());
+        if (!effectParams->GetHasEffectChildren()) {
+            return true;
+        }
+        return !(effectParams->GetHasEffectChildrenWithoutEmptyRect() ||
+            paintFilterCanvas->GetIsParallelCanvas() || paintFilterCanvas->IsCrossNodeDraw());
     }
 };
 } // namespace DrawableV2
