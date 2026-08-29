@@ -493,13 +493,11 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
 #endif
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
-        RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
         return;
     }
     if (layerSplitterProcessor_ != nullptr) {
         if (layerSplitterProcessor_->NeedDrawSplitCanvas(canvas, GetId())) {
             DrawCachedImage(*(layerSplitterProcessor_->GetSplitCanvas()), params);
-            RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas");
         }
         if (layerSplitterProcessor_->CanSkipOpIncNodeDraw(GetId())) {
             return;
@@ -539,8 +537,8 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     }
     auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
     if (withoutFilterMatrixMap.find(GetId()) == withoutFilterMatrixMap.end()) {
-        RS_LOGE("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of cached node in "
-                "withoutFilterMatrixMap, id:%{public}" PRIu64 "", GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of "
+            "cached node in withoutFilterMatrixMap, id:%" PRIu64, GetId());
         return;
     }
     auto matrix = withoutFilterMatrixMap.at(GetId());
