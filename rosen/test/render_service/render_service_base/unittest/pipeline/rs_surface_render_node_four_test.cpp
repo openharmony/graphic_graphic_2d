@@ -795,23 +795,21 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, IsPendingUIBufferNotifyTest001, TestSize.L
 
 /**
  * @tc.name: IsUIBufferAvailableTest001
- * @tc.desc: Cover branch: pending/already notified/non-app type all return false.
+ * @tc.desc: Cover branch: already notified / non-app type return false;
+ *           isPendingUIBufferNotify no longer gates IsUIBufferAvailable (removed condition).
  * @tc.type: FUNC
  */
 HWTEST_F(RSSurfaceRenderNodeFourTest, IsUIBufferAvailableTest001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig cfg = { .id = 1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
     auto node = std::make_shared<RSSurfaceRenderNode>(cfg);
-    node->isNotifyUIBufferAvailable_ = false;
-    node->isPendingUIBufferNotify_ = true;
-    EXPECT_FALSE(node->IsUIBufferAvailable());
-    node->isPendingUIBufferNotify_ = false;
+    // isNotifyUIBufferAvailable_=true → already notified, returns false
     node->isNotifyUIBufferAvailable_ = true;
     EXPECT_FALSE(node->IsUIBufferAvailable());
+    // non-app type always returns false regardless of flags
     RSSurfaceRenderNodeConfig defCfg = { .id = 2, .nodeType = RSSurfaceNodeType::DEFAULT };
     auto defNode = std::make_shared<RSSurfaceRenderNode>(defCfg);
     defNode->isNotifyUIBufferAvailable_ = false;
-    defNode->isPendingUIBufferNotify_ = false;
     EXPECT_FALSE(defNode->IsUIBufferAvailable());
 }
 } // namespace Rosen

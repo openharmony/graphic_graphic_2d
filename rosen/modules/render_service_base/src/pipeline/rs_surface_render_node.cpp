@@ -696,8 +696,8 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
 
 bool RSSurfaceRenderNode::IsUIBufferAvailable()
 {
-    return ((IsAppWindow() || IsScbScreen() || IsUIExtension())
-        && !IsNotifyUIBufferAvailable() && !IsPendingUIBufferNotify() && IsFirstFrameReadyToDraw(*this));
+    return ((IsAppWindow() || IsScbScreen() || IsUIExtension()) && !IsNotifyUIBufferAvailable() &&
+            IsFirstFrameReadyToDraw(*this));
 }
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)

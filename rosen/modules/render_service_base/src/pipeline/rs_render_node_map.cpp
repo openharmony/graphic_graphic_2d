@@ -886,10 +886,53 @@ void RSRenderNodeMap::RemoveSurfaceHandlerInfo(NodeId nodeId)
 
 void RSRenderNodeMap::AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow)
 {
-    auto leashParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindow->GetParent().lock());
-    if (leashParent && leashParent->IsLeashWindow()) {
-        hasDestoryRebuildAppWindowMap_[appWindow->GetId()] = leashParent->GetId();
+    std::string out = "id:" + std::to_string(appWindow->GetId()) + " name:" + appWindow->GetName();
+    RS_TRACE_BEGIN("AddPendingUIBufferEntry " + out);
+    // Skip if already in the map — no need to search parent and siblings again
+    if (HasPendingUIBufferEntry(appWindow->GetId())) {
+        RS_TRACE_NAME("already HasPendingUIBufferEntry " + out);
+        RS_TRACE_END();
+        return;
     }
+    auto leashParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindow->GetParent().lock());
+    if (!leashParent || !leashParent->IsLeashWindow()) {
+        RS_TRACE_NAME("no leash parent");
+        RS_TRACE_END();
+        return;
+    }
+
+    // Only delay when there are sibling AppWindows with a different token
+    // under the same LeashWindow; otherwise the single-AppWindow case needs no delay.
+    // Use GetChildrenList() (children_) instead of GetChildren() (fullChildrenList_),
+    // because fullChildrenList_ is a cache regenerated only during Prepare phase
+    // and may be stale when this function is called during command processing.
+    auto appToken = appWindow->GetUIContextToken();
+    auto childrenListRaw = leashParent->GetChildrenList();
+    if (childrenListRaw.size() <= 1) {
+        RS_TRACE_NAME("no sibling appWindow node exist");
+        RS_TRACE_END();
+        return;
+    }
+    // Add different-token sibling AppWindows and the current AppWindow,
+    // so that all siblings are delayed together even if only one went through GoStop.
+    auto leashId = leashParent->GetId();
+    bool hasSiblingWithDiffToken = false;
+    for (const auto& childWeak : childrenListRaw) {
+        auto child = childWeak.lock();
+        auto childAppWindow = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (childAppWindow && childAppWindow->IsAppWindow() && childAppWindow->GetUIContextToken() != appToken) {
+            RS_TRACE_NAME_FMT("AddPendingUIBuffer id:%llu name:%s token:%llu", childAppWindow->GetId(),
+                childAppWindow->GetName().c_str(), childAppWindow->GetUIContextToken());
+            hasDestoryRebuildAppWindowMap_[childAppWindow->GetId()] = leashId;
+            hasSiblingWithDiffToken = true;
+        }
+    }
+    if (hasSiblingWithDiffToken) {
+        RS_TRACE_NAME_FMT("AddPendingUIBuffer id:%llu name:%s token:%llu", appWindow->GetId(),
+            appWindow->GetName().c_str(), appToken);
+        hasDestoryRebuildAppWindowMap_[appWindow->GetId()] = leashId;
+    }
+    RS_TRACE_END();
 }
 
 bool RSRenderNodeMap::HasPendingUIBufferEntry(NodeId appWindowId) const
