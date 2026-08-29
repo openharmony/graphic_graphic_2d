@@ -49,6 +49,7 @@ ohos_systemtest("opengl_wrapper_api_test") {
     "hilog:libhilog",
     "egl:libEGL",
     "opengles:libGLES",
+    "bounds_checking_function:libsec_shared",
   ]
 }
 ## SystemTest opengl_wrapper_api_test }}}
