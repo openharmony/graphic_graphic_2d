@@ -121,6 +121,32 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestParse, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TestParseNoMultiDisplayFeatures
+ * @tc.desc: test RSMultiDisplayFeatureParam.Parse with Configs root but no multi_display_features child
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiDisplayFeatureParamTest, TestParseNoMultiDisplayFeatures, TestSize.Level1)
+{
+    RSMultiDisplayFeatureParam::splitFeature_ = {};
+    RSMultiDisplayFeatureParam::interpolationFeature_ = {};
+    RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
+
+    std::string xmlContent = (
+        R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Configs>
+            <other_feature name="switch" value="true"/>
+        </Configs>)"
+    );
+    xmlDocPtr xmlDocPtr = StringToXmlDoc(xmlContent);
+    EXPECT_NE(xmlDocPtr, nullptr);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr), false);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), false);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), false);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable(), false);
+}
+
+/**
  * @tc.name: TestIsSplitScreenFeatureEnable
  * @tc.desc: test RSMultiDisplayFeatureParam.IsSplitScreenFeatureEnable
  * @tc.type: FUNC
