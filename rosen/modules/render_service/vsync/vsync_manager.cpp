@@ -15,7 +15,7 @@
 
 #include "vsync_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "rs_render_service.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {

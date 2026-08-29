@@ -338,8 +338,10 @@ void SurfaceTransactionCommand::Process(RSContext& context)
     RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Process, srcId=%" PRIu64
         ", seqNum=%" PRIu64 ", pid=%d, tid=%d",
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
+#ifdef RS_ENABLE_DELEGATE_COMPOSITE
     RsDelegateCompositeCallbackManager::GetInstance().AddSurfaceTransactionCmdInfo(
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
+#endif
 }
 
 RSCommand* SurfaceTransactionCommand::Unmarshalling(Parcel& parcel)

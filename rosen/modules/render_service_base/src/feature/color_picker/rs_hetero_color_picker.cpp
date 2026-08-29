@@ -19,7 +19,7 @@
 #endif
 #ifdef RS_ENABLE_VK
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
@@ -78,12 +78,10 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
 #ifdef MHC_ENABLE
 #ifdef RS_ENABLE_VK
     if (!RSMhcManager::Instance().CanGetColor(canvas, canvas.GetRenderEngineType())) {
-#else
-    if (!RSMhcManager::Instance().CanGetColor(canvas)) {
-#endif
         RS_LOGD("[HeteroColorPicker]:Mhc does not support get color");
         return false;
     }
+#endif
 #endif
 
     auto surface = canvas.GetSurface();

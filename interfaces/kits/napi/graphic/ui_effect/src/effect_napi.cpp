@@ -44,6 +44,7 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createHdrBrightnessBlender", CreateHdrBrightnessBlender),
         DECLARE_NAPI_STATIC_FUNCTION("createShadowBlender", CreateShadowBlender),
         DECLARE_NAPI_STATIC_FUNCTION("createHdrDarkenBlender", CreateHdrDarkenBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createColorfulBrightnessBlender", CreateColorfulBrightnessBlender),
     };
 
     napi_value constructor = nullptr;
@@ -732,6 +733,85 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
         }, nullptr, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender wrap fail"));
+    return nativeObj;
+}
+
+bool EffectNapi::ParseColorfulBrightnessBlender(napi_env env, napi_value paramObj,
+    napi_value optionsObj, ColorfulBrightnessBlender* blender)
+{
+    BrightnessBlender brightnessBlender;
+    if (!ParseBrightnessBlender(env, paramObj, &brightnessBlender)) {
+        return false;
+    }
+    blender->SetFraction(brightnessBlender.GetFraction());
+    blender->SetCubicRate(brightnessBlender.GetCubicRate());
+    blender->SetQuadRate(brightnessBlender.GetQuadRate());
+    blender->SetLinearRate(brightnessBlender.GetLinearRate());
+    blender->SetDegree(brightnessBlender.GetDegree());
+    blender->SetSaturation(brightnessBlender.GetSaturation());
+    blender->SetPositiveCoeff(brightnessBlender.GetPositiveCoeff());
+    blender->SetNegativeCoeff(brightnessBlender.GetNegativeCoeff());
+
+    if (optionsObj == nullptr) {
+        return true;
+    }
+    napi_valuetype type = UIEffectNapiUtils::GetType(env, optionsObj);
+    if (type == napi_null || type == napi_undefined) {
+        return true;
+    }
+
+    double darkenWeight = 1.0;
+    if (ParseJsDoubleValue(env, optionsObj, "darkenWeight", darkenWeight)) {
+        blender->SetDarkenWeight(static_cast<float>(darkenWeight));
+    }
+
+    double vibrancyStrength = 0.0;
+    if (ParseJsDoubleValue(env, optionsObj, "vibrancyStrength", vibrancyStrength)) {
+        blender->SetVibrancyStrength(static_cast<float>(vibrancyStrength));
+    }
+
+    double lumaDiff = 0.0;
+    if (ParseJsDoubleValue(env, optionsObj, "lumaDiff", lumaDiff)) {
+        blender->SetLumaDiff(static_cast<float>(lumaDiff));
+    }
+
+    bool hdrEnabled = true;
+    if (ParseJsBoolValue(env, optionsObj, "hdrEnabled", hdrEnabled)) {
+        blender->SetHdrEnabled(hdrEnabled);
+    }
+    return true;
+}
+
+napi_value EffectNapi::CreateColorfulBrightnessBlender(napi_env env, napi_callback_info info)
+{
+    size_t realArgc = NUM_2;
+    napi_value argv[NUM_2];
+    napi_value thisVar = nullptr;
+    napi_status status;
+
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && (realArgc == NUM_1 || realArgc == NUM_2), nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorfulBrightnessBlender parsing input fail"));
+
+    napi_value nativeObj = argv[NUM_0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorfulBrightnessBlender nativeObj is nullptr"));
+
+    ColorfulBrightnessBlender* blender = new(std::nothrow) ColorfulBrightnessBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorfulBrightnessBlender blender is nullptr"));
+
+    napi_value optionsObj = (realArgc >= NUM_2) ? argv[NUM_1] : nullptr;
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateBrightnessBlender(env, nativeObj) &&
+        ParseColorfulBrightnessBlender(env, nativeObj, optionsObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateColorfulBrightnessBlender fail"));
+
+    status = napi_wrap(env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            delete static_cast<ColorfulBrightnessBlender*>(data);
+        }, nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateColorfulBrightnessBlender wrap fail"));
     return nativeObj;
 }
 

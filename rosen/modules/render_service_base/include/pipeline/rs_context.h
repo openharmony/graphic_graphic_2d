@@ -26,7 +26,7 @@
 #include "sync_fence.h"
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
-#include "feature/capture/rs_ui_capture_helper.h"
+#include "feature/capture/rs_sync_capture_helper.h"
 #include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
@@ -242,12 +242,12 @@ public:
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
 
-    RSUiCaptureHelper& GetUiCaptureHelper()
+    RSSyncCaptureHelper& GetSyncCaptureHelper()
     {
-        if (!uiCaptureHelper_) {
-            uiCaptureHelper_ = std::make_unique<RSUiCaptureHelper>();
-        }
-        return *uiCaptureHelper_;
+        std::call_once(syncCaptureHelperInitFlag_, [this]() {
+            syncCaptureHelper_ = std::make_unique<RSSyncCaptureHelper>();
+        });
+        return *syncCaptureHelper_;
     }
 
     uint32_t GetUnirenderVisibleLeashWindowCount()
@@ -318,7 +318,8 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
-    std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
+    std::unique_ptr<RSSyncCaptureHelper> syncCaptureHelper_;
+    std::once_flag syncCaptureHelperInitFlag_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
     RSPowerOffRenderController powerOffRenderController_;
     RSPersistentPropertyManager persistentPropertyManager_;

@@ -54,7 +54,8 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid) RSProfiler::OnCreateConnection(pid)
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) \
     RSProfiler::OnRemoteRequest(connection, code, data, reply, option)
-#define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data) RSProfiler::OnRecvParcel(parcel, data)
+#define RS_PROFILER_SET_TRANSACTION_SENDING_PID(transaction, parcel, pid) \
+    RSProfiler::SetSendingPid(transaction, parcel, pid)
 #define RS_PROFILER_COPY_PARCEL(parcel) RSProfiler::CopyParcel(parcel)
 #define RS_PROFILER_IS_PARCEL_MOCK(parcel) RSProfiler::IsPlaybackParcel(parcel)
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id) id = RSProfiler::PatchNodeId(parcel, id)
@@ -117,6 +118,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
+#define RS_PROFILER_HRP_SERVICE_ENABLED() RSProfiler::IsHrpServiceEnabled()
 #else
 #define Trace3DCoreInitRS() nullptr
 #define RS_PROFILER_GET_RENDER_FRAME_NUMBER() 0
@@ -128,7 +130,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_PROCESS_COMMAND()
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid)
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) 0
-#define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data)
+#define RS_PROFILER_SET_TRANSACTION_SENDING_PID(transaction, parcel, pid) (transaction).SetSendingPid(pid)
 #define RS_PROFILER_COPY_PARCEL(parcel) std::make_shared<MessageParcel>()
 #define RS_PROFILER_IS_PARCEL_MOCK(parcel) false
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id)
@@ -187,6 +189,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ANIMATION_NODE(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
+#define RS_PROFILER_HRP_SERVICE_ENABLED() false
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -244,7 +247,7 @@ private:
     std::unordered_set<NodeId> unfinishedNodeList;
 
 public:
-    ProfilerMarshallingJob() : marshallingTick(nullptr), offsetNodes(0) {}
+    explicit ProfilerMarshallingJob(std::function<void(NodeId, bool)>&& tick) : marshallingTick(std::move(tick)) {}
     void AddNode(NodeId nodeId)
     {
         unfinishedNodeList.insert(nodeId);
@@ -503,8 +506,7 @@ public:
     static uint64_t OnRemoteRequest(RSIServiceToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
 
-    // see UnmarshalThread::RecvParcel
-    static void OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data);
+    static void SetSendingPid(RSTransactionData& data, const MessageParcel& parcel, pid_t pid);
 
     RSB_EXPORT static std::shared_ptr<MessageParcel> CopyParcel(const MessageParcel& parcel);
     RSB_EXPORT static uint64_t PatchTime(uint64_t time);
@@ -583,12 +585,12 @@ public:
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsPlaybackParcel(const Parcel& parcel);
-    RSB_EXPORT static bool IsSharedMemoryEnabled();
+    RSB_EXPORT static bool IsThreadSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
 
     RSB_EXPORT static Mode GetMode();
-    RSB_EXPORT static SubMode GetSubMode();
+    RSB_EXPORT static SubMode GetThreadSubMode();
     RSB_EXPORT static bool IsNoneMode();
     RSB_EXPORT static bool IsReadMode();
     RSB_EXPORT static bool IsReadEmulationMode();
@@ -606,6 +608,8 @@ public:
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
+    RSB_EXPORT static bool IsHrpServiceEnabled();
+    RSB_EXPORT static void SetHrpServiceEnabled(bool enabled);
     RSB_EXPORT static void JobMarshallingKillPid(pid_t pid);
     RSB_EXPORT static void JobMarshallingKillPidEnd();
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
@@ -646,8 +650,8 @@ private:
 
     RSB_EXPORT static void MarkReplayNodesDirty(RSContext& context);
 
-    RSB_EXPORT static void EnableSharedMemory();
-    RSB_EXPORT static void DisableSharedMemory();
+    RSB_EXPORT static void EnableThreadSharedMemory();
+    RSB_EXPORT static void DisableThreadSharedMemory();
 
     RSB_EXPORT static bool BaseSetPlaybackSpeed(double speed);
     RSB_EXPORT static double BaseGetPlaybackSpeed();
@@ -677,9 +681,8 @@ private:
     static void BetaRecordSetLastParcelTime();
 
     RSB_EXPORT static void SetMode(Mode mode);
-    RSB_EXPORT static void SetSubMode(SubMode mode);
+    RSB_EXPORT static void SetThreadSubMode(SubMode mode);
     RSB_EXPORT static bool IsEnabled();
-    RSB_EXPORT static bool IsHrpServiceEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
@@ -914,7 +917,7 @@ private:
     static void TestLoadSubTree(const ArgList& args);
     static void TestClearSubTree(const ArgList& args);
 
-    static void MarshalSelfDrawingNodes(bool isBetaRecording);
+    static void MarshalSelfDrawingNodes();
     static void UnmarshalSelfDrawingNodes();
 
     static void InitTrace3D(const ArgList& args);

@@ -456,6 +456,21 @@ public:
     std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
     void SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params);
     std::optional<RSHdrDarkenBlenderPara> GetHdrDarkenBlenderParams() const;
+    void SetColorfulBrightnessBlenderParams(std::unique_ptr<RSColorfulBrightnessBlenderPara> params);
+    const RSColorfulBrightnessBlenderPara* GetColorfulBrightnessBlenderParams() const;
+
+    template <typename T>
+    void SetColorfulBrightnessBlenderMember(T RSColorfulBrightnessBlenderPara::* member, const T& val)
+    {
+        auto& params = GetEffect().colorfulBrightnessBlenderParams_;
+        if (!params) {
+            params = std::make_unique<RSColorfulBrightnessBlenderPara>();
+        }
+        (*params).*member = val;
+        isDrawn_ = true;
+        SetDirty();
+        contentDirty_ = true;
+    }
 
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
@@ -796,12 +811,15 @@ public:
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
     bool IsHdrDarkenBlenderValid() const;
+    bool IsColorfulBrightnessBlenderValid() const;
+    bool IsFgBlenderEffectValid() const;
     void SetDistortionDirty(bool distortionEffectDirty);
     bool GetDistortionDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
     std::string GetShadowBlenderDescription() const;
     std::string GetHdrDarkenBlenderDescription() const;
+    std::string GetColorfulBrightnessBlenderDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -984,6 +1002,7 @@ private:
         int useEffectType_ = 0;
         std::optional<RSShadowBlenderPara> shadowBlenderParams_;
         std::optional<RSHdrDarkenBlenderPara> hdrDarkenBlenderParams_;
+        std::unique_ptr<RSColorfulBrightnessBlenderPara> colorfulBrightnessBlenderParams_ = nullptr;
         std::optional<std::vector<float>> complexShaderParam_;
         std::shared_ptr<RSMask> mask_ = nullptr;
         std::optional<float> grayScale_;

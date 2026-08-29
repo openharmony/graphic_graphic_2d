@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_COMMON_RS_TUNNEL_LAYER_UTILS_H
-#define RENDER_SERVICE_BASE_COMMON_RS_TUNNEL_LAYER_UTILS_H
+#ifndef RS_TUNNEL_LAYER_UTILS_H
+#define RS_TUNNEL_LAYER_UTILS_H
 
 #include <cstdint>
 
 #include "platform/common/rs_system_properties.h"
 #include "surface_type.h"
+#include "tunnel_layer_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +34,7 @@ inline constexpr uint32_t TUNNEL_STABLE_THRESHOLD = 5;
 
 inline bool IsNewTunnelEnabled()
 {
-    return RSSystemProperties::GetNewTunnelEnabled();
+    return TunnelLayerParam::IsNewTunnelEnabled() && RSSystemProperties::GetNewTunnelEnabled();
 }
 
 inline constexpr bool IsNewTunnelProperty(uint32_t property)
@@ -48,4 +49,4 @@ inline constexpr bool IsNewTunnelLayerValid(uint64_t tunnelLayerId, uint32_t pro
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_COMMON_RS_TUNNEL_LAYER_UTILS_H
+#endif // RS_TUNNEL_LAYER_UTILS_H

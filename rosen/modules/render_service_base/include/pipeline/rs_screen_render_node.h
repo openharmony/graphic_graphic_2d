@@ -585,6 +585,7 @@ protected:
 private:
     void InitRenderParams() override;
     void CollectHdrStatusMap(NodeId id, HdrStatus hdrStatus);
+    void ScaleSyncDirtyManagerForRogIfNeed(const std::shared_ptr<RSDirtyRegionManager>& syncDirtyManager) const;
 
     bool hasChildCrossNode_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;

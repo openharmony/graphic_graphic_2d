@@ -62,6 +62,7 @@ struct ScreenInfo {
 
     bool enableVisibleRect = false;
     ScreenPowerStatus powerStatus = ScreenPowerStatus::INVALID_POWER_STATUS;
+    ScreenSamplingMode samplingMode = ScreenSamplingMode::DEVICE_DSS;
 
     uint32_t GetRotatedWidth() const
     {

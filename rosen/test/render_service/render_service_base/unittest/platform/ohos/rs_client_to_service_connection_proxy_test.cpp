@@ -852,13 +852,13 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolutionTest001, Te
     uint32_t height = 1080;
 
     // case 1: without mock method
-    proxy->SetRogScreenResolution(id, width, height);
+    proxy->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
 
     // case 2: with mock method: SendRequest()
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
-    auto ret = mockproxy->SetRogScreenResolution(id, width, height);
+    auto ret = mockproxy->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 
@@ -1582,6 +1582,42 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetLayerTop_Normal_Success
+ * @tc.desc: Test SetLayerTop with normal case
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop_Normal_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    std::string nodeIdStr = "test_node";
+    bool isTop = true;
+    ErrCode ret = mockProxy->SetLayerTop(nodeIdStr, isTop);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetLayerTop_SendRequestFail
+ * @tc.desc: Test SetLayerTop when SendRequest fails
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop_SendRequestFail, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::string nodeIdStr = "test_node";
+    bool isTop = true;
+    ErrCode ret = mockProxy->SetLayerTop(nodeIdStr, isTop);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**

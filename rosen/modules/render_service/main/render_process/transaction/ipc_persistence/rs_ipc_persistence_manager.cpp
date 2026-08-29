@@ -16,183 +16,170 @@
 #include "rs_ipc_persistence_manager.h"
 
 #include "platform/common/rs_log.h"
-#include "rs_ipc_persistence_data.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSIpcPersistenceManager"
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr uint32_t MAX_MAP_SIZE = 100;
-constexpr uint32_t MAX_VECTOR_SIZE = 200;
-} // namespace
 
-IpcPersistenceTypeToDataMap RSIpcPersistenceManager::GetReplayData() const
+RSIpcPersistenceManager::FactoryRegistry& RSIpcPersistenceManager::GetFactoryRegistry()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return replayData_;
+    static FactoryRegistry* reg = new FactoryRegistry();
+    return *reg;
 }
 
-void RSIpcPersistenceManager::RegisterWithCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data)
+void RSIpcPersistenceManager::RegisterFactory(RSIServiceToRenderConnectionInterfaceCode typeId, TransferFactory factory)
 {
-    if (!data || data->GetCallingPid() == IPC_PERSISTENCE_DEFAULT_PID) {
-        return;
+    auto& reg = GetFactoryRegistry();
+    std::lock_guard<std::mutex> lock(reg.mutex);
+    bool isNewTypeId = reg.map.find(typeId) == reg.map.end();
+    reg.map[typeId] = factory;
+    if (reg.typeMutexes.find(typeId) == reg.typeMutexes.end()) {
+        reg.typeMutexes.emplace(typeId, std::make_shared<std::mutex>());
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    UnregisterByTypeAndCallingPidLocked(data->GetType(), data->GetCallingPid());
-    replayData_[data->GetType()].emplace_back(data);
-}
-
-void RSIpcPersistenceManager::RegisterWithoutCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data)
-{
-    if (!data || data->GetCallingPid() != IPC_PERSISTENCE_DEFAULT_PID) {
-        return;
+    if (isNewTypeId) {
+        auto typeIds = std::make_shared<std::vector<RSIServiceToRenderConnectionInterfaceCode>>(*reg.typeIds);
+        typeIds->push_back(typeId);
+        reg.typeIds = std::move(typeIds);
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    UnregisterWithoutCallingPidByTypeLocked(data->GetType());
-    replayData_[data->GetType()].emplace_back(data);
 }
 
-void RSIpcPersistenceManager::UnregisterByType(RSIpcPersistenceType type)
+std::shared_ptr<const std::vector<RSIServiceToRenderConnectionInterfaceCode>>
+RSIpcPersistenceManager::GetRegisteredTypeIds()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    replayData_.erase(type);
+    auto& reg = GetFactoryRegistry();
+    std::lock_guard<std::mutex> lock(reg.mutex);
+    return reg.typeIds;
 }
 
-void RSIpcPersistenceManager::UnregisterByCallingPid(pid_t pid)
+std::shared_ptr<std::mutex> RSIpcPersistenceManager::GetTypeMutex(
+    RSIServiceToRenderConnectionInterfaceCode typeId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (auto mapIter = replayData_.begin(); mapIter != replayData_.end();) {
-        auto& dataVec = mapIter->second;
-        dataVec.erase(std::remove_if(
-            dataVec.begin(), dataVec.end(), [pid](const auto& data) { return data->GetCallingPid() == pid; }));
-        if (dataVec.empty()) {
-            mapIter = replayData_.erase(mapIter);
-        } else {
-            mapIter++;
+    auto& reg = GetFactoryRegistry();
+    std::lock_guard<std::mutex> lock(reg.mutex);
+    auto it = reg.typeMutexes.find(typeId);
+    if (it == reg.typeMutexes.end()) {
+        it = reg.typeMutexes.emplace(typeId, std::make_shared<std::mutex>()).first;
+    }
+    return it->second;
+}
+
+std::shared_ptr<RSIpcTransferBase> RSIpcPersistenceManager::CreateTransferByTypeId(
+    RSIServiceToRenderConnectionInterfaceCode typeId, Parcel& parcel, int32_t& errCode, uint32_t maxEntries)
+{
+    TransferFactory factory = nullptr;
+    {
+        auto& reg = GetFactoryRegistry();
+        std::lock_guard<std::mutex> lock(reg.mutex);
+        auto it = reg.map.find(typeId);
+        if (it == reg.map.end()) {
+            RS_LOGE("%{public}s: typeId %{public}u not registered", __func__, static_cast<uint32_t>(typeId));
+            errCode = ERR_INVALID_DATA;
+            return nullptr;
         }
+        factory = it->second;
     }
+    return factory(parcel, maxEntries, errCode);
 }
 
-void RSIpcPersistenceManager::UnregisterWithoutCallingPidByTypeLocked(RSIpcPersistenceType type)
-{
-    auto mapIter = replayData_.find(type);
-    if (mapIter == replayData_.end()) {
-        return;
-    }
-    auto& dataVec = mapIter->second;
-    dataVec.erase(std::remove_if(dataVec.begin(), dataVec.end(),
-        [](const auto& data) { return data->GetCallingPid() == IPC_PERSISTENCE_DEFAULT_PID; }));
-    if (dataVec.empty()) {
-        replayData_.erase(mapIter);
-    }
-}
-
-void RSIpcPersistenceManager::UnregisterWithoutCallingPidByType(RSIpcPersistenceType type)
+IpcPersistenceMap RSIpcPersistenceManager::GetPersistenceMap() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    UnregisterWithoutCallingPidByTypeLocked(type);
+    return persistedData_;
 }
 
-void RSIpcPersistenceManager::UnregisterByTypeAndCallingPidLocked(RSIpcPersistenceType type, pid_t pid)
+bool RSIpcPersistenceManager::Marshalling(Parcel& parcel, const IpcPersistenceMap& map)
 {
-    auto mapIter = replayData_.find(type);
-    if (mapIter == replayData_.end()) {
-        return;
-    }
-    auto& dataVec = mapIter->second;
-    dataVec.erase(std::remove_if(
-        dataVec.begin(), dataVec.end(), [pid](const auto& data) { return data->GetCallingPid() == pid; }));
-    if (dataVec.empty()) {
-        replayData_.erase(mapIter);
-    }
-}
-
-void RSIpcPersistenceManager::UnregisterByTypeAndCallingPid(RSIpcPersistenceType type, pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    UnregisterByTypeAndCallingPidLocked(type, pid);
-}
-
-bool RSIpcPersistenceManager::Marshalling(Parcel& parcel, const IpcPersistenceTypeToDataMap& typeToDataMap)
-{
-    if (!parcel.WriteUint32(typeToDataMap.size())) {
+    if (map.size() > Detail::MAX_PERSIST_MAP_SIZE) {
+        RS_LOGE("%{public}s: map size %{public}zu exceeds max %{public}u",
+            __func__, map.size(), Detail::MAX_PERSIST_MAP_SIZE);
         return false;
     }
-    for (const auto& [type, dataVec] : typeToDataMap) {
-        if (!parcel.WriteUint32(static_cast<uint32_t>(type))) {
+    if (!parcel.WriteUint32(static_cast<uint32_t>(map.size()))) {
+        RS_LOGE("%{public}s: WriteUint32 size failed", __func__);
+        return false;
+    }
+    for (const auto& [typeId, transfer] : map) {
+        if (!parcel.WriteUint32(static_cast<uint32_t>(typeId))) {
+            RS_LOGE("%{public}s: WriteUint32 typeId failed", __func__);
             return false;
         }
-        if (!parcel.WriteUint32(dataVec.size())) {
+        if (!transfer) {
+            RS_LOGE("%{public}s: transfer is nullptr", __func__);
             return false;
         }
-        for (const auto& data : dataVec) {
-            if (!data->Marshalling(parcel)) {
-                return false;
-            }
+        if (!transfer->ProxyMarshalling(parcel)) {
+            RS_LOGE("%{public}s: Transfer ProxyMarshalling failed", __func__);
+            return false;
         }
     }
     return true;
 }
 
-std::optional<IpcPersistenceTypeToDataMap> RSIpcPersistenceManager::Unmarshalling(Parcel& parcel)
+std::optional<IpcPersistenceMap> RSIpcPersistenceManager::Unmarshalling(Parcel& parcel)
 {
-    uint32_t mapSize;
-    if (!parcel.ReadUint32(mapSize) || mapSize > MAX_MAP_SIZE) {
-        RS_LOGE("Unmarshalling: dataVecSize %{public}u exceeds max %{public}u", mapSize, MAX_MAP_SIZE);
+    uint32_t typeCount = 0;
+    if (!parcel.ReadUint32(typeCount) || typeCount > Detail::MAX_PERSIST_MAP_SIZE) {
+        RS_LOGE("%{public}s: typeCount %{public}u exceeds max %{public}u",
+                __func__, typeCount, Detail::MAX_PERSIST_MAP_SIZE);
         return std::nullopt;
     }
-    IpcPersistenceTypeToDataMap result;
-    for (uint32_t i = 0; i < mapSize; i++) {
-        uint32_t type;
-        if (!parcel.ReadUint32(type)) {
+
+    IpcPersistenceMap dataMap;
+    for (uint32_t i = 0; i < typeCount; ++i) {
+        uint32_t typeIdVal;
+        if (!parcel.ReadUint32(typeIdVal)) {
+            RS_LOGE("%{public}s: ReadUint32 typeId failed", __func__);
             return std::nullopt;
         }
-        auto ipcPersistenceType = static_cast<RSIpcPersistenceType>(type);
-        uint32_t dataVecSize;
-        if (!parcel.ReadUint32(dataVecSize) || dataVecSize > MAX_VECTOR_SIZE) {
-            RS_LOGE("Unmarshalling: dataVecSize %{public}u exceeds max %{public}u", dataVecSize, MAX_VECTOR_SIZE);
+        auto typeId = static_cast<RSIServiceToRenderConnectionInterfaceCode>(typeIdVal);
+        if (dataMap.find(typeId) != dataMap.end()) {
+            RS_LOGE("%{public}s: duplicate typeId %{public}u in replay data", __func__, typeIdVal);
             return std::nullopt;
         }
-        for (uint32_t j = 0; j < dataVecSize; j++) {
-            std::shared_ptr<RSIpcPersistenceDataBase> data;
-            switch (ipcPersistenceType) {
-                case RSIpcPersistenceType::SET_WATERMARK:
-                    data = std::shared_ptr<SetWatermarkPersistenceData>(
-                        SetWatermarkPersistenceData::Unmarshalling(parcel));
-                    break;
-                case RSIpcPersistenceType::SHOW_WATERMARK:
-                    data = std::shared_ptr<ShowWatermarkPersistenceData>(
-                        ShowWatermarkPersistenceData::Unmarshalling(parcel));
-                    break;
-                case RSIpcPersistenceType::ON_HWC_EVENT:
-                    data = std::shared_ptr<OnHwcEventPersistenceData>(OnHwcEventPersistenceData::Unmarshalling(parcel));
-                    break;
-                case RSIpcPersistenceType::SET_BEHIND_WINDOW_FILTER_ENABLED:
-                    data = std::shared_ptr<SetBehindWindowFilterEnabledPersistenceData>(
-                        SetBehindWindowFilterEnabledPersistenceData::Unmarshalling(parcel));
-                    break;
-                case RSIpcPersistenceType::SET_SHOW_REFRESH_RATE_ENABLED:
-                    data = std::shared_ptr<SetShowRefreshRateEnabledPersistenceData>(
-                        SetShowRefreshRateEnabledPersistenceData::Unmarshalling(parcel));
-                    break;
-                case RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK:
-                    data = std::shared_ptr<SelfDrawingNodeRectChangeCallbackPersistenceData>(
-                        SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling(parcel));
-                    break;
-                default:
-                    break;
+        int32_t deserErr = ERR_NULL_OBJECT;
+        auto transfer = RSIpcPersistenceManager::CreateTransferByTypeId(typeId, parcel, deserErr);
+        if (!transfer) {
+            RS_LOGE("%{public}s: CreateTransferByTypeId failed for typeId %{public}u, err=%{public}d",
+                __func__, typeIdVal, deserErr);
+            return std::nullopt;
+        }
+        dataMap[typeId] = std::move(transfer);
+    }
+    return dataMap;
+}
+
+void RSIpcPersistenceManager::PersistTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (!transfer || !transfer->IsPersistent()) {
+        return;
+    }
+    auto typeMutex = GetTypeMutex(transfer->GetPersistLockTypeId());
+    std::lock_guard<std::mutex> typeLock(*typeMutex);
+    transfer->Persist(persistedData_, mutex_);
+}
+
+void RSIpcPersistenceManager::ClearPid(pid_t pid)
+{
+    auto typeIds = GetRegisteredTypeIds();
+    for (const auto& typeId : *typeIds) {
+        auto typeMutex = GetTypeMutex(typeId);
+        std::lock_guard<std::mutex> typeLock(*typeMutex);
+        std::shared_ptr<RSIpcTransferBase> target;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = persistedData_.find(typeId);
+            if (it == persistedData_.end()) {
+                continue;
             }
-            if (data) {
-                result[ipcPersistenceType].emplace_back(data);
-            } else {
-                RS_LOGE("Unmarshalling: failed to unmarshall data for type %{public}u", type);
-                return std::nullopt;
-            }
+            target = it->second;
+        }
+        if (target) {
+            target->ClearPid(pid);
         }
     }
-    return result;
 }
+
 } // namespace Rosen
 } // namespace OHOS

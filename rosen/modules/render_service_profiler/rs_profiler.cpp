@@ -249,11 +249,11 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
     std::stringstream ssData;
     auto fileVersion = RSFILE_VERSION_LATEST;
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
+    SetThreadSubMode(SubMode::WRITE_EMUL);
+    DisableThreadSharedMemory();
     MarshalNode(*node, ssData, fileVersion, skipDrawCmdModifiers, true);
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
+    EnableThreadSharedMemory();
+    SetThreadSubMode(SubMode::NONE);
 
     job->MarkFinished(nodeId, ssData.str());
 
@@ -551,15 +551,9 @@ uint64_t RSProfiler::OnRemoteRequest(RSIServiceToRenderConnection* connection, u
     return ProcessRemoteRequest(0u, code, parcel, reply, option);
 }
 
-void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data)
+void RSProfiler::SetSendingPid(RSTransactionData& data, const MessageParcel& parcel, pid_t pid)
 {
-    if (!IsEnabled()) {
-        return;
-    }
-
-    if (parcel && IsParcelMock(*parcel)) {
-        data->SetSendingPid(Utils::GetMockPid(data->GetSendingPid()));
-    }
+    data.SetSendingPid((IsEnabled() && IsParcelMock(parcel)) ? Utils::GetMockPid(data.GetSendingPid()) : pid);
 }
 
 void RSProfiler::CreateMockConnection(pid_t pid)
@@ -1086,7 +1080,7 @@ bool RSProfiler::IsLoadSaveFirstScreenInProgress()
     return IsWriteEmulationMode() || IsReadEmulationMode();
 }
 
-void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
+void RSProfiler::MarshalSelfDrawingNodes()
 {
     class SurfaceCaptureCallback final : public RSISurfaceCaptureCallback {
         void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
@@ -1103,7 +1097,7 @@ void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
         }
     };
 
-    if (isBetaRecording || !mainThread_ || !context_) {
+    if (!context_) {
         return;
     }
 
@@ -1113,26 +1107,24 @@ void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
         }
 
         constexpr auto useCurrentWindow = false;
-        mainThread_->PostTask([node]() {
-            bool needSyncSurface = false;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(node->GetId(), useCurrentWindow, &needSyncSurface);
+        bool needSyncSurface = false;
+        RSSurfaceCaptureTaskParallel::CheckModifiers(node->GetId(), useCurrentWindow, &needSyncSurface);
 
-            RSSurfaceCaptureParam param;
-            param.id = node->GetId();
-            param.isSystemCalling = false;
-            param.isSelfCapture = true;
-            param.config.useDma = true;
-            param.config.useCurWindow = useCurrentWindow;
-            param.config.isHdrCapture = false;
-            param.hasDirtyContentInSurfaceCapture = (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty());
-            RSSurfaceCaptureTaskParallel::Capture(sptr<SurfaceCaptureCallback>::MakeSptr(), param);
-        });
+        RSSurfaceCaptureParam param;
+        param.id = node->GetId();
+        param.isSystemCalling = false;
+        param.isSelfCapture = true;
+        param.config.useDma = true;
+        param.config.useCurWindow = useCurrentWindow;
+        param.config.isHdrCapture = false;
+        param.hasDirtyContentInSurfaceCapture = (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty());
+        RSSurfaceCaptureTaskParallel::Capture(sptr<SurfaceCaptureCallback>::MakeSptr(), param);
     });
 }
 
 void RSProfiler::UnmarshalSelfDrawingNodes()
 {
-    if (!mainThread_ || !context_) {
+    if (!context_) {
         return;
     }
 
@@ -1154,53 +1146,56 @@ void RSProfiler::UnmarshalSelfDrawingNodes()
             return;
         }
 
-        mainThread_->PostSyncTask([handler, node, buffer] {
-            const Rect region {
-                .w = buffer->GetWidth(),
-                .h = buffer->GetHeight(),
-            };
-            handler->SetBuffer(buffer, SyncFence::InvalidFence(), region, 0, nullptr);
-            node->UpdateBufferInfo(handler->GetBuffer(), handler->GetBufferOwnerCount(), region,
-                handler->GetAcquireFence(), handler->GetPreBuffer(), handler->GetPreBufferOwnerCount());
-            node->SetNodeDirty(true);
-            node->SetContentDirty();
-        });
+        const Rect region {
+            .w = buffer->GetWidth(),
+            .h = buffer->GetHeight(),
+        };
+        handler->SetBuffer(buffer, SyncFence::InvalidFence(), region, 0, nullptr);
+        node->UpdateBufferInfo(handler->GetBuffer(), handler->GetBufferOwnerCount(), region, handler->GetAcquireFence(),
+            handler->GetPreBuffer(), handler->GetPreBufferOwnerCount());
+        node->SetNodeDirty(true);
+        node->SetContentDirty();
     });
 }
 
 std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordStarted)
 {
     if (!mainThread_ || !context_) {
-        HRPE("FirstFrameMarshalling: Invalid mainThread or context");
-        return "";
+        HRPE("FirstFrameMarshalling: Invalid main thread or context");
+        return {};
     }
 
     RS_TRACE_NAME("Profiler FirstFrameMarshalling");
     std::stringstream stream;
-    stream.exceptions(0); // 0: disable all exceptions for stringstream
+    stream.exceptions(0);
+
     TypefaceMarshalling(stream, fileVersion);
-    if (!stream.good()) {
-        HRPD("FirstFrameMarshalling: Typeface marshalling failed");
+    if (!stream) {
+        HRPE("FirstFrameMarshalling: TypefaceMarshalling failed");
+        return {};
     }
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
+    const auto job = betaRecordStarted ? std::make_shared<ProfilerMarshallingJob>(JobMarshallingTick) : nullptr;
+    RSUniRenderThread::Instance().PostSyncTask([&stream, &fileVersion, &job]() {
+        SetThreadSubMode(SubMode::WRITE_EMUL);
+        DisableThreadSharedMemory();
+        MarshalNodes(*context_, stream, fileVersion, job);
+        EnableThreadSharedMemory();
+        SetThreadSubMode(SubMode::NONE);
+    });
 
-    std::shared_ptr<ProfilerMarshallingJob> newJob;
-    if (betaRecordStarted) {
-        newJob = std::make_shared<ProfilerMarshallingJob>();
-        if (newJob) {
-            newJob->marshallingTick = JobMarshallingTick;
-        }
+    if (!stream) {
+        HRPE("FirstFrameMarshalling: MarshalNodes failed");
+        return {};
     }
 
-    MarshalNodes(*context_, stream, fileVersion, newJob);
-    if (!stream.good()) {
-        HRPD("FirstFrameMarshalling: Nodes marshalling failed");
+    if (!betaRecordStarted) {
+        SetThreadSubMode(SubMode::WRITE_EMUL);
+        DisableThreadSharedMemory();
+        MarshalSelfDrawingNodes();
+        EnableThreadSharedMemory();
+        SetThreadSubMode(SubMode::NONE);
     }
-    MarshalSelfDrawingNodes(betaRecordStarted);
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
 
     const int32_t focusPid = mainThread_->focusAppPid_;
     stream.write(reinterpret_cast<const char*>(&focusPid), sizeof(focusPid));
@@ -1211,18 +1206,17 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRec
     const uint64_t focusNodeId = mainThread_->focusNodeId_;
     stream.write(reinterpret_cast<const char*>(&focusNodeId), sizeof(focusNodeId));
 
-    const std::string bundleName = mainThread_->focusAppBundleName_;
-    size_t size = bundleName.size();
+    size_t size = mainThread_->focusAppBundleName_.size();
     stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    stream.write(reinterpret_cast<const char*>(bundleName.data()), size);
+    stream.write(mainThread_->focusAppBundleName_.data(), static_cast<std::streamsize>(size));
 
-    const std::string abilityName = mainThread_->focusAppAbilityName_;
-    size = abilityName.size();
+    size = mainThread_->focusAppAbilityName_.size();
     stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    stream.write(reinterpret_cast<const char*>(abilityName.data()), size);
+    stream.write(mainThread_->focusAppAbilityName_.data(), static_cast<std::streamsize>(size));
 
-    if (!stream.good()) {
-        HRPE("FirstFrameMarshalling: Focus app marshalling failed");
+    if (!stream) {
+        HRPE("FirstFrameMarshalling: Writing focus app info failed");
+        return {};
     }
     return stream.str();
 }
@@ -1288,14 +1282,14 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
         return error;
     }
 
-    SetSubMode(SubMode::READ_EMUL);
-    DisableSharedMemory();
+    SetThreadSubMode(SubMode::READ_EMUL);
+    DisableThreadSharedMemory();
     error = UnmarshalNodes(*context_, stream, fileVersion);
     if (error.empty()) {
         UnmarshalSelfDrawingNodes();
     }
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
+    EnableThreadSharedMemory();
+    SetThreadSubMode(SubMode::NONE);
 
     if (error.empty() && !SetFocusAppInfo(*mainThread_, stream)) {
         FilterMockNode(*context_);
@@ -1307,13 +1301,14 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
 void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        std::stringstream fontStream;
+        std::stringstream fonts;
         if (!IsBetaRecordEnabled()) {
-            RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+            RSTypefaceCache::Instance().ReplaySerialize(fonts);
         }
-        size_t fontStreamSize = fontStream.str().size();
-        stream.write(reinterpret_cast<const char*>(&fontStreamSize), sizeof(fontStreamSize));
-        stream.write(reinterpret_cast<const char*>(fontStream.str().c_str()), fontStreamSize);
+        const auto data = fonts.str();
+        const auto size = data.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        stream.write(data.data(), static_cast<std::streamsize>(size));
     }
 }
 
@@ -2012,7 +2007,7 @@ void RSProfiler::RecordStart(const ArgList& args)
             auto& jobGlobal = GetMarshallingJob();
             jobGlobal = nullptr;
             SetMode(Mode::NONE);
-            SetSubMode(SubMode::NONE);
+            SetThreadSubMode(SubMode::NONE);
             return;
         }
     }
@@ -2729,35 +2724,35 @@ void RSProfiler::TestClearSubTree(const ArgList& args)
     Respond("Clear SubTree Success");
 }
 
-void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,
-    const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache)
+void RSProfiler::MarshalSubTree(
+    RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache)
 {
     if (clearImageCache) {
         ImageCache::Reset();
     }
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
+    std::stringstream nodes;
+    RSUniRenderThread::Instance().PostSyncTask([&context, &nodes, &node, &fileVersion]() {
+        SetThreadSubMode(SubMode::WRITE_EMUL);
+        DisableThreadSharedMemory();
+        MarshalSubTreeLo(context, nodes, node, fileVersion);
+        EnableThreadSharedMemory();
+        SetThreadSubMode(SubMode::NONE);
+    });
 
-    std::stringstream dataNodes(std::ios::in | std::ios::out | std::ios::binary);
-    MarshalSubTreeLo(context, dataNodes, node, fileVersion);
+    std::stringstream images;
+    ImageCache::Serialize(images);
+    ImageCache::Reset();
 
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
-
-    std::stringstream dataPixelMaps(std::ios::in | std::ios::out | std::ios::binary);
-    ImageCache::Serialize(dataPixelMaps);
-
-    // SAVE TO STREAM
     TypefaceMarshalling(data, fileVersion);
 
-    uint32_t pixelMapSize = dataPixelMaps.str().size();
-    data.write(reinterpret_cast<const char*>(&pixelMapSize), sizeof(pixelMapSize));
-    data.write(dataPixelMaps.str().data(), dataPixelMaps.str().size());
+    const uint32_t imagesSize = images.str().size();
+    data.write(reinterpret_cast<const char*>(&imagesSize), sizeof(imagesSize));
+    data.write(images.str().data(), static_cast<std::streamsize>(imagesSize));
 
-    uint32_t nodesSize = dataNodes.str().size();
+    const uint32_t nodesSize = nodes.str().size();
     data.write(reinterpret_cast<const char*>(&nodesSize), sizeof(nodesSize));
-    data.write(dataNodes.str().data(), dataNodes.str().size());
+    data.write(nodes.str().data(), static_cast<std::streamsize>(nodesSize));
 }
 
 std::string RSProfiler::UnmarshalSubTree(
@@ -2787,11 +2782,11 @@ std::string RSProfiler::UnmarshalSubTree(
         return "UnmarshalSubTree: Cannot read node count";
     }
 
-    SetSubMode(SubMode::READ_EMUL);
-    DisableSharedMemory();
+    SetThreadSubMode(SubMode::READ_EMUL);
+    DisableThreadSharedMemory();
     error = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
+    EnableThreadSharedMemory();
+    SetThreadSubMode(SubMode::NONE);
 
     if (!error.empty()) {
         RSTypefaceCache::Instance().ReplayClear();

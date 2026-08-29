@@ -65,9 +65,9 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #ifdef SOC_PERF_ENABLE
@@ -350,7 +350,6 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNod
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
             ROSEN_LOGW("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
-        surfaceDirtyManager->IntersectDirtyRect(surfaceParams->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
     }
 
@@ -1182,24 +1181,16 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+    RenderEngineType type,
     std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
     auto acquireFence = SyncFence::InvalidFence();
-    OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-        vkInterface,
-#endif
-        surface, grContext, acquireFence, optFenceWait);
+    OptimizedFlushAndSubmit(type, surface, grContext, acquireFence, optFenceWait);
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RsVulkanInterface> vkInterface,
-#endif
+    RenderEngineType type,
     std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, sptr<SyncFence>& acquireFence, bool optFenceWait)
 {
@@ -1213,6 +1204,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
+        auto vkInterface = RsVulkanContext::Get(type).GetRsVulkanInterface();
         VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
         exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
         exportSemaphoreCreateInfo.pNext = nullptr;
@@ -1807,11 +1799,11 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams)
 {
     if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
-        !screenParams.GetLayerSkipContext().screenLayerInvalid_) {
+        !screenParams.GetLayerSkipContext().virtualScreenLayerInvalid_) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s disabled or screenLayer is invalid", __func__);
         return false;
     }
-    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
+    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().virtualRelevantSurfaceNodeIds_;
     // only handle a single self drawing node
     if (targetSurfaceNodeIds.size() != 1) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s more than one full-screen self drawing node exists", __func__);
@@ -1883,7 +1875,7 @@ bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     const auto& specialLayerMgr = surfaceParams->GetSpecialLayerMgr();
     if (displayParams.IsSecurityDisplay() && (specialLayerMgr.Find(HAS_GENERAL_SPECIAL) ||
         specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST) ||
-        !whiteList.empty())) {
+        (!whiteList.empty() && surfaceDrawable->IsWhiteListNode()))) {
         return false;
     }
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

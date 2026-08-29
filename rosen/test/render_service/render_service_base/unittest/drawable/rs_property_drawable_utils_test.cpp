@@ -1954,6 +1954,31 @@ HWTEST_F(RSPropertyDrawableUtilsTest, MakeHdrDarkenBlenderTest001, testing::ext:
 }
 
 /**
+ * @tc.name: MakeColorfulBrightnessBlenderTest001
+ * @tc.desc: MakeColorfulBrightnessBlender Test with default and fully-specified params.
+ *           Covers the normal builder construction and uniform-setting path.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeColorfulBrightnessBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(rsPropertyDrawableUtils, nullptr);
+
+    // default-constructed params (F2 builder-valid path)
+    RSColorfulBrightnessBlenderPara params1;
+    auto blender1 = rsPropertyDrawableUtils->MakeColorfulBrightnessBlender(params1);
+    EXPECT_NE(blender1, nullptr);
+
+    // fully-specified params (F2 builder-valid path, all uniforms set)
+    Vector3f pos(0.6f, 0.7f, 0.8f);
+    Vector3f neg(0.9f, 0.1f, 0.2f);
+    RSColorfulBrightnessBlenderPara params2(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, pos, neg, 0.33f, 0.88f);
+    auto blender2 = rsPropertyDrawableUtils->MakeColorfulBrightnessBlender(params2);
+    EXPECT_NE(blender2, nullptr);
+}
+
+/**
  * @tc.name: DrawDepthOcclusionWithValidParameters
  * @tc.desc: test DrawDepthOcclusion with valid parameters
  * @tc.type: FUNC

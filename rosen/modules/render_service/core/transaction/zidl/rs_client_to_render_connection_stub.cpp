@@ -354,7 +354,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data, parcelNumber);
                     if (transactionData) {
                         transactionData->SetCallingPid(callingPid);
-                        transactionData->SetSendingPid(callingPid);
+                        RS_PROFILER_SET_TRANSACTION_SENDING_PID(*transactionData, data, callingPid);
                     }
                     if (transactionData && isNonSystemAppCalling) {
                         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -405,7 +405,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 }
                 if (transactionData) {
                     transactionData->SetCallingPid(callingPid);
-                    transactionData->SetSendingPid(callingPid);
+                    RS_PROFILER_SET_TRANSACTION_SENDING_PID(*transactionData, *parsedParcel, callingPid);
                 }
                 if (transactionData && isNonSystemAppCalling) {
                     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();

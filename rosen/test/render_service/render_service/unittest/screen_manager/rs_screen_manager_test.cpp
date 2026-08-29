@@ -28,7 +28,7 @@
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "rs_render_composer_manager.h"
 
@@ -1766,7 +1766,8 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     ASSERT_EQ(static_cast<StatusCode>(screenManager_->
-        SetRogScreenResolution(INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SCREEN_NOT_FOUND);
+        SetRogScreenResolution(INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT,
+            ScreenSamplingMode::DEVICE_DSS)), SCREEN_NOT_FOUND);
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
 }
@@ -1792,7 +1793,8 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     ASSERT_EQ(static_cast<StatusCode>(screenManager_->
-        SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SUCCESS);
+        SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT,
+            ScreenSamplingMode::DEVICE_DSS)), SUCCESS);
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
 }

@@ -329,6 +329,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
     info.maskRect = GetMaskRect();
     info.reviseRect = GetReviseRect();
     info.powerStatus = GetScreenPowerStatus();
+    info.samplingMode = GetSamplingMode();
     return info;
 }
 // LCOV_EXCL_STOP
@@ -386,6 +387,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::IS_MAIN_SCREEN)
         UNMARSHALL_CASE(ScreenPropertyType::IS_ROG_RESOLUTION)
         UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
+        UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_MODE)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
             return false;

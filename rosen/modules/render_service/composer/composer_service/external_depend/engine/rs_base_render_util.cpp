@@ -912,8 +912,10 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const Composer
     bool isProtected, GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
-    auto width = composerScreenInfo.isSamplingOn ? composerScreenInfo.phyWidth : composerScreenInfo.width;
-    auto height = composerScreenInfo.isSamplingOn ? composerScreenInfo.phyHeight : composerScreenInfo.height;
+    bool usePhysicalSize = composerScreenInfo.isSamplingOn ||
+        (composerScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU);
+    auto width = usePhysicalSize ? composerScreenInfo.phyWidth : composerScreenInfo.width;
+    auto height = usePhysicalSize ? composerScreenInfo.phyHeight : composerScreenInfo.height;
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.

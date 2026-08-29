@@ -495,5 +495,145 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     EXPECT_EQ(std::get<0>(returnData), std::get<0>(testData));
     EXPECT_EQ(std::get<1>(returnData), std::get<1>(testData));
 }
+
+/**
+ * @tc.name: CrcGenTest
+ * @tc.desc: Verify CrcGen produces consistent and differentiated CRC values
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, CrcGenTest, TestSize.Level1)
+{
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, "TestDir");
+    uint8_t buffer1[] = {0x01, 0x02, 0x03, 0x04};
+    uint32_t crc1 = cacheData->CrcGen(buffer1, 4);
+    EXPECT_NE(crc1, 0);
+    uint32_t crc1Again = cacheData->CrcGen(buffer1, 4);
+    EXPECT_EQ(crc1, crc1Again);
+    uint8_t buffer2[] = {0x01, 0x02, 0x03, 0x05};
+    uint32_t crc2 = cacheData->CrcGen(buffer2, 4);
+    EXPECT_NE(crc1, crc2);
+}
+
+/**
+ * @tc.name: IsValidFileTest
+ * @tc.desc: Verify IsValidFile validates magic head, null buffer and CRC
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, IsValidFileTest, TestSize.Level1)
+{
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, "TestDir");
+    EXPECT_FALSE(cacheData->IsValidFile(nullptr, 0));
+    const size_t headLen = 8;
+    const size_t dataSize = 4;
+    size_t bufferSize = headLen + dataSize;
+    uint8_t* buffer = new uint8_t[bufferSize]();
+    buffer[0] = 'O';
+    buffer[1] = 'H';
+    buffer[2] = 'R';
+    buffer[3] = 'S';
+    buffer[headLen] = 0x01;
+    buffer[headLen + 1] = 0x02;
+    buffer[headLen + 2] = 0x03;
+    buffer[headLen + 3] = 0x04;
+    uint32_t crc = cacheData->CrcGen(buffer + headLen, dataSize);
+    uint32_t* storedCrc = reinterpret_cast<uint32_t*>(buffer + 4);
+    *storedCrc = crc;
+    EXPECT_TRUE(cacheData->IsValidFile(buffer, bufferSize));
+
+    *storedCrc = crc + 1;
+    EXPECT_FALSE(cacheData->IsValidFile(buffer, bufferSize));
+
+    *storedCrc = crc;
+    buffer[0] = 'X';
+    EXPECT_FALSE(cacheData->IsValidFile(buffer, bufferSize));
+    delete[] buffer;
+}
+
+/**
+ * @tc.name: GetTotalSizeAndShaderNumTest
+ * @tc.desc: Verify GetTotalSize and GetShaderNum reflect Rewrite and Clear
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, GetTotalSizeAndShaderNumTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(8, 8, 16, testFileDir);
+    EXPECT_EQ(cacheData->GetTotalSize(), 0);
+    EXPECT_EQ(cacheData->GetShaderNum(), 0);
+    const char* testKey1 = "testKey1";
+    const char* testValue1 = "testValue1";
+    cacheData->Rewrite(testKey1, 8, testValue1, 8);
+    EXPECT_NE(cacheData->GetTotalSize(), 0);
+    EXPECT_EQ(cacheData->GetShaderNum(), 1);
+    cacheData->Clear();
+    EXPECT_EQ(cacheData->GetTotalSize(), 0);
+    EXPECT_EQ(cacheData->GetShaderNum(), 0);
+}
+
+/**
+ * @tc.name: DumpAbnormalCacheToFileTest
+ * @tc.desc: Verify DumpAbnormalCacheToFile handles empty and invalid paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DumpAbnormalCacheToFileTest, TestSize.Level1)
+{
+    uint8_t buffer[] = {0x01, 0x02, 0x03, 0x04};
+    auto cacheDataEmpty = std::make_shared<CacheData>(0, 0, 0, "");
+    cacheDataEmpty->DumpAbnormalCacheToFile(buffer, 4);
+    auto cacheDataInvalid = std::make_shared<CacheData>(0, 0, 0, "/nonexistent/path/cache");
+    cacheDataInvalid->DumpAbnormalCacheToFile(buffer, 4);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: CacheReadFromFileTest
+ * @tc.desc: Verify CacheReadFromFile handles empty and nonexistent paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, CacheReadFromFileTest, TestSize.Level1)
+{
+    auto cacheData = std::make_shared<CacheData>(0, 0, 0, "TestDir");
+    cacheData->CacheReadFromFile("");
+    cacheData->CacheReadFromFile("/nonexistent/path/cache");
+    SUCCEED();
+}
+
+/**
+ * @tc.name: GetKeyNotFoundTest
+ * @tc.desc: Verify Get returns KEY_NOT_FOUND when key is not present
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, GetKeyNotFoundTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(8, 8, 16, testFileDir);
+    uint8_t output[8] = {0};
+    const char* missingKey = "missingKey";
+    auto [errorCode, sizeGet] = cacheData->Get(missingKey, 8, output, 8);
+    EXPECT_EQ(errorCode, CacheData::ErrorCode::KEY_NOT_FOUND);
+    EXPECT_EQ(sizeGet, 0);
+}
+
+/**
+ * @tc.name: RewriteUpdateTest
+ * @tc.desc: Verify Rewrite updates existing key's value
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, RewriteUpdateTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(8, 8, 16, testFileDir);
+    const char* testKey = "testKey1";
+    const char* testValue1 = "testVal1";
+    const char* testValue2 = "testVal2";
+    cacheData->Rewrite(testKey, 8, testValue1, 8);
+    cacheData->Rewrite(testKey, 8, testValue2, 8);
+    EXPECT_EQ(cacheData->GetShaderNum(), 1);
+    uint8_t output[8] = {0};
+    auto [errorCode, sizeGet] = cacheData->Get(testKey, 8, output, 8);
+    EXPECT_EQ(errorCode, CacheData::ErrorCode::NO_ERR);
+    EXPECT_EQ(sizeGet, 8);
+    EXPECT_EQ(0, memcmp(output, testValue2, 8));
+}
 } // namespace Rosen
 } // namespace OHOS

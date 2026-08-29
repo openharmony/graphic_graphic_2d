@@ -20,7 +20,7 @@
  * 提供CreateOrGet静态方法实现三种类型单例
  */
 
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #include <memory>
 
@@ -47,10 +47,12 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
             static RsVulkanContext unprotectedRedrawSingleton = RsVulkanContext(false, false, type);
             return unprotectedRedrawSingleton;
         }
+#ifdef IS_USE_DRM
         case RenderEngineType::PROTECTED_REDRAW: {
             static RsVulkanContext protectedRedrawSingleton = RsVulkanContext(true, false, type);
             return protectedRedrawSingleton;
         }
+#endif
         case RenderEngineType::BASIC_RENDER:
         default:
         {

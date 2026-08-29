@@ -37,14 +37,8 @@ void BootAnimationStrategyTest::TearDownTestCase() {}
 void BootAnimationStrategyTest::SetUp()
 {
     system::SetParameter(BOOT_COMPLETED, "false");
-    system::SetParameter("updater.vab_update_boot", "");
-    system::SetParameter("bootevent.lockscreen.authstate.ready", "false");
 }
-void BootAnimationStrategyTest::TearDown()
-{
-    system::SetParameter("updater.vab_update_boot", "");
-    system::SetParameter("bootevent.lockscreen.authstate.ready", "false");
-}
+void BootAnimationStrategyTest::TearDown() {}
 
 /**
  * @tc.name: CheckExitAnimation_AnimationNotEnd_SetAnimationStarted
@@ -240,74 +234,5 @@ HWTEST_F(BootAnimationStrategyTest, ConfigPath_SetPath_ReturnCorrectPath, TestSi
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     strategy->configPath_ = "/test/path";
     EXPECT_EQ(strategy->configPath_, "/test/path");
-}
-
-/**
- * @tc.name: CheckExitAnimation_NoVabUpdate_ReturnTrue
- * @tc.desc: Verify CheckExitAnimation returns true when BOOT_COMPLETED is true
- *           and updater.vab_update_boot does not exist.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationStrategyTest, CheckExitAnimation_NoVabUpdate_ReturnTrue, TestSize.Level1)
-{
-    system::SetParameter(BOOT_COMPLETED, "true");
-    system::SetParameter("updater.vab_update_boot", "");
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->isAnimationEnd_ = true;
-    bool result = strategy->CheckExitAnimation();
-    EXPECT_EQ(result, true);
-}
-
-/**
- * @tc.name: CheckExitAnimation_VabUpdateExistAuthStateReady_ReturnTrue
- * @tc.desc: Verify CheckExitAnimation returns true when updater.vab_update_boot exists
- *           and bootevent.lockscreen.authstate.ready is true.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationStrategyTest, CheckExitAnimation_VabUpdateExistAuthStateReady_ReturnTrue, TestSize.Level1)
-{
-    system::SetParameter(BOOT_COMPLETED, "true");
-    system::SetParameter("updater.vab_update_boot", "true");
-    system::SetParameter("bootevent.lockscreen.authstate.ready", "true");
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->isAnimationEnd_ = true;
-    bool result = strategy->CheckExitAnimation();
-    EXPECT_EQ(result, true);
-}
-
-/**
- * @tc.name: CheckExitAnimation_VabUpdateExistEngineNotReady_ReturnFalse
- * @tc.desc: Verify CheckExitAnimation returns false when updater.vab_update_boot exists
- *           and bootevent.lockscreen.authstate.ready is false and timeout not reached.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationStrategyTest, CheckExitAnimation_VabUpdateExistAuthStateNotReady_ReturnFalse, TestSize.Level1)
-{
-    system::SetParameter(BOOT_COMPLETED, "true");
-    system::SetParameter("updater.vab_update_boot", "true");
-    system::SetParameter("bootevent.lockscreen.authstate.ready", "false");
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->isAnimationEnd_ = true;
-    bool result = strategy->CheckExitAnimation();
-    EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.name: CheckExitAnimation_VabUpdateExistAuthStateReadyTimeout_ReturnTrue
- * @tc.desc: Verify CheckExitAnimation returns true when updater.vab_update_boot exists,
- *           bootevent.lockscreen.authstate.ready is false, but timeout (10s) has elapsed.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationStrategyTest, CheckExitAnimation_VabUpdateExistAuthStateReadyTimeout_ReturnTrue, TestSize.Level1)
-{
-    system::SetParameter(BOOT_COMPLETED, "true");
-    system::SetParameter("updater.vab_update_boot", "true");
-    system::SetParameter("bootevent.lockscreen.authstate.ready", "false");
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->isAnimationEnd_ = true;
-    strategy->isBootCompleted_ = true;
-    strategy->bootCompletedTimeMs_ = GetSystemCurrentTime() - 11000;
-    bool result = strategy->CheckExitAnimation();
-    EXPECT_EQ(result, true);
 }
 }

@@ -756,7 +756,7 @@ HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest001, TestSize.Level1)
     EXPECT_NE(id, INVALID_SCREEN_ID);
     uint32_t width = 1920;
     uint32_t height = 1080;
-    rsClient->SetRogScreenResolution(id, width, height);
+    rsClient->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
 }
 
 /*
@@ -771,7 +771,7 @@ HWTEST_F(RSServiceClientTest, SetRogScreenResolutionTest002, TestSize.Level1)
     uint32_t width = 1920;
     uint32_t height = 1080;
     RSRenderServiceConnectHub::Destroy();
-    rsClient->SetRogScreenResolution(id, width, height);
+    rsClient->SetRogScreenResolution(id, width, height, ScreenSamplingMode::DEVICE_DSS);
     RSRenderServiceConnectHub::Init();
 }
 

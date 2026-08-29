@@ -162,7 +162,7 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transactionData);
 #endif
 
@@ -457,7 +457,7 @@ void TakeSurfaceCaptureForUiParallel(
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
-        context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
+        context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
         return;
     }
@@ -552,6 +552,30 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RSMainThread::Instance()->SetDirtyFlag();
             RSMainThread::Instance()->RequestNextVSync();
             RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture SetNeedSyncCaptureWindow");
+            return;
+        }
+
+        if (captureConfig.isSync) {
+            RS_LOGD("RSRenderPipelineAgent::TakeSurfaceCapture isSync branch, "
+                "id:%{public}" PRIu64 ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                id, selfCapture, isSystemCalling);
+            auto& context = RSMainThread::Instance()->GetContext();
+            context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
+            std::function<void()> syncWindowCaptureTask =
+                [id, callback, captureConfig, blurParam, isSystemCalling, selfCapture]() {
+                    RS_LOGI("syncWindowCaptureTask execute, id:%{public}" PRIu64
+                        ", isSelfCapture:%{public}d, isSystemCalling:%{public}d",
+                        id, selfCapture, isSystemCalling);
+                    RSSurfaceCaptureParam captureParam;
+                    captureParam.id = id;
+                    captureParam.config = captureConfig;
+                    captureParam.isSystemCalling = isSystemCalling;
+                    captureParam.isSelfCapture = selfCapture;
+                    captureParam.blurParam = blurParam;
+                    RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+            RSMainThread::Instance()->AddSyncWindowCaptureTask(id, syncWindowCaptureTask);
             return;
         }
 
@@ -1413,7 +1437,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
 }
 
 ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized,
-    bool enforceQuota)
+    bool enforceQuota, bool requireGuestConnection)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
@@ -1421,10 +1445,14 @@ ErrCode RSRenderPipelineAgent::AuthorizeUIExtensionPid(NodeId nodeId, pid_t gues
     }
     // the node map authorization interfaces are mutex-protected and safe to call on IPC threads
     auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-    if (authorized && pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
-        // insert the entry only into render processes the guest has connected to: entries in
-        // other render processes would linger uncleaned if the guest dies without ever
-        // connecting there; the host must authorize after the guest establishes its connection
+    if (authorized && requireGuestConnection &&
+        pipeline->FindClientToRenderConnection(guestPid).first == nullptr) {
+        // multi-process render subprocesses only observe the death of clients that explicitly
+        // established a client-to-render connection to them: entries inserted for other guests
+        // would linger uncleaned if the guest dies without ever connecting here, so the host
+        // must authorize after the guest establishes its connection. single-process pipelines
+        // (uni render or divided render) observe every client's death via the connection created
+        // by RSRenderService::CreateConnection and do not need this check
         RS_LOGI("RSRenderPipelineAgent::AuthorizeUIExtensionPid skipped, guest pid %{public}d has no"
             " client-to-render connection in this process", static_cast<int32_t>(guestPid));
         return ERR_OK;
@@ -2165,16 +2193,17 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         RS_LOGE("GetPidGpuMemoryInMB pipeline is nullptr, return");
         return ERR_INVALID_VALUE;
     }
-    auto task = [screenId, width, height, renderPipeline = pipeline, this]() -> void {
+    auto task = [screenId, width, height, samplingMode, renderPipeline = pipeline, this]() -> void {
         auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-        UpdateScreenNodesResolution(nodeMap, screenId, width, height);
+        UpdateScreenNodesResolution(nodeMap, screenId, width, height, samplingMode);
         AdjustBootAnimationBounds(nodeMap, width, height);
     };
     pipeline->PostMainThreadSyncTask(task);
@@ -2182,21 +2211,27 @@ ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_
 }
  
 void RSRenderPipelineAgent::UpdateScreenNodesResolution(
-    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height)
+    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto resolution = std::make_pair(width, height);
-    auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
-    auto updateNode = [screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+    auto resolutionProperty = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
+    auto samplingModeProperty = sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(samplingMode));
+    auto updateNode = [screenId, width, height, resolutionProperty, samplingMode, samplingModeProperty](
+        const std::shared_ptr<RSScreenRenderNode>& node) {
         if (node && node->GetScreenId() == screenId) {
             auto screenInfo = node->GetScreenInfo();
             screenInfo.width = width;
             screenInfo.height = height;
+            screenInfo.samplingMode = samplingMode;
             node->SetScreenInfo(screenInfo);
-            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
+            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, resolutionProperty);
+            node->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE, samplingModeProperty);
             node->SetDirty();
             RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, "
-                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u",
-                screenId, width, height);
+                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u, "
+                "samplingMode:%{public}u",
+                screenId, width, height, static_cast<uint32_t>(samplingMode));
         }
     };
     nodeMap.TraverseScreenNodes(updateNode);
@@ -2254,7 +2289,7 @@ void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
     pipeline->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RemoveAllListenerbyPid(pid);
 #endif
     RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
@@ -2788,7 +2823,7 @@ std::shared_ptr<RSSurfaceHandler> RSRenderPipelineAgent::CreateCanvasSurfaceHand
 #endif // RS_MODIFIERS_DRAW_ENABLE
 bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RS_TRACE_NAME_FMT("RSRenderPipelineAgent::SetDelegateMode: NodeId=%llu, isSetDelegateMode=%d, pid=%u",
         id, isSetDelegateMode, pid);
     auto pipeline = rsRenderPipeline_.lock();
@@ -2806,16 +2841,12 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (consumer) {
             RsDelegateCompositeCallbackManager::GetInstance().SetInfo(consumer, id, pid);
+            RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
         }
         RS_TRACE_NAME_FMT("SetDelegateMode %llu, success", id);
     };
     pipeline->PostMainThreadSyncTask(task);
 
-    auto node = pipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-    if (node && node->GetRSSurfaceHandler()) {
-        sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
-        RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
-    }
     return true;
 #else
     return false;
@@ -2825,7 +2856,7 @@ bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, p
 bool RSRenderPipelineAgent::RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
     uint64_t listenerId, uint32_t pid, uint32_t tid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceTransactionListener(
         listener, listenerId, pid, tid);
     return true;
@@ -2836,7 +2867,7 @@ bool RSRenderPipelineAgent::RegisterSurfaceTransactionListener(sptr<RSISurfaceTr
 
 bool RSRenderPipelineAgent::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceTransactionListener(listenerId);
     return true;
 #else
@@ -2847,7 +2878,7 @@ bool RSRenderPipelineAgent::UnRegisterSurfaceTransactionListener(uint64_t listen
 bool RSRenderPipelineAgent::RegisterSurfaceNodeBufferReleaseListener(
     pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceNodeBufferReleaseListener(pid, listener);
     return true;
 #else
@@ -2857,7 +2888,7 @@ bool RSRenderPipelineAgent::RegisterSurfaceNodeBufferReleaseListener(
 
 bool RSRenderPipelineAgent::UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceNodeBufferReleaseListener(pid);
     return true;
 #else

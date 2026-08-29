@@ -14,6 +14,10 @@
  */
 
 #include "params/rs_surface_render_params.h"
+
+#include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
@@ -616,7 +620,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
     targetSurfaceParams->windowInfo_ = windowInfo_;
-    targetSurfaceParams->screenId_ = screenId_;
 #ifndef ROSEN_CROSS_PLATFORM
     if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
         targetSurfaceParams->buffer_ = buffer_;
@@ -636,6 +639,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
+    SyncVisibleRegions(targetSurfaceParams);
 
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
@@ -662,8 +666,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
-    targetSurfaceParams->visibleRegion_ = visibleRegion_;
-    targetSurfaceParams->visibleRegionInVirtual_ = visibleRegionInVirtual_;
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
@@ -766,6 +768,47 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     RSRenderParams::OnSync(target);
 }
 
+bool RSSurfaceRenderParams::GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) const
+{
+    if (GetParamsType() != RSRenderParamsType::RS_PARAM_DEFAULT) {
+        return false;
+    }
+    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(ancestorScreenNode_.lock());
+    if (screenNode == nullptr) {
+        return false;
+    }
+    screenInfo = screenNode->GetScreenProperty().GetScreenInfo();
+    return screenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU;
+}
+
+void RSSurfaceRenderParams::SyncVisibleRegions(RSSurfaceRenderParams* targetSurfaceParams) const
+{
+    ScreenInfo screenInfo;
+    if (!GetScreenInfoIfNeedRogScale(screenInfo)) {
+        targetSurfaceParams->visibleRegion_ = visibleRegion_;
+        targetSurfaceParams->visibleRegionInVirtual_ = visibleRegionInVirtual_;
+        return;
+    }
+    Drawing::Matrix rogScaleMatrix;
+    rogScaleMatrix.SetScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
+    targetSurfaceParams->visibleRegion_ = RSObjAbsGeometry::MapRegion(visibleRegion_, rogScaleMatrix);
+    targetSurfaceParams->visibleRegionInVirtual_ =
+        RSObjAbsGeometry::MapRegion(visibleRegionInVirtual_, rogScaleMatrix);
+}
+
+void RSSurfaceRenderParams::ClipAndScaleDirtyManager(const std::shared_ptr<RSDirtyRegionManager>& dirtyManager) const
+{
+    if (dirtyManager == nullptr) {
+        return;
+    }
+    dirtyManager->IntersectDirtyRect(GetOldDirtyInSurface());
+    ScreenInfo screenInfo;
+    if (!GetScreenInfoIfNeedRogScale(screenInfo)) {
+        return;
+    }
+    dirtyManager->Scale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
+}
+
 std::string RSSurfaceRenderParams::ToString() const
 {
     std::string ret = RSRenderParams::ToString() + ", RSSurfaceRenderParams: {";
@@ -836,20 +879,6 @@ void RSSurfaceRenderParams::SetSurfaceBufferOpaque(bool isOpaque)
 bool RSSurfaceRenderParams::GetSurfaceBufferOpaque() const
 {
     return isSurfaceBufferOpaque_;
-}
-
-void RSSurfaceRenderParams::SetScreenId(ScreenId screenId)
-{
-    if (screenId_ == screenId) {
-        return;
-    }
-    screenId_ = screenId;
-    needSync_ = true;
-}
-
-ScreenId RSSurfaceRenderParams::GetScreenId() const
-{
-    return screenId_;
 }
 
 void RSSurfaceRenderParams::SetAppRotationCorrection(ScreenRotation appRotationCorrection)

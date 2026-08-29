@@ -216,7 +216,7 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
 {
     RSProfiler::testing_ = true;
 
-    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+    RSProfiler::SetThreadSubMode(SubMode::READ_EMUL);
 
     auto data = std::make_shared<Drawing::Data>();
     constexpr size_t length = 40'000;
@@ -252,7 +252,7 @@ HWTEST_F(RSProfilerTest, MarshalSelfDrawingBuffersTest, Level1)
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     auto& nodeMap = context->GetMutableNodeMap();
     nodeMap.RegisterRenderNode(rsSurfaceRenderNode);
-    RSProfiler::MarshalSelfDrawingNodes(false);
+    RSProfiler::MarshalSelfDrawingNodes();
     ASSERT_TRUE(rsSurfaceRenderNode->IsSelfDrawingType());
     ASSERT_TRUE(rsSurfaceRenderNode->GetAbsRect().IsEmpty());
 }

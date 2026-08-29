@@ -42,22 +42,27 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSRenderProcessManagerAgent::Get
     return renderProcessManager_->GetServiceToRenderConns();
 }
 
+int32_t RSRenderProcessManagerAgent::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (!transfer) {
+        RS_LOGE("%{public}s: transfer is nullptr", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    return renderProcessManager_->SendTransfer(transfer);
+}
+
 std::shared_ptr<RSIpcPersistenceManager> RSRenderProcessManagerAgent::GetIpcPersistenceManager() const
 {
     return renderProcessManager_->GetIpcPersistenceManager();
 }
 
-std::pair<sptr<RSScreenProperty>, std::shared_ptr<IpcPersistenceTypeToDataMap>>
-RSRenderProcessManagerAgent::GetProcessInfo(pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection)
+sptr<RSScreenProperty> RSRenderProcessManagerAgent::GetProcessInfo(
+    pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection)
 {
     auto renderMultiProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
     renderMultiProcessManager->RecordComposerToRenderConnection(pid, composerToRenderConnection);
 
-    auto rsScreenProperty = renderMultiProcessManager->GetPendingScreenProperty(pid);
-
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>(
-        renderProcessManager_->GetIpcPersistenceManager()->GetReplayData());
-    return { rsScreenProperty, replayData };
+    return renderMultiProcessManager->GetPendingScreenProperty(pid);
 }
 } // namespace Rosen
 } // namespace OHOS

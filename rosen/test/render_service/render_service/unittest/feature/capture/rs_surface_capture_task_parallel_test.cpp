@@ -667,7 +667,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks002, TestSize.Leve
     NodeId nodeId = 99999;
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -703,7 +703,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks003, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -741,7 +741,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks004, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -778,7 +778,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks005, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs() - 200;
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs() - 200;
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -824,7 +824,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks006, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(appNodeId, task, startTime, 0, false);
 
@@ -861,7 +861,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks007, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -898,7 +898,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks008, TestSize.Leve
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 

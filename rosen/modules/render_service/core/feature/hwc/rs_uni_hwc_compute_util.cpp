@@ -829,7 +829,7 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
         property.IsLightUpEffectValid() ||
         property.GetLinearGradientBlurPara() != nullptr ||
         property.IsDynamicDimValid() ||
-        property.IsFgBrightnessValid() ||
+        property.IsFgBlenderEffectValid() ||
         property.IsWaterRippleValid() ||
         property.GetColorFilter() != nullptr;
 }

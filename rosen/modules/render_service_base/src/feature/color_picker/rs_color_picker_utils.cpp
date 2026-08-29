@@ -42,8 +42,8 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
 
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #endif
 
@@ -208,13 +208,8 @@ float CalculateLuminance(Drawing::ColorQuad color)
     return red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
 }
 
-#ifdef RS_ENABLE_VK
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> weakManager,
     std::unique_ptr<ColorPickerInfo> info, Drawing::GPUContext& gpuCtx, RenderEngineType renderEngineType)
-#else
-void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> weakManager,
-    std::unique_ptr<ColorPickerInfo> info, Drawing::GPUContext& gpuCtx)
-#endif
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ScheduleColorPickWithSemaphore");
     if (!info) {
@@ -360,12 +355,8 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
     }
     auto weakManager = std::weak_ptr<IColorPickerManager>(manager);
     auto colorPickerInfo = CreateColorPickerInfo(drawingSurface, snapshot, weakManager);
-#ifdef RS_ENABLE_VK
     ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo), *gpuCtx,
         canvas.GetRenderEngineType());
-#else
-    ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo), *gpuCtx);
-#endif
     return true;
 }
 

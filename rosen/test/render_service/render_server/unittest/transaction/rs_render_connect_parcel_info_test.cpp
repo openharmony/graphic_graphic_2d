@@ -6,7 +6,7 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, Hardware
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -51,9 +51,8 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoMarshalling001, TestSiz
     ASSERT_NE(screenProperty, nullptr);
     auto vsyncConn = sptr<IRemoteObject>::MakeSptr();
     ASSERT_NE(vsyncConn, nullptr);
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>();
 
-    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, replayData);
+    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, IpcPersistenceMap{});
     MessageParcel parcel;
     EXPECT_TRUE(info.Marshalling(parcel));
 }
@@ -68,9 +67,8 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoMarshalling002, TestSiz
 {
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
     auto vsyncConn = sptr<IRemoteObject>::MakeSptr();
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>();
 
-    ReplyToRenderInfo info(nullptr, screenProperty, vsyncConn, replayData);
+    ReplyToRenderInfo info(nullptr, screenProperty, vsyncConn, IpcPersistenceMap{});
     MessageParcel parcel;
     EXPECT_FALSE(info.Marshalling(parcel));
 }
@@ -85,9 +83,8 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoMarshalling003, TestSiz
 {
     auto remoteObj = sptr<IRemoteObject>::MakeSptr();
     auto vsyncConn = sptr<IRemoteObject>::MakeSptr();
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>();
 
-    ReplyToRenderInfo info(remoteObj, nullptr, vsyncConn, replayData);
+    ReplyToRenderInfo info(remoteObj, nullptr, vsyncConn, IpcPersistenceMap{});
     MessageParcel parcel;
     EXPECT_FALSE(info.Marshalling(parcel));
 }
@@ -102,16 +99,15 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoMarshalling004, TestSiz
 {
     auto remoteObj = sptr<IRemoteObject>::MakeSptr();
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>();
 
-    ReplyToRenderInfo info(remoteObj, screenProperty, nullptr, replayData);
+    ReplyToRenderInfo info(remoteObj, screenProperty, nullptr, IpcPersistenceMap{});
     MessageParcel parcel;
     EXPECT_FALSE(info.Marshalling(parcel));
 }
 
 /**
  * @tc.name: ReplyToRenderInfoMarshalling005
- * @tc.desc: Test ReplyToRenderInfo Marshalling with null replayData
+ * @tc.desc: Test ReplyToRenderInfo Marshalling with empty persistenceData still succeeds
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
@@ -121,9 +117,9 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoMarshalling005, TestSiz
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
     auto vsyncConn = sptr<IRemoteObject>::MakeSptr();
 
-    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, nullptr);
+    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, IpcPersistenceMap{});
     MessageParcel parcel;
-    EXPECT_FALSE(info.Marshalling(parcel));
+    EXPECT_TRUE(info.Marshalling(parcel));
 }
 
 /**
@@ -137,9 +133,8 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoUnmarshalling001, TestS
     auto remoteObj = sptr<IRemoteObject>::MakeSptr();
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
     auto vsyncConn = sptr<IRemoteObject>::MakeSptr();
-    auto replayData = std::make_shared<IpcPersistenceTypeToDataMap>();
 
-    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, replayData);
+    ReplyToRenderInfo info(remoteObj, screenProperty, vsyncConn, IpcPersistenceMap{});
     MessageParcel parcel;
     ASSERT_TRUE(info.Marshalling(parcel));
 
@@ -148,7 +143,7 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoUnmarshalling001, TestS
     EXPECT_NE(result->composeConnection_, nullptr);
     EXPECT_NE(result->rsScreenProperty_, nullptr);
     EXPECT_NE(result->vsyncConn_, nullptr);
-    EXPECT_NE(result->replayData_, nullptr);
+    EXPECT_TRUE(result->persistenceData_.empty());
     delete result;
 }
 
@@ -203,7 +198,7 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoUnmarshalling004, TestS
 /**
  * @tc.name: ReplyToRenderInfoUnmarshalling005
  * @tc.desc: Test ReplyToRenderInfo Unmarshalling with composeConnection, rsScreenProperty, vsyncConn but invalid
- *          replayData
+ *          persistenceData (map size exceeds MAX_MAP_SIZE)
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
@@ -324,7 +319,7 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ConnectToServiceInfoUnmarshalling003, Te
 
 /**
  * @tc.name: ReplyToRenderInfoDefaultConstructor001
- * @tc.desc: Test ReplyToRenderInfo default constructor initializes members to null
+ * @tc.desc: Test ReplyToRenderInfo default constructor initializes members to null/empty
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
@@ -334,7 +329,7 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoDefaultConstructor001, 
     EXPECT_EQ(info.composeConnection_, nullptr);
     EXPECT_EQ(info.rsScreenProperty_, nullptr);
     EXPECT_EQ(info.vsyncConn_, nullptr);
-    EXPECT_EQ(info.replayData_, nullptr);
+    EXPECT_TRUE(info.persistenceData_.empty());
 }
 
 /**

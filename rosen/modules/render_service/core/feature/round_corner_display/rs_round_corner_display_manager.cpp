@@ -229,23 +229,6 @@ bool RoundCornerDisplayManager::HandleRoundCornerDirtyRect(NodeId id, RectI &dir
     return isDirty;
 }
 
-void RoundCornerDisplayManager::RunHardwareTask(NodeId id, const std::function<void()>& task)
-{
-    {
-        std::lock_guard<std::mutex> lock(rcdMapMut_);
-        if (!CheckExist(id)) {
-            RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
-            return;
-        }
-        if (rcdMap_[id] == nullptr) {
-            RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
-            RemoveRoundCornerDisplay(id);
-            return;
-        }
-    }
-    rcdMap_[id]->RunHardwareTask(task);
-}
-
 rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id, bool preparing)
 {
     std::lock_guard<std::mutex> lock(rcdMapMut_);

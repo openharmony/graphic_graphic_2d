@@ -855,6 +855,11 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     return false;
 }
 
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;

@@ -903,13 +903,14 @@ HWTEST_F(RSRenderNodeDrawableTest, ContinuousUpdateNotDisableCacheBelowThreshold
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
 
     RSRenderGroupCacheDrawable::SetContinuousUpdateInfo(drawable->GetId(), 3, 0);
     drawable->SetRenderGroupCachedSurface(std::make_shared<Drawing::Surface>());
     params.drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
     params.SetCacheSize({ 100.0f, 100.0f });
-    drawable->GenerateCacheIfNeed(canvas, params);
+    drawable->GenerateCacheIfNeed(paintFilterCanvas, params);
     EXPECT_EQ(params.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 
     drawable->ClearDrawingCacheContinuousUpdateTimeMap();
@@ -926,6 +927,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CrossFramePreserveContinuousUpdateTest, TestS
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
 
     // vsyncId=100 differs from current (0 in test env), simulating a cross-frame entry.
@@ -935,7 +937,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CrossFramePreserveContinuousUpdateTest, TestS
     drawable->SetRenderGroupCachedSurface(std::make_shared<Drawing::Surface>());
     params.drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
     params.SetCacheSize({ 100.0f, 100.0f });
-    drawable->GenerateCacheIfNeed(canvas, params);
+    drawable->GenerateCacheIfNeed(paintFilterCanvas, params);
     EXPECT_TRUE(RSRenderGroupCacheDrawable::GetContinuousUpdateInfo(drawable->GetId()).has_value());
 
     drawable->ClearDrawingCacheContinuousUpdateTimeMap();

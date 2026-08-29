@@ -20,6 +20,7 @@
 
 #include "rs_trace.h"
 
+#include "common/rs_common_def.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/hpae/rs_hpae_manager.h"
@@ -27,6 +28,9 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
@@ -53,6 +57,8 @@ namespace Rosen {
 namespace {
     constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
     constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
+    // 5000: CanvasDrawingNode max ops per frame when low performance
+    constexpr uint32_t CANVAS_DRAWING_NODE_OP_COUNT_LIMIT = 5000;
 }
 RSDrawFrame::RSDrawFrame()
     : unirenderInstance_(RSUniRenderThread::Instance()),
@@ -97,13 +103,13 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 #endif
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
         unirenderInstance_.GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
-    RSMainThread::Instance()->ProcessUiCaptureTasks();
+    RSMainThread::Instance()->ProcessSyncCaptureTasks();
 #ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
 #endif
@@ -149,8 +155,9 @@ void RSDrawFrame::EndCheck()
     exceptionCheck_.uid_ = getuid();
     exceptionCheck_.processName_ = "/system/bin/render_service";
     exceptionCheck_.exceptionPoint_ = "render_pipeline_timeout";
-
-    if (timer_->GetDuration() >= RENDER_TIMEOUT) {
+    auto renderTime = timer_->GetDuration();
+    bool timeout = renderTime >= RENDER_TIMEOUT;
+    if (timeout) {
         if (++longFrameCount_ == 6) { // 6: render 6 consecutive frames are too long
             RS_LOGE("Render Six consecutive frames are too long.");
             exceptionCheck_.exceptionCnt_ = longFrameCount_;
@@ -169,6 +176,9 @@ void RSDrawFrame::EndCheck()
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    timeoutRender_.Update(renderTime, timeout);
+#endif
     timer_ = nullptr;
 }
 
@@ -212,6 +222,7 @@ void RSDrawFrame::PostAndWait()
             std::unique_lock<std::mutex> frameLock(frameMutex_);
             canUnblockMainThread = false;
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
+                LockClient();
                 unirenderInstance_.SetMainLooping(true);
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
@@ -221,11 +232,72 @@ void RSDrawFrame::PostAndWait()
                 unirenderInstance_.SetMainLooping(false);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationEnd();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
+                UnlockClient();
             });
 
             frameCV_.wait(frameLock, [this] { return canUnblockMainThread; });
         }
     }
+}
+
+void RSDrawFrame::LockClient()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (!RSSystemParameters::GetCanvasDrawingNodeLockEnabled()) {
+        return;
+    }
+    if (!RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
+        !RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()) {
+        return;
+    }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return;
+    }
+#endif
+    if (!timeoutRender_.IsStatFinished()) {
+        return;
+    }
+    // Synchronously set hasLockedClient_ to true before posting the lock task. LockClient and UnlockClient run on the
+    // same thread (UniRenderThread) within a single PostTask lambda. If hasLockedClient_ were only set inside the
+    // PostTask (on RSMainThread), UnlockClient could check hasLockedClient_ before the lock PostTask executes, see
+    // false, and skip the unlock — leaving clients permanently locked. Setting true here guarantees UnlockClient sees
+    // true and posts the corresponding unlock task. The PostTask below corrects the value to the precise result
+    // (!lockedClientSet_.empty()) after evaluating PIDs.
+    hasLockedClient_.store(true);
+    RSMainThread::Instance()->PostTask([this, renderTime = timeoutRender_.renderTime] {
+        const auto& canvasDrawingNodeOpCountMap = RSMainThread::Instance()->GetCanvasDrawingNodeOpCountMap();
+        for (const auto& [pid, opCount] : canvasDrawingNodeOpCountMap) {
+            if (opCount >= CANVAS_DRAWING_NODE_OP_COUNT_LIMIT) {
+                RS_LOGE("LockClient: OP count out of limit, notify client to lock, pid=%{public}d, "
+                    "opCount=%{public}zu, renderTime=%{public}" PRId64, pid, opCount, renderTime);
+                // Reuse NotifyCanvasSurfaceBufferChanged channel for lock notification (not the interface's literal
+                // meaning). First param encodes pid, third param: 1 = start lock, 0 = cancel lock. Same below.
+                RSCanvasDmaBufferCache::GetInstance().NotifyCanvasSurfaceBufferChanged(MakeNodeId(pid, 0), nullptr, 1);
+                lockedClientSet_.emplace(pid);
+            }
+        }
+        hasLockedClient_.store(!lockedClientSet_.empty());
+    });
+    timeoutRender_.Reset();
+#endif
+}
+
+void RSDrawFrame::UnlockClient()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (!hasLockedClient_.load()) {
+        return;
+    }
+    RSMainThread::Instance()->PostTask([this] {
+        for (const auto& pid : lockedClientSet_) {
+            RS_LOGE("UnlockClient: Notify client to cancel lock, pid=%{public}d", pid);
+            RSCanvasDmaBufferCache::GetInstance().NotifyCanvasSurfaceBufferChanged(MakeNodeId(pid, 0), nullptr, 0);
+        }
+        lockedClientSet_.clear();
+        hasLockedClient_.store(false);
+    });
+#endif
 }
 
 void RSDrawFrame::ClearDrawableResource()

@@ -34,6 +34,7 @@
 #include "sandbox_utils.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
 #include "ui_effect/effect/include/border_light_effect_para.h"
+#include "ui_effect/effect/include/colorful_brightness_blender.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
@@ -2439,30 +2440,97 @@ void RSNode::SetBlender(const Blender* blender)
 
     if (Blender::BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
         auto brightnessBlender = static_cast<const BrightnessBlender*>(blender);
-        if (brightnessBlender != nullptr) {
-            SetFgBrightnessFract(brightnessBlender->GetFraction());
-            SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
-                brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
-                { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
-                    brightnessBlender->GetPositiveCoeff().z_ },
-                { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
-                    brightnessBlender->GetNegativeCoeff().z_ }});
-            if (brightnessBlender->GetHdr()) {
-                SetFgBrightnessHdr(brightnessBlender->GetHdr());
-            }
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BLENDER);
+        if (modifier) {
+            DetachColorfulBrightnessBlenderProperties(modifier);
         }
+        SetFgBrightnessFract(brightnessBlender->GetFraction());
+        SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
+            brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
+            { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
+                brightnessBlender->GetPositiveCoeff().z_ },
+            { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
+                brightnessBlender->GetNegativeCoeff().z_ }});
+        if (brightnessBlender->GetHdr() && ROSEN_LNE(brightnessBlender->GetFraction(), 1.0f)) {
+            SetFgBrightnessHdr(brightnessBlender->GetHdr());
+        }
+    } else if (Blender::COLORFUL_BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
+        auto colorfulBrightnessBlender = static_cast<const ColorfulBrightnessBlender*>(blender);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BLENDER);
+        if (modifier) {
+            DetachFgBrightnessProperties(modifier);
+        }
+        ApplyColorfulBrightnessBlender(*colorfulBrightnessBlender);
     } else if (Blender::SHADOW_BLENDER == blender->GetBlenderType()) {
         auto shadowBlender = static_cast<const ShadowBlender*>(blender);
-        if (shadowBlender != nullptr) {
-            SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
-                shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
-        }
+        SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
+            shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
     } else if (Blender::HDR_DARKEN_BLENDER == blender->GetBlenderType()) {
         auto hdrDarkenBlender = static_cast<const HdrDarkenBlender*>(blender);
-        if (hdrDarkenBlender != nullptr) {
-            SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
-                                        hdrDarkenBlender->GetGrayscaleFactor() });
-        }
+        SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
+            hdrDarkenBlender->GetGrayscaleFactor() });
+    }
+}
+
+void RSNode::DetachFgBrightnessProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+{
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_RATES)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_RATES);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_SATURATION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_SATURATION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_POSCOEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_POSCOEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_NEGCOEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_NEGCOEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_HDR)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_HDR);
+    }
+}
+
+void RSNode::DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+{
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED);
     }
 }
 
@@ -2474,6 +2542,34 @@ void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
 void RSNode::SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params)
 {
     SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetHdrDarkenBlenderParams>(params);
+}
+
+void RSNode::ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& blender)
+{
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessDarkenWeight>(blender.GetDarkenWeight());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessFraction>(blender.GetFraction());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessCubicRate>(blender.GetCubicRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessQuadRate>(blender.GetQuadRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessLinearRate>(blender.GetLinearRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessDegree>(blender.GetDegree());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessSaturation>(blender.GetSaturation());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessPositiveCoeff>(blender.GetPositiveCoeff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessNegativeCoeff>(blender.GetNegativeCoeff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessVibrancyStrength>(blender.GetVibrancyStrength());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessLumaDiff>(blender.GetLumaDiff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessHdrEnabled>(blender.GetHdrEnabled());
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -3668,6 +3764,8 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (!isForced && !RSSystemProperties::GetNodeGroupGroupedByUIEnabled()) {
         return;
     }
+    RS_TRACE_NAME_FMT("RSNode::MarkNodeGroup id:%" PRIu64 ", isNodeGroup:%d, isForced:%d, includeProperty:%d",
+        GetId(), isNodeGroup, isForced, includeProperty);
     isNodeGroup_ = isNodeGroup;
     SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
         isNodeGroup, isForced, includeProperty

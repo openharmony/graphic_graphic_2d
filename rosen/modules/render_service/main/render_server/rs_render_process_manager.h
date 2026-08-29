@@ -54,7 +54,8 @@ public:
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;
     virtual sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const = 0;
 
-    virtual std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const { return nullptr; };
+    virtual std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const { return nullptr; }
+    virtual int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) = 0;
 
     virtual sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) = 0;
 

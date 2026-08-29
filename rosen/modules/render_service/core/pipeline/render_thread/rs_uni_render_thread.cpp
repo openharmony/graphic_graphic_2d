@@ -423,12 +423,10 @@ void RSUniRenderThread::Render()
     }
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-#ifdef RS_ENABLE_VK
     auto rc = GetRenderEngine() ? GetRenderEngine()->GetRenderContext() : nullptr;
     if (rc) {
         paintFilterCanvas.SetRenderEngineType(rc->GetType());
     }
-#endif
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
@@ -632,7 +630,7 @@ void RSUniRenderThread::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLaye
     composerClientManager_->ReleaseLayerBuffers(curScreenId, releaseLayerInfo.timestampVec,
         releaseLayerInfo.releaseBufferFenceVec);
     NotifyScreenNodeBufferReleased(curScreenId);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 #endif
 }

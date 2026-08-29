@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/colorful_brightness_blender.h"
 #include "ui_effect/effect/include/hdr_darken_blender.h"
 #include "ui_effect/effect/include/rs_ui_mask_base.h"
 #include "ui_effect/effect/include/rs_ui_mask_shape.h"
@@ -1209,12 +1210,179 @@ HWTEST_F(RSNodeTest2, SetBlender, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBlender
- * @tc.desc: test results of SetBlender
+ * @tc.name: SetColorfulBrightnessBlender001
+ * @tc.desc: test SetBlender with ColorfulBrightnessBlender on a fresh node. Covers COLORFUL_BRIGHTNESS_BLENDER type
+ *           match, colorfulBrightnessBlender!=nullptr true, modifier==nullptr branch (fresh node has no BLENDER
+ *           modifier so DetachFgBrightnessProperties is skipped), and ApplyColorfulBrightnessBlender creating all
+ *           11 COLORFUL_* properties.
  * @tc.type: FUNC
  * @tc.require: issueICLU4I
  */
-HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams001, TestSize.Level1)
+HWTEST_F(RSNodeTest2, SetColorfulBrightnessBlender001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ColorfulBrightnessBlender colorfulBrightnessBlender;
+    colorfulBrightnessBlender.SetDarkenWeight(1.0f);
+    colorfulBrightnessBlender.SetFraction(0.5f);
+    colorfulBrightnessBlender.SetVibrancyStrength(0.33f);
+    rsNode->SetBlender(&colorfulBrightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED));
+}
+
+/**
+ * @tc.name: SetColorfulBrightnessBlender002
+ * @tc.desc: test applying ColorfulBrightnessBlender twice. Second call hits modifier!=nullptr true and
+ *           DetachFgBrightnessProperties where all FG_BRIGHTNESS_* HasProperty checks are false, since no
+ *           brightness blender was ever applied.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetColorfulBrightnessBlender002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ColorfulBrightnessBlender colorfulBrightnessBlender;
+    rsNode->SetBlender(&colorfulBrightnessBlender);
+    // second apply: modifier exists, DetachFgBrightnessProperties all false paths
+    ColorfulBrightnessBlender colorfulBrightnessBlender2;
+    colorfulBrightnessBlender2.SetDarkenWeight(1.0f);
+    rsNode->SetBlender(&colorfulBrightnessBlender2);
+    EXPECT_NE(rsNode, nullptr);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT));
+}
+
+/**
+ * @tc.name: SetBlenderColorfulToBrightness001
+ * @tc.desc: test switching from ColorfulBrightnessBlender to BrightnessBlender. Covers brightness-path
+ *           modifier!=nullptr true and DetachColorfulBrightnessBlenderProperties where all 14 COLORFUL_*
+ *           HasProperty checks are true.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlenderColorfulToBrightness001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ColorfulBrightnessBlender colorfulBrightnessBlender;
+    rsNode->SetBlender(&colorfulBrightnessBlender);
+    BrightnessBlender brightnessBlender;
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION));
+}
+
+/**
+ * @tc.name: SetBlenderBrightnessToColorful001
+ * @tc.desc: test switching from BrightnessBlender (Hdr=true, fraction=0.5) to ColorfulBrightnessBlender.
+ *           Covers colorful-path modifier!=nullptr true, GetHdr()=true and ROSEN_LNE(0.5,1.0)=true
+ *           branches in SetFgBrightnessHdr condition (so SetFgBrightnessHdr is called), and
+ *           DetachFgBrightnessProperties where all 6 FG_BRIGHTNESS_* HasProperty checks are true.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlenderBrightnessToColorful001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    BrightnessBlender brightnessBlender;
+    brightnessBlender.SetHdr(true);
+    brightnessBlender.SetFraction(0.5f);
+    rsNode->SetBlender(&brightnessBlender);
+    ColorfulBrightnessBlender colorfulBrightnessBlender;
+    rsNode->SetBlender(&colorfulBrightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT));
+}
+
+/**
+ * @tc.name: SetBlenderBrightnessHdrTrueFractionOne001
+ * @tc.desc: test BrightnessBlender with Hdr=true and fraction=1.0 (default). Covers
+ *           GetHdr()=true branch and ROSEN_LNE(1.0,1.0)=false branch in the
+ *           SetFgBrightnessHdr condition, so SetFgBrightnessHdr is not called and
+ *           FG_BRIGHTNESS_HDR property is not attached.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlenderBrightnessHdrTrueFractionOne001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    BrightnessBlender brightnessBlender;
+    brightnessBlender.SetHdr(true);
+    // fraction defaults to 1.0f; ROSEN_LNE(1.0f, 1.0f) is false
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_HDR));
+}
+
+/**
+ * @tc.name: SetBlenderBrightnessToBrightness001
+ * @tc.desc: test applying BrightnessBlender twice. Second call hits brightness-path modifier!=nullptr
+ *           true and DetachColorfulBrightnessBlenderProperties where all 14 COLORFUL_* HasProperty checks
+ *           are false.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlenderBrightnessToBrightness001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    BrightnessBlender brightnessBlender;
+    rsNode->SetBlender(&brightnessBlender);
+    BrightnessBlender brightnessBlender2;
+    rsNode->SetBlender(&brightnessBlender2);
+    EXPECT_NE(rsNode, nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: SetBlenderBrightnessFreshNode001
+ * @tc.desc: test BrightnessBlender on a fresh node. Covers brightness-path modifier==nullptr false
+ *           branch, where DetachColorfulBrightnessBlenderProperties is skipped.
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlenderBrightnessFreshNode001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    BrightnessBlender brightnessBlender;
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BLENDER);
+    ASSERT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION));
+}
+
+/**
+  * @tc.name: SetBlender
+  * @tc.desc: test results of SetBlender
+  * @tc.type: FUNC
+  * @tc.require: issueICLU4I
+  */
+ HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     RSHdrDarkenBlenderPara params;

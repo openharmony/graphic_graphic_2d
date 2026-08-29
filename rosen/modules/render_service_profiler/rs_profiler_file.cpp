@@ -41,14 +41,14 @@ const std::string& RSFile::GetDefaultPath()
 bool RSFile::Create(const std::string& fname)
 {
     Close();
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
 
 #ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "wb");
 #else
     file_ = Utils::FileOpen(fname, "wbe");
 #endif
-    if (file_ == nullptr) {
+    if (!file_) {
         return false;
     }
 
@@ -56,12 +56,9 @@ bool RSFile::Create(const std::string& fname)
     Utils::FileWrite(file_, &headerId, sizeof(headerId));
     Utils::FileWrite(file_, &versionId_, sizeof(versionId_));
     offsetVersionHandler_.SetVersion(versionId_);
-
     headerOff_ = 0; // TEMP VALUE
     offsetVersionHandler_.WriteU64(file_, headerOff_);
-
     writeDataOff_ = Utils::FileTell(file_);
-
     wasChanged_ = true;
     return true;
 }
@@ -71,8 +68,8 @@ bool RSFile::Open(const std::string& fname, std::string& error)
     error.clear();
 
     Close();
+    const std::lock_guard<std::mutex> guard(mutex_);
 
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 #ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "rb");
 #else
@@ -109,22 +106,50 @@ bool RSFile::Open(const std::string& fname, std::string& error)
         return false;
     }
     wasChanged_ = false;
-
     return true;
 }
 
 bool RSFile::IsOpen() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return file_ != nullptr;
+}
+
+void RSFile::Close()
+{
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (!file_) {
+        return;
+    }
+
+    WriteHeaders();
+
+    Utils::FileClose(file_);
+    file_ = nullptr;
+
+    headerOff_ = 0;
+    headerPidList_.clear();
+    layerData_.clear();
+
+    writeDataOff_ = 0;
+    wasChanged_ = false;
+
+    preparedHeaderMode_ = false;
+    headerFirstFrame_.clear();
+    headerAnimeStartTimes_.clear();
+    preparedHeader_.clear();
+    mapVsyncId2Time_.clear();
 }
 
 void RSFile::SetWriteTime(double time)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     writeStartTime_ = time;
 }
 
 double RSFile::GetWriteTime() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return writeStartTime_;
 }
 
@@ -133,38 +158,40 @@ double RSFile::GetWriteTime() const
 
 void RSFile::AddHeaderPid(pid_t pid)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-    if (std::find(std::begin(headerPidList_), std::end(headerPidList_), pid) != std::end(headerPidList_)) {
-        return;
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (std::find(headerPidList_.begin(), headerPidList_.end(), pid) == headerPidList_.end()) {
+        headerPidList_.push_back(pid);
+        wasChanged_ = true;
     }
-    headerPidList_.push_back(pid);
-
-    wasChanged_ = true;
 }
 
 const std::vector<pid_t>& RSFile::GetHeaderPids() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return headerPidList_;
 }
 
 void RSFile::SetPreparedHeader(const std::vector<uint8_t>& headerData)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     preparedHeader_ = headerData;
 }
 
 void RSFile::GetPreparedHeader(std::vector<uint8_t>& headerData)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     headerData = preparedHeader_;
 }
 
 void RSFile::SetPreparedHeaderMode(bool mode)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     preparedHeaderMode_ = mode;
 }
 
 void RSFile::WriteHeader()
 {
-    // Callers (Close/GetDataCopy) already hold writeMutex_; AddHeaderPid also takes it,
+    // Callers (Close/GetDataCopy) already hold mutex; AddHeaderPid also takes it,
     // so headerPidList_ access here is properly synchronized.
     if (!file_) {
         return;
@@ -289,51 +316,48 @@ std::string RSFile::ReadHeader()
         return "Cannot read header";
     }
 
-    Utils::FileSeek(file_, headerOff_, SEEK_SET);
-    const uint64_t subHeaderStartOff = Utils::FileTell(file_);
-
-    const std::string errCode = "can't read header";
+    Utils::FileSeek(file_, static_cast<int64_t>(headerOff_), SEEK_SET);
+    const auto headerStartOffset = Utils::FileTell(file_);
 
     // READ what was write start time
     if (!Utils::FileRead(file_, &writeStartTime_, sizeof(writeStartTime_))) {
-        return errCode;
+        return "Cannot read start time";
     }
 
     // READ PID LIST
     if (!ReadHeaderPidList()) {
-        return "Invalid pid list header";
+        return "Cannot read pid list header";
     }
 
     if (!ReadHeaderFirstScreen()) {
-        return "Invalid first frame header";
+        return "Cannot read first frame header";
     }
 
     // READ ANIME START TIMES
     if (!ReadAnimationStartTime()) {
-        return errCode;
+        return "Cannot read animation start time";
     }
 
     // ALL TEXTURES
     ImageCache::Deserialize(file_);
 
     if (preparedHeaderMode_) {
-        const size_t subHeaderEndOff = Utils::FileTell(file_);
-        Utils::FileSeek(file_, subHeaderStartOff, SEEK_SET);
-        const size_t subHeaderLen = subHeaderEndOff - subHeaderStartOff;
-        if (subHeaderLen > headerSizeMax) {
-            return "Invalid subheader";
+        const auto headerEndOffset = Utils::FileTell(file_);
+        Utils::FileSeek(file_, static_cast<int64_t>(headerStartOffset), SEEK_SET);
+        if (headerEndOffset < headerStartOffset || (headerEndOffset - headerStartOffset) > headerSizeMax) {
+            return "Invalid prepared header data size";
         }
-        preparedHeader_.resize(subHeaderLen);
-        if (!Utils::FileRead(file_, preparedHeader_.data(), subHeaderLen)) {
-            return errCode;
+        preparedHeader_.resize(headerEndOffset - headerStartOffset);
+        if (!Utils::FileRead(file_, preparedHeader_.data(), preparedHeader_.size())) {
+            return "Cannot read prepared header data";
         }
     }
 
     // READ LAYERS OFFSETS
     if (!ReadLayersOffset()) {
-        return "Invalid layers header";
+        return "Cannot read layers offset";
     }
-    return "";
+    return {};
 }
 
 // ***********************************
@@ -341,25 +365,19 @@ std::string RSFile::ReadHeader()
 
 uint32_t RSFile::AddLayer()
 {
-    const uint32_t newId = layerData_.size();
-    const RSFileLayer data;
-    layerData_.push_back(data);
-
+    const std::lock_guard<std::mutex> guard(mutex_);
+    layerData_.push_back({});
     wasChanged_ = true;
-
-    return newId;
+    return layerData_.size() - 1;
 }
 
 void RSFile::LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value)
 {
-    if (!HasLayer(layer)) {
-        return;
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (HasLayer(layer)) {
+        layerData_[layer].property.SetProperty(name, value);
+        wasChanged_ = true;
     }
-
-    RSFileLayer& layerData = layerData_[layer];
-    layerData.property.SetProperty(name, value);
-
-    wasChanged_ = true;
 }
 
 void RSFile::LayerWriteHeader(uint32_t layer)
@@ -445,11 +463,13 @@ std::string RSFile::LayerReadHeader(RSFileLayer& layer)
 
 uint32_t RSFile::GetVersion() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return versionId_;
 }
 
 void RSFile::SetVersion(uint32_t version)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     versionId_ = version;
 }
 
@@ -537,8 +557,9 @@ void RSFile::ReadLogEventRestart(uint32_t layer)
     ReadTrackDataRestart(&RSFileLayer::readindexLogEvents, layer);
 }
 
-double RSFile::GetEOFTime()
+double RSFile::GetEOFTime() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (layerData_.empty()) {
         return 0.0;
     }
@@ -592,10 +613,10 @@ bool RSFile::LogEventEOF(uint32_t layer) const
 
 bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime)
 {
-    // Hold writeMutex_ across the read: Close() (on the command thread) takes the same mutex
+    // Hold mutex across the read: Close() (on the command thread) takes the same mutex
     // before setting file_=nullptr and clearing layerData_, preventing the playback thread
     // from touching a closed FILE* / invalidated layerData_.
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
     readTime = 0.0;
     if (!file_ || layerData_.empty()) {
         return false;
@@ -663,7 +684,7 @@ bool RSFile::ReadLogEvent(double untilTime, uint32_t layer, std::vector<uint8_t>
 
 bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
 
     WriteHeaders(); // Make sure the header is written
 
@@ -723,37 +744,9 @@ std::string RSFile::ReadHeaders()
     return "";
 }
 
-void RSFile::Close()
-{
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
-    if (!file_) {
-        return;
-    }
-
-    WriteHeaders();
-
-    Utils::FileClose(file_);
-    file_ = nullptr;
-
-    headerOff_ = 0;
-    headerPidList_.clear();
-    layerData_.clear();
-
-    writeDataOff_ = 0;
-    wasChanged_ = false;
-
-    preparedHeaderMode_ = false;
-    headerFirstFrame_.clear();
-    headerAnimeStartTimes_.clear();
-    preparedHeader_.clear();
-    mapVsyncId2Time_.clear();
-}
-
 void RSFile::UnwriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (!file_ || !HasLayer(layer)) {
         return;
     }
@@ -766,8 +759,7 @@ void RSFile::UnwriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer)
 
 void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, double time, const void* data, size_t size)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (!file_ || !HasLayer(layer)) {
         return;
     }
@@ -784,6 +776,7 @@ void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, dou
 bool RSFile::ReadTrackData(
     LayerTrackPtr track, double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (!file_ || !HasLayer(layer)) {
         return false;
     }
@@ -819,16 +812,15 @@ bool RSFile::ReadTrackData(
 
 void RSFile::ReadTrackDataRestart(LayerTrackIndexPtr trackIndex, uint32_t layer)
 {
-    if (!HasLayer(layer)) {
-        return;
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (HasLayer(layer)) {
+        layerData_[layer].*trackIndex = 0;
     }
-
-    RSFileLayer& layerData = layerData_[layer];
-    layerData.*trackIndex = 0;
 }
 
 bool RSFile::TrackEOF(LayerTrackPtr track, uint32_t layer) const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (!file_ || !HasLayer(layer)) {
         return true;
     }
@@ -839,53 +831,61 @@ bool RSFile::TrackEOF(LayerTrackPtr track, uint32_t layer) const
 
 const std::string& RSFile::GetHeaderFirstFrame() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return headerFirstFrame_;
 }
 
 void RSFile::AddHeaderFirstFrame(const std::string& dataFirstFrame)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     headerFirstFrame_ = dataFirstFrame;
     wasChanged_ = true;
 }
 
 void RSFile::InsertHeaderData(size_t offset, const std::string& data)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-    if (offset > headerFirstFrame_.size()) {
-        return;
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (offset <= headerFirstFrame_.size()) {
+        headerFirstFrame_.insert(offset, data);
+        wasChanged_ = true;
     }
-    headerFirstFrame_.insert(offset, data);
-    wasChanged_ = true;
 }
 
-void RSFile::SetHeaderFailedNodeCount(size_t offset, uint32_t failedNodeCount)
+void RSFile::SetHeaderFailedNodeCount(size_t offset, uint32_t count)
 {
-    if (!failedNodeCount) {
+    if (!count) {
         return;
     }
-    if (offset + sizeof(uint32_t) >= headerFirstFrame_.size()) {
+
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (offset + sizeof(uint32_t) > headerFirstFrame_.size()) {
         return;
     }
-    uint32_t *ptr = reinterpret_cast<uint32_t *>(headerFirstFrame_.data() + offset);
-    if (*ptr >= failedNodeCount) {
-        *ptr -= failedNodeCount;
+
+    uint32_t total = 0u;
+    const auto address = headerFirstFrame_.data() + offset;
+    if (Utils::Move(&total, sizeof(total), address, sizeof(total)) && (total >= count)) {
+        total -= count;
+        Utils::Move(address, headerFirstFrame_.size() - offset, &total, sizeof(total));
     }
 }
 
 const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() const
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     return headerAnimeStartTimes_;
 }
 
 void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes)
 {
+    const std::lock_guard<std::mutex> guard(mutex_);
     headerAnimeStartTimes_ = startTimes;
     wasChanged_ = true;
 }
 
-int64_t RSFile::GetClosestVsyncId(int64_t vsyncId)
+int64_t RSFile::GetClosestVsyncId(int64_t vsyncId) const
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
     if (mapVsyncId2Time_.count(vsyncId)) {
         return vsyncId;
     }
@@ -903,18 +903,16 @@ int64_t RSFile::GetClosestVsyncId(int64_t vsyncId)
     return minVSync;
 }
 
-double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
+double RSFile::ConvertVsyncId2Time(int64_t vsyncId) const
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-    if (mapVsyncId2Time_.count(vsyncId)) {
-        return mapVsyncId2Time_[vsyncId];
-    }
-    return 0.0;
+    const std::lock_guard<std::mutex> guard(mutex_);
+    const auto vsync = mapVsyncId2Time_.find(vsyncId);
+    return (vsync != mapVsyncId2Time_.end()) ? vsync->second : 0.0;
 }
 
 int64_t RSFile::ConvertTime2VsyncId(double time) const
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
     constexpr double numericError = 1e-5;
     for (const auto& item : mapVsyncId2Time_) {
         if (time <= item.second + numericError) {
@@ -926,7 +924,7 @@ int64_t RSFile::ConvertTime2VsyncId(double time) const
 
 void RSFile::GetVsyncList(std::set<int64_t>& vsyncList) const
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
     vsyncList.clear();
     for (auto& item : mapVsyncId2Time_) {
         vsyncList.insert(item.first);
@@ -935,14 +933,19 @@ void RSFile::GetVsyncList(std::set<int64_t>& vsyncList) const
 
 void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
+    if (mapVsyncId2Time_.empty()) {
+        startAndEndTime.first = 0.0;
+        startAndEndTime.second = 0.0;
+        return;
+    }
     startAndEndTime.first = mapVsyncId2Time_.begin()->second;
     startAndEndTime.second = mapVsyncId2Time_.rbegin()->second;
 }
 
 void RSFile::CacheVsyncId2Time(uint32_t layer)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+    const std::lock_guard<std::mutex> guard(mutex_);
     mapVsyncId2Time_.clear();
 
     if (!file_ || !HasLayer(layer)) {

@@ -87,7 +87,7 @@
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #undef LOG_TAG
@@ -271,6 +271,8 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("RSClientToRenderConnection::CommitTransaction renderPipelineAgent_ is null, "
+            "transaction dropped, hasData:%{public}d", transactionData != nullptr);
         return ERR_INVALID_VALUE;
     }
     pid_t callingPid = GetCallingPid();

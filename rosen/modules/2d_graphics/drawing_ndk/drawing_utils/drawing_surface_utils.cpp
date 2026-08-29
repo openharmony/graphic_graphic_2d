@@ -16,8 +16,8 @@
 #include "drawing_surface_utils.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
 #include "sync_fence.h"
+#include "vulkan_context/native_buffer_utils.h"
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
 #endif

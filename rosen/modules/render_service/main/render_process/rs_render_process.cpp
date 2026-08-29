@@ -28,12 +28,20 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_composer_to_render_connection.h"
-#include "rs_ipc_persistence_data.h"
+#include "rs_ipc_persistence_def.h"
 #include "rs_render_connect_parcel_info.h"
 #include "rs_render_pipeline_agent.h"
 #include "transaction/rs_connect_to_render_process.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "xcollie/watchdog.h"
+
+#ifdef RES_SCHED_ENABLE
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#include "res_sched_client.h"
+#include "res_type.h"
+#include "system_ability_definition.h"
+#endif
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderProcess"
@@ -82,8 +90,7 @@ bool IsInvalidReplyInfo(const sptr<ReplyToRenderInfo>& result)
     return !result ||
            !result->composeConnection_ ||
            !result->rsScreenProperty_ ||
-           !result->vsyncConn_ ||
-           !result->replayData_;
+           !result->vsyncConn_;
 }
 }
 
@@ -103,6 +110,10 @@ bool RSRenderProcess::Init()
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
+
+#ifdef RES_SCHED_ENABLE
+    SubScribeSystemAbility();
+#endif
 
     // register the child process to the parent process
     RS_LOGI("%{public}s: Subprocess Registration", __func__);
@@ -140,10 +151,10 @@ bool RSRenderProcess::Init()
     renderPipeline_->OnScreenConnected(
         rsScreenProperty, renderToComposerConnection, composerToRenderConnection, nullptr);
 
-    // replay global ipc
-    RS_LOGI("%{public}s: Replay Global Ipc", __func__);
+    // apply global ipc persistence reply data
+    RS_LOGI("%{public}s: Apply Global Ipc Persistence Data", __func__);
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    ApplyIpcPersistenceData(renderPipelineAgent, *replyToRenderInfo->replayData_);
+    ApplyIpcPersistenceData(renderPipelineAgent, replyToRenderInfo->persistenceData_);
 
     auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*this);
     // called from service
@@ -189,16 +200,44 @@ sptr<RSIRenderToServiceConnection> RSRenderProcess::ConnectToRenderService()
 }
 
 void RSRenderProcess::ApplyIpcPersistenceData(const sptr<RSRenderPipelineAgent>& renderPipelineAgent,
-    const IpcPersistenceTypeToDataMap& replayData)
+    const IpcPersistenceMap& replayData)
 {
-    for (const auto& [type, dataVec] : replayData) {
-        for (const auto& data : dataVec) {
-            if (!data) {
-                continue;
-            }
-            data->Apply(renderPipelineAgent);
+    for (const auto& [typeId, transfer] : replayData) {
+        if (!transfer) {
+            continue;
+        }
+        if (!transfer->Apply(renderPipelineAgent)) {
+            RS_LOGE("%{public}s: Apply failed for typeId %{public}u", __func__, static_cast<uint32_t>(typeId));
         }
     }
 }
+
+#ifdef RES_SCHED_ENABLE
+void RSRenderProcess::SubScribeSystemAbility()
+{
+    RS_LOGI("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "RSMainThread";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    if (saStatusChangeListener_ == nullptr) {
+        RS_LOGE("SubScribeSystemAbility new VSyncSystemAbilityListener failed");
+        return;
+    }
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

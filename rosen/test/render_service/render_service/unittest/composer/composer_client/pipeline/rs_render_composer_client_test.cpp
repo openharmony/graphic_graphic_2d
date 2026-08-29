@@ -27,7 +27,7 @@
 #include "layer_backend/hdi_output.h"
 #include "params/rs_render_params.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_composer_client.h"

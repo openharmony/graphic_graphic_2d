@@ -1,0 +1,80 @@
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path =
+    "graphic_2d/graphic_2d/render_service_base/vulkan_context"
+
+##############################  RsVulkanTest  ##################################
+ohos_unittest("RsVulkanTest") {
+  module_out_path = module_output_path
+
+  if (graphic_2d_feature_enable_vulkan) {
+    sources = [
+      "native_buffer_utils_test.cpp",
+      "rs_vulkan_context_test.cpp",
+      "rs_vulkan_interface_test.cpp",
+    ]
+  }
+
+  configs = [
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "vulkan-headers:vulkan_headers",
+    "ffrt:libffrt",
+  ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
+
+  visibility = [ ":*" ]
+  subsystem_name = "graphic"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":RsVulkanTest" ]
+}

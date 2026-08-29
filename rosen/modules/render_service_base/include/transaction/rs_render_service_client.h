@@ -213,7 +213,8 @@ public:
     std::string GetRefreshInfoToSP(NodeId id);
     std::string GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId);
 
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
 
 #ifndef ROSEN_ARKUI_X

@@ -21,8 +21,8 @@
 #include "surface_ohos.h"
 #include "surface_frame_ohos_vulkan.h"
 #include "rs_surface_ohos_vulkan.h"
-#include "native_buffer_utils.h"
 #include "platform/common/rs_system_properties.h"
+#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {

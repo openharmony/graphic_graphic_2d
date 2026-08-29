@@ -2975,6 +2975,240 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed,
 }
 
 /**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapWithRSLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayer with RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify solidRSLayerIdMap_ loop condition is true (rsLayer != nullptr)
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapWithRSLayer,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create HdiLayer with RSLayer
+    uint64_t solidSurfaceId = 600;
+    uint32_t layerId = 601;
+    std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
+    ASSERT_NE(hdiLayer, nullptr);
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    // Set isNeedComposition to true so we can verify SetIsNeedComposition(false) is called
+    rsLayer->SetIsNeedComposition(true);
+    EXPECT_EQ(rsLayer->GetIsNeedComposition(), true);
+
+    // Add to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
+
+    // Verify GetRSLayer returns non-null
+    ASSERT_NE(hdiLayer->GetRSLayer(), nullptr);
+
+    // Call ResetLayerStatusLocked - solidRSLayerIdMap_ loop condition is true
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false
+    EXPECT_EQ(hdiLayer->GetLayerStatus(), false);
+    // Verify SetIsNeedComposition(false) was called (true branch executed)
+    EXPECT_EQ(rsLayer->GetIsNeedComposition(), false);
+}
+
+/**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapRsLayerNull
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayer without RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify solidRSLayerIdMap_ loop condition is false (rsLayer == nullptr)
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapRsLayerNull,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create HdiLayer without RSLayer (GetRSLayer() will return nullptr)
+    uint64_t solidSurfaceId = 610;
+    uint32_t layerId = 611;
+    std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
+    ASSERT_NE(hdiLayer, nullptr);
+
+    // Add to solidRSLayerIdMap_ without setting rsLayer
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
+
+    // Verify GetRSLayer returns nullptr
+    ASSERT_EQ(hdiLayer->GetRSLayer(), nullptr);
+
+    // Call ResetLayerStatusLocked - solidRSLayerIdMap_ loop condition is false
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false
+    EXPECT_EQ(hdiLayer->GetLayerStatus(), false);
+}
+
+/**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapMixed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayers with and without RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify both true and false branches work correctly
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapMixed,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create first HdiLayer with RSLayer (true branch)
+    uint64_t solidSurfaceId1 = 620;
+    uint32_t layerId1 = 621;
+    std::shared_ptr<HdiLayer> hdiLayer1 = std::make_shared<HdiLayer>(layerId1);
+    ASSERT_NE(hdiLayer1, nullptr);
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(layerId1, nullptr);
+    hdiLayer1->UpdateRSLayer(rsLayer1);
+    rsLayer1->SetIsNeedComposition(true);
+
+    // Create second HdiLayer without RSLayer (false branch)
+    uint64_t solidSurfaceId2 = 630;
+    uint32_t layerId2 = 631;
+    std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(layerId2);
+    ASSERT_NE(hdiLayer2, nullptr);
+
+    // Add both to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId1] = hdiLayer1;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId2] = hdiLayer2;
+
+    // Verify rsLayer states before call
+    EXPECT_NE(hdiLayer1->GetRSLayer(), nullptr);  // true branch
+    EXPECT_EQ(hdiLayer2->GetRSLayer(), nullptr);  // false branch
+
+    // Call ResetLayerStatusLocked
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false for both
+    EXPECT_EQ(hdiLayer1->GetLayerStatus(), false);
+    EXPECT_EQ(hdiLayer2->GetLayerStatus(), false);
+    // Verify true branch executed SetIsNeedComposition(false)
+    EXPECT_EQ(rsLayer1->GetIsNeedComposition(), false);
+}
+
+/**
+ * Function: UpdateSolidColorLayerLocked_CreateLayerFails_TrueBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid color RSLayer not in solidRSLayerIdMap_
+ *                  2. set createHdiLayerFunc_ to return nullptr so CreateLayerLocked fails
+ *                  3. call UpdateSolidColorLayerLocked
+ *                  4. verify return false (if CreateLayerLocked != SUCCESS true branch)
+ */
+HWTEST_F(HdiOutputTest, UpdateSolidColorLayerLocked_CreateLayerFails_TrueBranch,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing state
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Override createHdiLayerFunc_ to return nullptr, forcing CreateLayerLocked to fail
+    auto prevFunc = hdiOutput->createHdiLayerFunc_;
+    hdiOutput->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
+
+    uint32_t layerId = 640;
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+
+    // CreateLayerLocked returns FAILURE -> if (!= SUCCESS) true branch -> return false
+    bool ret = hdiOutput->UpdateSolidColorLayerLocked(rsLayer);
+    EXPECT_FALSE(ret);
+
+    // Restore
+    hdiOutput->createHdiLayerFunc_ = prevFunc;
+}
+
+/**
+ * Function: UpdateSolidColorLayerLocked_CreateLayerSucceeds_FalseBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid color RSLayer not in solidRSLayerIdMap_
+ *                  2. set up createHdiLayerFunc_ with mock device so CreateLayerLocked succeeds
+ *                  3. call UpdateSolidColorLayerLocked
+ *                  4. verify return true (if CreateLayerLocked != SUCCESS false branch)
+ */
+HWTEST_F(HdiOutputTest, UpdateSolidColorLayerLocked_CreateLayerSucceeds_FalseBranch,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing state
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Use createHdiLayerFunc_ to create HdiLayer with mock device
+    auto prevFunc = hdiOutput->createHdiLayerFunc_;
+    hdiOutput->createHdiLayerFunc_ = [](uint32_t screenId) {
+        auto hdiLayer = std::make_shared<HdiLayer>(screenId);
+        if (hdiLayer != nullptr) {
+            hdiLayer->SetHdiDeviceMock(Mock::HdiDeviceMock::GetInstance());
+        }
+        return hdiLayer;
+    };
+
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(paramKey_));
+    hdiOutput->device_ = hdiDeviceMock_;
+
+    uint32_t layerId = 641;
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+
+    // CreateLayerLocked returns SUCCESS -> if (!= SUCCESS) false branch -> return true
+    bool ret = hdiOutput->UpdateSolidColorLayerLocked(rsLayer);
+    EXPECT_TRUE(ret);
+
+    // Restore and cleanup
+    hdiOutput->createHdiLayerFunc_ = prevFunc;
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+}
+
+/**
  * Function: ReleaseLayers_EmptyLayerIdMap
  * Type: Function
  * Rank: Important(1)
@@ -5621,6 +5855,249 @@ HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_DeviceNotNull_FalseBranch, Fun
     hdiOutput->SetActiveRectSwitchStatus(true, rect);
     // False branch: device_ != nullptr, normal flow sets isActiveRectSwitching_ to true
     EXPECT_TRUE(hdiOutput->isActiveRectSwitching_);
+}
+
+constexpr uint32_t TUNNEL_LAYER_NUM_PROP_ID = 6;
+constexpr uint32_t TUNNEL_LAYER_TYPE_PROP_ID = 7;
+constexpr uint64_t TUNNEL_SUPPORT_RGBA_8888 = 1ULL << GRAPHIC_PIXEL_FMT_RGBA_8888;
+constexpr uint64_t TUNNEL_SUPPORT_NONE = 0;
+
+GraphicDisplayCapability MakeTunnelCapability(uint32_t threshold, uint64_t supportType)
+{
+    GraphicDisplayCapability dcap = {};
+    GraphicPropertyObject numProp;
+    numProp.propId = TUNNEL_LAYER_NUM_PROP_ID;
+    numProp.value = threshold;
+    GraphicPropertyObject typeProp;
+    typeProp.propId = TUNNEL_LAYER_TYPE_PROP_ID;
+    typeProp.value = supportType;
+    dcap.props.push_back(numProp);
+    dcap.props.push_back(typeProp);
+    return dcap;
+}
+
+void ExpectGetScreenCapability(Mock::HdiDeviceMock* mock, const GraphicDisplayCapability& dcap)
+{
+    EXPECT_CALL(*mock, GetScreenCapability(_, _))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<1>(dcap), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+}
+
+/**
+ * @tc.name: InitTunnelProperty_NoDevice_KeepsStaticsUnchanged
+ * @tc.desc: Cover the true branch of `if (device_ == nullptr)` in InitTunnelProperty. When
+ *          the device is null the function must return immediately without querying
+ *          capabilities or touching the file-static threshold/type atomics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_NoDevice_KeepsStaticsUnchanged, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = nullptr;
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: InitTunnelProperty_WithDevice_ReadsProps
+ * @tc.desc: Cover the false branch of `if (device_ == nullptr)` and the true branches of the
+ *          `propId == TUNNEL_LAYER_NUM_PROP_ID` and `propId == TUNNEL_LAYER_TYPE_PROP_ID`
+ *          checks in InitTunnelProperty. The mocked capabilities must seed the file-statics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_WithDevice_ReadsProps, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    constexpr uint32_t threshold = 2;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(threshold, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: InitTunnelProperty_WithDevice_NoMatchingProps
+ * @tc.desc: Cover the false branches of the propId checks in InitTunnelProperty. When the
+ *          capability carries neither the threshold nor the type prop, the file-statics stay
+ *          at their previous values and CheckSupportTunnel still runs against the prior state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_WithDevice_NoMatchingProps, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    GraphicDisplayCapability emptyDcap = {};
+    emptyDcap.props.push_back({"unrelated", 99, 12345});
+    ExpectGetScreenCapability(hdiDeviceMock_, emptyDcap);
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_ThresholdExhausted_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (tunnelLayerNum >= TUNNEL_LAYER_NUM_THRESHOLD.load())`
+ *          in CheckSupportTunnel. After the threshold tunnel layers are registered the next
+ *          request must fall back to graphic.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_ThresholdExhausted_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(registryOutput, nullptr);
+    registryOutput->device_ = hdiDeviceMock_;
+    constexpr uint32_t threshold = 1;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(threshold, TUNNEL_SUPPORT_RGBA_8888));
+    registryOutput->InitTunnelProperty();
+
+    auto firstRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> firstBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(firstBuffer, nullptr);
+    firstRsLayer->SetBuffer(firstBuffer);
+    auto firstLayer = CreateHdiOutputHdiLayer(firstRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(firstLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID, firstLayer, firstRsLayer, false);
+
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    auto secondRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    sptr<SurfaceBuffer> secondBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(secondBuffer, nullptr);
+    secondRsLayer->SetBuffer(secondBuffer);
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_NullRSLayer_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (rsLayer == nullptr || rsLayer->GetBuffer() == nullptr)`
+ *          in CheckSupportTunnel for the nullptr rsLayer case.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_NullRSLayer_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, nullptr));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_NullBuffer_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (rsLayer == nullptr || rsLayer->GetBuffer() == nullptr)`
+ *          in CheckSupportTunnel for the nullptr buffer case. The rsLayer is valid but the
+ *          buffer was never attached.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_NullBuffer_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    EXPECT_EQ(tunnelRsLayer->GetBuffer(), nullptr);
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_SupportedFormat_ReturnsTrue
+ * @tc.desc: Cover the true branch of `if ((1ULL << format) & TUNNEL_LAYER_SUPPORT_TYPE.load())`
+ *          in CheckSupportTunnel. A buffer whose format bit is set in the support-type mask
+ *          must allow the tunnel registration to proceed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_SupportedFormat_ReturnsTrue, Function | MediumTest | Level1)
+{
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(registryOutput, nullptr);
+    registryOutput->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    registryOutput->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(tunnelLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID, tunnelLayer, tunnelRsLayer, false);
+
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    auto secondRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    sptr<SurfaceBuffer> secondBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(secondBuffer, nullptr);
+    secondRsLayer->SetBuffer(secondBuffer);
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_UnsupportedFormat_ReturnsFalse
+ * @tc.desc: Cover the false branch of `if ((1ULL << format) & TUNNEL_LAYER_SUPPORT_TYPE.load())`
+ *          in CheckSupportTunnel. A buffer whose format bit is not in the support-type mask
+ *          must trigger fallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_UnsupportedFormat_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_NONE));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
 }
 } // namespace
 } // namespace Rosen

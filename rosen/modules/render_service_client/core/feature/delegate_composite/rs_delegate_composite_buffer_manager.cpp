@@ -50,7 +50,6 @@ bool RSDelegateCompositeBufferManager::SetBuffer(sptr<SurfaceBuffer> buffer,
     if (config.nodeId != 0) {
         configList.push_back(config);
     }
-#ifndef ROSEN_CROSS_PLATFORM
     RS_TRACE_NAME_FMT("RSDelegateCompositeBufferManager::SetBuffer configListSize=%u, config.nodeId=%llu",
         configList.size(), nodeId_);
     if (configList.size() != 0) {
@@ -59,7 +58,6 @@ bool RSDelegateCompositeBufferManager::SetBuffer(sptr<SurfaceBuffer> buffer,
             rsTransactionHandle_->AddCommand(command, true, FollowType::NONE, 0);
         }
     }
-#endif
     return true;
 }
 

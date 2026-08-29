@@ -67,6 +67,13 @@ config("render_service_link_config") {
   }
 }
 
+config("render_service_config") {
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    defines = [ "RES_SCHED_ENABLE" ]
+  }
+}
+
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
   branch_protector_ret = "pac_ret"
@@ -221,8 +228,6 @@ ohos_shared_library("librender_service") {
     "core/transaction/zidl/rs_connect_to_render_process_stub.cpp",
     "main/render_process/rs_render_process.cpp",
     "main/render_process/rs_render_process_agent.cpp",
-    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_data.cpp",
-    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.cpp",
     "main/render_process/transaction/rs_service_to_render_connection.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_proxy.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_stub.cpp",
@@ -250,6 +255,21 @@ ohos_shared_library("librender_service") {
     "screen_manager/rs_screen_thread_safe_property.cpp",
   ]
 
+  #ipc_persistence
+  sources += [
+    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.cpp",
+  ]
+
+  #transfers
+  sources += [
+    "main/render_process/transaction/zidl/transfers/rs_set_watermark_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_show_watermark_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_on_hwc_event_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_set_behind_window_filter_enabled_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_set_show_refresh_rate_enabled_transfer.cpp",
+    "main/render_process/transaction/zidl/transfers/rs_self_drawing_node_rect_change_callback_transfer.cpp",
+  ]
+
   #feature_cfg
   sources += [
     "core/feature_cfg/feature_param/extend_feature/capture_base_param.cpp",
@@ -259,6 +279,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/extend_feature/mem_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/multiscreen_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/speciallayer_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/tunnel_layer_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/surface_capture_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/ui_capture_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/gpu_cache_param.cpp",
@@ -290,6 +311,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser/mem_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/multiscreen_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/speciallayer_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/tunnel_layer_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/surface_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/ui_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/gpu_cache_param_parse.cpp",
@@ -368,6 +390,7 @@ ohos_shared_library("librender_service") {
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
       "core/feature/hwc_event/rs_uni_hwc_event_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_bitmap_utils.cpp",
+      "core/feature/round_corner_display/rs_rcd_image_loader.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
       "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",
@@ -692,10 +715,10 @@ ohos_shared_library("librender_service") {
     defines += [ "SOC_PERF_ENABLE" ]
   }
 
+  public_configs = [ ":render_service_config" ]
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
-    defines += [ "RES_SCHED_ENABLE" ]
   }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -763,6 +786,8 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "main",
+    "main/render_process/transaction/ipc_persistence",
+    "main/render_process/transaction/zidl",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
@@ -841,6 +866,7 @@ if (graphic_2d_feature_product == "phone" || graphic_2d_feature_product == "tabl
     include_dirs = [
       "core",
       "main",
+      "main/render_process/transaction/zidl",
       "$graphic_2d_root/interfaces/inner_api/common",
       "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
       "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",

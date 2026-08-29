@@ -24,6 +24,7 @@
 #include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "rs_trace.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
@@ -46,8 +47,8 @@
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
@@ -1363,6 +1364,21 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
       isNeedDrawDirectly_(!IsValidRemoteAddress(handle->surfaceBufferInfo.pid_,
           handle->surfaceBufferInfo.uid_))
 {
+    // The pid carried by the op item is client-marshalled data and cannot be trusted. Bind it to the
+    // real sender so a forged pid cannot trigger another process's surface buffer callback.
+    if (contextIsUniRender) {
+        pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+        if (callingPid > 0 && surfaceBufferInfo_.pid_ != 0 && surfaceBufferInfo_.pid_ != callingPid) {
+            RS_LOGW("DrawSurfaceBufferOpItem pid %{public}d mismatches calling pid %{public}d, override",
+                surfaceBufferInfo_.pid_, callingPid);
+            surfaceBufferInfo_.pid_ = callingPid;
+        }
+    } else {
+        static auto pid = getpid();
+        if (surfaceBufferInfo_.pid_ != 0 && surfaceBufferInfo_.pid_ != pid) {
+            surfaceBufferInfo_.pid_ = pid;
+        }
+    }
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
         surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;

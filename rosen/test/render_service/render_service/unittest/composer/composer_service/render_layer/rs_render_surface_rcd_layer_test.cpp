@@ -53,6 +53,9 @@ HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_PixelMap_Null_NoCrash, Test
     auto cmd = std::make_shared<RSRenderLayerPixelMapCmd>(prop);
     layer->UpdateRSLayerCmd(cmd);
     EXPECT_EQ(layer->GetPixelMap(), nullptr);
+    std::shared_ptr<RSRenderLayerPixelMapCmd> nullCmd = nullptr;
+    layer->UpdateRSLayerCmd(nullCmd);
+    EXPECT_EQ(layer->GetPixelMap(), nullptr);
 }
 
 /**

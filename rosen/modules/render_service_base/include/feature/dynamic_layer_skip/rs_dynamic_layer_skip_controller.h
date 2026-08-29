@@ -65,10 +65,16 @@ private:
     }
 
     RectI screenRect_;
+    // for physical screen
     bool screenLayerInvalid_ = false;
     bool globalOccluderDetected_ = false;
     NodeId occluderInstanceRootNodeId_ = INVALID_NODEID;
     std::vector<RSSurfaceRenderNode::WeakPtr> targetSelfDrawingSurface_ = {};
+    // for virtual screen
+    bool virtualScreenLayerInvalid_ = false;
+    bool virtualGlobalOccluderDetected_ = false;
+    NodeId virtualOccluderInstanceRootNodeId_ = INVALID_NODEID;
+    std::vector<RSSurfaceRenderNode::WeakPtr> virtualTargetSelfDrawingSurface_ = {};
     bool globalDisabled_ = false;
     int32_t visitedRenderNodeCount_ = 0;
     bool hasFullScreenSurface_ = false;

@@ -78,6 +78,7 @@ class RSNGShaderBase;
 class RSNGMaskBase;
 class RSNGShapeBase;
 class Blender;
+class ColorfulBrightnessBlender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
 enum class FilterQuality;
@@ -2370,6 +2371,10 @@ private:
 
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
     void SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params);
+    void ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& blender);
+
+    void DetachFgBrightnessProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+    void DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     void NotifyPageNodeChanged() const;
 

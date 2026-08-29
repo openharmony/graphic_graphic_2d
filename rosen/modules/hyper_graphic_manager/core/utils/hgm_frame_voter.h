@@ -39,7 +39,8 @@ public:
 
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
-    void SetSkipVirtualDisplay(bool isSkipVirtualDisplay) { isSkipVirtualDisplay_ = isSkipVirtualDisplay; }
+    void SetSkipVirtualDisplay(bool isSkipVirtualDisplay);
+    bool IsSkipVirtualDisplayChanged() const { return isSkipVirtualDisplay_ != prevSkipVirtualDisplay_; }
     void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
     {
         isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;
@@ -82,6 +83,7 @@ private:
     bool isTouchUpLTPOFirstPeriod_ = false;
     bool isTouchUpLTPOFirstDynamicMode_ = false;
     bool isSkipVirtualDisplay_ = false;
+    bool prevSkipVirtualDisplay_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     std::unordered_set<pid_t> pidRecord_;
     VoteRecord voteRecord_;

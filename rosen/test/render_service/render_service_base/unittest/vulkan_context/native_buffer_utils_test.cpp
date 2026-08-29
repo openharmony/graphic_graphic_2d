@@ -16,9 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "image/gpu_context.h"
-#include "pipeline/render_thread/rs_uni_render_util.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 using namespace testing;
 using namespace testing::ext;
 

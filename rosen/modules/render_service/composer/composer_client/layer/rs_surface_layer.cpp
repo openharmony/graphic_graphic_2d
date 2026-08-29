@@ -15,7 +15,7 @@
 
 #include "rs_surface_layer.h"
 #include <memory>
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_composer_context.h"
 #include "rs_layer_parcel.h"

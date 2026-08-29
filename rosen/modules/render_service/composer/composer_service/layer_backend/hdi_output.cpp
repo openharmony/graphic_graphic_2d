@@ -42,11 +42,14 @@ using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
-static constexpr uint32_t DEFAULT_TUNNEL_LAYER_THRESHOLD = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
 static constexpr size_t MATRIX_SIZE = 9;
 static const std::string GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX = "DisplayLinearMatrix";
+static constexpr uint32_t TUNNEL_LAYER_NUM_PROPID = 6;
+static constexpr uint32_t TUNNEL_LAYER_TYPE_PROPID = 7;
+static std::atomic<size_t> TUNNEL_LAYER_NUM_THRESHOLD;
+static std::atomic<uint64_t> TUNNEL_LAYER_SUPPORT_TYPE;
 
 using TunnelLayerKey = std::pair<uint32_t, uintptr_t>;
 std::mutex g_tunnelLayerMutex;
@@ -58,7 +61,28 @@ static bool IsTunnelHdiLayer(const std::shared_ptr<HdiLayer>& hdiLayer)
         hdiLayer->GetCreatedLayerType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
 }
 
-static bool RegisterTunnelHdiLayer(uint32_t screenId, const std::shared_ptr<HdiLayer>& hdiLayer)
+static bool CheckSupportTunnel(size_t tunnelLayerNum, const std::shared_ptr<RSLayer>& rsLayer)
+{
+    if (tunnelLayerNum >= TUNNEL_LAYER_NUM_THRESHOLD.load()) {
+        HLOGE("TUNNEL_DEBUG %{public}s tunnelLayerNum %{public}zu TUNNEL_LAYER_NUM_THRESHOLD %{public}zu",
+            __func__, tunnelLayerNum, TUNNEL_LAYER_NUM_THRESHOLD.load());
+        return false;
+    }
+    if (rsLayer == nullptr || rsLayer->GetBuffer() == nullptr) {
+        HLOGE("TUNNEL_DEBUG %{public}s rsLayer or buffer is nullptr", __func__);
+        return false;
+    }
+    auto format = static_cast<GraphicPixelFormat>(rsLayer->GetBuffer()->GetFormat());
+    if ((1ULL << format) & TUNNEL_LAYER_SUPPORT_TYPE.load()) {
+        return true;
+    }
+    HLOGI("TUNNEL_DEBUG %{public}s not support type: %{public}u TUNNEL_LAYER_SUPPORT_TYPE %{public}" PRIu64,
+        __func__, format, TUNNEL_LAYER_SUPPORT_TYPE.load());
+    return false;
+}
+
+static bool RegisterTunnelHdiLayer(uint32_t screenId, const std::shared_ptr<HdiLayer>& hdiLayer,
+    const std::shared_ptr<RSLayer>& rsLayer)
 {
     if (!IsTunnelHdiLayer(hdiLayer)) {
         return true;
@@ -68,7 +92,7 @@ static bool RegisterTunnelHdiLayer(uint32_t screenId, const std::shared_ptr<HdiL
     if (g_tunnelLayerKeys.count(key) > 0) {
         return true;
     }
-    if (g_tunnelLayerKeys.size() >= DEFAULT_TUNNEL_LAYER_THRESHOLD) {
+    if (!CheckSupportTunnel(g_tunnelLayerKeys.size(), rsLayer)) {
         return false;
     }
     g_tunnelLayerKeys.emplace(key);
@@ -174,6 +198,8 @@ RosenError HdiOutput::Init()
         device_ = HdiDevice::GetInstance();
         CHECK_DEVICE_NULL(device_);
 
+        InitTunnelProperty();
+
         bufferCacheCountMax_ = fbSurface_->GetBufferQueueSize();
         int32_t ret = device_->SetScreenClientBufferCacheCount(screenId_, bufferCacheCountMax_);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
@@ -257,6 +283,8 @@ void HdiOutput::UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer)
     auto iter = surfaceIdMap_.find(surfaceId);
     if (invalidTunnelSurfaceIds_.find(surfaceId) != invalidTunnelSurfaceIds_.end() &&
         IsTunnelLayerRequestedLocked(rsLayer)) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s DestroyAndCreateTunnelLayer surfaceId %" PRIu64, __func__, surfaceId);
+        HLOGI("TUNNEL_DEBUG %{public}s DestroyAndCreateTunnelLayer surfaceId %{public}" PRIu64, __func__, surfaceId);
         DestroyLayerBySurfaceIdLocked(surfaceId);
         CreateLayerLocked(surfaceId, rsLayer);
         return;
@@ -293,7 +321,9 @@ bool HdiOutput::UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLa
         hdiLayer->UpdateRSLayer(rsLayer);
         return true;
     }
-    CreateLayerLocked(rsLayer->GetRSLayerId(), rsLayer);
+    if (CreateLayerLocked(rsLayer->GetRSLayerId(), rsLayer) != GRAPHIC_DISPLAY_SUCCESS) {
+        return false;
+    }
     return true;
 }
 
@@ -511,6 +541,13 @@ void HdiOutput::DeletePrevLayersLocked()
 
 void HdiOutput::ResetLayerStatusLocked()
 {
+    for (auto iter = solidRSLayerIdMap_.begin(); iter != solidRSLayerIdMap_.end(); ++iter) {
+        iter->second->SetLayerStatus(false);
+        auto rsLayer = iter->second->GetRSLayer();
+        if (rsLayer != nullptr) {
+            rsLayer->SetIsNeedComposition(false);
+        }
+    }
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
         auto rsLayer = iter->second->GetRSLayer();
@@ -592,7 +629,7 @@ void HdiOutput::RegisterCreatedLayerLocked(uint64_t surfaceId, const std::shared
     } else {
         surfaceIdMap_[surfaceId] = hdiLayer;
     }
-    RegisterTunnelHdiLayer(screenId_, hdiLayer);
+    RegisterTunnelHdiLayer(screenId_, hdiLayer, rsLayer);
     if (IsTunnelHdiLayer(hdiLayer)) {
         ClearTunnelDeclinedLocked(surfaceId);
         if (shouldEmitTunnelCreated) {
@@ -641,7 +678,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<R
         return GRAPHIC_DISPLAY_FAILURE;
     }
     bool initSucceeded = hdiLayer->Init(rsLayer);
-    bool tunnelReserved = initSucceeded && RegisterTunnelHdiLayer(screenId_, hdiLayer);
+    bool tunnelReserved = initSucceeded && RegisterTunnelHdiLayer(screenId_, hdiLayer, rsLayer);
     bool tunnelCreationSucceeded = tunnelLayerRequested && initSucceeded && tunnelReserved;
     if (!initSucceeded || (IsTunnelHdiLayer(hdiLayer) && !tunnelReserved)) {
         bool fallbackSucceeded = FallbackTunnelLayerToGraphicLocked(hdiLayer, rsLayer);
@@ -945,6 +982,10 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
             }
         }
         ClearBufferCache();
+    } else if (layersId_.empty() && !layerIdMap_.empty() &&
+        ((isValidated || skipState == GRAPHIC_DISPLAY_SUCCESS))) {
+        HLOGE("CommitAndGetReleaseFence returns empty layers, isValidated=%{public}d sent=%{public}zu",
+            isValidated, layerIdMap_.size());
     }
     return ret;
 }
@@ -1510,7 +1551,7 @@ bool HdiOutput::ShouldFallbackTunnelLayerLocked(uint64_t surfaceId, const std::s
     if (iter != surfaceIdMap_.end() && IsTunnelHdiLayer(iter->second)) {
         return false;
     }
-    return GetTunnelLayerCount() >= DEFAULT_TUNNEL_LAYER_THRESHOLD;
+    return !CheckSupportTunnel(GetTunnelLayerCount(), rsLayer);
 }
 
 bool HdiOutput::IsTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation) const
@@ -1696,6 +1737,25 @@ int32_t HdiOutput::GetLayerSolidFilledColor(uint64_t layerId, uint32_t& solidFil
     }
     HLOGE("%{public}s failed, not find hdi layer", __func__);
     return GRAPHIC_DISPLAY_FAILURE;
+}
+
+void HdiOutput::InitTunnelProperty()
+{
+    if (device_ == nullptr) {
+        return;
+    }
+    GraphicDisplayCapability dcap = {};
+    device_->GetScreenCapability(screenId_, dcap);
+    for (auto &prop : dcap.props) {
+        if (prop.propId == TUNNEL_LAYER_NUM_PROPID) {
+            TUNNEL_LAYER_NUM_THRESHOLD.store(static_cast<size_t>(prop.value));
+            HLOGI("TUNNLE_DEBUG %{public}s threshold: %{public}zu", __func__, TUNNEL_LAYER_NUM_THRESHOLD.load());
+        }
+        if (prop.propId == TUNNEL_LAYER_TYPE_PROPID) {
+            TUNNEL_LAYER_SUPPORT_TYPE.store(prop.value);
+            HLOGI("TUNNLE_DEBUG %{public}s type: %{public}" PRIu64, __func__, TUNNEL_LAYER_SUPPORT_TYPE.load());
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

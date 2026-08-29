@@ -68,7 +68,7 @@
 
 #ifdef RS_ENABLE_VK
 #include "gpuComposition/rs_vk_image_manager.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 // LCOV_EXCL_START
 static inline const char* GetThreadName()
@@ -312,7 +312,7 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
         RsDelegateCompositeCallbackManager::GetInstance().DumpInfo(dumpString);
 #endif
     }

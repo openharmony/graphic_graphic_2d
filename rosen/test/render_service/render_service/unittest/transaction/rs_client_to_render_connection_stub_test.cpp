@@ -19,7 +19,7 @@
 #include <parameters.h>
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
@@ -1896,10 +1896,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest001, Test
     constexpr uint32_t width = 1920;
     constexpr uint32_t height = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = newAgent->SetRogScreenResolution(screenId, width, height);
+    ErrCode ret = newAgent->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolutionTest002
  * @tc.desc: Test SetRogScreenResolution with valid pipeline
@@ -1914,7 +1914,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest002, Test
     constexpr uint32_t width = 1920;
     constexpr uint32_t height = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height);
+    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
  
@@ -1932,7 +1933,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest003, Test
     constexpr uint32_t width = 0;
     constexpr uint32_t height = 0;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height);
+    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 

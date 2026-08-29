@@ -60,7 +60,7 @@
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "file_ex.h"
 using namespace testing;
@@ -187,6 +187,7 @@ public:
 
     bool returnNullConnection_ = false;
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override { return RS_CONNECTION_ERROR; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -383,6 +384,9 @@ void RSClientToServiceConnectionStubTest::TearDownTestCase()
     renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_ = nullptr;
     renderService_.renderPipeline_ = nullptr;
+    renderService_.vsyncManager_ = nullptr;
+    renderService_.renderProcessManager_ = nullptr;
+    renderService_.hgmContext_ = nullptr;
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
     screenManager_ = nullptr;
@@ -669,15 +673,16 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AuthorizeUIExtensionPidTest001, Te
 {
     ASSERT_NE(connectionStub_, nullptr);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
-    MessageParcel reply;
     MessageOption option;
 
-    // case 1: parcel too short, read params failed
+    // case 1: parcel too short, read params failed -> OnRemoteRequest returns ERR_INVALID_DATA
     MessageParcel data1;
     data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data1, reply, option), ERR_INVALID_DATA);
+    MessageParcel reply1;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data1, reply1, option), ERR_INVALID_DATA);
 
     // case 2: caller is not the owner of the NodeId, denied before forwarding
+    // OnRemoteRequest returns ERR_NONE; the denial status is written into reply
     constexpr pid_t otherHostPid = 1; // differs from the test process pid
     NodeId foreignNodeId = (static_cast<NodeId>(otherHostPid) << 32) | 1;
     MessageParcel data2;
@@ -685,17 +690,23 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AuthorizeUIExtensionPidTest001, Te
     data2.WriteUint64(foreignNodeId);
     data2.WriteInt32(otherHostPid + 1);
     data2.WriteBool(true);
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data2, reply, option), ERR_INVALID_DATA);
+    MessageParcel reply2;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data2, reply2, option), ERR_NONE);
+    int32_t status2 = 0;
+    EXPECT_TRUE(reply2.ReadInt32(status2));
+    EXPECT_EQ(status2, ERR_INVALID_DATA);
 
-    // case 3: owner passes the ownership check; the forward result depends on the render
-    // process connections available in the test environment, but must not be ERR_INVALID_DATA
-    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | 1;
+    // case 3: owner passes the ownership check; result depends on render process connections
+    // Direct call (no binder): GetCallingPid()=0, fallback to remotePid_=0,
+    // so nodeId must embed pid=0 for ExtractPid to match callingPid
+    NodeId nodeId = 1; // (0 << 32) | 1
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data3.WriteUint64(nodeId);
-    data3.WriteInt32(static_cast<int32_t>(getpid() + 1));
+    data3.WriteInt32(static_cast<int32_t>(1));
     data3.WriteBool(true);
-    EXPECT_NE(connectionStub_->OnRemoteRequest(code, data3, reply, option), ERR_INVALID_DATA);
+    MessageParcel reply3;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data3, reply3, option), ERR_NONE);
 }
 
 /**
@@ -4839,7 +4850,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest000, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
@@ -4859,7 +4870,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest002, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // Should return RS_CONNECTION_ERROR when renderProcessManagerAgent_ is nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
@@ -4880,7 +4891,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest003, Tes
     ScreenId screenId = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
@@ -4906,7 +4917,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest004, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // GetServiceToRenderConn returns nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
@@ -4927,11 +4938,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest005, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // screenManagerAgent returns SUCCESS
     EXPECT_EQ(ret, ERR_OK);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolutionTest006
  * @tc.desc: Test SetRogScreenResolution when screenManagerAgent returns error
@@ -4948,7 +4959,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest006, Tes
     ScreenId screenId = INVALID_SCREEN_ID;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // screenManagerAgent returns SCREEN_NOT_FOUND for invalid screenId
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
@@ -4975,11 +4986,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest007, Tes
     ScreenId screenId = 0;
     uint32_t width = 1920;
     uint32_t height = 1080;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     // GetServiceToRenderConn returns nullptr
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
- 
+
 /**
  * @tc.name: SetRogScreenResolutionTest008
  * @tc.desc: Test SetRogScreenResolution with valid parameters
@@ -4996,7 +5007,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest008, Tes
     ScreenId screenId = 0;
     uint32_t width = 2560;
     uint32_t height = 1440;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
  
@@ -5016,7 +5027,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest009, Tes
     ScreenId screenId = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -5214,7 +5225,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase003, TestSize.Level
 
     connection->screenManagerAgent_ = nullptr;
     // test SetRogScreenResolution
-    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0);
+    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0, ScreenSamplingMode::DEVICE_DSS);
     // test GetRogScreenResolution
     uint32_t width = 0;
     uint32_t height = 0;

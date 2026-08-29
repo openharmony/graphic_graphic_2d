@@ -149,7 +149,7 @@ public:
     void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
     const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetHardCursorNode() const;
 
-    void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
+    void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId);
     void HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId);
     bool GetHardCursorNeedCommit(NodeId screenNodeId);
 

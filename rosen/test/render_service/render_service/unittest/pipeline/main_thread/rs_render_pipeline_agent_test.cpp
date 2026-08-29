@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include <iremote_stub.h>
 #include "gtest/gtest.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -31,6 +32,7 @@
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
 #include "surface_utils.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_frame_stability_types.h"
 
 using namespace testing;
@@ -556,6 +558,54 @@ HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync002, TestSize.Le
 #endif
     nodeMap.UnregisterRenderNode(nodeId);
     mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureIsSync001
+ * @tc.desc: Test TakeSurfaceCapture with isSync enabled posts sync window capture task
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureIsSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    while (!mainThread->syncWindowCaptureTasks_.empty()) {
+        mainThread->syncWindowCaptureTasks_.pop();
+    }
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000310;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    captureConfig.isSync = true;
+    captureConfig.isSyncRender = false;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+    usleep(DEFAULT_TIME);
+    EXPECT_FALSE(mainThread->pendingSyncWindowCaptureTasks_.empty());
+
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
 }
 
 /**
@@ -1791,7 +1841,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetRogScreenResolution_NonMatchingScreenId, 
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.screenNodeMap_[nodeId] = screenNode;
  
-    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.screenNodeMap_.erase(nodeId);
@@ -1821,12 +1872,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithBootAnimationN
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: AdjustBootAnimationBounds_WithoutBootAnimationNode
  * @tc.desc: Verify AdjustBootAnimationBounds handles case when no boot animation node exists.
@@ -1851,12 +1903,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithoutBootAnimati
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: SetBootAnimationBounds_NullModifier
  * @tc.desc: Verify SetBootAnimationBounds handles null modifier gracefully.
@@ -1881,7 +1934,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetBootAnimationBounds_NullModifier, TestSiz
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.UnregisterRenderNode(surfaceNodeId);
@@ -2151,5 +2205,87 @@ HWTEST_F(RSRenderPipelineAgentTest, OnGlobalBlacklistChangedWithValidPipeline, T
 
     agent->OnGlobalBlacklistChanged({});
     ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidNullPipeline
+ * @tc.desc: Verify AuthorizeUIExtensionPid returns ERR_INVALID_VALUE when pipeline is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidNullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6100;
+    constexpr pid_t guestPid = 6200;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, false), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidSingleProcessNoGuestConnection
+ * @tc.desc: Verify authorize/revoke succeed without any guest client-to-render connection when the
+ *           guest-connection check is disabled (single-process pipeline, e.g. divided render where
+ *           clients never call CreateRenderConnection).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidSingleProcessNoGuestConnection, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6101;
+    constexpr pid_t guestPid = 6201;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, false), ERR_OK);
+    EXPECT_TRUE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, false, true, false), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidMultiProcessGuestConnectionRequired
+ * @tc.desc: Verify authorize is skipped when the guest has no client-to-render connection in this
+ *           process while the guest-connection check is enabled (multi-process render subprocess),
+ *           and takes effect once the guest connection is added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidMultiProcessGuestConnectionRequired, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6102;
+    constexpr pid_t guestPid = 6202;
+    constexpr uint64_t tokenMaskId = 1;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+
+    // guest has no client-to-render connection: authorize is skipped without failing
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, true), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+
+    // after the guest establishes its connection, authorize takes effect
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<IRemoteObject> tokenObj = token->AsObject();
+    sptr<RSIClientToRenderConnection> guestConn =
+        new RSClientToRenderConnection(guestPid, nullptr, tokenObj);
+    auto addResult = agent->AddConnection(guestPid, tokenMaskId, tokenObj, guestConn);
+    EXPECT_NE(addResult.first, nullptr);
+
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, true), ERR_OK);
+    EXPECT_TRUE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, false, true, true), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+
+    EXPECT_TRUE(agent->RemoveConnection(guestPid, token));
 }
 } // namespace OHOS::Rosen

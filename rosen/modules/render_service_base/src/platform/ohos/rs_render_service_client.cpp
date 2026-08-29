@@ -770,7 +770,8 @@ uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
     return clientToService->GetRealtimeRefreshRate(id);
 }
 
-int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
@@ -778,7 +779,7 @@ int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t widt
         return RENDER_SERVICE_NULL;
     }
 
-    return clientToService->SetRogScreenResolution(id, width, height);
+    return clientToService->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)

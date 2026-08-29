@@ -37,6 +37,8 @@
 
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
+class RSDirtyRegionManager;
+struct ScreenInfo;
 struct RSLayerInfo {
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicIRect srcRect = {0};
@@ -379,6 +381,7 @@ public:
 
     void SetOldDirtyInSurface(const RectI& oldDirtyInSurface) override;
     RectI GetOldDirtyInSurface() const override;
+    void ClipAndScaleDirtyManager(const std::shared_ptr<RSDirtyRegionManager>& dirtyManager) const;
 
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegion() const override;
@@ -464,9 +467,6 @@ public:
 
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
-
-    void SetScreenId(ScreenId screenId);
-    ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer,
@@ -926,6 +926,9 @@ public:
     void SetDelegateSrcRect(const RectI& rect);
     const RectI& GetDelegateSrcRect() const;
 private:
+    void SyncVisibleRegions(RSSurfaceRenderParams* targetSurfaceParams) const;
+    bool GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) const;
+
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
@@ -1084,7 +1087,6 @@ private:
     RectI delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
 
-    ScreenId screenId_ = INVALID_SCREEN_ID;
     // for layer splitter
     bool splitLayerTag_ = false;
 };

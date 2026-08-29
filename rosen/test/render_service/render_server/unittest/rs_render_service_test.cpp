@@ -473,4 +473,21 @@ HWTEST_F(RSRenderServiceTest, GetConnectionTest003, TestSize.Level1)
     ASSERT_EQ(result.first.GetRefPtr(), serviceConn.GetRefPtr());
     ASSERT_EQ(result.second.GetRefPtr(), renderConn.GetRefPtr());
 }
+
+#ifdef RES_SCHED_ENABLE
+/**
+ * @tc.name: SubScribeSystemAbility001
+ * @tc.desc: Test RSRenderService::SubScribeSystemAbility
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceTest, SubScribeSystemAbilityTest001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_EQ(renderService->saStatusChangeListener_, nullptr);
+    renderService->SubScribeSystemAbility();
+    EXPECT_NE(renderService->saStatusChangeListener_, nullptr);
+}
+#endif
 } // namespace OHOS::Rosen

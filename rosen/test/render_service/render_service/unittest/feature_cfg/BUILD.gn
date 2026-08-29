@@ -80,6 +80,8 @@ ohos_unittest("feature_cfg_test") {
     "behind_window_filter_param_parse_test.cpp",
     "background_rebuild_param_test.cpp",
     "background_rebuild_param_parse_test.cpp",
+    "tunnel_layer_param_test.cpp",
+    "tunnel_layer_param_parse_test.cpp",
   ]
 
   include_dirs = [
@@ -117,6 +119,7 @@ ohos_unittest("feature_cfg_test") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "init:libbegetutil",
   ]

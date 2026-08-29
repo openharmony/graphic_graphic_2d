@@ -20,18 +20,17 @@
 
 #include "irs_render_to_composer_connection.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
-#include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "transaction/rs_render_service_client_info.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "screen_manager/rs_screen_property.h"
 #include "ipc_callbacks/rs_iuiextension_callback.h"
-#include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/dfx/rs_dump_callback.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSIpcTransferBase;
 
 class RSIServiceToRenderConnection : public IRemoteBroker {
 public:
@@ -50,7 +49,6 @@ public:
 
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
-    virtual void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;
     virtual void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) = 0;
     virtual void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) = 0;
 
@@ -81,12 +79,6 @@ public:
         std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) = 0;
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
-    // Watermark
-    virtual ErrCode SetWatermark(
-        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
-        uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
-    virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) = 0;
-
     // uifirstscale
     virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
 
@@ -103,7 +95,6 @@ public:
     virtual void NotifyWindowModeTypeEvent(uint8_t windowModeType) = 0;
     virtual void HgmForceUpdateTask(bool flag, const std::string& fromWhom) = 0;
     virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
-    virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;
     virtual ErrCode GetShowRefreshRateEnabled(bool& enable) = 0;
 
     // Overlay
@@ -114,9 +105,6 @@ public:
     virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
 #endif
     // Energy Consumption
-    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
-    virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid) = 0;
     virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
@@ -128,7 +116,6 @@ public:
     virtual void ReportGameStateData(GameStateData info) = 0;
 
     // Behind Window Filter
-    virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 
     // Aps
@@ -153,7 +140,10 @@ public:
         bool enforceQuota) = 0;
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
     virtual void SetCacheEnabledForRotation(bool enabled) = 0;
-    virtual ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height) = 0;
+    virtual ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode) = 0;
+
+    virtual int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) = 0;
 };
 
 } // namespace Rosen

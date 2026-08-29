@@ -60,9 +60,6 @@ private:
     void OnScreenChanged(Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent, Rosen::ScreenChangeReason reason,
                          sptr<IRemoteObject> connectToRender);
     bool isAnimationEnd_ = false;
-    bool isBootCompleted_ = false;
-    int64_t bootCompletedTimeMs_ = 0;
-    bool CheckAuthStateReadyWithTimeout();
 
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
     bool CheckExitAnimationExt();

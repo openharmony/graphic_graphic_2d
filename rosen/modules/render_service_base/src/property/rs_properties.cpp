@@ -2187,6 +2187,58 @@ std::string RSProperties::GetHdrDarkenBlenderDescription() const
     return description;
 }
 
+void RSProperties::SetColorfulBrightnessBlenderParams(std::unique_ptr<RSColorfulBrightnessBlenderPara> params)
+{
+    if (params) {
+        isDrawn_ = true;
+    }
+    GetEffect().colorfulBrightnessBlenderParams_ = std::move(params);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const RSColorfulBrightnessBlenderPara* RSProperties::GetColorfulBrightnessBlenderParams() const
+{
+    if (effect_ && effect_->colorfulBrightnessBlenderParams_) {
+        return effect_->colorfulBrightnessBlenderParams_.get();
+    }
+    return nullptr;
+}
+
+bool RSProperties::IsColorfulBrightnessBlenderValid() const
+{
+    return GetColorfulBrightnessBlenderParams() != nullptr;
+}
+
+bool RSProperties::IsFgBlenderEffectValid() const
+{
+    return IsFgBrightnessValid() || IsColorfulBrightnessBlenderValid();
+}
+
+std::string RSProperties::GetColorfulBrightnessBlenderDescription() const
+{
+    const auto* params = GetColorfulBrightnessBlenderParams();
+    if (params == nullptr) {
+        return "colorfulBrightnessBlenderParams is nullopt";
+    }
+    return "ColorfulBrightnessBlender, darkenWeight: " + std::to_string(params->darkenWeight_) +
+           ", fraction: " + std::to_string(params->fraction_) +
+           ", cubicRate: " + std::to_string(params->cubicRate_) +
+           ", quadRate: " + std::to_string(params->quadRate_) +
+           ", linearRate: " + std::to_string(params->linearRate_) +
+           ", degree: " + std::to_string(params->degree_) +
+           ", saturation: " + std::to_string(params->saturation_) +
+           ", positiveCoeff.x: " + std::to_string(params->positiveCoeff_.x_) +
+           ", positiveCoeff.y: " + std::to_string(params->positiveCoeff_.y_) +
+           ", positiveCoeff.z: " + std::to_string(params->positiveCoeff_.z_) +
+           ", negativeCoeff.x: " + std::to_string(params->negativeCoeff_.x_) +
+           ", negativeCoeff.y: " + std::to_string(params->negativeCoeff_.y_) +
+           ", negativeCoeff.z: " + std::to_string(params->negativeCoeff_.z_) +
+           ", vibrancyStrength: " + std::to_string(params->vibrancyStrength_) +
+           ", lumaDiff: " + std::to_string(params->lumaDiff_) +
+           ", hdrEnabled: " + std::to_string(params->hdrEnabled_);
+}
+
 bool RSProperties::IsShadowBlenderValid() const
 {
     const auto& shadowBlenderParams = GetShadowBlenderParams();
@@ -6165,14 +6217,14 @@ void RSProperties::UpdateFilter()
                   IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
                   GetLinearGradientBlurPara() != nullptr || IsDynamicDimValid() ||
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                  GetForegroundFilter() != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
+                  GetForegroundFilter() != nullptr || IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || !GetPixelStretch().IsZero() ||
                   GetMaterialFilter() != nullptr || HasSpatialGlassEffect();
 
     needHwcFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
-                     IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
+                     IsDynamicDimValid() || IsFgBlenderEffectValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
                      !GetPixelStretch().IsZero() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -6197,7 +6249,7 @@ bool RSProperties::DisableHWCForFilter() const
         IsDynamicLightUpValid() || GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||
         IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
         (GetForegroundFilter() != nullptr && GetForegroundFilter()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
-        IsFgBrightnessValid() || IsBgBrightnessValid() ||
+        IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
         (GetForegroundFilterCache() != nullptr &&
         GetForegroundFilterCache()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetMask() || GetColorFilter() != nullptr ||

@@ -25,7 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "common/rs_obj_abs_geometry.h"
 #include "engine/rs_base_render_engine.h"
@@ -344,16 +344,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-#ifdef RS_ENABLE_VK
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
-    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
-    RSUniRenderUtil::OptimizedFlushAndSubmit(vkInterface, surface, gpuContext_.get(), acquireFence,
+    RSUniRenderUtil::OptimizedFlushAndSubmit(renderContext->GetType(), surface, gpuContext_.get(), acquireFence,
         GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-#else
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
-        GetFeatureParamValue("CaptureConfig",
-            &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-#endif
     bufferGuard.SetAcquireFence(acquireFence);
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
@@ -429,15 +422,9 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-#ifdef RS_ENABLE_VK
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
-    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
-    RSUniRenderUtil::OptimizedFlushAndSubmit(vkInterface, surface, gpuContext_.get(), acquireFence,
+    RSUniRenderUtil::OptimizedFlushAndSubmit(renderContext->GetType(), surface, gpuContext_.get(), acquireFence,
         GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-#else
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
-        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-#endif
     bufferGuard.SetAcquireFence(acquireFence);
 #endif
     return true;

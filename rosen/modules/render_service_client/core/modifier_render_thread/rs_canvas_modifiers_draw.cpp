@@ -24,10 +24,10 @@
 #include "qos.h"
 
 #include "platform/common/rs_log.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "render_context/render_context.h"
 #include "render_context/shader_cache.h"
+#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,9 +44,7 @@ void RSCanvasModifiersDrawable::Reset()
     height_ = 0;
     forceFlushBuffer_ = false;
     needResetCanvas_ = false;
-    drawingSurface_ = nullptr;
     surfaceFrame_ = nullptr;
-    semaphore_ = VK_NULL_HANDLE;
     if (drawCmdListCache_ != nullptr) {
         drawCmdListCache_->clear();
     }
@@ -93,16 +91,16 @@ void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::weak_ptr<RSRenderInt
     renderInterface->ReleaseCanvasDrawingNodeSurface(nodeId_);
 }
 
-DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
+void RSCanvasModifiersDrawable::ResetSurface(
     int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return;
     }
     if (width_ == width && height_ == height) {
         RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Same width and height, nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return;
     }
 
     auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
@@ -113,7 +111,7 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
 
     Reset();
     if (sizeOutOfGpuLimit) {
-        return nullptr;
+        return;
     }
 
     width_ = width;
@@ -129,33 +127,32 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
             RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: SetColorSpace fail, nodeId=%{public}" PRIu64, nodeId_);
         }
     }
-    return Draw();
+    Draw();
 }
 
-DestroySemaphoreInfo* RSCanvasModifiersDrawable::UpdateContent(
-    Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer)
+void RSCanvasModifiersDrawable::UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer)
 {
     if (drawCmdListCache_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::UpdateContent: Null drawCmdListCache, drop drawCmdList, "
             "nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return;
     }
 
     if (drawCmdList != nullptr) {
         drawCmdListCache_->emplace_back(drawCmdList);
     }
     forceFlushBuffer_ = forceFlushBuffer;
-    return Draw();
+    Draw();
 }
 
-DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
+void RSCanvasModifiersDrawable::Draw()
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::Draw: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return;
     }
     if (drawCmdListCache_->empty() && !forceFlushBuffer_) {
-        return nullptr;
+        return;
     }
 
     if (surfaceFrame_ == nullptr) {
@@ -163,7 +160,7 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
     }
     if (surfaceFrame_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::Draw: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return;
     }
     for (auto& cmdList : *drawCmdListCache_) {
         cmdList->FlushImageCache();
@@ -172,13 +169,6 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
     }
     drawCmdListCache_->clear();
     forceFlushBuffer_ = false;
-    if (renderContext_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::Draw: renderContext_ is nullptr");
-        return nullptr;
-    }
-    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
-    NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore_);
-    return FlushSurfaceWithSemaphore();
 }
 
 std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawHistory()
@@ -236,46 +226,20 @@ void RSCanvasModifiersDrawable::Playback(const Drawing::DrawCmdListPtr& cmdList)
     }
 }
 
-DestroySemaphoreInfo* RSCanvasModifiersDrawable::FlushSurfaceWithSemaphore()
+sptr<SurfaceBuffer> RSCanvasModifiersDrawable::GetBuffer(bool needFlushBuffer)
 {
-#ifdef USE_M133_SKIA
-    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore_);
-#else
-    GrBackendSemaphore backendSemaphore;
-    backendSemaphore.initVulkan(semaphore_);
-#endif
-    if (renderContext_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::FlushSurfaceWithSemaphore: renderContext_ is nullptr");
-        return nullptr;
-    }
-    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
-    DestroySemaphoreInfo* destroyInfo =
-        new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore_);
-    Drawing::FlushInfo drawingFlushInfo;
-    drawingFlushInfo.backendSurfaceAccess = true;
-    drawingFlushInfo.numSemaphores = 1;
-    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-    drawingFlushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
-    drawingFlushInfo.finishedContext = destroyInfo;
-    drawingSurface_->Flush(&drawingFlushInfo);
-    return destroyInfo;
-}
-
-sptr<SurfaceBuffer> RSCanvasModifiersDrawable::OnFlushBuffer()
-{
-    if (nodeState_ == RSNodeState::INACTIVE) {
-        return nullptr;
-    }
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::OnFlushBuffer: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        RS_LOGE("RSCanvasModifiersDrawable::GetBuffer: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
-    if (surfaceFrame_ == nullptr || semaphore_ == VK_NULL_HANDLE) {
+    if (surfaceFrame_ == nullptr) {
         return nullptr;
     }
     auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
     if (auto buffer = ohosSurface->GetCurrentBuffer()) {
-        ohosSurface->OnFlushBuffer();
+        if (needFlushBuffer) {
+            ohosSurface->OnFlushBuffer();
+        }
         return buffer;
     }
     return nullptr;
@@ -284,20 +248,7 @@ sptr<SurfaceBuffer> RSCanvasModifiersDrawable::OnFlushBuffer()
 void RSCanvasModifiersDrawable::OnDirtyBufferCollected(int64_t lastFlushBufferTime)
 {
     surfaceFrame_ = nullptr;
-    semaphore_ = VK_NULL_HANDLE;
     lastFlushBufferTime_ = lastFlushBufferTime;
-}
-
-int32_t RSCanvasModifiersDrawable::GetFenceFd()
-{
-    int32_t fenceFd = 0;
-    if (renderContext_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::GetFenceFd: renderContext_ is nullptr");
-        return -1;
-    }
-    NativeBufferUtils::GetFenceFdFromSemaphore(
-        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(), semaphore_, fenceFd);
-    return fenceFd;
 }
 
 bool RSCanvasModifiersDrawable::IsFree(int64_t now, int64_t maxDuration)
@@ -452,8 +403,6 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
             canvasModifiersDraw->gpuContext_ = nullptr;
         }
         canvasModifiersDraw->drawableMap_.clear();
-        canvasModifiersDraw->canvasNewSemaphoreInfos_.clear();
-        canvasModifiersDraw->canvasExpiredSemaphoreInfos_.clear();
         canvasModifiersDraw->transactionConfigList_.clear();
     });
 }
@@ -573,9 +522,7 @@ void RSCanvasModifiersDraw::OnNodeStateChanged(NodeId nodeId, RSNodeState nodeSt
             canvasModifiersDraw->CleanFreeBuffersImmediately();
             return;
         }
-        if (auto* destroySemaphoreInfo = drawable.UpdateContent(nullptr, true)) {
-            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
-        }
+        drawable.UpdateContent(nullptr, true);
     });
 }
 
@@ -589,9 +536,7 @@ void RSCanvasModifiersDraw::ResetSurface(
             return;
         }
         auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-        if (auto* destroySemaphoreInfo = drawable.ResetSurface(width, height, sizeOutOfGpuLimit, colorSpace)) {
-            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
-        }
+        drawable.ResetSurface(width, height, sizeOutOfGpuLimit, colorSpace);
         if (sizeOutOfGpuLimit) {
             canvasModifiersDraw->CleanFreeBuffersImmediately();
         }
@@ -640,13 +585,56 @@ void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdL
             }
         }
         auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-        if (auto* destroySemaphoreInfo = drawable.UpdateContent(drawCmdList, false)) {
-            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
-        }
+        drawable.UpdateContent(drawCmdList, false);
         canvasModifiersDraw->lastUpdateCanvasContentTime_ = static_cast<int64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
                 .count());
     });
+}
+
+DestroySemaphoreInfo* RSCanvasModifiersDraw::FlushSurfaceWithSemaphore(
+    VkSemaphore& semaphore, std::shared_ptr<Drawing::Surface> drawingSurface)
+{
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDraw::FlushSurfaceWithSemaphore renderContext_ is nullptr");
+        return nullptr;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+    if (NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore) != VK_SUCCESS) {
+        RS_LOGE("RSCanvasModifiersDraw::FlushSurfaceWithSemaphore: CreateVkSemaphore fail");
+        semaphore = VK_NULL_HANDLE;
+        return nullptr;
+    }
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
+    GrBackendSemaphore backendSemaphore;
+    backendSemaphore.initVulkan(semaphore);
+#endif
+    DestroySemaphoreInfo* destroySemaphoreInfo =
+        new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
+    Drawing::FlushInfo drawingFlushInfo;
+    drawingFlushInfo.backendSurfaceAccess = true;
+    drawingFlushInfo.numSemaphores = 1;
+    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+    drawingFlushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
+    drawingFlushInfo.finishedContext = destroySemaphoreInfo;
+    drawingSurface->Flush(&drawingFlushInfo);
+    return destroySemaphoreInfo;
+}
+
+int32_t RSCanvasModifiersDraw::GetFenceFd(VkSemaphore& semaphore)
+{
+    int32_t fenceFd = INVALID_FD;
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDraw::GetFenceFd renderContext_ is nullptr");
+        return fenceFd;
+    }
+    if (semaphore != VK_NULL_HANDLE) {
+        NativeBufferUtils::GetFenceFdFromSemaphore(
+            RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(), semaphore, fenceFd);
+    }
+    return fenceFd;
 }
 
 void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
@@ -657,24 +645,45 @@ void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
         if (canvasModifiersDraw == nullptr) {
             return;
         }
+        auto gpuContext = canvasModifiersDraw->GetGpuContext();
+        if (gpuContext == nullptr) {
+            RS_LOGE("RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers, null gpuContext");
+            return;
+        }
 
+        bool needFlushBuffer = false;
+        for (auto& [_, drawable] : canvasModifiersDraw->drawableMap_) {
+            if (drawable.nodeState_ == RSNodeState::ACTIVE) {
+                needFlushBuffer = true;
+                break;
+            }
+        }
         std::vector<std::pair<sptr<SurfaceBuffer>, RSCanvasModifiersDrawable*>> bufferList;
         for (auto& [_, drawable] : canvasModifiersDraw->drawableMap_) {
-            if (auto buffer = drawable.OnFlushBuffer()) {
+            if (auto buffer = drawable.GetBuffer(needFlushBuffer)) {
                 bufferList.emplace_back(buffer, &drawable);
             }
         }
-        if (!bufferList.empty()) {
-            if (auto gpuContext = canvasModifiersDraw->GetGpuContext()) {
-                gpuContext->Submit();
-            }
-            auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
-            for (const auto& [buffer, drawable] : bufferList) {
-                canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, drawable->GetFenceFd());
-                drawable->OnDirtyBufferCollected(now);
-            }
-            canvasModifiersDraw->DestroyCanvasSemaphore();
+        if (bufferList.empty()) {
+            return;
+        }
+        if (!needFlushBuffer) {
+            gpuContext->Submit();
+            return;
+        }
+        VkSemaphore semaphore = VK_NULL_HANDLE;
+        DestroySemaphoreInfo* destroySemaphoreInfo =
+            canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, bufferList.back().second->drawingSurface_);
+        gpuContext->Submit();
+        auto fenceFd = canvasModifiersDraw->GetFenceFd(semaphore);
+        auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        for (const auto& [buffer, drawable] : bufferList) {
+            canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, fenceFd);
+            drawable->OnDirtyBufferCollected(now);
+        }
+        if (destroySemaphoreInfo != nullptr) {
+            DestroySemaphoreInfo::DestroySemaphore(destroySemaphoreInfo);
         }
     });
 }
@@ -689,18 +698,6 @@ void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceB
     std::vector<Rect> damages{Rect{0, 0, buffer->GetWidth(), buffer->GetHeight()}};
     config.transaction->SetDamages(damages);
     transactionConfigList_.emplace_back(config);
-}
-
-void RSCanvasModifiersDraw::DestroyCanvasSemaphore()
-{
-    for (auto& semaphoreInfo: canvasExpiredSemaphoreInfos_) {
-        if (!semaphoreInfo) {
-            continue;
-        }
-        DestroySemaphoreInfo::DestroySemaphore(semaphoreInfo);
-    }
-    canvasExpiredSemaphoreInfos_.clear();
-    std::swap(canvasNewSemaphoreInfos_, canvasExpiredSemaphoreInfos_);
 }
 
 void RSCanvasModifiersDraw::SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList)

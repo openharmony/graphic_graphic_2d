@@ -414,8 +414,23 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
 
     drawingNode = RSCanvasDrawingNode::Create(true);
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawingNode->RenderInClient(drawCmdList);
+    ret = drawingNode->RenderInClient(drawCmdList);
     EXPECT_FALSE(ret);
+
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = uidirector->GetRSUIContext();
+    rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+    drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    drawingNode->hybridEnabled_ = true;
+    drawingNode->sizeOutOfGpuLimit_ = false;
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_TRUE(ret);
+    ret = drawingNode->RenderInClient(nullptr);
+    EXPECT_TRUE(ret);
+    rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
+    rsUIContext->canvasModifiersDrawAgent_->Destroy();
+    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
 }
 
 /**

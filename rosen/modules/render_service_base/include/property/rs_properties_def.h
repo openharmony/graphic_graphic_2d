@@ -226,6 +226,41 @@ struct RSHdrDarkenBlenderPara {
     }
 };
 
+struct RSColorfulBrightnessBlenderPara {
+    float darkenWeight_ = 1.0f;
+    float fraction_ = 1.0f;
+    float cubicRate_ = 0.0f;
+    float quadRate_ = 0.0f;
+    float linearRate_ = 1.0f;
+    float degree_ = 0.0f;
+    float saturation_ = 1.0f;
+    Vector3f positiveCoeff_;
+    Vector3f negativeCoeff_;
+    float vibrancyStrength_ = 0.0f;
+    float lumaDiff_ = 0.1f;
+    bool hdrEnabled_ = true;
+
+    RSColorfulBrightnessBlenderPara() = default;
+    RSColorfulBrightnessBlenderPara(float dw, float fr, float cr, float qr, float lr, float deg,
+        float sat, Vector3f pos, Vector3f neg, float vs, float ld, bool hdr = true)
+        : darkenWeight_(dw), fraction_(fr), cubicRate_(cr), quadRate_(qr), linearRate_(lr),
+          degree_(deg), saturation_(sat), positiveCoeff_(pos), negativeCoeff_(neg),
+          vibrancyStrength_(vs), lumaDiff_(ld), hdrEnabled_(hdr) {}
+
+    bool operator==(const RSColorfulBrightnessBlenderPara& other) const
+    {
+        return ROSEN_EQ(darkenWeight_, other.darkenWeight_) && ROSEN_EQ(fraction_, other.fraction_) &&
+               ROSEN_EQ(cubicRate_, other.cubicRate_) && ROSEN_EQ(quadRate_, other.quadRate_) &&
+               ROSEN_EQ(linearRate_, other.linearRate_) && ROSEN_EQ(degree_, other.degree_) &&
+               ROSEN_EQ(saturation_, other.saturation_) &&
+               positiveCoeff_ == other.positiveCoeff_ &&
+               negativeCoeff_ == other.negativeCoeff_ &&
+               ROSEN_EQ(vibrancyStrength_, other.vibrancyStrength_) &&
+               ROSEN_EQ(lumaDiff_, other.lumaDiff_) &&
+               hdrEnabled_ == other.hdrEnabled_;
+    }
+};
+
 struct RSWaterRipplePara {
     uint32_t waveCount = 0;
     float rippleCenterX = 0.5f;

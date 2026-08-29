@@ -85,8 +85,8 @@
 #include "include/gpu/GrBackendSurface.h"
 #endif
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
@@ -288,7 +288,7 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
         Drawing::DrawOpItem::Type invalidType) -> bool {
         auto slot = GetModifiersNG(type);
         if (slot.empty()) {
-            RS_LOGW("solidLayer: CheckCmdIn2Modifier no slot");
+            RS_LOGD("solidLayer: CheckCmdIn2Modifier no slot");
             return true;
         }
         auto typeString = ModifierNG::RSModifierTypeString::GetModifierTypeString(type);
@@ -299,11 +299,11 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
             }
             const auto& drawOpItems = cmdList->GetDrawOpItems();
             if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
-                RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
+                RS_LOGD("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
                 return true;
             }
         }
-        RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is true %{public}s", typeString.c_str());
+        RS_LOGD("solidLayer: CheckCmdIn2Modifier ret is true %{public}s", typeString.c_str());
         return false;
     };
 
@@ -1821,9 +1821,14 @@ RSRenderNode::~RSRenderNode()
     }
 }
 
+bool RSRenderNode::MustReleaseOnMainThread() const
+{
+    return HasAnimation() || !RSSystemProperties::GetBgNodeReleaseEnabled();
+}
+
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    if (!animationManager_ || animationManager_->animations_.empty()) {
+    if (!HasAnimation()) {
         return;
     }
     if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {
@@ -3890,9 +3895,7 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" PRIu64,
-        type, isNodeGroup, GetId());
+    RS_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {

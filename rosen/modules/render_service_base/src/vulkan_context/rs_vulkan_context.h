@@ -29,7 +29,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class MemoryHandler;
 class RsVulkanContext {
 public:
     static RsVulkanContext& Get(RenderEngineType type = RenderEngineType::BASIC_RENDER);
@@ -38,6 +37,7 @@ public:
     ~RsVulkanContext();
 
     // 禁止复制和移动
+    RsVulkanContext() = delete;
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext& operator=(const RsVulkanContext&) = delete;
     RsVulkanContext(RsVulkanContext&&) = delete;

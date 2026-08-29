@@ -138,6 +138,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() mutable {
         RSMarshallingHelper::SetCallingPid(callingPid);
         AshmemFdContainer::SetIsUnmarshalThread(true);
+        AshmemFdContainer::Instance().Clear();
         if (ashmemFdWorker) {
             ashmemFdWorker->PushFdsToContainer();
         }
@@ -154,7 +155,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             return;
         }
         transData->SetCallingPid(callingPid);
-        transData->SetSendingPid(callingPid);
+        RS_PROFILER_SET_TRANSACTION_SENDING_PID(*transData, *parcel, callingPid);
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
             if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
@@ -166,7 +167,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
                 return;
             }
         }
-        RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
         if (transData && transData->GetDVSyncUpdate()) {
             RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());

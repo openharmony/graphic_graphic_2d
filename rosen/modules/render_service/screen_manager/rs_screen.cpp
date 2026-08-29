@@ -452,7 +452,7 @@ bool RSScreen::CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& revi
     return false;
 }
 
-void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
+void RSScreen::SetRogResolution(uint32_t width, uint32_t height, ScreenSamplingMode samplingMode)
 {
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
@@ -477,6 +477,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     isRogResolution_ = true;
     UPDATE_PROPERTY(IsRogResolution, true);
     UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
+    UPDATE_PROPERTY(SamplingMode, samplingMode);
     UpdateSamplingScale(property_.GetPhyWidth(), property_.GetPhyHeight(), width, height);
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
         " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
@@ -884,9 +885,11 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
         AppendFormat(dumpString,
-                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f\n",
+                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f"
+                     ", samplingMode=%u\n",
                      property_.GetIsSamplingOn(), property_.GetSamplingScale(),
-                     property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY());
+                     property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY(),
+                     static_cast<uint32_t>(property_.GetSamplingMode()));
         AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect=[%d,%d,%d,%d]\n",
                      property_.GetEnableVisibleRect(),
                      property_.GetMainScreenVisibleRect().x, property_.GetMainScreenVisibleRect().y,

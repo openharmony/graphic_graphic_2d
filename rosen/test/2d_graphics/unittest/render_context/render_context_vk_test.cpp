@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "platform/common/rs_system_properties.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #include "render_context.h"
 #include "render_context/new_render_context/render_context_vk.h"
 using namespace testing::ext;

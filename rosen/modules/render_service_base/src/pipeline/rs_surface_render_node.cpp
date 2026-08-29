@@ -373,6 +373,15 @@ void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
+ScreenId RSSurfaceRenderNode::GetScreenId() const
+{
+    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(ancestorScreenNode_.lock());
+    if (!screenNode) {
+        return INVALID_SCREEN_ID;
+    }
+    return screenNode->GetScreenId();
+}
+
 void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
     std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender, bool onlyFirstLevel)
 {
@@ -451,30 +460,6 @@ void RSSurfaceRenderNode::ClearChildrenCache()
     OnTreeStateChanged();
 }
 
-void RSSurfaceRenderNode::FindScreenId()
-{
-    // The results found across screen windows are inaccurate
-    if (screenId_ != INVALID_SCREEN_ID) {
-        return;
-    }
-    auto nodeTemp = GetParent().lock();
-    while (nodeTemp != nullptr) {
-        if (nodeTemp->GetId() == 0) {
-            break;
-        }
-        if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
-            screenId_ = displayNode->GetScreenId();
-            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-            if (surfaceParams != nullptr) {
-                surfaceParams->SetScreenId(screenId_);
-            }
-            break;
-        }
-        nodeTemp = nodeTemp->GetParent().lock();
-    }
-}
-
 void RSSurfaceRenderNode::AfterTreeStateChanged()
 {
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
@@ -520,9 +505,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
-        uifirstState_.needSync = true;
-    } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
-        FindScreenId();
     }
 #endif
     if (IsAbilityComponent()) {
@@ -2589,14 +2571,18 @@ void RSSurfaceRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
+        return;
+    }
     if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams == nullptr) {
-            RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
-            return;
-        }
         surfaceParams->SetNeedSync(true);
         surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
+    }
+
+    if (IsMainWindowType() || IsLeashWindow()) {
+        surfaceParams->ClipAndScaleDirtyManager(syncDirtyManager);
     }
     RSRenderNode::OnSync();
 #endif
@@ -3031,7 +3017,6 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
     if (!onTree) {
-        screenId_ = INVALID_SCREEN_ID;
         if (occlusionParams_ != nullptr) {
             occlusionParams_->SetOcclusionHandler(nullptr);
         }

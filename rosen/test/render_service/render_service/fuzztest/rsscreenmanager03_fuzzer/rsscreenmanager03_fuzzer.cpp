@@ -77,7 +77,10 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
-    g_screenManager->SetRogScreenResolution(id, width, height);
+    ScreenSamplingMode samplingMode = static_cast<ScreenSamplingMode>(
+        fdp.ConsumeIntegral<uint32_t>() %
+        (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1));
+    g_screenManager->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 void DoSetDualScreenState(FuzzedDataProvider& fdp)

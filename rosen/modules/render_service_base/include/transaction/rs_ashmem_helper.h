@@ -67,13 +67,12 @@ public:
     ~AshmemFdContainer() = default;
     static void SetIsUnmarshalThread(bool isUnmarshalThread);
     int ReadSafeFd(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc = nullptr);
-
+    void Clear();
 private:
     AshmemFdContainer() = default;
     DISALLOW_COPY_AND_MOVE(AshmemFdContainer);
 
     void Merge(const std::unordered_map<binder_size_t, int>& fds);
-    void Clear();
     std::string PrintFds() const;
 
     std::unordered_map<binder_size_t, int> fds_;

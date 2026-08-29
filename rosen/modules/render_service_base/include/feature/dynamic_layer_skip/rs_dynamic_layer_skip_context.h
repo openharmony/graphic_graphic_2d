@@ -36,7 +36,9 @@ enum LayerDrawContent : size_t {
 class RSDynamicLayerSkipController;
 struct RSB_EXPORT LayerSkipContext {
     bool screenLayerInvalid_ = false;
+    bool virtualScreenLayerInvalid_ = false;
     std::vector<NodeId> relevantSurfaceNodeIds_ = {};
+    std::vector<NodeId> virtualRelevantSurfaceNodeIds_ = {};
     void SyncFrom(const RSDynamicLayerSkipController& controller);
     void Reset();
 };

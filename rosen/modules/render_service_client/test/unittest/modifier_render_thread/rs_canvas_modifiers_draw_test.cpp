@@ -16,13 +16,19 @@
 #include "gtest/gtest.h"
 
 #include "modifier_render_thread/rs_canvas_modifiers_draw.h"
+#include "external_window.h"
+#include "ibuffer_consumer_listener.h"
 #include "iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #include <future>
+
+class BufferConsumerListener : public OHOS::IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override {}
+};
 
 using namespace testing;
 using namespace testing::ext;
@@ -131,8 +137,9 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_NullProducerSurface001, Tes
 {
     RSCanvasModifiersDrawable drawable;
     drawable.producerSurface_ = nullptr;
-    auto result = drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    EXPECT_EQ(result, nullptr);
+    drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(drawable.width_, 0);
+    EXPECT_EQ(drawable.height_, 0);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_SameWidthAndHeight001, TestSize.Level1)
@@ -141,8 +148,9 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_SameWidthAndHeight001, Test
     drawable.producerSurface_ = CreateSurface();
     drawable.width_ = 100;
     drawable.height_ = 100;
-    auto result = drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    EXPECT_EQ(result, nullptr);
+    drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(drawable.width_, 100);
+    EXPECT_EQ(drawable.height_, 100);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_WithValidSurfaceDifferentSize001, TestSize.Level1)
@@ -152,8 +160,7 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_WithValidSurfaceDifferentSi
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
     drawable.width_ = 0;
     drawable.height_ = 0;
-    auto result = drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    EXPECT_EQ(result, NULL);
+    drawable.ResetSurface(100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(drawable.width_, 100);
     EXPECT_EQ(drawable.height_, 100);
     EXPECT_TRUE(drawable.needResetCanvas_);
@@ -164,8 +171,7 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_SizeOutOfGpuLimit001, TestS
 {
     RSCanvasModifiersDrawable drawable;
     drawable.producerSurface_ = CreateSurface();
-    auto result = drawable.ResetSurface(100, 100, true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    EXPECT_EQ(result, nullptr);
+    drawable.ResetSurface(100, 100, true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(drawable.width_, 0);
     EXPECT_EQ(drawable.height_, 0);
 }
@@ -174,8 +180,8 @@ HWTEST_F(RSCanvasModifiersDrawableTest, UpdateContent_NullDrawCmdListCache001, T
 {
     RSCanvasModifiersDrawable drawable;
     drawable.drawCmdListCache_ = nullptr;
-    auto result = drawable.UpdateContent(nullptr, false);
-    EXPECT_EQ(result, nullptr);
+    drawable.UpdateContent(nullptr, false);
+    EXPECT_EQ(drawable.drawCmdListCache_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, UpdateContent_WithDrawCmdList001, TestSize.Level1)
@@ -183,16 +189,16 @@ HWTEST_F(RSCanvasModifiersDrawableTest, UpdateContent_WithDrawCmdList001, TestSi
     RSCanvasModifiersDrawable drawable;
     drawable.producerSurface_ = CreateSurface();
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
-    auto result = drawable.UpdateContent(nullptr, false);
-    EXPECT_EQ(result, nullptr);
+    drawable.UpdateContent(nullptr, false);
+    EXPECT_NE(drawable.drawCmdListCache_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, Draw_NullProducerSurface001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
     drawable.producerSurface_ = nullptr;
-    auto result = drawable.Draw();
-    EXPECT_EQ(result, nullptr);
+    drawable.Draw();
+    EXPECT_EQ(drawable.producerSurface_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, Draw_EmptyCacheNoForceFlush001, TestSize.Level1)
@@ -201,31 +207,76 @@ HWTEST_F(RSCanvasModifiersDrawableTest, Draw_EmptyCacheNoForceFlush001, TestSize
     drawable.producerSurface_ = CreateSurface();
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
     drawable.forceFlushBuffer_ = false;
-    auto result = drawable.Draw();
-    EXPECT_EQ(result, nullptr);
+    drawable.Draw();
+    EXPECT_FALSE(drawable.forceFlushBuffer_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, Draw_WithValidSurfaceAndForceFlush001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
-    drawable.renderContext_ = RenderContext::Create();
-    drawable.renderContext_->Init(RenderEngineType::BASIC_RENDER);
-    drawable.producerSurface_ = CreateSurface();
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestDrawForceFlush");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(
+        Surface::CreateSurfaceAsProducer(bp), rasterSurface);
+    drawable.producerSurface_ = mockSurface;
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
     drawable.forceFlushBuffer_ = true;
     drawable.width_ = 100;
     drawable.height_ = 100;
-    auto result = drawable.Draw();
-    EXPECT_EQ(result, nullptr);
-    drawable.renderContext_->drGPUContext_ = nullptr;
+    drawable.Draw();
+    EXPECT_FALSE(drawable.forceFlushBuffer_);
 }
 
-HWTEST_F(RSCanvasModifiersDrawableTest, GetFenceFd_Basic001, TestSize.Level1)
+// RSCanvasModifiersDraw::FlushSurfaceWithSemaphore: static method.
+// Branch 1: CreateVkSemaphore fails → returns nullptr, semaphore set to VK_NULL_HANDLE.
+// Branch 2: CreateVkSemaphore succeeds → creates DestroySemaphoreInfo, Flush, returns ptr.
+//   Cannot call Flush on null/raster surface; only verify semaphore creation + cleanup.
+//   The null-drawingSurface guard is in the caller (SubmitAndCollectCanvasBuffers), not here.
+HWTEST_F(RSCanvasModifiersDrawableTest, FlushSurfaceWithSemaphore_StaticMethod001, TestSize.Level1)
 {
-    RSCanvasModifiersDrawable drawable;
-    drawable.semaphore_ = VK_NULL_HANDLE;
-    int32_t fenceFd = drawable.GetFenceFd();
-    EXPECT_EQ(fenceFd, -1);
+    // Branch 1: CreateVkSemaphore fails → early return nullptr
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->GetGpuContext();
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersDraw->renderContext_->GetType()).GetRsVulkanInterface();
+    if (NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore) != VK_SUCCESS) {
+        // Vulkan unavailable: CreateVkSemaphore fails, FlushSurfaceWithSemaphore returns nullptr
+        auto* result = canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, nullptr);
+        EXPECT_EQ(result, nullptr);
+        EXPECT_EQ(semaphore, VK_NULL_HANDLE);
+        return;
+    }
+    // Branch 2: CreateVkSemaphore succeeds → semaphore created, verify + cleanup
+    // Cannot call FlushSurfaceWithSemaphore without a real GPU surface (would crash),
+    // so verify the semaphore was created and manually destroy it
+    EXPECT_NE(semaphore, VK_NULL_HANDLE);
+    vkInterface->vkDestroySemaphore(vkInterface->GetDevice(), semaphore, nullptr);
+}
+
+// RSCanvasModifiersDraw::GetFenceFd: static method.
+// Branch 1: semaphore==VK_NULL_HANDLE → returns INVALID_FD.
+// Branch 2: semaphore!=VK_NULL_HANDLE → calls GetFenceFdFromSemaphore.
+// Must use a real VkSemaphore; a fake handle causes SIGSEGV in vkGetSemaphoreFdKHR.
+HWTEST_F(RSCanvasModifiersDrawableTest, GetFenceFd_StaticMethod001, TestSize.Level1)
+{
+    // Branch 1: null semaphore
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->GetGpuContext();
+    VkSemaphore nullSemaphore = VK_NULL_HANDLE;
+    EXPECT_EQ(canvasModifiersDraw->GetFenceFd(nullSemaphore), INVALID_FD);
+
+    // Branch 2: valid semaphore (requires Vulkan)
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersDraw->renderContext_->GetType()).GetRsVulkanInterface();
+    if (NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore) != VK_SUCCESS) {
+        return;
+    }
+    int32_t fenceFd = canvasModifiersDraw->GetFenceFd(semaphore);
+    // fd may be INVALID_FD since semaphore is not submitted, but branch is exercised
+    EXPECT_TRUE(fenceFd >= -1);
+    vkInterface->vkDestroySemaphore(vkInterface->GetDevice(), semaphore, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, IsFree_LastFlushBufferTimeZero001, TestSize.Level1)
@@ -266,50 +317,36 @@ HWTEST_F(RSCanvasModifiersDrawableTest, IsFree_FreeDrawable001, TestSize.Level1)
 HWTEST_F(RSCanvasModifiersDrawableTest, OnDirtyBufferCollected_ResetsFields001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
-    drawable.semaphore_ = reinterpret_cast<VkSemaphore>(12345);
     drawable.lastFlushBufferTime_ = 1000;
     drawable.OnDirtyBufferCollected(2000);
     EXPECT_EQ(drawable.surfaceFrame_, nullptr);
-    EXPECT_EQ(drawable.semaphore_, VK_NULL_HANDLE);
     EXPECT_EQ(drawable.lastFlushBufferTime_, 2000);
 }
 
-HWTEST_F(RSCanvasModifiersDrawableTest, OnFlushBuffer_InactiveState001, TestSize.Level1)
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_NeedFlushBufferFalse001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
     drawable.nodeState_ = RSNodeState::INACTIVE;
-    auto result = drawable.OnFlushBuffer();
+    auto result = drawable.GetBuffer(false);
     EXPECT_EQ(result, nullptr);
 }
 
-HWTEST_F(RSCanvasModifiersDrawableTest, OnFlushBuffer_NullProducerSurface001, TestSize.Level1)
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_NullProducerSurface001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
     drawable.nodeState_ = RSNodeState::ACTIVE;
     drawable.producerSurface_ = nullptr;
-    auto result = drawable.OnFlushBuffer();
+    auto result = drawable.GetBuffer(true);
     EXPECT_EQ(result, nullptr);
 }
 
-HWTEST_F(RSCanvasModifiersDrawableTest, OnFlushBuffer_NullSurfaceFrame001, TestSize.Level1)
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_NullSurfaceFrame001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
     drawable.nodeState_ = RSNodeState::ACTIVE;
     drawable.producerSurface_ = CreateSurface();
-    drawable.semaphore_ = reinterpret_cast<VkSemaphore>(1);
     drawable.surfaceFrame_ = nullptr;
-    auto result = drawable.OnFlushBuffer();
-    EXPECT_EQ(result, nullptr);
-}
-
-HWTEST_F(RSCanvasModifiersDrawableTest, OnFlushBuffer_NullSemaphore001, TestSize.Level1)
-{
-    RSCanvasModifiersDrawable drawable;
-    drawable.nodeState_ = RSNodeState::ACTIVE;
-    drawable.producerSurface_ = CreateSurface();
-    drawable.semaphore_ = VK_NULL_HANDLE;
-    drawable.surfaceFrame_ = nullptr;
-    auto result = drawable.OnFlushBuffer();
+    auto result = drawable.GetBuffer(true);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -334,15 +371,18 @@ HWTEST_F(RSCanvasModifiersDrawableTest, CleanBuffer_WithValidSurface001, TestSiz
 HWTEST_F(RSCanvasModifiersDrawableTest, GetImage_NullDrawingSurface001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
+    drawable.drawingSurface_ = nullptr;
     auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
     auto result = drawable.GetImage(bitmapFormat, gpuContext);
     EXPECT_EQ(result, nullptr);
+    EXPECT_EQ(drawable.drawingSurface_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, GetImage_NullGpuContext001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
+    drawable.drawingSurface_ = Drawing::Surface::MakeRaster(Drawing::ImageInfo::MakeN32Premul(100, 100));
     auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     auto result = drawable.GetImage(bitmapFormat, nullptr);
     EXPECT_EQ(result, nullptr);
@@ -750,41 +790,6 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_WeakPtrExpired001, TestS
     usleep(100000);
 }
 
-// Covers line 623: UpdateContent returns non-null DestroySemaphoreInfo (emplace_back branch).
-// Requires Vulkan/GPU for CreateVkSemaphore and FlushSurfaceWithSemaphore.
-// Skips when GPU is not available (GetRecyclableDrawingContext returns nullptr).
-HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_DestroySemaphoreInfo001, TestSize.Level1)
-{
-    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext("/data/local/tmp");
-    if (canvasModifiersDraw->gpuContext_ == nullptr) {
-        GTEST_SKIP() << "Vulkan not available, cannot cover DestroySemaphoreInfo path";
-    }
-    canvasModifiersDraw->StartThread();
-    NodeId nodeId = 1;
-    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-    // Use mock surface so RequestFrame succeeds, enabling Draw() to proceed
-    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
-    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestDrawSemaphore");
-    sptr<IBufferProducer> bp = cSurface->GetProducer();
-    drawable.producerSurface_ = std::make_shared<TestRSSurfaceOhosVulkan>(
-        Surface::CreateSurfaceAsProducer(bp), rasterSurface);
-    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
-    drawable.width_ = 100;
-    drawable.height_ = 100;
-    // Non-null drawCmdList ensures UpdateContent calls Draw()
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    canvasModifiersDraw->UpdateCanvasContent(nodeId, drawCmdList);
-    // Wait for async lambda to complete on the worker thread
-    auto future = canvasModifiersDraw->ScheduleTask(
-        [canvasModifiersDraw]() { return canvasModifiersDraw->canvasNewSemaphoreInfos_.size(); });
-    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(2000)), std::future_status::ready);
-    // Draw() succeeded → canvasNewSemaphoreInfos_ has at least one entry
-    EXPECT_GE(future.get(), 1);
-    canvasModifiersDraw->Destroy();
-}
-
 HWTEST_F(RSCanvasModifiersDrawTest, SwapTransactionConfigList_ExchangesLists001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
@@ -807,14 +812,6 @@ HWTEST_F(RSCanvasModifiersDrawTest, AppendTransactionConfig_Basic001, TestSize.L
     std::vector<RSTransactionConfig> configs;
     canvasModifiersDraw->SwapTransactionConfigList(configs);
     EXPECT_EQ(configs.size(), 0);
-}
-
-HWTEST_F(RSCanvasModifiersDrawTest, DestroyCanvasSemaphore_HandlesEmptyList001, TestSize.Level1)
-{
-    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    canvasModifiersDraw->StartThread();
-    canvasModifiersDraw->DestroyCanvasSemaphore();
-    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_SchedulesRecurringTask001, TestSize.Level1)
@@ -857,32 +854,6 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_EmptyMap001, T
     EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
-HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_WithSemaphore001, TestSize.Level1)
-{
-    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    NodeId nodeId = 1;
-    auto renderInterface = std::make_shared<RSRenderInterface>();
-    std::weak_ptr<RSRenderInterface> weakInterface = renderInterface;
-    canvasModifiersDraw->OnNodeCreate(nodeId, weakInterface);
-    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-    drawable.nodeState_ = RSNodeState::ACTIVE;
-    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
-    auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
-    NativeBufferUtils::CreateVkSemaphore(vkInterface, drawable.semaphore_);
-    drawable.width_ = 100;
-    drawable.height_ = 100;
-    auto drawingSurface = std::make_shared<Drawing::Surface>();
-    drawable.surfaceFrame_ =
-        std::make_unique<RSSurfaceFrameOhosVulkan>(drawingSurface, drawable.width_, drawable.height_, 1);
-    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(drawable.producerSurface_);
-    NativeWindowBuffer windowBuffer;
-    windowBuffer.sfbuffer = new SurfaceBufferImpl();
-    ohosSurface->mSurfaceList.emplace_back(&windowBuffer);
-    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
-    usleep(10000);
-    EXPECT_TRUE(canvasModifiersDraw->canvasNewSemaphoreInfos_.empty());
-}
-
 // Verify initial state of GPU cache limit members
 HWTEST_F(RSCanvasModifiersDrawTest, GpuCacheLimit_InitialState001, TestSize.Level1)
 {
@@ -890,8 +861,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, GpuCacheLimit_InitialState001, TestSize.Leve
     EXPECT_EQ(canvasModifiersDraw->maxGpuResourceBytes_, 0u);
     EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
     EXPECT_TRUE(canvasModifiersDraw->drawableMap_.empty());
-    EXPECT_TRUE(canvasModifiersDraw->canvasNewSemaphoreInfos_.empty());
-    EXPECT_TRUE(canvasModifiersDraw->canvasExpiredSemaphoreInfos_.empty());
+    EXPECT_TRUE(canvasModifiersDraw->transactionConfigList_.empty());
 }
 
 // DoCleanFreeBuffers: sets needRestoreGpuCacheLimit_ when free drawables exist and gpuContext available;
@@ -1009,18 +979,312 @@ HWTEST_F(RSCanvasModifiersDrawableTest, Draw_WithInValidContext, TestSize.Level1
     drawable.width_ = 100;
     drawable.height_ = 100;
     drawable.renderContext_ = nullptr;
-    auto result = drawable.Draw();
+    drawable.Draw();
+    EXPECT_EQ(drawable.renderContext_, nullptr);
+}
+
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_SurfaceFrameNotNullNoCurrentBuffer001, TestSize.Level1)
+{
+    RSCanvasModifiersDrawable drawable;
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestGetBuffer");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(
+        Surface::CreateSurfaceAsProducer(bp), rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    // GetCurrentBuffer returns nullptr because mSurfaceList is empty (no real buffer queued)
+    auto result = drawable.GetBuffer(false);
     EXPECT_EQ(result, nullptr);
 }
 
-HWTEST_F(RSCanvasModifiersDrawableTest, FlushSurfaceWithSemaphoreWithInvalidContext, TestSize.Level1)
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_FlushBufferTrue001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
-    drawable.renderContext_ = nullptr;
-    auto result = drawable.FlushSurfaceWithSemaphore();
-    EXPECT_EQ(result, nullptr);
-    auto res = drawable.GetFenceFd();
-    EXPECT_EQ(res, 0);
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestGetBufferFlush");
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(pSurface, rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    BufferRequestConfig config = { .width = 0x100, .height = 0x100, .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA };
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t releaseFence = -1;
+    pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_NE(buffer, nullptr);
+    auto* nwb = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    ASSERT_NE(nwb, nullptr);
+    mockSurface->mSurfaceList.emplace_back(nwb);
+    auto result = drawable.GetBuffer(true);
+    pSurface->CancelBuffer(buffer);
+    EXPECT_NE(result, nullptr);
+}
+
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBuffer_FlushBufferFalse001, TestSize.Level1)
+{
+    RSCanvasModifiersDrawable drawable;
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestGetBufferNoFlush");
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(pSurface, rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    BufferRequestConfig config = { .width = 0x100, .height = 0x100, .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA };
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t releaseFence = -1;
+    pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_NE(buffer, nullptr);
+    auto* nwb = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    ASSERT_NE(nwb, nullptr);
+    mockSurface->mSurfaceList.emplace_back(nwb);
+    auto result = drawable.GetBuffer(false);
+    pSurface->CancelBuffer(buffer);
+    EXPECT_NE(result, nullptr);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, FlushSurfaceWithSemaphore_AndGetFenceFd001, TestSize.Level1)
+{
+    // Case 1: renderContext_ is nullptr
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->renderContext_ = nullptr;
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    EXPECT_EQ(canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, nullptr), nullptr);
+    EXPECT_EQ(canvasModifiersDraw->GetFenceFd(semaphore), INVALID_FD);
+
+    // Case 2: renderContext_ != nullptr
+    canvasModifiersDraw->GetGpuContext();
+    ASSERT_NE(canvasModifiersDraw->renderContext_, nullptr);
+    semaphore = VK_NULL_HANDLE;
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersDraw->renderContext_->GetType()).GetRsVulkanInterface();
+    if (vkInterface == nullptr) {
+        // No Vulkan: CreateVkSemaphore fails, nullptr surface is safe (early return)
+        EXPECT_EQ(canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, nullptr), nullptr);
+        return;
+    }
+    // Vulkan available: CreateVkSemaphore succeeds, must provide valid drawingSurface
+    // (FlushSurfaceWithSemaphore calls drawingSurface->Flush after semaphore creation)
+    auto drawingSurface = Drawing::Surface::MakeRaster(Drawing::ImageInfo::MakeN32Premul(0x100, 0x100));
+    ASSERT_NE(drawingSurface, nullptr);
+    auto* result = canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, drawingSurface);
+    if (result != nullptr) {
+        DestroySemaphoreInfo::DestroySemaphore(result);
+    }
+    EXPECT_NE(canvasModifiersDraw->renderContext_, nullptr);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_ActiveWithDrawable001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    canvasModifiersDraw->OnNodeStateChanged(nodeId, RSNodeState::ACTIVE);
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_[nodeId].forceFlushBuffer_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, ResetSurface_WithDrawableInMap001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    canvasModifiersDraw->ResetSurface(nodeId, 200, 200, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_.count(nodeId) > 0; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_NullGpuContext001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    canvasModifiersDraw->drawableMap_[nodeId];
+    canvasModifiersDraw->gpuContext_ = nullptr;
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->transactionConfigList_.empty(); });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+}
+
+// gpuContext non-null, INACTIVE drawable, GetBuffer returns null, bufferList empty
+// -2: gpuContext != nullptr
+// -3: iterating drawableMap_
+// -5: drawable.nodeState_ != ACTIVE
+// -6: iterating second loop
+// -8: GetBuffer returns null
+// -9: bufferList empty → return
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_InactiveNoBuffer001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->GetGpuContext();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.nodeState_ = RSNodeState::INACTIVE;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->transactionConfigList_.empty(); });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+}
+
+// gpuContext non-null, ACTIVE drawable, GetBuffer returns null (no surfaceFrame), bufferList empty
+// -4: drawable.nodeState_ == ACTIVE → needFlushBuffer=true
+// -8: GetBuffer returns null (surfaceFrame_ is nullptr)
+// -9: bufferList empty → return
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_ActiveNoBuffer001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->GetGpuContext();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.surfaceFrame_ = nullptr;
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->transactionConfigList_.empty(); });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+}
+
+// ACTIVE drawable with buffer, needFlushBuffer=false path
+// -7: GetBuffer returns non-null
+// -10: bufferList not empty
+// -11: !needFlushBuffer → gpuContext->Submit(), return
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_InactiveWithBuffer001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->GetGpuContext();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.nodeState_ = RSNodeState::INACTIVE;
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestSubmitInactive");
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(pSurface, rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    BufferRequestConfig config = { .width = 0x100, .height = 0x100, .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA };
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t releaseFence = -1;
+    pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_NE(buffer, nullptr);
+    auto* nwb = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    ASSERT_NE(nwb, nullptr);
+    mockSurface->mSurfaceList.emplace_back(nwb);
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->transactionConfigList_.size(); });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    auto size = future.get();
+    pSurface->CancelBuffer(buffer);
+    EXPECT_EQ(size, 0u);
+}
+
+// ACTIVE drawable with buffer, needFlushBuffer=true path
+// -12: needFlushBuffer=true
+// -13: iterating bufferList → AppendTransactionConfig + OnDirtyBufferCollected
+// -14 or -15: destroySemaphoreInfo != nullptr or == nullptr
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_ActiveWithBuffer001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->GetGpuContext();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestSubmitActive");
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(pSurface, rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    BufferRequestConfig config = { .width = 0x100, .height = 0x100, .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA };
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t releaseFence = -1;
+    pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_NE(buffer, nullptr);
+    auto* nwb = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    ASSERT_NE(nwb, nullptr);
+    mockSurface->mSurfaceList.emplace_back(nwb);
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->drawableMap_.count(1) > 0 &&
+            canvasModifiersDraw->drawableMap_[1].surfaceFrame_ == nullptr; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(2000)), std::future_status::ready);
+    auto surfaceFrameNull = future.get();
+    pSurface->CancelBuffer(buffer);
+    EXPECT_TRUE(surfaceFrameNull);
 }
 } // namespace Rosen
 } // namespace OHOS

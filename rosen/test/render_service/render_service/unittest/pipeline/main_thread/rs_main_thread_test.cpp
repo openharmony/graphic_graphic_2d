@@ -26,7 +26,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -48,6 +48,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -163,6 +164,7 @@ public:
         return connectToRenderConnection_;
     }
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override { return RS_CONNECTION_ERROR; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -2240,6 +2242,50 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UniRender005
+ * @tc.desc: UniRender keeps needDrawFrame when pending sync capture tasks disable direct composition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UniRender005, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
+    bool doDirectComposition = mainThread->doDirectComposition_;
+    bool isDirty = mainThread->isDirty_;
+    bool isAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
+    bool isCachedSurfaceUpdated = mainThread->isCachedSurfaceUpdated_;
+    bool isHardwareEnabledBufferUpdated = mainThread->isHardwareEnabledBufferUpdated_;
+    bool needDrawFrame = mainThread->needDrawFrame_;
+    mainThread->doDirectComposition_ = true;
+    mainThread->isDirty_ = false;
+    mainThread->isAccessibilityConfigChanged_ = false;
+    mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    mainThread->pendingSyncWindowCaptureTasks_.emplace_back(1, []() {});
+    mainThread->UniRender(rootNode);
+    EXPECT_TRUE(mainThread->needDrawFrame_);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->doDirectComposition_ = doDirectComposition;
+    mainThread->isDirty_ = isDirty;
+    mainThread->isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    mainThread->isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
+    mainThread->isHardwareEnabledBufferUpdated_ = isHardwareEnabledBufferUpdated;
+    mainThread->needDrawFrame_ = needDrawFrame;
+}
+
+/**
  * @tc.name: UniRender003
  * @tc.desc: UniRender test
  * @tc.type: FUNC
@@ -3560,6 +3606,30 @@ HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer003, TestSize.Level1)
     mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node5);
     mainThread->CollectInfoForHardwareComposer();
     mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: CollectInfoForHardwareComposer004
+ * @tc.desc: CollectInfoForHardwareComposer disables directComposition when sync window capture pending
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    bool doDirectComposition = mainThread->doDirectComposition_;
+    mainThread->isUniRender_ = true;
+    mainThread->doDirectComposition_ = true;
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    mainThread->pendingSyncWindowCaptureTasks_.emplace_back(1, []() {});
+    mainThread->CollectInfoForHardwareComposer();
+    EXPECT_FALSE(mainThread->doDirectComposition_);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->isUniRender_ = isUniRender;
+    mainThread->doDirectComposition_ = doDirectComposition;
 }
 
 /**
@@ -4943,7 +5013,7 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
@@ -4952,11 +5022,11 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
-    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->PrepareSyncCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
@@ -4978,7 +5048,7 @@ HWTEST_F(RSMainThreadTest, AddUiCaptureTasksTest, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
@@ -4989,11 +5059,11 @@ HWTEST_F(RSMainThreadTest, AddUiCaptureTasksTest, TestSize.Level2)
 
     node1->SetDirty();
     mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->PrepareSyncCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
 
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->ProcessSyncCaptureTasks();
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
@@ -6707,8 +6777,8 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostTryReclaimLastBuffer005
- * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.name: CheckUiCaptureNodeTest
+ * @tc.desc: Test CheckUiCaptureNode
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -6720,8 +6790,8 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     auto task = []() {};
     auto node = RSTestUtil::CreateSurfaceNode();
     mainThread->context_->nodeMap.RegisterRenderNode(node);
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     NodeId id = node->GetId();
     bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
@@ -6731,16 +6801,16 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     node->isOnTheTree_ = false;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     // case 2
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
     node->isOnTheTree_ = false;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
 
     // case 3
@@ -6748,18 +6818,125 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     node->isOnTheTree_ = true;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     // case 4
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     node->isOnTheTree_ = true;
     mainThread->AddUiCaptureTask(id, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    mainThread->ProcessUiCaptureTasks();
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    mainThread->ProcessSyncCaptureTasks();
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: AddSyncWindowCaptureTask001
+ * @tc.desc: Test AddSyncWindowCaptureTask with node not registered / buffer reclaim variants
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSyncWindowCaptureTask001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    while (!mainThread->syncWindowCaptureTasks_.empty()) {
+        mainThread->syncWindowCaptureTasks_.pop();
+    }
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    // case 1: node not registered (nullptr branch)
+    NodeId invalidId = 88888;
+    auto task = []() {};
+    mainThread->AddSyncWindowCaptureTask(invalidId, task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 2: node registered, buffer reclaim disabled, not on tree
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = false;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 3: node registered, buffer reclaim enabled, not on tree -> AddUICaptureNode
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = false;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+    RSBufferReclaim::GetInstance().RemoveUICaptureNode(node->GetId());
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+
+    // case 4: node registered, buffer reclaim enabled, on tree -> not AddUICaptureNode
+    node->isOnTheTree_ = true;
+    mainThread->AddSyncWindowCaptureTask(node->GetId(), task);
+    EXPECT_EQ(mainThread->pendingSyncWindowCaptureTasks_.size(), 1u);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(node->GetId()));
+
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PrepareCaptureQueue001
+ * @tc.desc: Test PrepareCaptureQueue with empty / remain / node dirty / node null branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PrepareCaptureQueue001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<std::tuple<NodeId, std::function<void()>>> pending;
+    std::queue<std::tuple<NodeId, std::function<void()>>> ready;
+
+    // case 1: empty pending -> early return
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_TRUE(ready.empty());
+
+    // case 2: cmd not processed (flag=false) -> remain in pending
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    NodeId id = node->GetId();
+    mainThread->context_->GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
+    pending.emplace_back(id, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_FALSE(pending.empty());
+    EXPECT_TRUE(ready.empty());
+    mainThread->context_->GetSyncCaptureHelper().EraseCaptureCmdsExecutedFlag(id);
+    pending.clear();
+
+    // case 3: cmd processed (default true) + node dirty -> moved to ready
+    node->SetDirty();
+    pending.emplace_back(id, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_EQ(ready.size(), 1u);
+
+    // case 4: node not registered (null) -> moved to ready
+    while (!ready.empty()) {
+        ready.pop();
+    }
+    pending.clear();
+    NodeId invalidId = 77777;
+    pending.emplace_back(invalidId, []() {});
+    mainThread->PrepareCaptureQueue(pending, ready);
+    EXPECT_TRUE(pending.empty());
+    EXPECT_EQ(ready.size(), 1u);
+
+    while (!ready.empty()) {
+        ready.pop();
+    }
+    mainThread->context_->nodeMap.UnregisterRenderNode(id);
 }
 
 /**
@@ -6846,7 +7023,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks002, TestSize.Level1)
     NodeId nodeId = 99999;
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6882,7 +7059,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks003, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6920,7 +7097,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks004, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -6957,7 +7134,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks005, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs() - 200;
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs() - 200;
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -7003,7 +7180,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks006, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(appNodeId, task, startTime, 0, false);
 
@@ -7040,7 +7217,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -7077,7 +7254,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
 
     bool taskExecuted = false;
     std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
-    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    uint64_t startTime = mainThread->context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
 
     mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
 
@@ -8201,5 +8378,260 @@ HWTEST_F(RSMainThreadTest, SetUIMode3D_004, TestSize.Level1)
     EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
 }
 
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    mainThread->AddDisableReason("buffer not updated");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("buffer not updated"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, SetDirectCompositionDisableReason002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string nodeInfo = "TestNode[12345]";
+    mainThread->AddDisableReason(
+        "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
+    EXPECT_NE(result.find(nodeInfo), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, ResetDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->AddDisableReason("HDR[TestNode[999]]");
+    EXPECT_FALSE(mainThread->GetDisableReasons().empty());
+    mainThread->ResetDisableReasons();
+    EXPECT_TRUE(mainThread->GetDisableReasons().empty());
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_TRUE(result.empty());
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    mainThread->AddDisableReason("buffer not updated");
+    mainThread->AddDisableReason("HDR");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("buffer not updated"), std::string::npos);
+    EXPECT_NE(result.find("HDR"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ResetDisableReasons();
+    std::string nodeInfo = "SurfaceNode[12345] bufferSizeChanged[1] bufferTransformChanged[0]";
+    mainThread->AddDisableReason(
+        "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d][" + nodeInfo + "]");
+    mainThread->AddDisableReason("HDR[HDRNode[67890]]");
+    std::string result = mainThread->GetDisableReasons();
+    EXPECT_NE(result.find("bufferSizeChanged"), std::string::npos);
+    EXPECT_NE(result.find("HDR"), std::string::npos);
+    EXPECT_NE(result.find("SurfaceNode[12345]"), std::string::npos);
+    EXPECT_NE(result.find("HDRNode[67890]"), std::string::npos);
+    mainThread->ResetDisableReasons();
+}
+
+namespace {
+class ScopedTunnelSwitch {
+public:
+    explicit ScopedTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+    }
+    ~ScopedTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+    }
+
+private:
+    bool oldValue_ = false;
+};
+
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+} // namespace
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged
+ * @tc.desc: Cover the false branch of `if (IsNewTunnelEnabled())` in
+ *          RSMainThread::SetTunnelSolePresentLayer. When the new-tunnel feature is off, the
+ *          function must return without touching the caller-provided counters regardless of
+ *          the surfaceNode's consumed/tunnel status.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    TunnelLayerParamTestAccess::SetNewTunnelEnabled(false);
+    ASSERT_FALSE(IsNewTunnelEnabled());
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    uint32_t presentCount = 1;
+    uint32_t tunnelCount = 1;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    TunnelLayerParamTestAccess::SetNewTunnelEnabled(true);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount
+ * @tc.desc: Cover the true branch of `if (!consumed)` in SetTunnelSolePresentLayer. A valid
+ *          surfaceNode whose IsCurrentFrameBufferConsumed() returns false must be skipped so
+ *          presentCount and tunnelCount stay at zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    EXPECT_FALSE(node->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 0u);
+    EXPECT_EQ(tunnelCount, 0u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly
+ * @tc.desc: Cover the false branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ *          surfaceNode that is not a tunnel layer must increment presentCount only, leaving
+ *          tunnelCount at zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    EXPECT_TRUE(surfaceHandler->IsCurrentFrameBufferConsumed());
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 0u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters
+ * @tc.desc: Cover the true branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ *          surfaceNode that carries a valid new-tunnel layer info must increment both
+ *          presentCount and tunnelCount.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    constexpr uint64_t testTunnelLayerId = 8801;
+    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters
+ * @tc.desc: Cover the per-node accumulation contract of SetTunnelSolePresentLayer now that the
+ *          outer loop lives in the caller (DoDirectComposition). Driving the function with a
+ *          consumed tunnel node, a consumed non-tunnel node and a not-consumed node in sequence
+ *          must leave presentCount equal to the consumed node count and tunnelCount equal to the
+ *          consumed tunnel node count.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    constexpr uint64_t testTunnelLayerId = 8801;
+    auto tunnelNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    auto nonTunnelNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    auto notConsumedNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(tunnelNode, nullptr);
+    ASSERT_NE(nonTunnelNode, nullptr);
+    ASSERT_NE(notConsumedNode, nullptr);
+
+    auto tunnelHandler = tunnelNode->GetMutableRSSurfaceHandler();
+    auto nonTunnelHandler = nonTunnelNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(tunnelHandler, nullptr);
+    ASSERT_NE(nonTunnelHandler, nullptr);
+    tunnelHandler->SetCurrentFrameBufferConsumed();
+    nonTunnelHandler->SetCurrentFrameBufferConsumed();
+    RSTunnelRuntimeStore::SetLayerInfo(tunnelNode->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+    mainThread->SetTunnelSolePresentLayer(tunnelNode, presentCount, tunnelCount);
+    mainThread->SetTunnelSolePresentLayer(nonTunnelNode, presentCount, tunnelCount);
+    mainThread->SetTunnelSolePresentLayer(notConsumedNode, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 2u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    RSTunnelRuntimeStore::Erase(tunnelNode->GetId());
+}
 } // namespace OHOS::Rosen
 #endif

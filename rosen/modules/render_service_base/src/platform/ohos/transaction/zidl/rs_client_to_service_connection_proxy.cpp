@@ -1576,7 +1576,8 @@ ErrCode RSClientToServiceConnectionProxy::GetRefreshInfoByPidAndUniqueId(
     return ERR_OK;
 }
 
-int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1595,6 +1596,10 @@ int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, ui
     }
     if (!data.WriteUint32(height)) {
         ROSEN_LOGE("SetRogScreenResolution: WriteUint32 height err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(samplingMode))) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint32 samplingMode err.");
         return WRITE_PARCEL_ERR;
     }
     auto code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
@@ -5129,13 +5134,19 @@ ErrCode RSClientToServiceConnectionProxy::SetLayerTop(const std::string &nodeIdS
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
-        uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
-        int32_t err = SendRequest(code, data, reply, option);
-        if (err != NO_ERROR) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
-            return ERR_INVALID_VALUE;
-        }
+    if (!data.WriteString(nodeIdStr)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteString failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isTop)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteBool failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
@@ -5600,7 +5611,14 @@ RetCodeHrpService RSClientToServiceConnectionProxy::ProfilerServicePopulateFiles
         return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
     }
 
+    const uint32_t MAX_POPULATE_FILES_COUNT = 1024;
+    if (retCount > MAX_POPULATE_FILES_COUNT) {
+        ROSEN_LOGE("retCount too large: %{public}u", retCount);
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+
     std::vector<HrpServiceFileInfo> retFiles;
+    retFiles.reserve(retCount);
     for (uint32_t i = 0; i < retCount; i++) {
         HrpServiceFileInfo fi {};
         if (!reply.ReadString(fi.name) || !reply.ReadUint32(fi.size) || !reply.ReadBool(fi.isDir) ||

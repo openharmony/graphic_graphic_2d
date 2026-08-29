@@ -423,7 +423,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
             ", ret:%{public}d)", bufferId, ret);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
         RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer, mergedFence, consumer);
 #endif
     }

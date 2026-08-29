@@ -29,6 +29,7 @@
 #include "sys_binder.h"
 #include "sandbox_utils.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#include "rs_profiler.h"
 
 #ifndef MFD_CLOEXEC
 #define MFD_CLOEXEC 0x0001U
@@ -227,6 +228,8 @@ bool AshmemAllocator::Seal()
 bool AshmemAllocator::WriteToAshmem(const void *data, size_t size)
 {
     if (data == nullptr || size_ < size) {
+        ROSEN_LOGE("AshmemAllocator::WriteToAshmem invalid param, data null:%{public}d, "
+            "size_:%{public}zu, size:%{public}zu", data == nullptr, size_, size);
         return false;
     }
     if (!data_) {
@@ -244,6 +247,7 @@ bool AshmemAllocator::WriteToAshmem(const void *data, size_t size)
 void* AshmemAllocator::CopyFromAshmem(size_t size)
 {
     if (size_ < size) {
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem size_:%{public}zu < size:%{public}zu", size_, size);
         return nullptr;
     }
     if (size > LARGE_MALLOC) {
@@ -553,14 +557,20 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
     // 1. save data
     int fd = ashmemAllocator->GetFd();
     std::shared_ptr<MessageParcel> ashmemParcel = std::make_shared<MessageParcel>();
-    ashmemParcel->WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    ashmemParcel->WriteInt32(1); // 1: indicate ashmem parcel
-    ashmemParcel->WriteUint32(dataSize);
-    ashmemParcel->WriteFileDescriptor(fd);
+    // 1: indicate ashmem parcel
+    if (!ashmemParcel->WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor()) ||
+        !ashmemParcel->WriteInt32(1) || !ashmemParcel->WriteUint32(dataSize) ||
+        !ashmemParcel->WriteFileDescriptor(fd)) {
+        ROSEN_LOGE("CreateAshmemParcel: write ashmem header failed, dataSize:%{public}zu", dataSize);
+        return nullptr;
+    }
 
     // 2. save fds and their offsets
     size_t offsetSize = dataParcel->GetOffsetsSize();
-    ashmemParcel->WriteInt32(offsetSize);
+    if (!ashmemParcel->WriteInt32(offsetSize)) {
+        ROSEN_LOGE("CreateAshmemParcel: WriteInt32 offsetSize failed");
+        return nullptr;
+    }
     if (offsetSize > 0) {
         // save array that record the offsets of all fds
         ashmemParcel->WriteBuffer(
@@ -627,7 +637,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         return nullptr;
     }
     // the parcel owns the buffer via DefaultAllocator (freed on destruction)
-    auto dataParcel = std::make_shared<MessageParcel>();
+    auto dataParcel = RS_PROFILER_COPY_PARCEL(*ashmemParcel);
     dataParcel->ParseFrom(reinterpret_cast<uintptr_t>(data), dataSize);
 
     int32_t offsetSize = ashmemParcel->ReadInt32();
@@ -656,6 +666,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 
     auto token = dataParcel->ReadInterfaceToken();
     if (token != RSIClientToRenderConnection::GetDescriptor()) {
+        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel interface token mismatch");
         return nullptr;
     }
 

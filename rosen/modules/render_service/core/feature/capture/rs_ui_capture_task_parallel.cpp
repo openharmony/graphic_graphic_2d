@@ -54,8 +54,8 @@
 #include <sys/time.h>
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -464,9 +464,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     if (snapshotDmaEnabled && isEnableFeature) {
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         RSUniRenderUtil::OptimizedFlushAndSubmit(
-#ifdef RS_ENABLE_VK
-            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
-#endif
+            renderContext->GetType(),
             surface, grContext, acquireFence,
             GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));

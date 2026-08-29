@@ -48,11 +48,11 @@ namespace OHOS::Rosen {
  */
 HWTEST(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 {
-    auto oldSubMode = RSProfiler::GetSubMode();
-    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+    auto oldSubMode = RSProfiler::GetThreadSubMode();
+    RSProfiler::SetThreadSubMode(SubMode::READ_EMUL);
     Parcel parcel;
     EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
-    RSProfiler::SetSubMode(oldSubMode);
+    RSProfiler::SetThreadSubMode(oldSubMode);
 }
 
 /*
@@ -235,7 +235,7 @@ HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
 HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
 {
     RSProfiler::testing_ = true;
-    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+    RSProfiler::SetThreadSubMode(SubMode::READ_EMUL);
 
     std::string msg;
     do {

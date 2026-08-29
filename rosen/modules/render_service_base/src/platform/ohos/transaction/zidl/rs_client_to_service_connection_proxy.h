@@ -137,7 +137,8 @@ public:
     ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) override;
     ErrCode GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable) override;
 
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode) override;
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
 
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;

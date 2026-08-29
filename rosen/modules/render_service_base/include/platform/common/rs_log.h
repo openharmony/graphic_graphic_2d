@@ -79,6 +79,9 @@ enum RSLogFlag {
 
     // ipc
     FLAG_DEBUG_IPC = 0x00000800,
+
+    // tunnel
+    FLAG_DEBUG_TUNNEL = 0X00001000,
 };
 
 class RSLogManager {
@@ -236,6 +239,8 @@ private:
 #define DEBUG_PREVALIDATE RS_LOG_ENABLE(FLAG_DEBUG_PREVALIDATE)
 
 #define DEBUG_IPC RS_LOG_ENABLE(FLAG_DEBUG_IPC)
+
+#define DEBUG_TUNNEL RS_LOG_ENABLE(FLAG_DEBUG_TUNNEL)
 
 #define RS_LOGE_LIMIT(func, line, format, ...)                                                                    \
 {                                                                                                                 \

@@ -15,6 +15,11 @@
 #include "gtest/gtest.h"
 
 #include "transaction/rs_render_interface.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -234,4 +239,86 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
     bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
     EXPECT_FALSE(result);
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: RebuildInactiveRootNodeIfNeeded001
+ * @tc.desc: test RebuildInactiveRootNodeIfNeeded early return branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, RebuildInactiveRootNodeIfNeeded001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remote;
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    // branch 1: node without RSUIContext (uiContext null)
+    RSSurfaceNodeConfig config1;
+    auto surfaceNode1 = RSSurfaceNode::Create(config1);
+    ASSERT_NE(surfaceNode1, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode1, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 2: uiContext exists but rootNodeId == 0
+    auto uiContext2 = std::make_shared<RSUIContext>(uint64_t(1), remote);
+    RSSurfaceNodeConfig config2;
+    auto surfaceNode2 = RSSurfaceNode::Create(config2, true, uiContext2);
+    ASSERT_NE(surfaceNode2, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode2, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 3: rootNodeId non-zero but rootNode not registered (null)
+    auto uiContext3 = std::make_shared<RSUIContext>(uint64_t(2), remote);
+    constexpr NodeId rootNodeId = 5000;
+    uiContext3->rootNodeId_ = rootNodeId;
+    RSSurfaceNodeConfig config3;
+    auto surfaceNode3 = RSSurfaceNode::Create(config3, true, uiContext3);
+    ASSERT_NE(surfaceNode3, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode3, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 4: rootNode registered but not INACTIVE (default ACTIVE)
+    auto uiContext4 = std::make_shared<RSUIContext>(uint64_t(3), remote);
+    auto rootNode4 = RSRootNode::Create(false, true, uiContext4);
+    ASSERT_NE(rootNode4, nullptr);
+    uiContext4->rootNodeId_ = rootNode4->GetId();
+    uiContext4->nodeMap_.RegisterNode(rootNode4);
+    RSSurfaceNodeConfig config4;
+    auto surfaceNode4 = RSSurfaceNode::Create(config4, true, uiContext4);
+    ASSERT_NE(surfaceNode4, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode4, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+}
+
+/**
+ * @tc.name: PrepareSyncCaptureIfNeeded001
+ * @tc.desc: test PrepareSyncCaptureIfNeeded rebuilds inactive root node and sets TakeSurfaceForUIFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, PrepareSyncCaptureIfNeeded001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remote;
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto uiContext = std::make_shared<RSUIContext>(uint64_t(4), remote);
+    // isTextureExportNode=true so RebuildTree returns early after SetRebuildState
+    auto rootNode = RSRootNode::Create(false, true, uiContext);
+    ASSERT_NE(rootNode, nullptr);
+    uiContext->rootNodeId_ = rootNode->GetId();
+    rootNode->nodeState_ = RSNodeState::INACTIVE;
+    uiContext->nodeMap_.RegisterNode(rootNode);
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config, true, uiContext);
+    ASSERT_NE(surfaceNode, nullptr);
+    bool backupUniRender = RSSystemProperties::isUniRenderEnabled_;
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    RSSurfaceCaptureConfig captureConfig;
+    renderInterface->PrepareSyncCaptureIfNeeded(surfaceNode, captureConfig);
+    EXPECT_TRUE(captureConfig.isSync);
+    RSSystemProperties::isUniRenderEnabled_ = backupUniRender;
+}
+#endif
 } // namespace OHOS::Rosen

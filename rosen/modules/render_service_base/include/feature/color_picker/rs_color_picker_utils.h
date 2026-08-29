@@ -115,13 +115,9 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
  * @param manager Weak pointer to the color picker manager
  * @param colorPickerInfo A struct containing color space, bitmap format, backend texture, and image
  */
-#ifdef RS_ENABLE_VK
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> manager,
-    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx, RenderEngineType renderEngineType);
-#else
-void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> manager,
-    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx);
-#endif
+    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx,
+    RenderEngineType renderEngineType = RenderEngineType::BASIC_RENDER);
 
 /**
  * @brief Obtain the corresponding dark color and light color based on the placeholder

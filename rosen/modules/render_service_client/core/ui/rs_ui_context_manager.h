@@ -83,6 +83,11 @@ public:
     void DestroyContext(uint64_t token);
 
     void StartCloseSyncTransactionFallbackTask(bool isOpen, const uint64_t syncId);
+
+    void PostUITask(const std::function<void()>& task, const std::string& name, int64_t delayTime = 0);
+
+    void RemoveUITask(const std::string& name);
+
 private:
     RSUIContextManager();
     ~RSUIContextManager() noexcept;

@@ -133,7 +133,7 @@ public:
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
     std::string PixelSamplingDump() const;
-    void ImageSamplingDump(uint64_t imageId) const;
+    void ImageSamplingDump(uint64_t imageId, uint64_t nodeId) const;
     void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
@@ -157,7 +157,7 @@ public:
         desc += split + "\tisScaledImageAsync_: " + std::to_string(static_cast<int>(isScaledImageAsync_)) + " \n";
         desc += split + "\timageId: " + std::to_string(uniqueId_) + " \n";
         desc += split + "} \n";
-        ImageSamplingDump(uniqueId_);
+        ImageSamplingDump(uniqueId_, nodeId_);
     }
 
 private:
