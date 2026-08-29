@@ -68,7 +68,7 @@ struct ColorPickerAsyncContext {
     napi_ref callbackRef = nullptr;
     uint32_t status = ERROR;
     // build error msg
-    napi_value errorMsg = {nullptr};
+    std::string errorMsg;
     ColorPickerNapi *nConstructor = {nullptr};
     std::shared_ptr<ColorPicker> rColorPicker = {nullptr};
     std::shared_ptr<Media::PixelMap> rPixelMap = {nullptr};
@@ -77,10 +77,8 @@ struct ColorPickerAsyncContext {
     double coordinatesBuffer[4] = {0.0, 0.0, 1.0, 1.0};
 };
 
-static void BuildMsgOnError(napi_env env,
-                            const std::unique_ptr<ColorPickerAsyncContext>& context,
-                            bool assertion,
-                            const std::string& msg);
+static void BuildMsgOnError(
+    const std::unique_ptr<ColorPickerAsyncContext>& context, bool assertion, const std::string& msg);
 
 static napi_value BuildJsColor(napi_env env, ColorManager::Color& color);
 
@@ -97,8 +95,13 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
 
     if (asyncContext->status == SUCCESS) {
         result[NUM_1] = valueParam;
-    } else if (asyncContext->errorMsg != nullptr) {
-        result[NUM_0] = asyncContext->errorMsg;
+    } else if (!asyncContext->errorMsg.empty()) {
+        napi_status status =
+            napi_create_string_utf8(env, asyncContext->errorMsg.c_str(), NAPI_AUTO_LENGTH, &result[NUM_0]);
+        if (status != napi_ok) {
+            EFFECT_LOG_E("CommonCallbackRoutine failed to create error message");
+            napi_create_string_utf8(env, "Internal error", NAPI_AUTO_LENGTH, &result[NUM_0]);
+        }
     } else {
         napi_create_string_utf8(env, "Internal error", NAPI_AUTO_LENGTH, &(result[NUM_0]));
     }
@@ -306,8 +309,8 @@ static void CreateColorPickerFromPixelMapExecute(napi_env env, void* data)
         EFFECT_LOG_E("CreateColorPickerFromPixelMapExecute empty context"));
 
     context->status = ERROR;
-    EFFECT_NAPI_CHECK_RET_VOID_D(context->errorMsg == nullptr,
-        EFFECT_LOG_E("CreateColorPickerFromPixelMapExecute mismatch args"));
+    EFFECT_NAPI_CHECK_RET_VOID_D(
+        context->errorMsg.empty(), EFFECT_LOG_E("CreateColorPickerFromPixelMapExecute mismatch args"));
 
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     if (context->regionFlag) {
@@ -330,7 +333,7 @@ void ColorPickerNapi::CreateColorPickerFromPixelMapComplete(napi_env env, napi_s
     }
 
     napi_value result = nullptr;
-    if (context->errorMsg != nullptr) {
+    if (!context->errorMsg.empty()) {
         context->status = ERROR;
         EFFECT_LOG_E("ColorPickerNapi::CreateColorPickerFromPixelMapComplete mismatch args");
     } else {
@@ -363,9 +366,7 @@ static void CreateColorPickerErrorComplete(napi_env env, napi_status status, voi
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     context->status = ERROR;
-    if (context->errorMsg != nullptr) {
-        EFFECT_LOG_E("CreateColorPickerErrorComplete mismatch args");
-    }
+    EFFECT_LOG_E("CreateColorPicker rejected: %{public}s", context->errorMsg.c_str());
     CommonCallbackRoutine(env, context, result);
 }
 
@@ -422,9 +423,9 @@ std::unique_ptr<ColorPickerAsyncContext> ColorPickerNapi::InitializeAsyncContext
         ImageType imgType = ParserArgumentType(env, argValue[NUM_1 - 1]);
         if (imgType == ImageType::TYPE_PIXEL_MAP) {
             asyncContext->rPixelMap = Media::PixelMapNapi::GetPixelMap(env, argValue[NUM_1 - 1]);
-            BuildMsgOnError(env, asyncContext, asyncContext->rPixelMap != nullptr, "Pixmap mismatch");
+            BuildMsgOnError(asyncContext, asyncContext->rPixelMap != nullptr, "Pixmap mismatch");
         } else {
-            BuildMsgOnError(env, asyncContext, false, "image type mismatch");
+            BuildMsgOnError(asyncContext, false, "image type mismatch");
         }
     }
 
@@ -439,7 +440,7 @@ bool ColorPickerNapi::ProcessCallbackAndCoordinates(napi_env env, napi_value* ar
     if (argCount >= NUM_2) {
         if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_1]) != napi_function) {
             if (!GetRegionCoordinates(env, argValue[NUM_1], asyncContext)) {
-                BuildMsgOnError(env, asyncContext, false, "fail to parse coordinates");
+                BuildMsgOnError(asyncContext, false, "fail to parse coordinates");
                 return false;
             }
             asyncContext->regionFlag = true;
@@ -482,7 +483,7 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     EFFECT_NAPI_CHECK_RET_D(ProcessCallbackAndCoordinates(env, argValue, argCount, result, asyncContext), nullptr,
         EFFECT_LOG_E("ColorPickerNapi ProcessCallbackAndCoordinates fail"));
 
-    if (asyncContext->errorMsg != nullptr) {
+    if (!asyncContext->errorMsg.empty()) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "CreateColorPickerError", [](napi_env env, void* data) {}, CreateColorPickerErrorComplete,
             asyncContext, asyncContext->work);
@@ -517,7 +518,7 @@ static void GetMainColorExecute(napi_env env, void* data)
     EFFECT_NAPI_CHECK_RET_VOID_D(context != nullptr,
         EFFECT_LOG_E("GetMainColorExecute empty context"));
 
-    if (context->errorMsg != nullptr) {
+    if (!context->errorMsg.empty()) {
         context->status = ERROR;
         EFFECT_LOG_E("GetMainColorExecute mismatch args");
         return;
@@ -542,7 +543,7 @@ static void GetMainColorComplete(napi_env env, napi_status status, void* data)
 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    if (context->errorMsg != nullptr) {
+    if (!context->errorMsg.empty()) {
         context->status = ERROR;
         EFFECT_LOG_E("GetMainColorComplete mismatch args");
     }
@@ -1284,14 +1285,11 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
     return ImageType::TYPE_UNKOWN;
 }
 
-void BuildMsgOnError(napi_env env,
-                     const std::unique_ptr<ColorPickerAsyncContext>& context,
-                     bool assertion,
-                     const std::string& msg)
+void BuildMsgOnError(const std::unique_ptr<ColorPickerAsyncContext>& context, bool assertion, const std::string& msg)
 {
     if (!assertion) {
         EFFECT_LOG_E("%{public}s", msg.c_str());
-        napi_create_string_utf8(env, msg.c_str(), NAPI_AUTO_LENGTH, &(context->errorMsg));
+        context->errorMsg = msg;
     }
 }
 }  // namespace Rosen
