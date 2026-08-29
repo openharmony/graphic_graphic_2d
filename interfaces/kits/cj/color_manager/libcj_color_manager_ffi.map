@@ -18,6 +18,7 @@
     };
     extern "C++" {
       Utils::*;
+      OHOS::ColorManager::CjColorManager::*;
     };
   local:
     *;
