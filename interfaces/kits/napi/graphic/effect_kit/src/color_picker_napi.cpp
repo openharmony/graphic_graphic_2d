@@ -100,10 +100,7 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
             napi_create_string_utf8(env, asyncContext->errorMsg.c_str(), NAPI_AUTO_LENGTH, &result[NUM_0]);
         if (status != napi_ok) {
             EFFECT_LOG_E("CommonCallbackRoutine failed to create error message");
-            status = napi_create_string_utf8(env, "Internal error", NAPI_AUTO_LENGTH, &result[NUM_0]);
-            if (status != napi_ok) {
-                EFFECT_LOG_E("CommonCallbackRoutine failed to create fallback error message");
-            }
+            napi_create_string_utf8(env, "Internal error", NAPI_AUTO_LENGTH, &result[NUM_0]);
         }
     } else {
         napi_create_string_utf8(env, "Internal error", NAPI_AUTO_LENGTH, &(result[NUM_0]));
