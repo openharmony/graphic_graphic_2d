@@ -58,7 +58,7 @@ void RSDisplayEffectSwingControlTest::TearDown() {}
 HWTEST_F(RSDisplayEffectSwingControlTest, SwingControl001, TestSize.Level1)
 {
     ScreenId screenId{};
-    auto& swingControl = RSDisplayEffectSwingControl::Get(); 
+    auto& swingControl = RSDisplayEffectSwingControl::Get();
     swingControl.Init();
     swingControl.SetSwingEnabled(screenId, false);
  
