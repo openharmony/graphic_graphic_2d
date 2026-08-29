@@ -951,7 +951,7 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (arraySizeColor != arraySizePos || arraySizeColor != arraySizeStrength ||
-        arraySizeStrength < NUM_0 || arraySizeStrength > NUM_12) {
+        arraySizeStrength < NUM_1 || arraySizeStrength > NUM_12) {
         FILTER_LOG_E("SetColorGradient param Error");
         return nullptr;
     }
