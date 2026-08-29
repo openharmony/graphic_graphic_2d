@@ -448,6 +448,75 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsBlurNotRequired006
+ * @tc.desc: Test IsBlurNotRequired when cross node draw flag is set
+ * @tc.type: FUNC
+ * @tc.require: issue26095
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired006, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    bool originalCCMEffectMergeEnable = RSFilterCacheManager::isCCMEffectMergeEnable_;
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    paintFilterCanvas.SetUICapture(false);
+    paintFilterCanvas.SetIsParallelCanvas(false);
+
+    params.SetHasEffectChildren(true);
+    params.SetHasEffectChildrenWithoutEmptyRect(false);
+
+    // Test 1: cross node draw flag is true, should require blur
+    paintFilterCanvas.SetCrossNodeDraw(true);
+    EXPECT_FALSE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    // Test 2: cross node draw flag is false, should not require blur
+    paintFilterCanvas.SetCrossNodeDraw(false);
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = originalCCMEffectMergeEnable;
+}
+
+/**
+ * @tc.name: IsBlurNotRequired007
+ * @tc.desc: Test IsBlurNotRequired when only parallel canvas flag is set (D4 C-trigger)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired007, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    bool originalCCMEffectMergeEnable = RSFilterCacheManager::isCCMEffectMergeEnable_;
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    paintFilterCanvas.SetUICapture(false);
+    paintFilterCanvas.SetCrossNodeDraw(false);
+    params.SetHasEffectChildren(true);
+    params.SetHasEffectChildrenWithoutEmptyRect(false);
+
+    // C-trigger: only parallel canvas is true, blur is required
+    paintFilterCanvas.SetIsParallelCanvas(true);
+    EXPECT_FALSE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    // none of B/C/D is true, blur is not required
+    paintFilterCanvas.SetIsParallelCanvas(false);
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = originalCCMEffectMergeEnable;
+}
+
+/**
  * @tc.name: BackFaceSkipTest001
  * @tc.desc: Test OnDraw skips with BACKFACE_SKIP when single sided + back face
  * @tc.type: FUNC

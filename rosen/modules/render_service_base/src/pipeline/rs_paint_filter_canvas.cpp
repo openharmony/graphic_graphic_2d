@@ -1622,6 +1622,7 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
         SetCacheType(other.GetCacheType());
     }
     isParallelCanvas_ = other.isParallelCanvas_;
+    isCrossNodeDraw_ = other.isCrossNodeDraw_;
     disableFilterCache_ = other.disableFilterCache_;
     threadIndex_ = other.threadIndex_;
     SetRenderEngineType(other.GetRenderEngineType());
@@ -1816,6 +1817,16 @@ void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 bool RSPaintFilterCanvas::GetIsParallelCanvas() const
 {
     return isParallelCanvas_;
+}
+
+void RSPaintFilterCanvas::SetCrossNodeDraw(bool isCrossNodeDraw)
+{
+    isCrossNodeDraw_ = isCrossNodeDraw;
+}
+
+bool RSPaintFilterCanvas::IsCrossNodeDraw() const
+{
+    return isCrossNodeDraw_;
 }
 
 // UNI_MAIN_THREAD_INDEX, UNI_RENDER_THREAD_INDEX, subthread 0 1 2.
