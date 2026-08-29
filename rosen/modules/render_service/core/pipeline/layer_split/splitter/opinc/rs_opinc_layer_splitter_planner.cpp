@@ -140,7 +140,7 @@ std::pair<bool, Vector4f> RSOpincLayerSplitterPlanner::GetBoundsFromModifier(con
         auto boundsProp = prop->CastToPropertyOf<Vector4f>(__func__);
         if (!boundsProp) {
             continue;
-        } 
+        }
         Vector4f bounds = boundsProp->GetRef();
         return { true, bounds };
     }
