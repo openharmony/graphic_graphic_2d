@@ -88,6 +88,10 @@ static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ct
         napi_status status = napi_create_string_utf8(env, ctx->errorMsg.c_str(), NAPI_AUTO_LENGTH, &result[1]);
         if (status != napi_ok) {
             EFFECT_LOG_E("FilterAsyncCommonComplete failed to create error message");
+            status = napi_create_string_utf8(env, "FilterNapi Internal Error", NAPI_AUTO_LENGTH, &result[NUM_1]);
+            if (status != napi_ok) {
+                EFFECT_LOG_E("FilterAsyncCommonComplete failed to create fallback error message");
+            }
         }
     } else {
         napi_create_string_utf8(env, "FilterNapi Internal Error", NAPI_AUTO_LENGTH, &result[NUM_1]);
