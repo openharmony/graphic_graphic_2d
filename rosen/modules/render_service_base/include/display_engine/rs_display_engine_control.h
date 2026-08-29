@@ -41,7 +41,6 @@ public:
 
     // for inner modules to trigger callback
     int32_t NotifyDEStatusChangeDone(const uint32_t sceneKey, const std::vector<uint8_t>& result);
-    std::string GetPanelName(ScreenId screenId) const;
 
 private:
     RSDisplayEngineControl() = default;
