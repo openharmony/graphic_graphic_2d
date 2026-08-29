@@ -61,7 +61,7 @@ bool RSMultiDisplayFeatureParam::Parse(xmlDoc& doc)
             break;
         }
     }
-    if(!featuresNode){
+    if (!featuresNode) {
         RS_LOGW("RSMultiDisplayFeature %{public}s multi_display_features node not found", __func__);
         xmlFreeDoc(docPtr);
         return false;
