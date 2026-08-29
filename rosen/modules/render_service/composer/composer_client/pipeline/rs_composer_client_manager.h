@@ -47,6 +47,7 @@ public:
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     void MarkTunnelSurfaceInvalid(ScreenId screenId, uint64_t surfaceId);
     void SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix);
+    void SetActiveRectSwitchStatus(ScreenId screenId, bool flag, const RectI& activeRect);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

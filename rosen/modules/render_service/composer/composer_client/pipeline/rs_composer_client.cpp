@@ -239,5 +239,10 @@ void RSComposerClient::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& 
     rsComposerContext_->PreAllocProtectedFrameBuffers(buffer);
     isPreAllocProtectedFrameBuffer_ = true;
 }
+
+void RSComposerClient::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    rsComposerContext_->SetActiveRectSwitchStatus(flag, activeRect);
+}
 } // namespace Rosen
 } // namespace OHOS

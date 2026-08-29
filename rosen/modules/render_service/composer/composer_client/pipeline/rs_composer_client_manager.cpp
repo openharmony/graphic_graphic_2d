@@ -263,5 +263,12 @@ void RSComposerClientManager::ClearFrameBuffers(const std::unordered_set<ScreenI
         client->ClearFrameBuffers();
     }
 }
+
+void RSComposerClientManager::SetActiveRectSwitchStatus(ScreenId screenId, bool flag, const RectI& activeRect)
+{
+    if (auto client = GetComposerClient(screenId)) {
+        client->SetActiveRectSwitchStatus(flag, activeRect);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

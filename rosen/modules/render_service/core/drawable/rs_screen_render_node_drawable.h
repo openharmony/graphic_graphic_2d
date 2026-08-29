@@ -236,6 +236,9 @@ private:
 
     bool isRenderSkipIfScreenOff_ = false;
 
+    // last revise rect which has been pushed to composer, used to detect active rect change
+    RectI lastReviseRect_;
+
     bool filterCacheOcclusionUpdated_ = false;
 
     bool accumulateDirtyInSkipFrame_ = false;

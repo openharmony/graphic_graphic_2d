@@ -68,6 +68,13 @@ public:
         markTunnelInvalidSurfaceId = surfaceId;
     }
 
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override
+    {
+        activeRectSwitchCalled = true;
+        lastActiveRectFlag = flag;
+        lastActiveRect = activeRect;
+    }
+
     bool commitTunnelCalled = false;
     uint64_t lastSurfaceId = 0;
     uint64_t lastTunnelLayerId = 0;
@@ -76,6 +83,9 @@ public:
     int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
     bool markTunnelInvalidCalled = false;
     uint64_t markTunnelInvalidSurfaceId = 0;
+    bool activeRectSwitchCalled = false;
+    bool lastActiveRectFlag = false;
+    RectI lastActiveRect;
 };
 
 sptr<SurfaceBuffer> CreateTunnelTestBuffer()
@@ -501,5 +511,46 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendLayers_RemoteValid_Fal
     std::vector<std::shared_ptr<MessageParcel>> parcels;
     RSComposerError ret = proxy.SendLayers(parcels);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * @tc.name: Proxy_SetActiveRectSwitchStatus_Success
+ * @tc.desc: Test proxy sends SetActiveRectSwitchStatus and stub receives correct flag and rect.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetActiveRectSwitchStatus_Success, TestSize.Level1)
+{
+    auto stub = sptr<RecordingRenderToComposerConnectionStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    constexpr bool flag = true;
+    RectI activeRect(10, 20, 30, 40);
+    EXPECT_FALSE(stub->activeRectSwitchCalled);
+
+    proxy.SetActiveRectSwitchStatus(flag, activeRect);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    EXPECT_TRUE(stub->activeRectSwitchCalled);
+    EXPECT_TRUE(stub->lastActiveRectFlag);
+    EXPECT_EQ(stub->lastActiveRect.left_, activeRect.left_);
+    EXPECT_EQ(stub->lastActiveRect.top_, activeRect.top_);
+    EXPECT_EQ(stub->lastActiveRect.width_, activeRect.width_);
+    EXPECT_EQ(stub->lastActiveRect.height_, activeRect.height_);
+}
+
+/**
+ * @tc.name: Proxy_SetActiveRectSwitchStatus_RemoteNull_ErrorPath
+ * @tc.desc: Test SetActiveRectSwitchStatus with null remote hits SendRequest error branch without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetActiveRectSwitchStatus_RemoteNull_ErrorPath, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObj = nullptr;
+    RSRenderToComposerConnectionProxy proxy(nullObj);
+    ASSERT_EQ(nullObj, nullptr);
+    RectI activeRect(1, 2, 3, 4);
+    EXPECT_NO_FATAL_FAILURE(proxy.SetActiveRectSwitchStatus(true, activeRect));
+    EXPECT_NO_FATAL_FAILURE(proxy.SetActiveRectSwitchStatus(false, activeRect));
 }
 } // namespace OHOS::Rosen

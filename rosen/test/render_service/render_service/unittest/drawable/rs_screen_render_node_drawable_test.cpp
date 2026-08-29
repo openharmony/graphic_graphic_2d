@@ -2445,4 +2445,75 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeGlassesFree, TestSize.
     screenDrawable_->OnDraw(canvas);
     EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
 }
+
+/**
+ * @tc.name: OnDraw_ActiveRectChanged_PushesToComposerClientManager
+ * @tc.desc: Test OnDraw pushes changed revise rect to composer client manager and caches it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_PushesToComposerClientManager, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+    RectI activeRect(0, 0, 100, 100);
+    RectI maskRect(0, 0, 100, 100);
+    RectI reviseRect(10, 10, 50, 50);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, maskRect, reviseRect));
+
+    Drawing::Canvas canvas;
+    // first draw: reviseRect differs from lastReviseRect_ (true branch), manager is non-null
+    // (holds no client for this screen), push path executes without crash
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.top_, reviseRect.top_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.width_, reviseRect.width_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.height_, reviseRect.height_);
+
+    // second draw: reviseRect equals lastReviseRect_ (false branch), no push, no crash
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+}
+
+/**
+ * @tc.name: OnDraw_ActiveRectChanged_NullManager_NoCrash
+ * @tc.desc: Test OnDraw skips pushing active rect when composer client manager is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_NullManager_NoCrash, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+    RectI activeRect(0, 0, 100, 100);
+    RectI maskRect(0, 0, 100, 100);
+    RectI reviseRect(20, 20, 60, 60);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, maskRect, reviseRect));
+
+    // simulate no composer client manager available on the uni render thread
+    auto& rtThread = RSUniRenderThread::Instance();
+    auto savedManager = rtThread.composerClientManager_;
+    rtThread.composerClientManager_ = nullptr;
+
+    Drawing::Canvas canvas;
+    // reviseRect differs from lastReviseRect_ (true branch) but manager is null (false branch), no crash
+    EXPECT_NO_FATAL_FAILURE(screenDrawable_->OnDraw(canvas));
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+
+    rtThread.composerClientManager_ = savedManager;
+}
 } // namespace OHOS::Rosen

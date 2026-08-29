@@ -1264,7 +1264,7 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_IsSuperFoldDisplay_Coverage, Test
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 0, 0 };
     std::vector<std::shared_ptr<RSLayer>> layers;
     EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
 
@@ -1334,7 +1334,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_ActiveRectEmpty
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set activeRect with width=0, height=0 (empty)
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 0, 0 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1366,7 +1366,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_LayersEmpty, Te
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set valid activeRect
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers; // Empty layers
 
@@ -1394,7 +1394,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LayerIsNull, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     layers.push_back(nullptr); // nullptr layer
@@ -1423,7 +1423,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1456,7 +1456,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMatch, Tes
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1488,7 +1488,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagFalse, TestSize.Lev
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1520,7 +1520,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1574,7 +1574,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_AllLayersMatch, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1610,7 +1610,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1651,7 +1651,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1669,6 +1669,107 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     lastLayer->SetUniRenderFlag(true);
     layers.push_back(lastLayer);
 
+    bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
+
+    system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: IsDropDirtyFrame_UniRenderFlagTrue_LayerCoversActiveRect
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set super fold display with valid activeRect
+ *                  2. add uni layer whose rect fully covers (but not equals) the active rect
+ *                  3. verify no drop because active rect is inside the layer rect
+ *                  4. add another uni layer which only partially overlaps the active rect
+ *                  5. verify drop
+ */
+HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_LayerCoversActiveRect, TestSize.Level1)
+{
+    system::SetParameter("const.window.foldscreen.type", "6,0,0,0");
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    // uni layer rect {50,50,200,200} fully covers the active rect {100,100,100,100}
+    std::shared_ptr<RSRenderSurfaceLayer> coverLayer = std::make_shared<RSRenderSurfaceLayer>();
+    coverLayer->SetLayerSize({ 50, 50, 200, 200 });
+    coverLayer->SetUniRenderFlag(true);
+    layers.push_back(coverLayer);
+    EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
+
+    // uni layer rect {150,150,100,100} only partially overlaps the active rect
+    std::shared_ptr<RSRenderSurfaceLayer> overlapLayer = std::make_shared<RSRenderSurfaceLayer>();
+    overlapLayer->SetLayerSize({ 150, 150, 100, 100 });
+    overlapLayer->SetUniRenderFlag(true);
+    layers.push_back(overlapLayer);
+    bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
+
+    system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_NullHdiOutput
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and clear hdiOutput_ (screen disconnected)
+ *                  2. call SetActiveRectSwitchStatus to hit the null-output guard
+ *                  3. verify activeRect_ keeps the default empty value
+ */
+HWTEST_F(RsRenderComposerTest, SetActiveRectSwitchStatus_NullHdiOutput, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    rsRenderComposerTmp->hdiOutput_ = nullptr;
+    RectI activeRect(100, 100, 100, 100);
+    rsRenderComposerTmp->SetActiveRectSwitchStatus(true, activeRect);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.width_, 0);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.height_, 0);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_ValidHdiOutput
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer with valid hdiOutput
+ *                  2. call SetActiveRectSwitchStatus and verify activeRect_ member is updated
+ *                  3. verify the pushed active rect drives the IsDropDirtyFrame decision
+ */
+HWTEST_F(RsRenderComposerTest, SetActiveRectSwitchStatus_ValidHdiOutput, TestSize.Level1)
+{
+    system::SetParameter("const.window.foldscreen.type", "6,0,0,0");
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+
+    RectI activeRect(100, 100, 100, 100);
+    rsRenderComposerTmp->SetActiveRectSwitchStatus(true, activeRect);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.left_, activeRect.left_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.top_, activeRect.top_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.width_, activeRect.width_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.height_, activeRect.height_);
+
+    // the active rect pushed via SetActiveRectSwitchStatus now feeds IsDropDirtyFrame
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // does not cover the active rect
+    layer->SetUniRenderFlag(true);
+    layers.push_back(layer);
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
     bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
     EXPECT_EQ(result, shouldDrop);
@@ -3976,7 +4077,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameTrue, TestSiz
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Set up composer screen info to trigger shouldDropFrame = true
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->activeRect_ = { 100, 100, 100, 100 };
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(0, std::make_shared<RSRenderSurfaceLayer>());
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -4218,7 +4319,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintFalse_DropFrame, Te
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->activeRect_ = { 100, 100, 100, 100 };
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({ 200, 200, 100, 100 }); // Different from activeRect

@@ -614,6 +614,18 @@ bool RSScreenRenderNodeDrawable::PrepareForDraw(std::shared_ptr<RSProcessor>& pr
 
     PostClearMemoryTask();
 
+    auto reviseRect = screenProperty.GetReviseRect();
+    if (reviseRect != lastReviseRect_) {
+        lastReviseRect_ = reviseRect;
+        if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
+            RS_TRACE_NAME_FMT("ActiveRectChanged screenId[%" PRIu64 "], rect%s",
+                params->GetScreenId(), reviseRect.ToString().c_str());
+            RS_LOGI("%{public}s: active rect changed, screenId[%{public}" PRIu64 "], rect%{public}s",
+                __func__, params->GetScreenId(), reviseRect.ToString().c_str());
+            composerClientManager->SetActiveRectSwitchStatus(params->GetScreenId(), true, reviseRect);
+        }
+    }
+
     if (RSSystemProperties::IsFoldScreenFlag() && screenProperty.IsScreenSwitching() && !isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_SWITCHING);
         RS_LOGI("RSScreenRenderNodeDrawable::OnDraw FoldScreenNodeSwitching is true, do not drawframe");

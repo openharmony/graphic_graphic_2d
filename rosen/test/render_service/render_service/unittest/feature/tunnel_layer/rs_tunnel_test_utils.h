@@ -227,6 +227,12 @@ public:
         (void)surfaceId;
     }
 
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override
+    {
+        (void)flag;
+        (void)activeRect;
+    }
+
     bool commitTunnelCalled = false;
     uint32_t commitTunnelCallCount = 0;
     int32_t commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
