@@ -345,16 +345,19 @@ void WebGL2RenderingContextImpl::DoObjectDelete(int32_t type, WebGLObject *obj)
     if (type == WebGLObject::WEBGL_OBJECT_BUFFER) {
         WebGLBuffer *buffer = static_cast<WebGLBuffer *>(obj);
         LOGD("DoObjectDelete %{public}d %{public}u", type, buffer->GetBufferId());
-        for (size_t i = 0; i < boundIndexedTransformFeedbackBuffers_.size(); ++i) {
-            if (boundIndexedTransformFeedbackBuffers_[i] == buffer->GetBufferId()) {
-                boundIndexedTransformFeedbackBuffers_.erase(i);
-                break;
+        for (auto it = boundIndexedTransformFeedbackBuffers_.begin();
+            it != boundIndexedTransformFeedbackBuffers_.end();) {
+            if (it->second.bufferId == buffer->GetBufferId()) {
+                it = boundIndexedTransformFeedbackBuffers_.erase(it);
+            } else {
+                ++it;
             }
         }
-        for (auto it = boundIndexedUniformBuffers_.begin(); it != boundIndexedUniformBuffers_.end(); ++it) {
-            if (it->second == buffer->GetBufferId()) {
-                boundIndexedUniformBuffers_.erase(it);
-                break;
+        for (auto it = boundIndexedUniformBuffers_.begin(); it != boundIndexedUniformBuffers_.end();) {
+            if (it->second.bufferId == buffer->GetBufferId()) {
+                it = boundIndexedUniformBuffers_.erase(it);
+            } else {
+                ++it;
             }
         }
     }
