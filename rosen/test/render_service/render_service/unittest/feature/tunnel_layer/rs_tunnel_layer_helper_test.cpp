@@ -41,6 +41,7 @@ constexpr uint64_t TEST_NODE_TUNNEL_LAYER_ID = 3001;
 constexpr uint64_t TEST_FIRST_CONSUMER_TUNNEL_LAYER_ID = 6001;
 constexpr uint64_t TEST_SECOND_CONSUMER_TUNNEL_LAYER_ID = 7002;
 constexpr uint64_t TEST_SURFACE_NODE_TUNNEL_LAYER_ID = 8001;
+constexpr RSLayerId TEST_UNI_LAYER_ID = 9999;
 
 void ClearUiCaptureTasks(RSMainThread& mainThread)
 {
@@ -62,6 +63,7 @@ public:
     {
         ClearRecordingComposerLayers();
         ClearTrackedTunnelRuntimeStates();
+        RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
     }
 };
 
@@ -431,6 +433,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect002, TestSize.
     ASSERT_NE(composerClientManager, nullptr);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
     EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, composerClientManager, false, RSTunnelRuntimeStore::GetOrCreate(context.node->GetId())));
     EXPECT_TRUE(connection->commitTunnelCalled);
@@ -501,6 +504,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect003, TestSize.
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
     ASSERT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, composerClientManager, false, tunnelRuntime));
     EXPECT_TRUE(currentBufferReleased);
@@ -670,6 +674,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable002, TestSize.Level1)
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId())
         .SetActiveFromTunnelLayerAvailable(
             RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelLayerGeneration());
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ASSERT_EQ(tunnelRuntime.TryClaimByMain(true), RSTunnelRuntimeState::ClaimResult::GO_NORMAL);
     tunnelRuntime.OnRenderCommitDone();
@@ -863,6 +868,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable004, TestSize.Level1)
     RSTunnelRuntimeStore::GetOrCreate(node->GetId()).SetBuilding();
     RSTunnelRuntimeStore::GetOrCreate(node->GetId())
         .SetActiveFromTunnelLayerAvailable(RSTunnelRuntimeStore::GetOrCreate(node->GetId()).GetTunnelLayerGeneration());
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
     ScopedRegisteredSurfaceNode registeredNode(node);
     ASSERT_TRUE(registeredNode.IsRegistered());
 
@@ -932,6 +938,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect006, TestSize.
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
 
     EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, composerClientManager, false, tunnelRuntime));
@@ -968,6 +975,7 @@ HWTEST_F(RSTunnelLayerHelperTest, LastBufferStatus_TransitionsToTunnelOnSuccess,
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
 
     EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, composerClientManager, false, tunnelRuntime));
@@ -1038,6 +1046,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_SizeMismatch_ReleasesBu
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
 
     EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, false, tunnelRuntime));
     EXPECT_FALSE(connection->commitTunnelCalled);
@@ -1071,6 +1080,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_NullComposerManager_Rel
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
 
     EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, nullptr, false, tunnelRuntime));
@@ -1104,5 +1114,278 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable_TunnelCandidate_ReceivesInfo
 
     EXPECT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
     RSTunnelRuntimeStore::Erase(context.node->GetId());
+}
+
+/**
+ * @tc.name: CanCommitBufferDirect_RejectsWhenSolePresentLayerFalse
+ * @tc.desc: Cover the true branch of `if (!GetTunnelSolePresentLayer())` in CanCommitBufferDirect.
+ *          When the main thread has not signalled sole-present, the helper must reject the direct
+ *          commit before any composer IPC is attempted.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CanCommitBufferDirect_RejectsWhenSolePresentLayerFalse, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), state.tunnelLayerId, state.property);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(
+        context.node, composerClientManager, false, tunnelRuntime));
+    EXPECT_FALSE(connection->commitTunnelCalled);
+}
+
+/**
+ * @tc.name: CanCommitBufferDirect_ProceedsWhenSolePresentLayerTrue
+ * @tc.desc: Cover the false branch of `if (!GetTunnelSolePresentLayer())` in CanCommitBufferDirect.
+ *          When the arbiter reports sole-present, the helper must proceed through AcquirePendingBuffer
+ *          and TryCommitPendingBuffer so the recording connection observes the commit call.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CanCommitBufferDirect_ProceedsWhenSolePresentLayerTrue, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), state.tunnelLayerId, state.property);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(
+        context.node, composerClientManager, false, tunnelRuntime));
+    EXPECT_TRUE(connection->commitTunnelCalled);
+}
+
+/**
+ * @tc.name: CreateTunnelLayer_ReturnsEarlyWhenUniBufferCountAbsent
+ * @tc.desc: Cover the true branch of `if (!uniBufferCount)` in CreateTunnelLayer. When the composer
+ *          context has no uni-render layer, the helper returns the freshly created layer without
+ *          touching InsertUniOnDrawSet or SetUniBufferOwner.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CreateTunnelLayer_ReturnsEarlyWhenUniBufferCountAbsent, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    constexpr ScreenId testScreenId = 0;
+    context.node->screenId_ = 0;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    auto composerClient = composerClientManager->GetComposerClient(testScreenId);
+    ASSERT_NE(composerClient, nullptr);
+    auto composerContext = composerClient->GetComposerContext();
+    ASSERT_NE(composerContext, nullptr);
+    EXPECT_EQ(composerContext->GetUniRsLayer(), nullptr);
+
+    auto bufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(bufferEntry.buffer, nullptr);
+    ASSERT_NE(bufferEntry.bufferOwnerCount_, nullptr);
+    auto layer = RSTunnelLayerHelper::CreateTunnelLayer(context.node, composerClientManager, bufferEntry);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_EQ(layer->GetBuffer(), bufferEntry.buffer);
+}
+
+/**
+ * @tc.name: CreateTunnelLayer_InsertsUniOnDrawSet_WhenBufferPresent
+ * @tc.desc: Cover the false branch of `if (!uniBufferCount)` and the true branch of
+ *          `if (layer->GetBuffer())` in CreateTunnelLayer. When the composer context exposes a
+ *          uni-render layer with a BufferOwnerCount and the new layer carries a buffer, the
+ *          helper must record the (layerId, bufferId) pair via InsertUniOnDrawSet.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CreateTunnelLayer_InsertsUniOnDrawSet_WhenBufferPresent, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    constexpr ScreenId testScreenId = 0;
+    context.node->screenId_ = 0;
+    auto composerClient = composerClientManager->GetComposerClient(testScreenId);
+    ASSERT_NE(composerClient, nullptr);
+    auto composerContext = composerClient->GetComposerContext();
+    ASSERT_NE(composerContext, nullptr);
+
+    auto uniLayer = RSSurfaceLayer::Create(TEST_UNI_LAYER_ID, composerContext);
+    ASSERT_NE(uniLayer, nullptr);
+    uniLayer->SetUniRenderFlag(true);
+    auto uniBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    uniLayer->SetBufferOwnerCount(uniBufferOwnerCount, true);
+    composerContext->AddRSLayer(uniLayer);
+    EXPECT_EQ(composerContext->GetUniRsLayer(), uniLayer);
+
+    auto bufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(bufferEntry.buffer, nullptr);
+    auto layer = RSTunnelLayerHelper::CreateTunnelLayer(context.node, composerClientManager, bufferEntry);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_EQ(layer->GetBuffer(), bufferEntry.buffer);
+    EXPECT_FALSE(uniBufferOwnerCount->uniOnDrawBuffersMap_.empty());
+    auto mapIter = uniBufferOwnerCount->uniOnDrawBuffersMap_.find(layer->GetRSLayerId());
+    ASSERT_NE(mapIter, uniBufferOwnerCount->uniOnDrawBuffersMap_.end());
+    EXPECT_EQ(mapIter->second.count(bufferEntry.buffer->GetBufferId()), 1u);
+}
+
+/**
+ * @tc.name: CreateTunnelLayer_SkipsInsertUniOnDrawSet_WhenBufferAbsent
+ * @tc.desc: Cover the false branch of `if (layer->GetBuffer())` in CreateTunnelLayer. When the new
+ *          layer has no buffer attached, InsertUniOnDrawSet must be skipped so the uni owner map
+ *          stays empty.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CreateTunnelLayer_SkipsInsertUniOnDrawSet_WhenBufferAbsent, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    constexpr ScreenId testScreenId = 0;
+    context.node->screenId_ = 0;
+    auto composerClient = composerClientManager->GetComposerClient(testScreenId);
+    ASSERT_NE(composerClient, nullptr);
+    auto composerContext = composerClient->GetComposerContext();
+    ASSERT_NE(composerContext, nullptr);
+
+    auto uniLayer = RSSurfaceLayer::Create(TEST_UNI_LAYER_ID, composerContext);
+    ASSERT_NE(uniLayer, nullptr);
+    uniLayer->SetUniRenderFlag(true);
+    auto uniBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    uniLayer->SetBufferOwnerCount(uniBufferOwnerCount, true);
+    composerContext->AddRSLayer(uniLayer);
+
+    RSSurfaceHandler::SurfaceBufferEntry emptyBufferEntry;
+    emptyBufferEntry.acquireFence = SyncFence::InvalidFence();
+    ASSERT_EQ(emptyBufferEntry.buffer, nullptr);
+    auto layer = RSTunnelLayerHelper::CreateTunnelLayer(context.node, composerClientManager, emptyBufferEntry);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_EQ(layer->GetBuffer(), nullptr);
+    EXPECT_TRUE(uniBufferOwnerCount->uniOnDrawBuffersMap_.empty());
+}
+
+/**
+ * @tc.name: CreateTunnelLayer_SetsUniBufferOwner_WhenBufferOwnerCountPresent
+ * @tc.desc: Cover the true branch of `if (bufferEntry.bufferOwnerCount_)` in CreateTunnelLayer.
+ *          When the pending buffer carries a BufferOwnerCount, the helper must propagate the
+ *          uni layer's bufferId and screen id via SetUniBufferOwner.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CreateTunnelLayer_SetsUniBufferOwner_WhenBufferOwnerCountPresent, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    constexpr ScreenId testScreenId = 0;
+    context.node->screenId_ = 0;
+    auto composerClient = composerClientManager->GetComposerClient(testScreenId);
+    ASSERT_NE(composerClient, nullptr);
+    auto composerContext = composerClient->GetComposerContext();
+    ASSERT_NE(composerContext, nullptr);
+
+    auto uniLayer = RSSurfaceLayer::Create(TEST_UNI_LAYER_ID, composerContext);
+    ASSERT_NE(uniLayer, nullptr);
+    uniLayer->SetUniRenderFlag(true);
+    constexpr uint64_t uniBufferId = 4242;
+    auto uniBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    uniBufferOwnerCount->bufferId_ = uniBufferId;
+    uniLayer->SetBufferOwnerCount(uniBufferOwnerCount, true);
+    composerContext->AddRSLayer(uniLayer);
+
+    auto bufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(bufferEntry.bufferOwnerCount_, nullptr);
+    auto layer = RSTunnelLayerHelper::CreateTunnelLayer(context.node, composerClientManager, bufferEntry);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_TRUE(bufferEntry.bufferOwnerCount_->CheckLastUniBufferOwner(uniBufferId, context.node->GetScreenId()));
+}
+
+/**
+ * @tc.name: CreateTunnelLayer_SkipsSetUniBufferOwner_WhenBufferOwnerCountAbsent
+ * @tc.desc: Cover the false branch of `if (bufferEntry.bufferOwnerCount_)` in CreateTunnelLayer.
+ *          When the pending buffer does not carry a BufferOwnerCount, the helper must skip the
+ *          SetUniBufferOwner call (which would otherwise dereference the null owner count) and
+ *          still return the freshly created layer.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, CreateTunnelLayer_SkipsSetUniBufferOwner_WhenBufferOwnerCountAbsent, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    constexpr ScreenId testScreenId = 0;
+    context.node->screenId_ = 0;
+    auto composerClient = composerClientManager->GetComposerClient(testScreenId);
+    ASSERT_NE(composerClient, nullptr);
+    auto composerContext = composerClient->GetComposerContext();
+    ASSERT_NE(composerContext, nullptr);
+
+    auto uniLayer = RSSurfaceLayer::Create(TEST_UNI_LAYER_ID, composerContext);
+    ASSERT_NE(uniLayer, nullptr);
+    uniLayer->SetUniRenderFlag(true);
+    constexpr uint64_t uniBufferId = 7777;
+    auto uniBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    uniBufferOwnerCount->bufferId_ = uniBufferId;
+    uniLayer->SetBufferOwnerCount(uniBufferOwnerCount, true);
+    composerContext->AddRSLayer(uniLayer);
+
+    auto bufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(bufferEntry.buffer, nullptr);
+    ASSERT_NE(bufferEntry.bufferOwnerCount_, nullptr);
+    bufferEntry.bufferOwnerCount_ = nullptr;
+    auto layer = RSTunnelLayerHelper::CreateTunnelLayer(context.node, composerClientManager, bufferEntry);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_TRUE(uniBufferOwnerCount->uniBufferOwnerSeqNumMap_.empty());
 }
 } // namespace OHOS::Rosen

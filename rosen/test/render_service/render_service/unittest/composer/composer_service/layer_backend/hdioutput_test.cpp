@@ -5856,6 +5856,249 @@ HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_DeviceNotNull_FalseBranch, Fun
     // False branch: device_ != nullptr, normal flow sets isActiveRectSwitching_ to true
     EXPECT_TRUE(hdiOutput->isActiveRectSwitching_);
 }
+
+constexpr uint32_t TUNNEL_LAYER_NUM_PROP_ID = 6;
+constexpr uint32_t TUNNEL_LAYER_TYPE_PROP_ID = 7;
+constexpr uint64_t TUNNEL_SUPPORT_RGBA_8888 = 1ULL << GRAPHIC_PIXEL_FMT_RGBA_8888;
+constexpr uint64_t TUNNEL_SUPPORT_NONE = 0;
+
+GraphicDisplayCapability MakeTunnelCapability(uint32_t threshold, uint64_t supportType)
+{
+    GraphicDisplayCapability dcap = {};
+    GraphicPropertyObject numProp;
+    numProp.propId = TUNNEL_LAYER_NUM_PROP_ID;
+    numProp.value = threshold;
+    GraphicPropertyObject typeProp;
+    typeProp.propId = TUNNEL_LAYER_TYPE_PROP_ID;
+    typeProp.value = supportType;
+    dcap.props.push_back(numProp);
+    dcap.props.push_back(typeProp);
+    return dcap;
+}
+
+void ExpectGetScreenCapability(Mock::HdiDeviceMock* mock, const GraphicDisplayCapability& dcap)
+{
+    EXPECT_CALL(*mock, GetScreenCapability(_, _))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<1>(dcap), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+}
+
+/**
+ * @tc.name: InitTunnelProperty_NoDevice_KeepsStaticsUnchanged
+ * @tc.desc: Cover the true branch of `if (device_ == nullptr)` in InitTunnelProperty. When
+ *          the device is null the function must return immediately without querying
+ *          capabilities or touching the file-static threshold/type atomics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_NoDevice_KeepsStaticsUnchanged, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = nullptr;
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: InitTunnelProperty_WithDevice_ReadsProps
+ * @tc.desc: Cover the false branch of `if (device_ == nullptr)` and the true branches of the
+ *          `propId == TUNNEL_LAYER_NUM_PROP_ID` and `propId == TUNNEL_LAYER_TYPE_PROP_ID`
+ *          checks in InitTunnelProperty. The mocked capabilities must seed the file-statics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_WithDevice_ReadsProps, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    constexpr uint32_t threshold = 2;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(threshold, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: InitTunnelProperty_WithDevice_NoMatchingProps
+ * @tc.desc: Cover the false branches of the propId checks in InitTunnelProperty. When the
+ *          capability carries neither the threshold nor the type prop, the file-statics stay
+ *          at their previous values and CheckSupportTunnel still runs against the prior state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, InitTunnelProperty_WithDevice_NoMatchingProps, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    GraphicDisplayCapability emptyDcap = {};
+    emptyDcap.props.push_back({"unrelated", 99, 12345});
+    ExpectGetScreenCapability(hdiDeviceMock_, emptyDcap);
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(existingLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_ThresholdExhausted_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (tunnelLayerNum >= TUNNEL_LAYER_NUM_THRESHOLD.load())`
+ *          in CheckSupportTunnel. After the threshold tunnel layers are registered the next
+ *          request must fall back to graphic.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_ThresholdExhausted_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(registryOutput, nullptr);
+    registryOutput->device_ = hdiDeviceMock_;
+    constexpr uint32_t threshold = 1;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(threshold, TUNNEL_SUPPORT_RGBA_8888));
+    registryOutput->InitTunnelProperty();
+
+    auto firstRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> firstBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(firstBuffer, nullptr);
+    firstRsLayer->SetBuffer(firstBuffer);
+    auto firstLayer = CreateHdiOutputHdiLayer(firstRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(firstLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID, firstLayer, firstRsLayer, false);
+
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    auto secondRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    sptr<SurfaceBuffer> secondBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(secondBuffer, nullptr);
+    secondRsLayer->SetBuffer(secondBuffer);
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_NullRSLayer_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (rsLayer == nullptr || rsLayer->GetBuffer() == nullptr)`
+ *          in CheckSupportTunnel for the nullptr rsLayer case.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_NullRSLayer_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, nullptr));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_NullBuffer_ReturnsFalse
+ * @tc.desc: Cover the true branch of `if (rsLayer == nullptr || rsLayer->GetBuffer() == nullptr)`
+ *          in CheckSupportTunnel for the nullptr buffer case. The rsLayer is valid but the
+ *          buffer was never attached.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_NullBuffer_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    ASSERT_NE(tunnelRsLayer, nullptr);
+    EXPECT_EQ(tunnelRsLayer->GetBuffer(), nullptr);
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_SupportedFormat_ReturnsTrue
+ * @tc.desc: Cover the true branch of `if ((1ULL << format) & TUNNEL_LAYER_SUPPORT_TYPE.load())`
+ *          in CheckSupportTunnel. A buffer whose format bit is set in the support-type mask
+ *          must allow the tunnel registration to proceed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_SupportedFormat_ReturnsTrue, Function | MediumTest | Level1)
+{
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(registryOutput, nullptr);
+    registryOutput->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_RGBA_8888));
+    registryOutput->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(tunnelLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID, tunnelLayer, tunnelRsLayer, false);
+
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    auto secondRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    sptr<SurfaceBuffer> secondBuffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(secondBuffer, nullptr);
+    secondRsLayer->SetBuffer(secondBuffer);
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+}
+
+/**
+ * @tc.name: CheckSupportTunnel_UnsupportedFormat_ReturnsFalse
+ * @tc.desc: Cover the false branch of `if ((1ULL << format) & TUNNEL_LAYER_SUPPORT_TYPE.load())`
+ *          in CheckSupportTunnel. A buffer whose format bit is not in the support-type mask
+ *          must trigger fallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HdiOutputTest, CheckSupportTunnel_UnsupportedFormat_ReturnsFalse, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    ExpectGetScreenCapability(hdiDeviceMock_, MakeTunnelCapability(2, TUNNEL_SUPPORT_NONE));
+    output->InitTunnelProperty();
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    sptr<SurfaceBuffer> buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    tunnelRsLayer->SetBuffer(buffer);
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+    output->UnregisterGlobalTunnelLayersLocked();
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

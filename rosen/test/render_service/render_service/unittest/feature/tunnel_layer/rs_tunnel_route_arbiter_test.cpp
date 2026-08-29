@@ -390,8 +390,29 @@ public:
     void TearDown() override
     {
         ClearTrackedTunnelRuntimeStates();
+        RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
     }
 };
+
+/**
+ * @tc.name: RSTunnelRouteArbiter_TunnelSolePresentLayer_DefaultFalse_ThenSetTrue_ThenSetFalse
+ * @tc.desc: Cover the true and false branches of the load/store paths in
+ *          GetTunnelSolePresentLayer/SetTunnelSolePresentLayer so the static atomic gate
+ *          reflects every write and reads back the latest value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_TunnelSolePresentLayer_DefaultFalse_ThenSetTrue_ThenSetFalse, TestSize.Level1)
+{
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    EXPECT_FALSE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    EXPECT_TRUE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
+    EXPECT_FALSE(RSTunnelRouteArbiter::GetTunnelSolePresentLayer());
+}
 
 /**
  * @tc.name: ArbitrateAndClaim_GoNormalSurfaceCases

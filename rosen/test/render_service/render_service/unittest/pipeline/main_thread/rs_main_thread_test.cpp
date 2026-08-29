@@ -26,7 +26,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -48,6 +48,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -8452,5 +8453,185 @@ HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Le
     mainThread->ResetDisableReasons();
 }
 
+namespace {
+class ScopedTunnelSwitch {
+public:
+    explicit ScopedTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+    }
+    ~ScopedTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+    }
+
+private:
+    bool oldValue_ = false;
+};
+
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+} // namespace
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged
+ * @tc.desc: Cover the false branch of `if (IsNewTunnelEnabled())` in
+ *          RSMainThread::SetTunnelSolePresentLayer. When the new-tunnel feature is off, the
+ *          function must return without touching the caller-provided counters regardless of
+ *          the surfaceNode's consumed/tunnel status.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScopedTunnelSwitch scopedSwitch(true);
+    TunnelLayerParamTestAccess::SetNewTunnelEnabled(false);
+    ASSERT_FALSE(IsNewTunnelEnabled());
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    uint32_t presentCount = 1;
+    uint32_t tunnelCount = 1;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    TunnelLayerParamTestAccess::SetNewTunnelEnabled(true);
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount
+ * @tc.desc: Cover the true branch of `if (!consumed)` in SetTunnelSolePresentLayer. A valid
+ *          surfaceNode whose IsCurrentFrameBufferConsumed() returns false must be skipped so
+ *          presentCount and tunnelCount stay at zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    EXPECT_FALSE(node->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 0u);
+    EXPECT_EQ(tunnelCount, 0u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly
+ * @tc.desc: Cover the false branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ *          surfaceNode that is not a tunnel layer must increment presentCount only, leaving
+ *          tunnelCount at zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    EXPECT_TRUE(surfaceHandler->IsCurrentFrameBufferConsumed());
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 0u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters
+ * @tc.desc: Cover the true branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ *          surfaceNode that carries a valid new-tunnel layer info must increment both
+ *          presentCount and tunnelCount.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+    constexpr uint64_t testTunnelLayerId = 8801;
+    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+
+    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+
+/**
+ * @tc.name: SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters
+ * @tc.desc: Cover the per-node accumulation contract of SetTunnelSolePresentLayer now that the
+ *          outer loop lives in the caller (DoDirectComposition). Driving the function with a
+ *          consumed tunnel node, a consumed non-tunnel node and a not-consumed node in sequence
+ *          must leave presentCount equal to the consumed node count and tunnelCount equal to the
+ *          consumed tunnel node count.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    constexpr uint64_t testTunnelLayerId = 8801;
+    auto tunnelNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    auto nonTunnelNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    auto notConsumedNode = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(tunnelNode, nullptr);
+    ASSERT_NE(nonTunnelNode, nullptr);
+    ASSERT_NE(notConsumedNode, nullptr);
+
+    auto tunnelHandler = tunnelNode->GetMutableRSSurfaceHandler();
+    auto nonTunnelHandler = nonTunnelNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(tunnelHandler, nullptr);
+    ASSERT_NE(nonTunnelHandler, nullptr);
+    tunnelHandler->SetCurrentFrameBufferConsumed();
+    nonTunnelHandler->SetCurrentFrameBufferConsumed();
+    RSTunnelRuntimeStore::SetLayerInfo(tunnelNode->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+    mainThread->SetTunnelSolePresentLayer(tunnelNode, presentCount, tunnelCount);
+    mainThread->SetTunnelSolePresentLayer(nonTunnelNode, presentCount, tunnelCount);
+    mainThread->SetTunnelSolePresentLayer(notConsumedNode, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 2u);
+    EXPECT_EQ(tunnelCount, 1u);
+
+    RSTunnelRuntimeStore::Erase(tunnelNode->GetId());
+}
 } // namespace OHOS::Rosen
 #endif

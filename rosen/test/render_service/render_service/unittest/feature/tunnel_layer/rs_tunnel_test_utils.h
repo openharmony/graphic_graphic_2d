@@ -21,7 +21,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "consumer_surface.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "pipeline/main_thread/rs_main_thread.h"

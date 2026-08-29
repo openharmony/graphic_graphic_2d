@@ -49,6 +49,9 @@ public:
     void OnRenderCommitDone(ScreenId screenId);
     void AttachToRenderThread();
 
+    static bool GetTunnelSolePresentLayer();
+    static void SetTunnelSolePresentLayer(bool isSole);
+
     static void RefreshGlobalTriggerSnapshot();
     static bool IsGlobalRouteForcedNormal();
 
@@ -60,6 +63,7 @@ private:
     // the entry and advances NORMAL_PREPARING -> NORMAL_COMMITTED, avoiding a permanent phase
     // stall that would lock out the listener path.
     std::unordered_map<NodeId, std::pair<std::weak_ptr<RSSurfaceRenderNode>, ScreenId>> normalRouteNodes_;
+    static std::atomic<bool> tunnelSolePresentLayer_;
     static std::atomic<bool> globalRouteForcedNormal_;
 };
 } // namespace Rosen

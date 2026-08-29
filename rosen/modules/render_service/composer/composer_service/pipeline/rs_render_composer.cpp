@@ -29,6 +29,7 @@
 #include "gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif

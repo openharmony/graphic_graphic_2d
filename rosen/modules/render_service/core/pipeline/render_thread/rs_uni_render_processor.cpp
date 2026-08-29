@@ -24,7 +24,7 @@
 
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"

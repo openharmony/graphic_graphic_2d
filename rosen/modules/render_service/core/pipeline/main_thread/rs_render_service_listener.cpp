@@ -16,7 +16,7 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 
 #include "common/rs_optional_trace.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -143,12 +143,12 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange surfaceHandler is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange surfaceHandler is nullptr");
         return;
     }
     auto node = surfaceBufferInterface_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
         return;
     }
     node->OnTunnelHandleChange();
@@ -162,7 +162,7 @@ void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& s
     if (auto handler = surfaceHandler_.lock()) {
         handler->MarkTunnelLayerInfoReceived();
     }
-    RS_LOGD_IF(DEBUG_PIPELINE, "TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
+    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
         ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
         nodeId_, state.tunnelLayerId, state.property);
 }

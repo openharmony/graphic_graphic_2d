@@ -9343,6 +9343,16 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
     output->device_ = hdiDeviceMock_;
     sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
     auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
+    ASSERT_NE(rsLayer, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    static std::vector<std::string> emptyParamKeys;
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(emptyParamKeys));
+    output->SetRSLayers({ rsLayer });
     sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
     struct CallbackResult {
         uint64_t nodeId;
@@ -9355,17 +9365,6 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
         results.emplace_back(CallbackResult { callbackNodeId, state, generation });
     });
     composer->SetComposerToRenderConnection(connection);
-
-    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
-    ASSERT_NE(rsLayer, nullptr);
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
-        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
-    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
-        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    static std::vector<std::string> emptyParamKeys;
-    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
-        .WillRepeatedly(testing::ReturnRef(emptyParamKeys));
-    output->SetRSLayers({ rsLayer });
 
     auto buffer = CreateTunnelTestBuffer();
     ASSERT_NE(buffer, nullptr);

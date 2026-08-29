@@ -19,7 +19,8 @@
 #include <cinttypes>
 #include <surface.h>
 
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_handler.h"
@@ -42,14 +43,14 @@ bool HandleAvailableCallback(const std::shared_ptr<RSSurfaceRenderNode>& surface
     }
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
     if (tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelLayerGeneration)) {
-        RS_LOGD("%{public}s%{public}s BUILDING -> ACTIVE, reason:AVAILABLE callback, "
+        RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s BUILDING -> ACTIVE, reason:AVAILABLE callback, "
             "nodeId:%{public}" PRIu64 ", generation:%{public}" PRIu64,
             TUNNEL_DEBUG_PREFIX, __func__, nodeId, tunnelLayerGeneration);
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s BUILDING -> ACTIVE, reason=AVAILABLE callback, "
             "nodeId=%" PRIu64 ", generation=%" PRIu64, __func__, nodeId, tunnelLayerGeneration);
         return true;
     }
-    RS_LOGD("%{public}s%{public}s ignore AVAILABLE, nodeId:%{public}" PRIu64
+    RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s ignore AVAILABLE, nodeId:%{public}" PRIu64
         ", generation:%{public}" PRIu64,
         TUNNEL_DEBUG_PREFIX, __func__, nodeId, tunnelLayerGeneration);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s ignore AVAILABLE, nodeId=%" PRIu64 ", generation=%" PRIu64,
@@ -163,7 +164,7 @@ bool RSTunnelLayerManager::HandleLppTunnelLayerId(
 
     auto consumer = surfaceHandler->GetConsumer();
     if (consumer == nullptr) {
-        RS_LOGD("%{public}s%{public}s consumer is null", TUNNEL_DEBUG_PREFIX, __func__);
+        RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s consumer is null", TUNNEL_DEBUG_PREFIX, __func__);
         return true;
     }
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(nodeId);
@@ -176,7 +177,7 @@ bool RSTunnelLayerManager::HandleLppTunnelLayerId(
     }
     tunnelRuntime.SetLayerInfo(
         newTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
-    RS_LOGD("%{public}s%{public}s lpp surfaceid:%{public}" PRIu64,
+    RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s lpp surfaceid:%{public}" PRIu64,
         TUNNEL_DEBUG_PREFIX, __func__, newTunnelLayerId);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s lpp surfaceid=%" PRIu64, __func__, newTunnelLayerId);
     return true;
@@ -217,7 +218,7 @@ void RSTunnelLayerManager::HandleNewTunnelLayerId(
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s wait tunnel activation, nodeId=%" PRIu64 ", tunnelLayerId=%" PRIu64
             ", property=%u, state=%s", __func__, nodeId, newTunnelLayerId, newProperty,
             ToTunnelStateName(tunnelState));
-        RS_LOGD("%{public}s%{public}s wait tunnel activation, nodeId:%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s wait tunnel activation, nodeId:%{public}" PRIu64
             ", tunnelLayerId:%{public}" PRIu64 ", property:%{public}u, state:%{public}s",
             TUNNEL_DEBUG_PREFIX, __func__, nodeId, newTunnelLayerId, newProperty,
             ToTunnelStateName(tunnelState));
@@ -227,7 +228,7 @@ void RSTunnelLayerManager::HandleNewTunnelLayerId(
         return;
     }
     RSTunnelLayerHelper::BeginTunnelBuilding(nodeId, newTunnelLayerId, newProperty);
-    RS_LOGD("%{public}s%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u",
+    RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u",
         TUNNEL_DEBUG_PREFIX, __func__, newTunnelLayerId, newProperty);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s tunnel surfaceid=%" PRIu64 ", property=%u",
         __func__, newTunnelLayerId, newProperty);
@@ -260,7 +261,7 @@ void RSTunnelLayerManager::ProcessLayerStateChanged(const std::shared_ptr<RSSurf
     bool isCurrentGeneration = surfaceNode != nullptr &&
         tunnelRuntime.IsCurrentTunnelLayerGeneration(tunnelLayerGeneration);
     if (hasVersionedCallback && !isCurrentGeneration) {
-        RS_LOGD("%{public}s%{public}s ignore stale callback, nodeId:%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s ignore stale callback, nodeId:%{public}" PRIu64
             ", input:%{public}s, generation:%{public}" PRIu64,
             TUNNEL_DEBUG_PREFIX, __func__, nodeId, ToLayerStateChangeName(state), tunnelLayerGeneration);
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s ignore stale callback, nodeId=%" PRIu64
@@ -276,7 +277,7 @@ void RSTunnelLayerManager::ProcessLayerStateChanged(const std::shared_ptr<RSSurf
         ", input=%s, callback=%s, tracked=%d, activation=%s, generation=%" PRIu64,
         __func__, nodeId, ToLayerStateChangeName(state), ToLayerStateChangeName(callbackState),
         isTunnelStateTracked, ToTunnelStateName(tunnelState), tunnelLayerGeneration);
-    RS_LOGD("%{public}s%{public}s nodeId:%{public}" PRIu64
+    RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s nodeId:%{public}" PRIu64
         ", input:%{public}s, callback:%{public}s, tracked:%{public}d, activation:%{public}s"
         ", generation:%{public}" PRIu64,
         TUNNEL_DEBUG_PREFIX, __func__, nodeId, ToLayerStateChangeName(state),
@@ -289,7 +290,7 @@ void RSTunnelLayerManager::ProcessLayerStateChanged(const std::shared_ptr<RSSurf
     if (callbackState == LayerStateChange::UNAVAILABLE) {
         RSTunnelLayerHelper::ResetTunnelState(surfaceNode);
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s tunnel reset, nodeId=%" PRIu64, __func__, nodeId);
-        RS_LOGD("%{public}s%{public}s tunnel reset, nodeId:%{public}" PRIu64,
+        RS_LOGD_IF(DEBUG_TUNNEL, "%{public}s %{public}s tunnel reset, nodeId:%{public}" PRIu64,
             TUNNEL_DEBUG_PREFIX, __func__, nodeId);
     }
     if (shouldDispatch) {
@@ -306,7 +307,7 @@ void RSTunnelLayerManager::DispatchLayerStateChanged(
 
     GSError ret = callbackConsumer->NotifyLayerStateChanged(state);
     if (ret != GSERROR_OK) {
-        RS_LOGE("%{public}s%{public}s NotifyLayerStateChanged failed, nodeId:%{public}" PRIu64
+        RS_LOGE("%{public}s %{public}s NotifyLayerStateChanged failed, nodeId:%{public}" PRIu64
             ", state:%{public}u, ret:%{public}d",
             TUNNEL_DEBUG_PREFIX, __func__, nodeId, static_cast<uint32_t>(state), ret);
     }
