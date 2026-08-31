@@ -563,7 +563,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr
     bool isConsumed = hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed();
     float displayNit = hwcNodeParams->GetDisplayNit();
     float sdrNit = hwcNodeParams->GetSdrNit();
-    if (!isConsumed && std::abs(displayNit - sdrNit) > NIT_COMPARE_THRESHOLD && ROSEN_EQ(brightnessFactor, 0.0f)) {
+    if (!isConsumed && ROSEN_EQ(brightnessFactor, 0.0f) &&
+        ROSEN_GNE(std::abs(displayNit - sdrNit), NIT_COMPARE_THRESHOLD)) {
         auto parentNode = hwcNode->GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64
             " disabled by HDR brightnessFactor:%f",
