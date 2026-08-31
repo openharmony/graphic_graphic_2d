@@ -18,6 +18,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cstdint>
 #include <list>
 #include <malloc.h>
@@ -4101,7 +4102,13 @@ std::string RSMainThread::SubPriorityEventQueue(std::string input)
                 size_t space_pos = line.find(' ', dot_pos);
                 if (space_pos != std::string::npos) {
                     std::string num_str = line.substr(dot_pos + 1, space_pos - dot_pos - 1);
-                    int num = std::stoi(num_str);
+                    int num = 0;
+                    const char *begin = num_str.data();
+                    const char *end = begin + num_str.size();
+                    auto parsed = std::from_chars(begin, end, num);
+                    if (parsed.ec != std::errc{} || parsed.ptr != end) {
+                        continue;
+                    }
                     if (num >= 1 && num <= 3) { // dump the first three lines of information.
                         result += line + "\n";
                     }
