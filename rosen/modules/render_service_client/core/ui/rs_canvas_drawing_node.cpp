@@ -33,6 +33,7 @@
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_callback_router.h"
+#include "ui/rs_ui_context_manager.h"
 #endif
 
 namespace OHOS {
@@ -43,6 +44,11 @@ bool RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
 namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+constexpr const char* UI_LOCK_TASK_NAME = "UILockTask";
+constexpr int UI_LOCK_DURATION_MS = 3000;
+std::mutex g_uiLockMutex;
+std::condition_variable g_uiLockCV;
+std::atomic<uint32_t> g_lockEpoch = 0;
 const bool PRE_ALLOCATE_DMA_ENABLED =
     RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
 const bool RENDER_DMA_ENABLED =
@@ -55,6 +61,14 @@ public:
     void OnCanvasSurfaceBufferChanged(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override
     {
+        auto nodeIndex = nodeId & 0xFFFFFFFF;
+        if (nodeIndex == 0) {
+            // Reuse this Callback for lock notification from RS (not the Callback's literal meaning).
+            // nodeId encodes pid only, resetSurfaceIndex: non-zero = start lock, 0 = cancel lock.
+            LockOrUnlockUI(resetSurfaceIndex != 0);
+            return;
+        }
+
         auto node = RSCanvasCallbackRouter::GetInstance().RouteToNode(nodeId);
         if (node == nullptr) {
             RS_LOGE("GlobalCanvasSurfaceBufferCallback: Node not found or destroyed, nodeId=%{public}" PRIu64, nodeId);
@@ -62,6 +76,21 @@ public:
         }
 
         node->OnSurfaceBufferChanged(buffer, resetSurfaceIndex);
+    }
+
+    void LockOrUnlockUI(bool needLock)
+    {
+        RS_LOGE("LockOrUnlockUI, needLock=%{public}d", needLock);
+        uint32_t epoch = g_lockEpoch.fetch_add(1) + 1;
+        g_uiLockCV.notify_all();
+        if (needLock) {
+            RSUIContextManager::MutableInstance().RemoveUITask(UI_LOCK_TASK_NAME);
+            RSUIContextManager::MutableInstance().PostUITask([epoch] {
+                    std::unique_lock<std::mutex> uiLock(g_uiLockMutex);
+                    g_uiLockCV.wait_for(uiLock, std::chrono::milliseconds(UI_LOCK_DURATION_MS),
+                        [epoch] { return g_lockEpoch.load() != epoch; });
+                }, UI_LOCK_TASK_NAME);
+        }
     }
 };
 #endif

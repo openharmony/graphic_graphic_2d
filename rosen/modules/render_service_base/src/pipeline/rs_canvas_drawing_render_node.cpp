@@ -532,6 +532,7 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
 {
+    currentOpCount_ = 0;
     auto& drawCmdLists = drawCmdListsNG_[type];
     auto originCmdListSize = drawCmdLists.size();
     if (originCmdListSize == 0) {
@@ -564,6 +565,7 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierTyp
         }
     }
     lastOverflowStatus_ = overflow;
+    currentOpCount_ = opCount;
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifierType)
@@ -771,6 +773,7 @@ void RSCanvasDrawingRenderNode::AfterSync()
     if (waitSync_) {
         renderDrawable_->SetNeedDraw(true);
     }
+    currentOpCount_ = 0;
     waitSync_ = false;
 }
 
@@ -834,6 +837,11 @@ bool RSCanvasDrawingRenderNode::CheckCachedOp()
 bool RSCanvasDrawingRenderNode::HasCachedOp() const
 {
     return cachedOpCount_ > 0;
+}
+
+size_t RSCanvasDrawingRenderNode::GetCurrentOpCount() const
+{
+    return currentOpCount_;
 }
 
 bool RSCanvasDrawingRenderNode::IsNodeMemClearEnable()
