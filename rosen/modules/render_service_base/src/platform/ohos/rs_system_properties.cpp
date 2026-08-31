@@ -38,6 +38,7 @@ constexpr int DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE = 1;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
+constexpr const char* VULKAN_CONFIG_FILE_PATH = "/vendor/etc/vulkan/icd.d";
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
@@ -1630,8 +1631,13 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 
     canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
     if (canvasEnabled) {
-        GetBackgroundRebuildEnabled();
-        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+        if (access(VULKAN_CONFIG_FILE_PATH, F_OK) == -1) {
+            ROSEN_LOGE("GetHybridRenderCanvasEnabled access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
+            canvasEnabled = false;
+        } else {
+            GetBackgroundRebuildEnabled();
+            canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+        }
     }
     inited = true;
     return canvasEnabled;

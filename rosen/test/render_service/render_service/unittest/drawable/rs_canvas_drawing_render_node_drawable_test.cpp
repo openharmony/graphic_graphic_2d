@@ -1279,5 +1279,23 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, SnapshotBufferDrawTest, TestSize
     image = drawable->Snapshot();
     ASSERT_EQ(image, nullptr);
 }
+
+/**
+ * @tc.name: CreateBufferDrawParamCanvasDrawing001
+ * @tc.desc: Test CreateBufferDrawParam with RSCanvasDrawingRenderNodeDrawable
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateBufferDrawParamCanvasDrawing001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
+    bool forceCPU = false;
+    uint32_t threadIndex = 0;
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(*drawable, forceCPU, threadIndex);
+    ASSERT_TRUE(params.useBilinearInterpolation);
+}
 #endif
 }

@@ -792,6 +792,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     }
     params.threadIndex = threadIndex;
     params.useCPU = forceCPU;
+    params.useBilinearInterpolation = true;
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
