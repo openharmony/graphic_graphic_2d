@@ -146,11 +146,12 @@ bool RSMultiDisplayFeatureParamParse::IsNumber(const std::string& str)
     if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
         return false;
     }
-    size_t digitCount = std::count_if(str.begin(), str.end(), [](unsigned char c) {
+    auto digitCount = std::count_if(str.begin(), str.end(), [](unsigned char c) {
         return std::isdigit(c);
     });
-    bool allDigits = (digitCount == str.length());
-    bool negativeSign = (str.length() >= 2) && (str.compare(0, 1, "-") == 0) && (digitCount == str.length() - 1);
+    bool allDigits = (digitCount == static_cast<ptrdiff_t>(str.length()));
+    bool negativeSign = (str.length() >= 2) && (str.compare(0, 1, "-") == 0) &&
+        (digitCount == static_cast<ptrdiff_t>(str.length()) - 1);
     return allDigits || negativeSign;
 }
 } // namespace OHOS::Rosen
