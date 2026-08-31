@@ -14,6 +14,7 @@
  */
 
 #include <atomic>
+#include <dlfcn.h>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -23,6 +24,7 @@
 #include "surface_buffer_impl.h"
 
 #include "screen_manager/rs_screen_property.h"
+#include "text/typeface.h"
 #ifdef RS_ENABLE_VK
 #include "vulkan_context/rs_vulkan_context.h"
 #endif
@@ -44,6 +46,10 @@ public:
 
 void RsRenderComposerAgentTest::SetUpTestCase()
 {
+    // Preload librender_service_client.z.so on the main thread to prevent BSS
+    // segment race when dlopen is triggered from a background CompThread.
+    dlopen("librender_service_client.z.so", RTLD_NOW);
+
     auto output = std::make_shared<HdiOutput>(0u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -52,6 +58,12 @@ void RsRenderComposerAgentTest::SetUpTestCase()
 void RsRenderComposerAgentTest::TearDownTestCase()
 {
     rsRenderComposer_->uniRenderEngine_ = nullptr;
+    rsRenderComposer_ = nullptr;
+    // Reset Typeface callbacks to prevent use-after-free during process exit
+    // when static destructors run in unpredictable order
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
 }
 void RsRenderComposerAgentTest::SetUp() {}
 void RsRenderComposerAgentTest::TearDown() {}

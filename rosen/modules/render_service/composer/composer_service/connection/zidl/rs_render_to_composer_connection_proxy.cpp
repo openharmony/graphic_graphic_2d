@@ -355,7 +355,7 @@ void RSRenderToComposerConnectionProxy::SetActiveRectSwitchStatus(bool flag, con
     MessageOption option;
     MessageParcel reply;
     MessageParcel parcel;
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!parcel.WriteInterfaceToken(GetDescriptor())) {
         RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
         return;
