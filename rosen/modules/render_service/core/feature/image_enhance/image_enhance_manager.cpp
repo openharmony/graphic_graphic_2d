@@ -14,11 +14,22 @@
  */
 
 #include "image_enhance_manager.h"
+#include <charconv>
 #include "common/rs_common_hook.h"
 #include "image_enhance_param.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
+namespace {
+bool ParseInt32(const std::string &value, int32_t &result)
+{
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, result);
+    return parsed.ec == std::errc{} && parsed.ptr == end;
+}
+} // namespace
+
 ImageEnhanceManager::ImageEnhanceManager()
 {
     mImageEnhanceScene_ = ImageEnhanceParam::GetImageEnhanceScene();
@@ -64,21 +75,22 @@ std::tuple<std::string, pid_t, int32_t> ImageEnhanceManager::AnalyzePkgParam(con
     auto pidAppType = param.substr(index + 1, param.size());
     index = pidAppType.find(":");
     if (index == std::string::npos) {
-        if (IsNumber(pidAppType)) {
-            pid = static_cast<pid_t>(std::stoi(pidAppType));
+        int32_t parsedPid = 0;
+        if (IsNumber(pidAppType) && ParseInt32(pidAppType, parsedPid)) {
+            pid = static_cast<pid_t>(parsedPid);
         }
         return { pkgName, pid, appType };
     }
 
     // split by : index
     auto pidStr = pidAppType.substr(0, index);
-    if (IsNumber(pidStr)) {
-        pid = static_cast<pid_t>(std::stoi(pidStr));
+    int32_t parsedPid = 0;
+    if (IsNumber(pidStr) && ParseInt32(pidStr, parsedPid)) {
+        pid = static_cast<pid_t>(parsedPid);
     }
 
     auto appTypeStr = pidAppType.substr(index + 1, pidAppType.size());
-    if (IsNumber(appTypeStr)) {
-        appType = std::stoi(appTypeStr);
+    if (IsNumber(appTypeStr) && ParseInt32(appTypeStr, appType)) {
     }
     return { pkgName, pid, appType };
 }
