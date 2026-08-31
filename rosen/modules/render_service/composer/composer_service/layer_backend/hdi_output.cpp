@@ -48,8 +48,8 @@ static constexpr size_t MATRIX_SIZE = 9;
 static const std::string GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX = "DisplayLinearMatrix";
 static constexpr uint32_t TUNNEL_LAYER_NUM_PROPID = 6;
 static constexpr uint32_t TUNNEL_LAYER_TYPE_PROPID = 7;
-static std::atomic<size_t> TUNNEL_LAYER_NUM_THRESHOLD;
-static std::atomic<uint64_t> TUNNEL_LAYER_SUPPORT_TYPE;
+static std::atomic<size_t> TUNNEL_LAYER_NUM_THRESHOLD = 0;
+static std::atomic<uint64_t> TUNNEL_LAYER_SUPPORT_TYPE = 0;
 
 using TunnelLayerKey = std::pair<uint32_t, uintptr_t>;
 std::mutex g_tunnelLayerMutex;
@@ -1736,11 +1736,11 @@ void HdiOutput::InitTunnelProperty()
     for (auto &prop : dcap.props) {
         if (prop.propId == TUNNEL_LAYER_NUM_PROPID) {
             TUNNEL_LAYER_NUM_THRESHOLD.store(static_cast<size_t>(prop.value));
-            HLOGI("TUNNLE_DEBUG %{public}s threshold: %{public}zu", __func__, TUNNEL_LAYER_NUM_THRESHOLD.load());
+            HLOGI("TUNNEL_DEBUG %{public}s threshold: %{public}zu", __func__, TUNNEL_LAYER_NUM_THRESHOLD.load());
         }
         if (prop.propId == TUNNEL_LAYER_TYPE_PROPID) {
             TUNNEL_LAYER_SUPPORT_TYPE.store(prop.value);
-            HLOGI("TUNNLE_DEBUG %{public}s type: %{public}" PRIu64, __func__, TUNNEL_LAYER_SUPPORT_TYPE.load());
+            HLOGI("TUNNEL_DEBUG %{public}s type: %{public}" PRIu64, __func__, TUNNEL_LAYER_SUPPORT_TYPE.load());
         }
     }
 }

@@ -690,8 +690,6 @@ private:
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
-    void SetTunnelSolePresentLayer(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        uint32_t& presentCount, uint32_t& tunnelCount);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
