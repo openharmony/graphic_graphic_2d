@@ -14,6 +14,7 @@
  */
 #include "rs_pipeline_dumper.h"
 
+#include <charconv>
 #include <iservice_registry.h>
 #include <malloc.h>
 #include <memory>
@@ -48,6 +49,15 @@ namespace Rosen {
 namespace {
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
 constexpr size_t MAX_NUMERIC_LENGTH = 20; // max digits for uint64_t decimal representation
+
+int32_t ParsePid(const std::string &value)
+{
+    int32_t result = 0;
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, result);
+    return (parsed.ec == std::errc{} && parsed.ptr == end) ? result : 0;
+}
 #ifdef RS_ENABLE_GPU
 static const int INT_INIT_VAL = 0;
 static const int CREAT_NUM_ONE = 1;
@@ -607,7 +617,7 @@ void RSPipelineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSe
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
-        pid = std::atoi(type.c_str());
+        pid = ParsePid(type);
         MemoryManager::DumpExitPidMem(dumpString, pid);
     } else {
         dumpString.append("\n---------------\n Pid is error \n" + type);
@@ -676,7 +686,7 @@ void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std:
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
-        pid = std::atoi(type.c_str());
+        pid = ParsePid(type);
     }
     ScheduleTask([this, &argSets, &dumpString, &type, &pid, isLite]() {
         return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
