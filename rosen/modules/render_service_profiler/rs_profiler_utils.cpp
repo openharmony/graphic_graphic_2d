@@ -15,6 +15,7 @@
 
 #include "rs_profiler_utils.h"
 
+#include <charconv>
 #include <chrono>
 #include <cstdarg>
 #include <fcntl.h>
@@ -227,7 +228,11 @@ int32_t Utils::ToInt32(const std::string& string)
 
 int64_t Utils::ToInt64(const std::string& string)
 {
-    return std::atoll(string.data());
+    int64_t value = 0;
+    const char *begin = string.data();
+    const char *end = begin + string.size();
+    auto parsed = std::from_chars(begin, end, value);
+    return (parsed.ec == std::errc{} && parsed.ptr == end) ? value : 0;
 }
 
 uint8_t Utils::ToUint8(const std::string& string)
@@ -250,9 +255,11 @@ uint32_t Utils::ToUint32(const std::string& string)
 
 uint64_t Utils::ToUint64(const std::string& string)
 {
-    constexpr int32_t base = 10;
-    char* end = const_cast<char*>(string.data()) + string.size();
-    return std::strtoull(string.data(), &end, base);
+    uint64_t value = 0;
+    const char *begin = string.data();
+    const char *end = begin + string.size();
+    auto parsed = std::from_chars(begin, end, value);
+    return (parsed.ec == std::errc{} && parsed.ptr == end) ? value : 0;
 }
 
 float Utils::ToFp32(const std::string& string)
