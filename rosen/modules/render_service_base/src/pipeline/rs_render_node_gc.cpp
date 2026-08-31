@@ -209,9 +209,8 @@ void RSRenderNodeGC::ReleaseMainBucket(bool highPriority)
 {
     if (mainTask_) {
         if (CheckHasNodeNotOnTree()) {
-            mainTask_([this]() {
-                ReleaseNodeMemNotOnTree();
-            }, DELETE_NODE_OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+            mainTask_([this]() { ReleaseNodeMemNotOnTree(); }, DELETE_NODE_OFF_TREE_TASK, 0,
+                AppExecFwk::EventQueue::Priority::HIGH);
         }
     } else {
         ReleaseNodeMemNotOnTree();

@@ -18,12 +18,12 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_curve_animation.h"
+#include "drawable/rs_render_node_shadow_drawable.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/rs_proxy_render_node.h"
-#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "drawable/rs_render_node_shadow_drawable.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;
@@ -1350,9 +1350,7 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_CallsDrawableReleaseOnHighPriorit
     ClearNodeBucket();
     ClearBgBucket();
     bool drawableReleaseCalled = false;
-    auto drawableReleaseFunc = [&drawableReleaseCalled](bool highPriority) {
-        drawableReleaseCalled = true;
-    };
+    auto drawableReleaseFunc = [&drawableReleaseCalled](bool highPriority) { drawableReleaseCalled = true; };
     nodeGC.SetDrawableReleaseFunc(drawableReleaseFunc);
     nodeGC.imageReleaseFunc_ = nullptr;
     // Add nodes to trigger processing
@@ -1375,9 +1373,7 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_CallsImageReleaseOnHighPriority, 
     ClearNodeBucket();
     ClearBgBucket();
     bool imageReleaseCalled = false;
-    auto imageReleaseFunc = [&imageReleaseCalled]() {
-        imageReleaseCalled = true;
-    };
+    auto imageReleaseFunc = [&imageReleaseCalled]() { imageReleaseCalled = true; };
     nodeGC.drawableReleaseFunc_ = nullptr;
     nodeGC.SetImageReleaseFunc(imageReleaseFunc);
     // Add nodes to trigger processing
