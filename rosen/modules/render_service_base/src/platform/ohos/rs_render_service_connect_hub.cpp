@@ -408,6 +408,10 @@ void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(uint64_t tokenMa
         ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken token is nullptr");
         return;
     }
+    if (renderPrecess == nullptr || renderPrecess->AsObject() == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken renderPrecess is invalid");
+        return;
+    }
     std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
     if (connRenderProcesses_.find(tokenMaskId) != connRenderProcesses_.end()) {
         return;

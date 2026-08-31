@@ -263,7 +263,10 @@ bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const Buffer
         return false;
     }
     sptr<RSIBufferClearCallback> bufferClearCb = new CustomBufferClearCallback(callback);
-    clientToRenderConnection->RegisterBufferClearListener(id, bufferClearCb);
+    if (clientToRenderConnection->RegisterBufferClearListener(id, bufferClearCb) != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::RegisterBufferClearListener IPC failed, nodeId:%{public}" PRIu64, id);
+        return false;
+    }
     return true;
 }
 
@@ -456,10 +459,10 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeSurfaceCapture(
         id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
@@ -501,10 +504,10 @@ bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<S
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
@@ -537,10 +540,10 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->SetWindowFreezeImmediately(
         id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
@@ -621,11 +624,10 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    std::lock_guard<std::mutex> lock(surfaceCaptureCbDirectorMutex_);
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
     return true;

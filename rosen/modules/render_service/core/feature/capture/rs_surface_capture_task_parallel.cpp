@@ -690,6 +690,10 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
             {image, Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()),
             Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight()), nullptr},
             Drawing::SamplingOptions());
+        if (outImage == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::AddBlur outImage is nullptr");
+            return;
+        }
         canvas.DrawImage(*outImage, 0, 0, Drawing::SamplingOptions());
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::AddBlur ApplyHpsBlur failed, using MESA");
     }

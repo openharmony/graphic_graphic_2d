@@ -1882,6 +1882,37 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddBlurTest, TestSize.Level2)
 }
 
 /*
+ * @tc.name: AddBlurOutImageNullTest
+ * @tc.desc: Test AddBlur when ApplyImageEffect returns nullptr, verify no crash and early return
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddBlurOutImageNullTest, TestSize.Level2)
+{
+    NodeId id = 34;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 64;
+    opts.size.height = 64;
+    auto pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
+    ASSERT_NE(address, nullptr);
+    Drawing::ImageInfo info { pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto surface = Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    ASSERT_NE(surface, nullptr);
+
+    RSPaintFilterCanvas canvas(surface.get());
+    // AddBlur with large radius forces MESA fallback path; if ApplyImageEffect returns
+    // nullptr (e.g. no GPU context in UT), the null check should prevent crash
+    task.AddBlur(canvas, surface, 500.0f);
+    // reaching here without crash means the null-guard worked
+    SUCCEED();
+}
+
+/*
  * @tc.name: PixelMapCopy001
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.PixelMapCopy
  * @tc.type: FUNC

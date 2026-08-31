@@ -929,6 +929,22 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MoveCommandByNodeIdNullHandler
+ * @tc.desc: Pass nullptr as transactionHandler to MoveCommandByNodeId, verify early return
+ *          without crash (covers the defensive null check added in security hardening)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdNullHandler, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(nullptr, nodeId);
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
+}
+
+/**
  * @tc.name: AddCommandFromRT001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -1972,6 +1988,22 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommands001, Te
     preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
     EXPECT_TRUE(preTransaction->IsEmpty());
     EXPECT_TRUE(curTransaction->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommandsNullHandler
+ * @tc.desc: Pass nullptr as transactionHandler, verify early return without crash
+ *          (covers the defensive null check added in security hardening)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommandsNullHandler, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeIdExcludeTreeCommands(nullptr, nodeId);
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
 }
 
 /**

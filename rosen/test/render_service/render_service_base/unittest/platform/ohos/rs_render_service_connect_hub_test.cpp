@@ -395,6 +395,24 @@ HWTEST_F(RSRenderServiceConnectHubTest, OnRemoteDiedTest004, TestSize.Level1)
     ASSERT_EQ(connHub->connRenderProcesses_.count(TEST_ID), 0);
 }
 
+/**
+ * @tc.name: AddRenderProcessConnectionTokenNullRenderPrecess
+ * @tc.desc: Pass nullptr renderPrecess to AddRenderProcessConnectionToken,
+ *          verify early return without adding entry to connRenderProcesses_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionTokenNullRenderPrecess, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    constexpr uint64_t TEST_MASK_ID = 99999;
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<IRemoteObject> remote = nullptr;
+    sptr<RSIConnectToRenderProcess> nullProcess = nullptr;
+    sptr<RSIClientToRenderConnection> nullConn = nullptr;
+    connHub->AddRenderProcessConnectionToken(TEST_MASK_ID, token, remote, nullProcess, nullConn);
+    EXPECT_EQ(connHub->connRenderProcesses_.count(TEST_MASK_ID), 0u);
+}
+
 
 } // namespace Rosen
 } // namespace OHOS

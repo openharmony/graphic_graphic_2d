@@ -126,6 +126,20 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetUniRenderEnabled, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetUniRenderEnabled_NullRemote
+ * @tc.desc: Test GetUniRenderEnabled when Remote() is nullptr, verify error code and enable unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetUniRenderEnabled_NullRemote, TestSize.Level1)
+{
+    auto nullProxy = std::make_shared<RSClientToServiceConnectionProxy>(nullptr);
+    bool enable = false;
+    ErrCode ret = nullProxy->GetUniRenderEnabled(enable);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_FALSE(enable);
+}
+
+/**
  * @tc.name: GetBackgroundRebuildEnabled001
  * @tc.desc: Test GetBackgroundRebuildEnabled returns true
  * @tc.type: FUNC

@@ -273,7 +273,6 @@ private:
     };
 
     std::mutex mutex_;
-    std::mutex surfaceCaptureCbDirectorMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;

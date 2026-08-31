@@ -953,5 +953,27 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid011, TestSize.Level1)
     EXPECT_FALSE(storedCommand->IsCallingPidValid());
 }
 
+/**
+ * @tc.name: MarshallingNullCommandTest
+ * @tc.desc: Marshalling with nullptr command in payload, verify WriteUint8(0) is folded
+ *           into success chain and Marshalling does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MarshallingNullCommandTest, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 200;
+    src.payload_.emplace_back(nodeId, FollowType::FOLLOW_TO_PARENT, nullptr);
+    ASSERT_EQ(src.GetCommandCount(), 1u);
+
+    Parcel parcel;
+    bool result = src.Marshalling(parcel);
+    ASSERT_TRUE(result);
+
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 0u);
+}
+
 } // namespace Rosen
 } // namespace OHOS

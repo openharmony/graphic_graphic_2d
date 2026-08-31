@@ -4069,6 +4069,9 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
     while (std::getline(stream, line)) {
         lines.push_back(line);
     }
+    if (lines.empty()) {
+        return "";
+    }
     std::string result;
     for (int i = 0; i < static_cast<int>(lines.size()); ++i) {
         if (lines[i].find(TARGET_STRING) != std::string::npos) {

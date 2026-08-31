@@ -914,6 +914,9 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         SetRenderGroupCachedSurface(Drawing::Surface::MakeFromBackendTexture(gpuContext,
             GetCachedBackendTexture().GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_));
+        if (GetRenderGroupCachedSurface() == nullptr) {
+            vulkanCleanupHelper_ = nullptr;
+        }
         REAL_ALLOC_CONFIG_SET_STATUS(false);
     }
 #endif
