@@ -16,6 +16,7 @@
 #include "hgm_core.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -38,6 +39,14 @@ constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
 int64_t GetFixedVsyncOffset(int64_t value)
 {
     return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
+}
+
+bool ParseUint32(const std::string &value, uint32_t &result)
+{
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, result);
+    return parsed.ec == std::errc{} && parsed.ptr == end;
 }
 } // namespace
 
@@ -166,8 +175,10 @@ int32_t HgmCore::InitXmlConfig()
 void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 {
     const auto& ltpoConfig = curScreenSetting.ltpoConfig;
-    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
-        maxTE_ = std::stoul(iter->second);
+    uint32_t parsedMaxTE = 0;
+    if (auto iter = ltpoConfig.find("maxTE"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second) &&
+        ParseUint32(iter->second, parsedMaxTE)) {
+        maxTE_ = parsedMaxTE;
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
         CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
     } else {
@@ -175,10 +186,11 @@ void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSet
         HGM_LOGW("failed to find TE strategy for LTPO");
     }
 
-    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
-        uint32_t maxTE144 = std::stoul(iter->second);
-        if (maxTE144 % OLED_144_HZ == 0) {
-            maxTE144_ = maxTE144;
+    uint32_t parsedMaxTE144 = 0;
+    if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second) &&
+        ParseUint32(iter->second, parsedMaxTE144)) {
+        if (parsedMaxTE144 % OLED_144_HZ == 0) {
+            maxTE144_ = parsedMaxTE144;
             CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
         } else {
             maxTE144_ = 0;
