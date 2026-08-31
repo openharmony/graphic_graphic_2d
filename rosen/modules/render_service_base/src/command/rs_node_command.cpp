@@ -185,7 +185,6 @@ void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nod
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node == nullptr) {
         RS_LOGW("SetTakeSurfaceForUIFlag node not found, nodeId: %{public}" PRIu64, nodeId);
-        return;
     }
     RS_LOGD("SetTakeSurfaceForUIFlag cmd executed, nodeId: %{public}" PRIu64, nodeId);
     context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(nodeId, true);
