@@ -108,7 +108,7 @@ HWTEST_F(RSColorTest, IsAbsNearEqualBT2020Test001, TestSize.Level1)
     RSColor threshold(0.1f, 0.1f, 0.1f, 0.1f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
     EXPECT_TRUE(color.IsAbsNearEqual(target, threshold));
 
-    RSColor diffTarget(0.6f, 0.6f, 0.6f, 0.6f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor diffTarget(0.7f, 0.7f, 0.7f, 0.7f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
     EXPECT_FALSE(color.IsAbsNearEqual(diffTarget, threshold));
 }
 

@@ -166,7 +166,7 @@ bool RSColor::IsAbsNearEqual(const RSColor& target, const RSColor& threshold) co
 
 void RSColor::TakeAbsMaxFrom(const RSColor& target)
 {
-    if (UNLIKELY(placeholder_ != 0)|| UNLIKELY(target.placeholder_ != 0)) {
+    if (UNLIKELY(placeholder_ != 0) || UNLIKELY(target.placeholder_ != 0)) {
         return;
     }
     RSColor targetConverted = target;
@@ -228,7 +228,7 @@ RSColor RSColor::operator+(const RSColor& rhs) const
         lowColor = rhs;
     }
     if (highColor.GetHeadroom() < 1.0f || lowColor.GetHeadroom() < 1.0f) {
-        return *this;
+        return rhs;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
@@ -261,7 +261,7 @@ RSColor RSColor::operator-(const RSColor& rhs) const
     RSColor lhsColor(*this);
     RSColor rhsColor(rhs);
     if (lhsColor.GetHeadroom() < 1.0f || rhsColor.GetHeadroom() < 1.0f) {
-        return *this;
+        return rhs;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     if (lhsColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
@@ -322,7 +322,7 @@ RSColor RSColor::operator*(const RSColor& other) const
         lowColor = other;
     }
     if (lowColor.GetHeadroom() < 1.0f) {
-        return *this;
+        return other;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     if (highColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020 ||
@@ -379,6 +379,7 @@ RSColor& RSColor::operator*=(const RSColor& other)
         lowColor = other;
     }
     if (lowColor.GetHeadroom() < 1.0f) {
+        *this = other;
         return *this;
     }
     auto colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

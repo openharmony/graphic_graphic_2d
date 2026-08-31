@@ -154,7 +154,7 @@ private:
     
     int8_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint8_t placeholder_ = 0; // enum ColorPlaceholder
-    float16 headroom_ = Float32ToFloat16(1.0f); // brightness ratio, range [1, 1+]
+    float16 headroom_ = 0x3C00; // brightness ratio, range [1, 1+]
 };
 } // namespace Rosen
 } // namespace OHOS
