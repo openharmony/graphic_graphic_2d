@@ -150,7 +150,7 @@ bool RSMultiDisplayFeatureParamParse::IsNumber(const std::string& str)
         return std::isdigit(c);
     });
     bool allDigits = (digitCount == str.length());
-    bool negativeSign = (str.compare(0, 1, "-") == 0) && (digitCount == str.length() - 1);
+    bool negativeSign = (str.length() >= 2) && (str.compare(0, 1, "-") == 0) && (digitCount == str.length() - 1);
     return allDigits || negativeSign;
 }
 } // namespace OHOS::Rosen

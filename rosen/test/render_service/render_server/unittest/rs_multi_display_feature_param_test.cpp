@@ -138,9 +138,9 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestParseNoMultiDisplayFeatures, TestSi
             <other_feature name="switch" value="true"/>
         </Configs>)"
     );
-    xmlDocPtr xmlDocPtr = StringToXmlDoc(xmlContent);
-    EXPECT_NE(xmlDocPtr, nullptr);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr), false);
+    xmlDocPtr docPtr = StringToXmlDoc(xmlContent);
+    EXPECT_NE(docPtr, nullptr);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*docPtr), false);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), false);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), false);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable(), false);
