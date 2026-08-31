@@ -186,7 +186,6 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     auto token = parcelCopied->ReadInterfaceToken();
     if (token != RSIClientToRenderConnection::GetDescriptor()) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel token Read failed");
-        free(base);
         return nullptr;
     }
     int32_t data{0};
