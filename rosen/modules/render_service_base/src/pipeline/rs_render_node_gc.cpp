@@ -201,6 +201,12 @@ void RSRenderNodeGC::ReleaseNodeOnBgThread()
 void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
+    ReleaseMainBucket(highPriority);
+    ReleaseBgBucket();
+}
+
+void RSRenderNodeGC::ReleaseMainBucket(bool highPriority)
+{
     if (mainTask_) {
         if (CheckHasNodeNotOnTree()) {
             mainTask_([this]() {
@@ -213,13 +219,12 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
-        if (nodeBucket_.empty()) {
-            remainBucketSize = 0;
-        } else {
-            remainBucketSize = nodeBucket_.size();
-        }
+        remainBucketSize = nodeBucket_.size();
     }
-    if (remainBucketSize > 0 && mainTask_) {
+    if (remainBucketSize == 0) {
+        return;
+    }
+    if (mainTask_) {
         nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
         auto task = [this, highPriority]() {
             if (isEnable_.load() == false &&
@@ -236,14 +241,18 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
             if (highPriority && imageReleaseFunc_) {
                 imageReleaseFunc_();
             }
-            ReleaseNodeMemory(highPriority);
+            ReleaseMainBucket(highPriority);
         };
         auto taskPriority = highPriority ? AppExecFwk::EventQueue::Priority::HIGH :
                             static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_);
         mainTask_(task, DELETE_NODE_TASK, 0, taskPriority);
-    } else if (remainBucketSize > 0) {
+    } else {
         ReleaseNodeBucket();
     }
+}
+
+void RSRenderNodeGC::ReleaseBgBucket()
+{
     if (!RSSystemProperties::GetBgNodeReleaseEnabled()) {
         return;
     }

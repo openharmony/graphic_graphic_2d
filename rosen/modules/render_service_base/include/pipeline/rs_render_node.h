@@ -53,6 +53,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 
@@ -120,7 +121,16 @@ public:
     RSRenderNode& operator=(const RSRenderNode&&) = delete;
     virtual ~RSRenderNode();
     // Whether this node must be released on the main thread during GC.
-    bool MustReleaseOnMainThread() const;
+    // LOGICAL_DISPLAY_NODE: destructor accesses non-thread-safe global map (RSPointLightManager)
+    // PROXY_NODE: destructor modifies target node's properties/modifiers without lock
+    inline bool MustReleaseOnMainThread() const
+    {
+        auto type = GetType();
+        if (UNLIKELY(type == RSRenderNodeType::LOGICAL_DISPLAY_NODE || type == RSRenderNodeType::PROXY_NODE)) {
+            return true;
+        }
+        return HasAnimation() || !RSSystemProperties::GetBgNodeReleaseEnabled();
+    }
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
