@@ -39,6 +39,7 @@ constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 constexpr size_t MAX_NUM_SOLID_LAYER = 2;
 constexpr int MIN_OVERLAP = 2;
 constexpr float EPSILON_SCALE = 0.00001f;
+constexpr float NIT_COMPARE_THRESHOLD = 0.001f;
 
 // IsSolidLayerEnable : effective in all scenarios
 // GetIsWhiteListForSolidColorLayerFlag : applicable to a single app
@@ -551,14 +552,24 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr
     if (!displayNode) {
         return;
     }
+    if (!RSBaseHdrUtil::CheckAIHDRStatus(hwcNode->GetVideoHdrStatus())) {
+        return;
+    }
+    auto hwcNodeParams = static_cast<RSSurfaceRenderParams*>(hwcNode->GetStagingRenderParams().get());
+    if (hwcNodeParams == nullptr) {
+        return;
+    }
     float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
-    if (ROSEN_EQ(brightnessFactor, 0.0f) && RSBaseHdrUtil::CheckAIHDRStatus(hwcNode->GetVideoHdrStatus())) {
+    bool isConsumed = hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed();
+    float displayNit = hwcNodeParams->GetDisplayNit();
+    float sdrNit = hwcNodeParams->GetSdrNit();
+    if (!isConsumed && std::abs(displayNit - sdrNit) > NIT_COMPARE_THRESHOLD && ROSEN_EQ(brightnessFactor, 0.0f)) {
         auto parentNode = hwcNode->GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64
             " disabled by HDR brightnessFactor:%f",
             hwcNode->GetName().c_str(), hwcNode->GetId(),
             parentNode ? parentNode->GetId() : 0, brightnessFactor);
-        PrintHiperfLog(hwcNode, "zero HDR brightness factor for AI HDR");
+        PrintHiperfLog(hwcNode, "UpdateHwcNodeEnableByForceDisableHdr for AI HDR");
         hwcNode->SetHardwareForcedDisabledState(true);
     }
 }
