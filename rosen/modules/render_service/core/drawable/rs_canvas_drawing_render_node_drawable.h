@@ -67,6 +67,11 @@ public:
 
     void SetNeedDraw(bool flag) override
     {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        if (RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+            return;
+        }
+#endif
         needDraw_ = flag;
     }
 
