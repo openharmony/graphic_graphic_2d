@@ -92,6 +92,52 @@ const std::vector<RRectCornerParam> rRectCornerParams = {
             Vector2f(12.0f, 12.0f), Vector2f(6.0f, 6.0f)},
     },
 };
+
+const std::vector<RRectCornerParam> leftSideExceedParams = {
+    {
+        RectT<float>{100.0f, 100.0f, 300.0f, 200.0f},
+        {Vector2f(180.0f, 180.0f), Vector2f(30.0f, 30.0f),
+            Vector2f(30.0f, 30.0f), Vector2f(180.0f, 180.0f)},
+    },
+    {
+        RectT<float>{100.0f, 100.0f, 300.0f, 200.0f},
+        {Vector2f(250.0f, 250.0f), Vector2f(40.0f, 40.0f),
+            Vector2f(40.0f, 40.0f), Vector2f(250.0f, 250.0f)},
+    },
+    {
+        RectT<float>{120.0f, 80.0f, 280.0f, 240.0f},
+        {Vector2f(200.0f, 150.0f), Vector2f(20.0f, 20.0f),
+            Vector2f(20.0f, 20.0f), Vector2f(200.0f, 150.0f)},
+    },
+    {
+        RectT<float>{80.0f, 120.0f, 360.0f, 180.0f},
+        {Vector2f(300.0f, 200.0f), Vector2f(50.0f, 50.0f),
+            Vector2f(50.0f, 50.0f), Vector2f(300.0f, 200.0f)},
+    },
+};
+
+const std::vector<RRectCornerParam> nonUniformExceedParams = {
+    {
+        RectT<float>{100.0f, 100.0f, 280.0f, 180.0f},
+        {Vector2f(180.0f, 120.0f), Vector2f(250.0f, 50.0f),
+            Vector2f(90.0f, 180.0f), Vector2f(200.0f, 140.0f)},
+    },
+    {
+        RectT<float>{80.0f, 80.0f, 320.0f, 160.0f},
+        {Vector2f(300.0f, 200.0f), Vector2f(150.0f, 180.0f),
+            Vector2f(280.0f, 160.0f), Vector2f(120.0f, 250.0f)},
+    },
+    {
+        RectT<float>{100.0f, 120.0f, 260.0f, 220.0f},
+        {Vector2f(200.0f, 300.0f), Vector2f(500.0f, 100.0f),
+            Vector2f(150.0f, 400.0f), Vector2f(350.0f, 50.0f)},
+    },
+    {
+        RectT<float>{90.0f, 90.0f, 340.0f, 200.0f},
+        {Vector2f(150.0f, 500.0f), Vector2f(400.0f, 180.0f),
+            Vector2f(300.0f, 250.0f), Vector2f(180.0f, 350.0f)},
+    },
+};
 }
 
 class NGSDFRRectTest : public RSGraphicTest {
@@ -327,6 +373,45 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_Capsule_ClipTest)
         childNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
         RegisterNode(colorNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_LeftSideRadiusExceed_Test)
+{
+    int rowCount = static_cast<int>(leftSideExceedParams.size());
+    auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
+    auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % COLUMN_COUNT) * sizeX;
+        int y = (i / COLUMN_COUNT) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        SetUpSDFRRectNode(backgroundTestNode, leftSideExceedParams[i], sizeX, sizeY);
+
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadiusExceed_Test)
+{
+    int rowCount = static_cast<int>(nonUniformExceedParams.size());
+    auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
+    auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % COLUMN_COUNT) * sizeX;
+        int y = (i / COLUMN_COUNT) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        SetUpSDFRRectNode(backgroundTestNode, nonUniformExceedParams[i], sizeX, sizeY);
+
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
         GetRootNode()->AddChild(childNode);
         RegisterNode(childNode);
     }
