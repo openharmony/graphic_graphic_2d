@@ -556,32 +556,14 @@ Matrix3f RSSpringModel<Matrix3f>::Sqrt(Matrix3f value)
 template<>
 Color RSSpringModel<Color>::Sqrt(Color value)
 {
-    return Color(static_cast<int16_t>(sqrt(std::fabs(value.GetRed()))),
-        static_cast<int16_t>(sqrt(std::fabs(value.GetGreen()))),
-        static_cast<int16_t>(sqrt(std::fabs(value.GetBlue()))),
-        static_cast<int16_t>(sqrt(std::fabs(value.GetAlpha()))));
+    return value.Sqrt();
 }
 
 template<>
 Vector4<Color> RSSpringModel<Vector4<Color>>::Sqrt(Vector4<Color> value)
 {
-    return Vector4<Color>(
-        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetRed()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetGreen()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetBlue()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetAlpha())))),
-        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetRed()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetGreen()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetBlue()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetAlpha())))),
-        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetRed()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetGreen()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetBlue()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetAlpha())))),
-        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetRed()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetGreen()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetBlue()))),
-            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetAlpha())))));
+    return Vector4<Color>(value.data_[0].Sqrt(), value.data_[1].Sqrt(),
+        value.data_[2].Sqrt(), value.data_[3].Sqrt()); // 0、1、2、3 is index of Vector4
 }
 
 template<>

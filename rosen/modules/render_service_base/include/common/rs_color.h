@@ -85,6 +85,7 @@ public:
     RSColor operator/(float scale) const;
     RSColor& operator*=(float scale);
     RSColor& operator*=(const RSColor& other);
+    RSColor Sqrt() const;
     uint32_t AsRgbaInt() const;
     static RSColor FromRgbaInt(uint32_t rgba);
     uint32_t AsArgbInt() const;
@@ -153,7 +154,7 @@ private:
     
     int8_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint8_t placeholder_ = 0; // enum ColorPlaceholder
-    float16 headroom_ = Float32ToFloat16(1.0f); // brightness ratio, range [1, 1+]
+    float16 headroom_ = 0x3C00; // brightness ratio, range [1, 1+]
 };
 } // namespace Rosen
 } // namespace OHOS

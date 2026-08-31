@@ -1120,16 +1120,16 @@ HWTEST_F(RSSpringModelTest, SqrtMatrix3f001, TestSize.Level1)
 HWTEST_F(RSSpringModelTest, SqrtColor001, TestSize.Level1)
 {
     Color result = RSSpringModel<Color>::Sqrt(Color(100, 64, 36, 16));
-    EXPECT_EQ(result.GetRed(), static_cast<int16_t>(sqrt(100)));
-    EXPECT_EQ(result.GetGreen(), static_cast<int16_t>(sqrt(64)));
-    EXPECT_EQ(result.GetBlue(), static_cast<int16_t>(sqrt(36)));
-    EXPECT_EQ(result.GetAlpha(), static_cast<int16_t>(sqrt(16)));
-    // negative values: sqrt of absolute value
+    EXPECT_NEAR(result.GetRedF(), std::sqrt(100.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetGreenF(), std::sqrt(64.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetBlueF(), std::sqrt(36.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(result.GetAlphaF(), std::sqrt(16.0f / 255.0f), 0.01f);
+    
     Color negResult = RSSpringModel<Color>::Sqrt(Color(-100, -64, -36, -16));
-    EXPECT_EQ(negResult.GetRed(), static_cast<int16_t>(sqrt(100)));
-    EXPECT_EQ(negResult.GetGreen(), static_cast<int16_t>(sqrt(64)));
-    EXPECT_EQ(negResult.GetBlue(), static_cast<int16_t>(sqrt(36)));
-    EXPECT_EQ(negResult.GetAlpha(), static_cast<int16_t>(sqrt(16)));
+    EXPECT_NEAR(negResult.GetRedF(), std::sqrt(100.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(negResult.GetGreenF(), std::sqrt(64.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(negResult.GetBlueF(), std::sqrt(36.0f / 255.0f), 0.01f);
+    EXPECT_NEAR(negResult.GetAlphaF(), std::sqrt(16.0f / 255.0f), 0.01f);
 }
 
 /**
@@ -1143,20 +1143,19 @@ HWTEST_F(RSSpringModelTest, SqrtVector4Color001, TestSize.Level1)
         Color(100, 64, 36, 16), Color(100, 64, 36, 16), Color(100, 64, 36, 16), Color(100, 64, 36, 16));
     Vector4<Color> result = RSSpringModel<Vector4<Color>>::Sqrt(input);
     for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; i++) {
-        EXPECT_EQ(result.data_[i].GetRed(), static_cast<int16_t>(sqrt(100)));
-        EXPECT_EQ(result.data_[i].GetGreen(), static_cast<int16_t>(sqrt(64)));
-        EXPECT_EQ(result.data_[i].GetBlue(), static_cast<int16_t>(sqrt(36)));
-        EXPECT_EQ(result.data_[i].GetAlpha(), static_cast<int16_t>(sqrt(16)));
+        EXPECT_NEAR(result.data_[i].GetRedF(), std::sqrt(100.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(result.data_[i].GetGreenF(), std::sqrt(64.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(result.data_[i].GetBlueF(), std::sqrt(36.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(result.data_[i].GetAlphaF(), std::sqrt(16.0f / 255.0f), 0.01f);
     }
-    // negative values
     Vector4<Color> negInput(
         Color(-100, -64, -36, -16), Color(-100, -64, -36, -16), Color(-100, -64, -36, -16), Color(-100, -64, -36, -16));
     Vector4<Color> negResult = RSSpringModel<Vector4<Color>>::Sqrt(negInput);
     for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; i++) {
-        EXPECT_EQ(negResult.data_[i].GetRed(), static_cast<int16_t>(sqrt(100)));
-        EXPECT_EQ(negResult.data_[i].GetGreen(), static_cast<int16_t>(sqrt(64)));
-        EXPECT_EQ(negResult.data_[i].GetBlue(), static_cast<int16_t>(sqrt(36)));
-        EXPECT_EQ(negResult.data_[i].GetAlpha(), static_cast<int16_t>(sqrt(16)));
+        EXPECT_NEAR(negResult.data_[i].GetRedF(), std::sqrt(100.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(negResult.data_[i].GetGreenF(), std::sqrt(64.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(negResult.data_[i].GetBlueF(), std::sqrt(36.0f / 255.0f), 0.01f);
+        EXPECT_NEAR(negResult.data_[i].GetAlphaF(), std::sqrt(16.0f / 255.0f), 0.01f);
     }
 }
 
