@@ -2475,6 +2475,7 @@ void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
     bool hasGlassFree3DLayer = false;
     if (RSMainThread::Instance()->GetUIMode3D() != UIMode3D::MODE_GLASSESFREE_3D) {
         node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+        node.SetSwingEnabled(hasGlassFree3DLayer);
         return;
     }
     bool isOnInternalScreen =
@@ -2505,6 +2506,7 @@ void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
         }
     }
     node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+    node.SetSwingEnabled(hasGlassFree3DLayer);
 }
 
 bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)

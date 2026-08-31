@@ -556,6 +556,7 @@ public:
 
     void SetHasGlassFree3DLayer(bool hasGlassFree3DLayer);
     bool GetHasGlassFree3DLayer() const;
+    void SetSwingEnabled(bool isEnabled);
 
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }

@@ -313,5 +313,11 @@ int32_t RSLuminanceControl::NotifyDEStatusChange(const uint32_t sceneKey, const 
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->NotifyDEStatusChange(sceneKey, values) : -1;
 }
+
+std::string RSLuminanceControl::GetPanelName(ScreenId screenId) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetPanelName(screenId) : "";
+}
 } // namespace Rosen
 } // namespace OHOS

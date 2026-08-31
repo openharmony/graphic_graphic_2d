@@ -51,6 +51,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_color_temperature.h"
+#include "display_engine/rs_display_effect_swing_control.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -2282,6 +2283,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     const auto& nodeMap = GetContext().GetNodeMap();
     UIMode3D uiMode3D = GetUIMode3D();
+    if (uiMode3D == UIMode3D::MODE_GLASSESFREE_3D) {
+        RSDisplayEffectSwingControl::Get().Init();
+    }
     nodeMap.TraverseSurfaceNodes(
         [this, &nodeMap, uiMode3D](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {

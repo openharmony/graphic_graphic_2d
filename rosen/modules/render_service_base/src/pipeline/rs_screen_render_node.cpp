@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_display_effect_swing_control.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -385,6 +386,14 @@ void RSScreenRenderNode::SetHasGlassFree3DLayer(bool hasGlassFree3DLayer)
 bool RSScreenRenderNode::GetHasGlassFree3DLayer() const
 {
     return hasGlassFree3DLayer_;
+}
+
+void RSScreenRenderNode::SetSwingEnabled(bool isEnabled)
+{
+    auto& swingControl = RSDisplayEffectSwingControl::Get();
+    if (isEnabled != swingControl.IsSwingRegistered(screenId_)) {
+        swingControl.SetSwingEnabled(screenId_, isEnabled);
+    }
 }
 
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
