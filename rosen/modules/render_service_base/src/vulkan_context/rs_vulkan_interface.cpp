@@ -106,18 +106,22 @@ RsVulkanInterface::RsVulkanInterface(bool isProtected, bool isHtsEnable, RenderE
         ROSEN_LOGE("RsVulkanInterface:: failed to acquire mandatory Vulkan proc addresses");
         return;
     }
+    ROSEN_LOGI("RsVulkanInterface:: Init CreateInstance begin for type %{public}d", static_cast<int>(type_));
     if (!CreateInstance()) {
         ROSEN_LOGE("RsVulkanInterface:: CreateInstance failed");
         return;
     }
+    ROSEN_LOGI("RsVulkanInterface:: Init SelectPhysicalDevice begin for type %{public}d", static_cast<int>(type_));
     if (!SelectPhysicalDevice()) {
         ROSEN_LOGE("RsVulkanInterface:: SelectPhysicalDevice failed");
         return;
     }
+    ROSEN_LOGI("RsVulkanInterface:: Init CreateDevice begin for type %{public}d", static_cast<int>(type_));
     if (!CreateDevice(isProtected, isHtsEnable)) {
         ROSEN_LOGE("RsVulkanInterface:: CreateDevice failed");
         return;
     }
+    ROSEN_LOGI("RsVulkanInterface:: Init CreateSkiaBackendContext begin for type %{public}d", static_cast<int>(type_));
     if (!CreateSkiaBackendContext(isProtected)) {
         ROSEN_LOGE("RsVulkanInterface:: CreateSkiaBackendContext failed");
         return;
