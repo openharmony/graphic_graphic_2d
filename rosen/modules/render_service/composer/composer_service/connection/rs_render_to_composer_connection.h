@@ -37,6 +37,7 @@ public:
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override;
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override;
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override;
 private:
     uint64_t screenId_ = 0;
     std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent_;

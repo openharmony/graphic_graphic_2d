@@ -55,6 +55,7 @@ public:
         const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
         const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
     void DumpVKImageInfo(std::string& dumpString);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

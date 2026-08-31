@@ -158,6 +158,7 @@ private:
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
     void SetScreenBacklight(uint32_t level);
     void SetScreenLinearMatrix(const std::vector<float>& matrix);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
     void ReInit(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void RegisterLayerCreatedCallbackToOutput();
     void ClearLayerCreatedCallbackFromOutput() const;
@@ -189,6 +190,8 @@ private:
     std::shared_ptr<LayerCreatedCallbackContext> layerCreatedCallbackContext =
         std::make_shared<LayerCreatedCallbackContext>();
     ComposerScreenInfo composerScreenInfo_;
+    // latest active rect pushed by render thread, used to decide whether dirty frame should be dropped
+    RectI activeRect_;
     SetHardwareTaskNumCallback setHardwareTaskNumCb_;
     SetTaskEndWithTimeCallback setTaskEndWithTimeCb_;
     GetRealTimeOffsetOfDvsyncCallback getRealTimeOffsetOfDvsyncCb_;
