@@ -330,18 +330,13 @@ void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSu
             surfaceBuffer->buffer = returnValue.buffer;
             surfaceBuffer->acquireFence = returnValue.fence;
             surfaceBuffer->timestamp = returnValue.timestamp;
+            // When the reference count drops to zero, ReleaseBuffer is automatically called.
             surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
                 RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
             });
             RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
                 SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
             handler->ConsumeAndUpdateBuffer(*surfaceBuffer);
-
-            ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
-            if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("ReleaseBuffer failed, nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
-                return;
-            }
         });
     }
     return;
