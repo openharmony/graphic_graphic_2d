@@ -15,11 +15,22 @@
 
 #include "rs_multi_display_feature_param_parse.h"
 
+#include <charconv>
+
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t XML_STRING_MAX_LENGTH = 20;
+
+template<typename T>
+bool ParseUnsigned(const std::string &value, T &result)
+{
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, result);
+    return parsed.ec == std::errc{} && parsed.ptr == end;
+}
 }
 
 SplitScreenFeature RSMultiDisplayFeatureParamParse::ParseSplitScreenFeature(xmlNode &featureNode)
@@ -42,9 +53,9 @@ SplitScreenFeature RSMultiDisplayFeatureParamParse::ParseSplitScreenFeature(xmlN
             auto mainDisplayId = ExtractPropertyValue("mainDisplayId", *node);
             auto subDisplayId = ExtractPropertyValue("subDisplayId", *node);
             SplitScreenParams param;
-            if (IsNumber(mainDisplayId) && IsNumber(subDisplayId)) {
-                param.mainDisplayId = std::stoull(mainDisplayId);
-                param.subDisplayId = std::stoull(subDisplayId);
+            if (IsNumber(mainDisplayId) && IsNumber(subDisplayId) &&
+                ParseUnsigned(mainDisplayId, param.mainDisplayId) &&
+                ParseUnsigned(subDisplayId, param.subDisplayId)) {
                 featureConfig.params[param.mainDisplayId] = param;
             } else {
                 RS_LOGW("RSMultiDisplayFeature %{public}s SplitScreenFeature param is invalid.", __func__);
@@ -78,12 +89,11 @@ InterpolationFeature RSMultiDisplayFeatureParamParse::ParseInterpolationFeature(
             auto paramN = ExtractPropertyValue("paramN", *node);
             InterpolationParams param;
             if (IsNumber(displayId) && IsNumber(realWidth) && IsNumber(realHeight) &&
-                IsNumber(paramA) && IsNumber(paramN)) {
-                param.displayId = std::stoull(displayId);
-                param.realWidth = std::stoul(realWidth);
-                param.realHeight = std::stoul(realHeight);
-                param.paramA = std::stoul(paramA);
-                param.paramN = std::stoul(paramN);
+                IsNumber(paramA) && IsNumber(paramN) &&
+                ParseUnsigned(displayId, param.displayId) &&
+                ParseUnsigned(realWidth, param.realWidth) &&
+                ParseUnsigned(realHeight, param.realHeight) &&
+                ParseUnsigned(paramA, param.paramA) && ParseUnsigned(paramN, param.paramN)) {
                 featureConfig.params[param.displayId] = param;
             } else {
                 RS_LOGW("RSMultiDisplayFeature %{public}s InterpolationFeature param is invalid.", __func__);
@@ -111,8 +121,9 @@ CrossDomainFeature RSMultiDisplayFeatureParamParse::ParseCrossDomainFeature(xmlN
         }
         if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("params")) == 0) {
             auto displayId = ExtractPropertyValue("displayId", *node);
-            if (IsNumber(displayId)) {
-                featureConfig.params.insert(std::stoull(displayId));
+            ScreenId parsedDisplayId = INVALID_SCREEN_ID;
+            if (IsNumber(displayId) && ParseUnsigned(displayId, parsedDisplayId)) {
+                featureConfig.params.insert(parsedDisplayId);
             } else {
                 RS_LOGW("RSMultiDisplayFeature %{public}s CrossDomainFeature param is invalid.", __func__);
             }
