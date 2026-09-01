@@ -395,22 +395,19 @@ void RSHdrUtil::CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
 
 void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR)
 {
-    if (screenNode.GetForceCloseHdr()) {
-        RS_LOGD("RSHdrUtil::SetHDRParam curScreenNode forceclosehdr.");
-        return;
-    }
+    bool isNotForceCloseHdr = !screenNode.GetForceCloseHdr();
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
-        firstLevelNode->SetHDRPresent(true);
+        firstLevelNode->SetHDRPresent(isNotForceCloseHdr);
         if (isEDR) {
-            firstLevelNode->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+            firstLevelNode->UpdateHDRStatus(HdrStatus::HDR_EFFECT, isNotForceCloseHdr);
         }
-        RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
-            node.GetFirstLevelNodeId());
+        RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 ", nodeId: %{public}" PRIu64 ""
+            ", isNotForceCloseHdr: %{public}d", node.GetFirstLevelNodeId(), node.GetId(), isNotForceCloseHdr);
     }
-    node.SetHDRPresent(true);
+    node.SetHDRPresent(isNotForceCloseHdr);
     if (isEDR) {
-        node.UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+        node.UpdateHDRStatus(HdrStatus::HDR_EFFECT, isNotForceCloseHdr);
     }
 }
 
