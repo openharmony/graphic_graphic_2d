@@ -370,6 +370,30 @@ void RSTunnelRouteArbiter::SetTunnelSolePresentLayer(bool isSole)
     tunnelSolePresentLayer_.store(isSole, std::memory_order_release);
 }
 
+void RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, uint32_t& presentCount, uint32_t& tunnelCount)
+{
+    if (IsNewTunnelEnabled()) {
+        auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+        bool consumed = surfaceHandler != nullptr && surfaceHandler->IsCurrentFrameBufferConsumed();
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s id:%" PRIu64 "consumed:%d", __func__, surfaceNode->GetId(), consumed);
+        if (!consumed) {
+            return;
+        }
+        ++presentCount;
+        uint64_t tunnelLayerId = 0;
+        uint32_t property = TUNNEL_PROP_INVALID;
+        bool isTunnel = RSTunnelRuntimeStore::GetLayerInfoIfPresent(surfaceNode->GetId(), tunnelLayerId, property) &&
+                        IsNewTunnelProperty(property);
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s id:%" PRIu64 "presentCount:%u isTunnel:%d tunnelLayerId:%" PRIu64
+                          " property:%u",
+            __func__, surfaceNode->GetId(), presentCount, isTunnel, tunnelLayerId, property);
+        if (isTunnel) {
+            ++tunnelCount;
+        }
+    }
+}
+
 void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {

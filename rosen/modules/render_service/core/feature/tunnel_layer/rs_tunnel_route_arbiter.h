@@ -51,6 +51,8 @@ public:
 
     static bool GetTunnelSolePresentLayer();
     static void SetTunnelSolePresentLayer(bool isSole);
+    static void GetAllLayerAndTunnelLayerCount(
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, uint32_t& presentCount, uint32_t& tunnelCount);
 
     static void RefreshGlobalTriggerSnapshot();
     static bool IsGlobalRouteForcedNormal();

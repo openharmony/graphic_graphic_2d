@@ -113,7 +113,6 @@
 #include "pipeline/rs_surface_render_node_utils.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -3247,30 +3246,6 @@ bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& no
 }
 } // namespace
 
-void RSMainThread::SetTunnelSolePresentLayer(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-    uint32_t& presentCount, uint32_t& tunnelCount)
-{
-    if (Rosen::IsNewTunnelEnabled()) {
-        auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-        bool consumed = surfaceHandler != nullptr &&
-            surfaceHandler->IsCurrentFrameBufferConsumed();
-        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "consumed:%d", __func__, surfaceNode->GetId(), consumed);
-        if (!consumed) {
-            return;
-        }
-        ++presentCount;
-        uint64_t tunnelLayerId = 0;
-        uint32_t property = TUNNEL_PROP_INVALID;
-        bool isTunnel = RSTunnelRuntimeStore::GetLayerInfoIfPresent(
-            surfaceNode->GetId(), tunnelLayerId, property) && IsNewTunnelProperty(property);
-        RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s id:%" PRIu64 "presentCount:%u isTunnel:%d tunnelLayerId:%" PRIu64
-            " property:%u", __func__, surfaceNode->GetId(), presentCount, isTunnel, tunnelLayerId, property);
-        if (isTunnel) {
-            ++tunnelCount;
-        }
-    }
-}
-
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     auto children = rootNode->GetChildrenList();
@@ -3361,7 +3336,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 RS_LOGE("DoDirectComposition: surfaceNode is null!");
                 continue;
             }
-            SetTunnelSolePresentLayer(surfaceNode, presentCount, tunnelCount);
+            RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(surfaceNode, presentCount, tunnelCount);
             SetHasSurfaceLockLayer(surfaceNode->GetFixRotationByUser());
             HdrStatus status = surfaceNode->GetVideoHdrStatus();
             if (float scaler; RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId, scaler)) {
@@ -3405,7 +3380,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
         if (Rosen::IsNewTunnelEnabled()) {
             bool isSole = tunnelCount == presentCount;
-            RS_TRACE_NAME_FMT("TUNNLE_DEBUG %s presentCount:%u tunnelCount:%u is Sole:%d",
+            RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s presentCount:%u tunnelCount:%u is Sole:%d",
                 __func__, presentCount, tunnelCount, isSole);
             RSTunnelRouteArbiter::SetTunnelSolePresentLayer(isSole);
         }

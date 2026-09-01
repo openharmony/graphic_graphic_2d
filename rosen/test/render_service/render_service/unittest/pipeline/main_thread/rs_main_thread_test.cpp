@@ -8480,14 +8480,14 @@ public:
 } // namespace
 
 /**
- * @tc.name: SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged
+ * @tc.name: GetAllLayerAndTunnelLayerCount_NewTunnelDisabled_LeavesCountersUnchanged
  * @tc.desc: Cover the false branch of `if (IsNewTunnelEnabled())` in
- *          RSMainThread::SetTunnelSolePresentLayer. When the new-tunnel feature is off, the
+ *          RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount. When the new-tunnel feature is off, the
  *          function must return without touching the caller-provided counters regardless of
  *          the surfaceNode's consumed/tunnel status.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCountersUnchanged, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NewTunnelDisabled_LeavesCountersUnchanged, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -8503,7 +8503,7 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCou
     uint32_t presentCount = 1;
     uint32_t tunnelCount = 1;
 
-    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 1u);
 
@@ -8511,13 +8511,13 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NewTunnelDisabled_LeavesCou
 }
 
 /**
- * @tc.name: SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount
- * @tc.desc: Cover the true branch of `if (!consumed)` in SetTunnelSolePresentLayer. A valid
+ * @tc.name: GetAllLayerAndTunnelLayerCount_NotConsumedNode_SkipsPresentCount
+ * @tc.desc: Cover the true branch of `if (!consumed)` in GetAllLayerAndTunnelLayerCount. A valid
  *          surfaceNode whose IsCurrentFrameBufferConsumed() returns false must be skipped so
  *          presentCount and tunnelCount stay at zero.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -8529,7 +8529,7 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresen
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
 
-    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 0u);
     EXPECT_EQ(tunnelCount, 0u);
 
@@ -8537,13 +8537,13 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_NotConsumedNode_SkipsPresen
 }
 
 /**
- * @tc.name: SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly
- * @tc.desc: Cover the false branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ * @tc.name: GetAllLayerAndTunnelLayerCount_ConsumedNonTunnelNode_IncrementsPresentOnly
+ * @tc.desc: Cover the false branch of `if (isTunnel)` in GetAllLayerAndTunnelLayerCount. A consumed
  *          surfaceNode that is not a tunnel layer must increment presentCount only, leaving
  *          tunnelCount at zero.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_IncrementsPresentOnly, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedNonTunnelNode_IncrementsPresentOnly, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -8557,7 +8557,7 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_Incre
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
 
-    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 0u);
 
@@ -8565,13 +8565,13 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedNonTunnelNode_Incre
 }
 
 /**
- * @tc.name: SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters
- * @tc.desc: Cover the true branch of `if (isTunnel)` in SetTunnelSolePresentLayer. A consumed
+ * @tc.name: GetAllLayerAndTunnelLayerCount_ConsumedTunnelNode_IncrementsBothCounters
+ * @tc.desc: Cover the true branch of `if (isTunnel)` in GetAllLayerAndTunnelLayerCount. A consumed
  *          surfaceNode that carries a valid new-tunnel layer info must increment both
  *          presentCount and tunnelCount.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_IncrementsBothCounters, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedTunnelNode_IncrementsBothCounters, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -8586,7 +8586,7 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_Incremen
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
 
-    mainThread->SetTunnelSolePresentLayer(node, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 1u);
 
@@ -8594,15 +8594,15 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_ConsumedTunnelNode_Incremen
 }
 
 /**
- * @tc.name: SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters
- * @tc.desc: Cover the per-node accumulation contract of SetTunnelSolePresentLayer now that the
+ * @tc.name: GetAllLayerAndTunnelLayerCount_MixedNodes_AccumulatesCounters
+ * @tc.desc: Cover the per-node accumulation contract of GetAllLayerAndTunnelLayerCount now that the
  *          outer loop lives in the caller (DoDirectComposition). Driving the function with a
  *          consumed tunnel node, a consumed non-tunnel node and a not-consumed node in sequence
  *          must leave presentCount equal to the consumed node count and tunnelCount equal to the
  *          consumed tunnel node count.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_MixedNodes_AccumulatesCounters, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_AccumulatesCounters, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -8625,9 +8625,9 @@ HWTEST_F(RSMainThreadTest, SetTunnelSolePresentLayer_MixedNodes_AccumulatesCount
 
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
-    mainThread->SetTunnelSolePresentLayer(tunnelNode, presentCount, tunnelCount);
-    mainThread->SetTunnelSolePresentLayer(nonTunnelNode, presentCount, tunnelCount);
-    mainThread->SetTunnelSolePresentLayer(notConsumedNode, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(tunnelNode, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(nonTunnelNode, presentCount, tunnelCount);
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(notConsumedNode, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 2u);
     EXPECT_EQ(tunnelCount, 1u);
 
