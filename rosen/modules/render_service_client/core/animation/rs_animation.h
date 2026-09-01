@@ -93,6 +93,11 @@ public:
         return false;
     }
 
+    virtual RSAnimationType GetType() const
+    {
+        return RSAnimationType::UNKNOWN;
+    }
+
     void InteractivePause();
 
     void InteractiveContinue();

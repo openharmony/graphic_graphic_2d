@@ -268,8 +268,9 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
 {
     std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
     auto& property = node->GetPropertyById(rotationId_);
-    if (property) {
-        std::static_pointer_cast<RSProperty<float>>(property)->stagingValue_ = rotation;
+    auto floatProperty = property ? property->CastToPropertyOf<float>(__func__) : nullptr;
+    if (floatProperty != nullptr) {
+        floatProperty->stagingValue_ = rotation;
         return;
     }
     auto modifier = node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
@@ -278,8 +279,10 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
         return;
     }
     auto propertyRotation = modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION);
-    if (propertyRotation && propertyRotation->GetId() == rotationId_) {
-        std::static_pointer_cast<RSProperty<float>>(propertyRotation)->stagingValue_ = rotation;
+    auto rotationProperty = (propertyRotation && propertyRotation->GetId() == rotationId_) ?
+        propertyRotation->CastToPropertyOf<float>(__func__) : nullptr;
+    if (rotationProperty != nullptr) {
+        rotationProperty->stagingValue_ = rotation;
     }
 }
 
@@ -320,18 +323,16 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
         ROSEN_LOGE("RSPathAnimation::PreProcessPath, startValue or endValue is null");
         return {};
     }
-    auto startVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(startValue);
-    auto endVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(endValue);
-    if (startValue->GetPropertyType() == RSPropertyType::VECTOR2F && startVector2f != nullptr &&
-        endVector2f != nullptr) {
+    auto startVector2f = startValue->CastToPropertyOf<Vector2f>(__func__);
+    auto endVector2f = endValue->CastToPropertyOf<Vector2f>(__func__);
+    if (startVector2f != nullptr && endVector2f != nullptr) {
         return ProcessPath(path, startVector2f->Get()[0], startVector2f->Get()[1], endVector2f->Get()[0],
             endVector2f->Get()[1]);
     }
 
-    auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
-    auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
-    if (startValue->GetPropertyType() == RSPropertyType::VECTOR4F && startVector4f != nullptr &&
-        endVector4f != nullptr) {
+    auto startVector4f = startValue->CastToPropertyOf<Vector4f>(__func__);
+    auto endVector4f = endValue->CastToPropertyOf<Vector4f>(__func__);
+    if (startVector4f != nullptr && endVector4f != nullptr) {
         return ProcessPath(path, startVector4f->Get()[0], startVector4f->Get()[1], endVector4f->Get()[0],
             endVector4f->Get()[1]);
     }
@@ -346,10 +347,9 @@ void RSPathAnimation::InitNeedPath(const std::shared_ptr<RSPropertyBase>& startV
         ROSEN_LOGD("Input is invaild, failed to InitNeedPath.");
         return;
     }
-    auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
-    auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
-    if (startValue->GetPropertyType() == RSPropertyType::VECTOR4F &&
-        startVector4f != nullptr && endVector4f != nullptr) {
+    auto startVector4f = startValue->CastToPropertyOf<Vector4f>(__func__);
+    auto endVector4f = endValue->CastToPropertyOf<Vector4f>(__func__);
+    if (startVector4f != nullptr && endVector4f != nullptr) {
         Vector2f start(startVector4f->Get()[0], startVector4f->Get()[1]);
         Vector2f end(endVector4f->Get()[0], endVector4f->Get()[1]);
         isNeedPath_ = (start != end);
@@ -365,43 +365,42 @@ void RSPathAnimation::InitNeedPath(const std::shared_ptr<RSPropertyBase>& startV
 bool RSPathAnimation::InitInterpolationVector2f(const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    auto startVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(startValue);
-    auto endVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(endValue);
-    if (startVector2f != nullptr && endVector2f != nullptr) {
-        animationPath_->GetPosTan(0.0f * beginFraction_, startVector2f->stagingValue_, startTangent_);
-        animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_,
-            endVector2f->stagingValue_, endTangent_);
-        auto originVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(GetOriginValue());
-        if (originVector2f != nullptr && needAddOrigin_) {
-            UpdateVector2fValueAddOrigin(startVector2f->stagingValue_, endVector2f->stagingValue_,
-                originVector2f->stagingValue_);
-        }
-        byValue_ = endValue - startValue;
-        return true;
+    auto startVector2f = startValue ? startValue->CastToPropertyOf<Vector2f>(__func__) : nullptr;
+    auto endVector2f = endValue ? endValue->CastToPropertyOf<Vector2f>(__func__) : nullptr;
+    if (startVector2f == nullptr || endVector2f == nullptr) {
+        return false;
     }
-
-    return false;
+    animationPath_->GetPosTan(0.0f * beginFraction_, startVector2f->stagingValue_, startTangent_);
+    animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_, endVector2f->stagingValue_, endTangent_);
+    auto originValue = GetOriginValue();
+    auto originVector2f = originValue ? originValue->CastToPropertyOf<Vector2f>(__func__) : nullptr;
+    if (originVector2f != nullptr && needAddOrigin_) {
+        UpdateVector2fValueAddOrigin(
+            startVector2f->stagingValue_, endVector2f->stagingValue_, originVector2f->stagingValue_);
+    }
+    byValue_ = endValue - startValue;
+    return true;
 }
 
 bool RSPathAnimation::InitInterpolationVector4f(const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
-    auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
-    if (startVector4f != nullptr && endVector4f != nullptr) {
-        animationPath_->GetPosTan(0.0f * beginFraction_, startVector4f->stagingValue_, startTangent_);
-        animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_,
-            endVector4f->stagingValue_, endTangent_);
-        auto originVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(GetOriginValue());
-        if (originVector4f != nullptr && needAddOrigin_) {
-            UpdateVector4fValueAddOrigin(startVector4f->stagingValue_, endVector4f->stagingValue_,
-                originVector4f->stagingValue_);
-        }
-        byValue_ = endValue - startValue;
-        return true;
+    auto startVector4f = startValue ? startValue->CastToPropertyOf<Vector4f>(__func__) : nullptr;
+    auto endVector4f = endValue ? endValue->CastToPropertyOf<Vector4f>(__func__) : nullptr;
+    if (startVector4f == nullptr || endVector4f == nullptr) {
+        return false;
     }
-
-    return false;
+    animationPath_->GetPosTan(0.0f * beginFraction_, startVector4f->stagingValue_, startTangent_);
+    animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_,
+        endVector4f->stagingValue_, endTangent_);
+    auto originValue = GetOriginValue();
+    auto originVector4f = originValue ? originValue->CastToPropertyOf<Vector4f>(__func__) : nullptr;
+    if (originVector4f != nullptr && needAddOrigin_) {
+        UpdateVector4fValueAddOrigin(startVector4f->stagingValue_, endVector4f->stagingValue_,
+            originVector4f->stagingValue_);
+    }
+    byValue_ = endValue - startValue;
+    return true;
 }
 
 void RSPathAnimation::UpdateVector2fValueAddOrigin(Vector2f& startValue, Vector2f& endValue, Vector2f& deltaValue)

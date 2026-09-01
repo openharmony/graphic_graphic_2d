@@ -653,7 +653,7 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
         return false;
     }
     SetInterpolator(interpolator);
-    SetRotationMode(static_cast<RotationMode>(rotationMode));
+    SetRotationMode(SafeCastRotationMode(rotationMode));
     SetIsNeedPath(isNeedPath);
     return true;
 }
@@ -1025,7 +1025,7 @@ RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
         ROSEN_LOGE("StepsInterpolator unmarshalling failed.");
         return nullptr;
     }
-    return new RSStepsInterpolator(id, steps, static_cast<StepsCurvePosition>(position));
+    return new RSStepsInterpolator(id, steps, SafeCastStepsCurvePosition(position));
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSAnimationTimingProtocol& val)

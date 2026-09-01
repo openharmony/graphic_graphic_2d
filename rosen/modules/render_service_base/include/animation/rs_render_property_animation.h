@@ -64,8 +64,6 @@ protected:
 
     const std::shared_ptr<RSRenderPropertyBase>& GetLastValue() const;
 
-    void SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value);
-
     const std::shared_ptr<RSRenderPropertyBase> GetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value);
 
     void OnRemoveOnCompletion() override;

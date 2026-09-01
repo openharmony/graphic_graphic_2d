@@ -1094,5 +1094,21 @@ HWTEST_F(RSValueEstimatorTest, WillOverShoot003, TestSize.Level1)
     estimator->springModel_ = std::make_shared<RSSpringModel<float>>(1.0f, 2.0f, 1.0f, -0.5f, 1.0f);
     EXPECT_FALSE(estimator->WillOverShoot());
 }
+
+/**
+ * @tc.name: GetEstimatorType001
+ * @tc.desc: Verify GetEstimatorType returns correct type for each estimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetEstimatorType001, TestSize.Level1)
+{
+    auto curveEstimator = std::make_shared<RSCurveValueEstimator<float>>();
+    EXPECT_EQ(curveEstimator->RSValueEstimator::GetEstimatorType(), RSValueEstimatorType::INVALID);
+    EXPECT_EQ(curveEstimator->GetEstimatorType(), RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+
+    auto keyframeEstimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    EXPECT_EQ(keyframeEstimator->GetEstimatorType(), RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
+}
+
 } // namespace Rosen
 } // namespace OHOS

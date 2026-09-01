@@ -86,6 +86,7 @@ class ParticleFieldCollection;
 class RSShader;
 class RSNGEffectUtils;
 class RSUIContext;
+template<typename T> class RSProperty;
 
 /**
  * @brief Defines different types of thresholds for spring animation.
@@ -175,6 +176,11 @@ public:
         return (type == ModifierNG::RSPropertyType::BOUNDS || type == ModifierNG::RSPropertyType::FRAME ||
             type == ModifierNG::RSPropertyType::TRANSLATE);
     }
+
+    template<typename T>
+    std::shared_ptr<RSProperty<T>> CastToPropertyOf(const char* funcName);
+
+    bool CheckPropertyType(RSPropertyType type, const char* funcName) const;
 
 protected:
     virtual void SetIsCustom(bool isCustom) = 0;
@@ -928,6 +934,15 @@ private:
     friend class RSPathAnimation;
     friend class RSNGEffectUtils;
 };
+
+template<typename T>
+std::shared_ptr<RSProperty<T>> RSPropertyBase::CastToPropertyOf(const char* funcName)
+{
+    if (!CheckPropertyType(RSPropertyTypeTraits<T>::type, funcName)) {
+        return nullptr;
+    }
+    return std::static_pointer_cast<RSProperty<T>>(shared_from_this());
+}
 
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& node,

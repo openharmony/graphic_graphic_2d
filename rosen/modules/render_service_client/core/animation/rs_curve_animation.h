@@ -28,6 +28,11 @@ class RSRenderCurveAnimation;
 
 class RSC_EXPORT RSCurveAnimation : public RSPropertyAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::CURVE;
+    }
+
     RSCurveAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPropertyBase>& byValue);
     RSCurveAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,

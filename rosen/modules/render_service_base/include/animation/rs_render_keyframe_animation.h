@@ -25,6 +25,11 @@ class RSInterpolator;
 
 class RSB_EXPORT RSRenderKeyframeAnimation : public RSRenderPropertyAnimation {
 public:
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::KEYFRAME_ANIMATION;
+    }
+
     RSRenderKeyframeAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
     ~RSRenderKeyframeAnimation() {}

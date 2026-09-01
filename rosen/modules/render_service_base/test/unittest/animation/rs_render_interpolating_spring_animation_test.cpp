@@ -1919,5 +1919,21 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimateConverge005, TestSiz
     bool result = animMock->RSRenderInterpolatingSpringAnimation::OnAnimate(0.5f);
     EXPECT_TRUE(result);
 }
+
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns INTERPOLATING_SPRING_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_EQ(anim->GetType(), RSRenderAnimationType::INTERPOLATING_SPRING_ANIMATION);
+}
+
 } // namespace Rosen
 } // namespace OHOS

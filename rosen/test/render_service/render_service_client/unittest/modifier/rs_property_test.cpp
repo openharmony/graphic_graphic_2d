@@ -1095,4 +1095,29 @@ HWTEST_F(RSPropertyTest, FloatPropertyInvalidValueTest, TestSize.Level1)
     property.Set(2.0f);
     EXPECT_EQ(property.Get(), 2.0f);
 }
+/**
+ * @tc.name: CastToPropertyOfTypeMatch001
+ * @tc.desc: Verify CastToPropertyOf returns valid pointer when type matches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, CastToPropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(1.0f);
+    auto result = prop->CastToPropertyOf<float>("TestFunc");
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_FLOAT_EQ(result->Get(), 1.0f);
+}
+
+/**
+ * @tc.name: CastToPropertyOfTypeMismatch001
+ * @tc.desc: Verify CastToPropertyOf returns nullptr when type mismatches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, CastToPropertyOfTypeMismatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(1.0f);
+    auto result = prop->CastToPropertyOf<Vector4f>("TestFunc");
+    EXPECT_EQ(result, nullptr);
+}
+
 } // namespace OHOS::Rosen

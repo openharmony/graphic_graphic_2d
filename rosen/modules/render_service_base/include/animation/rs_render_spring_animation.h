@@ -24,6 +24,11 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation {
 public:
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::SPRING_ANIMATION;
+    }
+
     explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue,
         const std::shared_ptr<RSRenderPropertyBase>& startValue,

@@ -34,6 +34,13 @@
 namespace OHOS {
 namespace Rosen {
 
+enum class RSValueEstimatorType : int16_t {
+    INVALID = 0,
+    CURVE_VALUE_ESTIMATOR,
+    KEYFRAME_VALUE_ESTIMATOR,
+    PATH_VALUE_ESTIMATOR,
+};
+
 class RSB_EXPORT RSValueEstimator {
 public:
     template<typename T>
@@ -73,6 +80,11 @@ public:
     virtual void RebuildValue(float interpolatedFraction) {}
 
     virtual void UpdateAnimationValue(const float fraction, const bool isAdditive) = 0;
+
+    virtual RSValueEstimatorType GetEstimatorType() const
+    {
+        return RSValueEstimatorType::INVALID;
+    }
 };
 
 template<typename T>
@@ -80,6 +92,11 @@ class RSB_EXPORT_TMP RSCurveValueEstimator : public RSValueEstimator {
 public:
     RSCurveValueEstimator() = default;
     virtual ~RSCurveValueEstimator() = default;
+
+    RSValueEstimatorType GetEstimatorType() const override
+    {
+        return RSValueEstimatorType::CURVE_VALUE_ESTIMATOR;
+    }
 
     void InitCurveAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
         const std::shared_ptr<RSRenderPropertyBase>& startValue,
@@ -173,6 +190,9 @@ public:
     void RebuildValue(float interpolatedFraction) override
     {
         lastValue_ = RSValueEstimator::Estimate(interpolatedFraction, startValue_, endValue_);
+        if (property_ == nullptr) {
+            return;
+        }
         T baseValue = property_->Get() - static_cast<T>(endValue_ - startValue_);
         auto interpolationValue = RSValueEstimator::Estimate(interpolatedFraction, baseValue, property_->Get());
         property_->Set(interpolationValue);
@@ -201,6 +221,11 @@ class RSB_EXPORT_TMP RSKeyframeValueEstimator : public RSValueEstimator {
 public:
     RSKeyframeValueEstimator() = default;
     virtual ~RSKeyframeValueEstimator() = default;
+
+    RSValueEstimatorType GetEstimatorType() const override
+    {
+        return RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR;
+    }
 
     void InitKeyframeAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
         std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
@@ -337,13 +362,6 @@ private:
     std::vector<std::tuple<float, float, T, std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     T lastValue_ {};
     std::shared_ptr<RSRenderAnimatableProperty<T>> property_;
-};
-
-enum class RSValueEstimatorType : int16_t {
-    INVALID = 0,
-    CURVE_VALUE_ESTIMATOR,
-    KEYFRAME_VALUE_ESTIMATOR,
-    PATH_VALUE_ESTIMATOR,
 };
 
 class RSB_EXPORT RSSpringValueEstimatorBase {

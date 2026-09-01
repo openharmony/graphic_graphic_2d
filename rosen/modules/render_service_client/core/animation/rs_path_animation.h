@@ -32,6 +32,11 @@ class RSPath;
 
 class RSC_EXPORT RSPathAnimation : public RSPropertyAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::PATH;
+    }
+
     RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPath>& animationPath);
     RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,

@@ -157,5 +157,20 @@ HWTEST_F(RSKeyframeAnimationTest, OnStartPropertyNull001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSKeyframeAnimationTest OnStartPropertyNull001 end";
 }
 
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns KEYFRAME
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
+    EXPECT_EQ(keyframeAnimation->GetType(), RSAnimationType::KEYFRAME);
+}
+
 } // namespace Rosen
 } // namespace OHOS

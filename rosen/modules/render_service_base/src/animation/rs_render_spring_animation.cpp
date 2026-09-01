@@ -65,7 +65,9 @@ void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingR
     }
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
-    blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
+    double blendDurationNs = static_cast<double>(blendDuration) * SECOND_TO_NANOSECOND;
+    blendDuration_ = (blendDurationNs < 0.0 || blendDurationNs >= static_cast<double>(UINT64_MAX))
+        ? 0 : static_cast<uint64_t>(blendDurationNs);
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
     if (convergeParams.has_value()) {
         if (!std::isfinite(convergeParams->convergeProgressThreshold_) ||
@@ -202,7 +204,10 @@ void RSRenderSpringAnimation::InheritSpringAnimation(
         return;
     }
 
-    // extract spring status from previous spring animation
+    if (prevAnimation->GetType() != RSRenderAnimationType::SPRING_ANIMATION) {
+        ROSEN_LOGE("RSRenderSpringAnimation::InheritSpringAnimation, prevAnimation is not spring type");
+        return;
+    }
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
 
     // inherit spring status from previous spring animation
@@ -229,6 +234,13 @@ void RSRenderSpringAnimation::InheritSpringAnimation(
     } else if (ROSEN_EQ(response_, prevSpringAnimation->response_, RESPONSE_THRESHOLD)) {
         // if previous spring is blending to the same final response, we can continue previous blending process
         blendDuration_ = prevSpringAnimation->blendDuration_;
+    }
+
+    // blend duration should not exceed previous animation duration
+    uint64_t prevDurationNs = static_cast<uint64_t>(prevSpringAnimation->GetDuration()) *
+        static_cast<uint64_t>(SECOND_TO_NANOSECOND * MILLISECOND_TO_SECOND);
+    if (blendDuration_ > prevDurationNs) {
+        blendDuration_ = prevDurationNs;
     }
 
     // set previous spring animation to FINISHED

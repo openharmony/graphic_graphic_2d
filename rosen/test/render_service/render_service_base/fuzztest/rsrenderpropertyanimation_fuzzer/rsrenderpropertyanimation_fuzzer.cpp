@@ -106,7 +106,6 @@ void RSRenderPropertyAnimationFuzzerTest1()
     renderPropertyAnimation->GetPropertyValue();
     renderPropertyAnimation->GetOriginValue();
     renderPropertyAnimation->GetLastValue();
-    renderPropertyAnimation->SetAnimationValue(property);
     renderPropertyAnimation->GetAnimationValue(property);
     renderPropertyAnimation->OnRemoveOnCompletion();
     renderPropertyAnimation->RecordLastAnimateValue();
@@ -137,8 +136,6 @@ void RSRenderPropertyAnimationFuzzerTest2()
     renderPropertyAnimation->GetAdditive();
     renderPropertyAnimation->AttachRenderProperty(property);
 
-    renderPropertyAnimation->SetAnimationValue(nullptr);
-    renderPropertyAnimation->SetAnimationValue(property);
     renderPropertyAnimation->GetAnimationValue(nullptr);
     renderPropertyAnimation->GetAnimationValue(property);
     renderPropertyAnimation->OnRemoveOnCompletion();
