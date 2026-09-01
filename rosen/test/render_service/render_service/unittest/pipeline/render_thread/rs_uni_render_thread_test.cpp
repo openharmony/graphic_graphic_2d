@@ -1073,7 +1073,12 @@ HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
     EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 
     instance.CollectProcessNodeNum(10);
+    const std::shared_ptr<RSBaseRenderNode> rootNode = std::make_shared<RSBaseRenderNode>(0);
+    auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
+    ASSERT_NE(ptr, nullptr);
+    instance.rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     instance.Render();
+    instance.rootNodeDrawable_ = nullptr;
     EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 }
 
