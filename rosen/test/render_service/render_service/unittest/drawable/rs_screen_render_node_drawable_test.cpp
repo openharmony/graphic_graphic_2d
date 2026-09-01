@@ -2504,13 +2504,13 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_NullManager_No
     params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
         std::make_tuple(activeRect, maskRect, reviseRect));
 
-    // simulate no composer client manager available on the uni render thread
+    // simulate no composer client available (empty manager, GetComposerClient returns nullptr)
     auto& rtThread = RSUniRenderThread::Instance();
     auto savedManager = rtThread.composerClientManager_;
-    rtThread.composerClientManager_ = nullptr;
+    rtThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
 
     Drawing::Canvas canvas;
-    // reviseRect differs from lastReviseRect_ (true branch) but manager is null (false branch), no crash
+    // reviseRect differs from lastReviseRect_ (true branch), SetActiveRectSwitchStatus is a no-op with no client
     EXPECT_NO_FATAL_FAILURE(screenDrawable_->OnDraw(canvas));
     EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
 

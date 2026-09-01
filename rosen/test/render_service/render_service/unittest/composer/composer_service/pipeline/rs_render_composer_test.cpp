@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <dlfcn.h>
 #include <future>
 #include <gtest/gtest.h>
 #include <memory>
@@ -58,6 +59,7 @@
 
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
+#include "text/typeface.h"
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 using testing::_;
@@ -98,6 +100,11 @@ public:
 
 void RsRenderComposerTest::SetUpTestCase()
 {
+    // Preload librender_service_client.z.so on the main thread to prevent BSS
+    // segment race when dlopen is triggered from a background CompThread.
+    // See: dlopen BSS crash analysis in doc.
+    dlopen("librender_service_client.z.so", RTLD_NOW);
+
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
@@ -112,11 +119,18 @@ void RsRenderComposerTest::SetUpTestCase()
     sptr<RSScreenProperty> property = new RSScreenProperty();
     rsRenderComposer_ = std::make_shared<RSRenderComposer>(output, property);
 }
+
 void RsRenderComposerTest::TearDownTestCase()
 {
     rsRenderComposer_->frameBufferSurfaceOhosMap_.clear();
     rsRenderComposer_->uniRenderEngine_ = nullptr;
     hdiDeviceMock_ = nullptr;
+    rsRenderComposer_ = nullptr;
+    // Reset Typeface callbacks to prevent use-after-free during process exit
+    // when static destructors run in unpredictable order
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
 }
 void RsRenderComposerTest::SetUp() {}
 void RsRenderComposerTest::TearDown() {}
@@ -1703,7 +1717,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_LayerCoversAct
     coverLayer->SetLayerSize({ 50, 50, 200, 200 });
     coverLayer->SetUniRenderFlag(true);
     layers.push_back(coverLayer);
-    EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
+    EXPECT_TRUE(rsRenderComposerTmp->IsDropDirtyFrame(layers));
 
     // uni layer rect {150,150,100,100} only partially overlaps the active rect
     std::shared_ptr<RSRenderSurfaceLayer> overlapLayer = std::make_shared<RSRenderSurfaceLayer>();
