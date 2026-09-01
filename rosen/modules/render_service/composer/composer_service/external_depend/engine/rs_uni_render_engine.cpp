@@ -17,6 +17,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "engine/rs_uni_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_util.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -57,6 +58,10 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     canvas.ConcatMatrix(params.matrix);
     RS_TRACE_NAME_FMT("RSUniRenderEngine::DrawSurfaceNodeWithParams ignoreAlpha[%d]", params.ignoreAlpha);
     if (!params.useCPU) {
+        if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                surfaceDrawable.GetName(), "DrawImageGPUCount");
+        }
 #ifdef RS_ENABLE_TV_PQ_METADATA
         auto& renderParams = surfaceDrawable.GetRenderParams();
         if (renderParams) {

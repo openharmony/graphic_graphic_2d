@@ -39,6 +39,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/uifirst/rs_drawable_updater.h"
 #include "graphic_feature_param_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -1089,6 +1090,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
+        if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                name_, "ProcessedNodes", RSRenderNodeDrawable::GetTotalProcessedNodeCount());
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(name_, "SurfaceNodeCount");
+        }
         RSUniRenderThread::Instance().CollectProcessNodeNum(
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
         const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(

@@ -25,6 +25,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -181,6 +182,10 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         return;
     }
 
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSSubThread::TotalFrames));
+    }
     NodeId nodeId = nodeDrawable->GetId();
     auto& rsSubThreadCache = nodeDrawable->GetRsSubThreadCache();
     rsSubThreadCache.SetSubThreadSkip(false);

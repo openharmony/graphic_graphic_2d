@@ -61,6 +61,8 @@ const std::list<std::u16string> processDumpList = {
 #endif
     u"dumpExistPidMem",
     u"buffer",
+    u"frameStats",
+    u"clearFrameStats",
     u"allInfo",
 };
 

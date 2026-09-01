@@ -38,6 +38,7 @@
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "hgm_frame_rate_manager.h"
 #include "hisysevent.h"
+#include "info_collection/rs_frame_stats_collection.h"
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -297,6 +298,10 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     bool shouldDropFrame = IsDropDirtyFrame(layers);
     if (!shouldDropFrame) {
         hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_, startTime, pipelineParam);
+    }
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        size_t idx = FrameStatsCounter::PerLayerRateIndex(layers.size(), currentRate);
+        RSFrameStatsCollection::GetInstance().Increment(idx);
     }
 
     if (RSSystemProperties::IsSuperFoldDisplay() && screenId_ == 0) {
@@ -920,6 +925,10 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 {
     RS_TRACE_NAME_FMT("%s screenId : %" PRIu64, __func__, screenId_);
     std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSRenderComposer::GpuComposeRedrawFrames));
+    }
     if (surface == nullptr || uniRenderEngine_ == nullptr) {
         RS_LOGE("Redraw: surface or uniRenderEngine is null.");
         return;

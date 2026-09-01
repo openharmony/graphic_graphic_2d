@@ -16,6 +16,7 @@
 #include "engine/rs_base_render_engine.h"
 
 #include <memory>
+#include <parameters.h>
 #include "v2_2/cm_color_space.h"
 
 #include "common/rs_optional_trace.h"
@@ -25,6 +26,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #endif
 #include "gpuComposition/rs_gpu_cache_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -843,6 +845,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
     LayerComposeCollection::GetInstance().UpdateDrawImageNumberForDFX();
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSUniRenderThread::DrawImageGPUCount));
+    }
 
     RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: Starting to draw image with gamut:%{public}d, "
         "src:[%{public}.2f,%{public}.2f,%{public}.2f,%{public}.2f],"

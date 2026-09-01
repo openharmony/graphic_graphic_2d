@@ -26,6 +26,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
 #include "platform/ohos/rs_jank_report_thread.h"
@@ -1087,6 +1088,13 @@ void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
         ddgrEarlyZEnable_ = false;
         isFlushEarlyZ_ = true;
         lastReportEarlyZTraceId_ = traceId;
+    }
+    if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+        std::string traceName = jankFrames.info_.sceneId + ", " + jankFrames.info_.bundleName;
+        RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+            "AnimationTrace", traceName + " Duration", jankFrames.traceTerminateTime_-jankFrames.traceCreateTime_);
+        RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+            "AnimationTrace", traceName + " Count", 1);
     }
     animationAsyncTraces_.erase(traceId);
     if (isDisplayAnimator) {
