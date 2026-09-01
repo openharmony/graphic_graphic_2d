@@ -48,6 +48,7 @@ config("graphic_napi_color_picker_public_config") {
 
 if (is_arkui_x) {
   ohos_source_set("color_picker") {
+    branch_protector_ret = "pac_ret"
     configs = [ ":graphic_napi_color_picker_config" ]
 
     include_dirs = [
@@ -72,6 +73,7 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("color_picker") {
+    branch_protector_ret = "pac_ret"
     configs = [ ":graphic_napi_color_picker_config" ]
     public_configs = [ ":graphic_napi_color_picker_public_config" ]
     sources = [
