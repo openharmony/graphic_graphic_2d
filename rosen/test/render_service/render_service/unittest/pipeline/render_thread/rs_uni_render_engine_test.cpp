@@ -25,6 +25,9 @@
 #include "rs_surface_solid_filled_color_layer.h"
 #include "rs_render_surface_solid_filled_color_layer.h"
 #include "composer/composer_service/layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
+#include "surface_buffer.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -496,13 +499,42 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayerPreProcess_DrmCornerRadiusTransparentTe
     EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayerPreProcess(*canvas, layer, screenInfo));
 }
 
+#ifdef RS_ENABLE_VK
+static sptr<SurfaceBuffer> CreateCanvasDrawingTestBuffer()
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    if (!buffer) {
+        return nullptr;
+    }
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    if (ret != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+#endif
+
 /**
  * @tc.name: DrawCanvasDrawingNodeWithParamsTest001
  * @tc.desc: Test DrawCanvasDrawingNodeWithParams
+ *           1. image == nullptr, return early (zrh-1 DrawCanvasDrawingNodeWithParams-1)
+ *           2. needBilinear == true (zrh-1 DrawCanvasDrawingNodeWithParams-2)
+ *           3. needBilinear == false (zrh-1 DrawCanvasDrawingNodeWithParams-3)
  * @tc.type: FUNC
  */
 HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize.Level1)
 {
+    // 1. image == nullptr: default BufferDrawParam with no buffer
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
@@ -510,6 +542,48 @@ HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize
     BufferDrawParam params;
     params.matrix = Drawing::Matrix();
     uniRenderEngine->DrawCanvasDrawingNodeWithParams(*canvas, params);
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawCanvasDrawingNodeWithParams(*canvas, params));
+
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        // 2. needBilinear == true: valid buffer + scale matrix
+        auto renderEngineScale = std::make_shared<RSUniRenderEngine>();
+        renderEngineScale->Init();
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngineScale->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvasScale = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+        ASSERT_NE(recordingCanvasScale, nullptr);
+        BufferDrawParam paramsScale;
+        paramsScale.buffer = CreateCanvasDrawingTestBuffer();
+        ASSERT_NE(paramsScale.buffer, nullptr);
+        paramsScale.useBilinearInterpolation = true;
+        paramsScale.srcRect = Drawing::Rect(0, 0, 100, 100);
+        paramsScale.dstRect = Drawing::Rect(0, 0, 100, 100);
+        Drawing::Matrix scaleMatrix;
+        scaleMatrix.SetScale(2.0f, 2.0f);
+        paramsScale.matrix = scaleMatrix;
+        renderEngineScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasScale, paramsScale);
+
+        // 3. needBilinear == false: valid buffer + identity matrix, no scale
+        auto renderEngineNoScale = std::make_shared<RSUniRenderEngine>();
+        renderEngineNoScale->Init();
+        auto drawingRecordingCanvasNoScale = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvasNoScale->SetGrRecordingContext(
+            renderEngineNoScale->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvasNoScale = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvasNoScale.get());
+        ASSERT_NE(recordingCanvasNoScale, nullptr);
+        BufferDrawParam paramsNoScale;
+        paramsNoScale.buffer = CreateCanvasDrawingTestBuffer();
+        ASSERT_NE(paramsNoScale.buffer, nullptr);
+        paramsNoScale.useBilinearInterpolation = true;
+        paramsNoScale.srcRect = Drawing::Rect(0, 0, 100, 100);
+        paramsNoScale.dstRect = Drawing::Rect(0, 0, 100, 100);
+        paramsNoScale.matrix = Drawing::Matrix();
+        renderEngineNoScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasNoScale, paramsNoScale);
+        EXPECT_NO_FATAL_FAILURE(
+            renderEngineNoScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasNoScale, paramsNoScale));
+    }
+#endif
 }
 
 /**
