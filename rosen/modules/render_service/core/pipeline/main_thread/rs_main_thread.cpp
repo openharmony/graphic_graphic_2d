@@ -130,6 +130,7 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
 #include "property/rs_spatial_effect_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
@@ -2255,6 +2256,22 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
+void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+{
+    auto filterIds = HveFilter::GetHveFilter().GetFilterIds(surfaceNode->GetId());
+    if (!filterIds.empty()) {
+        for (const auto& id : filterIds) {
+            auto node = GetContext().GetNodeMap().GetRenderNode(id);
+            if (node == nullptr) {
+                RS_LOGD("%s: Invalid filter:[%{public}" PRIu64 "]", __func__, id);
+                continue;
+            }
+            node->SetContentDirty();
+        }
+    }
+    HveFilter::GetHveFilter().ClearSurfaceToFilterNodeMap();
+}
+
 void RSMainThread::CollectInfoForHardwareComposer()
 {
 #ifdef RS_ENABLE_GPU
@@ -2404,7 +2421,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 surfaceNode->SetIntersectWithFilterNode(false);
-                surfaceNode->SetContentDirty();
+                HveFilter::GetHveFilter().IsApsConfigParamsEnabled()?
+                    HveHandleFilterNodes(surfaceNode) : surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 AddDisableReason("surfaceNode intersects with hve filter[" +
                     surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");

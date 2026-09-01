@@ -339,6 +339,27 @@ HWTEST_F(RSRenderPipelineAgentTest, GetMaxGpuBufferSize_NullPipeline, TestSize.L
 }
 
 /**
+ * @tc.name: SetApsConfigParams
+ * @tc.desc: Verify function SetApsConfigParams
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < 129; i++) {
+        params["key" + std::to_string(i)] = "value" + std::to_string(i);
+    }
+
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::HVE, params), 0);
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params), 0);
+}
+
+/**
  * @tc.name: RegisterFrameStabilityDetection001
  * @tc.desc: Verify RegisterFrameStabilityDetection returns error when pipeline is null
  * @tc.type: FUNC

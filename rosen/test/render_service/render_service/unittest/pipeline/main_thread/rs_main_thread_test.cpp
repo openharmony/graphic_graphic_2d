@@ -59,6 +59,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/mock/mock_rs_color_temperature.h"
 #include "pipeline/mock/mock_rs_luminance_control.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "render_service/composer/composer_client/connection/rs_composer_to_render_connection.h"
@@ -1778,6 +1779,41 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes002, TestSize.Level1)
     mainThread->isUniRender_ = false;
     mainThread->ConsumeAndUpdateAllNodes();
     mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: HveHandleFilterNodes
+ * @tc.desc: HveHandleFilterNodes test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, HveHandleFilterNodes, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    auto& hveFilter = HveFilter::GetHveFilter();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    hveFilter.ClearSurfaceToFilterNodeMap();
+    mainThread->HveHandleFilterNodes(surfaceNode);
+    EXPECT_TRUE(hveFilter.GetFilterIds(surfaceNode->GetId()).empty());
+
+    NodeId validId = 1001;
+    auto filterNode = std::make_shared<RSRenderNode>(validId, mainThread->context_);
+    ASSERT_NE(filterNode, nullptr);
+    nodeMap.RegisterRenderNode(filterNode);
+    hveFilter.PushHveFilterSurfaceNodeMapping(validId, surfaceNode->GetId());
+    mainThread->HveHandleFilterNodes(surfaceNode);
+    EXPECT_TRUE(filterNode->IsContentDirty());
+    EXPECT_TRUE(hveFilter.GetFilterIds(surfaceNode->GetId()).empty());
+
+    NodeId invalidId = 1002;
+    hveFilter.PushHveFilterSurfaceNodeMapping(invalidId, surfaceNode->GetId());
+    mainThread->HveHandleFilterNodes(surfaceNode);
+    EXPECT_TRUE(hveFilter.GetFilterIds(surfaceNode->GetId()).empty());
 }
 
 /**
