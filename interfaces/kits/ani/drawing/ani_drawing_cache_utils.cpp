@@ -38,6 +38,8 @@ constexpr DescriptorConfig PATH_CTOR{ "<ctor>", ":" };
 constexpr DescriptorConfig PATH_ITERATOR_CTOR{ "<ctor>", "C{@ohos.graphics.drawing.drawing.Path}:" };
 constexpr DescriptorConfig ROUND_RECT_CTOR{ "<ctor>", ":"};
 constexpr DescriptorConfig TYPEFACE_CTOR{ "<ctor>", ":"};
+constexpr DescriptorConfig RECORD_CMD_CTOR{ "<ctor>", ":" };
+constexpr DescriptorConfig RECORD_CMD_UTILS_CTOR{ "<ctor>", ":" };
 constexpr DescriptorConfig FONT_METRICS_CTOR{ "<ctor>", "iddddddddddddddd:" };
 constexpr DescriptorConfig POINT_CTOR{ "<ctor>", "dd:" };
 constexpr DescriptorConfig RECT_CTOR{ "<ctor>", "dddd:" };
@@ -89,6 +91,8 @@ constexpr DescriptorConfig PATH_ITERATOR_CTOR_WITH_PTR{ "<ctor>", "l:" };
 constexpr DescriptorConfig ROUND_RECT_CTOR_WITH_PTR{ "<ctor>", "l:" };
 constexpr DescriptorConfig FONT_CTOR_WITH_PTR{ "<ctor>", "l:" };
 constexpr DescriptorConfig TYPEFACE_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig RECORD_CMD_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig RECORD_CMD_UTILS_CTOR_WITH_PTR{ "<ctor>", "l:" };
 }
 ani_class AniFindClass(ani_env* env, const char* descriptor)
 {
@@ -193,6 +197,8 @@ void AniGlobalClass::InitDrawingClass(ani_env* env)
     roundRect = AniFindClass(env, ANI_CLASS_ROUND_RECT_NAME);
     tool = AniFindClass(env, ANI_CLASS_TOOL_NAME);
     typefaceArguments = AniFindClass(env, ANI_CLASS_TYPEFACE_ARGUMENTS_NAME);
+    recordCmd = AniFindClass(env, ANI_CLASS_RECORD_CMD_NAME);
+    recordCmdUtils = AniFindClass(env, ANI_CLASS_RECORD_CMD_UTILS_NAME);
 }
 
 void AniGlobalClass::InitInterfaceClass(ani_env* env)
@@ -265,6 +271,11 @@ void AniGlobalMethod::InitCtorMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().samplingOptions, SAMPLING_OPTIONS_CTOR_WITH_PTR);
     fontCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().font, FONT_CTOR_WITH_PTR);
     typefaceCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().typeface, TYPEFACE_CTOR_WITH_PTR);
+    recordCmdCtor = AniFindMethod(env, AniGlobalClass::GetInstance().recordCmd, RECORD_CMD_CTOR);
+    recordCmdUtilsCtor = AniFindMethod(env, AniGlobalClass::GetInstance().recordCmdUtils, RECORD_CMD_UTILS_CTOR);
+    recordCmdCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().recordCmd, RECORD_CMD_CTOR_WITH_PTR);
+    recordCmdUtilsCtorWithPtr = AniFindMethod(
+        env, AniGlobalClass::GetInstance().recordCmdUtils, RECORD_CMD_UTILS_CTOR_WITH_PTR);
 }
 
 void AniGlobalMethod::InitBindNativeMethod(ani_env* env)
@@ -353,6 +364,8 @@ void AniGlobalField::Init(ani_env* env)
     roundRectNativeObj = AniFindField(env, AniGlobalClass::GetInstance().roundRect);
     toolNativeObj = AniFindField(env, AniGlobalClass::GetInstance().tool);
     typefaceArgumentsNativeObj = AniFindField(env, AniGlobalClass::GetInstance().typefaceArguments);
+    recordCmdNativeObj = AniFindField(env, AniGlobalClass::GetInstance().recordCmd);
+    recordCmdUtilsNativeObj = AniFindField(env, AniGlobalClass::GetInstance().recordCmdUtils);
 }
 
 ani_status InitAniGlobalRef(ani_env* env)

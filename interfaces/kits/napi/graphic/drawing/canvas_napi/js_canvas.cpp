@@ -47,6 +47,7 @@
 #include "matrix_napi/js_matrix.h"
 #include "pen_napi/js_pen.h"
 #include "path_napi/js_path.h"
+#include "record_cmd_napi/js_record_cmd.h"
 #include "region_napi/js_region.h"
 #include "sampling_options_napi/js_sampling_options.h"
 #include "text_blob_napi/js_text_blob.h"
@@ -237,6 +238,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
     DECLARE_NAPI_FUNCTION("isOpaque", JsCanvas::IsOpaque),
     DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
+    DECLARE_NAPI_FUNCTION("drawRecordCmd", JsCanvas::DrawRecordCmd),
 };
 
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
@@ -249,6 +251,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
     if (status != napi_ok) {
         ROSEN_LOGE("Drawing_napi: failed to napi_get_cb_info");
         return nullptr;
+    }
+
+    if (argc == ARGC_ZERO) {
+        return jsThis;
     }
 
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -332,11 +338,11 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("Drawing_napi: canvas is nullptr");
         return nullptr;
     }
-    JsCanvas *jsCanvas = new JsCanvas(canvas);
-    napi_create_object(env, &result);
-    if (result == nullptr) {
+    JsCanvas* jsCanvas = new JsCanvas(canvas);
+    status = napi_new_instance(env, constructor, 0, nullptr, &result);
+    if (status != napi_ok || result == nullptr) {
         delete jsCanvas;
-        ROSEN_LOGE("jsCanvas::CreateJsCanvas Create canvas object failed!");
+        ROSEN_LOGE("Drawing_napi: CreateJsCanvas napi_new_instance failed");
         return nullptr;
     }
     status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
@@ -345,7 +351,6 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
         return nullptr;
     }
-    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
 
@@ -2840,6 +2845,41 @@ napi_value JsCanvas::OnIsOpaque(napi_env env, napi_callback_info info)
     }
 
     return CreateJsValue(env, m_canvas->IsOpaque());
+}
+
+napi_value JsCanvas::DrawRecordCmd(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas *me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
+    return (me != nullptr) ? me->OnDrawRecordCmd(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawRecordCmd(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawRecordCmd canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsRecordCmd *jsRecordCmd = nullptr;
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRecordCmd, &RECORD_CMD_TYPE_TAG);
+
+    if (jsRecordCmd == nullptr || jsRecordCmd->GetRecordCmd() == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawRecordCmd recordCmd is nullptr");
+        return nullptr;
+    }
+
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    m_canvas->DrawRecordCmd(jsRecordCmd->GetRecordCmd());
+#ifdef ROSEN_OHOS
+    if (mPixelMap_ != nullptr) {
+        mPixelMap_->MarkDirty();
+    }
+#endif
+    return nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

@@ -38,6 +38,7 @@
 #include "utils/system_properties.h"
 #include "sandbox_utils.h"
 #include "securec.h"
+#include "utils/shadow_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -965,9 +966,9 @@ DrawShadowOpItem::DrawShadowOpItem(const DrawCmdList& cmdList, DrawShadowOpItem:
 std::shared_ptr<DrawOpItem> DrawShadowOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     auto* constructorHandle = static_cast<DrawShadowOpItem::ConstructorHandle*>(handle);
-    if (constructorHandle->flag < ShadowFlags::NONE || constructorHandle->flag > ShadowFlags::ALL) {
-        LOGD("DrawShadowOpItem Unmarshalling invalid ShadowFlags: %{public}d",
-            static_cast<int>(constructorHandle->flag));
+    auto shadowFlag = GetShadowFlag(constructorHandle->flag);
+    if (shadowFlag < ShadowFlags::NONE || shadowFlag > ShadowFlags::ALL) {
+        LOGE("DrawShadowOpItem Unmarshalling invalid ShadowFlags: %{public}d", static_cast<int>(shadowFlag));
         return nullptr;
     }
     return std::make_shared<DrawShadowOpItem>(cmdList, constructorHandle);
@@ -989,8 +990,7 @@ void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGD("DrawShadowOpItem path is null!");
         return;
     }
-    canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_,
-                       ambientColor_, spotColor_, flag_);
+    canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_);
 }
 
 void DrawShadowOpItem::Dump(std::string& out) const

@@ -2292,6 +2292,42 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRecordCmdUtilsTest001
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest001, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
+    EXPECT_TRUE(recordCanvasTmp != nullptr);
+    auto width1 = recordCmdUtils->GetWidth();
+    EXPECT_EQ(width1, 10);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest002
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest002, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
+    EXPECT_TRUE(recordCanvasTmp != nullptr);
+    auto height1 = recordCmdUtils->GetHeight();
+    EXPECT_EQ(height1, 20);
+}
+
+/**
  * @tc.name: MarshallingDrawCmdListObjectLimitTest001
  * @tc.desc: Verify function Marshalling DrawCmdList with object count exceeding USHRT_MAX
  * @tc.type:FUNC

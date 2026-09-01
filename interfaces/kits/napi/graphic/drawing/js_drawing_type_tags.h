@@ -111,6 +111,14 @@ constexpr napi_type_tag TYPEFACE_TYPE_TAG = {
     .lower = 0xda1f72db5f99324d,
     .upper = 0xaf4d91b715a76ca2,
 };
+constexpr napi_type_tag RECORD_CMD_TYPE_TAG = {
+    .lower = 0xa23dfa76ed7e9135,
+    .upper = 0x91b35f99d969aec7,
+};
+constexpr napi_type_tag RECORD_CMD_UTILS_TYPE_TAG = {
+    .lower = 0xb71fbf12fc97be96,
+    .upper = 0xb4a2ee7da426a84f,
+};
 
 } // namespace OHOS::Rosen::Drawing
 #endif // OHOS_JS_DRAWING_TYPE_TAGS_H

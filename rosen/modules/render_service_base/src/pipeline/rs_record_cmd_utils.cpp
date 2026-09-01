@@ -49,5 +49,17 @@ std::shared_ptr<Drawing::RecordCmd> RSRecordCmdUtils::FinishRecording()
     cullRect_ = Drawing::Rect();
     return recordCmd;
 }
+
+int32_t RSRecordCmdUtils::GetWidth()
+{
+    Drawing::RectI rect = cullRect_.RoundOut();
+    return rect.GetWidth();
+}
+
+int32_t RSRecordCmdUtils::GetHeight()
+{
+    Drawing::RectI rect = cullRect_.RoundOut();
+    return rect.GetHeight();
+}
 } // namespace Rosen
 } // namespace OHOS

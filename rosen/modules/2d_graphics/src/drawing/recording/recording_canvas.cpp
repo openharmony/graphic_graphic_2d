@@ -31,6 +31,7 @@
 #include "utils/log.h"
 #include "sandbox_utils.h"
 #include "text/text_blob_builder.h"
+#include "utils/shadow_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -191,14 +192,31 @@ void RecordingCanvas::DrawBackground(const Brush& brush)
 void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
 {
+    Point3 localLightPos = devLightPos;
+    if (IsRecordCmd()) {
+        static constexpr uint32_t DIRECTIONAL_LIGHT_FLAG = 0x04; // DIRECTIONALLIGHT_SHADOW
+        if (!(static_cast<uint32_t>(flag) & DIRECTIONAL_LIGHT_FLAG)) {
+            Matrix ctm = GetTotalMatrix();
+            Matrix inverse;
+            if (ctm.Invert(inverse)) {
+                std::vector<Point> src = { Point(devLightPos.GetX(), devLightPos.GetY()) };
+                std::vector<Point> dst = src;
+                inverse.MapPoints(dst, src, src.size());
+                localLightPos.SetX(dst[0].GetX());
+                localLightPos.SetY(dst[0].GetY());
+            }
+        }
+    }
+    uint8_t composeFlag = SetShadowIsRecordCmd(static_cast<uint8_t>(flag), IsRecordCmd());
+    flag = static_cast<ShadowFlags>(SetShadowFlag(composeFlag));
     if (!addDrawOpImmediate_) {
         cmdList_->AddDrawOp(std::make_shared<DrawShadowOpItem>(
-            path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag));
+            path, planeParams, localLightPos, lightRadius, ambientColor, spotColor, flag));
         return;
     }
     auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     cmdList_->AddDrawOp<DrawShadowOpItem::ConstructorHandle>(
-        pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
+        pathHandle, planeParams, localLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
 void RecordingCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
