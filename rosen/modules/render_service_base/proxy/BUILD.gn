@@ -124,6 +124,7 @@ ohos_source_set("render_service_proxy_src") {
     "samgr:samgr_proxy",
     #"init:libbegetutil",
     "c_utils:utils",
+    "bounds_checking_function:libsec_shared",
   ]
 
   part_name = "graphic_2d"
