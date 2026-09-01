@@ -44,6 +44,7 @@ public:
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByRotate(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
