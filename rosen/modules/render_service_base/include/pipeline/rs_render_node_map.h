@@ -91,8 +91,8 @@ public:
     pid_t GetUIExtensionGuestPid(NodeId id) const;
     void DestroyTokenNode(pid_t pid, uint64_t token);
 
-    // Pending buffer map keyed by AppWindow NodeId, value is LeashWindow NodeId for sibling grouping
-    // appWindow must be non-null and confirmed as AppWindow by caller
+    // Add the AppWindow and its different-token sibling AppWindows under the same LeashWindow to the pending map.
+    // Skips if the AppWindow is already in the map or has no sibling with a different token.
     void AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow);
     bool HasPendingUIBufferEntry(NodeId appWindowId) const;
     void RemovePendingUIBufferEntry(NodeId appWindowId);

@@ -4563,6 +4563,8 @@ void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
         }
         if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(id))) {
             RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
+            RS_TRACE_NAME_FMT("TryNotifyUIBufferAvailable: rebuild transaction in progress id:%llu name:%s ",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
             surfaceNode->SetRebuildingState(true);
             continue;
         }
@@ -4590,6 +4592,8 @@ void RSUniRenderVisitor::DelayNotifyUIBufferAvailableIfNeed(const std::shared_pt
     if (surfaceNode->IsPendingUIBufferNotify()) {
         // Already enqueued in a previous frame; just check if all siblings are now ready
         auto it = pendingAvailableUiBufferMap_.find(appWindowId);
+        RS_OPTIONAL_TRACE_NAME_FMT("DelayNotifyUIBuffer id:%llu name:%s curFrameTick:%llu", appWindowId,
+            surfaceNode->GetName().c_str(), uiBufferNotifyDelayTick_);
         if (it != pendingAvailableUiBufferMap_.end() && AllSiblingsUIBufferAvailable(it->second.leashId)) {
             FlushPendingAvailableUiBuffer(it->second.leashId);
         }
@@ -4614,8 +4618,8 @@ void RSUniRenderVisitor::DelayNotifyUIBufferAvailableIfNeed(const std::shared_pt
     if (AllSiblingsUIBufferAvailable(storedLeashId)) {
         FlushPendingAvailableUiBuffer(storedLeashId);
     } else {
-        RS_OPTIONAL_TRACE_NAME_FMT("DelayNotifyUIBufferAvailable appWindowId:%llu name:%s curFrameTick:%llu",
-            appWindowId, entry.name.c_str(), uiBufferNotifyDelayTick_);
+        RS_TRACE_NAME_FMT("DelayNotifyUIBufferStart appWindowId:%llu name:%s curFrameTick:%llu", appWindowId,
+            entry.name.c_str(), uiBufferNotifyDelayTick_);
     }
 }
 
@@ -4641,8 +4645,8 @@ void RSUniRenderVisitor::FlushPendingAvailableUiBuffer(NodeId leashId)
     for (auto appWindowId : siblingIds) {
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(appWindowId);
         if (surfaceNode) {
-            RS_OPTIONAL_TRACE_NAME_FMT("FlushPendingAvailableUiBuffer appWindowId:%llu name:%s curFrameTick:%llu",
-                appWindowId, surfaceNode->GetName().c_str(), uiBufferNotifyDelayTick_);
+            RS_TRACE_NAME_FMT("FlushPendingAvailableUiBuffer appWindowId:%llu name:%s curFrameTick:%llu", appWindowId,
+                surfaceNode->GetName().c_str(), uiBufferNotifyDelayTick_);
             surfaceNode->SetPendingUIBufferNotify(false);
             surfaceNode->NotifyUIBufferAvailable();
         }
@@ -4663,8 +4667,15 @@ void RSUniRenderVisitor::CheckPendingUIBufferTimeout()
             timeoutLeashIds.insert(entry.leashId);
         }
     }
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     for (NodeId leashId : timeoutLeashIds) {
         FlushPendingAvailableUiBuffer(leashId);
+        // Clean up residual entries in hasDestoryRebuildAppWindowMap_ for this leashId
+        // (sibling AppWindows whose buffer never became available before timeout)
+        auto residualAppWindows = nodeMap.GetPendingUIBufferAppWindowsByLeashId(leashId);
+        for (auto residualId : residualAppWindows) {
+            nodeMap.RemovePendingUIBufferEntry(residualId);
+        }
     }
 }
 

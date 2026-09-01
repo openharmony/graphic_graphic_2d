@@ -1114,22 +1114,33 @@ HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeExceedLimit, TestSize.Level1)
 
 /**
  * @tc.name: AddPendingUIBufferEntryTest001
- * @tc.desc: Cover branch: leashParent is LeashWindow, entry added to map.
+ * @tc.desc: Cover branch: has sibling with different token, self and sibling both added.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest001, TestSize.Level1)
 {
     RSRenderNodeMap rsRenderNodeMap;
     constexpr NodeId leashId = 1;
-    constexpr NodeId appId = 2;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    constexpr uint64_t token1 = 100;
+    constexpr uint64_t token2 = 200;
     RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
-    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
-    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
-    leashNode->AddChild(appNode);
-    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
-    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
-    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appId), leashId);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(token1);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(token2);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    // Call with app1 (token1): app2 has different token, so both added
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app1Id), leashId);
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app2Id), leashId);
 }
 
 /**
@@ -1145,6 +1156,83 @@ HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest002, TestSize.Level1)
     auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
     rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
     EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest003
+ * @tc.desc: Cover branch: already in map, skip without re-traversing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest003, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(100);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(200);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    // Second call should be skipped — app1 already in map, no re-traversal of siblings
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    EXPECT_EQ(rsRenderNodeMap.hasDestoryRebuildAppWindowMap_.size(), 2u);
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest004
+ * @tc.desc: Cover branch: only one child under LeashWindow, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest004, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId appId = 2;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    leashNode->AddChild(appNode);
+    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest005
+ * @tc.desc: Cover branch: all siblings have same token, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest005, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    constexpr uint64_t sameToken = 100;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(sameToken);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(sameToken);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
 }
 
 /**
@@ -1235,32 +1323,43 @@ HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferAppWindowsByLeashIdTest002, Test
 
 /**
  * @tc.name: DestroyTokenNodeTest001
- * @tc.desc: Cover branch: RootNode under AppWindow under LeashWindow, entry added.
+ * @tc.desc: Cover branch: RootNode under AppWindow under LeashWindow with different-token sibling,
+ *           both AppWindows added to pending map.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest001, TestSize.Level1)
 {
     RSRenderNodeMap rsRenderNodeMap;
     constexpr pid_t pid = 1;
-    constexpr uint64_t token = 1;
-    constexpr NodeId appNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr uint64_t token1 = 1;
+    constexpr uint64_t token2 = 2;
+    constexpr NodeId app1NodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId app2NodeId = (static_cast<NodeId>(pid) << 32) | 4;
     constexpr NodeId leashNodeId = (static_cast<NodeId>(pid) << 32) | 2;
     constexpr NodeId rootNodeId = (static_cast<NodeId>(pid) << 32) | 3;
     RSSurfaceRenderNodeConfig leashCfg = { .id = leashNodeId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
-    RSSurfaceRenderNodeConfig appCfg = { .id = appNodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
-    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1NodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(token1);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2NodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(token2);
     auto rootNode = std::make_shared<RSRootRenderNode>(rootNodeId);
-    appNode->SetUIContextToken(token);
-    rootNode->SetUIContextToken(token);
-    leashNode->AddChild(appNode);
-    appNode->AddChild(rootNode);
-    rsRenderNodeMap.RegisterRenderNode(appNode);
+    rootNode->SetUIContextToken(token1);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    app1Node->AddChild(rootNode);
+    rsRenderNodeMap.RegisterRenderNode(app1Node);
+    rsRenderNodeMap.RegisterRenderNode(app2Node);
     rsRenderNodeMap.RegisterRenderNode(rootNode);
-    rsRenderNodeMap.DestroyTokenNode(pid, token);
-    EXPECT_TRUE(appNode->HasDestoryRebuild());
-    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appNodeId));
-    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appNodeId), leashNodeId);
+    rsRenderNodeMap.DestroyTokenNode(pid, token1);
+    EXPECT_TRUE(app1Node->HasDestoryRebuild());
+    // Both app1 and app2 should be in pending map (different tokens)
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1NodeId));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2NodeId));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app1NodeId), leashNodeId);
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app2NodeId), leashNodeId);
 }
 
 /**
