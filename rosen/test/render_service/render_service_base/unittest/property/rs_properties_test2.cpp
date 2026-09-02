@@ -1816,7 +1816,7 @@ HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderParamsTest, TestSize.Level1)
         ", negativeCoeff.z: " + std::to_string(neg.z_) +
         ", vibrancyStrength: " + std::to_string(vibrancyStrength) +
         ", lumaDiff: " + std::to_string(lumaDiff) +
-        ", hdrEnabled: " + std::to_string(true);
+        ", hdrEnabled: " + std::to_string(false);
     EXPECT_EQ(description, properties.GetColorfulBrightnessBlenderDescription());
 }
 

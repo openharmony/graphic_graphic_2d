@@ -91,7 +91,7 @@ private:
     float darkenWeight_ = 1.0f;
     float vibrancyStrength_ = 0.0f;
     float lumaDiff_ = 0.0f;
-    bool hdrEnabled_ = true;
+    bool hdrEnabled_ = false;
 };
 
 } // namespace Rosen
