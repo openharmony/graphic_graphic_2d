@@ -90,6 +90,15 @@ struct Color {
   alpha: f64;
 }
 
+struct WarpedRingParam {
+  radius: f64;
+  baseHalfWidth: f64;
+  widthVariation: f64;
+  rotateAngle: f64;
+  rotate3DProgress: f64;
+  noiseEvolution: f64;
+}
+
 struct LiquidMaterialEffectParam {
   enable : bool;
   distortProgress : f64;
@@ -141,6 +150,8 @@ interface Filter {
     @optional bloom: Optional<bool>): Filter;
   ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
     @optional alphaMask: Optional<Mask>): Filter;
+  SpinBlur(center: @sts_type("common2D.Point") Opaque, angle: f64, samples: i32): Filter;
+  HaloBloom(tintColor: Color, bloomFactor: f64, glowExposure: f64): Filter;
   getNativePtr(): i64;
 }
 
@@ -151,6 +162,9 @@ interface Mask {
 @static("Mask")
 function CreateRippleMask(center: @sts_type("common2D.Point") Opaque, radius: f64, width: f64,
   @optional offset: Optional<f64>): Mask;
+
+@static("Mask")
+function CreateWarpedRingMask(ringParam: WarpedRingParam): Mask;
 
 @static("Mask")
 @rename("createPixelMapMask")
@@ -172,6 +186,39 @@ function CreateRadialGradientMask(center: @sts_type("common2D.Point") Opaque, ra
 @static("Mask")
 function CreateUseEffectMask(useEffect: bool): Mask;
 
+@static("Mask")
+function CreateBinocularMask(radiusX: f64, radiusY: f64, gap: f64, softness: f64): Mask;
+
+@static("Mask")
+function CreateFractalGlassMask(glassNum: i32, glassStrength: f64, glassSoftness: f64, isSymmetric: bool,
+  @optional refractMask: Optional<PixelMap>): Mask;
+
+enum PrismShapeType: i32 {
+  ROUNDED_RECT = 0,
+  ELLIPSE = 1
+}
+
+struct SweepRefractionParam {
+  maskRadius: f64;
+  edgeThickness: f64;
+  refractAmount: f64;
+  rippleWidth: f64;
+  sweepOffset: f64;
+  chromaDelta: f64;
+}
+
+struct SweepRefractionMaskOptions {
+  @optional shapeType: Optional<PrismShapeType>;
+  @optional cornerRadius: Optional<f64>;
+  @optional prismWidth: Optional<f64>;
+  @optional prismHeight: Optional<f64>;
+  @optional sweepCenterX: Optional<f64>;
+  @optional sweepCenterY: Optional<f64>;
+}
+
+@static("Mask")
+function CreateSweepRefractionMask(param: SweepRefractionParam,
+  @optional options: Optional<SweepRefractionMaskOptions>): Mask;
 
 interface VisualEffect {
   BackgroundColorBlender(blender: BrightnessBlender): VisualEffect;

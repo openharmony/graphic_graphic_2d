@@ -76,6 +76,24 @@ Mask CreateRippleMask(uintptr_t center, double radius, double width, optional_vi
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
 
+Mask CreateWarpedRingMask(::ohos::graphics::uiEffect::uiEffect::WarpedRingParam const& param)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto warpedRingMaskPara = std::make_shared<OHOS::Rosen::WarpedRingMaskPara>();
+
+    OHOS::Rosen::WarpedRingParam nativeParam;
+    nativeParam.radius = static_cast<float>(param.radius);
+    nativeParam.baseHalfWidth = static_cast<float>(param.baseHalfWidth);
+    nativeParam.widthVariation = static_cast<float>(param.widthVariation);
+    nativeParam.rotateAngle = static_cast<float>(param.rotateAngle);
+    nativeParam.rotate3DProgress = static_cast<float>(param.rotate3DProgress);
+    nativeParam.noiseEvolution = static_cast<float>(param.noiseEvolution);
+    warpedRingMaskPara->SetRingParam(nativeParam);
+
+    mask->SetMaskPara(warpedRingMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
+
 Mask CreatePixelMapMaskWithRect(ohos::multimedia::image::image::weak::PixelMap pixelMap, uintptr_t srcRect,
     uintptr_t dstRect, optional_view<Color> fillColor)
 {
@@ -195,13 +213,99 @@ Mask CreateUseEffectMask(bool useEffect)
     mask->SetMaskPara(useEffectMaskPara);
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
+
+Mask CreateBinocularMask(double radiusX, double radiusY, double gap, double softness)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto binocularMaskPara = std::make_shared<OHOS::Rosen::BinocularMaskPara>();
+
+    binocularMaskPara->SetRadiusX(static_cast<float>(radiusX));
+    binocularMaskPara->SetRadiusY(static_cast<float>(radiusY));
+    binocularMaskPara->SetGap(static_cast<float>(gap));
+    binocularMaskPara->SetSoftness(static_cast<float>(softness));
+    mask->SetMaskPara(binocularMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
+
+Mask CreateFractalGlassMask(int32_t glassNum, double glassStrength, double glassSoftness, bool isSymmetric,
+    optional_view<ohos::multimedia::image::image::PixelMap> refractMask)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto fractalGlassMaskPara = std::make_shared<OHOS::Rosen::FractalGlassMaskPara>();
+
+    fractalGlassMaskPara->SetGlassNum(static_cast<float>(glassNum));
+    fractalGlassMaskPara->SetGlassStrength(static_cast<float>(glassStrength));
+    fractalGlassMaskPara->SetGlassSoftness(static_cast<float>(glassSoftness));
+    fractalGlassMaskPara->SetIsSymmetric(isSymmetric);
+    if (refractMask.has_value()) {
+        Image::PixelMapImpl* pixelMapImpl =
+            reinterpret_cast<Image::PixelMapImpl*>(refractMask.value()->GetImplPtr());
+        if (pixelMapImpl != nullptr) {
+            auto nativePixelMap = pixelMapImpl->GetNativePtr();
+            if (nativePixelMap != nullptr) {
+                fractalGlassMaskPara->SetPixelMap(nativePixelMap);
+                OHOS::Rosen::Vector4f fullSize(0, 0,
+                    static_cast<float>(nativePixelMap->GetWidth()),
+                    static_cast<float>(nativePixelMap->GetHeight()));
+                fractalGlassMaskPara->SetSrc(fullSize);
+                fractalGlassMaskPara->SetDst(fullSize);
+            }
+        }
+    }
+    mask->SetMaskPara(fractalGlassMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
+
+Mask CreateSweepRefractionMask(
+    ::ohos::graphics::uiEffect::uiEffect::SweepRefractionParam const& param,
+    optional_view<SweepRefractionMaskOptions> options)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto sweepRefractionMaskPara = std::make_shared<OHOS::Rosen::SweepRefractionMaskPara>();
+
+    sweepRefractionMaskPara->SetMaskRadius(static_cast<float>(param.maskRadius));
+    sweepRefractionMaskPara->SetEdgeThickness(static_cast<float>(param.edgeThickness));
+    sweepRefractionMaskPara->SetRefractAmount(static_cast<float>(param.refractAmount));
+    sweepRefractionMaskPara->SetRippleWidth(static_cast<float>(param.rippleWidth));
+    sweepRefractionMaskPara->SetSweepOffset(static_cast<float>(param.sweepOffset));
+    sweepRefractionMaskPara->SetChromaDelta(static_cast<float>(param.chromaDelta));
+
+    if (options.has_value()) {
+        const auto& opts = options.value();
+        if (opts.shapeType.has_value()) {
+            sweepRefractionMaskPara->SetShapeType(static_cast<int32_t>(opts.shapeType.value()));
+        }
+        if (opts.cornerRadius.has_value()) {
+            sweepRefractionMaskPara->SetCornerRadius(static_cast<float>(opts.cornerRadius.value()));
+        }
+        if (opts.prismWidth.has_value()) {
+            sweepRefractionMaskPara->SetPrismWidth(static_cast<float>(opts.prismWidth.value()));
+        }
+        if (opts.prismHeight.has_value()) {
+            sweepRefractionMaskPara->SetPrismHeight(static_cast<float>(opts.prismHeight.value()));
+        }
+        float cx = opts.sweepCenterX.has_value() ? static_cast<float>(opts.sweepCenterX.value()) : 0.0f;
+        float cy = opts.sweepCenterY.has_value() ? static_cast<float>(opts.sweepCenterY.value()) : 0.0f;
+        if (opts.sweepCenterX.has_value() || opts.sweepCenterY.has_value()) {
+            OHOS::Rosen::Vector2f center(cx, cy);
+            sweepRefractionMaskPara->SetSweepCenter(center);
+        }
+    }
+
+    mask->SetMaskPara(sweepRefractionMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
 } // namespace ANI::UIEffect
 
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_CreateRippleMask(CreateRippleMask);
+TH_EXPORT_CPP_API_CreateWarpedRingMask(CreateWarpedRingMask);
 TH_EXPORT_CPP_API_CreatePixelMapMaskWithRect(CreatePixelMapMaskWithRect);
 TH_EXPORT_CPP_API_CreatePixelMapMaskOnly(CreatePixelMapMaskOnly);
 TH_EXPORT_CPP_API_CreateWaveGradientMask(CreateWaveGradientMask);
 TH_EXPORT_CPP_API_CreateRadialGradientMask(CreateRadialGradientMask);
 TH_EXPORT_CPP_API_CreateUseEffectMask(CreateUseEffectMask);
+TH_EXPORT_CPP_API_CreateBinocularMask(CreateBinocularMask);
+TH_EXPORT_CPP_API_CreateFractalGlassMask(CreateFractalGlassMask);
+TH_EXPORT_CPP_API_CreateSweepRefractionMask(CreateSweepRefractionMask);
 // NOLINTEND

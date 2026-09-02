@@ -73,7 +73,10 @@ bool MaskPara::IsWhitelistPara(uint16_t type)
     static const std::unordered_set<uint16_t> whitelist = {
         static_cast<uint16_t>(Type::RADIAL_GRADIENT_MASK),
         static_cast<uint16_t>(Type::PIXEL_MAP_MASK),
-        static_cast<uint16_t>(Type::IMAGE_MASK)
+        static_cast<uint16_t>(Type::IMAGE_MASK),
+        static_cast<uint16_t>(Type::FRACTAL_GLASS_MASK),
+        static_cast<uint16_t>(Type::BINOCULAR_MASK),
+        static_cast<uint16_t>(Type::SWEEP_REFRACTION_MASK)
     };
 
     auto find = whitelist.find(type);

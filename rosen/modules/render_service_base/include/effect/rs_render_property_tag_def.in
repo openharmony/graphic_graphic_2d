@@ -54,6 +54,14 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Positions, std::vector<float>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Strengths, std::vector<float>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradient, Mask, MASK_PTR);
 
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpinBlur, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpinBlur, Angle, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SpinBlur, Samples, int);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, TintColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, BloomFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, GlowExposure, float);
+
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Dispersion, Mask, MASK_PTR);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, Opacity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
@@ -83,6 +91,13 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Offset, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, BaseHalfWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, WidthVariation, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, RotateAngle, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, Rotate3DProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WarpedRingMask, NoiseEvolution, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Src, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
@@ -575,6 +590,19 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, RRectPos, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, Slope, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, Progress, float);
 
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, MaskRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, EdgeThickness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, RefractAmount, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, RippleWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, SweepOffset, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, ChromaDelta, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, CornerRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, PrismWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, PrismHeight, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, SweepCenterX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, SweepCenterY, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SweepRefractionMask, ShapeType, int);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Factor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Height, float);
@@ -673,3 +701,16 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, EnableSDFCache, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Radius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Anchor, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FractalGlassMask, Src, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FractalGlassMask, Dst, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FractalGlassMask, Num, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FractalGlassMask, Strength, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FractalGlassMask, Softness, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FractalGlassMask, Image, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FractalGlassMask, Symmetric, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(BinocularMask, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BinocularMask, RadiusY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BinocularMask, Gap, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BinocularMask, Softness, float);

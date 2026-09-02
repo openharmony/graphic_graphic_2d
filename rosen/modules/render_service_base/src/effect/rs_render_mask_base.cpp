@@ -32,6 +32,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderRippleMask>();
         }
     },
+    {RSNGEffectType::WARPED_RING_MASK, [] {
+            return std::make_shared<RSNGRenderWarpedRingMask>();
+        }
+    },
     {RSNGEffectType::DOUBLE_RIPPLE_MASK, [] {
             return std::make_shared<RSNGRenderDoubleRippleMask>();
         }
@@ -70,6 +74,18 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     },
     {RSNGEffectType::NOISY_FRAME_GRADIENT_MASK, [] {
             return std::make_shared<RSNGRenderNoisyFrameGradientMask>();
+        }
+    },
+    {RSNGEffectType::FRACTAL_GLASS_MASK, [] {
+            return std::make_shared<RSNGRenderFractalGlassMask>();
+        }
+    },
+    {RSNGEffectType::BINOCULAR_MASK, [] {
+            return std::make_shared<RSNGRenderBinocularMask>();
+        }
+    },
+    {RSNGEffectType::SWEEP_REFRACTION_MASK, [] {
+            return std::make_shared<RSNGRenderSweepRefractionMask>();
         }
     },
 };

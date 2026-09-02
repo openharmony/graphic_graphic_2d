@@ -223,6 +223,8 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("colorGradient", SetColorGradient),
+        DECLARE_NAPI_FUNCTION("spinBlur", SetSpinBlur),
+        DECLARE_NAPI_FUNCTION("haloBloom", SetHaloBloom),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
         DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
         DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
@@ -977,6 +979,80 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
     filterObj->AddPara(para);
 
     API_STATS_HISTOGRAM("Arkgraphics2d.Filter.colorGradient", 1);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetSpinBlur(napi_env env, napi_callback_info info)
+{
+    static const size_t requiredArgc = NUM_3;
+    size_t argCount = NUM_3;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[requiredArgc] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount == requiredArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetSpinBlur parsing input fail"));
+
+    auto para = std::make_shared<SpinBlurPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetSpinBlur para is nullptr"));
+
+    double point[NUM_2] {};
+    UIEFFECT_NAPI_CHECK_RET_D(ConvertFromJsPoint(env, argValue[NUM_0], point, NUM_2), nullptr,
+        FILTER_LOG_E("FilterNapi SetSpinBlur parse center fail"));
+    Vector2f center(static_cast<float>(point[NUM_0]), static_cast<float>(point[NUM_1]));
+    para->SetCenter(center);
+
+    float angle = GetSpecialValue(env, argValue[NUM_1]);
+    para->SetAngle(angle);
+
+    constexpr uint32_t maxSamples = 128u;
+    int32_t samples = static_cast<int32_t>(std::min(GetSpecialIntValue(env, argValue[NUM_2]), maxSamples));
+    para->SetSamples(samples);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetSpinBlur napi_unwrap fail"));
+    filterObj->AddPara(para);
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.spinBlur", 1);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetHaloBloom(napi_env env, napi_callback_info info)
+{
+    static const size_t requiredArgc = NUM_3;
+    size_t argCount = NUM_3;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[requiredArgc] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount == requiredArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetHaloBloom parsing input fail"));
+
+    auto para = std::make_shared<HaloBloomPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHaloBloom para is nullptr"));
+
+    Vector4f tintColor;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argValue[NUM_0], tintColor), nullptr,
+        FILTER_LOG_E("FilterNapi SetHaloBloom parse tintColor fail"));
+    para->SetTintColor(tintColor);
+
+    float bloomFactor = GetSpecialValue(env, argValue[NUM_1]);
+    para->SetBloomFactor(bloomFactor);
+
+    float glowExposure = GetSpecialValue(env, argValue[NUM_2]);
+    para->SetGlowExposure(glowExposure);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHaloBloom napi_unwrap fail"));
+    filterObj->AddPara(para);
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.haloBloom", 1);
     return thisVar;
 }
 

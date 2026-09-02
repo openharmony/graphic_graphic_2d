@@ -20,10 +20,14 @@
 #include "ui_effect/mask/include/pixel_map_mask_para.h"
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
+#include "ui_effect/mask/include/warped_ring_mask_para.h"
 #include "ui_effect/mask/include/wave_gradient_mask_para.h"
 #include "ui_effect/mask/include/image_mask_para.h"
 #include "ui_effect/mask/include/use_effect_mask_para.h"
 #include "ui_effect/mask/include/wave_disturbance_mask_para.h"
+#include "ui_effect/mask/include/fractal_glass_mask_para.h"
+#include "ui_effect/mask/include/binocular_mask_para.h"
+#include "ui_effect/mask/include/sweep_refraction_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -36,6 +40,10 @@ using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_pt
 thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     {RSNGEffectType::RIPPLE_MASK, [] {
             return std::make_shared<RSNGRippleMask>();
+        }
+    },
+    {RSNGEffectType::WARPED_RING_MASK, [] {
+            return std::make_shared<RSNGWarpedRingMask>();
         }
     },
     {RSNGEffectType::PIXEL_MAP_MASK, [] {
@@ -74,6 +82,18 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGNoisyFrameGradientMask>();
         }
     },
+    {RSNGEffectType::FRACTAL_GLASS_MASK, [] {
+            return std::make_shared<RSNGFractalGlassMask>();
+        }
+    },
+    {RSNGEffectType::BINOCULAR_MASK, [] {
+            return std::make_shared<RSNGBinocularMask>();
+        }
+    },
+    {RSNGEffectType::SWEEP_REFRACTION_MASK, [] {
+            return std::make_shared<RSNGSweepRefractionMask>();
+        }
+    },
 };
 
 namespace {
@@ -90,6 +110,24 @@ std::shared_ptr<RSNGMaskBase> ConvertRippleMaskPara(std::shared_ptr<MaskPara> ma
     rippleMask->Setter<RippleMaskCenterTag>(rippleMaskPara->GetCenter());
     rippleMask->Setter<RippleMaskOffsetTag>(rippleMaskPara->GetWidthCenterOffset());
     return rippleMask;
+}
+
+std::shared_ptr<RSNGMaskBase> ConvertWarpedRingMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::WARPED_RING_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto warpedRingMask = std::static_pointer_cast<RSNGWarpedRingMask>(mask);
+    auto warpedRingMaskPara = std::static_pointer_cast<WarpedRingMaskPara>(maskPara);
+    const auto& ringParam = warpedRingMaskPara->GetRingParam();
+    warpedRingMask->Setter<WarpedRingMaskRadiusTag>(ringParam.radius);
+    warpedRingMask->Setter<WarpedRingMaskBaseHalfWidthTag>(ringParam.baseHalfWidth);
+    warpedRingMask->Setter<WarpedRingMaskWidthVariationTag>(ringParam.widthVariation);
+    warpedRingMask->Setter<WarpedRingMaskRotateAngleTag>(ringParam.rotateAngle);
+    warpedRingMask->Setter<WarpedRingMaskRotate3DProgressTag>(ringParam.rotate3DProgress);
+    warpedRingMask->Setter<WarpedRingMaskNoiseEvolutionTag>(ringParam.noiseEvolution);
+    return warpedRingMask;
 }
 
 std::shared_ptr<RSNGMaskBase> ConvertPixelMapMaskPara(std::shared_ptr<MaskPara> maskPara)
@@ -180,16 +218,78 @@ std::shared_ptr<RSNGMaskBase> ConvertUseEffectMaskPara(std::shared_ptr<MaskPara>
     return useEffectMask;
 }
 
+std::shared_ptr<RSNGMaskBase> ConvertFractalGlassMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::FRACTAL_GLASS_MASK);
+    if (mask == nullptr) {
+        ROSEN_LOGE("[ui_effect] ConvertFractalGlassMaskPara Create mask failed");
+        return nullptr;
+    }
+    auto fractalGlassMask = std::static_pointer_cast<RSNGFractalGlassMask>(mask);
+    auto fractalGlassMaskPara = std::static_pointer_cast<FractalGlassMaskPara>(maskPara);
+    fractalGlassMask->Setter<FractalGlassMaskImageTag>(fractalGlassMaskPara->GetPixelMap());
+    fractalGlassMask->Setter<FractalGlassMaskSrcTag>(fractalGlassMaskPara->GetSrc());
+    fractalGlassMask->Setter<FractalGlassMaskDstTag>(fractalGlassMaskPara->GetDst());
+    fractalGlassMask->Setter<FractalGlassMaskNumTag>(fractalGlassMaskPara->GetGlassNum());
+    fractalGlassMask->Setter<FractalGlassMaskStrengthTag>(fractalGlassMaskPara->GetGlassStrength());
+    fractalGlassMask->Setter<FractalGlassMaskSoftnessTag>(fractalGlassMaskPara->GetGlassSoftness());
+    fractalGlassMask->Setter<FractalGlassMaskSymmetricTag>(fractalGlassMaskPara->GetIsSymmetric());
+    return fractalGlassMask;
+}
+
+std::shared_ptr<RSNGMaskBase> ConvertBinocularMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::BINOCULAR_MASK);
+    if (mask == nullptr) {
+        ROSEN_LOGE("[ui_effect] ConvertBinocularMaskPara Create mask failed");
+        return nullptr;
+    }
+    auto binocularMask = std::static_pointer_cast<RSNGBinocularMask>(mask);
+    auto binocularMaskPara = std::static_pointer_cast<BinocularMaskPara>(maskPara);
+    binocularMask->Setter<BinocularMaskRadiusXTag>(binocularMaskPara->GetRadiusX());
+    binocularMask->Setter<BinocularMaskRadiusYTag>(binocularMaskPara->GetRadiusY());
+    binocularMask->Setter<BinocularMaskGapTag>(binocularMaskPara->GetGap());
+    binocularMask->Setter<BinocularMaskSoftnessTag>(binocularMaskPara->GetSoftness());
+    return mask;
+}
+
+std::shared_ptr<RSNGMaskBase> ConvertSweepRefractionMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::SWEEP_REFRACTION_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto sweepRefractionMask = std::static_pointer_cast<RSNGSweepRefractionMask>(mask);
+    auto sweepRefractionMaskPara = std::static_pointer_cast<SweepRefractionMaskPara>(maskPara);
+    sweepRefractionMask->Setter<SweepRefractionMaskMaskRadiusTag>(sweepRefractionMaskPara->GetMaskRadius());
+    sweepRefractionMask->Setter<SweepRefractionMaskEdgeThicknessTag>(sweepRefractionMaskPara->GetEdgeThickness());
+    sweepRefractionMask->Setter<SweepRefractionMaskRefractAmountTag>(sweepRefractionMaskPara->GetRefractAmount());
+    sweepRefractionMask->Setter<SweepRefractionMaskRippleWidthTag>(sweepRefractionMaskPara->GetRippleWidth());
+    sweepRefractionMask->Setter<SweepRefractionMaskSweepOffsetTag>(sweepRefractionMaskPara->GetSweepOffset());
+    sweepRefractionMask->Setter<SweepRefractionMaskChromaDeltaTag>(sweepRefractionMaskPara->GetChromaDelta());
+    sweepRefractionMask->Setter<SweepRefractionMaskShapeTypeTag>(sweepRefractionMaskPara->GetShapeType());
+    sweepRefractionMask->Setter<SweepRefractionMaskCornerRadiusTag>(sweepRefractionMaskPara->GetCornerRadius());
+    sweepRefractionMask->Setter<SweepRefractionMaskPrismWidthTag>(sweepRefractionMaskPara->GetPrismWidth());
+    sweepRefractionMask->Setter<SweepRefractionMaskPrismHeightTag>(sweepRefractionMaskPara->GetPrismHeight());
+    sweepRefractionMask->Setter<SweepRefractionMaskSweepCenterXTag>(sweepRefractionMaskPara->GetSweepCenterX());
+    sweepRefractionMask->Setter<SweepRefractionMaskSweepCenterYTag>(sweepRefractionMaskPara->GetSweepCenterY());
+    return sweepRefractionMask;
+}
+
 }
 
 thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::RIPPLE_MASK, ConvertRippleMaskPara },
+    { MaskPara::Type::WARPED_RING_MASK, ConvertWarpedRingMaskPara },
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
     { MaskPara::Type::WAVE_GRADIENT_MASK, ConvertWaveGradientMaskPara },
     { MaskPara::Type::WAVE_DISTURBANCE_MASK, ConvertWaveDisturbanceMaskPara },
     { MaskPara::Type::IMAGE_MASK, ConvertImageMaskPara},
     { MaskPara::Type::USE_EFFECT_MASK, ConvertUseEffectMaskPara },
+    { MaskPara::Type::FRACTAL_GLASS_MASK, ConvertFractalGlassMaskPara },
+    { MaskPara::Type::BINOCULAR_MASK, ConvertBinocularMaskPara },
+    { MaskPara::Type::SWEEP_REFRACTION_MASK, ConvertSweepRefractionMaskPara },
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

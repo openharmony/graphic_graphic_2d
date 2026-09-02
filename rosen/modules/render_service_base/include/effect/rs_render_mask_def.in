@@ -29,6 +29,15 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
+DECLARE_MASK(WarpedRingMask, WARPED_RING_MASK,
+    ADD_PROPERTY_TAG(WarpedRingMask, Radius),
+    ADD_PROPERTY_TAG(WarpedRingMask, BaseHalfWidth),
+    ADD_PROPERTY_TAG(WarpedRingMask, WidthVariation),
+    ADD_PROPERTY_TAG(WarpedRingMask, RotateAngle),
+    ADD_PROPERTY_TAG(WarpedRingMask, Rotate3DProgress),
+    ADD_PROPERTY_TAG(WarpedRingMask, NoiseEvolution)
+);
+
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
@@ -99,4 +108,36 @@ DECLARE_MASK(NoisyFrameGradientMask, NOISY_FRAME_GRADIENT_MASK,
     ADD_PROPERTY_TAG(NoisyFrameGradientMask, RRectPos),
     ADD_PROPERTY_TAG(NoisyFrameGradientMask, Slope),
     ADD_PROPERTY_TAG(NoisyFrameGradientMask, Progress)
+);
+
+DECLARE_MASK(FractalGlassMask, FRACTAL_GLASS_MASK,
+    ADD_PROPERTY_TAG(FractalGlassMask, Src),
+    ADD_PROPERTY_TAG(FractalGlassMask, Dst),
+    ADD_PROPERTY_TAG(FractalGlassMask, Num),
+    ADD_PROPERTY_TAG(FractalGlassMask, Strength),
+    ADD_PROPERTY_TAG(FractalGlassMask, Softness),
+    ADD_PROPERTY_TAG(FractalGlassMask, Image),
+    ADD_PROPERTY_TAG(FractalGlassMask, Symmetric)
+);
+
+DECLARE_MASK(BinocularMask, BINOCULAR_MASK,
+    ADD_PROPERTY_TAG(BinocularMask, RadiusX),
+    ADD_PROPERTY_TAG(BinocularMask, RadiusY),
+    ADD_PROPERTY_TAG(BinocularMask, Gap),
+    ADD_PROPERTY_TAG(BinocularMask, Softness)
+);
+
+DECLARE_MASK(SweepRefractionMask, SWEEP_REFRACTION_MASK,
+    ADD_PROPERTY_TAG(SweepRefractionMask, MaskRadius),
+    ADD_PROPERTY_TAG(SweepRefractionMask, EdgeThickness),
+    ADD_PROPERTY_TAG(SweepRefractionMask, RefractAmount),
+    ADD_PROPERTY_TAG(SweepRefractionMask, RippleWidth),
+    ADD_PROPERTY_TAG(SweepRefractionMask, SweepOffset),
+    ADD_PROPERTY_TAG(SweepRefractionMask, ChromaDelta),
+    ADD_PROPERTY_TAG(SweepRefractionMask, ShapeType),
+    ADD_PROPERTY_TAG(SweepRefractionMask, CornerRadius),
+    ADD_PROPERTY_TAG(SweepRefractionMask, PrismWidth),
+    ADD_PROPERTY_TAG(SweepRefractionMask, PrismHeight),
+    ADD_PROPERTY_TAG(SweepRefractionMask, SweepCenterX),
+    ADD_PROPERTY_TAG(SweepRefractionMask, SweepCenterY)
 );

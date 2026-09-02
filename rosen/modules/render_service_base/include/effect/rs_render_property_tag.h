@@ -150,6 +150,12 @@ enum class RSNGEffectType : int16_t {
     SPATIAL_POINT_LIGHT,
     SPATIAL_GLASS_EFFECT,
     MOTION_BLUR,
+    FRACTAL_GLASS_MASK,
+    BINOCULAR_MASK,
+    SWEEP_REFRACTION_MASK,
+    SPIN_BLUR,
+    HALO_BLOOM,
+    WARPED_RING_MASK,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
