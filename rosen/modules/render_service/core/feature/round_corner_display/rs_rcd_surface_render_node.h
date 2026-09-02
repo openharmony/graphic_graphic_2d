@@ -153,6 +153,7 @@ private:
     float GetSurfaceHeight() const;
     bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
     void SetRCDInfo(HardwareLayerInfo &cldLayerInfo, int height, int width, uint32_t offset);
+    bool WriteBinToBuffer(const std::filesystem::path& binPath, char* buffer, int32_t offset, int32_t bufferSize);
     bool SetRCDMetaData() const;
     HardwareLayerInfo cldLayerInfo;
     PixelMapPtr pixelMap_ = nullptr;
