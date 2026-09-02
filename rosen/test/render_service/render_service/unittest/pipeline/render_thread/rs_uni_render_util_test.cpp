@@ -772,6 +772,22 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam004, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam_UseRenderParamsFalse
+ * @tc.desc: useRenderParams=false -> surfaceParams nullptr, splitLayerTag skipped (default false), no crash
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_UseRenderParamsFalse, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU, 0, false);
+    EXPECT_FALSE(params.splitLayerTag); // surfaceParams nullptr -> skipped, default false
+    EXPECT_NE(params.buffer, nullptr); // buffer via surfaceHandler, function completes
+}
+
+/*
  * @tc.name: CreateBufferDrawParam005
  * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
  * @tc.type: FUNC
