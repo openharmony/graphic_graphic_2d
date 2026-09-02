@@ -55,6 +55,18 @@ DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
     ADD_PROPERTY_TAG(EdgeLight, UseRawColor)
 );
 
+DECLARE_FILTER(SpinBlur, SPIN_BLUR,
+    ADD_PROPERTY_TAG(SpinBlur, Center),
+    ADD_PROPERTY_TAG(SpinBlur, Angle),
+    ADD_PROPERTY_TAG(SpinBlur, Samples)
+);
+
+DECLARE_FILTER(HaloBloom, HALO_BLOOM,
+    ADD_PROPERTY_TAG(HaloBloom, TintColor),
+    ADD_PROPERTY_TAG(HaloBloom, BloomFactor),
+    ADD_PROPERTY_TAG(HaloBloom, GlowExposure)
+);
+
 DECLARE_FILTER(Dispersion, DISPERSION,
     ADD_PROPERTY_TAG(Dispersion, Mask),
     ADD_PROPERTY_TAG(Dispersion, Opacity),

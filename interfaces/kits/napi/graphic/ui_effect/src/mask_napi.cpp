@@ -22,6 +22,9 @@
 #include "ui_effect_napi_utils.h"
 #include "mask/include/use_effect_mask_para.h"
 #include "mask/include/wave_disturbance_mask_para.h"
+#include "mask/include/fractal_glass_mask_para.h"
+#include "mask/include/binocular_mask_para.h"
+#include "mask/include/sweep_refraction_mask_para.h"
 
 #ifdef IMAGE_NAPI_ENABLE
 #include "pixel_map_napi.h"
@@ -89,6 +92,32 @@ using namespace UIEffect;
 
 static const std::string CLASS_NAME = "Mask";
 
+const std::map<std::string, int32_t> PRISM_SHAPE_TYPE_MAP = {
+    { "ROUNDED_RECT", 0 },
+    { "ELLIPSE", 1 },
+};
+
+napi_value PrismShapeTypeInit(napi_env env)
+{
+    MASK_LOG_I("MaskNapi PrismShapeTypeInit");
+    UIEFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr, MASK_LOG_E("MaskNapi PrismShapeTypeInit env is nullptr"));
+    napi_value object = nullptr;
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        MASK_LOG_E("MaskNapi PrismShapeTypeInit fail to get object"));
+
+    for (auto& [name, value] : PRISM_SHAPE_TYPE_MAP) {
+        napi_value numVal = nullptr;
+        status = napi_create_int32(env, value, &numVal);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            MASK_LOG_E("MaskNapi PrismShapeTypeInit fail to create int32"));
+        status = napi_set_named_property(env, object, name.c_str(), numVal);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            MASK_LOG_E("MaskNapi PrismShapeTypeInit fail to set named property"));
+    }
+    return object;
+}
+
 MaskNapi::MaskNapi() {}
 
 MaskNapi::~MaskNapi() {}
@@ -100,12 +129,16 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
     RegisterMaskParaUnmarshallingCallback();
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createRippleMask", CreateRippleMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createWarpedRingMask", CreateWarpedRingMask),
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveDisturbanceMask", CreateWaveDisturbanceMask),
         DECLARE_NAPI_STATIC_FUNCTION("createImageMask", CreateImageMask),
         DECLARE_NAPI_STATIC_FUNCTION("createUseEffectMask", CreateUseEffectMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createFractalGlassMask", CreateFractalGlassMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createBinocularMask", CreateBinocularMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createSweepRefractionMask", CreateSweepRefractionMask),
     };
 
     napi_value constructor = nullptr;
@@ -129,6 +162,11 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
 
     status = napi_define_properties(env, exports, UIEFFECT_ARRAY_SIZE(static_prop), static_prop);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, MASK_LOG_E("MaskNapi Init define properties fail"));
+
+    auto prismShapeType = PrismShapeTypeInit(env);
+    status = napi_set_named_property(env, exports, "PrismShapeType", prismShapeType);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        MASK_LOG_E("MaskNapi Init set PrismShapeType fail"));
 
     return exports;
 }
@@ -185,6 +223,43 @@ bool ParseRippleMask(
         parseTimes++;
     }
     return (parseTimes == realArgc);
+}
+
+bool ParseWarpedRingMask(
+    napi_env env, napi_value* argv, const std::shared_ptr<WarpedRingMaskPara>& mask, size_t realArgc)
+{
+    if (!mask || realArgc != NUM_1) {
+        return false;
+    }
+    WarpedRingParam param;
+    uint32_t parseTimes = 0;
+    double value = 0.0;
+    if (ParseJsDoubleValue(env, argv[NUM_0], "radius", value)) {
+        param.radius = static_cast<float>(value);
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_0], "baseHalfWidth", value)) {
+        param.baseHalfWidth = static_cast<float>(value);
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_0], "widthVariation", value)) {
+        param.widthVariation = static_cast<float>(value);
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_0], "rotateAngle", value)) {
+        param.rotateAngle = static_cast<float>(value);
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_0], "rotate3DProgress", value)) {
+        param.rotate3DProgress = static_cast<float>(value);
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_0], "noiseEvolution", value)) {
+        param.noiseEvolution = static_cast<float>(value);
+        parseTimes++;
+    }
+    mask->SetRingParam(param);
+    return (parseTimes == NUM_6);
 }
 
 bool ParseWaveDisturbanceMask(napi_env env, napi_value* argv,
@@ -429,6 +504,24 @@ napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
     return Create(env, maskPara);
 }
 
+napi_value MaskNapi::CreateWarpedRingMask(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[requireArgc];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateWarpedRingMask parsing input fail."));
+
+    auto maskPara = std::make_shared<WarpedRingMaskPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(ParseWarpedRingMask(env, argv, maskPara, realArgc), nullptr,
+        MASK_LOG_E("MaskNapi CreateWarpedRingMask parsing mask input fail."));
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createWarpedRingMask", 1);
+    return Create(env, maskPara);
+}
+
 napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
@@ -621,6 +714,223 @@ napi_value MaskNapi::CreateUseEffectMask(napi_env env, napi_callback_info info)
 
     API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createUseEffectMask", 1);
     return Create(env, para);
+}
+
+static bool ParseFractalGlassMask(napi_env env, napi_value* argv,
+    size_t realArgc, std::shared_ptr<FractalGlassMaskPara> para)
+{
+    if (!para) {
+        return false;
+    }
+
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, argv[NUM_0], val)) {
+        para->SetGlassNum(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_1], val)) {
+        para->SetGlassStrength(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_2], val)) {
+        para->SetGlassSoftness(static_cast<float>(val));
+    }
+    bool isSymmetric = true;
+    if (ParseJsBoolValue(env, argv[NUM_3], isSymmetric)) {
+        para->SetIsSymmetric(isSymmetric);
+    }
+    if (realArgc >= NUM_5) {
+        napi_valuetype argType = napi_undefined;
+        napi_typeof(env, argv[NUM_4], &argType);
+        if (argType == napi_object) {
+            std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+            if (ParsePixelMap(env, argv[NUM_4], pixelMap) && pixelMap != nullptr) {
+                para->SetPixelMap(pixelMap);
+                Vector4f fullSize(0, 0, static_cast<float>(pixelMap->GetWidth()),
+                    static_cast<float>(pixelMap->GetHeight()));
+                para->SetSrc(fullSize);
+                para->SetDst(fullSize);
+            }
+        }
+    }
+    return true;
+}
+
+napi_value MaskNapi::CreateFractalGlassMask(napi_env env, napi_callback_info info)
+{
+    static const size_t minArgc = NUM_4;
+    static const size_t maxArgc = NUM_5;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc];
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateFractalGlassMask parsing input fail."));
+    auto para = std::make_shared<FractalGlassMaskPara>();
+    if (!ParseFractalGlassMask(env, argv, realArgc, para)) {
+        MASK_LOG_E("MaskNapi CreateFractalGlassMask parse param failed");
+        return nullptr;
+    }
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createFractalGlassMask", 1);
+    return Create(env, para);
+}
+
+static bool ParseBinocularMask(napi_env env, napi_value* argv,
+    size_t realArgc, std::shared_ptr<BinocularMaskPara> para)
+{
+    if (!para || realArgc < NUM_4) {
+        return false;
+    }
+    uint32_t parseTimes = 0;
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, argv[NUM_0], val)) {
+        para->SetRadiusX(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_1], val)) {
+        para->SetRadiusY(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_2], val)) {
+        para->SetGap(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+        para->SetSoftness(static_cast<float>(val));
+        parseTimes++;
+    }
+    return (parseTimes == realArgc);
+}
+
+napi_value MaskNapi::CreateBinocularMask(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_4;
+    size_t realArgc = requireArgc;
+    napi_value argv[requireArgc];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateBinocularMask parsing input fail."));
+    auto maskPara = std::make_shared<BinocularMaskPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(ParseBinocularMask(env, argv, realArgc, maskPara), nullptr,
+        MASK_LOG_E("MaskNapi CreateBinocularMask parsing mask input fail."));
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createBinocularMask", 1);
+    return Create(env, maskPara);
+}
+
+bool ParseSweepRefractionRequired(napi_env env, napi_value* argv,
+    std::shared_ptr<SweepRefractionMaskPara> mask)
+{
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, argv[NUM_0], val)) {
+        mask->SetMaskRadius(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_1], val)) {
+        mask->SetEdgeThickness(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_2], val)) {
+        mask->SetRefractAmount(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+        mask->SetRippleWidth(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_4], val)) {
+        mask->SetSweepOffset(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_5], val)) {
+        mask->SetChromaDelta(static_cast<float>(val));
+    }
+    return true;
+}
+
+bool ParseSweepRefractionOptional(napi_env env, napi_value options,
+    std::shared_ptr<SweepRefractionMaskPara> mask)
+{
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, options, "shapeType", val)) {
+        mask->SetShapeType(static_cast<int32_t>(val));
+    }
+    if (ParseJsDoubleValue(env, options, "cornerRadius", val)) {
+        mask->SetCornerRadius(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, options, "prismWidth", val)) {
+        mask->SetPrismWidth(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, options, "prismHeight", val)) {
+        mask->SetPrismHeight(static_cast<float>(val));
+    }
+    double sweepX = 0.0;
+    double sweepY = 0.0;
+    bool hasX = ParseJsDoubleValue(env, options, "sweepCenterX", sweepX);
+    bool hasY = ParseJsDoubleValue(env, options, "sweepCenterY", sweepY);
+    if (hasX || hasY) {
+        Vector2f center(static_cast<float>(sweepX), static_cast<float>(sweepY));
+        mask->SetSweepCenter(center);
+    }
+    return true;
+}
+
+bool ParseSweepRefractionParam(napi_env env, napi_value param,
+    std::shared_ptr<SweepRefractionMaskPara> mask)
+{
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, param, "maskRadius", val)) {
+        mask->SetMaskRadius(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, param, "edgeThickness", val)) {
+        mask->SetEdgeThickness(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, param, "refractAmount", val)) {
+        mask->SetRefractAmount(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, param, "rippleWidth", val)) {
+        mask->SetRippleWidth(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, param, "sweepOffset", val)) {
+        mask->SetSweepOffset(static_cast<float>(val));
+    }
+    if (ParseJsDoubleValue(env, param, "chromaDelta", val)) {
+        mask->SetChromaDelta(static_cast<float>(val));
+    }
+    return true;
+}
+
+bool ParseSweepRefractionMask(napi_env env, napi_value* argv,
+    std::shared_ptr<SweepRefractionMaskPara> mask, const size_t realArgc)
+{
+    if (!mask || realArgc < NUM_1 || realArgc > NUM_2) {
+        return false;
+    }
+    napi_value param = argv[NUM_0];
+    ParseSweepRefractionParam(env, param, mask);
+    if (realArgc >= NUM_2) {
+        napi_value options = argv[NUM_1];
+        ParseSweepRefractionOptional(env, options, mask);
+    }
+    return true;
+}
+
+napi_value MaskNapi::CreateSweepRefractionMask(napi_env env, napi_callback_info info)
+{
+    const size_t requireMinArgc = NUM_1;
+    const size_t requireMaxArgc = NUM_2;
+    size_t realArgc = requireMaxArgc;
+    napi_value argv[requireMaxArgc];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateSweepRefractionMask parsing input failed."));
+
+    auto maskPara = std::make_shared<SweepRefractionMaskPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(ParseSweepRefractionMask(env, argv, maskPara, realArgc), nullptr,
+        MASK_LOG_E("MaskNapi CreateSweepRefractionMask parsing mask input failed."));
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createSweepRefractionMask", 1);
+    return Create(env, maskPara);
 }
 
 void MaskNapi::RegisterMaskParaUnmarshallingCallback()

@@ -32,12 +32,14 @@
 #include "filter/include/filter_fly_out_para.h"
 #include "filter/include/filter_frosted_glass_para.h"
 #include "filter/include/filter_frosted_glass_blur_para.h"
+#include "filter/include/filter_halo_bloom_para.h"
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_motion_blur_para.h"
 #include "filter/include/filter_hdr_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
+#include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
 
@@ -77,6 +79,8 @@ private:
     static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
     static napi_value SetColorGradient(napi_env env, napi_callback_info info);
+    static napi_value SetSpinBlur(napi_env env, napi_callback_info info);
+    static napi_value SetHaloBloom(napi_env env, napi_callback_info info);
     static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
     static napi_value SetEdgeLight(napi_env env, napi_callback_info info);
     static napi_value SetMaskDirectionLight(napi_env env, napi_callback_info info);

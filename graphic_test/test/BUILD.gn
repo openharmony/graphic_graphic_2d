@@ -175,6 +175,8 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_mask_test/ng_mask_radial_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_wave_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_pixel_map_test.cpp",
+  "rs_effect_feature/ng_mask_test/ng_mask_fractal_glass_test.cpp",
+  "rs_effect_feature/ng_mask_test/ng_mask_binocular_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_harmonium_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_wavy_ripple_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_light_test.cpp",

@@ -21,8 +21,11 @@
 #include "mask/include/mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
 #include "mask/include/ripple_mask_para.h"
+#include "mask/include/warped_ring_mask_para.h"
 #include "mask/include/wave_gradient_mask_para.h"
 #include "mask/include/wave_disturbance_mask_para.h"
+#include "mask/include/fractal_glass_mask_para.h"
+#include "mask/include/binocular_mask_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -51,12 +54,16 @@ private:
 
     static napi_value Create(napi_env env, std::shared_ptr<MaskPara> maskPara);
     static napi_value CreateRippleMask(napi_env env, napi_callback_info info);
+    static napi_value CreateWarpedRingMask(napi_env env, napi_callback_info info);
     static napi_value CreateRadialGradientMask(napi_env env, napi_callback_info info);
     static napi_value CreatePixelMapMask(napi_env env, napi_callback_info info);
     static napi_value CreateWaveGradientMask(napi_env env, napi_callback_info info);
     static napi_value CreateWaveDisturbanceMask(napi_env env, napi_callback_info info);
     static napi_value CreateImageMask(napi_env env, napi_callback_info info);
     static napi_value CreateUseEffectMask(napi_env env, napi_callback_info info);
+    static napi_value CreateFractalGlassMask(napi_env env, napi_callback_info info);
+    static napi_value CreateBinocularMask(napi_env env, napi_callback_info info);
+    static napi_value CreateSweepRefractionMask(napi_env env, napi_callback_info info);
 
     static void RegisterMaskParaUnmarshallingCallback();
 };

@@ -68,7 +68,10 @@ public:
             case RSNGEffectType::DIRECTION_LIGHT: return "DirectionLight";
             case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
+            case RSNGEffectType::SPIN_BLUR: return "SpinBlur";
+            case RSNGEffectType::HALO_BLOOM: return "HaloBloom";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
+            case RSNGEffectType::WARPED_RING_MASK: return "WarpedRingMask";
             case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";
             case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
             case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
@@ -128,6 +131,9 @@ public:
             case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
             case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
             case RSNGEffectType::MOTION_BLUR: return "MotionBlur";
+            case RSNGEffectType::FRACTAL_GLASS_MASK: return "FractalGlassMask";
+            case RSNGEffectType::BINOCULAR_MASK: return "BinocularMask";
+            case RSNGEffectType::SWEEP_REFRACTION_MASK: return "SweepRefractionMask";
             default: return "UNKNOWN";
         }
     }

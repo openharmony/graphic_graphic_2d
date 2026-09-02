@@ -62,6 +62,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderColorGradientFilter>();
         }
     },
+    {RSNGEffectType::SPIN_BLUR, [] {
+            return std::make_shared<RSNGRenderSpinBlurFilter>();
+        }
+    },
+    {RSNGEffectType::HALO_BLOOM, [] {
+            return std::make_shared<RSNGRenderHaloBloomFilter>();
+        }
+    },
     {RSNGEffectType::DIRECTION_LIGHT, [] {
             return std::make_shared<RSNGRenderDirectionLightFilter>();
         }

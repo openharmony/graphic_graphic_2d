@@ -559,6 +559,48 @@ Filter FilterImpl::ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::u
     return make_holder<FilterImpl, Filter>(std::move(filter));
 }
 
+Filter FilterImpl::SpinBlur(uintptr_t center, double angle, int32_t samples)
+{
+    if (!IsFilterValid()) {
+        UIEFFECT_LOG_E("FilterImpl::SpinBlur failed, filter is invalid");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
+
+    OHOS::Rosen::Vector2f centerRes;
+    if (!ConvertVector2fFromAniPoint(center, centerRes)) {
+        UIEFFECT_LOG_E("FilterImpl::SpinBlur convert center failed");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
+    auto para = std::make_shared<OHOS::Rosen::SpinBlurPara>();
+    para->SetCenter(centerRes);
+    para->SetAngle(static_cast<float>(angle));
+    para->SetSamples(samples);
+
+    nativeFilter_->AddPara(para);
+    auto filter = nativeFilter_;
+    return make_holder<FilterImpl, Filter>(std::move(filter));
+}
+
+Filter FilterImpl::HaloBloom(::ohos::graphics::uiEffect::uiEffect::Color const& tintColor, double bloomFactor,
+    double glowExposure)
+{
+    if (!IsFilterValid()) {
+        UIEFFECT_LOG_E("FilterImpl::HaloBloom failed, filter is invalid");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
+
+    OHOS::Rosen::Vector4f color(
+        tintColor.red, tintColor.green, tintColor.blue, tintColor.alpha);
+    auto para = std::make_shared<OHOS::Rosen::HaloBloomPara>();
+    para->SetTintColor(color);
+    para->SetBloomFactor(static_cast<float>(bloomFactor));
+    para->SetGlowExposure(static_cast<float>(glowExposure));
+
+    nativeFilter_->AddPara(para);
+    auto filter = nativeFilter_;
+    return make_holder<FilterImpl, Filter>(std::move(filter));
+}
+
 bool FilterImpl::IsFilterValid() const
 {
     return nativeFilter_ != nullptr;
