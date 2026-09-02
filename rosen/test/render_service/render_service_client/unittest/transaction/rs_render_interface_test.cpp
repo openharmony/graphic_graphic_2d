@@ -14,7 +14,10 @@
  */
 #include "gtest/gtest.h"
 
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -162,13 +165,17 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
         {}
     };
     auto callback = std::make_shared<TestSurfaceCapture>();
-    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
-    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto rsUiDirector = RSUIDirector::CreateRSUIDirector();
+    ASSERT_NE(rsUiDirector, nullptr);
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
     RSSurfaceCaptureConfig captureConfig;
-    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+    auto rsRenderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(rsRenderInterface, nullptr);
+    auto res = rsRenderInterface->TakeUICaptureInRangeWithConfig(
         canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
     EXPECT_EQ(res, true);

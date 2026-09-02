@@ -125,6 +125,15 @@ ohos_unittest("RSTunnelLayerManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -166,6 +175,15 @@ ohos_unittest("RSTunnelLayerHelperTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -207,6 +225,15 @@ ohos_unittest("RSTunnelRouteArbiterTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -215,6 +242,7 @@ ohos_unittest("RSTunnelRouteArbiterTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -239,6 +267,10 @@ ohos_unittest("RSTunnelRuntimeStateTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "googletest:gmock_main",
   ]
   defines = []
   defines += gpu_defines
@@ -264,6 +296,13 @@ ohos_unittest("RSHeteroHDRHpaeTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ffrt:libffrt",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
   ]
   if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
     && defined(graphic_2d_hetero_hdr_configs)) {
@@ -308,6 +347,17 @@ ohos_unittest("RSOcclusionHandlerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 
@@ -328,6 +378,13 @@ ohos_unittest("RSOcclusionNodeTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
   ]
 }
 
@@ -353,6 +410,14 @@ ohos_unittest("RSPointerWindowManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -400,6 +465,15 @@ ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -440,6 +514,15 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -473,6 +556,16 @@ ohos_unittest("RSDrmUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -513,6 +606,14 @@ ohos_unittest("RSHdrUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -555,17 +656,25 @@ ohos_unittest("RSLayerCacheManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -601,6 +710,15 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -645,6 +763,15 @@ ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -683,6 +810,14 @@ ohos_unittest("RSUniUiCaptureTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -729,7 +864,19 @@ ohos_unittest("RSUifirstManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
+  defines = []
+  defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -754,7 +901,21 @@ ohos_unittest("RSUifirstManagerTest2") {
     "hilog:libhilog",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
   ]
+  defines = []
+  defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -773,6 +934,13 @@ ohos_unittest("RSRenderGroupCacheTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -792,6 +960,13 @@ ohos_unittest("RSOpincDrawCacheTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -814,6 +989,13 @@ ohos_unittest("RSOpincDrawCacheLayerPartTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   defines = []
   defines += gpu_defines
@@ -841,6 +1023,15 @@ ohos_unittest("RSDrawWindowCacheTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -863,6 +1054,15 @@ ohos_unittest("RSSubThreadManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -899,6 +1099,15 @@ ohos_unittest("RSSubThreadTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -942,6 +1151,15 @@ ohos_unittest("RSSubThreadCacheTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -964,6 +1182,15 @@ ohos_unittest("RSVsyncRateReduceManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -982,15 +1209,29 @@ ohos_source_set("mock_dlsym") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
   ]
  
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
  
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1001,7 +1242,6 @@ ohos_source_set("mock_dlsym") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -1029,6 +1269,14 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1037,6 +1285,7 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1065,6 +1314,15 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest1") {
     "init:libbegetutil",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1102,6 +1360,14 @@ ohos_unittest("RSVKImageManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1142,6 +1408,14 @@ ohos_unittest("RSEglImageManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1174,6 +1448,16 @@ if (rs_enable_gpu) {
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "samgr:samgr_proxy",
+      "drivers_interface_display:display_commontype_idl_headers",
+      "image_framework:image_native",
+      "init:libbegetutil",
+      "skia:skia_canvaskit",
+      "hitrace:hitrace_meter",
+      "googletest:gmock_main",
+      "graphic_surface:surface",
+      "libxml2:libxml2",
+      "egl:libEGL",
+      "opengles:libGLES",
     ]
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
@@ -1226,6 +1510,14 @@ ohos_unittest("HgmContextTest") {
     "ffrt:libffrt",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1238,7 +1530,6 @@ ohos_unittest("HgmContextTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -1267,6 +1558,16 @@ ohos_unittest("HgmRenderContextTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1304,6 +1605,18 @@ ohos_unittest("LppVideoHandlerTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1314,7 +1627,6 @@ ohos_unittest("LppVideoHandlerTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -1345,6 +1657,16 @@ ohos_unittest("RSAncoManagerTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1388,6 +1710,14 @@ ohos_unittest("RSWindowKeyFrameDrawableTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1411,6 +1741,12 @@ ohos_unittest("OverlayDisplayTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1447,6 +1783,12 @@ ohos_unittest("TvMetadataTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1491,6 +1833,15 @@ ohos_unittest("RSUniHwcComputeUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1525,6 +1876,13 @@ ohos_unittest("RSRDOTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1550,6 +1908,16 @@ ohos_unittest("RSSpecialLayerUtilsTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1570,6 +1938,16 @@ ohos_unittest("RSMultiScreenUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1591,6 +1969,15 @@ ohos_unittest("RSUniDirtyComputeUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1628,6 +2015,15 @@ ohos_unittest("RSUniDirtyOcclusionUtilTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1667,6 +2063,15 @@ ohos_unittest("RSFrameStabilityManagerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1705,6 +2110,15 @@ ohos_unittest("RSWindowCaptureTaskTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1731,6 +2145,13 @@ ohos_unittest("RSHpaeRenderListenerTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1761,6 +2182,13 @@ ohos_unittest("RSHpaeManagerTest") {
     "hilog:libhilog",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1787,6 +2215,13 @@ ohos_unittest("RSChipsetVsyncTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
 }
 
@@ -1801,6 +2236,15 @@ ohos_unittest("RSUniHwcEventManagerTest") {
     "init:libbegetutil",
     "egl:libEGL",
     "opengles:libGLES",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1827,6 +2271,13 @@ ohos_unittest("RSTvShutter3DManagerTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
   ]
   defines = []
   defines += gpu_defines
@@ -1843,6 +2294,9 @@ ohos_unittest("RSTvShutter3DManagerTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
@@ -1872,12 +2326,18 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service/main/render_server",
-    "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/rosen/modules/render_service/vsync",
+    "$graphic_2d_root/interfaces/inner_api/composer",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/utils/sandbox",
+    "$graphic_2d_root/utils/socketpair/export",
   ]
 
   cflags = [
@@ -1895,9 +2355,13 @@ ohos_static_library("rs_test_common") {
   defines = []
   defines += gpu_defines
   sources = [ "../pipeline/rs_test_util.cpp" ]
-  public_configs = [ ":rs_test_common_public_config" ]
+  public_configs = [
+    ":rs_test_common_public_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+  ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1907,20 +2371,21 @@ ohos_static_library("rs_test_common") {
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    public_configs += [ "$graphic_2d_root/rosen/modules/2d_graphics:export_config" ]
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
+
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
   ]
 
-  public_external_deps = [
+  external_deps += [
     "accessibility:accessibilityconfig",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -1934,9 +2399,9 @@ ohos_static_library("rs_test_common") {
   ]
 
   if (use_memmgr_plugin) {
-    public_external_deps += [ "memmgr_override:memmgrclient" ]
+    external_deps += [ "memmgr_override:memmgrclient" ]
   } else if (use_memmgr) {
-    public_external_deps += [ "memmgr:memmgrclient" ]
+    external_deps += [ "memmgr:memmgrclient" ]
   }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -1975,9 +2440,22 @@ ohos_unittest("RSProtectiveSolidRenderNodeTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
+  defines += [ "ROSEN_OHOS" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }

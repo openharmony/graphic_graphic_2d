@@ -715,11 +715,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Le
 }
 
 /**
- * @tc.name: OnDrawAbnormalProcessTest
- * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.name: ResetSurfaceForGLTest
+ * @tc.desc: Test If ResetSurfaceForGL Can Run
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
@@ -947,11 +947,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
 
 #if defined(RS_ENABLE_GPU) && defined(RS_ENABLE_PARALLEL_RENDER)
 /**
- * @tc.name: CheckAndSetThreadIdx
- * @tc.desc: Test If CheckAndSetThreadIdx Can Run
+ * @tc.name: OnDrawAbnormalProcessTest2
+ * @tc.desc: Test OnDraw with abnormal process check
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckAndSetThreadIdxTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest2, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());

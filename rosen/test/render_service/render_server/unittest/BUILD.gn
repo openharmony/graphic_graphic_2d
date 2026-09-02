@@ -86,6 +86,8 @@ ohos_unittest("RSRenderServiceAgentTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "libxml2:libxml2",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -164,6 +166,8 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -248,6 +252,8 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
@@ -334,6 +340,8 @@ ohos_unittest("RSRenderProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -407,6 +415,7 @@ ohos_unittest("RSRenderModeConfigParserTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -486,6 +495,8 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -647,6 +658,8 @@ ohos_unittest("RenderServiceTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     # Add memmgr client dependency when memory manager integration is enabled so

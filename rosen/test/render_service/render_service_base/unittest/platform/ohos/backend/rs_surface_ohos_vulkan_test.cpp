@@ -862,7 +862,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferNotInMap, TestSize.Level2)
 
     NativeWindowBuffer fakeBuffer;
     auto vkContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
-    VkSemaphore semaphore = vkContext.RequireSemaphore();
+    VkSemaphore semaphore = vkContext->RequireSemaphore();
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
     rsSurface.flushState_.valid = true;
     rsSurface.flushState_.bufferKey = &fakeBuffer;
@@ -872,60 +872,6 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferNotInMap, TestSize.Level2)
     EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
     EXPECT_FALSE(rsSurface.flushState_.valid);
 }
-/**
- * @tc.name: CreateVkSemaphoreTest
- * @tc.desc: Test CreateVkSemaphore path in RSSurfaceOhosVulkan
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceOhosVulkanTest, CreateVkSemaphoreTest, TestSize.Level1)
-{
-#ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "Not vulkan mode, skip test";
-        return;
-    }
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CreateVkSemaphoreTest");
-    ASSERT_TRUE(cSurface != nullptr);
-    sptr<IBufferProducer> bp = cSurface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-    RSSurfaceOhosVulkan rsSurface(pSurface);
-    // RequestFrame exercises the CreateVkSemaphore path internally when fence is not signaled
-    int32_t width = 1;
-    int32_t height = 1;
-    uint64_t uiTimestamp = 1;
-    auto frame = rsSurface.RequestFrame(width, height, uiTimestamp);
-    // The CreateVkSemaphore path is exercised during RequestFrame
-    EXPECT_NE(rsSurface.IsValid(), false);
-#endif
-}
-
-/**
- * @tc.name: DestroyAllSemaphoreFenceTest
- * @tc.desc: Test DestroyAllSemaphoreFence path in RSSurfaceOhosVulkan
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceOhosVulkanTest, DestroyAllSemaphoreFenceTest, TestSize.Level1)
-{
-#ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "Not vulkan mode, skip test";
-        return;
-    }
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DestroyAllSemFenceTest");
-    ASSERT_TRUE(cSurface != nullptr);
-    sptr<IBufferProducer> bp = cSurface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-    RSSurfaceOhosVulkan rsSurface(pSurface);
-    // FlushBuffer exercises the DestroyAllSemaphoreFence path when QueueSignalReleaseImageOHOS fails
-    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
-    bool result = rsSurface.FlushBuffer(frame, 0);
-    // Without valid frame, should return false without crash
-    EXPECT_FALSE(result);
-#endif
-}
-
 /**
  * @tc.name: CreateVkSemaphoreTest
  * @tc.desc: Test CreateVkSemaphore path in RSSurfaceOhosVulkan
