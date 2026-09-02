@@ -20,8 +20,8 @@
 
 #include "draw/pen.h"
 #include "draw/color.h"
-#include "ndk_color_space.h"
 #ifdef OHOS_PLATFORM
+#include "ndk_color_space.h"
 #include "utils/colorspace_convertor.h"
 #endif
 
