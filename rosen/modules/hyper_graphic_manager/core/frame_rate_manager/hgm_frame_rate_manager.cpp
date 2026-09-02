@@ -502,19 +502,14 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
-    uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
-    if (rsFrameRateLinker_->GetFrameRate() != rsFrameRate) {
-        rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
-    }
-
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
         needChangeDssRefreshRate = true;
     }
     FrameRateReport();
-    bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange, rsFrameRateLinker_,
-        appFrameRateLinkers_, currRefreshRate_);
+    bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
+        appFrameRateLinkers_, currRefreshRate_, rsFrameRateControlEnabled_.load());
     CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(lastVoteInfo_);
 }
@@ -778,26 +773,6 @@ uint32_t HgmFrameRateManager::CalcRefreshRateForLtpoVote(const ScreenId id, cons
     }
 
     return CalcRefreshRate(id, range);
-}
-
-uint32_t HgmFrameRateManager::CalcRsFrameRate(const FrameRateRange& range, uint32_t refreshRate) const
-{
-    if (!rsFrameRateControlEnabled_.load()) {
-        return 0;
-    }
-
-    if (static_cast<uint32_t>(range.preferred_) >= refreshRate) {
-        return 0;
-    }
-
-    uint32_t rsFrameRate = HgmSoftVSyncManager::GetDrawingFrameRate(refreshRate, range);
-    if (rsFrameRate > 0 && rsFrameRate < refreshRate) {
-        RS_TRACE_NAME_FMT("%s: enable RS framerate control, range=(%d,%d,%d), refreshRate=%u, rsFrameRate=%u",
-            __func__, range.min_, range.max_, range.preferred_, refreshRate, rsFrameRate);
-        return rsFrameRate;
-    }
-
-    return 0;
 }
 
 void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
@@ -1356,13 +1331,9 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     FrameRateRange finalRange = { resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max };
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
-    uint32_t rsFrameRate = CalcRsFrameRate(finalRange, refreshRate);
     bool rsFrameRateChanged = false;
-    if (rsFrameRateLinker_ != nullptr) {
-        rsFrameRateChanged = rsFrameRateLinker_->GetFrameRate() != rsFrameRate;
-        if (rsFrameRateChanged) {
-            rsFrameRateLinker_->SetFrameRate(rsFrameRate, false);
-        }
+    if (rsFrameRateControlEnabled_.load() && rsFrameRateLinker_ != nullptr) {
+        rsFrameRateChanged = softVSyncManager_.CheckRsFrameRateChange(finalRange, refreshRate);
     }
     if (refreshRate == currRefreshRate_ && !voterTouchEffective_ && !rsFrameRateChanged) {
         return;
@@ -1382,8 +1353,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     bool frameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
-        frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange, rsFrameRateLinker_,
-            appFrameRateLinkers_, currRefreshRate_);
+        frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
+            appFrameRateLinkers_, currRefreshRate_, rsFrameRateControlEnabled_.load());
     }
     CheckRefreshRateChange(false, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(resultVoteInfo);

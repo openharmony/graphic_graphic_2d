@@ -221,7 +221,6 @@ private:
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     uint32_t CalcRefreshRateForLtpoVote(const ScreenId id, const FrameRateRange& range) const;
-    uint32_t CalcRsFrameRate(const FrameRateRange& range, uint32_t refreshRate) const;
 
     void HandleIdleEvent(bool isIdle);
     void HandleStylusSceneEvent(const std::string& sceneName);

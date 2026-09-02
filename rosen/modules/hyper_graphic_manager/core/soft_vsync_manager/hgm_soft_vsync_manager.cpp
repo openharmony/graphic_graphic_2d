@@ -173,9 +173,9 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
 
 // LCOV_EXCL_START
 bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
-                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                  const FrameRateLinkerMap& appFrameRateLinkers,
-                                                 const uint32_t currRefreshRate)
+                                                 const uint32_t currRefreshRate,
+                                                 bool rsFrameRateControlEnabled)
 {
     auto sharedController = controller_.lock();
     if (sharedController == nullptr) {
@@ -185,8 +185,11 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
     Reset();
     bool frameRateChanged = false;
     bool controllerRateChanged = false;
-    auto rsFrameRate = rsFrameRateLinker->GetFrameRate();
+    uint32_t rsFrameRate = 0;
     controllerRate_ = currRefreshRate > 0 ? currRefreshRate : sharedController->GetCurrentRate();
+    if (rsFrameRateControlEnabled) {
+        rsFrameRate = CalcRsFrameRate(finalRange, controllerRate_);
+    }
     if (controllerRate_ != sharedController->GetCurrentRate() || rsFrameRate_ != rsFrameRate) {
         controllerRateChanged = controllerRate_ != sharedController->GetCurrentRate();
         frameRateChanged = true;
@@ -259,6 +262,33 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     RS_TRACE_NAME_FMT("HgmSoftVSyncManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %" PRIu64
         ", appFrameRate = %u, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
         appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
+}
+
+uint32_t HgmSoftVSyncManager::CalcRsFrameRate(
+    const FrameRateRange& range, uint32_t refreshRate) const
+{
+    if (static_cast<uint32_t>(range.preferred_) >= refreshRate) {
+        return 0;
+    }
+
+    uint32_t rsFrameRate = GetDrawingFrameRate(refreshRate, range);
+    if (rsFrameRate > 0 && rsFrameRate < refreshRate) {
+        RS_TRACE_NAME_FMT(
+            "%s: enable RS framerate control, "
+            "range=(%d,%d,%d), refreshRate=%u, rsFrameRate=%u",
+            __func__, range.min_, range.max_, range.preferred_,
+            refreshRate, rsFrameRate);
+        return rsFrameRate;
+    }
+
+    return 0;
+}
+
+bool HgmSoftVSyncManager::CheckRsFrameRateChange(
+    const FrameRateRange& range, uint32_t refreshRate) const
+{
+    uint32_t rsFrameRate = CalcRsFrameRate(range, refreshRate);
+    return rsFrameRate_ != rsFrameRate;
 }
 
 uint32_t HgmSoftVSyncManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
