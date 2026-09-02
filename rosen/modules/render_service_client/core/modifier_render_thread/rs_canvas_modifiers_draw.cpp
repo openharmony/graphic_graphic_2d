@@ -683,22 +683,21 @@ void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
         canvasModifiersDraw->destroySemaphoreInfo_ =
             canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, bufferList.back().second->drawingSurface_);
         gpuContext->Submit();
-        auto fenceFd = canvasModifiersDraw->GetFenceFd(semaphore);
+        sptr<SyncFence> fence = new SyncFence(canvasModifiersDraw->GetFenceFd(semaphore));
         auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
         for (const auto& [buffer, drawable] : bufferList) {
-            canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, fenceFd);
+            canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, fence);
             drawable->OnDirtyBufferCollected(now);
         }
     });
 }
 
-void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd)
+void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence)
 {
     RSTransactionConfig config;
     config.nodeId = nodeId;
     config.transaction = new RSBufferTransaction(buffer);
-    sptr<SyncFence> fence = new SyncFence(fenceFd);
     config.transaction->SetFence(fence);
     std::vector<Rect> damages{Rect{0, 0, buffer->GetWidth(), buffer->GetHeight()}};
     config.transaction->SetDamages(damages);

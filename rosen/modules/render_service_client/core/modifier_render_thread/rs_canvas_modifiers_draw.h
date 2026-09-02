@@ -159,7 +159,7 @@ private:
 
     void SubmitAndCollectCanvasBuffers();
 
-    void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd);
+    void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence);
 
     void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
 
