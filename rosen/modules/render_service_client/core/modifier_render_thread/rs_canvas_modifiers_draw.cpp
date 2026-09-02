@@ -397,6 +397,10 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
+        if (canvasModifiersDraw->destroySemaphoreInfo_ != nullptr) {
+            DestroySemaphoreInfo::DestroySemaphore(canvasModifiersDraw->destroySemaphoreInfo_);
+            canvasModifiersDraw->destroySemaphoreInfo_ = nullptr;
+        }
         if (canvasModifiersDraw->gpuContext_ != nullptr) {
             canvasModifiersDraw->gpuContext_->FlushAndSubmit(false);
             canvasModifiersDraw->gpuContext_->PurgeUnlockedResources(true);
@@ -671,8 +675,12 @@ void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
             gpuContext->Submit();
             return;
         }
+        if (canvasModifiersDraw->destroySemaphoreInfo_ != nullptr) {
+            DestroySemaphoreInfo::DestroySemaphore(canvasModifiersDraw->destroySemaphoreInfo_);
+            canvasModifiersDraw->destroySemaphoreInfo_ = nullptr;
+        }
         VkSemaphore semaphore = VK_NULL_HANDLE;
-        DestroySemaphoreInfo* destroySemaphoreInfo =
+        canvasModifiersDraw->destroySemaphoreInfo_ =
             canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, bufferList.back().second->drawingSurface_);
         gpuContext->Submit();
         auto fenceFd = canvasModifiersDraw->GetFenceFd(semaphore);
@@ -681,9 +689,6 @@ void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
         for (const auto& [buffer, drawable] : bufferList) {
             canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, fenceFd);
             drawable->OnDirtyBufferCollected(now);
-        }
-        if (destroySemaphoreInfo != nullptr) {
-            DestroySemaphoreInfo::DestroySemaphore(destroySemaphoreInfo);
         }
     });
 }

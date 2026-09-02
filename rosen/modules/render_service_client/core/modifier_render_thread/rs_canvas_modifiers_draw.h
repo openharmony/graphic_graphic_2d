@@ -179,6 +179,8 @@ private:
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 
+    DestroySemaphoreInfo* destroySemaphoreInfo_ = nullptr;
+
     std::string cacheDir_;
 
     static inline size_t maxGpuResourceBytes_ = 0;

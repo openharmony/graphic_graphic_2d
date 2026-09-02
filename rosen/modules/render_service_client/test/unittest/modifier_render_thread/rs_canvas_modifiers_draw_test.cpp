@@ -630,6 +630,25 @@ HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_WithGpuContext001, TestSi
     canvasModifiersDraw->Destroy();
 }
 
+// WaitAllTasksFinish with gpuContext_ set → covers FlushAndSubmit, PurgeUnlockedResources, gpuContext_=nullptr
+HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_WithGpuContext002, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->GetGpuContext();
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersDraw->renderContext_->GetType()).GetRsVulkanInterface();
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    canvasModifiersDraw->destroySemaphoreInfo_ =
+        new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->WaitAllTasksFinish();
+    // gpuContext_ should be reset to nullptr after WaitAllTasksFinish
+    auto future =
+        canvasModifiersDraw->ScheduleTask([canvasModifiersDraw]() { return canvasModifiersDraw->gpuContext_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_EQ(future.get(), nullptr);
+    canvasModifiersDraw->Destroy();
+}
+
 HWTEST_F(RSCanvasModifiersDrawTest, Destroy_BeforeStartThread001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
@@ -1248,6 +1267,54 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_ActiveWithBuffer001, TestSi
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->GetGpuContext();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestSubmitActive");
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto mockSurface = std::make_shared<TestRSSurfaceOhosVulkan>(pSurface, rasterSurface);
+    drawable.producerSurface_ = mockSurface;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.forceFlushBuffer_ = true;
+    drawable.Draw();
+    ASSERT_NE(drawable.surfaceFrame_, nullptr);
+    BufferRequestConfig config = { .width = 0x100, .height = 0x100, .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA };
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t releaseFence = -1;
+    pSurface->RequestBuffer(buffer, releaseFence, config);
+    ASSERT_NE(buffer, nullptr);
+    auto* nwb = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    ASSERT_NE(nwb, nullptr);
+    mockSurface->mSurfaceList.emplace_back(nwb);
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->drawableMap_.count(1) > 0 &&
+            canvasModifiersDraw->drawableMap_[1].surfaceFrame_ == nullptr; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(2000)), std::future_status::ready);
+    auto surfaceFrameNull = future.get();
+    pSurface->CancelBuffer(buffer);
+    EXPECT_TRUE(surfaceFrameNull);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_ActiveWithBuffer002, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->GetGpuContext();
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersDraw->renderContext_->GetType()).GetRsVulkanInterface();
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    canvasModifiersDraw->destroySemaphoreInfo_ =
+        new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
+    canvasModifiersDraw->StartThread();
     NodeId nodeId = 1;
     auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
     drawable.nodeId_ = nodeId;
