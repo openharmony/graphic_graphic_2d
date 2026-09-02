@@ -80,9 +80,17 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 
 void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
+    VideoInfo videoInfo;
+    auto image = CreateImageFromBuffer(canvas, params, videoInfo);
+    if (image == nullptr) {
+        return;
+    }
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
-    DrawImage(canvas, params);
+    bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
+    auto filterMode = needBilinear ? Drawing::FilterMode::LINEAR : Drawing::FilterMode::NEAREST;
+    auto samplingOptions = Drawing::SamplingOptions(filterMode, Drawing::MipmapMode::NONE);
+    DrawImageRect(canvas, image, params, samplingOptions);
     canvas.Restore();
 }
 

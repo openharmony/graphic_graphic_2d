@@ -366,7 +366,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestS
         NodeId nodeId = 1;
         auto node = std::make_shared<RSRenderNode>(nodeId);
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
-        drawable.renderParams_= std::make_unique<RSRenderParams>(0);
+        drawable.renderParams_= std::make_unique<RSScreenRenderParams>(0);
 
         ASSERT_NE(renderProcessor, nullptr);
         renderProcessor->ProcessScreenSurfaceForRenderThread(drawable);
@@ -385,7 +385,7 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestS
         NodeId nodeId = 1;
         auto node = std::make_shared<RSRenderNode>(nodeId);
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
-        drawable.renderParams_= std::make_unique<RSRenderParams>(0);
+        drawable.renderParams_= std::make_unique<RSScreenRenderParams>(0);
         drawable.renderParams_->SetFingerprint(true);
         drawable.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
         ASSERT_NE(drawable.surfaceHandler_, nullptr);
