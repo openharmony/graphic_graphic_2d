@@ -95,7 +95,6 @@ public:
     void ReleaseNodeMemNotOnTree();
     void SetAbilityState(pid_t pid, bool isBackground);
     void ReleaseNodeNotOnTree(pid_t pid);
-    void EraseFromNotOnTreeNodeMap(NodeId nodeId);
     void SetScbPid(pid_t pid)
     {
         scbPid_ = pid;
@@ -129,6 +128,7 @@ private:
     void AddNodeToBgBucket(RSRenderNode* ptr);
     void ReleaseNodePid(pid_t pid);
     bool CheckHasNodeNotOnTree();
+    void EraseFromNotOnTreeNodeMap(NodeId nodeId);
 
     std::atomic<bool> isEnable_ = true;
     // Guarded by nodeMutex_, no need for atomic

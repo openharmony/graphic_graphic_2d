@@ -753,6 +753,7 @@ HWTEST_F(RSRenderNodeGCTest, SetIsOnTheTree001, TestSize.Level1)
 /**
  * @tc.name: EraseFromNotOnTreeNodeMap001
  * @tc.desc: node destroyed before going on tree, its entry should be erased from notOnTreeNodeMap_
+ *           by NodeDestructorInner (GC deleter path)
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderNodeGCTest, EraseFromNotOnTreeNodeMap001, TestSize.Level1)
@@ -766,9 +767,10 @@ HWTEST_F(RSRenderNodeGCTest, EraseFromNotOnTreeNodeMap001, TestSize.Level1)
     nodeGC.SetIsOnTheTree(nodeId, node->weak_from_this(), false);
     EXPECT_NE(nodeGC.notOnTreeNodeMap_[pid].end(), nodeGC.notOnTreeNodeMap_[pid].find(nodeId));
 
-    // node never goes on tree and is destroyed, entry should be erased by ~RSRenderNode
-    node.reset();
+    // node never goes on tree and is destroyed, entry should be erased by NodeDestructorInner
+    nodeGC.NodeDestructorInner(node.get());
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid));
+    node.reset();
 }
 
 /**
@@ -796,17 +798,17 @@ HWTEST_F(RSRenderNodeGCTest, EraseFromNotOnTreeNodeMap002, TestSize.Level1)
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_[pid].size(), 2);
 
     // destroy never-registered nodes, registered entries should not change
-    node3.reset();
-    node4.reset();
+    nodeGC.NodeDestructorInner(node3.get());
+    nodeGC.NodeDestructorInner(node4.get());
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_[pid].size(), 2);
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid2));
 
-    node1.reset();
+    nodeGC.NodeDestructorInner(node1.get());
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_[pid].end(), nodeGC.notOnTreeNodeMap_[pid].find(nodeId1));
     EXPECT_NE(nodeGC.notOnTreeNodeMap_[pid].end(), nodeGC.notOnTreeNodeMap_[pid].find(nodeId2));
 
     // last entry erased, pid submap should be removed
-    node2.reset();
+    nodeGC.NodeDestructorInner(node2.get());
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid));
 }
 
@@ -824,12 +826,38 @@ HWTEST_F(RSRenderNodeGCTest, EraseFromNotOnTreeNodeMap003, TestSize.Level1)
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
     // SetIsOnTheTree also skips scb pid, insert directly to prepare the state
     nodeGC.notOnTreeNodeMap_[pid][nodeId] = node->weak_from_this();
-    node.reset();
+    nodeGC.NodeDestructorInner(node.get());
     // entry should not be erased due to scbPid_ guard
     EXPECT_NE(nodeGC.notOnTreeNodeMap_[pid].end(), nodeGC.notOnTreeNodeMap_[pid].find(nodeId));
+    node.reset();
     // cleanup
     nodeGC.ReleaseNodeNotOnTree(pid);
     nodeGC.scbPid_ = 1;
+}
+
+/**
+ * @tc.name: EraseFromNotOnTreeNodeMap004
+ * @tc.desc: entry erased on tree state change first, later destruction erase is still a safe no-op
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, EraseFromNotOnTreeNodeMap004, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    nodeGC.scbPid_ = 1;
+    pid_t pid = 7;
+    NodeId nodeId = (7ull << 32) + 1;
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+    nodeGC.SetIsOnTheTree(nodeId, node->weak_from_this(), false);
+    EXPECT_NE(nodeGC.notOnTreeNodeMap_[pid].end(), nodeGC.notOnTreeNodeMap_[pid].find(nodeId));
+
+    // node goes on tree, entry erased by SetIsOnTheTree itself
+    nodeGC.SetIsOnTheTree(nodeId, node->weak_from_this(), true);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid));
+
+    // later destruction erase hits an empty map, no crash and no side effect
+    nodeGC.NodeDestructorInner(node.get());
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid));
+    node.reset();
 }
 
 /**

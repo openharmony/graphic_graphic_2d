@@ -100,6 +100,9 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     if (ptr == nullptr) {
         return;
     }
+    // erase expired entry from notOnTreeNodeMap_ before bucket routing (which takes nodeMutex_),
+    // no-op if never registered
+    EraseFromNotOnTreeNodeMap(ptr->GetId());
     if (ptr->MustReleaseOnMainThread()) {
         AddNodeToBucket(ptr);
     } else {
