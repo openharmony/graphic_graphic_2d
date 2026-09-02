@@ -108,6 +108,24 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
 
+void RSRenderNodeGC::EraseFromNotOnTreeNodeMap(NodeId nodeId)
+{
+    auto nodePid = ExtractPid(nodeId);
+    if (nodePid == scbPid_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    auto mapIt = notOnTreeNodeMap_.find(nodePid);
+    if (mapIt == notOnTreeNodeMap_.end()) {
+        return;
+    }
+    auto& map = mapIt->second;
+    map.erase(nodeId);
+    if (map.empty()) {
+        notOnTreeNodeMap_.erase(mapIt);
+    }
+}
+
 bool RSRenderNodeGC::IsBucketQueueEmpty()
 {
     std::lock_guard<std::mutex> lock(nodeMutex_);

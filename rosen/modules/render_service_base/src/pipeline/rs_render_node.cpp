@@ -1815,6 +1815,8 @@ RSRenderNode::~RSRenderNode()
 {
     RS_PROFILER_RENDERNODE_DEC(isOnTheTree_);
     FallbackAnimationsToRoot();
+    // erase expired entry from notOnTreeNodeMap_, no-op if never registered
+    RSRenderNodeGC::Instance().EraseFromNotOnTreeNodeMap(GetId());
     auto context = GetContext().lock();
     if (!context) {
         ROSEN_LOGD("RSRenderNode::~RSRenderNode: Invalid context");
