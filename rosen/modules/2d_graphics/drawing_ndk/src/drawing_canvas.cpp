@@ -27,7 +27,9 @@
 #include "drawing_font_utils.h"
 #include "drawing_helper.h"
 #include "native_pixel_map_manager.h"
+#ifdef  OHOS_PLATFORM
 #include "recording/recording_canvas.h"
+#endif
 #include "utils/log.h"
 
 using namespace OHOS;
@@ -1269,6 +1271,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint
     return OH_DRAWING_SUCCESS;
 }
 
+#ifdef OHOS_PLATFORM
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
     OH_Drawing_RecordCmd* cRecordCmd)
 {
@@ -1298,6 +1301,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmdNesting(OH_Drawing_Canvas* cC
     DrawingCanvasUtils::DrawRecordCmd(canvas, recordCmdHandle->value, true);
     return OH_DRAWING_SUCCESS;
 }
+#endif
 
 OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath,
     bool* quickReject)
