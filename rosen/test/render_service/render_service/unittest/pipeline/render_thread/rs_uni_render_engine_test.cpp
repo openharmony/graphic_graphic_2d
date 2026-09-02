@@ -527,9 +527,6 @@ static sptr<SurfaceBuffer> CreateCanvasDrawingTestBuffer()
 /**
  * @tc.name: DrawCanvasDrawingNodeWithParamsTest001
  * @tc.desc: Test DrawCanvasDrawingNodeWithParams
- *           1. image == nullptr, return early (zrh-1 DrawCanvasDrawingNodeWithParams-1)
- *           2. needBilinear == true (zrh-1 DrawCanvasDrawingNodeWithParams-2)
- *           3. needBilinear == false (zrh-1 DrawCanvasDrawingNodeWithParams-3)
  * @tc.type: FUNC
  */
 HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize.Level1)
