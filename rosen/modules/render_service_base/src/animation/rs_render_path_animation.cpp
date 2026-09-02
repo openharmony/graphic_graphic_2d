@@ -125,33 +125,33 @@ void RSRenderPathAnimation::SetRotationId(const PropertyId id)
 
 bool RSRenderPathAnimation::OnAnimate(float fraction)
 {
-    if (animationPath_ == nullptr || GetOriginValue() == nullptr) {
-        ROSEN_LOGE("Failed to animate motion path, path or originValue is null!");
+    if (animationPath_ == nullptr || property_ == nullptr) {
+        ROSEN_LOGE("Failed to animate motion path, path or property is null!");
         return false;
     }
 
     Vector2f position;
     float tangent = 0.0f;
-    auto propertyType = GetOriginValue()->GetPropertyType();
+    auto propertyType = property_->GetPropertyType();
     if (propertyType == RSPropertyType::VECTOR2F) {
         GetPosTanValue(fraction, position, tangent);
         UpdateVector2fPathValue(position);
         SetPathValue(position, tangent);
     } else if (propertyType == RSPropertyType::VECTOR4F) {
+        if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
+            ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, valueEstimator or interpolator is null");
+            return false;
+        }
         if (!isNeedPath_) {
-            if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
-                ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, valueEstimator or interpolator is null");
-                return false;
-            }
             valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
+            return false;
+        }
+        if (valueEstimator_->GetEstimatorType() != RSValueEstimatorType::CURVE_VALUE_ESTIMATOR) {
+            ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, invalid valueEstimator type");
             return false;
         }
         GetPosTanValue(fraction, position, tangent);
         auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
-        if (vector4fValueEstimator == nullptr || interpolator_ == nullptr) {
-            ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, vector4fValueEstimator or interpolator is null");
-            return false;
-        }
         auto animationValue =
             vector4fValueEstimator->GetAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
         UpdateVector4fPathValue(animationValue, position);
@@ -171,7 +171,7 @@ void RSRenderPathAnimation::RebuildPropertyValue(float fraction)
             GetOriginValue() != nullptr, interpolator_ != nullptr, valueEstimator_ != nullptr);
         return;
     }
-    if (GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F) {
+    if (property_->GetPropertyType() != RSPropertyType::VECTOR4F) {
         return;
     }
     auto interpolatedFraction = interpolator_->Interpolate(fraction);

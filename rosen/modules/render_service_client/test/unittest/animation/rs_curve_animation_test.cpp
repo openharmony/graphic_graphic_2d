@@ -254,5 +254,20 @@ HWTEST_F(RSCurveAnimationTest, SetRebuildParam001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSCurveAnimationTest SetRebuildParam001 end";
 }
 
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns CURVE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCurveAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto rsUIContext = CreateRSUIContext();
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
+    EXPECT_EQ(curveAnimation->GetType(), RSAnimationType::CURVE);
+}
+
 } // namespace Rosen
 } // namespace OHOS

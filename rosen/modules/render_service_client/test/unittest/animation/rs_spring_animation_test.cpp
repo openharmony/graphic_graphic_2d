@@ -614,5 +614,38 @@ HWTEST_F(RSSpringAnimationTest, SpringOnStartPropertyNull001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSpringAnimationTest SpringOnStartPropertyNull001 end";
 }
 
+/**
+ * @tc.name: SpringGetType001
+ * @tc.desc: Verify RSSpringAnimation GetType returns SPRING
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SpringGetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, startValue, endValue);
+    EXPECT_EQ(springAnimation->GetType(), RSAnimationType::SPRING);
+}
+
+/**
+ * @tc.name: InterpolatingSpringGetType001
+ * @tc.desc: Verify RSInterpolatingSpringAnimation GetType returns INTERPOLATING_SPRING
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringGetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(rsUIContext, property, byValue);
+    EXPECT_EQ(animation->GetType(), RSAnimationType::INTERPOLATING_SPRING);
+}
+
 } // namespace Rosen
 } // namespace OHOS

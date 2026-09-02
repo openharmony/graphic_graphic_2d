@@ -15,8 +15,9 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_render_spring_animation.h"
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_property_animation.h"
+#include "animation/rs_render_spring_animation.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -2302,5 +2303,178 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeEnd002, TestSize.Level1)
     animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     EXPECT_FALSE(animMock->IsConvergeEnd());
 }
+
+/**
+ * @tc.name: SetSpringParameters003
+ * @tc.desc: Verify SetSpringParameters handles blendDuration overflow by setting blendDuration_ to 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParameters003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    anim->SetSpringParameters(1.0f, 0.5f, 1e30f);
+    EXPECT_EQ(anim->blendDuration_, 0u);
+}
+
+/**
+ * @tc.name: SetSpringParameters004
+ * @tc.desc: Verify SetSpringParameters handles negative blendDuration by setting blendDuration_ to 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParameters004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    anim->SetSpringParameters(1.0f, 0.5f, -1e10f);
+    EXPECT_EQ(anim->blendDuration_, 0u);
+}
+
+/**
+ * @tc.name: InheritSpringAnimationTypeCheck001
+ * @tc.desc: Verify InheritSpringAnimation rejects non-spring prevAnimation type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringAnimationTypeCheck001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->SetSpringParameters(0.5f, 0.5f, 0.0f);
+
+    auto curveProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto curveProperty1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto curveProperty2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto curveAnim = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID + 1, PROPERTY_ID, curveProperty, curveProperty1, curveProperty2);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    anim->Attach(renderNode.get());
+    anim->Start();
+    anim->AttachRenderProperty(property);
+    anim->InitValueEstimator();
+    anim->OnInitialize(0);
+
+    curveAnim->Attach(renderNode.get());
+    curveAnim->Start();
+
+    anim->blendDuration_ = 1000000000;
+    int64_t delayTime = 0;
+    bool isCustom = false;
+    anim->Animate(0, delayTime, isCustom);
+    auto prevAnim = std::static_pointer_cast<RSRenderAnimation>(curveAnim);
+    anim->InheritSpringAnimation(prevAnim, isCustom);
+    EXPECT_EQ(curveAnim->GetType(), RSRenderAnimationType::CURVE_ANIMATION);
+    EXPECT_EQ(anim->blendDuration_, 1000000000u);
+}
+
+/**
+ * @tc.name: InheritSpringBlendDurationCap001
+ * @tc.desc: Verify InheritSpringAnimation caps blendDuration_ to prevAnimation duration
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringBlendDurationCap001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Non-zero blendDuration, response differs from prev so none of the 3 branches at 228-237 fire
+    anim->SetSpringParameters(0.55f, 0.825f, 100.0f);
+    anim->AttachRenderProperty(property);
+    anim->InitValueEstimator();
+    anim->OnInitialize(0);
+
+    auto prevAnim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID + 1, PROPERTY_ID, property2, property2, property1);
+    prevAnim->SetSpringParameters(0.3f, 0.825f, 0.0f);
+    prevAnim->AttachRenderProperty(property2);
+    prevAnim->InitValueEstimator();
+    prevAnim->OnInitialize(0);
+    prevAnim->Start();
+
+    uint64_t blendBefore = anim->blendDuration_;
+    ASSERT_GT(blendBefore, 0u);
+
+    auto prevAnimBase = std::static_pointer_cast<RSRenderAnimation>(prevAnim);
+    anim->InheritSpringAnimation(prevAnimBase, false);
+
+    int64_t prevDurationMs = prevAnim->GetDuration();
+    ASSERT_GT(prevDurationMs, 0);
+    // 1ms = 1,000,000ns (1e9 * 1e-3)
+    uint64_t prevDurationNs = static_cast<uint64_t>(prevDurationMs) * 1000000u;
+    ASSERT_GT(prevDurationNs, 0u);
+    // Cap should have triggered: blendDuration_ reduced to prevDurationNs
+    EXPECT_LT(anim->blendDuration_, blendBefore);
+    EXPECT_EQ(anim->blendDuration_, prevDurationNs);
+}
+
+/**
+ * @tc.name: InheritSpringBlendDurationNoCap001
+ * @tc.desc: Verify InheritSpringAnimation does not cap when blendDuration_ <= prevDuration
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringBlendDurationNoCap001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Small blendDuration (0.001s = 1ms in ns), response differs from prev
+    anim->SetSpringParameters(0.55f, 0.825f, 0.001f);
+    anim->AttachRenderProperty(property);
+    anim->InitValueEstimator();
+    anim->OnInitialize(0);
+
+    auto prevAnim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID + 1, PROPERTY_ID, property2, property2, property1);
+    prevAnim->SetSpringParameters(0.3f, 0.825f, 0.0f);
+    prevAnim->AttachRenderProperty(property2);
+    prevAnim->InitValueEstimator();
+    prevAnim->OnInitialize(0);
+    prevAnim->Start();
+
+    uint64_t blendBefore = anim->blendDuration_;
+    ASSERT_GT(blendBefore, 0u);
+
+    auto prevAnimBase = std::static_pointer_cast<RSRenderAnimation>(prevAnim);
+    anim->InheritSpringAnimation(prevAnimBase, false);
+
+    // prevDuration is seconds-level, blendDuration_ is 1ms → no cap
+    int64_t prevDurationMs = prevAnim->GetDuration();
+    ASSERT_GT(prevDurationMs, 0);
+    uint64_t prevDurationNs = static_cast<uint64_t>(prevDurationMs) * 1000000u;
+    EXPECT_GT(prevDurationNs, blendBefore);
+    // blendDuration_ unchanged: cap not applied
+    EXPECT_EQ(anim->blendDuration_, blendBefore);
+}
+
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns SPRING_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty);
+    EXPECT_EQ(anim->GetType(), RSRenderAnimationType::SPRING_ANIMATION);
+}
+
 } // namespace Rosen
 } // namespace OHOS

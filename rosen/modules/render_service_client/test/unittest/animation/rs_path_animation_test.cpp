@@ -311,5 +311,214 @@ HWTEST_F(RSPathAnimationTest, OnStartPropertyNullIsNeedPath001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSPathAnimationTest OnStartPropertyNullIsNeedPath001 end";
 }
 
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns PATH
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startProperty, endProperty);
+    EXPECT_EQ(pathAnimation->GetType(), RSAnimationType::PATH);
+}
+
+/**
+ * @tc.name: SetRotation002
+ * @tc.desc: Verify SetRotation sets value via TRANSFORM modifier when property not in properties_ map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, SetRotation002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startProperty, endProperty);
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+
+    node->SetRotation(0.f);
+    auto modifier = node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
+    ASSERT_NE(modifier, nullptr);
+    auto rotationProp = modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION);
+    ASSERT_NE(rotationProp, nullptr);
+    pathAnimation->rotationId_ = rotationProp->GetId();
+    // Remove from properties_ to force the modifier path (line 284 true)
+    node->properties_.erase(pathAnimation->rotationId_);
+
+    pathAnimation->SetRotation(node, 45.0f);
+    auto floatProp = std::static_pointer_cast<RSProperty<float>>(
+        modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION));
+    EXPECT_FLOAT_EQ(floatProp->stagingValue_, 45.0f);
+}
+
+/**
+ * @tc.name: PreProcessPathVector4f001
+ * @tc.desc: Verify PreProcessPath and InitNeedPath with Vector4f properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, PreProcessPathVector4f001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(1.f, 1.f, 0.f, 0.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+    // Constructor already calls InitNeedPath with Vector4f → line 352 true
+    auto result = pathAnimation->PreProcessPath(ANIMATION_PATH, startValue, endValue);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: PreProcessPathUnsupportedType001
+ * @tc.desc: Verify PreProcessPath returns null for unsupported property type (float)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, PreProcessPathUnsupportedType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+    auto result = pathAnimation->PreProcessPath(ANIMATION_PATH, startValue, endValue);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: PreProcessPathMixedType001
+ * @tc.desc: Verify PreProcessPath when startValue is Vector2f but endValue is Vector4f
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, PreProcessPathMixedType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, nullptr, nullptr);
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(1.f, 1.f, 0.f, 0.f));
+    auto result = pathAnimation->PreProcessPath(ANIMATION_PATH, startValue, endValue);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: InitNeedPathMixedType001
+ * @tc.desc: Verify InitNeedPath when startValue is Vector4f but endValue is Vector2f
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, InitNeedPathMixedType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+    // Constructor calls InitNeedPath: startVector4f non-null, endVector4f null → line 352 false
+    EXPECT_FALSE(pathAnimation->isAdditive_);
+}
+
+/**
+ * @tc.name: InitInterpolationVector2f001
+ * @tc.desc: Verify InitInterpolationVector2f returns false for type mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, InitInterpolationVector2f001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+
+    // startValue not Vector2f → startVector2f null → short-circuit false
+    auto v4start = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    EXPECT_FALSE(pathAnimation->InitInterpolationVector2f(v4start, endValue));
+
+    // startValue is Vector2f but endValue not → endVector2f null → false
+    auto v4end = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(1.f));
+    EXPECT_FALSE(pathAnimation->InitInterpolationVector2f(startValue, v4end));
+}
+
+/**
+ * @tc.name: InitInterpolationVector2f002
+ * @tc.desc: Verify InitInterpolationVector2f originValue and needAddOrigin_ branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, InitInterpolationVector2f002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+
+    // Branch 1: originValue_ is null → originVector2f null → short-circuit false
+    pathAnimation->originValue_ = nullptr;
+    pathAnimation->needAddOrigin_ = true;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector2f(startValue, endValue));
+
+    // Branch 2: originValue_ is Vector2f but needAddOrigin_ is false
+    pathAnimation->originValue_ = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f));
+    pathAnimation->needAddOrigin_ = false;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector2f(startValue, endValue));
+
+    // Branch 3: originValue_ is Vector2f and needAddOrigin_ is true
+    pathAnimation->needAddOrigin_ = true;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector2f(startValue, endValue));
+}
+
+/**
+ * @tc.name: InitInterpolationVector4f001
+ * @tc.desc: Verify InitInterpolationVector4f returns false for type mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, InitInterpolationVector4f001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(1.f, 1.f, 0.f, 0.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+
+    // startValue not Vector4f → startVector4f null → short-circuit false
+    auto v2start = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    EXPECT_FALSE(pathAnimation->InitInterpolationVector4f(v2start, endValue));
+
+    // startValue is Vector4f but endValue not → endVector4f null → false
+    auto v2end = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    EXPECT_FALSE(pathAnimation->InitInterpolationVector4f(startValue, v2end));
+}
+
+/**
+ * @tc.name: InitInterpolationVector4f002
+ * @tc.desc: Verify InitInterpolationVector4f originValue and needAddOrigin_ branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, InitInterpolationVector4f002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(1.f, 1.f, 0.f, 0.f));
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startValue, endValue);
+
+    // Branch 1: originValue_ is null → originVector4f null → short-circuit false
+    pathAnimation->originValue_ = nullptr;
+    pathAnimation->needAddOrigin_ = true;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector4f(startValue, endValue));
+
+    // Branch 2: originValue_ is Vector4f but needAddOrigin_ is false
+    pathAnimation->originValue_ = std::make_shared<RSAnimatableProperty<Vector4f>>(Vector4f(0.5f));
+    pathAnimation->needAddOrigin_ = false;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector4f(startValue, endValue));
+
+    // Branch 3: originValue_ is Vector4f and needAddOrigin_ is true
+    pathAnimation->needAddOrigin_ = true;
+    EXPECT_TRUE(pathAnimation->InitInterpolationVector4f(startValue, endValue));
+}
+
 } // namespace Rosen
 } // namespace OHOS

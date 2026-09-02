@@ -700,5 +700,18 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesFractionInverted00
     GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionInverted001 end";
 }
 
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns KEYFRAME_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    EXPECT_EQ(renderKeyframeAnimation->GetType(), RSRenderAnimationType::KEYFRAME_ANIMATION);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -1229,5 +1229,20 @@ HWTEST_F(RSRenderCurveAnimationTest, RebuildPropertyValue003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest RebuildPropertyValue003 end";
 }
 
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns CURVE_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_EQ(renderCurveAnimation->GetType(), RSRenderAnimationType::CURVE_ANIMATION);
+}
+
 } // namespace Rosen
 } // namespace OHOS

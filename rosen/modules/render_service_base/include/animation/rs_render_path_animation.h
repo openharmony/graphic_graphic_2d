@@ -27,6 +27,11 @@ class RSPath;
 class RSB_EXPORT RSRenderPathAnimation : public RSRenderPropertyAnimation {
 static constexpr float UNDEFINED_FLOAT = 0.0f;
 public:
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::PATH_ANIMATION;
+    }
+
     RSRenderPathAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originPosition,
         const std::shared_ptr<RSRenderPropertyBase>& startPosition,

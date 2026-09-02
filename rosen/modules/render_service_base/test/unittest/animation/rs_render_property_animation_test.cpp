@@ -136,29 +136,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetPropertyValue001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAnimationValue001
- * @tc.desc: Verify the SetAnimationValue
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderPropertyAnimationTest, SetAnimationValue001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest SetAnimationValue001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
-        ANIMATION_ID, PROPERTY_ID, property);
-    auto animationValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-
-    EXPECT_TRUE(renderPropertyAnimation != nullptr);
-    renderPropertyAnimation->SetAnimationValue(animationValue);
-    animationValue = nullptr;
-    renderPropertyAnimation->SetAnimationValue(animationValue);
-    renderPropertyAnimation->Start();
-    EXPECT_TRUE(renderPropertyAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest SetAnimationValue001 end";
-}
-
-/**
  * @tc.name: GetAnimationValue001
  * @tc.desc: Verify the GetAnimationValue
  * @tc.type:FUNC
@@ -267,10 +244,8 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetType001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetType001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderPropertyAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property);
     EXPECT_EQ(renderPropertyAnimation->GetType(), RSRenderAnimationType::PROPERTY_ANIMATION);
     GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetType001 end";
 }

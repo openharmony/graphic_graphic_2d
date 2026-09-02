@@ -116,6 +116,16 @@ bool RSPropertyBase::IsDeduplicationEnabled() const
     return modifier && modifier->IsDeduplicationEnabled();
 }
 
+bool RSPropertyBase::CheckPropertyType(RSPropertyType type, const char* funcName) const
+{
+    if (type != GetPropertyType()) {
+        ROSEN_LOGE("%{public}s: property type mismatch, expected:%{public}d, actual:%{public}d",
+            funcName, static_cast<int>(type), static_cast<int>(GetPropertyType()));
+        return false;
+    }
+    return true;
+}
+
 float RSPropertyBase::GetThresholdByThresholdType(ThresholdType thresholdType) const
 {
     switch (thresholdType) {

@@ -854,5 +854,45 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateIsNeedPathBothNotNull001, TestSize.
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateIsNeedPathBothNotNull001 end";
 }
 
+/**
+ * @tc.name: OnAnimateEstimatorTypeMismatch001
+ * @tc.desc: Verify OnAnimate returns false when valueEstimator type is not CURVE_VALUE_ESTIMATOR
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateEstimatorTypeMismatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateEstimatorTypeMismatch001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(500.f, 500.f, 500.f, 500.f));
+    auto path = RSPath::CreateRSPath("M0 0 L500 500");
+
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->property_ = property;
+    auto keyframeEstimator = std::make_shared<RSKeyframeValueEstimator<Vector4f>>();
+    renderPathAnimation->valueEstimator_ = keyframeEstimator;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    EXPECT_FALSE(renderPathAnimation->OnAnimate(0.5f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateEstimatorTypeMismatch001 end";
+}
+
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns PATH_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.f));
+    auto path = RSPath::CreateRSPath("M0 0 L500 500");
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    EXPECT_EQ(renderPathAnimation->GetType(), RSRenderAnimationType::PATH_ANIMATION);
+}
+
 } // namespace Rosen
 } // namespace OHOS

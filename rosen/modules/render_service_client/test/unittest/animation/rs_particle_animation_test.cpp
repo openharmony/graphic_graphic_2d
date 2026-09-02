@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation.h"
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_particle_animation.h"
 #include "modifier/rs_property.h"
@@ -99,5 +100,19 @@ HWTEST_F(RSParticleAnimationTest, IsSupportInteractiveAnimator001, TestSize.Leve
     EXPECT_FALSE(particleAnimation->IsSupportInteractiveAnimator());
     GTEST_LOG_(INFO) << "RSParticleAnimationTest IsSupportInteractiveAnimator001 end";
 }
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify RSParticleAnimation GetType returns PARTICLE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSParticleAnimationTest, GetType001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    auto particleAnimation =
+        std::make_shared<RSParticleAnimation>(rsUIContext, CreateParticleParams(), MODIFIER_ID);
+    ASSERT_TRUE(particleAnimation != nullptr);
+    EXPECT_EQ(particleAnimation->GetType(), RSAnimationType::PARTICLE);
+}
+
 } // namespace Rosen
 } // namespace OHOS
