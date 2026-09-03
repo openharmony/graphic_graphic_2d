@@ -33,9 +33,6 @@ public:
     /* specify constructor and destructor here */
     RSIDisplayEngineControlInterfaceCodeAccessVerifier();
     ~RSIDisplayEngineControlInterfaceCodeAccessVerifier() noexcept override = default;
-#ifdef ENABLE_IPC_SECURITY
-    bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const override;
-#endif
  
 protected:
     /* specify exclusive verification rules here */
@@ -43,13 +40,6 @@ protected:
  
 private:
     DISALLOW_COPY_AND_MOVE(RSIDisplayEngineControlInterfaceCodeAccessVerifier);
-#ifdef ENABLE_IPC_SECURITY
-    void AddRSIDisplayEngineControlInterfaceCodePermission();
-    static inline const std::vector<std::pair<CodeEnumType, PermissionType>>
-        permissionRSIDisplayEngineControlInterfaceMappings_ {};
-    static inline const std::unordered_map<CodeEnumType, uint32_t>
-        accessRSIDisplayEngineControlInterfaceTimesRestrictions_ {};
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

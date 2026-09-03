@@ -20,9 +20,6 @@ namespace Rosen {
 RSIDisplayEngineControlInterfaceCodeAccessVerifier::RSIDisplayEngineControlInterfaceCodeAccessVerifier()
 {
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
-#ifdef ENABLE_IPC_SECURITY
-    AddRSIDisplayEngineControlInterfaceCodePermission();
-#endif
 }
  
 bool RSIDisplayEngineControlInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
@@ -48,33 +45,5 @@ bool RSIDisplayEngineControlInterfaceCodeAccessVerifier::IsExclusiveVerification
     }
     return hasPermission;
 }
- 
-#ifdef ENABLE_IPC_SECURITY
-void RSIDisplayEngineControlInterfaceCodeAccessVerifier::AddRSIDisplayEngineControlInterfaceCodePermission()
-{
-    for (auto& mapping : permissionRSIDisplayEngineControlInterfaceMappings_) {
-        CodeEnumType interfaceName = mapping.first;
-        PermissionType permission = mapping.second;
-        std::string newPermission = PermissionEnumToString(permission);
-        if (newPermission == "unknown") {
-            continue;
-        }
-        CodeUnderlyingType code = static_cast<CodeUnderlyingType>(interfaceName);
-        AddPermission(code, newPermission);
-    }
-}
- 
-bool RSIDisplayEngineControlInterfaceCodeAccessVerifier::IsAccessTimesVerificationPassed(
-    CodeUnderlyingType code, uint32_t times) const
-{
-    auto interfaceName = static_cast<CodeEnumType>(code);
-    if (accessRSIDisplayEngineControlInterfaceTimesRestrictions_.count(interfaceName) == 0) {
-        return true;
-    }
-    uint32_t restrictedTimes = accessRSIDisplayEngineControlInterfaceTimesRestrictions_.at(interfaceName);
-    return times < restrictedTimes;
-}
-#endif
- 
 } // namespace Rosen
 } // namespace OHOS
