@@ -24,6 +24,7 @@
 #include "display_engine/ipc_callbacks/rs_ide_status_change_callback.h"
 #include "display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code.h"
 #include "display_engine/transaction/zidl/rs_idisplay_engine_control.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
 
 namespace OHOS {
 namespace Rosen {
