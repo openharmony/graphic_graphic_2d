@@ -32,11 +32,14 @@ class RSB_EXPORT RSDisplayEngineControlStub : public IRemoteStub<RSIDisplayEngin
 public:
     RSDisplayEngineControlStub() = default;
     ~RSDisplayEngineControlStub() noexcept override = default;
- 
+
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
     int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values) override;
     int32_t RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback) override;
     int32_t UnregisterDEStatusChangeCallback() override;
+
+private:
+    static const RSInterfaceCodeSecurityManager securityManager_;
 };
 } // namespace Rosen
 } // namespace OHOS
