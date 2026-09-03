@@ -181,7 +181,7 @@ rosen/modules/render_service_base/include/animation/ @wang-luyu4
 rosen/modules/render_service_base/src/animation/ @wang-luyu4
 
 [uifirst]
-rosen/modules/render_service/core/feature/uifirst/ @opasser
+rosen/modules/render_service/core/feature/uifirst/ @samuel789
 
 [opinc]
 rosen/modules/render_service_base/src/feature/opinc/ @conan13234
