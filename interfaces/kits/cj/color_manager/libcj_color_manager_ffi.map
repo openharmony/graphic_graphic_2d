@@ -19,6 +19,10 @@
     extern "C++" {
       Utils::MallocCString;
       OHOS::ColorManager::CjColorManager::CjColorManager;
+      OHOS::ColorManager::CjColorManager::~CjColorManager;
+      vtable for OHOS::ColorManager::CjColorManager;
+      typeinfo for OHOS::ColorManager::CjColorManager;
+      typeinfo name for OHOS::ColorManager::CjColorManager;
     };
   local:
     *;
