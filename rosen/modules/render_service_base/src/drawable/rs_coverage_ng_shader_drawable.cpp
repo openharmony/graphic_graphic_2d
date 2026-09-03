@@ -331,6 +331,8 @@ static constexpr char PHONG_SHADER_STRING[](R"(
     uniform vec4 viewPos[12];
     uniform vec4 specularLightColor[12];
     uniform float specularStrength[12];
+    uniform float enableDither;
+    uniform float ditherAlphaThreshold;
 
     mediump vec4 main(vec2 drawing_coord) {
         vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -358,6 +360,12 @@ static constexpr char PHONG_SHADER_STRING[](R"(
                 fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
             }
         }
+        // dither to fix color banding: only dark zone, skip bright
+        if (enableDither > 0.5 && fragColor.a < ditherAlphaThreshold) {
+            float ditherVal = fract(52.9829 * fract(dot(vec2(0.06711056, 0.00583715), floor(drawing_coord))));
+            fragColor += (ditherVal - 0.5) / 255.0;
+            fragColor.a = clamp(fragColor.a, 0.0, 1.0);
+        }
         return fragColor;
     }
 )");
@@ -367,6 +375,8 @@ static constexpr char SINGLE_PHONG_SHADER_STRING[](R"(
     uniform vec4 viewPos[1];
     uniform vec4 specularLightColor[1];
     uniform float specularStrength[1];
+    uniform float enableDither;
+    uniform float ditherAlphaThreshold;
 
     mediump vec4 main(vec2 drawing_coord) {
         vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -391,6 +401,12 @@ static constexpr char SINGLE_PHONG_SHADER_STRING[](R"(
             vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
             vec4 specularColor = specularLightColor[0];
             fragColor = fragColor + o + specular * specularStrength[0] * specularColor;
+        }
+        // dither to fix color banding: only dark zone, skip bright
+        if (enableDither > 0.5 && fragColor.a < ditherAlphaThreshold) {
+            float ditherVal = fract(52.9829 * fract(dot(vec2(0.06711056, 0.00583715), floor(drawing_coord))));
+            fragColor += (ditherVal - 0.5) / 255.0;
+            fragColor.a = clamp(fragColor.a, 0.0, 1.0);
         }
         return fragColor;
     }
@@ -450,6 +466,8 @@ static constexpr char SDF_CONTENT_AND_BORDER_LIGHT_SHADER_STRING[](R"(
 )");
 
 constexpr float SDR_LUMINANCE = 1.0f;
+// dither alpha threshold for color banding
+constexpr float DITHER_ALPHA_THRESHOLD = 0.15f;
 } // namespace
 
 RSDrawable::Ptr RSCoverageNGShaderDrawable::OnGenerate(const RSRenderNode& node)
@@ -848,6 +866,8 @@ void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
     if (!builder || !canvas) {
         return;
     }
+    builder->SetUniform("ditherAlphaThreshold", DITHER_ALPHA_THRESHOLD);
+    builder->SetUniform("enableDither", illuminatedType_ == IlluminatedType::CONTENT ? 1.0f : 0.0f);
 
     if (lightLength == 1) {
         std::array<float, 1> lightIntensityArray = { 0 };
