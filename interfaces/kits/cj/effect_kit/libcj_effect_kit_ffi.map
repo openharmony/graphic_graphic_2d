@@ -17,8 +17,8 @@
       Ffi*;
     };
     extern "C++" {
-      OHOS::CJEffectKit::CJColorPicker::*;
-      OHOS::CJEffectKit::CJFilter::*;
+      OHOS::CJEffectKit::CJColorPicker::CJColorPicker;
+      OHOS::CJEffectKit::CJFilter::CJFilter;
     };
   local:
     *;
