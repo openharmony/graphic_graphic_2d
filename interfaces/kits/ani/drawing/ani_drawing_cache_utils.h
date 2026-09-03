@@ -77,6 +77,8 @@ public:
     ani_class roundRect;
     ani_class tool;
     ani_class typefaceArguments;
+    ani_class recordCmd;
+    ani_class recordCmdUtils;
     ani_class fontMetrics;
     ani_class point;
     ani_class pointUtils;
@@ -162,6 +164,8 @@ public:
     ani_method rectCtor;
     ani_method colorCtor;
     ani_method color4fCtor;
+    ani_method recordCmdCtor;
+    ani_method recordCmdUtilsCtor;
 
     ani_method brushCtorWithPtr;
     ani_method canvasCtorWithPtr;
@@ -174,6 +178,8 @@ public:
     ani_method samplingOptionsCtorWithPtr;
     ani_method fontCtorWithPtr;
     ani_method typefaceCtorWithPtr;
+    ani_method recordCmdCtorWithPtr;
+    ani_method recordCmdUtilsCtorWithPtr;
 
     ani_method colorFilterBindNative;
     ani_method typefaceBindNative;
@@ -267,6 +273,8 @@ public:
     ani_field roundRectNativeObj;
     ani_field toolNativeObj;
     ani_field typefaceArgumentsNativeObj;
+    ani_field recordCmdNativeObj;
+    ani_field recordCmdUtilsNativeObj;
 
 private:
     AniGlobalField() = default;

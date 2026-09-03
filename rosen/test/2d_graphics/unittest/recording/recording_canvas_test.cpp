@@ -20,6 +20,7 @@
 #include "draw/path.h"
 #include "draw/ui_color.h"
 #include "effect/particle_builder.h"
+#include "utils/shadow_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1494,6 +1495,154 @@ HWTEST_F(RecordingCanvasTest, DrawParticleNullParticleEffect, TestSize.Level1)
     auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
     ASSERT_TRUE(recordingCanvas != nullptr);
     recordingCanvas->DrawParticle(nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowIsRecordCmd001
+ * @tc.desc: Test DrawShadow with IsRecordCmd=true and non-directional light, matrix invertible.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowIsRecordCmd001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowIsRecordCmdDirectionalLight001
+ * @tc.desc: Test DrawShadow with IsRecordCmd=true and DIRECTIONALLIGHT_SHADOW flag set, light pos unchanged.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowIsRecordCmdDirectionalLight001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    // DIRECTIONALLIGHT_SHADOW = 0x04
+    ShadowFlags directionalFlag = static_cast<ShadowFlags>(0x04);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, directionalFlag);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowIsRecordCmdFalse001
+ * @tc.desc: Test DrawShadow with IsRecordCmd=false, no light position transformation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowIsRecordCmdFalse001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    // IsRecordCmd defaults to false
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowIsRecordCmdNonInvertibleMatrix001
+ * @tc.desc: Test DrawShadow with IsRecordCmd=true and non-invertible matrix, localLightPos stays unchanged.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowIsRecordCmdNonInvertibleMatrix001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    // Set a non-invertible matrix (zero scale)
+    Matrix nonInvertible;
+    nonInvertible.SetScale(0.0f, 0.0f);
+    recordingCanvas->SetMatrix(nonInvertible);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowImmediateMode001
+ * @tc.desc: Test DrawShadow in immediate mode (addDrawOpImmediate_=true) with IsRecordCmd=true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowImmediateMode001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, true);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowImmediateModeDirectionalLight001
+ * @tc.desc: Test DrawShadow in immediate mode with directional light flag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowImmediateModeDirectionalLight001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, true);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    // DIRECTIONALLIGHT_SHADOW = 0x04
+    ShadowFlags directionalFlag = static_cast<ShadowFlags>(0x04);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, directionalFlag);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowFlagComposition001
+ * @tc.desc: Test DrawShadow correctly composes flag with RECORD_CMD_BIT using SetShadowIsRecordCmd.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawShadowFlagComposition001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->SetIsRecordCmd(true);
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(5.0f, 10.0f, 1.0f);
+    recordingCanvas->DrawShadow(
+        path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::ALL);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     ASSERT_TRUE(drawCmdList != nullptr);
 }

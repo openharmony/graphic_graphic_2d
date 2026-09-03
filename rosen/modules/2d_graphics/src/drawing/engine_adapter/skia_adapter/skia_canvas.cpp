@@ -40,6 +40,8 @@
 #include "SkOverdrawCanvas.h"
 #include "include/utils/SkNoDrawCanvas.h"
 #include "src/core/SkCanvasPriv.h"
+#include "src/core/SkDrawShadowInfo.h"
+#include "utils/shadow_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -512,8 +514,24 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     const SkPoint3* point2 = reinterpret_cast<const SkPoint3*>(&devLightPos);
     SkColor color1 = ambientColor.CastToColorQuad();
     SkColor color2 = spotColor.CastToColorQuad();
-    SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
-    if (skPathImpl != nullptr) {
+    auto shadowFlag = GetShadowFlag(flag);
+    auto isRecordCmd = GetShadowIsRecordCmd(flag);
+    SkShadowFlags flags = static_cast<SkShadowFlags>(shadowFlag);
+    if (skPathImpl == nullptr) {
+        LOGE("skia path is null, %{public}s return", __FUNCTION__);
+        return;
+    }
+    if (isRecordCmd) {
+        SkDrawShadowRec rec;
+        rec.fZPlaneParams = *point1;
+        rec.fLightPos = *point2;
+        rec.fLightRadius = lightRadius;
+        rec.fAmbientColor = color1;
+        rec.fSpotColor = color2;
+        rec.fFlags = flags;
+        rec.isLimitElevation = false;
+        skCanvas_->private_draw_shadow_rec(skPathImpl->GetPath(), rec);
+    } else {
         SkShadowUtils::DrawShadow(
             skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags);
     }

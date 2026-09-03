@@ -169,6 +169,8 @@ ohos_shared_library("drawing_ani") {
     "path_effect_ani/ani_path_effect.cpp",
     "shader_effect_ani/ani_shader_effect.cpp",
     "pen_ani/ani_pen.cpp",
+    "record_cmd_ani/ani_record_cmd.cpp",
+    "record_cmd_utils_ani/ani_record_cmd_utils.cpp",
     "rect_utils_ani/ani_rect_utils.cpp",
     "region_ani/ani_region.cpp",
     "round_rect_ani/ani_round_rect.cpp",
