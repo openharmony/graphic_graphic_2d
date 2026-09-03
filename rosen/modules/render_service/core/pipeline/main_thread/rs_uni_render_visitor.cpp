@@ -2469,8 +2469,9 @@ void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node, DisplayMo
                 node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
                 break;
             default:
-                RS_LOGE("RSUniRenderVisitor::%{public}s, invalid displayMode[%{public}d]", __func__,
+                RS_LOGD("RSUniRenderVisitor::%{public}s, invalid displayMode[%{public}d]", __func__,
                     static_cast<int>(mode));
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
                 break;
         }
         return;
