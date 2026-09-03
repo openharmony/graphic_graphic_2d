@@ -159,7 +159,7 @@ private:
 
     void SubmitAndCollectCanvasBuffers();
 
-    void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd);
+    void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence);
 
     void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
 
@@ -178,6 +178,8 @@ private:
 
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
+
+    DestroySemaphoreInfo* destroySemaphoreInfo_ = nullptr;
 
     std::string cacheDir_;
 
