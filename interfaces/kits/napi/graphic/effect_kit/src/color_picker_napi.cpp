@@ -421,7 +421,7 @@ std::unique_ptr<ColorPickerAsyncContext> ColorPickerNapi::InitializeAsyncContext
 {
     auto asyncContext = std::make_unique<ColorPickerAsyncContext>();
     if (argCount < NUM_1) {
-        BuildMsgOnError(asyncContext, false, "image type mismatch");
+        BuildMsgOnError(asyncContext, false, "missing required image argument");
         return asyncContext;
     }
     ImageType imgType = ParserArgumentType(env, argValue[NUM_1 - 1]);
@@ -1063,7 +1063,7 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
     unsigned int colorsNum = 0;
     if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
         double number = 0;
-        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && std::isfinite(number)) {
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && !std::isnan(number)) {
             colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
         }
     }
@@ -1113,7 +1113,7 @@ napi_value ColorPickerNapi::GetTopProportionColorsAndPercentage(napi_env env, na
     unsigned int colorsNum = 0;
     if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
         double number = 0;
-        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && std::isfinite(number)) {
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && !std::isnan(number)) {
             colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
         }
     }

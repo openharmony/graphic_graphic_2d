@@ -22,6 +22,8 @@ type RejectString = (e: BusinessError<string>) => void;
 namespace effectKit {
   loadLibrary('effectKit_ani')
 
+  const ERROR_INVALID_PARAM: int = 401;
+
   export enum TileMode {
     CLAMP,
     REPEAT,
@@ -314,7 +316,7 @@ namespace effectKit {
 	}   
 	public static kitTransferDynamic(input: Object): Any {
 	  if (!(input instanceof FilterInternal)) {
-	    throw new BusinessError(401, new Error("Failed to transfer filter"));
+	    throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer filter"));
 	  }
 	  return FilterInternal.kitTransferDynamicNative((input as FilterInternal).nativeObj).unwrap();
 	}
@@ -429,7 +431,7 @@ namespace effectKit {
 	}
 	public static kitTransferDynamic(input: Object): Any {
 	  if (!(input instanceof ColorPickerInternal)) {
-	    throw new BusinessError(401, new Error("Failed to transfer colorPicker"));
+	    throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer colorPicker"));
 	  }
 	  return ColorPickerInternal.kitTransferDynamicNative((input as ColorPickerInternal).nativeObj).unwrap();
 	}
