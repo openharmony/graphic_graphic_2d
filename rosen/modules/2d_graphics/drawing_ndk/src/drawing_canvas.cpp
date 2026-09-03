@@ -27,7 +27,7 @@
 #include "drawing_font_utils.h"
 #include "drawing_helper.h"
 #include "native_pixel_map_manager.h"
-#ifdef  OHOS_PLATFORM
+#ifndef  ROSEN_ARKUI_X
 #include "recording/recording_canvas.h"
 #endif
 #include "utils/log.h"
@@ -1271,7 +1271,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint
     return OH_DRAWING_SUCCESS;
 }
 
-#ifdef OHOS_PLATFORM
+#ifndef  ROSEN_ARKUI_X
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
     OH_Drawing_RecordCmd* cRecordCmd)
 {
