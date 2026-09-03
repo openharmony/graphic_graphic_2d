@@ -775,7 +775,7 @@ bool EffectNapi::ParseColorfulBrightnessBlender(napi_env env, napi_value paramOb
         blender->SetLumaDiff(static_cast<float>(lumaDiff));
     }
 
-    bool hdrEnabled = true;
+    bool hdrEnabled = false;
     if (ParseJsBoolValue(env, optionsObj, "hdrEnabled", hdrEnabled)) {
         blender->SetHdrEnabled(hdrEnabled);
     }

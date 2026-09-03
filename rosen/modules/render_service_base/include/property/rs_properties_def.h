@@ -238,11 +238,11 @@ struct RSColorfulBrightnessBlenderPara {
     Vector3f negativeCoeff_;
     float vibrancyStrength_ = 0.0f;
     float lumaDiff_ = 0.1f;
-    bool hdrEnabled_ = true;
+    bool hdrEnabled_ = false;
 
     RSColorfulBrightnessBlenderPara() = default;
     RSColorfulBrightnessBlenderPara(float dw, float fr, float cr, float qr, float lr, float deg,
-        float sat, Vector3f pos, Vector3f neg, float vs, float ld, bool hdr = true)
+        float sat, Vector3f pos, Vector3f neg, float vs, float ld, bool hdr = false)
         : darkenWeight_(dw), fraction_(fr), cubicRate_(cr), quadRate_(qr), linearRate_(lr),
           degree_(deg), saturation_(sat), positiveCoeff_(pos), negativeCoeff_(neg),
           vibrancyStrength_(vs), lumaDiff_(ld), hdrEnabled_(hdr) {}

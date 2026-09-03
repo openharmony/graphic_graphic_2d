@@ -79,7 +79,8 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
         const half grayMapB = 0.2;
         const half darkModeBrightness = 0.4;
 
-        vec3 Sat(vec3 inColor, half n, vec3 pos, vec3 neg) {
+        vec3 Sat(vec3 inColor, half n, vec3 pos, vec3 neg)
+        {
             vec3 r = (1.0 - n) * inColor;
             float base = dot(r, baseVec);
             vec3 delta = base - r;
@@ -87,13 +88,15 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             return inColor + delta * v;
         }
 
-        vec3 Vibrancy(vec3 color) {
+        vec3 Vibrancy(vec3 color)
+        {
             vec3 grayColor = ((activeRatesX * color + activeRatesY) * color + activeKBSx) * color + activeKBSy;
             return Sat(grayColor, activeKBSz, vec3(activePosX, activePosY, activePosZ),
                 vec3(activeNegX, activeNegY, activeNegZ));
         }
 
-        float GetMaxChannelValue(float luma, float ref, float colorMax, float colorMin) {
+        float GetMaxChannelValue(float luma, float ref, float colorMax, float colorMin)
+        {
             float k1 = max(5.55 * colorMax - 4.37, 0.0);
             float k2 = max(0.28 * colorMax - 0.24, 0.0);
             float y1 = ref + k1 * colorMin;
@@ -101,7 +104,8 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             return min(mix(y1, y2, luma), 1.0);
         }
 
-        float GetMinChannelValue(float luma, float resMax, float s1, float colorMax) {
+        float GetMinChannelValue(float luma, float resMax, float s1, float colorMax)
+        {
             float s0 = clamp(max(1.4 * colorMax, 1.75 * s1), 0.5, 1.0);
             s0 = mix(s0, 1.0, step(0.5, s1));
             float k = min(-0.46 * s1 + 1.46, 1.23);
@@ -110,7 +114,8 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
         }
 
         float GetMidChannelValue(float luma, float ref, float resMax, float resMin,
-            float colorMax, float colorMin, float colorMid) {
+            float colorMax, float colorMin, float colorMid)
+        {
             float anchor = mix(colorMin, colorMax, 0.39);
             float range = colorMax - anchor;
             float isRangeValid = step(0.0001, range);
@@ -120,7 +125,8 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             return mix(resMin, result, isRangeValid);
         }
 
-        vec3 sdrColorFilter(vec3 dst, float dstLuma, vec3 src, half darkenWeight) {
+        vec3 sdrColorFilter(vec3 dst, float dstLuma, vec3 src, half darkenWeight)
+        {
             float srcMax = max(max(src.r, src.g), src.b);
             float srcMin = min(min(src.r, src.g), src.b);
             float saturation = srcMax > 0.0 ? (srcMax - srcMin) / srcMax : 0.0;
@@ -160,15 +166,15 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             return mix(baseColor, finalLightModeColor, darkenWeight);
         }
 
-        vec3 keepLumaDiff(vec3 inColor, float bgLuma, half darkenWeight) {
-            float inputLuma = dot(inColor, lumaWeight);
-            float lightLuma = min(inputLuma, max(0.0, bgLuma - lumaDiff));
-            float darkLuma = max(inputLuma, min(1.0, bgLuma + lumaDiff));
-            float resLuma = mix(darkLuma, lightLuma, darkenWeight);
-            return max(inColor + vec3(resLuma - inputLuma), 0.0);
+        vec3 keepLumaDiff(vec3 inColor, half darkenWeight)
+        {
+            vec3 darkenRes = inColor - lumaDiff;
+            vec3 lightenRes = inColor + lumaDiff;
+            return max(vec3(0.0), mix(lightenRes, darkenRes, darkenWeight));
         }
 
-        half4 main(half4 srcColor, half4 dstColor) {
+        half4 main(half4 srcColor, half4 dstColor)
+        {
             half factorSrc = 1.0 / (max(srcColor.a, eps));
             vec3 fgRgb = vec3(saturate(srcColor.rgb * factorSrc));
             float fgA = float(srcColor.a);
@@ -185,7 +191,7 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             vec3 resColor = sdrColorFilter(bgSdrColor, bgLuma, fgRgb, darkenWeight);
             resColor = mix(bgSdrColor, resColor, fgA);
             resColor = Vibrancy(resColor);
-            resColor = keepLumaDiff(resColor, bgLuma, darkenWeight);
+            resColor = keepLumaDiff(resColor, darkenWeight);
             resColor = clamp(resColor, 0.0, colorLimit);
 
             vec3 straightGlassRgb = resColor * hdrExposure;
