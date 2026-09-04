@@ -239,13 +239,14 @@ struct RSColorfulBrightnessBlenderPara {
     float vibrancyStrength_ = 0.0f;
     float lumaDiff_ = 0.1f;
     bool hdrEnabled_ = false;
+    float tintedColorPercent_ = 1.0f;
 
     RSColorfulBrightnessBlenderPara() = default;
     RSColorfulBrightnessBlenderPara(float dw, float fr, float cr, float qr, float lr, float deg,
-        float sat, Vector3f pos, Vector3f neg, float vs, float ld, bool hdr = false)
+        float sat, Vector3f pos, Vector3f neg, float vs, float ld, bool hdr = false, float tcp = 1.0f)
         : darkenWeight_(dw), fraction_(fr), cubicRate_(cr), quadRate_(qr), linearRate_(lr),
           degree_(deg), saturation_(sat), positiveCoeff_(pos), negativeCoeff_(neg),
-          vibrancyStrength_(vs), lumaDiff_(ld), hdrEnabled_(hdr) {}
+          vibrancyStrength_(vs), lumaDiff_(ld), hdrEnabled_(hdr), tintedColorPercent_(tcp) {}
 
     bool operator==(const RSColorfulBrightnessBlenderPara& other) const
     {
@@ -257,7 +258,8 @@ struct RSColorfulBrightnessBlenderPara {
                negativeCoeff_ == other.negativeCoeff_ &&
                ROSEN_EQ(vibrancyStrength_, other.vibrancyStrength_) &&
                ROSEN_EQ(lumaDiff_, other.lumaDiff_) &&
-               hdrEnabled_ == other.hdrEnabled_;
+               hdrEnabled_ == other.hdrEnabled_ &&
+               ROSEN_EQ(tintedColorPercent_, other.tintedColorPercent_);
     }
 };
 

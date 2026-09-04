@@ -2533,6 +2533,9 @@ void RSNode::DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<Mod
     if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED)) {
         modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED);
     }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT);
+    }
 }
 
 void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
@@ -2571,6 +2574,8 @@ void RSNode::ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& ble
         &ModifierNG::RSBlendModifier::SetColorfulBrightnessLumaDiff>(blender.GetLumaDiff());
     SetPropertyNG<ModifierNG::RSBlendModifier,
         &ModifierNG::RSBlendModifier::SetColorfulBrightnessHdrEnabled>(blender.GetHdrEnabled());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessTintedColorPercent>(blender.GetTintedColorPercent());
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)

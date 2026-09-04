@@ -233,6 +233,8 @@ public:
             case RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH: return "ColorfulBrightnessVibrancyStrength";
             case RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF: return "ColorfulBrightnessLumaDiff";
             case RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED: return "ColorfulBrightnessHdrEnabled";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT:
+                return "ColorfulBrightnessTintedColorPercent";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";
