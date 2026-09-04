@@ -19,6 +19,7 @@
 
 #include "display_engine/rs_display_engine_control.h"
 #include "display_engine/rs_luminance_control.h"
+#include "display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code_access_verifier.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -28,6 +29,11 @@ int RSDisplayEngineControlStub::OnRemoteRequest(
 {
     if (data.ReadInterfaceToken() != RSIDisplayEngineControl::GetDescriptor()) {
         RS_LOGE("%{public}s: Read interfaceToken failed!", __func__);
+        return ERR_INVALID_STATE;
+    }
+
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSDisplayEngineControlStub::OnRemoteRequest no permission code:%{public}u", code);
         return ERR_INVALID_STATE;
     }
  
@@ -77,15 +83,18 @@ int32_t RSDisplayEngineControlStub::NotifyDEStatusChange(const uint32_t sceneKey
 {
     return RSDisplayEngineControl::GetInstance().NotifyDEStatusChange(sceneKey, values);
 }
- 	 
+
 int32_t RSDisplayEngineControlStub::RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback)
 {
     return RSDisplayEngineControl::GetInstance().RegisterDEStatusChangeCallback(callback);
 }
- 	 
+
 int32_t RSDisplayEngineControlStub::UnregisterDEStatusChangeCallback()
 {
     return RSDisplayEngineControl::GetInstance().UnregisterDEStatusChangeCallback();
 }
+
+const RSInterfaceCodeSecurityManager RSDisplayEngineControlStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<RSIDisplayEngineControlInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS
