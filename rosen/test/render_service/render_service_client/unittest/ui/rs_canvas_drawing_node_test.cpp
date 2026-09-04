@@ -425,9 +425,14 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
     drawingNode->sizeOutOfGpuLimit_ = false;
     drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_FALSE(ret);
+    auto opItem = std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 5, 5), Drawing::Paint());
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>(5, 5, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList->AddDrawOp(opItem);
+    ret = drawingNode->RenderInClient(drawCmdList);
     EXPECT_TRUE(ret);
     ret = drawingNode->RenderInClient(nullptr);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
     rsUIContext->canvasModifiersDrawAgent_->Destroy();
     rsUIContext->canvasModifiersDrawAgent_ = nullptr;
