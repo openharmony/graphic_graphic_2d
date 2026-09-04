@@ -229,7 +229,7 @@ public:
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ReleaseImageMem();
 
-    void AddUiCaptureTask(NodeId id, std::function<void()> task);
+    void AddUiCaptureTask(NodeId id, bool isSystemCalling, std::function<void()> task);
     void AddSyncWindowCaptureTask(NodeId id, std::function<void()> task);
     void ProcessSyncCaptureTasks();
 
@@ -898,9 +898,11 @@ private:
     // used for watermark
     std::mutex watermarkMutex_;
 
-    // for ui captures (UICAPTURE type, isSync)
-    std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
-    std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for ui captures (UICAPTURE type, isSync); split by caller identity to apply separate in-flight limits
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingNonSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> nonSystemUiCaptureTasks_;
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> systemUiCaptureTasks_;
     // for sync window captures (DEFAULT_CAPTURE type, isSync)
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingSyncWindowCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> syncWindowCaptureTasks_;
