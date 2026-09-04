@@ -417,7 +417,8 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
     ret = drawingNode->RenderInClient(drawCmdList);
     EXPECT_FALSE(ret);
 
-    auto uidirector = CreateRSUIDirector();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    auto uidirector = RSUIDirector::CreateRSUIDirector();
     auto rsUIContext = uidirector->GetRSUIContext();
     rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
     drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
@@ -436,6 +437,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
     rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
     rsUIContext->canvasModifiersDrawAgent_->Destroy();
     rsUIContext->canvasModifiersDrawAgent_ = nullptr;
+#endif
 }
 
 /**

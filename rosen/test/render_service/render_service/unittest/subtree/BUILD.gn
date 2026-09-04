@@ -20,14 +20,14 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSSubtreeTest"
+    ":RSSubtreeTest",
     ":RSParallelExecutorManagerMultiwinTest",
     ":RSParallelExecutorMultiwinTest",
     ":RSParallelManagerTest",
     ":RSParallelMultiwinPolicyTest",
     ":RSParallelRBPolicyTest",
     ":RSParallelGPUTest",
-	":RSPrimitiveTest",
+	  ":RSPrimitiveTest",
   ]
 }
 
@@ -63,6 +63,8 @@ ohos_unittest("RSParallelExecutorManagerMultiwinTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "egl:libEGL",
     "opengles:libGLES",
@@ -94,6 +96,8 @@ ohos_unittest("RSParallelExecutorMultiwinTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "egl:libEGL",
     "opengles:libGLES",
@@ -131,6 +135,8 @@ ohos_unittest("RSParallelRBPolicyTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "egl:libEGL",
     "opengles:libGLES",
@@ -164,6 +170,8 @@ ohos_unittest("RSParallelManagerTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "egl:libEGL",
     "opengles:libGLES",
@@ -196,6 +204,8 @@ ohos_unittest("RSParallelMultiwinPolicyTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "egl:libEGL",
     "opengles:libGLES",
@@ -233,6 +243,8 @@ ohos_unittest("RSParallelGPUTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "libpng:libpng",
     "egl:libEGL",
@@ -266,6 +278,8 @@ ohos_unittest("RSSubtreeTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "libpng:libpng",
     "egl:libEGL",
@@ -359,6 +373,8 @@ ohos_unittest("RSPrimitiveTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "memmgr:memmgrclient",
     "libpng:libpng",
   ]
@@ -378,6 +394,8 @@ ohos_static_library("rs_test_common") {
   external_deps = [
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
   ]
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]

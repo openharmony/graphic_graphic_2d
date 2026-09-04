@@ -78,6 +78,8 @@ ohos_unittest("RSScreenManagerTest") {
     "hisysevent:libhisysevent",
     "egl:libEGL",
     "opengles:libGLES",
+    "libxml2:libxml2",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
   ]
 
   # Add memmgr client dependency when memory manager integration is enabled so
@@ -537,6 +539,7 @@ ohos_unittest("RSScreenTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "libxml2:libxml2",
   ]
 
   subsystem_name = "graphic"

@@ -687,10 +687,10 @@ HWTEST_F(RSPipelineClientTest, RegisterCanvasCallbackTest, TestSize.Level1)
     auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::instance_ = nullptr;
     rsClient->RegisterCanvasCallback(nullptr);
-    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(INVALID_TOKEN_MASK_ID), nullptr);
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
     rsClient->RegisterCanvasCallback(nullptr);
-    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(INVALID_TOKEN_MASK_ID), nullptr);
 }
 
 /**
@@ -703,11 +703,11 @@ HWTEST_F(RSPipelineClientTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Leve
     ASSERT_NE(rsClient, nullptr);
     auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::instance_ = nullptr;
-    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(INVALID_TOKEN_MASK_ID), nullptr);
     auto ret = rsClient->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
     ASSERT_NE(ret, 0);
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
-    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(INVALID_TOKEN_MASK_ID), nullptr);
     ret = rsClient->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
     ASSERT_NE(ret, 0);
 }
@@ -847,20 +847,20 @@ HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection002, TestSize.Level1
  */
 HWTEST_F(RSPipelineClientTest, TriggerOnFinish001, TestSize.Level1)
 {
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     auto callback = std::make_shared<TestSurfaceBufferCallback>();
     uint64_t testUid = 999;
-    rsRenderPipelineClient->surfaceBufferCallbacks_[testUid] = callback;
- 
+    rsClient->surfaceBufferCallbacks_[testUid] = callback;
+
     FinishCallbackRet ret;
     ret.uid = testUid;
-    rsRenderPipelineClient->TriggerOnFinish(ret);
+    rsClient->TriggerOnFinish(ret);
     EXPECT_TRUE(callback->isOnFinishCalled_);
     EXPECT_EQ(callback->finishRet_.uid, testUid);
- 
-    rsRenderPipelineClient->surfaceBufferCallbacks_.erase(testUid);
+
+    rsClient->surfaceBufferCallbacks_.erase(testUid);
 }
- 
+
 /**
  * @tc.name: TriggerOnFinish002
  * @tc.desc: Test TriggerOnFinish with callback not found
@@ -869,12 +869,12 @@ HWTEST_F(RSPipelineClientTest, TriggerOnFinish001, TestSize.Level1)
  */
 HWTEST_F(RSPipelineClientTest, TriggerOnFinish002, TestSize.Level1)
 {
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     FinishCallbackRet ret;
     ret.uid = 12345;
-    rsRenderPipelineClient->TriggerOnFinish(ret);
+    rsClient->TriggerOnFinish(ret);
 }
- 
+
 /**
  * @tc.name: TriggerOnAfterAcquireBuffer001
  * @tc.desc: Test TriggerOnAfterAcquireBuffer with callback found
@@ -883,22 +883,22 @@ HWTEST_F(RSPipelineClientTest, TriggerOnFinish002, TestSize.Level1)
  */
 HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer001, TestSize.Level1)
 {
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     auto callback = std::make_shared<TestSurfaceBufferCallback>();
     uint64_t testUid = 888;
-    rsRenderPipelineClient->surfaceBufferCallbacks_[testUid] = callback;
- 
+    rsClient->surfaceBufferCallbacks_[testUid] = callback;
+
     AfterAcquireBufferRet ret;
     ret.uid = testUid;
     ret.isUniRender = true;
-    rsRenderPipelineClient->TriggerOnAfterAcquireBuffer(ret);
+    rsClient->TriggerOnAfterAcquireBuffer(ret);
     EXPECT_TRUE(callback->isOnAfterAcquireBufferCalled_);
     EXPECT_EQ(callback->afterAcquireBufferRet_.uid, testUid);
     EXPECT_EQ(callback->afterAcquireBufferRet_.isUniRender, true);
- 
-    rsRenderPipelineClient->surfaceBufferCallbacks_.erase(testUid);
+
+    rsClient->surfaceBufferCallbacks_.erase(testUid);
 }
- 
+
 /**
  * @tc.name: TriggerOnAfterAcquireBuffer002
  * @tc.desc: Test TriggerOnAfterAcquireBuffer with callback not found
@@ -907,11 +907,11 @@ HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer002, TestSize.Level1)
 {
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     AfterAcquireBufferRet ret;
     ret.uid = 54321;
     ret.isUniRender = false;
-    rsRenderPipelineClient->TriggerOnAfterAcquireBuffer(ret);
+    rsClient->TriggerOnAfterAcquireBuffer(ret);
 }
 
 /**

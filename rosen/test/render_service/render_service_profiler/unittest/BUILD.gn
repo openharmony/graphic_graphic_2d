@@ -75,6 +75,7 @@ ohos_unittest("RSProfilerArchiveTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -113,10 +114,18 @@ ohos_unittest("RSProfilerBaseTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ffrt:libffrt",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -158,6 +167,7 @@ ohos_unittest("RSProfilerTrace3DTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -189,6 +199,7 @@ ohos_unittest("RSProfilerCaptureDataTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -220,6 +231,7 @@ ohos_unittest("RSProfilerNetworkTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -251,6 +263,7 @@ ohos_unittest("RSProfilerPacketTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -282,6 +295,7 @@ ohos_unittest("RSProfilerSocketTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   use_exceptions = true
@@ -319,9 +333,17 @@ ohos_unittest("RSProfilerTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -350,9 +372,10 @@ ohos_unittest("RSProfilerTelemetryTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
-  external_deps = [ 
+  external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   use_exceptions = true
@@ -380,6 +403,7 @@ ohos_unittest("RSProfilerUtilsTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -406,6 +430,7 @@ ohos_unittest("RSProfilerCommandTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -442,6 +467,7 @@ ohos_unittest("RSProfilerHrpServiceTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -507,7 +533,12 @@ ohos_unittest("RSProfilerCapturingTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
   ]
 
   use_exceptions = true

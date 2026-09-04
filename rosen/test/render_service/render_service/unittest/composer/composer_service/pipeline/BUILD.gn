@@ -75,6 +75,8 @@ template("rs_render_composer_unittest") {
       "googletest:gmock_main",
       "egl:libEGL",
       "opengles:libGLES",
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "libxml2:libxml2",
     ]
     defines = []
     if (graphic_2d_feature_enable_vulkan) {

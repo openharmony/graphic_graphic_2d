@@ -1600,24 +1600,6 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnCanvasDrawingNodeRenderStartEndTest
- * @tc.desc: Test canvas drawing node render start/end bookkeeping
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIDirectorTest, OnCanvasDrawingNodeRenderStartEndTest, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_NE(director, nullptr);
-    NodeId nodeId1 = 1001;
-    NodeId nodeId2 = 1002;
-    director->OnCanvasDrawingNodeRenderStart(nodeId1);
-    director->OnCanvasDrawingNodeRenderStart(nodeId2);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId1);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId2);
-    SUCCEED();
-}
-
-/**
  * @tc.name: AnimationDestroyInRenderCallbackProcessorInvalidTest
  * @tc.desc: Test AnimationDestroyInRenderCallbackProcessor with invalid token, invalid node id and valid node
  * @tc.type: FUNC

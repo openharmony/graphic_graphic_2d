@@ -47,6 +47,8 @@ _common_external_deps = [
   "init:libbegetutil",
   "egl:libEGL",
   "opengles:libGLES",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "libxml2:libxml2",
 ]
 
 if (use_memmgr_plugin || use_memmgr) {
