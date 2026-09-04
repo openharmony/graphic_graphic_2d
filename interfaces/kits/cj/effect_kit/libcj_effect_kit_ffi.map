@@ -17,17 +17,10 @@
       Ffi*;
     };
     extern "C++" {
-      OHOS::CJEffectKit::CJColorPicker::CJColorPicker;
-      OHOS::CJEffectKit::CJColorPicker::~CJColorPicker;
-      /* CFI: vtable/typeinfo for polymorphic classes */
-      vtable*for*OHOS*CJEffectKit*CJColorPicker*;
-      typeinfo*for*OHOS*CJEffectKit*CJColorPicker*;
-      typeinfo*name*for*OHOS*CJEffectKit*CJColorPicker*;
-      OHOS::CJEffectKit::CJFilter::CJFilter;
-      OHOS::CJEffectKit::CJFilter::~CJFilter;
-      vtable*for*OHOS*CJEffectKit*CJFilter*;
-      typeinfo*for*OHOS*CJEffectKit*CJFilter*;
-      typeinfo*name*for*OHOS*CJEffectKit*CJFilter*;
+      OHOS::CJEffectKit::CJColorPicker::CJColorPicker*;
+      OHOS::CJEffectKit::CJColorPicker::~CJColorPicker*;
+      OHOS::CJEffectKit::CJFilter::CJFilter*;
+      OHOS::CJEffectKit::CJFilter::~CJFilter*;
     };
   local:
     *;
