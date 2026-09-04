@@ -20,7 +20,9 @@
 
 #include "draw/pen.h"
 #include "draw/color.h"
+#ifndef  ROSEN_ARKUI_X
 #include "ndk_color_space.h"
+#endif
 #ifdef OHOS_PLATFORM
 #include "utils/colorspace_convertor.h"
 #endif
