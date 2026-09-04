@@ -2328,6 +2328,76 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRecordCmdUtilsTest003
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest003, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    canvas->DrawRecordCmd(recordCmd2);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest004
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest004, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    Drawing::Matrix matrix;
+    canvas->DrawRecordCmd(recordCmd2, &matrix);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest005
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest005, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0.8, 0, 0, 0, 1.5, 0, 0.01, -0.003, 1); // custom matrix values
+    Drawing::Brush brush(Drawing::Color::COLOR_RED);
+    canvas->DrawRecordCmd(recordCmd2, &matrix, &brush);
+}
+
+/**
  * @tc.name: MarshallingDrawCmdListObjectLimitTest001
  * @tc.desc: Verify function Marshalling DrawCmdList with object count exceeding USHRT_MAX
  * @tc.type:FUNC
