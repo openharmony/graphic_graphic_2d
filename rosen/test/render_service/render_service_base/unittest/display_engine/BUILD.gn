@@ -167,6 +167,7 @@ group("unittest") {
     ":RSDisplayEngineControlTest",
     ":RSRenderServiceBaseDisplayEngineTest",
     "ipc_callbacks:DEStatusChangeCallbackTest",
+    "transaction:RSIDisplayEngineControlInterfaceCodeAccessVerifierTest",
     "transaction/zidl:RSDisplayEngineControlStubTest",
   ]
 }
