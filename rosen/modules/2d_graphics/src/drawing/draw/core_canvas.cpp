@@ -584,16 +584,26 @@ void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar
 
 void CoreCanvas::DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y)
 {
-    std::function<void(int, const Font&)> drawSingleCharacterProc = [&](int currentGlyph, const Font& currentFont) {
-        TextBlobBuilder textBlobBuilder;
-        const TextBlobBuilder::RunBuffer& runBuffer = textBlobBuilder.AllocRunPos(currentFont, 1);
-        runBuffer.glyphs[0] = currentGlyph;
-        runBuffer.pos[0] = 0;
-        runBuffer.pos[1] = 0;
-        std::shared_ptr<TextBlob> textBlob = textBlobBuilder.Make();
-        DrawTextBlob(textBlob.get(), x, y);
+    std::function<void(uint16_t, const Font&)> drawSingleCharacterProc = [&](uint16_t currentGlyph,
+        const Font& currentFont) {
+        uint16_t glyphs[1] = {currentGlyph};
+        Point positions[1] = {Point(0, 0)};
+        Point origin(x, y);
+        DrawGlyphs(1, glyphs, positions, origin, &currentFont);
     };
-    uint16_t glyph = font.UnicharToGlyph(unicode);
+    uint16_t glyph = 0;
+    auto typeface = font.GetTypeface();
+    if (typeface) {
+        GlyphCacheKey key = {unicode, typeface->GetHash(), {}};
+        if (!GlyphCache::Instance().Get(key, glyph)) {
+            glyph = font.UnicharToGlyph(unicode);
+            if (glyph != 0) {
+                GlyphCache::Instance().Put(key, glyph);
+            }
+        }
+    } else {
+        glyph = font.UnicharToGlyph(unicode);
+    }
     if (glyph != 0) {
         drawSingleCharacterProc(glyph, font);
     } else {
