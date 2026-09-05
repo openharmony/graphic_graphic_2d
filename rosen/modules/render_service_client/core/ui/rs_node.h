@@ -2094,10 +2094,6 @@ public:
         return false;
     }
 
-    // HybridDraw Start
-    void SetHybridRenderCanvas(bool hybridRenderCanvas) {}
-    // HybridDraw End
-
     bool CheckAndWaitForNodeRebuild();
 
     bool HasCreateRenderNodeInRS() const
