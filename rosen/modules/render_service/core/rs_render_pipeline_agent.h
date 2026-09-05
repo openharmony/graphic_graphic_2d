@@ -107,6 +107,10 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
+
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

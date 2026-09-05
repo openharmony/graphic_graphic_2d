@@ -240,6 +240,26 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
     EXPECT_FALSE(result);
 }
 
+/**
+ * @tc.name: GlobalBlackListTest001
+ * @tc.desc: test Set/Add/RemoveGlobalBlackList delegate to render pipeline client
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderInterfaceTest, GlobalBlackListTest001, TestSize.Level2)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+
+    std::vector<NodeId> blackList = {1};
+    int32_t ret = renderInterface->SetGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->AddGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->RemoveGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+}
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
  * @tc.name: RebuildInactiveRootNodeIfNeeded001

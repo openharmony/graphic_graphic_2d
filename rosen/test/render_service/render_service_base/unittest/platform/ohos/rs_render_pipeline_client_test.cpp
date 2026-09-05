@@ -805,6 +805,31 @@ HWTEST_F(RSPipelineClientTest, SetLogicalCameraRotationCorrection, TestSize.Leve
 }
 
 /**
+ * @tc.name: GlobalBlackList Test
+ * @tc.desc: Test Set/Add/RemoveGlobalBlackList when clientToRenderConnection is null and valid
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSPipelineClientTest, GlobalBlackList, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<NodeId> blackList = {TEST_ID};
+
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    ASSERT_EQ(rsClient->SetGlobalBlackList(blackList), RENDER_SERVICE_NULL);
+    ASSERT_EQ(rsClient->AddGlobalBlackList(blackList), RENDER_SERVICE_NULL);
+    ASSERT_EQ(rsClient->RemoveGlobalBlackList(blackList), RENDER_SERVICE_NULL);
+
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    ASSERT_EQ(rsClient->SetGlobalBlackList(blackList), SUCCESS);
+    ASSERT_EQ(rsClient->AddGlobalBlackList(blackList), SUCCESS);
+    ASSERT_EQ(rsClient->RemoveGlobalBlackList(blackList), SUCCESS);
+    // reset
+    ASSERT_EQ(rsClient->SetGlobalBlackList({}), SUCCESS);
+}
+
+/**
  * @tc.name: UpdateFrameStabilityDetection001
  * @tc.desc: Test UpdateFrameStabilityDetection with valid parameters
  * @tc.type: FUNC

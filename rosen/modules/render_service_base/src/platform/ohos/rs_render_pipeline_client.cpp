@@ -1036,6 +1036,36 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
     return clientToRenderConnection->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
+int32_t RSRenderPipelineClient::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->SetGlobalBlackList(blackList);
+}
+
+int32_t RSRenderPipelineClient::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::AddGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->AddGlobalBlackList(blackList);
+}
+
+int32_t RSRenderPipelineClient::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::RemoveGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->RemoveGlobalBlackList(blackList);
+}
+
 int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);

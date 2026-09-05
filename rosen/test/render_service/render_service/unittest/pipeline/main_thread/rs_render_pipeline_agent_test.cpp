@@ -14,6 +14,7 @@
  */
 
 #include <memory>
+#include <unordered_set>
 
 #include <iremote_stub.h>
 #include "gtest/gtest.h"
@@ -24,6 +25,7 @@
 #include "buffer_handle_utils.h"
 #endif
 
+#include "common/rs_special_layer_manager.h"
 #include "consumer_surface.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
@@ -73,6 +75,14 @@ void AddForceTunnelConfig()
     surfaceUtils->AddTunnelLayerConfig(FORCE_TUNNEL_CONFIG_KEY);
 }
 
+std::unordered_set<NodeId> GetGlobalBlackListOnMainThread()
+{
+    std::unordered_set<NodeId> blackList;
+    RSMainThread::Instance()->PostSyncTask(
+        [&blackList]() { blackList = ScreenSpecialLayerInfo::GetGlobalBlackList(); });
+    return blackList;
+}
+
 class RSFrameStabilityCallbackStubMock : public RSFrameStabilityCallbackStub {
 public:
     RSFrameStabilityCallbackStubMock() = default;
@@ -86,7 +96,11 @@ public:
     static inline std::shared_ptr<RSScreenRenderNode> screenNode_ = nullptr;
     static void SetUpTestCase();
     static void TearDownTestCase();
-    void SetUp() override {}
+    void SetUp() override
+    {
+        RSMainThread::Instance()->PostSyncTask(
+            []() { ScreenSpecialLayerInfo::SetGlobalBlackList({}); });
+    }
     void TearDown() override
     {
         ClearForceTunnelConfig();
@@ -2204,7 +2218,97 @@ HWTEST_F(RSRenderPipelineAgentTest, OnGlobalBlacklistChangedWithValidPipeline, T
     }
 
     agent->OnGlobalBlacklistChanged({});
-    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+    ASSERT_EQ(GetGlobalBlackListOnMainThread().size(), 0);
+}
+
+/**
+ * @tc.name: GlobalBlackList_NullPipeline_ReturnInvalidValue
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList return ERR_INVALID_VALUE when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_NullPipeline_ReturnInvalidValue, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<NodeId> blackList = {DEFAULT_ID};
+    ASSERT_EQ(agent->SetGlobalBlackList(blackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->AddGlobalBlackList(blackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->RemoveGlobalBlackList(blackList), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GlobalBlackList_ValidPipeline_SetAddRemove
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList update the render-side global blacklist with valid pipeline
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_ValidPipeline_SetAddRemove, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    ASSERT_EQ(agent->SetGlobalBlackList({DEFAULT_ID}), ERR_OK);
+
+    ASSERT_EQ(agent->AddGlobalBlackList({DEFAULT_ID + 1}), ERR_OK);
+
+    ASSERT_EQ(agent->RemoveGlobalBlackList({DEFAULT_ID, DEFAULT_ID + 1}), ERR_OK);
+}
+
+/**
+ * @tc.name: GlobalBlackList_OverMaxInputSize_ReturnInvalidValue
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList reject input larger than MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_OverMaxInputSize_ReturnInvalidValue, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<NodeId> overSizedBlackList;
+    for (NodeId nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM; nodeId++) {
+        overSizedBlackList.push_back(nodeId + 1);
+    }
+    ASSERT_EQ(agent->SetGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->AddGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->RemoveGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AddGlobalBlackList_AccumulatedOverMaxSize_NotInserted
+ * @tc.desc: Verify AddGlobalBlackList skips insertion when accumulated size exceeds MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AddGlobalBlackList_AccumulatedOverMaxSize_NotInserted, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    std::vector<NodeId> fullBlackList;
+    for (NodeId nodeId = 0; nodeId < MAX_SPECIAL_LAYER_NUM; nodeId++) {
+        fullBlackList.push_back(nodeId + 1);
+    }
+    ASSERT_EQ(agent->SetGlobalBlackList(fullBlackList), ERR_OK);
+
+    constexpr NodeId extraNodeId = 90003;
+    ASSERT_EQ(agent->AddGlobalBlackList({extraNodeId}), ERR_OK);
+    ASSERT_EQ(GetGlobalBlackListOnMainThread().size(), MAX_SPECIAL_LAYER_NUM);
 }
 
 /**

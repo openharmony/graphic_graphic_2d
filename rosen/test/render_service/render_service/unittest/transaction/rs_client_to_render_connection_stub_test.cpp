@@ -26,6 +26,7 @@
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
+#include "common/rs_special_layer_manager.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "gtest/gtest.h"
@@ -2916,6 +2917,222 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrection0
     data.WriteUint64(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetGlobalBlackListStubTest001
+ * @tc.desc: Test SET_GLOBAL_BLACKLIST with valid blacklist parcel
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetGlobalBlackListStubTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList = {1, 2};
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: SetGlobalBlackListStubTest002
+ * @tc.desc: Test SET_GLOBAL_BLACKLIST when ReadUInt64Vector failed
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetGlobalBlackListStubTest002, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: AddGlobalBlackListStubTest001
+ * @tc.desc: Test ADD_GLOBAL_BLACKLIST with valid blacklist parcel
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AddGlobalBlackListStubTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList = {1, 2};
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: AddGlobalBlackListStubTest002
+ * @tc.desc: Test ADD_GLOBAL_BLACKLIST when ReadUInt64Vector failed
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AddGlobalBlackListStubTest002, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackListStubTest001
+ * @tc.desc: Test REMOVE_GLOBAL_BLACKLIST with valid blacklist parcel
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RemoveGlobalBlackListStubTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList = {1, 2};
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackListStubTest002
+ * @tc.desc: Test REMOVE_GLOBAL_BLACKLIST when ReadUInt64Vector failed
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RemoveGlobalBlackListStubTest002, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetGlobalBlackListStubTest003
+ * @tc.desc: Test SET_GLOBAL_BLACKLIST when blacklist size exceeds MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetGlobalBlackListStubTest003, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AddGlobalBlackListStubTest003
+ * @tc.desc: Test ADD_GLOBAL_BLACKLIST when blacklist size exceeds MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AddGlobalBlackListStubTest003, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackListStubTest003
+ * @tc.desc: Test REMOVE_GLOBAL_BLACKLIST when blacklist size exceeds MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RemoveGlobalBlackListStubTest003, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
+    data.WriteUInt64Vector(blackList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetGlobalBlackListNullAgentTest001
+ * @tc.desc: Test SetGlobalBlackList returns ERR_INVALID_VALUE when renderPipelineAgent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetGlobalBlackListNullAgentTest001, TestSize.Level2)
+{
+    sptr<RSClientToRenderConnection> nullAgentConnection =
+        new RSClientToRenderConnection(0, nullptr, token_->AsObject());
+    ASSERT_NE(nullAgentConnection, nullptr);
+    std::vector<NodeId> blackList = {1, 2};
+    int32_t res = nullAgentConnection->SetGlobalBlackList(blackList);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AddGlobalBlackListNullAgentTest001
+ * @tc.desc: Test AddGlobalBlackList returns ERR_INVALID_VALUE when renderPipelineAgent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, AddGlobalBlackListNullAgentTest001, TestSize.Level2)
+{
+    sptr<RSClientToRenderConnection> nullAgentConnection =
+        new RSClientToRenderConnection(0, nullptr, token_->AsObject());
+    ASSERT_NE(nullAgentConnection, nullptr);
+    std::vector<NodeId> blackList = {1, 2};
+    int32_t res = nullAgentConnection->AddGlobalBlackList(blackList);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackListNullAgentTest001
+ * @tc.desc: Test RemoveGlobalBlackList returns ERR_INVALID_VALUE when renderPipelineAgent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RemoveGlobalBlackListNullAgentTest001, TestSize.Level2)
+{
+    sptr<RSClientToRenderConnection> nullAgentConnection =
+        new RSClientToRenderConnection(0, nullptr, token_->AsObject());
+    ASSERT_NE(nullAgentConnection, nullptr);
+    std::vector<NodeId> blackList = {1, 2};
+    int32_t res = nullAgentConnection->RemoveGlobalBlackList(blackList);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
 }
 
 /**

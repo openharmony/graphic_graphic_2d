@@ -366,4 +366,52 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }
+
+/**
+ * @tc.name: SetGlobalBlackListAccessCheck
+ * @tc.desc: test SET_GLOBAL_BLACKLIST permission checking gated by system calling
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetGlobalBlackListAccessCheck,
+    testing::ext::TestSize.Level2)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
+
+/**
+ * @tc.name: AddGlobalBlackListAccessCheck
+ * @tc.desc: test ADD_GLOBAL_BLACKLIST permission checking gated by system calling
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, AddGlobalBlackListAccessCheck,
+    testing::ext::TestSize.Level2)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackListAccessCheck
+ * @tc.desc: test REMOVE_GLOBAL_BLACKLIST permission checking gated by system calling
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, RemoveGlobalBlackListAccessCheck,
+    testing::ext::TestSize.Level2)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
 } // namespace OHOS::Rosen

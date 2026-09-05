@@ -1749,6 +1749,75 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
     return result;
 }
 
+int32_t RSClientToRenderConnectionProxy::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetGlobalBlackList: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUInt64Vector(blackList)) {
+        ROSEN_LOGE("SetGlobalBlackList: WriteUInt64Vector blackList err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetGlobalBlackList: SendRequest error: %{public}d", err);
+        return RS_CONNECTION_ERROR;
+    }
+    return ERR_OK;
+}
+
+int32_t RSClientToRenderConnectionProxy::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("AddGlobalBlackList: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUInt64Vector(blackList)) {
+        ROSEN_LOGE("AddGlobalBlackList: WriteUInt64Vector blackList err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("AddGlobalBlackList: SendRequest error: %{public}d", err);
+        return RS_CONNECTION_ERROR;
+    }
+    return ERR_OK;
+}
+
+int32_t RSClientToRenderConnectionProxy::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RemoveGlobalBlackList: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUInt64Vector(blackList)) {
+        ROSEN_LOGE("RemoveGlobalBlackList: WriteUInt64Vector blackList err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RemoveGlobalBlackList: SendRequest error: %{public}d", err);
+        return RS_CONNECTION_ERROR;
+    }
+    return ERR_OK;
+}
+
 int32_t RSClientToRenderConnectionProxy::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     MessageParcel data;

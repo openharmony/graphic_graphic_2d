@@ -278,6 +278,35 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetGlobalDarkColorMode, TestSize.L
 }
 
 /**
+ * @tc.name: SetGlobalBlackList Test
+ * @tc.desc: SetGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SetGlobalBlackList, TestSize.Level1)
+{
+    std::vector<NodeId> blackList = {1, 2, 3};
+    ASSERT_EQ(proxy->SetGlobalBlackList(blackList), ERR_OK);
+    // reset
+    ASSERT_EQ(proxy->SetGlobalBlackList({}), ERR_OK);
+}
+
+/**
+ * @tc.name: AddRemoveGlobalBlackList Test
+ * @tc.desc: AddGlobalBlackList and RemoveGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, AddRemoveGlobalBlackList, TestSize.Level1)
+{
+    std::vector<NodeId> blackList = {1};
+    ASSERT_EQ(proxy->AddGlobalBlackList(blackList), ERR_OK);
+    ASSERT_EQ(proxy->RemoveGlobalBlackList(blackList), ERR_OK);
+    // reset
+    ASSERT_EQ(proxy->SetGlobalBlackList({}), ERR_OK);
+}
+
+/**
  * @tc.name: GetPixelmap Test
  * @tc.desc: GetPixelmap Test
  * @tc.type:FUNC

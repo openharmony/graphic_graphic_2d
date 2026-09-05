@@ -15,6 +15,7 @@
 
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
+#include "common/rs_special_layer_manager.h"
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_delegate_composite_command.h"
 #include "command/rs_display_node_command.h"
@@ -1011,6 +1012,64 @@ int32_t RSRenderPipelineAgent::SetLogicalCameraRotationCorrection(ScreenId scree
                 node->SetLogicalCameraRotationCorrection(logicalCorrection);
             }
         });
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+int32_t RSRenderPipelineAgent::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("RSRenderPipelineAgent:%{public}s global blacklist is over max size!", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+        ScreenSpecialLayerInfo::SetGlobalBlackList(
+            std::unordered_set<NodeId>(blackList.begin(), blackList.end()));
+        RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+int32_t RSRenderPipelineAgent::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("RSRenderPipelineAgent:%{public}s global blacklist is over max size!", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+        ScreenSpecialLayerInfo::AddGlobalBlackList(blackList);
+        RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+int32_t RSRenderPipelineAgent::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("RSRenderPipelineAgent:%{public}s global blacklist is over max size!", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+        ScreenSpecialLayerInfo::RemoveGlobalBlackList(blackList);
+        RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;

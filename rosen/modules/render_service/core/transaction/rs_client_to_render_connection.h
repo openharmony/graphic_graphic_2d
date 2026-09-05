@@ -170,6 +170,10 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList) override;
+
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,

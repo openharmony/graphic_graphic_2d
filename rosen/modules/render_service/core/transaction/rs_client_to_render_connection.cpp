@@ -738,6 +738,33 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
 }
 
+int32_t RSClientToRenderConnection::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetGlobalBlackList(blackList);
+}
+
+int32_t RSClientToRenderConnection::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->AddGlobalBlackList(blackList);
+}
+
+int32_t RSClientToRenderConnection::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RemoveGlobalBlackList(blackList);
+}
+
 ErrCode RSClientToRenderConnection::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     if (renderPipelineAgent_ == nullptr) {
