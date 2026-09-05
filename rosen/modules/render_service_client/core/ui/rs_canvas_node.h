@@ -153,6 +153,17 @@ public:
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     /**
+     * @brief Sets whether the node is on the tree, flushes cached custom modifier properties when on-tree.
+     */
+    void SetIsOnTheTree(bool onTheTree) override;
+
+    /**
+     * @brief Flushes cached modifier properties when node goes back on the tree.
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    bool FlushCachedModifiers() override;
+
+    /**
      * @brief Set a pixel map.
      *
      * @param pixelMap A shared pointer to a Media::PixelMap object.

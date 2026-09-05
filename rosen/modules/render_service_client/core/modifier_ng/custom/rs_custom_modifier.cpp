@@ -150,6 +150,12 @@ void RSCustomModifier::UpdateToRender()
         property->stagingValue_ = drawCmdList;
     }
     property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
+    // For CanvasNode: cache property when off-tree, don't send to server
+    if (!node->GetIsOnTheTree() && node->GetType() == RSUINodeType::CANVAS_NODE) {
+        cachedDrawCmdList_ = drawCmdList;
+        cachedPropertyId_ = property->GetId();
+        return;
+    }
     UpdateProperty(node, drawCmdList, property->GetId());
 }
 
@@ -172,6 +178,29 @@ void RSCustomModifier::UpdateProperty(
         std::unique_ptr<RSCommand> commandForRemote =
             std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, propertyId);
         node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+    }
+}
+
+bool RSCustomModifier::FlushCachedProperty()
+{
+    if (cachedPropertyId_ == 0) {
+        return false;
+    }
+    auto node = node_.lock();
+    if (node == nullptr) {
+        return false;
+    }
+    UpdateProperty(node, cachedDrawCmdList_, cachedPropertyId_);
+    cachedDrawCmdList_ = nullptr;
+    cachedPropertyId_ = 0;
+    return true;
+}
+
+void RSCustomModifier::OnDetachProperty(PropertyId id)
+{
+    if (cachedPropertyId_ != 0 && cachedPropertyId_ == id) {
+        cachedDrawCmdList_ = nullptr;
+        cachedPropertyId_ = 0;
     }
 }
 } // namespace OHOS::Rosen::ModifierNG
