@@ -227,6 +227,7 @@ void RSComposerClient::ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerS
     composerScreenInfo.activeRect = screenInfo.activeRect;
     composerScreenInfo.maskRect = screenInfo.maskRect;
     composerScreenInfo.reviseRect = screenInfo.reviseRect;
+    composerScreenInfo.samplingMode = screenInfo.samplingMode;
 }
 
 void RSComposerClient::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)

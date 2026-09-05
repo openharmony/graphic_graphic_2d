@@ -30,6 +30,7 @@ namespace {
 const RectI DEFAULT_RECT = { 0, 0, 100, 100 };
 const int32_t MAX_DIRTY_RECT_LIMITATION_PER_NODE = 10;
 const int MIN_DIRTY_RECT_LIMITATION = 1;
+constexpr int32_t ROG_SCALE = 2;
 } // namespace
 class RSDirtyRegionManagerTest : public testing::Test {
 public:
@@ -1558,5 +1559,40 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateMultipleCalls, 
     dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::DISABLED);
     dirtyManager.UpdateMaxNumOfDirtyRectByState();
     EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+}
+
+/**
+ * @tc.name: Scale001
+ * @tc.desc: test Scale skips scaling when scaleX is not positive
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSDirtyRegionManagerTest, Scale001, TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.SetCurrentFrameDirtyRect(DEFAULT_RECT);
+ 
+    dirtyManager.Scale(0.f, ROG_SCALE);
+    ASSERT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+    dirtyManager.Scale(ROG_SCALE, 0.f);
+    ASSERT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+
+/**
+ * @tc.name: Scale002
+ * @tc.desc: test Scale scales every rect of currentFrameAdvancedDirtyRegion_
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSDirtyRegionManagerTest, Scale002, TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.MergeDirtyRect(DEFAULT_RECT);
+    dirtyManager.Scale(ROG_SCALE, ROG_SCALE);
+ 
+    auto advancedDirtyRegion = dirtyManager.GetCurrentFrameAdvancedDirtyRegion();
+    RectI expectedRect(0, 0, DEFAULT_RECT.GetWidth() * ROG_SCALE, DEFAULT_RECT.GetHeight() * ROG_SCALE);
+    ASSERT_EQ(advancedDirtyRegion[0], expectedRect);
 }
 } // namespace OHOS::Rosen

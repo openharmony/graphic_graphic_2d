@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include "common/rs_common_def.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_optional_trace.h"
 
@@ -364,6 +366,21 @@ bool RSDirtyRegionManager::SetBufferAge(const int age)
     }
     bufferAge_ = static_cast<unsigned int>(age);
     return true;
+}
+
+void RSDirtyRegionManager::Scale(float scaleX, float scaleY)
+{
+    if (ROSEN_LE(scaleX, 0.f) || ROSEN_LE(scaleY, 0.f)) {
+        RS_LOGW("%{public}s invalid scale x:%{public}f y:%{public}f, skip dirty scale",
+            __func__, scaleX, scaleY);
+        return;
+    }
+    Drawing::Matrix scaleMatrix;
+    scaleMatrix.SetScale(scaleX, scaleY);
+    currentFrameDirtyRegion_ = RSObjAbsGeometry::MapRect(currentFrameDirtyRegion_.ConvertTo<float>(), scaleMatrix);
+    for (auto& rect : currentFrameAdvancedDirtyRegion_) {
+        rect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
+    }
 }
 
 void RSDirtyRegionManager::MergeSurfaceRect()

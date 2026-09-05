@@ -4795,11 +4795,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase003, TestSize.Level
 
     connection->screenManagerAgent_ = nullptr;
     // test SetRogScreenResolution
-    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0);
+    connection->SetRogScreenResolution(INVALID_SCREEN_ID, 0, 0, ScreenSamplingMode::DEVICE_DSS);
     // test GetRogScreenResolution
     uint32_t width = 0;
     uint32_t height = 0;
-    connection->GetRogScreenResolution(INVALID_SCREEN_ID, width, height);
+    connection->GetRogScreenResolution(INVALID_SCREEN_ID, width, height, ScreenSamplingMode::DEVICE_DSS);
     // test MarkPowerOffNeedProcessOneFrame
     connection->MarkPowerOffNeedProcessOneFrame();
     // test RepaintEverything

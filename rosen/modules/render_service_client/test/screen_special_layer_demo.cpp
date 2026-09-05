@@ -69,6 +69,8 @@ int main(int argc, char* argv[])
         ScreenSpecialLayerDemoUtils::SetVirtualScreenRefreshRate(argc, argv);
     } else if (MODIFY_LIST_FUNC_MAP.find(func) != MODIFY_LIST_FUNC_MAP.end()) {
         ScreenSpecialLayerDemoUtils::ModifySpecialLayerList(argc, argv);
+    } else if (func == "SetRogScreenResolution") {
+        ScreenSpecialLayerDemoUtils::SetRogScreenResolution(argc, argv);
     } else {
         std::cerr << "Invalid command.";
         return -1;
