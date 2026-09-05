@@ -17,9 +17,8 @@
       CJ_*;
     };
     extern "C++" {
-      Utils::MallocCString*;
-      OHOS::ColorManager::CjColorManager::CjColorManager*;
-      OHOS::ColorManager::CjColorManager::~CjColorManager*;
+      "Utils::MallocCString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+      "OHOS::ColorManager::CjColorManager::CjColorManager(std::__h::shared_ptr<OHOS::ColorManager::ColorSpace>)";
     };
   local:
     *;
