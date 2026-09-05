@@ -602,6 +602,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
                 SplitDrawCmdList(OP_COUNT_LIMIT_PER_FRAME - lastOpCount, drawCmdList, true);
             } else {
                 drawCmdListsNG_[modifierType].emplace_back(drawCmdList);
+                hasDrawCmdList_ = true;
                 opCountAfterReset_ += opItemSize;
             }
         }
@@ -626,6 +627,7 @@ size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
             break;
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(drawCmdList);
+        hasDrawCmdList_ = true;
         cachedOpCount_ -= opItemSize;
         opCountAfterReset_ += opItemSize;
     }
@@ -678,6 +680,7 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
             cachedOpCount_ -= firstCmdList->GetOpItemSize();
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(firstCmdList);
+        hasDrawCmdList_ = true;
         opCountAfterReset_ += firstCmdList->GetOpItemSize();
     }
     drawCmdList->ClearOp();
@@ -880,9 +883,16 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     bufferDirty_ = true;
     MarkNonGeometryChanged();
     SetContentDirty();
-    if (!firstBufferAcquired_ && buffer != nullptr) {
+
+    if (buffer != nullptr) {
+        if (!firstBufferAcquired_ || hasDrawCmdList_) {
+            ClearOp();
+        }
+        if (hasDrawCmdList_) {
+            hasDrawCmdList_ = false;
+            dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+        }
         firstBufferAcquired_ = true;
-        ClearOp();
     }
     if (canvasParams->IsBufferSynced()) {
         canvasParams->SetPreBuffer(preBuffer, preBufferOwnerCount);

@@ -166,6 +166,7 @@ private:
     size_t opCountAfterReset_ = 0;
 
     bool modifiersApplied_ = false;
+    bool hasDrawCmdList_ = false;
 
     static inline bool hybridEnabled_ = false;
 

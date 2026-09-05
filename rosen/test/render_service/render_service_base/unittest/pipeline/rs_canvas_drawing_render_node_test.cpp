@@ -54,13 +54,13 @@ void RSCanvasDrawingRenderNodeTest::SetUpTestCase()
 {
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
 }
+
 void RSCanvasDrawingRenderNodeTest::TearDownTestCase()
 {
-    if (canvas_) {
-        delete canvas_;
-        canvas_ = nullptr;
-    }
+    delete canvas_;
+    canvas_ = nullptr;
 }
+
 void RSCanvasDrawingRenderNodeTest::SetUp() {}
 void RSCanvasDrawingRenderNodeTest::TearDown() {}
 
@@ -201,7 +201,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedResetSurfaceTest, TestSize.Level1)
     rsCanvasDrawingRenderNode.surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(width, height);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.IsNeedResetSurface());
 }
-
 
 /**
  * @tc.name: InitRenderParamsTest
@@ -1043,6 +1042,75 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncConsumerSurfaceTest, TestSize.Leve
     ASSERT_EQ(drawableParams->GetConsumerSurface(), nullptr);
     stagingParams->OnSync(node->renderDrawable_->GetRenderParams());
     ASSERT_EQ(drawableParams->GetConsumerSurface(), consumerSurface);
+}
+
+/**
+ * @tc.name: AddDirtyTypeHasDrawCmdListTest
+ * @tc.desc: Test AddDirtyType sets hasDrawCmdList_ when CONTENT_STYLE modifier has small drawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeHasDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(50);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(
+        Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    Drawing::Brush brush;
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    property->GetRef() = simpleCmdList;
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    RSRenderNode::ModifierNGContainer vecModifier = { modifier };
+    node->modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(node->hasDrawCmdList_);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoHasDrawCmdListTest
+ * @tc.desc: Test UpdateBufferInfo when firstBufferAcquired_ and hasDrawCmdList_ are true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(51);
+    node->InitRenderParams();
+    node->firstBufferAcquired_ = true;
+    node->hasDrawCmdList_ = true;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), false);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> ownerCount = nullptr;
+    Rect damageRect;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->hasDrawCmdList_);
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+    EXPECT_TRUE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoFirstBufferNoDrawCmdListTest
+ * @tc.desc: Test UpdateBufferInfo when firstBufferAcquired_ is true but hasDrawCmdList_ is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(52);
+    node->InitRenderParams();
+    node->firstBufferAcquired_ = true;
+    node->hasDrawCmdList_ = false;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> ownerCount = nullptr;
+    Rect damageRect;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
 }
 #endif
 } // namespace OHOS::Rosen
