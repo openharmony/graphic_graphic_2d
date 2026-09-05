@@ -523,4 +523,14 @@ void HgmEnergyConsumptionPolicy::NotifyVideoParams(const std::unordered_map<std:
             decRate, pid, avcodeVideoCallEnable_.load());
     }
 }
+
+void HgmEnergyConsumptionPolicy::SetRsFrameRateControlEnabled(bool enabled)
+{
+    rsFrameRateControlEnabled_.store(enabled);
+}
+
+bool HgmEnergyConsumptionPolicy::GetRsFrameRateControlEnabled() const
+{
+    return rsFrameRateControlEnabled_.load();
+}
 } // namespace OHOS::Rosen

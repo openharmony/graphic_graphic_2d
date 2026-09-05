@@ -509,7 +509,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     }
     FrameRateReport();
     bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
-        appFrameRateLinkers_, currRefreshRate_, rsFrameRateControlEnabled_.load());
+        appFrameRateLinkers_, currRefreshRate_);
     CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(lastVoteInfo_);
 }
@@ -601,7 +601,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = softVSyncManager_.GetSoftAppChangeData();
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData;
-    if (rsFrameRateControlEnabled_.load()) {
+    if (HgmEnergyConsumptionPolicy::Instance().GetRsFrameRateControlEnabled()) {
         rsChangeData = softVSyncManager_.GetSoftRsChangeData();
     }
     if (delayTime != 0) {
@@ -761,7 +761,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
 
 uint32_t HgmFrameRateManager::CalcRefreshRateForLtpoVote(const ScreenId id, const FrameRateRange& range) const
 {
-    if (!rsFrameRateControlEnabled_.load()) {
+    if (!HgmEnergyConsumptionPolicy::Instance().GetRsFrameRateControlEnabled()) {
         return CalcRefreshRate(id, range);
     }
 
@@ -821,7 +821,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HandleLowPowerSlideSceneEvent(eventInfo.description, eventInfo.eventStatus);
         return;
     } else if (eventName == "RS_FRAME_RATE_CONTROL_ENABLE") {
-        rsFrameRateControlEnabled_.store(eventInfo.eventStatus);
+        HgmEnergyConsumptionPolicy::Instance().SetRsFrameRateControlEnabled(eventInfo.eventStatus);
         return;
     }
     const auto& voters = frameVoter_.GetVoters();
@@ -1332,7 +1332,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
     bool rsFrameRateChanged = false;
-    if (rsFrameRateControlEnabled_.load() && rsFrameRateLinker_ != nullptr) {
+    if (HgmEnergyConsumptionPolicy::Instance().GetRsFrameRateControlEnabled() && rsFrameRateLinker_ != nullptr) {
         rsFrameRateChanged = softVSyncManager_.CheckRsFrameRateChange(finalRange, refreshRate);
     }
     if (refreshRate == currRefreshRate_ && !voterTouchEffective_ && !rsFrameRateChanged) {
@@ -1354,7 +1354,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     bool frameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
         frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
-            appFrameRateLinkers_, currRefreshRate_, rsFrameRateControlEnabled_.load());
+            appFrameRateLinkers_, currRefreshRate_);
     }
     CheckRefreshRateChange(false, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(resultVoteInfo);

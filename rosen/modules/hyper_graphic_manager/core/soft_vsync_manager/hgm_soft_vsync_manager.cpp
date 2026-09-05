@@ -174,8 +174,7 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
 // LCOV_EXCL_START
 bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
                                                  const FrameRateLinkerMap& appFrameRateLinkers,
-                                                 const uint32_t currRefreshRate,
-                                                 bool rsFrameRateControlEnabled)
+                                                 const uint32_t currRefreshRate)
 {
     auto sharedController = controller_.lock();
     if (sharedController == nullptr) {
@@ -187,7 +186,7 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
     bool controllerRateChanged = false;
     uint32_t rsFrameRate = 0;
     controllerRate_ = currRefreshRate > 0 ? currRefreshRate : sharedController->GetCurrentRate();
-    if (rsFrameRateControlEnabled) {
+    if (HgmEnergyConsumptionPolicy::Instance().GetRsFrameRateControlEnabled()) {
         rsFrameRate = CalcRsFrameRate(finalRange, controllerRate_);
     }
     if (controllerRate_ != sharedController->GetCurrentRate() || rsFrameRate_ != rsFrameRate) {

@@ -45,8 +45,9 @@ public:
                                       const std::unordered_map<WindowId, EventInfo>& voters);
     void SetWindowExpectedRefreshRate(pid_t pid,
                                       const std::unordered_map<VsyncName, EventInfo>& voters);
-    bool CollectFrameRateChange(FrameRateRange finalRange, const FrameRateLinkerMap& appFrameRateLinkers,
-        const uint32_t currRefreshRate, bool rsFrameRateControlEnabled);
+    bool CollectFrameRateChange(FrameRateRange finalRange
+                                const FrameRateLinkerMap& appFrameRateLinkers,
+                                const uint32_t currRefreshRate);
     bool CheckRsFrameRateChange(const FrameRateRange& range, uint32_t refreshRate) const;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftAppChangeData();
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftRsChangeData();
