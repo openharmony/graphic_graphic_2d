@@ -525,4 +525,55 @@ HWTEST_F(RSSpecialLayerManagerTest, SetGlobalBlackList001, TestSize.Level2)
     // Clean up
     ScreenSpecialLayerInfo::SetGlobalBlackList({});
 }
+
+/**
+ * @tc.name: AddGlobalBlackList001
+ * @tc.desc: test ScreenSpecialLayerInfo::AddGlobalBlackList
+ * @tc.type: FUNC
+ * @tc.require: issue20875
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddGlobalBlackList001, TestSize.Level2)
+{
+    ScreenSpecialLayerInfo::AddGlobalBlackList({GenerateNodeId()});
+    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 1);
+
+    // Clean up
+    ScreenSpecialLayerInfo::SetGlobalBlackList({});
+}
+
+/**
+ * @tc.name: AddGlobalBlackList002
+ * @tc.desc: test ScreenSpecialLayerInfo::AddGlobalBlackList rejects input over MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require: issue20875
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddGlobalBlackList002, TestSize.Level2)
+{
+    std::vector<NodeId> maxBlackList;
+    for (size_t i = 0; i <= MAX_SPECIAL_LAYER_NUM; i++) {
+        maxBlackList.push_back(GenerateNodeId());
+    }
+    ScreenSpecialLayerInfo::AddGlobalBlackList(maxBlackList);
+    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+
+    // Clean up
+    ScreenSpecialLayerInfo::SetGlobalBlackList({});
+}
+
+/**
+ * @tc.name: RemoveGlobalBlackList001
+ * @tc.desc: test ScreenSpecialLayerInfo::RemoveGlobalBlackList erases node ids in place
+ * @tc.type: FUNC
+ * @tc.require: issue20875
+ */
+HWTEST_F(RSSpecialLayerManagerTest, RemoveGlobalBlackList001, TestSize.Level2)
+{
+    NodeId nodeId = GenerateNodeId();
+    ScreenSpecialLayerInfo::SetGlobalBlackList({nodeId});
+    ScreenSpecialLayerInfo::RemoveGlobalBlackList({nodeId});
+    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+
+    // Clean up
+    ScreenSpecialLayerInfo::SetGlobalBlackList({});
+}
 } // namespace OHOS::Rosen
