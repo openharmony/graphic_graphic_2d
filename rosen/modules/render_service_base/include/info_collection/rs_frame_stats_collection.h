@@ -65,13 +65,14 @@ struct FrameStatsCounter {
     static constexpr size_t RATE_COUNT = 15;
     static constexpr size_t LAYER_SLOTS = 5; // track layers 1,2,3,4,5+
     static constexpr size_t PER_LAYER_RATE_TOTAL = LAYER_SLOTS * RATE_COUNT;
+    // Supported frame rates, must be kept in sync with IDEAL_PERIOD in hgm_command.h
+    static constexpr uint32_t RATES[] = { 10, 15, 20, 24, 30, 36, 40, 45, 48, 60, 72, 80, 90, 120, 144 };
 
     // Rate index mapping (aligned with IDEAL_PERIOD)
     static size_t RateSlot(uint32_t rate)
     {
-        static constexpr uint32_t rates[] = { 10, 15, 20, 24, 30, 36, 40, 45, 48, 60, 72, 80, 90, 120, 144 };
         for (size_t i = 0; i < RATE_COUNT; ++i) {
-            if (rates[i] == rate) {
+            if (RATES[i] == rate) {
                 return i;
             }
         }
