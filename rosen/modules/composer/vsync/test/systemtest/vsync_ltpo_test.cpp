@@ -168,10 +168,10 @@ void VSyncLTPOTest::Process1()
     int changeRefreshRate = 0;
     read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
     std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {{1, 120}}; // 120hz
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates
-    };
+    }};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
         .cb = appController,
         .phaseByPulseNum = 0
@@ -217,10 +217,10 @@ void VSyncLTPOTest::Process1()
     changeRefreshRate = 0;
     read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
     refreshRates = {{1, 90}}; // 90hz
-    listenerRefreshRates = {
+    listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates
-    };
+    }};
     listenerPhaseOffset = {
         .cb = appController,
         .phaseByPulseNum = 1 // phase is 1 pulse
@@ -265,10 +265,10 @@ void VSyncLTPOTest::Process1()
     changeRefreshRate = 0;
     read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
     refreshRates = {{1, 60}}; // 60hz
-    listenerRefreshRates = {
+    listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates
-    };
+    }};
     listenerPhaseOffset = {
         .cb = appController,
         .phaseByPulseNum = 3 // phase is 3 pulse
@@ -313,10 +313,10 @@ void VSyncLTPOTest::Process1()
     changeRefreshRate = 0;
     read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
     refreshRates = {{1, 30}}; // 30hz
-    listenerRefreshRates = {
+    listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates
-    };
+    }};
     listenerPhaseOffset = {
         .cb = appController,
         .phaseByPulseNum = 9 // phase is 9 pulse
