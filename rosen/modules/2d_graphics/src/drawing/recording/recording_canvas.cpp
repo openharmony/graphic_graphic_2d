@@ -451,7 +451,8 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point
     if (font->GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
     }
-    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandle, globalUniqueId);
+    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(
+        glyphIDsData, positionsData, origin, fontHandle, globalUniqueId);
 }
 
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
