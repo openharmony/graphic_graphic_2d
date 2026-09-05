@@ -59,6 +59,7 @@
 #if defined(OHOS_PLATFORM) || defined(ROSEN_ARKUI_X)
 #include "pipeline/rs_recording_canvas.h"
 #endif
+#include "record_cmd_utils_napi/js_record_cmd_utils.h"
 
 namespace OHOS::Rosen {
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -424,6 +425,9 @@ napi_value JsCanvas::Init(napi_env env, napi_value exportObj)
 
 JsCanvas::~JsCanvas()
 {
+    if (creator_ != nullptr) {
+        creator_->OnCanvasDestroyed(this);
+    }
     if (owned_) {
         delete m_canvas;
     }
@@ -2869,7 +2873,8 @@ napi_value JsCanvas::OnDrawRecordCmd(napi_env env, napi_callback_info info)
 
     if (jsRecordCmd == nullptr || jsRecordCmd->GetRecordCmd() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRecordCmd recordCmd is nullptr");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "JsCanvas::OnDrawRecordCmd jsRecordCmd or recordCmd is nullptr.");
     }
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);

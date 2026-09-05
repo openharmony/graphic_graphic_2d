@@ -38,7 +38,18 @@ static const napi_property_descriptor g_properties[] = {
 
 JsRecordCmdUtils::~JsRecordCmdUtils()
 {
+    if (recordingCanvas_ != nullptr) {
+        recordingCanvas_->Invalidate();
+        recordingCanvas_ = nullptr;
+    }
     rsRecordCmdUtils_ = nullptr;
+}
+
+void JsRecordCmdUtils::OnCanvasDestroyed(JsCanvas* canvas)
+{
+    if (recordingCanvas_ == canvas) {
+        recordingCanvas_ = nullptr;
+    }
 }
 
 napi_value JsRecordCmdUtils::Init(napi_env env, napi_value exportObj)
@@ -122,6 +133,11 @@ napi_value JsRecordCmdUtils::OnBeginRecording(napi_env env, napi_callback_info i
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    if (recordingCanvas_ != nullptr) {
+        ROSEN_LOGE("JsRecordCmdUtils::BeginRecording already in recording");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Already in recording.");
+    }
+
     napi_value argv[ARGC_TWO] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
@@ -144,7 +160,14 @@ napi_value JsRecordCmdUtils::OnBeginRecording(napi_env env, napi_callback_info i
             env, DrawingErrorCode::ERROR_INVALID_PARAM, "Insufficient memory, failed to create the canvas");
     }
 
-    return JsCanvas::CreateJsCanvas(env, canvas);
+    napi_value jsCanvasObj = JsCanvas::CreateJsCanvas(env, canvas);
+    JsCanvas* jsCanvas = nullptr;
+    napi_status status = napi_unwrap_s(env, jsCanvasObj, &CANVAS_TYPE_TAG, reinterpret_cast<void**>(&jsCanvas));
+    if (status == napi_ok && jsCanvas != nullptr) {
+        jsCanvas->SetCreator(this);
+        recordingCanvas_ = jsCanvas;
+    }
+    return jsCanvasObj;
 }
 
 napi_value JsRecordCmdUtils::FinishRecording(napi_env env, napi_callback_info info)
@@ -160,10 +183,16 @@ napi_value JsRecordCmdUtils::OnFinishRecording(napi_env env, napi_callback_info 
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+    if (recordingCanvas_ != nullptr) {
+        recordingCanvas_->Invalidate();
+        recordingCanvas_ = nullptr;
+    }
+
     std::shared_ptr<Drawing::RecordCmd> recordCmd = rsRecordCmdUtils_->FinishRecording();
     if (recordCmd == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::FinishRecording FinishRecording failed");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "JsRecordCmdUtils::OnFinishRecording recordCmd is nullptr.");
     }
 
     return JsRecordCmd::CreateJsRecordCmd(env, recordCmd);
