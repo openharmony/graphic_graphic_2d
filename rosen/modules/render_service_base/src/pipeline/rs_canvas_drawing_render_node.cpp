@@ -745,7 +745,7 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
             stagingRenderParams->SetBufferDraw(IsBufferDraw());
         }
         if (sizeOutOfGpuLimit_) {
-            firstBufferAcquired_ = false;
+            clientRender_ = false;
             UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
         }
     }
@@ -885,14 +885,17 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     SetContentDirty();
 
     if (buffer != nullptr) {
-        if (!firstBufferAcquired_ || hasDrawCmdList_) {
+        // If the previous frame did not use client rendering, in which case hasDrawCmdList_ is true,
+        // clear previous OPs when receiving a buffer (already in client rendering mode)
+        if (!clientRender_ || hasDrawCmdList_) {
             ClearOp();
         }
         if (hasDrawCmdList_) {
             hasDrawCmdList_ = false;
+            // Mark CONTENT_STYLE dirty to clean up the residual RSCustomModifierDrawable
             dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
         }
-        firstBufferAcquired_ = true;
+        clientRender_ = true;
     }
     if (canvasParams->IsBufferSynced()) {
         canvasParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
@@ -952,7 +955,7 @@ void RSCanvasDrawingRenderNode::SetSurfaceHandler(std::shared_ptr<RSSurfaceHandl
  
 bool RSCanvasDrawingRenderNode::IsBufferDraw()
 {
-    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && firstBufferAcquired_;
+    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && clientRender_;
 }
  
 bool RSCanvasDrawingRenderNode::IsHybridEnabled()

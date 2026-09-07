@@ -362,6 +362,16 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
     rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    rsCanvasDrawingRenderNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(rsCanvasDrawingRenderNode->GetId());
+    rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_ = false;
+    rsCanvasDrawingRenderNode->clientRender_ = true;
+    ASSERT_TRUE(rsCanvasDrawingRenderNode->IsBufferDraw());
+    width = 100000;
+    height = 100000;
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
+    ASSERT_TRUE(rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_);
+#endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     Drawing::Canvas canvas(1024, 1096);
     RSPaintFilterCanvas paintCanvas(&canvas);
@@ -1070,14 +1080,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeHasDrawCmdListTest, TestSize
 
 /**
  * @tc.name: UpdateBufferInfoHasDrawCmdListTest
- * @tc.desc: Test UpdateBufferInfo when firstBufferAcquired_ and hasDrawCmdList_ are true
+ * @tc.desc: Test UpdateBufferInfo when clientRender_ and hasDrawCmdList_ are true
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(51);
     node->InitRenderParams();
-    node->firstBufferAcquired_ = true;
+    node->clientRender_ = true;
     node->hasDrawCmdList_ = true;
     auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
@@ -1094,14 +1104,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, Test
 
 /**
  * @tc.name: UpdateBufferInfoFirstBufferNoDrawCmdListTest
- * @tc.desc: Test UpdateBufferInfo when firstBufferAcquired_ is true but hasDrawCmdList_ is false
+ * @tc.desc: Test UpdateBufferInfo when clientRender_ is true but hasDrawCmdList_ is false
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(52);
     node->InitRenderParams();
-    node->firstBufferAcquired_ = true;
+    node->clientRender_ = true;
     node->hasDrawCmdList_ = false;
     auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);

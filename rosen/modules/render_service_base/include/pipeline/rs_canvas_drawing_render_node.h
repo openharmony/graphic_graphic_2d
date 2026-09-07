@@ -173,7 +173,7 @@ private:
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     bool sizeOutOfGpuLimit_ = false;
-    bool firstBufferAcquired_ = false;
+    bool clientRender_ = false;
     bool bufferDirty_ = false;
 #endif
 
