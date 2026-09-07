@@ -126,6 +126,12 @@ HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
     HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", policyConfigData);
 
     HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", nullptr);
+
+    auto oriConfigData = hgmCore.mPolicyConfigData_;
+    hgmCore.mPolicyConfigData_ = nullptr;
+    HgmCore::SysModeChangeProcess("persist.sys.mode", "padmode", nullptr);
+    hgmCore.mPolicyConfigData_ = oriConfigData;
+    EXPECT_NE(hgmCore.GetPolicyConfigData(), nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
 }
 
