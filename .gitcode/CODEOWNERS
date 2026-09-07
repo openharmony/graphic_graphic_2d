@@ -8,7 +8,7 @@ AGENTS.md @yaozhupeng
 docs/ @yaozhupeng
 
 [cross-platform]
-rosen/modules/glfw_render_context/ @aslklw
+rosen/modules/glfw_render_context/ @gao_yufan
 
 [drawing]
 rosen/modules/2d_graphics/BUILD.gn @wanyanglan
@@ -23,14 +23,14 @@ rosen/modules/render_service_client/core/transaction/rs_interfaces.cpp @liuchao-
 
 [display-effect]
 rosen/modules/render_service_client/core/ui/ @xiaojianfeng_jeffery
-rosen/modules/render_service_client/core/ui/rs_ui_context_manager.cpp @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_ui_context_manager.h @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_ui_context.h @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_ui_context.cpp @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_ui_director.cpp @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_ui_director.h @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_texture_export.cpp @gaoshuai3011
-rosen/modules/render_service_client/core/ui/rs_texture_export.h @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_context_manager.cpp @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_ui_context_manager.h @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_ui_context.h @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_ui_context.cpp @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_ui_director.cpp @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_ui_director.h @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_texture_export.cpp @white-dragon-tiger
+rosen/modules/render_service_client/core/ui/rs_texture_export.h @white-dragon-tiger
 rosen/modules/render_service_client/core/ui/rs_effect_node.cpp @hanamaru
 rosen/modules/render_service_client/core/ui/rs_effect_node.h @hanamaru
 rosen/modules/render_service_client/core/ui/rs_union_node.cpp @hanamaru
@@ -43,7 +43,7 @@ rosen/modules/render_service_base/include/pipeline/rs_effect_render_node.h @hana
 rosen/modules/render_service_base/include/pipeline/rs_effect_utils.h @hanamaru
 rosen/modules/render_service_base/include/pipeline/rs_occlusion_config.h @chenlushen
 rosen/modules/render_service_base/include/pipeline/rs_render_display_sync.h @wh_qwe
-rosen/modules/render_service_base/include/pipeline/rs_render_node_map.h @gaoshuai3011
+rosen/modules/render_service_base/include/pipeline/rs_render_node_map.h @white-dragon-tiger
 rosen/modules/render_service_base/include/pipeline/rs_union_render_node.h @hanamaru
 
 rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
@@ -53,7 +53,7 @@ rosen/modules/render_service_base/src/pipeline/rs_effect_render_node.cpp @hanama
 rosen/modules/render_service_base/src/pipeline/rs_effect_utils.cpp @hanamaru
 rosen/modules/render_service_base/src/pipeline/rs_occlusion_config.cpp @chenlushen
 rosen/modules/render_service_base/src/pipeline/rs_render_display_sync.cpp @wh_qwe
-rosen/modules/render_service_base/src/pipeline/rs_render_node_map.cpp @gaoshuai3011
+rosen/modules/render_service_base/src/pipeline/rs_render_node_map.cpp @white-dragon-tiger
 rosen/modules/render_service_base/src/pipeline/rs_union_render_node.cpp @hanamaru
 
 rosen/modules/render_service/core/drawable/ @xiaojianfeng_jeffery
@@ -196,12 +196,12 @@ rosen/modules/composer/hdi_backend/ @conan13234
 rosen/modules/render_service/core/feature/tunnel_layer/ @conan13234
 
 [main_thread]
-rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @white-dragon-tiger
 rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.cpp @chuchengcheng
 rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.h @chuchengcheng
 
