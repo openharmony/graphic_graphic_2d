@@ -22,6 +22,7 @@
 #include <vector>
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/ohos/transaction/rs_ipc_sync_executor.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_hrp_service.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -42,6 +43,26 @@ static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
 static constexpr int ZERO = 0; // empty map size
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+
+// Synchronous interfaces whose reply carries binder objects / fds / ashmem (e.g. Surface,
+// PixelMap) must stay on the direct path: such replies cannot be cloned back safely by the
+// timeout executor. Calls carrying binder objects/fds in the input parcel are filtered at
+// runtime via GetOffsetsSize() in the SendRequest wrapper.
+bool IsReplyNotClonable(uint32_t code)
+{
+    switch (static_cast<RSIClientToRenderConnectionInterfaceCode>(code)) {
+        case RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE:
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        case RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE:
+#endif
+        case RSIClientToRenderConnectionInterfaceCode::GET_BITMAP:
+        case RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP:
+        case RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO:
+            return true;
+        default:
+            return false;
+    }
+}
 }
 
 RSClientToRenderConnectionProxy::RSClientToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -55,7 +76,16 @@ int32_t RSClientToRenderConnectionProxy::SendRequest(
     if (!Remote()) {
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
-    return Remote()->SendRequest(code, data, reply, option);
+    // Async calls, calls with binder objects/fds in the input parcel, and calls whose reply
+    // cannot be cloned keep the direct in-thread SendRequest without timeout protection.
+    bool isAsync =
+        (static_cast<uint32_t>(option.GetFlags()) & static_cast<uint32_t>(MessageOption::TF_ASYNC)) != 0;
+    bool needDirectSend = isAsync || data.GetOffsetsSize() > 0 || IsReplyNotClonable(code);
+    if (needDirectSend) {
+        return Remote()->SendRequest(code, data, reply, option);
+    }
+    return RSSIpcSyncExecutor::GetInstance().ExecuteSyncWithTimeout(
+        Remote(), code, data, reply, option, RSSystemProperties::GetIpcSyncTimeoutMs());
 }
 
 ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)

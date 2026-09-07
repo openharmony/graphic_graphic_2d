@@ -420,6 +420,10 @@ public:
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
     static bool IsSimulateTest();
+
+    // Timeout (ms) for offloaded synchronous IPC calls to render service.
+    static uint32_t GetIpcSyncTimeoutMs();
+
 private:
     RSSystemProperties() = default;
 

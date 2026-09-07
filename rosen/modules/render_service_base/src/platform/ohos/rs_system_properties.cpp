@@ -1889,5 +1889,14 @@ bool RSSystemProperties::IsSimulateTest()
     static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
     return isSimulateTest;
 }
+
+uint32_t RSSystemProperties::GetIpcSyncTimeoutMs()
+{
+    // Default 5s: a process frozen for 6s is killed, the timeout must fire before that.
+    static constexpr uint32_t DEFAULT_IPC_SYNC_TIMEOUT_MS = 5000;
+    static int32_t timeoutParam =
+        system::GetIntParameter("persist.sys.graphic.ipcSyncTimeoutMs", static_cast<int>(DEFAULT_IPC_SYNC_TIMEOUT_MS));
+    return timeoutParam > 0 ? static_cast<uint32_t>(timeoutParam) : DEFAULT_IPC_SYNC_TIMEOUT_MS;
+}
 } // namespace Rosen
 } // namespace OHOS

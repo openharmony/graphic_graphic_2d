@@ -15,6 +15,7 @@
 
 #include "rs_client_to_service_connection_proxy.h"
 #include "common/rs_common_def.h"
+#include "platform/ohos/transaction/rs_ipc_sync_executor.h"
 #ifndef ENABLE_RS_PROXY
 #include <algorithm>
 #include <cstdint>
@@ -43,6 +44,24 @@ static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
 #endif
+// Synchronous interfaces whose reply carries binder objects / fds / ashmem (e.g. PixelMap,
+// IRemoteObject) must stay on the direct path: such replies cannot be cloned back safely by
+// the timeout executor. Calls carrying binder objects/fds in the input parcel are filtered
+// at runtime via GetOffsetsSize() in the SendRequest wrapper.
+[[maybe_unused]] bool IsReplyNotClonable(uint32_t code)
+{
+    switch (static_cast<RSIClientToServiceConnectionInterfaceCode>(code)) {
+        case RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION:
+        case RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID:
+        case RSIClientToServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE:
+        case RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER:
+        case RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE:
+        case RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL:
+            return true;
+        default:
+            return false;
+    }
+}
 }
 
 RSClientToServiceConnectionProxy::RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -3140,7 +3159,12 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         uint8_t rspRpc = Drawing::REGISTERED;
         do {
             MessageParcel replyNeedRegister;
-            int32_t err = SendRequest(code, data, replyNeedRegister, option);
+            // RegisterTypeface retries SendRequest in a loop; retrying interfaces are out of
+            // the timeout-offloading scope and keep the direct SendRequest path.
+            if (!Remote()) {
+                return false;
+            }
+            int32_t err = Remote()->SendRequest(code, data, replyNeedRegister, option);
             if (err != NO_ERROR || !replyNeedRegister.ReadUint8(rspRpc)) {
                 RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
                 return false;
@@ -3155,7 +3179,10 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     RSMarshallingHelper::Marshalling(data, typeface);
 
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
-    int32_t err = SendRequest(code, data, reply, option);
+    if (!Remote()) {
+        return false;
+    }
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGD_IF(DEBUG_IPC, "RSClientToServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
         return false;
@@ -5305,7 +5332,20 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
     if (!Remote()) {
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
+#ifdef ENABLE_RS_PROXY
     return Remote()->SendRequest(code, data, reply, option);
+#else
+    // Async calls, calls with binder objects/fds in the input parcel, and calls whose reply
+    // cannot be cloned keep the direct in-thread SendRequest without timeout protection.
+    bool isAsync =
+        (static_cast<uint32_t>(option.GetFlags()) & static_cast<uint32_t>(MessageOption::TF_ASYNC)) != 0;
+    bool needDirectSend = isAsync || data.GetOffsetsSize() > 0 || IsReplyNotClonable(code);
+    if (needDirectSend) {
+        return Remote()->SendRequest(code, data, reply, option);
+    }
+    return RSSIpcSyncExecutor::GetInstance().ExecuteSyncWithTimeout(
+        Remote(), code, data, reply, option, RSSystemProperties::GetIpcSyncTimeoutMs());
+#endif
 }
 #ifndef ENABLE_RS_PROXY
 ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched()
