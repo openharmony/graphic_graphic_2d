@@ -18,6 +18,8 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
+#include "common/rs_common_def.h"
+#include "sandbox_utils.h"
 #include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
@@ -610,6 +612,68 @@ HWTEST_F(RSInterpolatorTest, RSCubicBezierInterpolatorConstructorNaNInf001, Test
     EXPECT_FLOAT_EQ(interp9.controlY1_, 0.0f);
     EXPECT_FLOAT_EQ(interp9.controlX2_, 1.0f);
     EXPECT_FLOAT_EQ(interp9.controlY2_, 1.0f);
+}
+
+/**
+ * @tc.name: UnmarshallingPidMismatch001
+ * @tc.desc: Verify RSInterpolator::Unmarshalling rejects id with mismatched PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, UnmarshallingPidMismatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMismatch001 start";
+    constexpr pid_t fakeCallingPid = 9999;
+    constexpr pid_t otherPid = 1234;
+    RSMarshallingHelper::SetCallingPid(fakeCallingPid);
+
+    Parcel parcel;
+    parcel.WriteUint16(InterpolatorType::LINEAR);
+    uint64_t otherPidId = (static_cast<uint64_t>(otherPid) << 32) | 1;
+    parcel.WriteUint64(otherPidId);
+
+    auto interpolator = RSInterpolator::Unmarshalling(parcel);
+    EXPECT_EQ(interpolator, nullptr);
+
+    RSMarshallingHelper::SetCallingPid(0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMismatch001 end";
+}
+
+/**
+ * @tc.name: UnmarshallingPidMatch001
+ * @tc.desc: Verify RSInterpolator::Unmarshalling accepts id with matching PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, UnmarshallingPidMatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMatch001 start";
+    constexpr pid_t fakeCallingPid = 9999;
+    RSMarshallingHelper::SetCallingPid(fakeCallingPid);
+
+    Parcel parcel;
+    parcel.WriteUint16(InterpolatorType::LINEAR);
+    uint64_t matchingId = (static_cast<uint64_t>(fakeCallingPid) << 32) | 1;
+    parcel.WriteUint64(matchingId);
+
+    auto interpolator = RSInterpolator::Unmarshalling(parcel);
+    EXPECT_TRUE(interpolator != nullptr);
+
+    RSMarshallingHelper::SetCallingPid(0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMatch001 end";
+}
+
+/**
+ * @tc.name: Init001
+ * @tc.desc: Verify RSInterpolator::Init() updates DEFAULT->id_ with correct PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, Init001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Init001 start";
+    RSInterpolator::Init();
+    pid_t currentPid = GetRealPid();
+    pid_t extractedPid = ExtractPid(RSInterpolator::DEFAULT->id_);
+    EXPECT_EQ(extractedPid, currentPid);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Init001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

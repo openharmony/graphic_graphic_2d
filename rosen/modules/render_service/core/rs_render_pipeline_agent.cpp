@@ -231,16 +231,17 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
         return ERR_INVALID_VALUE;
     }
     // After a synchronous task times out, it will no longer be executed.
-    auto isTimeout = std::make_shared<bool>(0);
-    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
+    auto canExecute = std::make_shared<std::atomic<bool>>(true);
     std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), isTimeoutWeak] {
-        if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
+    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
+        if (mainThread == nullptr) {
             return;
         }
-        task->Process(mainThread->GetContext());
+        if (canExecute->exchange(false)) {
+            task->Process(mainThread->GetContext());
+        }
     }).wait_for(span);
-    isTimeout.reset();
+    canExecute->exchange(false);
     return ERR_OK;
 }
 

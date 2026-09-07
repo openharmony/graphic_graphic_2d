@@ -51,6 +51,7 @@ public:
     float Interpolate(float input);
     virtual InterpolatorType GetType() = 0;
     static void Init();
+    void UpdateId();
 protected:
     RSInterpolator();
     RSInterpolator(uint64_t id) : id_(id) {};

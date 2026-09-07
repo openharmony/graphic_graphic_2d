@@ -2309,4 +2309,104 @@ HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidMultiProcessGuestConn
 
     EXPECT_TRUE(agent->RemoveConnection(guestPid, token));
 }
+
+class MockSyncTask : public RSSyncTask {
+public:
+    explicit MockSyncTask(uint64_t timeoutNS) : RSSyncTask(timeoutNS) {}
+    bool Marshalling(Parcel&) const override { return true; }
+    bool CheckHeader(Parcel&) const override { return true; }
+    bool ReadFromParcel(Parcel&) override { return true; }
+    void Process(RSContext&) override { success_ = true; }
+};
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullTask_NoCrash
+ * @tc.desc: Verify ExecuteSynchronousTask does not crash when task is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullTask_NoCrash, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    agent->ExecuteSynchronousTask(nullptr);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullPipeline_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask does not execute task when pipeline is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullPipeline_TaskNotExecuted, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NormalPath_TaskExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask executes task when it completes before timeout
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NormalPath_TaskExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_TRUE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_Timeout_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask skips Process() when timeout occurs
+ *           before the task is picked up by the main thread
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_Timeout_TaskNotExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto blockDone = std::make_shared<std::promise<void>>();
+    auto blockFuture = blockDone->get_future();
+    mainThread_->handler_->PostTask([blockDone]() {
+        blockDone->set_value();
+        usleep(200000);
+    });
+    blockFuture.wait();
+
+    auto task = std::make_shared<MockSyncTask>(1000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullMainThread_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask does not execute task when mainThread is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullMainThread_TaskNotExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_FALSE(task->IsSuccess());
+}
 } // namespace OHOS::Rosen

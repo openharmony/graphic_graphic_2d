@@ -747,4 +747,63 @@ HWTEST_F(RSAnimationCommandTest, RebuildAnimation004, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation004 end";
 }
 
+/**
+ * @tc.name: CreateInteractiveAnimatorGroup008
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup reuses existing group animator
+ *           when called with the same groupId (get-or-create pattern)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup008, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup008 start";
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = 10008;
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+
+    std::vector<std::pair<NodeId, AnimationId>> animations1;
+    animations1.push_back({ 10001, 20001 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations1, false, timingProtocol);
+    auto animator1 = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator1 != nullptr);
+    EXPECT_TRUE(animator1->IsTimeDriven());
+
+    std::vector<std::pair<NodeId, AnimationId>> animations2;
+    animations2.push_back({ 10002, 20002 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations2, false, timingProtocol);
+    auto animator2 = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator2 != nullptr);
+    EXPECT_EQ(animator1.get(), animator2.get());
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup008 end";
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorGroup009
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup returns early when existing
+ *           animator is not a TimeDrivenGroupAnimator (IsTimeDriven guard)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup009, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup009 start";
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = 10009;
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+
+    auto nonTimeDriven = std::make_shared<RSRenderInteractiveImplictAnimator>(groupId, context.weak_from_this());
+    context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(nonTimeDriven);
+    EXPECT_FALSE(nonTimeDriven->IsTimeDriven());
+
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animations.push_back({ 10001, 20001 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations, true, timingProtocol);
+
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator != nullptr);
+    EXPECT_FALSE(animator->IsTimeDriven());
+    EXPECT_EQ(animator.get(), nonTimeDriven.get());
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup009 end";
+}
+
 } // namespace OHOS::Rosen
