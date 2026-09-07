@@ -118,7 +118,7 @@ public:
     static size_t FileTell(FILE* file);
     static void FileSeek(FILE* file, int64_t offset, int32_t origin);
     static bool FileRead(FILE* file, void* data, size_t size);
-    static void FileWrite(FILE* file, const void* data, size_t size);
+    static bool FileWrite(FILE* file, const void* data, size_t size);
 
     // NodeId/Pid routines
     static constexpr pid_t ExtractPid(uint64_t id)

@@ -117,10 +117,14 @@ bool RSCaptureData::Deserialize(const std::vector<char>& in)
 
 bool RSCaptureData::Serialize(Archive& archive)
 {
-    archive.Serialize(time_);
+    if (!archive.Serialize(time_)) {
+        return false;
+    }
 
     size_t count = properties_.size();
-    archive.Serialize(count);
+    if (!archive.Serialize(count)) {
+        return false;
+    }
 
     constexpr size_t maxCount = 1024u;
     if (archive.IsReading() && (count > maxCount)) {
@@ -130,16 +134,19 @@ bool RSCaptureData::Serialize(Archive& archive)
     if (archive.IsReading()) {
         for (size_t i = 0; i < count; i++) {
             std::pair<std::string, std::string> pair;
-            archive.Serialize(pair.first);
-            archive.Serialize(pair.second);
+            if (!archive.Serialize(pair.first).Serialize(pair.second)) {
+                return false;
+            }
             if (!pair.first.empty()) {
                 properties_.emplace(pair);
             }
         }
-    } else {
-        for (auto& pair : properties_) {
-            archive.Serialize(const_cast<std::string&>(pair.first));
-            archive.Serialize(const_cast<std::string&>(pair.second));
+        return true;
+    }
+
+    for (auto& pair : properties_) {
+        if (!archive.Serialize(const_cast<std::string&>(pair.first)).Serialize(pair.second)) {
+            return false;
         }
     }
     return true;

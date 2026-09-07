@@ -27,6 +27,12 @@ const std::unordered_map<PermissionType, std::string> PERMISSION_MAP {
 
 bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlyingType code)
 {
+#ifdef RS_PROFILER_ENABLED
+    if (!IsFeatureVerificationPassed(code)) {
+        RS_LOGE("RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible feature verification not passed.");
+        return false;
+    }
+#endif
 #ifdef ENABLE_IPC_SECURITY
     if (!IsCommonVerificationPassed(code)) {
         RS_LOGE("RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible common verification not passed.");
@@ -314,6 +320,13 @@ bool RSInterfaceCodeAccessVerifierBase::IsCommonVerificationPassed(CodeUnderlyin
 {
     // Since no common verification rule is temporarily required, directly return true.
     // If any common rule is required in the future, overwrite this function.
+    return true;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsFeatureVerificationPassed(CodeUnderlyingType /* code */)
+{
+    // Since no feature verification rule is temporarily required, directly return true.
+    // Overwrite this function in the derived class if needed.
     return true;
 }
 

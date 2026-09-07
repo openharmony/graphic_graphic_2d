@@ -638,18 +638,26 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = true;
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
-            hasPermission = RS_PROFILER_HRP_SERVICE_ENABLED();
-            break;
-        }
         default: {
             hasPermission = false;
             break;
         }
     }
     return hasPermission;
+}
+
+bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsFeatureVerificationPassed(CodeUnderlyingType code)
+{
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
+            return RS_PROFILER_HRP_SERVICE_ENABLED();
+        }
+        default: {
+            return true;
+        }
+    }
 }
 
 #ifdef ENABLE_IPC_SECURITY

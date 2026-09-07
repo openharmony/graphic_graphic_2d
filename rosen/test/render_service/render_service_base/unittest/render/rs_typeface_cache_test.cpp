@@ -19,6 +19,8 @@
 #include "file_ex.h"
 #include "memory/rs_memory_manager.h"
 #include "render/rs_typeface_cache.h"
+#include "impl_interface/typeface_impl.h"
+#include "impl_interface/adapter_type.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,6 +47,84 @@ void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<
 class MockRSTypefaceCache : public RSTypefaceCache {
 public:
     MOCK_METHOD1(GetTypefacePid, pid_t(uint64_t uniqueId));
+};
+
+// Mock TypefaceImpl that returns a Data with GetData() == nullptr (skData_ not set)
+// Covers the 4th sub-condition: blob non-null but GetData() returns null
+class MockTypefaceImplNullData : public Drawing::TypefaceImpl {
+public:
+    Drawing::AdapterType GetType() const override { return Drawing::AdapterType::SKIA_ADAPTER; }
+    std::string GetFamilyName() const override { return ""; }
+    std::string GetFontPath() const override { return ""; }
+    int32_t GetFontIndex() const override { return 0; }
+    Drawing::FontStyle GetFontStyle() const override { return Drawing::FontStyle(); }
+    size_t GetTableSize(uint32_t) const override { return 0; }
+    size_t GetTableData(uint32_t, size_t, size_t, void*) const override { return 0; }
+    bool GetBold() const override { return false; }
+    bool GetItalic() const override { return false; }
+    bool GetMonospace() const override { return false; }
+    bool IsColored() const override { return false; }
+    uint32_t GetUniqueID() const override { return 0; }
+    int32_t GetUnitsPerEm() const override { return 0; }
+    std::shared_ptr<Drawing::Typeface> MakeClone(const Drawing::FontArguments&) const override { return nullptr; }
+    bool IsCustomTypeface() const override { return false; }
+    void SetIsCustomTypeface(bool) override {}
+    bool IsThemeTypeface() const override { return false; }
+    void SetIsThemeTypeface(bool) override {}
+    // Return default-constructed Data whose skData_ is null → GetData() returns nullptr
+    std::shared_ptr<Drawing::Data> Serialize() const override
+    {
+        return std::make_shared<Drawing::Data>();
+    }
+    uint32_t GetHash() const override { return 0; }
+    void SetHash(uint32_t) override {}
+    int32_t GetFd() const override { return -1; }
+    void SetFd(int32_t) override {}
+    void UpdateStream(std::unique_ptr<Drawing::MemoryStream>) override {}
+    int GetVariationDesignPosition(Drawing::FontArguments::VariationPosition::Coordinate[], int) const override
+    {
+        return 0;
+    }
+};
+
+// Mock TypefaceImpl that returns a Data with GetSize() == 0 (empty SkData)
+// Covers the 5th sub-condition: GetData() non-null but GetSize() returns 0
+class MockTypefaceImplEmptyData : public Drawing::TypefaceImpl {
+public:
+    Drawing::AdapterType GetType() const override { return Drawing::AdapterType::SKIA_ADAPTER; }
+    std::string GetFamilyName() const override { return ""; }
+    std::string GetFontPath() const override { return ""; }
+    int32_t GetFontIndex() const override { return 0; }
+    Drawing::FontStyle GetFontStyle() const override { return Drawing::FontStyle(); }
+    size_t GetTableSize(uint32_t) const override { return 0; }
+    size_t GetTableData(uint32_t, size_t, size_t, void*) const override { return 0; }
+    bool GetBold() const override { return false; }
+    bool GetItalic() const override { return false; }
+    bool GetMonospace() const override { return false; }
+    bool IsColored() const override { return false; }
+    uint32_t GetUniqueID() const override { return 0; }
+    int32_t GetUnitsPerEm() const override { return 0; }
+    std::shared_ptr<Drawing::Typeface> MakeClone(const Drawing::FontArguments&) const override { return nullptr; }
+    bool IsCustomTypeface() const override { return false; }
+    void SetIsCustomTypeface(bool) override {}
+    bool IsThemeTypeface() const override { return false; }
+    void SetIsThemeTypeface(bool) override {}
+    // Return Data built with BuildEmpty() → GetData() non-null but GetSize() == 0
+    std::shared_ptr<Drawing::Data> Serialize() const override
+    {
+        auto data = std::make_shared<Drawing::Data>();
+        data->BuildEmpty();
+        return data;
+    }
+    uint32_t GetHash() const override { return 0; }
+    void SetHash(uint32_t) override {}
+    int32_t GetFd() const override { return -1; }
+    void SetFd(int32_t) override {}
+    void UpdateStream(std::unique_ptr<Drawing::MemoryStream>) override {}
+    int GetVariationDesignPosition(Drawing::FontArguments::VariationPosition::Coordinate[], int) const override
+    {
+        return 0;
+    }
 };
 
 // 模拟单例类的函数
@@ -1329,6 +1409,75 @@ HWTEST_F(RSTypefaceCacheTest, CacheCapTest004, TestSize.Level2)
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidAtCap);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidUnderCap);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(seeder);
+}
+
+/**
+ * @tc.name: ReplaySerializeNullBlobTest001
+ * @tc.desc: Verify ReplaySerialize skips font when Serialize() returns nullptr (blob is false)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplaySerializeNullBlobTest001, TestSize.Level1)
+{
+    RSTypefaceCache cache;
+    // Typeface(nullptr) sets typefaceImpl_ to nullptr, so Serialize() returns nullptr
+    auto typeface = std::make_shared<Drawing::Typeface>(nullptr);
+    uint64_t uniqueId = 1;
+    uint64_t hash = 100;
+    cache.typefaceHashCode_[uniqueId] = hash;
+    cache.typefaceHashMap_[hash] = std::make_tuple(typeface, 1);
+    size_t fontCount = 0;
+    std::stringstream stream;
+    cache.ReplaySerialize(stream);
+    stream.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    EXPECT_EQ(fontCount, 0u);
+}
+
+/**
+ * @tc.name: ReplaySerializeNullGetDataTest001
+ * @tc.desc: Verify ReplaySerialize skips font when blob is non-null but GetData() returns nullptr.
+ *           This covers the 4th sub-condition of line 628: blob && !blob->GetData().
+ *           A default-constructed Data has skData_ == nullptr, so GetData() returns nullptr.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplaySerializeNullGetDataTest001, TestSize.Level1)
+{
+    RSTypefaceCache cache;
+    auto mockImpl = std::make_shared<MockTypefaceImplNullData>();
+    auto typeface = std::make_shared<Drawing::Typeface>(mockImpl);
+    uint64_t uniqueId = 1;
+    uint64_t hash = 200;
+    cache.typefaceHashCode_[uniqueId] = hash;
+    cache.typefaceHashMap_[hash] = std::make_tuple(typeface, 1);
+    size_t fontCount = 0;
+    std::stringstream stream;
+    cache.ReplaySerialize(stream);
+    stream.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    // Font should be skipped because GetData() returns nullptr
+    EXPECT_EQ(fontCount, 0u);
+}
+
+/**
+ * @tc.name: ReplaySerializeZeroSizeTest001
+ * @tc.desc: Verify ReplaySerialize skips font when blob->GetData() is non-null but GetSize() returns 0.
+ *           This covers the 5th sub-condition of line 628: blob && blob->GetData() && !blob->GetSize().
+ *           A Data built with BuildEmpty() has SkData::MakeEmpty() → data() non-null but size() == 0.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplaySerializeZeroSizeTest001, TestSize.Level1)
+{
+    RSTypefaceCache cache;
+    auto mockImpl = std::make_shared<MockTypefaceImplEmptyData>();
+    auto typeface = std::make_shared<Drawing::Typeface>(mockImpl);
+    uint64_t uniqueId = 1;
+    uint64_t hash = 300;
+    cache.typefaceHashCode_[uniqueId] = hash;
+    cache.typefaceHashMap_[hash] = std::make_tuple(typeface, 1);
+    size_t fontCount = 0;
+    std::stringstream stream;
+    cache.ReplaySerialize(stream);
+    stream.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    // Font should be skipped because GetSize() returns 0
+    EXPECT_EQ(fontCount, 0u);
 }
 } // namespace Rosen
 } // namespace OHOS
