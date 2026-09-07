@@ -122,17 +122,8 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         RSOpincManager::IsSuggestOpincNode(const_cast<RSRenderNode&>(node))) {
         return true;
     }
-
-    const auto& skew = renderProperties.GetSkew();
-    const auto& perspective = renderProperties.GetPersp();
-    const auto& degree = renderProperties.GetRotation();
-    const auto& degreeX = renderProperties.GetRotationX();
-    const auto& degreeY = renderProperties.GetRotationY();
     // Skip this subtree if transformations (rotation/projection/skew/clip) make bounds non-rectangular.
-    if (!ROSEN_EQ(skew[0], 0.f) || !ROSEN_EQ(skew[1], 0.f) ||
-        !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
-        !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
-        renderProperties.GetClipBounds()) {
+    if (ContainsNonRectangularTransform(renderProperties)) {
         return true;
     }
     // Skip this subtree if node has 3d transformations
@@ -150,6 +141,10 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     // Skip this subtree if node has special clip operation
     if (renderProperties.GetSDFShape() != nullptr ||
         (renderProperties.GetClipToFrame() && drawRect != drawFrameRect)) {
+        return true;
+    }
+    // Skip this subtree if node has non-positive scale
+    if (ROSEN_LE(renderProperties.GetScaleX(), 0.f) || ROSEN_LE(renderProperties.GetScaleY(), 0.f)) {
         return true;
     }
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.

@@ -81,6 +81,19 @@ protected:
         return RectI(-HALF_INT16_MAX, -HALF_INT16_MAX, INT16_MAX, INT16_MAX);
     }
 
+    bool ContainsNonRectangularTransform(const RSProperties& renderProperties) const
+    {
+        const auto& skew = renderProperties.GetSkew();
+        const auto& perspective = renderProperties.GetPersp();
+        const auto& rotation = renderProperties.GetRotation();
+        const auto& rotationX = renderProperties.GetRotationX();
+        const auto& rotationY = renderProperties.GetRotationY();
+        return !ROSEN_EQ(skew[0], 0.f) || !ROSEN_EQ(skew[1], 0.f) ||
+            !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
+            !ROSEN_EQ(rotation, 0.f) || !ROSEN_EQ(rotationX, 0.f) || !ROSEN_EQ(rotationY, 0.f) ||
+            renderProperties.GetClipBounds();
+    }
+
     bool Contains3dTransformation(const RSProperties& renderProperties) const
     {
         return !ROSEN_EQ(renderProperties.GetTranslateZ(), 0.f) || !ROSEN_EQ(renderProperties.GetRotationX(), 0.f) ||
