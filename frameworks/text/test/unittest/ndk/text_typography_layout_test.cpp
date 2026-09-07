@@ -1348,4 +1348,36 @@ HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest010, TestSize.Lev
     TestZeroWidthCharFallback(cjk2, "U+FFF1 CJK COMPATIBILITY IDEOGRAPH-0F01", expectedValues);
     TestZeroWidthCharFallback(cjk3, "U+FFF8 CJK COMPATIBILITY IDEOGRAPH-0F08", expectedValues);
 }
+
+/*
+ * @tc.name: TypographyOnePixelTest
+ * @tc.desc: test for one pixel diff layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyOnePixelTest, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextWordBreakType(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_FontCollection* fc = OH_Drawing_GetFontCollectionGlobalInstance();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
+    EXPECT_NE(handler, nullptr);
+    double fontSize = 100;
+    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_700);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "字738";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    double maxWidth = 279;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 2);
+    maxWidth = 279.9999;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 1);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
 } // namespace OHOS
