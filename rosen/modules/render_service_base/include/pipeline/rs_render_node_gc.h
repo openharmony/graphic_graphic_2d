@@ -128,6 +128,7 @@ private:
     void AddNodeToBgBucket(RSRenderNode* ptr);
     void ReleaseNodePid(pid_t pid);
     bool CheckHasNodeNotOnTree();
+    void EraseFromNotOnTreeNodeMap(NodeId nodeId);
 
     std::atomic<bool> isEnable_ = true;
     // Guarded by nodeMutex_, no need for atomic

@@ -51,6 +51,14 @@
 - **ID 管理**：`GenerateVirtualScreenId` / `freeVirtualScreenIds_`，复用已释放 ID
 - **多 Surface**：`AddVirtualScreenSurface` / `RemoveVirtualScreenSurface` 支持多 Surface 虚拟屏
 - **黑/白名单**：`SetVirtualScreenBlackList` / `AddVirtualScreenWhiteList` 控制虚拟屏显示内容
+- **全局黑名单**：适用于所有虚拟屏，有两条写入路径，均在渲染侧主线程按到达顺序应用，
+  后到覆盖先到，两条路径不可混用：
+  - 路径一（推荐）：`RSScreenManager::Set/Add/RemoveVirtualScreenBlackList` 传入 `INVALID_SCREEN_ID`，
+    由 `globalBlackList_` 存储，经 `NotifyGlobalBlacklistChanged` 广播到所有渲染进程
+  - 路径二：to_render 接口 `RSIClientToRenderConnection::Set/Add/RemoveGlobalBlackList`
+    （客户端入口 `RSRenderPipelineClient` / `RSRenderInterface`）直接写入所连渲染进程的 `ScreenSpecialLayerInfo`
+  - 混用风险：路径二不写回主 RS `globalBlackList_`，路径一后续按主 RS 状态广播会覆盖直连写入；
+    多渲染进程场景路径二仅影响所连进程。管理全局黑名单只能固定选择其中一条路径
 
 ### 属性管理
 
@@ -70,7 +78,7 @@
 | --- | --- | --- |
 | 虚拟屏幕 ID 复用 | `freeVirtualScreenIds_` 队列 | 虚拟屏频繁创建销毁，ID 复用避免 ID 无限增长 |
 | 热插拔延迟处理 | `pendingConnectedIds_` + `hotPlugAndConnectMutex_` | HDI 回调和屏幕初始化可能不同步，延迟处理保证一致性 |
-| 全局黑名单独立于虚拟屏黑名单 | `globalBlackList_` + `SetVirtualScreenBlackList` | 全局黑名单适用于所有虚拟屏，虚拟屏黑名单仅影响单个 |
+| 全局黑名单独立于虚拟屏黑名单 | `globalBlackList_` + `SetVirtualScreenBlackList(INVALID_SCREEN_ID)`，以及 to_render 接口 `Set/Add/RemoveGlobalBlackList`（两路径按到达顺序覆盖，不可混用） | 全局黑名单适用于所有虚拟屏，虚拟屏黑名单仅影响单个 |
 | 折叠屏独立管理器 | `RSFoldScreenManager` | 折叠屏状态复杂（展开、折叠、半展），独立管理器封装产品差异 |
 | 电源状态单独跟踪 | `screenPowerStatus_` map | 多屏各自独立电源状态，支持单屏灭屏 |
 | VSync 使能屏幕单选 | `UpdateVsyncEnabledScreenId` | 硬件 VSync 资源有限，同一时刻只有一个屏幕启用硬件 VSync |
@@ -293,8 +301,13 @@ else
 ### 安全层级
 
 ```text
-1. 全局黑名单（globalBlackList_）
-   └─ 适用于所有虚拟屏，存储在 RSScreenManager
+1. 全局黑名单
+   └─ 适用于所有虚拟屏，最终存储在渲染侧 ScreenSpecialLayerInfo
+   └─ 两条写入路径按到达顺序覆盖，不可混用（路径二不写回主 RS 状态，可能被路径一广播覆盖）
+   └─ 路径一：RSScreenManager globalBlackList_（SetVirtualScreenBlackList 传 INVALID_SCREEN_ID）
+      → NotifyGlobalBlacklistChanged → OnGlobalBlacklistChanged 广播到所有渲染进程
+   └─ 路径二：to_render 接口 Set/Add/RemoveGlobalBlackList 管理
+      （RSRenderPipelineClient / RSRenderInterface → RSIClientToRenderConnection），仅影响所连渲染进程
 
 2. 单屏黑名单（per-screen blackList）
    └─ 仅影响特定虚拟屏，存储在 RSScreenThreadSafeProperty

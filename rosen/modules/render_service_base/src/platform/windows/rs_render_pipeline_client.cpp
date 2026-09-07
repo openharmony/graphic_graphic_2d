@@ -307,6 +307,21 @@ int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
     return 0;
 }
 
+int32_t RSRenderPipelineClient::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
 }

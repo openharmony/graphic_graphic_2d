@@ -62,7 +62,7 @@
 #include "render/rs_high_performance_visual_engine.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
-#include "render_service/composer/composer_client/connection/rs_composer_to_render_connection.h"
+#include "composer/composer_client/connection/rs_composer_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_render_curve_animation.h"

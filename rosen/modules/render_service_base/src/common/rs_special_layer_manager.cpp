@@ -410,6 +410,22 @@ void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>
     globalBlackList_ = globalBlackList;
 }
 
+void ScreenSpecialLayerInfo::AddGlobalBlackList(const std::vector<NodeId>& nodeIds)
+{
+    if (globalBlackList_.size() + nodeIds.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGE("ScreenSpecialLayerInfo:AddGlobalBlackList global blacklist is over max size!");
+        return;
+    }
+    globalBlackList_.insert(nodeIds.cbegin(), nodeIds.cend());
+}
+
+void ScreenSpecialLayerInfo::RemoveGlobalBlackList(const std::vector<NodeId>& nodeIds)
+{
+    for (const auto& nodeId : nodeIds) {
+        globalBlackList_.erase(nodeId);
+    }
+}
+
 const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
 {
     return globalBlackList_;

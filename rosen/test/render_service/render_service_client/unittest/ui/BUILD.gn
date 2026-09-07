@@ -55,6 +55,7 @@ ohos_unittest("RSCanvasCallbackRouterTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -101,6 +102,7 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -137,6 +139,7 @@ ohos_unittest("RSCanvasNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -173,6 +176,7 @@ ohos_unittest("RSDepthNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -210,6 +214,7 @@ ohos_unittest("RSDisplayNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -246,6 +251,7 @@ ohos_unittest("RSEffectNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -286,6 +292,10 @@ ohos_unittest("RSNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
   ]
 }
 
@@ -321,6 +331,7 @@ ohos_unittest("RSProxyNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -357,6 +368,7 @@ ohos_unittest("RSRootNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -392,6 +404,7 @@ ohos_unittest("RSSurfaceExtractorTest") {
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "init:libbegetutil",
     "image_framework:image_native",
     "opengles:libGLES",
   ]
@@ -467,6 +480,7 @@ ohos_unittest("RSTextureExportTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -506,6 +520,7 @@ ohos_unittest("RSUIContextTest") {
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 }
 
@@ -553,6 +568,7 @@ ohos_unittest("RSUIDirectorTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -588,6 +604,7 @@ ohos_unittest("RSUnionNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -624,6 +641,7 @@ ohos_unittest("RSNodeDumpTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }

@@ -702,6 +702,21 @@ int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, Scree
     return renderPipelineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
+int32_t RSRenderInterface::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return renderPipelineClient_->SetGlobalBlackList(blackList);
+}
+
+int32_t RSRenderInterface::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return renderPipelineClient_->AddGlobalBlackList(blackList);
+}
+
+int32_t RSRenderInterface::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return renderPipelineClient_->RemoveGlobalBlackList(blackList);
+}
+
 int32_t RSRenderInterface::RegisterFrameStabilityDetection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config,

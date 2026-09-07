@@ -18,14 +18,11 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
-#include "ui_effect/mask/include/binocular_mask_para.h"
-#include "ui_effect/mask/include/fractal_glass_mask_para.h"
 #include "ui_effect/mask/include/image_mask_para.h"
 #include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/mask/include/pixel_map_mask_para.h"
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
-#include "ui_effect/mask/include/sweep_refraction_mask_para.h"
 #include "ui_effect/mask/include/use_effect_mask_para.h"
 #include "ui_effect/mask/include/wave_disturbance_mask_para.h"
 #include "ui_effect/mask/include/wave_gradient_mask_para.h"
@@ -289,155 +286,6 @@ HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaPixelMapMask, TestSize.Level1)
     EXPECT_FLOAT_EQ(para->GetFillColor().y_, fillColor.y_);
     EXPECT_FLOAT_EQ(para->GetFillColor().z_, fillColor.z_);
     EXPECT_FLOAT_EQ(para->GetFillColor().w_, fillColor.w_);
-}
-
-/**
- * @tc.name: ConvertMaskToParaFractalGlassMask
- * @tc.desc: test RSNGMaskToParaHelper::ConvertMaskToPara with FRACTAL_GLASS_MASK
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaFractalGlassMask, TestSize.Level1)
-{
-    auto mask = RSNGMaskBase::Create(RSNGEffectType::FRACTAL_GLASS_MASK);
-    EXPECT_NE(mask, nullptr);
-
-    auto fractalGlassMask = std::static_pointer_cast<RSNGFractalGlassMask>(mask);
-    std::shared_ptr<Media::PixelMap> nullPixelMap = nullptr;
-    Vector4f src = { 0.0f, 0.0f, 1.0f, 1.0f };
-    Vector4f dst = { 0.0f, 0.0f, 0.5f, 0.5f };
-    constexpr float glassNum = 25.0f;
-    constexpr float glassStrength = 1.0f;
-    constexpr float glassSoftness = 0.001f;
-    constexpr bool isSymmetric = true;
-
-    fractalGlassMask->Setter<FractalGlassMaskImageTag>(nullPixelMap);
-    fractalGlassMask->Setter<FractalGlassMaskSrcTag>(src);
-    fractalGlassMask->Setter<FractalGlassMaskDstTag>(dst);
-    fractalGlassMask->Setter<FractalGlassMaskNumTag>(glassNum);
-    fractalGlassMask->Setter<FractalGlassMaskStrengthTag>(glassStrength);
-    fractalGlassMask->Setter<FractalGlassMaskSoftnessTag>(glassSoftness);
-    fractalGlassMask->Setter<FractalGlassMaskSymmetricTag>(isSymmetric);
-
-    auto result = RSNGMaskToParaHelper::ConvertMaskToPara(mask);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->GetMaskParaType(), MaskPara::Type::FRACTAL_GLASS_MASK);
-
-    auto para = std::static_pointer_cast<FractalGlassMaskPara>(result);
-    EXPECT_EQ(para->GetPixelMap(), nullptr);
-    EXPECT_FLOAT_EQ(para->GetSrc().x_, src.x_);
-    EXPECT_FLOAT_EQ(para->GetSrc().z_, src.z_);
-    EXPECT_FLOAT_EQ(para->GetDst().x_, dst.x_);
-    EXPECT_FLOAT_EQ(para->GetDst().z_, dst.z_);
-    EXPECT_FLOAT_EQ(para->GetGlassNum(), glassNum);
-    EXPECT_FLOAT_EQ(para->GetGlassStrength(), glassStrength);
-    EXPECT_FLOAT_EQ(para->GetGlassSoftness(), glassSoftness);
-    EXPECT_EQ(para->GetIsSymmetric(), isSymmetric);
-}
-
-/**
- * @tc.name: ConvertMaskToParaFractalGlassMaskAsymmetric
- * @tc.desc: test RSNGMaskToParaHelper::ConvertMaskToPara with FRACTAL_GLASS_MASK isSymmetric=false
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaFractalGlassMaskAsymmetric, TestSize.Level1)
-{
-    auto mask = RSNGMaskBase::Create(RSNGEffectType::FRACTAL_GLASS_MASK);
-    EXPECT_NE(mask, nullptr);
-
-    auto fractalGlassMask = std::static_pointer_cast<RSNGFractalGlassMask>(mask);
-    fractalGlassMask->Setter<FractalGlassMaskSymmetricTag>(false);
-
-    auto result = RSNGMaskToParaHelper::ConvertMaskToPara(mask);
-    EXPECT_NE(result, nullptr);
-    auto para = std::static_pointer_cast<FractalGlassMaskPara>(result);
-    EXPECT_EQ(para->GetIsSymmetric(), false);
-}
-
-/**
- * @tc.name: ConvertMaskToParaBinocularMask
- * @tc.desc: test RSNGMaskToParaHelper::ConvertMaskToPara with BINOCULAR_MASK
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaBinocularMask, TestSize.Level1)
-{
-    auto mask = RSNGMaskBase::Create(RSNGEffectType::BINOCULAR_MASK);
-    EXPECT_NE(mask, nullptr);
-
-    auto binocularMask = std::static_pointer_cast<RSNGBinocularMask>(mask);
-    constexpr float radiusX = 0.5f;
-    constexpr float radiusY = 0.8f;
-    constexpr float gap = 0.3f;
-    constexpr float softness = 0.4f;
-
-    binocularMask->Setter<BinocularMaskRadiusXTag>(radiusX);
-    binocularMask->Setter<BinocularMaskRadiusYTag>(radiusY);
-    binocularMask->Setter<BinocularMaskGapTag>(gap);
-    binocularMask->Setter<BinocularMaskSoftnessTag>(softness);
-
-    auto result = RSNGMaskToParaHelper::ConvertMaskToPara(mask);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->GetMaskParaType(), MaskPara::Type::BINOCULAR_MASK);
-
-    auto para = std::static_pointer_cast<BinocularMaskPara>(result);
-    EXPECT_FLOAT_EQ(para->GetRadiusX(), radiusX);
-    EXPECT_FLOAT_EQ(para->GetRadiusY(), radiusY);
-    EXPECT_FLOAT_EQ(para->GetGap(), gap);
-    EXPECT_FLOAT_EQ(para->GetSoftness(), softness);
-}
-
-/**
-* @tc.name: ConvertMaskToParaSweepRefractionMask
-* @tc.desc: test RSNGMaskToParaHelper::ConvertMaskToPara with SWEEP_REFRACTION_MASK
-* @tc.type: FUNC
-*/
-HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaSweepRefractionMask, TestSize.Level1)
-{
-    auto mask = RSNGMaskBase::Create(RSNGEffectType::SWEEP_REFRACTION_MASK);
-    EXPECT_NE(mask, nullptr);
-
-    auto sweepRefractionMask = std::static_pointer_cast<RSNGSweepRefractionMask>(mask);
-    constexpr float maskRadius = 1.5f;
-    constexpr float edgeThickness = 500.0f;
-    constexpr float refractAmount = 0.3f;
-    constexpr float rippleWidth = 0.4f;
-    constexpr float sweepOffset = 0.25f;
-    constexpr float chromaDelta = 0.08f;
-    constexpr int32_t shapeType = 1;
-    constexpr float cornerRadius = 0.16f;
-    constexpr float prismWidth = 1.0f;
-    constexpr float prismHeight = 1.0f;
-    Vector2f sweepCenter = { 0.5f, 0.5f };
-
-    sweepRefractionMask->Setter<SweepRefractionMaskMaskRadiusTag>(maskRadius);
-    sweepRefractionMask->Setter<SweepRefractionMaskEdgeThicknessTag>(edgeThickness);
-    sweepRefractionMask->Setter<SweepRefractionMaskRefractAmountTag>(refractAmount);
-    sweepRefractionMask->Setter<SweepRefractionMaskRippleWidthTag>(rippleWidth);
-    sweepRefractionMask->Setter<SweepRefractionMaskSweepOffsetTag>(sweepOffset);
-    sweepRefractionMask->Setter<SweepRefractionMaskChromaDeltaTag>(chromaDelta);
-    sweepRefractionMask->Setter<SweepRefractionMaskShapeTypeTag>(shapeType);
-    sweepRefractionMask->Setter<SweepRefractionMaskCornerRadiusTag>(cornerRadius);
-    sweepRefractionMask->Setter<SweepRefractionMaskPrismWidthTag>(prismWidth);
-    sweepRefractionMask->Setter<SweepRefractionMaskPrismHeightTag>(prismHeight);
-    sweepRefractionMask->Setter<SweepRefractionMaskSweepCenterXTag>(sweepCenter.x_);
-    sweepRefractionMask->Setter<SweepRefractionMaskSweepCenterYTag>(sweepCenter.y_);
-
-    auto result = RSNGMaskToParaHelper::ConvertMaskToPara(mask);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->GetMaskParaType(), MaskPara::Type::SWEEP_REFRACTION_MASK);
-
-    auto para = std::static_pointer_cast<SweepRefractionMaskPara>(result);
-    EXPECT_FLOAT_EQ(para->GetMaskRadius(), maskRadius);
-    EXPECT_FLOAT_EQ(para->GetEdgeThickness(), edgeThickness);
-    EXPECT_FLOAT_EQ(para->GetRefractAmount(), refractAmount);
-    EXPECT_FLOAT_EQ(para->GetRippleWidth(), rippleWidth);
-    EXPECT_FLOAT_EQ(para->GetSweepOffset(), sweepOffset);
-    EXPECT_FLOAT_EQ(para->GetChromaDelta(), chromaDelta);
-    EXPECT_EQ(para->GetShapeType(), shapeType);
-    EXPECT_FLOAT_EQ(para->GetCornerRadius(), cornerRadius);
-    EXPECT_FLOAT_EQ(para->GetPrismWidth(), prismWidth);
-    EXPECT_FLOAT_EQ(para->GetPrismHeight(), prismHeight);
-    EXPECT_FLOAT_EQ(para->GetSweepCenterX(), sweepCenter.x_);
-    EXPECT_FLOAT_EQ(para->GetSweepCenterY(), sweepCenter.y_);
 }
 
 } // namespace OHOS::Rosen

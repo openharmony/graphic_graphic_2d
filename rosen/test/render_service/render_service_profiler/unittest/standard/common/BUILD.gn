@@ -37,6 +37,9 @@ ohos_unittest("RSCommonDefTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
 }
 

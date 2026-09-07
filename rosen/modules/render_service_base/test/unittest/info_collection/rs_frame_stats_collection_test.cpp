@@ -497,11 +497,13 @@ HWTEST_F(RSFrameStatsCollectionTest, LayerSlot001, TestSize.Level1)
     size_t slot2 = FrameStatsCounter::LayerSlot(2);
     size_t slot5 = FrameStatsCounter::LayerSlot(5);
     size_t slot10 = FrameStatsCounter::LayerSlot(10);
+    size_t slot0 = FrameStatsCounter::LayerSlot(0);
 
     EXPECT_EQ(slot1, 0u);
     EXPECT_EQ(slot2, 1u);
     EXPECT_EQ(slot5, 4u);
     EXPECT_EQ(slot10, 4u);
+    EXPECT_EQ(slot0, 4u);
 
     GTEST_LOG_(INFO) << "RSFrameStatsCollectionTest LayerSlot001 end";
 }

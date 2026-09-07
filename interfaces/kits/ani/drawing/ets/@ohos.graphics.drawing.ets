@@ -536,6 +536,132 @@ namespace drawing {
     value: double;
   }
 
+    /**
+   * Describes a list of recorded drawing commands.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @stagemodelonly
+   * @since 26.1.0 dynamic&static
+   */
+  export class RecordCmd {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+    private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("RecordCmd", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    /**
+     * Constructor for the RecordCmd.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 26.1.0
+     */
+    native constructorNative(): void;
+
+    constructor(nativePtr: long) {
+      this.bindNativePtr(nativePtr);
+    };
+  }
+
+  /**
+   * This class offers a set of operations to generate drawing commands.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @stagemodelonly
+   * @since 26.1.0 dynamic&static
+   */
+  export class RecordCmdUtils {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+    private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("RecordCmdUtils", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    /**
+     * Constructor for the RecordCmdUtils.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 26.1.0
+     */
+    native constructorNative(): void;
+
+    constructor(nativePtr: long) {
+      this.bindNativePtr(nativePtr);
+    };
+
+    /**
+     * Gets the canvas that records the drawing commands.
+     *
+     * @param { int } width - Indicates the width of the canvas object.
+     *     <br>Unit: px. The value should be an integer.
+     *     <br>Value range:[0,+∞]
+     *     <br>The width value must be greater than 0.
+     * @param { int } height - Indicates the height of the canvas object.
+     *     <br>Unit: px. The value should be an integer.
+     *     <br>Value range:[0,+∞]
+     *     <br>The height value must be greater than 0.
+     * @returns { Canvas | undefined } Returns the canvas that records the drawing commands.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.1.0 static
+     */
+    native beginRecording(width: int, height: int): Canvas | undefined;
+
+    /**
+     * Finishes recording and returns the recorded command object.
+     *
+     * @returns { RecordCmd | undefined } Returns the recorded drawing commands.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.1.0 static
+     */
+    native finishRecording(): RecordCmd | undefined;
+
+    /**
+     * Gets the height of the recording canvas.
+     * @returns { int } Returns the height of recording canvas.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.1.0 dynamic&static
+     */
+    native getHeight(): int;
+
+    /**
+     * Gets the width of the recording canvas.
+     * @returns { int } Returns the width of recording canvas.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.1.0 dynamic&static
+     */
+    native getWidth(): int;
+  }
+
   export class Canvas {
     static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
     private nativeObj : long = 0;
@@ -1325,6 +1451,15 @@ namespace drawing {
      * @since 24
      */
     native drawSingleCharacterWithFeatures(text: string, font: Font, x: double, y: double, features: Array<FontFeature>): void;
+
+    /**
+     * Replays drawing commands.
+     * @param { RecordCmd } recordCmd - Recorded drawing command.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.1.0
+     */
+    native drawRecordCmd(recordCmd: RecordCmd): void;
   }
 
   /**

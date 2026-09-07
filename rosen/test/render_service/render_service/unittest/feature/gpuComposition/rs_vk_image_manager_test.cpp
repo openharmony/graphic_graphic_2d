@@ -147,9 +147,8 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVkImage003, TestSize.Level1)
         auto buffer = CreateBuffer();
         ASSERT_NE(buffer, nullptr);
 
-        bufferSeqNums[i - 1] = buffer->BufferId();
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
-            buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        bufferSeqNums[i - 1] = buffer->GetBufferId();
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);
         if (i <= MAX_CACHE_SIZE) {
             EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
@@ -519,8 +518,8 @@ HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer001, TestSize.Level1)
 {
     const uint32_t cacheNums = 10;
-    std::set<uint64_t> bufferSeqNums;
-    std::set<uint64_t> bufferSeqInvalidNums;
+    std::unordered_set<uint64_t> bufferSeqNums;
+    std::unordered_set<uint64_t> bufferSeqInvalidNums;
     for (uint32_t i = 1; i <= cacheNums; i++) {
         auto buffer = CreateBuffer();
         ASSERT_NE(buffer, nullptr);
@@ -550,7 +549,7 @@ HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer001, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer002, TestSize.Level1)
 {
     const uint32_t cacheNums = 50;
-    std::set<uint64_t> bufferSeqNums;
+    std::unordered_set<uint64_t> bufferSeqNums;
     const uint32_t MAX_CACHE_SIZE = 40;
     pid_t tid = gettid();
     for (uint32_t i = 1; i <= cacheNums; i++) {
@@ -583,7 +582,7 @@ HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer002, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer003, TestSize.Level1)
 {
     const uint32_t cacheNums = 50;
-    std::set<uint64_t> bufferSeqNums;
+    std::unordered_set<uint64_t> bufferSeqNums;
     const uint32_t MAX_CACHE_SIZE = 40;
     pid_t tid = UNI_RENDER_THREAD_INDEX;
     for (uint32_t i = 1; i <= cacheNums; i++) {
@@ -616,7 +615,7 @@ HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer003, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer004, TestSize.Level1)
 {
     const uint32_t cacheNums = 50;
-    std::set<uint64_t> bufferSeqNums;
+    std::unordered_set<uint64_t> bufferSeqNums;
     const uint32_t MAX_CACHE_SIZE = 40;
     for (uint32_t i = 1; i <= cacheNums; i++) {
         auto buffer = CreateBuffer();
@@ -648,7 +647,7 @@ HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer004, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, UnMapImageOneByOne001, TestSize.Level1)
 {
     const uint32_t cacheNums = 50;
-    std::set<uint64_t> bufferSeqNums;
+    std::unordered_set<uint64_t> bufferSeqNums;
     const uint32_t MAX_CACHE_SIZE = 40;
 
     while (!vkImageManager_->oneByoneUnmapCacheSeqs_.empty()) {

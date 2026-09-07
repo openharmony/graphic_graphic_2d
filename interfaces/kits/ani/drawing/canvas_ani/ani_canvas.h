@@ -134,6 +134,7 @@ public:
     static ani_boolean IsOpaque(ani_env* env, ani_object obj);
     static void DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text, ani_object font,
         ani_double x, ani_double y, ani_array features);
+    static void DrawRecordCmd(ani_env* env, ani_object obj, ani_object recordCmdObj);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();

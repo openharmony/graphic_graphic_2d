@@ -1521,10 +1521,8 @@ void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
         info.uniqueId, info.appPid, info.sceneId.c_str());
     EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};
     std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
-    for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
-        it->disableNodes.clear();
-    }
     globalFrameEvent_.push_back(std::move(eventInfo));
+    hasNewResponseEvent_ = true;
 }
 
 void RSUifirstManager::OnProcessEventComplete(DataBaseRs& info)
@@ -1560,6 +1558,8 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
     negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
+        const bool clearDisableNodes = hasNewResponseEvent_;
+        hasNewResponseEvent_ = false;
         for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end();) {
             if (it->stopTime != 0 &&
                 ((curSysTime > it->stopTime) && (curSysTime - it->stopTime) > EVENT_STOP_TIMEOUT)) {
@@ -1570,6 +1570,9 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
             if ((curSysTime > it->startTime) && (curSysTime - it->startTime) > EVENT_START_TIMEOUT) {
                 it = globalFrameEvent_.erase(it);
                 continue;
+            }
+            if (clearDisableNodes) {
+                it->disableNodes.clear();
             }
             it++;
         }

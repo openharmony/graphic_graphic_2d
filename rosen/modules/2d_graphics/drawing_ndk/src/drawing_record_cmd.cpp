@@ -30,6 +30,11 @@ static RSRecordCmdUtils* CastToCmdUtils(OH_Drawing_RecordCmdUtils* cRecordCmdUti
     return reinterpret_cast<RSRecordCmdUtils*>(cRecordCmdUtils);
 }
 
+static const RSRecordCmdUtils* CastToCmdUtilsConst(const OH_Drawing_RecordCmdUtils *cRecordCmdUtils)
+{
+    return reinterpret_cast<const RSRecordCmdUtils*>(cRecordCmdUtils);
+}
+
 OH_Drawing_RecordCmdUtils* OH_Drawing_RecordCmdUtilsCreate()
 {
     return (OH_Drawing_RecordCmdUtils*)new (std::nothrow) RSRecordCmdUtils;
@@ -77,6 +82,28 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsFinishRecording(OH_Drawing_RecordC
         return OH_DRAWING_ERROR_ALLOCATION_FAILED;
     }
     *cRecordCmd = Helper::CastTo<NativeHandle<RecordCmd>*, OH_Drawing_RecordCmd*>(recordCmdHandle);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetHeight(
+    const OH_Drawing_RecordCmdUtils *cRecordCmdUtils, int32_t *height)
+{
+    if (cRecordCmdUtils == nullptr || height == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const RSRecordCmdUtils* recordCmdUtils = CastToCmdUtilsConst(cRecordCmdUtils);
+    *height = const_cast<RSRecordCmdUtils*>(recordCmdUtils)->GetHeight();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetWidth(
+    const OH_Drawing_RecordCmdUtils *cRecordCmdUtils, int32_t *width)
+{
+    if (cRecordCmdUtils == nullptr || width == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const RSRecordCmdUtils* recordCmdUtils = CastToCmdUtilsConst(cRecordCmdUtils);
+    *width = const_cast<RSRecordCmdUtils*>(recordCmdUtils)->GetWidth();
     return OH_DRAWING_SUCCESS;
 }
 

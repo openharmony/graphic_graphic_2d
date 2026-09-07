@@ -63,8 +63,8 @@ struct FrameStatsCounter {
     };
 
     static constexpr size_t RATE_COUNT = 15;
-    static constexpr size_t LAYER_SLORTS = 5; // track layers 1,2,3,4,5+
-    static constexpr size_t PER_LAYER_RATE_TOTAL = LAYER_SLORTS * RATE_COUNT;
+    static constexpr size_t LAYER_SLOTS = 5; // track layers 1,2,3,4,5+
+    static constexpr size_t PER_LAYER_RATE_TOTAL = LAYER_SLOTS * RATE_COUNT;
 
     // Rate index mapping (aligned with IDEAL_PERIOD)
     static size_t RateSlot(uint32_t rate)
@@ -80,7 +80,10 @@ struct FrameStatsCounter {
 
     static size_t LayerSlot(size_t layerCount)
     {
-        return (layerCount >= LAYER_SLORTS) ? (LAYER_SLORTS - 1) : (layerCount - 1);
+        if (layerCount == 0 || layerCount >= LAYER_SLOTS) {
+            return LAYER_SLOTS - 1;
+        }
+        return layerCount - 1;
     }
 
     static size_t PerLayerRateIndex(size_t layerCount, uint32_t rate)
@@ -119,7 +122,7 @@ enum class FrameStatsLevel : int32_t {
     Full = 2,
 };
 
-//Target detail category for per-surfacenode counters
+// Target detail category for per-surfacenode counters
 enum class FrameStatsDetail : int32_t {
     UniRenderThread = 0,
     MainThread = 1,
@@ -131,7 +134,6 @@ struct AppFrameStats {
     std::map<std::string, std::map<std::string, uint64_t>> uniRenderThreadDetailStats;
     std::map<std::string, std::map<std::string, uint64_t>> mainThreadDetailStats;
 };
-
 
 struct RSB_EXPORT FrameStatsEntry {
     std::string name;
@@ -165,7 +167,7 @@ public:
 
     // Increment a per-surfacenode counter by value. Lazy-registers surfacenode on first call.
     // Only effective when IsLevelAtLeast(Full).
-    // detail: UniRenderThread -> RSUniRenderThread-Detail, MainThread-Detail
+    // detail: UniRenderThread -> uniRenderThreadDetailStats_, MainThread -> mainThreadDetailStats_
     void IncrementBySurfaceNode(const std::string& surfaceNodeName, const std::string& counterName,
         uint64_t value = 1, FrameStatsDetail detail = FrameStatsDetail::UniRenderThread);
 
@@ -180,16 +182,16 @@ public:
     // Get a single counter value. Returns 0 if out of range.
     uint64_t GetCounterValue(size_t counter) const;
 
-    // Reset all counters to 0. Thread-sage.
+    // Reset all counters to 0. Thread-safe.
     void ResetFrameStats();
 
-    //Dump all counters to a formatted string.
-    //Includes current foreground app and per-app history.
+    // Dump all counters to a formatted string.
+    // Includes current foreground app and per-app history.
     std::string DumpFrameStats() const;
 
     // Set the current foreground app from a vector of "pkgName:pid:appType" format params.
     // When the foreground app changes, current counters are snapshotted into
-    // per-app history before restting. Thread-safe.
+    // per-app history before resetting. Thread-safe.
     void SetForegroundApp(const std::vector<std::string>& params);
 
     // Get the current foreground app name. Returns empty string if not set.
@@ -210,7 +212,6 @@ private:
     void InitCounterNames();
     static std::string ParsePkgName(const std::vector<std::string>& params);
     void SnapshotAndResetCountersLocked(const std::string& AppName);
-
 
     static const FrameStatsLevel enabledLevel_;
 

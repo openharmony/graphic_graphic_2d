@@ -31,6 +31,8 @@
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
 #include "point_utils_napi/js_point_utils.h"
+#include "record_cmd_napi/js_record_cmd.h"
+#include "record_cmd_utils_napi/js_record_cmd_utils.h"
 #include "rect_utils_napi/js_rect_utils.h"
 #include "region_napi/js_region.h"
 #include "roundRect_napi/js_roundrect.h"
@@ -69,6 +71,8 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsShadowLayer::Init(env, exportObj);
     JsMatrix::Init(env, exportObj);
     JsTool::Init(env, exportObj);
+    JsRecordCmd::Init(env, exportObj);
+    JsRecordCmdUtils::Init(env, exportObj);
     ROSEN_LOGI("DrawingInit end");
     return exportObj;
 }

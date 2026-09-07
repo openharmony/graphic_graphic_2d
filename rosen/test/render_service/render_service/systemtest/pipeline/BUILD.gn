@@ -45,10 +45,23 @@ ohos_systemtest("RSBaseRenderEngineTest") {
 
   public_configs = [ ":rs_test_common_public_config" ]
   external_deps = [
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+    "window_manager:libwm",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -75,10 +88,23 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+    "window_manager:libwm",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -87,7 +113,6 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   defines += gpu_defines
   public_configs = [ ":rs_test_common_public_config" ]
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:display_commontype_idl_headers",
@@ -107,10 +132,22 @@ ohos_systemtest("RSRenderServiceTest") {
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
+    "c_utils:utils",
     "egl:libEGL",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+    "window_manager:libwm",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -119,7 +156,6 @@ ohos_systemtest("RSRenderServiceTest") {
   defines += gpu_defines
   public_configs = [ ":rs_test_common_public_config" ]
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:display_commontype_idl_headers",
@@ -132,6 +168,8 @@ ohos_systemtest("RSRenderServiceTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
@@ -157,6 +195,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
@@ -169,6 +208,11 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/vsync",
+    "$graphic_2d_root/interfaces/inner_api/composer",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/utils/sandbox",
+    "$graphic_2d_root/utils/socketpair/export",
   ]
 
   cflags = [
@@ -186,9 +230,15 @@ ohos_static_library("rs_test_common") {
   defines = []
   defines += gpu_defines
   sources = [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.cpp" ]
-  public_configs = [ ":rs_test_common_public_config" ]
+  public_configs = [
+    ":rs_test_common_public_config",
+    #"$graphic_2d_root/rosen/modules/render_service/composer:composer_public_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+    "$graphic_2d_root/rosen/modules/2d_graphics:export_config",
+  ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
@@ -197,9 +247,9 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
-  public_external_deps = [
+  external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
@@ -209,17 +259,18 @@ ohos_static_library("rs_test_common") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "window_manager:libwm",
-  ]
-
-  external_deps = [
     "hisysevent:libhisysevent",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
     "opengles:libGLES",
+    "skia:skia_canvaskit",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
   if (use_memmgr_plugin || use_memmgr) {
-    public_external_deps += [ "memmgr:memmgrclient" ]
+    external_deps += [ "memmgr:memmgrclient" ]
   }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

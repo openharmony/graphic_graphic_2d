@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cmath>
 #include "effect_kit_napi_utils.h"
 #include "effect_errors.h"
 #include "color_picker.h"
@@ -419,14 +420,16 @@ std::unique_ptr<ColorPickerAsyncContext> ColorPickerNapi::InitializeAsyncContext
     napi_env env, napi_status& status, napi_value* argValue, size_t argCount)
 {
     auto asyncContext = std::make_unique<ColorPickerAsyncContext>();
-    if (argCount >= NUM_1) {
-        ImageType imgType = ParserArgumentType(env, argValue[NUM_1 - 1]);
-        if (imgType == ImageType::TYPE_PIXEL_MAP) {
-            asyncContext->rPixelMap = Media::PixelMapNapi::GetPixelMap(env, argValue[NUM_1 - 1]);
-            BuildMsgOnError(asyncContext, asyncContext->rPixelMap != nullptr, "Pixmap mismatch");
-        } else {
-            BuildMsgOnError(asyncContext, false, "image type mismatch");
-        }
+    if (argCount < NUM_1) {
+        BuildMsgOnError(asyncContext, false, "missing required image argument");
+        return asyncContext;
+    }
+    ImageType imgType = ParserArgumentType(env, argValue[NUM_1 - 1]);
+    if (imgType == ImageType::TYPE_PIXEL_MAP) {
+        asyncContext->rPixelMap = Media::PixelMapNapi::GetPixelMap(env, argValue[NUM_1 - 1]);
+        BuildMsgOnError(asyncContext, asyncContext->rPixelMap != nullptr, "Pixmap mismatch");
+    } else {
+        BuildMsgOnError(asyncContext, false, "image type mismatch");
     }
 
     return asyncContext;
@@ -1060,11 +1063,11 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
     unsigned int colorsNum = 0;
     if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
         double number = 0;
-        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok) {
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && !std::isnan(number)) {
             colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
         }
     }
- 
+
     napi_value arrayValue = nullptr;
     std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
     napi_value undefinedValue = nullptr;
@@ -1110,7 +1113,7 @@ napi_value ColorPickerNapi::GetTopProportionColorsAndPercentage(napi_env env, na
     unsigned int colorsNum = 0;
     if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
         double number = 0;
-        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok) {
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok && !std::isnan(number)) {
             colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
         }
     }

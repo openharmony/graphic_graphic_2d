@@ -195,6 +195,18 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             break;
         }
 #endif
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GLOBAL_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GLOBAL_BLACKLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_GLOBAL_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_GLOBAL_BLACKLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_GLOBAL_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_GLOBAL_BLACKLIST");
+            break;
+        }
         default: {
             hasPermission = false;
             break;

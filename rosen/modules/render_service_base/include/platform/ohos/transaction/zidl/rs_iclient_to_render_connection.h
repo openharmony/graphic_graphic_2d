@@ -198,6 +198,10 @@ public:
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 
+    virtual int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+    virtual int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+    virtual int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

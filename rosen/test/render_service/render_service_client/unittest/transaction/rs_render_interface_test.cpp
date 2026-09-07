@@ -14,7 +14,10 @@
  */
 #include "gtest/gtest.h"
 
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -162,13 +165,17 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
         {}
     };
     auto callback = std::make_shared<TestSurfaceCapture>();
-    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
-    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto rsUiDirector = RSUIDirector::CreateRSUIDirector();
+    ASSERT_NE(rsUiDirector, nullptr);
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
     RSSurfaceCaptureConfig captureConfig;
-    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+    auto rsRenderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(rsRenderInterface, nullptr);
+    auto res = rsRenderInterface->TakeUICaptureInRangeWithConfig(
         canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
     EXPECT_EQ(res, true);
@@ -238,6 +245,26 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
     Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
     bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GlobalBlackListTest001
+ * @tc.desc: test Set/Add/RemoveGlobalBlackList delegate to render pipeline client
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderInterfaceTest, GlobalBlackListTest001, TestSize.Level2)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+
+    std::vector<NodeId> blackList = {1};
+    int32_t ret = renderInterface->SetGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->AddGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->RemoveGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

@@ -21,7 +21,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "display_engine/ipc_callbacks/rs_ide_status_change_callback.h"
-#include "display_engine/transaction/zidl/rs_display_engine_control_stub.h"
 
 namespace OHOS {
 namespace Rosen {

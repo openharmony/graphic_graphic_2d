@@ -106,6 +106,33 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsFinishRecording(OH_Drawing_RecordC
     OH_Drawing_RecordCmd** recordCmd);
 
 /**
+* @brief Gets the height of recording canvas.
+*
+* @param recordCmdUtils [in] Indicates the pointer to an <b>OH_Drawing_RecordCmdUtils</b> object.
+* @param height [out] Indicates the height of canvas, in px.
+* @return <ul>
+*         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+*         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if recordCmdUtils or height is nullptr.</li>
+*         </ul>
+* @since 26.1.0
+*/
+OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetHeight(
+    const OH_Drawing_RecordCmdUtils *recordCmdUtils, int32_t *height);
+
+/**
+* @brief Gets the width of recording canvas.
+*
+* @param recordCmdUtils [in] Indicates the pointer to an <b>OH_Drawing_RecordCmdUtils</b> object.
+* @param width [out] Indicates the width of canvas, in px.
+* @return <ul>
+*         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+*         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if recordCmdUtils or width is nullptr.</li>
+*         </ul>
+* @since 26.1.0
+*/
+OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetWidth(const OH_Drawing_RecordCmdUtils *recordCmdUtils, int32_t *width);
+
+/**
  * @brief Destroys an <b>OH_Drawing_RecordCmd</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

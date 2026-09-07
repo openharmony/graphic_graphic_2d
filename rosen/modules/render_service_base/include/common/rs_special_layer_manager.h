@@ -101,6 +101,7 @@ private:
     std::unordered_map<ScreenId, bool> hasSlInVisibleRect_;
 };
 
+// access and modification are only permitted in the main thread
 class RSB_EXPORT ScreenSpecialLayerInfo {
 public :
     static void Update(SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
@@ -112,6 +113,8 @@ public :
     static std::unordered_set<NodeId> QueryNodeIdsByType(SpecialLayerType type);
 
     static void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
+    static void AddGlobalBlackList(const std::vector<NodeId>& nodeIds);
+    static void RemoveGlobalBlackList(const std::vector<NodeId>& nodeIds);
     static const std::unordered_set<NodeId>& GetGlobalBlackList();
 
     static void UpdateScreenMirrorSourceMap(ScreenId mirrorScreenId, ScreenId sourceScreenId);

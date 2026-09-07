@@ -61,6 +61,9 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -88,6 +91,9 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
 }
 
@@ -120,7 +126,12 @@ ohos_unittest("RSClientToServiceConnectionStubTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -162,7 +173,12 @@ ohos_unittest("RSClientToRenderConnectionStubTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "libxml2:libxml2",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -185,7 +201,11 @@ ohos_unittest("RSRenderServiceStubTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -202,7 +222,11 @@ ohos_unittest("RSConnectToRenderProcessTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -221,7 +245,11 @@ ohos_unittest("RSConnectToRenderProcessProxyTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -240,7 +268,11 @@ ohos_unittest("RSConnectToRenderProcessStubTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -318,6 +350,9 @@ ohos_unittest("RSUnmarshalThreadTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
   defines = []
   defines += gpu_defines
@@ -368,7 +403,11 @@ ohos_static_library("rs_test_common") {
 
   deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
 
-  external_deps = [ "hisysevent:libhisysevent" ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
+  ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

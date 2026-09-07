@@ -41,6 +41,19 @@ public:
      * @return A shared pointer to RecordCmd
      */
     std::shared_ptr<Drawing::RecordCmd> FinishRecording();
+
+    /**
+     * @brief Returns the width of the Canvas.
+     * @return The width of the canvas.
+     */
+    int32_t GetWidth();
+
+    /**
+     * @brief Returns the height of the Canvas.
+     * @return The height of the canvas.
+     */
+    int32_t GetHeight();
+
 private:
     std::shared_ptr<ExtendRecordingCanvas> extendRecordingCanvas_;
     Drawing::Rect cullRect_;

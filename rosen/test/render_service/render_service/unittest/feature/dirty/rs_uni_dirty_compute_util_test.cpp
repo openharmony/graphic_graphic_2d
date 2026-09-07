@@ -354,10 +354,10 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     displayParams->specialLayerManager_ = specialLayerManager;
     screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
 
-    std::unordered_set<NodeId> blackListVector({1, 2, 3});
+    std::unordered_set<NodeId> blackListVector({ 1, 2, 3 });
     params->SetLastBlackList(blackListVector);
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
     std::unordered_set<NodeId> blackListVector2({});

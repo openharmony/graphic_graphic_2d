@@ -1427,6 +1427,35 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_002, Function | SmallTes
 }
 
 /**
+ * @tc.name: UpdateHwcNodeProperty_003
+ * @tc.desc: Test UpdateHwcNodeProperty with null hwcNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_003, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_EQ(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeProperty_004
+ * @tc.desc: Test UpdateHwcNodeProperty with null boundsGeo
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.boundsGeo_.reset();
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_FALSE(surfaceNode->GetVcldInfo().enable);
+}
+
+/**
  * @tc.name: TraverseParentNodeAndReduce_001
  * @tc.desc: Test TraverseParentNodeAndReduce
  * @tc.type: FUNC

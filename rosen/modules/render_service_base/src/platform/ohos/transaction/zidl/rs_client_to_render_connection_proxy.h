@@ -147,6 +147,10 @@ public:
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList) override;
+
     int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(

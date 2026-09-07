@@ -104,7 +104,6 @@ RSFrameStatsCollection& RSFrameStatsCollection::GetInstance()
     return instance;
 }
 
-
 RSFrameStatsCollection::RSFrameStatsCollection()
 {
     InitCounterNames();
@@ -158,9 +157,9 @@ void RSFrameStatsCollection::InitCounterNames()
 
     // Per-layer rate counters (dynamic indexing)
     static constexpr uint32_t rates[] = { 10, 15, 20, 24, 30, 36, 40, 45, 48, 60, 72, 80, 90, 120, 144 };
-    for (size_t slot = 0; slot < FrameStatsCounter::LAYER_SLORTS; ++slot) {
-        // slot 0..3 -> Layers1..4, slot 4 -> Layers5s+
-        std::string layerLabel = (slot < FrameStatsCounter::LAYER_SLORTS - 1)
+    for (size_t slot = 0; slot < FrameStatsCounter::LAYER_SLOTS; ++slot) {
+        // slot 0..3 -> Layers1..4, slot 4 -> Layers5+
+        std::string layerLabel = (slot < FrameStatsCounter::LAYER_SLOTS - 1)
             ? "Layers" + std::to_string(slot + 1)
             : "Layers5+";
         for (size_t r = 0; r < FrameStatsCounter::RATE_COUNT; ++r) {
@@ -190,6 +189,7 @@ void RSFrameStatsCollection::IncrementBySurfaceNode(
     if (surfaceNodeName.empty() || counterName.empty()) {
         return;
     }
+    std::lock_guard<std::mutex> lock(registrationMtx_);
     if (detail == FrameStatsDetail::MainThread) {
         mainThreadDetailStats_[surfaceNodeName][counterName] += value;
     } else {
@@ -203,6 +203,7 @@ void RSFrameStatsCollection::IncrementDrawableBySurfaceNode(
     if (surfaceNodeName.empty()) {
         return;
     }
+    std::lock_guard<std::mutex> lock(registrationMtx_);
     mainThreadDetailStats_[surfaceNodeName][DrawableSlotToString(slot)] += value;
 }
 
@@ -252,7 +253,7 @@ namespace {
 //       Leaf: value
 // Counters with value 0 are skipped.
 uint64_t ComputeRenderComposerTotal(const std::vector<std::string>& names,
-    const std::vector<std::atomic<uint64_t>*>& counters, const std::vector<uint64_t>* values)
+    const std::vector<uint64_t>& values)
 {
     uint64_t total = 0;
     for (size_t i = 0; i < names.size(); ++i) {
@@ -272,20 +273,19 @@ uint64_t ComputeRenderComposerTotal(const std::vector<std::string>& names,
         if (sep2 == std::string::npos) {
             continue;
         }
-        uint64_t val = values ? (i < values->size() ? (*values)[i] : 0)
-                              : counters[i]->load(std::memory_order_relaxed);
-        total += val;
+        if (i < values.size()) {
+            total += values[i];
+        }
     }
     return total;
 }
 
-void DumpCounters(std::ostringstream& oss, const std::vector<std::string>&names,
-    const std::vector<std::atomic<uint64_t>*>& counters, const std::vector<uint64_t>* values,
-    const std::string& indent)
+void DumpCounters(std::ostringstream& oss, const std::vector<std::string>& names,
+    const std::vector<uint64_t>& values, const std::string& indent)
 {
     // Pre-compute RSRenderComposer TotalFrames so it can be printed before the
     // per-layer-rate sub-categories, consistent with RSMainThread/RSUniRenderThread.
-    uint64_t renderComposerTotal = ComputeRenderComposerTotal(names, counters, values);
+    uint64_t renderComposerTotal = ComputeRenderComposerTotal(names, values);
     bool renderComposerTotalPrinted = false;
     std::string currentCategory;
     std::string currentSubCategory;
@@ -293,12 +293,11 @@ void DumpCounters(std::ostringstream& oss, const std::vector<std::string>&names,
         if (names[i].empty()) {
             continue;
         }
-        uint64_t val = values ? (i < values->size() ? (*values)[i] : 0)
-                              : counters[i]->load(std::memory_order_relaxed);
-        if (val == 0) {
+        if (i >= values.size() || values[i] == 0) {
             continue;
         }
         // Split "Category|SubCategory|Leaf" into parts
+        uint64_t val = values[i];
         auto sep1 = names[i].find('|');
         std::string category = (sep1 != std::string::npos) ? names[i].substr(0, sep1) : "(default)";
         std::string rest = (sep1 != std::string::npos) ? names[i].substr(sep1 + 1) : names[i];
@@ -311,7 +310,6 @@ void DumpCounters(std::ostringstream& oss, const std::vector<std::string>&names,
             currentCategory = category;
             currentSubCategory.clear();
             oss << "\n" << indent << "[" << category << "]\n";
-            // Print RSRenderComposer TotalFrames as the first field, before other counters
             if (category == "RSRenderComposer" && renderComposerTotal > 0) {
                 oss << indent << "  TotalFrames: " << renderComposerTotal << "\n";
                 renderComposerTotalPrinted = true;
@@ -395,53 +393,71 @@ void MergeDetailStats(std::map<std::string, std::map<std::string, uint64_t>>& de
 
 std::string RSFrameStatsCollection::DumpFrameStats() const
 {
-    std::lock_guard<std::mutex> lock(registrationMtx_);
+    // Snapshot data under lock, format string outside lock to minimize lock hold time
+    std::vector<std::string> names;
+    std::vector<uint64_t> currentValues;
+    std::map<std::string, std::map<std::string, uint64_t>> uniRenderThreadDetail;
+    std::map<std::string, std::map<std::string, uint64_t>> mainThreadDetail;
+    std::string foregroundApp;
+    std::map<std::string, AppFrameStats> appStatsHistory;
+    {
+        std::lock_guard<std::mutex> lock(registrationMtx_);
+        names = counterNames_;
+        currentValues.resize(counters_.size(), 0);
+        for (size_t i = 0; i < counters_.size(); ++i) {
+            currentValues[i] = counters_[i]->load(std::memory_order_relaxed);
+        }
+        if (enabledLevel_ >= FrameStatsLevel::Full) {
+            uniRenderThreadDetail = uniRenderThreadDetailStats_;
+            mainThreadDetail = mainThreadDetailStats_;
+        }
+        foregroundApp = foregroundApp_;
+        appStatsHistory = appStatsHistory_;
+    }
     std::ostringstream oss;
     oss << "\n-- FrameStats --\n";
     oss << "  Level: " << static_cast<int32_t>(enabledLevel_) << "\n";
     // Current foreground app
-    oss << "\n  Foreground App: " << (foregroundApp_.empty() ? "(unknown)" : foregroundApp_) << "\n";
+    oss << "\n  Foreground App: " << (foregroundApp.empty() ? "(unknown)" : foregroundApp) << "\n";
     {
-        std::vector<std::string> names = counterNames_;
-        std::vector<uint64_t> values(counters_.size(), 0);
-        for (size_t i = 0; i < counters_.size(); ++i) {
-            values[i] = counters_[i]->load(std::memory_order_relaxed);
-        }
+        std::vector<std::string> dumpNames = names;
+        std::vector<uint64_t> dumpValues = currentValues;
         if (enabledLevel_ >= FrameStatsLevel::Full) {
-            AppendDetailEntries(names, values, uniRenderThreadDetailStats_, "RSUniRenderThread-Detail");
-            AppendDetailEntries(names, values, mainThreadDetailStats_, "RSMainThread-Detail");
+            AppendDetailEntries(dumpNames, dumpValues, uniRenderThreadDetail, "RSUniRenderThread-Detail");
+            AppendDetailEntries(dumpNames, dumpValues, mainThreadDetail, "RSMainThread-Detail");
         }
-        DumpCounters(oss, names, counters_, &values, "    ");
+        DumpCounters(oss, dumpNames, dumpValues, "    ");
     }
-    // Per-app history
-    // current foreground app's history is merged into live counters)
-    if (!appStatsHistory_.empty()) {
+    // Per-app history (current foreground app's history is merged into live counters)
+    if (!appStatsHistory.empty()) {
         oss << "\n  -- Per-App History --\n";
-        for (const auto& [appName, appStats] : appStatsHistory_) {
+        for (const auto& [appName, appStats] : appStatsHistory) {
             oss << "\n  [" << (appName.empty() ? "(unknown)" : appName) << "]\n";
-            std::vector<std::string> names = counterNames_;
-            std::vector<uint64_t> values = appStats.fixedCounters;
+            std::vector<std::string> dumpNames = names;
+            std::vector<uint64_t> dumpValues = appStats.fixedCounters;
             if (enabledLevel_ >= FrameStatsLevel::Full) {
-                AppendDetailEntries(names, values, appStats.uniRenderThreadDetailStats, "RSUniRenderThread-Detail");
-                AppendDetailEntries(names, values, appStats.mainThreadDetailStats, "RSMainThread-Detail");
+                AppendDetailEntries(dumpNames, dumpValues, appStats.uniRenderThreadDetailStats,
+                    "RSUniRenderThread-Detail");
+                AppendDetailEntries(dumpNames, dumpValues, appStats.mainThreadDetailStats,
+                    "RSMainThread-Detail");
             }
-            DumpCounters(oss, names, counters_, &values, "    ");
+            DumpCounters(oss, dumpNames, dumpValues, "    ");
         }
         oss << "  -- End Per-App History --\n";
     }
     // Aggregate all apps: sum current foreground counters + all history
     {
-        std::vector<uint64_t> aggregate(counters_.size(), 0);
-        for (size_t i = 0; i < counters_.size(); ++i) {
-            aggregate[i] = counters_[i]->load(std::memory_order_relaxed);
+        std::vector<uint64_t> aggregate(currentValues.size(), 0);
+        for (size_t i = 0; i < currentValues.size(); ++i) {
+            aggregate[i] = currentValues[i];
         }
-        for (const auto& [appName, appStats] : appStatsHistory_) {
+        for (const auto& [appName, appStats] : appStatsHistory) {
             for (size_t i = 0; i < appStats.fixedCounters.size() && i < aggregate.size(); ++i) {
                 aggregate[i] += appStats.fixedCounters[i];
             }
         }
         oss << "\n  -- All Apps Total --\n";
-        DumpCounters(oss, counterNames_, counters_, &aggregate, "    ");
+        DumpCounters(oss, names, aggregate, "    ");
         oss << "  -- End All Apps Total --\n";
     }
     oss << "  -- End FrameStats --\n";
@@ -453,7 +469,7 @@ std::string RSFrameStatsCollection::ParsePkgName(const std::vector<std::string>&
     if (params.empty()) {
         return "";
     }
-    //Select the best candidate: filter out sceneboard when multiple entries exist
+    // Select the best candidate: filter out sceneboard when multiple entries exist
     std::string selected;
     if (params.size() > 1) {
         for (auto it = params.begin(); it != params.end(); ++it) {

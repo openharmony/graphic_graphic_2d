@@ -891,7 +891,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
 
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsDisplayRenderNode);
     rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData);
-    screenManager->RemoveVirtualScreen(screenId);
+    screenManager_->RemoveVirtualScreen(screenId);
 }
 
 /*
@@ -2266,10 +2266,10 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts003, TestSize.Level2)
 
     GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     screenNode->SetColorSpace(originalColorSpace);
-    rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_NATIVE, COLOR_GAMUT_DISPLAY_P3};
+    rsScreen->supportedPhysicalColorGamuts_ = { COLOR_GAMUT_NATIVE, COLOR_GAMUT_DISPLAY_P3 };
     rsUniRenderVisitor->HandleColorGamuts(*screenNode);
     ScreenColorGamut screenColorGamut;
-    screenManager->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
+    screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
     ASSERT_NE(screenNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 }
 
@@ -2285,17 +2285,17 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts004, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
 
     ScreenId screenId = 1;
     auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3};
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
+    rsScreen->supportedPhysicalColorGamuts_ = { COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3 };
+    screenManager->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
     auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 004", 0, 0, nullptr);
-    screenNode->screenInfo_ = screenManager->QueryScreenInfo(virtualScreenId);
+    screenNode->screenInfo_.id = virtualScreenId;
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
@@ -2303,7 +2303,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts004, TestSize.Level2)
     rsScreen->supportedPhysicalColorGamuts_ = {};
     rsUniRenderVisitor->HandleColorGamuts(*screenNode);
     ScreenColorGamut screenColorGamut;
-    screenManager->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
+    screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
     ASSERT_NE(screenNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 }
 
@@ -2335,10 +2335,9 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts005, TestSize.Level2)
     rsScreen->supportedPhysicalColorGamuts_ = {};
     rsUniRenderVisitor->HandleColorGamuts(*screenNode);
     ScreenColorGamut screenColorGamut;
-    screenManager->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
+    screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
     ASSERT_NE(screenNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 }
-
 
 /**
  * @tc.name: CheckColorSpaceWithSelfDrawingNode001
@@ -2560,7 +2559,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent004, Tes
     pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
     nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
     upperSurfaceNode->context_ = rsContext;
-    upperSurfaceNode->instanceRootNodePid_ = instanceRootNodeId;
+    upperSurfaceNode->instanceRootNodeId_ = instanceRootNodeId;
     surfaceNode->name_ = "shell_assistant1";
     surfaceNode->SetParent(upperSurfaceNode);
 
@@ -2837,8 +2836,8 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode005, TestSize.Level
     auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 0, rsContext->weak_from_this());
     rsScreenRenderNode->InitRenderParams();
 
-    auto screenManager = CreateOrGetScreenManager();
-    auto screenId = CreateVirtualScreen(screenManager);
+    auto screenManager = screenManager_;
+    auto screenId = CreateVirtualScreen();
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
     auto parent = std::make_shared<RSRenderNode>(1);
@@ -3852,10 +3851,10 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
     ASSERT_NE(node, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto screenManager = CreateOrGetScreenManager();
-    auto screenId = CreateVirtualScreen(screenManager);
+    auto screenManager = screenManager_;
+    auto screenId = CreateVirtualScreen();
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
-    
+
     rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(screenId);
     ASSERT_NE(rsDisplayRenderNode->stagingRenderParams_, nullptr);
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
@@ -3877,7 +3876,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
     };
     GSError ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    surfaceHandle->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+    surfaceHandle->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
     surfaceHandle->SetLastBufferId(buffer->GetBufferId());
     surfaceHandle->lastBufferReclaimNum_ = 4;
     EXPECT_TRUE(surfaceHandle->ReclaimLastBufferPrepare());
@@ -4108,7 +4107,7 @@ HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfoTest002, TestSize.Level2)
     visitor.curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
     NodeId id = 0;
     RSDisplayNodeConfig config;
-    auto dispayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
 
     // displayMode == DisplayMode::INVALID
     visitor.InitLogicalDisplayInfo(*displayNode);
@@ -6971,9 +6970,9 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareChildren003, TestSize.Level2)
     surfaceNode1->SetGlobalAlpha(0.0f);
     surfaceNode1->SetNodeName("ShellAssistantAnco_TestNode1");
 
-    anco canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
     canvasNode->SetGlobalAlpha(0.6f);
-    canvasNode->SetNodeName(ShellAssistantAnco_Dimmer_TestNode2);
+    canvasNode->SetNodeName("ShellAssistantAnco_Dimmer_TestNode2");
     canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
@@ -10044,7 +10043,7 @@ HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegio
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut001, TestSize.Level2)
 {
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
     auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
@@ -10072,7 +10071,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut001, TestSize.Leve
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut002, TestSize.Level2)
 {
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
     auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
@@ -10100,7 +10099,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut002, TestSize.Leve
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut003, TestSize.Level2)
 {
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
     auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
@@ -10256,6 +10255,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut002, TestSiz
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     ColorGamutParam::SetDisableP3OnWiredExtendedScreen(true);
 
+    GraphicColorGamut originalColorSpace = screenNode->GetColorSpace();
     rsUniRenderVisitor->HandleWiredExtendedScreenColorGamut(*screenNode);
     if (ColorGamutParam::DisableP3OnWiredExtendedScreen()) {
         EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
@@ -10298,10 +10298,9 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut004, TestSiz
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
 
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
 
     GraphicColorGamut originalColorSpace = screenNode->GetColorSpace();
@@ -10937,17 +10936,23 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_HasMirrorUsedInSpecialLayerTest, TestSize.Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(node, nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
 
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+
+    bool needCalcScreenSpecialLayer = rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_;
+    RSSpecialLayerUtils::DealWithSpecialLayer(
+        *node, *rsUniRenderVisitor->curLogicalDisplayNode_, needCalcScreenSpecialLayer);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_BLACK_LIST, { node->GetId(), node->GetLeashPersistentId() })
+                    .empty());
 }
 
 /**
@@ -10959,17 +10964,23 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_HasMirrorUsedInSpecialLay
 HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NoMirrorUsedInSpecialLayerTest, TestSize.Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(node, nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = false;
 
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+
+    bool needCalcScreenSpecialLayer = rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_;
+    RSSpecialLayerUtils::DealWithSpecialLayer(
+        *node, *rsUniRenderVisitor->curLogicalDisplayNode_, needCalcScreenSpecialLayer);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_BLACK_LIST, { node->GetId(), node->GetLeashPersistentId() })
+                    .empty());
 }
 
 /**
@@ -10981,11 +10992,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NoMirrorUsedInSpecialLaye
 HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NullScreenManagerTest, TestSize.Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::UNKNOWN;
-    rsUniRenderVisitor->screenManager_ = nullptr;
     rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
 
     // Setup curLogicalDisplayNode_ with initial state for verification
@@ -10995,16 +11005,13 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NullScreenManagerTest, Te
         std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
 
     // Verify IS_BLACK_LIST is not set before the call
-    ASSERT_FALSE(rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(
-        SpecialLayerType::IS_BLACK_LIST));
+    ASSERT_FALSE(
+        rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::IS_BLACK_LIST));
 
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
+    RSSpecialLayerUtils::DealWithSpecialLayer(*node, *rsUniRenderVisitor->curLogicalDisplayNode_, true);
 
-    // Verify IS_BLACK_LIST is still not set after the call
-    // Since UpdateBlackListRecord should return early when screenManager_ is nullptr,
-    // curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIdsWithScreen() should not be executed
-    ASSERT_FALSE(rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(
-        SpecialLayerType::IS_BLACK_LIST));
+    ASSERT_FALSE(
+        rsUniRenderVisitor->curLogicalDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::IS_BLACK_LIST));
 }
 
 /**
@@ -11016,17 +11023,26 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_NullScreenManagerTest, Te
 HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord_VirtualDisplayWithMirrorTest, TestSize.Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(node, nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenState_ = ScreenState::PRODUCER_SURFACE_ENABLE;
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_ = true;
 
-    rsUniRenderVisitor->UpdateBlackListRecord(*node);
-    ASSERT_TRUE(screenManager->GetBlackListVirtualScreenByNode(node->GetId()).empty());
+    auto screenId = CreateVirtualScreen();
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+
+    bool needCalcScreenSpecialLayer = rsUniRenderVisitor->hasMirrorUsedInSpecialLayer_;
+    RSSpecialLayerUtils::DealWithSpecialLayer(
+        *node, *rsUniRenderVisitor->curLogicalDisplayNode_, needCalcScreenSpecialLayer);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_BLACK_LIST, { node->GetId(), node->GetLeashPersistentId() })
+                    .empty());
 }
 
 /*

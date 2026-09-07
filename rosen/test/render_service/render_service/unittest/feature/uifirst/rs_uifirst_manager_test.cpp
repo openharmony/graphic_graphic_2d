@@ -1827,6 +1827,58 @@ HWTEST_F(RSUifirstManagerTest, PrepareCurrentFrameEvent001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareCurrentFrameEvent002
+ * @tc.desc: Test PrepareCurrentFrameEvent clears disableNodes when hasNewResponseEvent_ is true
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, PrepareCurrentFrameEvent002, TestSize.Level1)
+{
+    constexpr int64_t PRE_EXISTING_UNIQUE_ID = 999;
+    constexpr NodeId DISABLED_NODE_ID = 100;
+
+    uifirstManager_.globalFrameEvent_.clear();
+    uifirstManager_.hasNewResponseEvent_ = false;
+
+    RSUifirstManager::EventInfo existingEvent;
+    existingEvent.startTime = GetCurSysTime();
+    existingEvent.uniqueId = PRE_EXISTING_UNIQUE_ID;
+    existingEvent.disableNodes.insert(DISABLED_NODE_ID);
+    uifirstManager_.globalFrameEvent_.push_back(existingEvent);
+    ASSERT_EQ(uifirstManager_.globalFrameEvent_.front().uniqueId, PRE_EXISTING_UNIQUE_ID);
+    ASSERT_FALSE(uifirstManager_.hasNewResponseEvent_);
+    ASSERT_FALSE(uifirstManager_.globalFrameEvent_.front().disableNodes.empty());
+
+    DataBaseRs info;
+    info.uniqueId = 1;
+    info.appPid = 1;
+    info.sceneId = "test";
+    uifirstManager_.OnProcessEventResponse(info);
+
+    EXPECT_TRUE(uifirstManager_.hasNewResponseEvent_);
+    EXPECT_FALSE(uifirstManager_.globalFrameEvent_.front().disableNodes.empty());
+
+    uifirstManager_.PrepareCurrentFrameEvent();
+
+    EXPECT_FALSE(uifirstManager_.hasNewResponseEvent_);
+    ASSERT_FALSE(uifirstManager_.globalFrameEvent_.empty());
+    EXPECT_EQ(uifirstManager_.globalFrameEvent_.front().uniqueId, PRE_EXISTING_UNIQUE_ID);
+    EXPECT_TRUE(uifirstManager_.globalFrameEvent_.front().disableNodes.empty());
+
+    uifirstManager_.globalFrameEvent_.front().disableNodes.insert(DISABLED_NODE_ID + 1);
+    ASSERT_FALSE(uifirstManager_.globalFrameEvent_.front().disableNodes.empty());
+
+    uifirstManager_.PrepareCurrentFrameEvent();
+
+    EXPECT_FALSE(uifirstManager_.hasNewResponseEvent_);
+    ASSERT_FALSE(uifirstManager_.globalFrameEvent_.empty());
+    EXPECT_FALSE(uifirstManager_.globalFrameEvent_.front().disableNodes.empty());
+
+    uifirstManager_.globalFrameEvent_.clear();
+    uifirstManager_.hasNewResponseEvent_ = false;
+}
+
+/**
  * @tc.name: OnProcessAnimateScene001
  * @tc.desc: Test OnProcessAnimateScene
  * @tc.type: FUNC

@@ -298,6 +298,27 @@ public:
      */
     bool SetGlobalDarkColorMode(bool isDark);
 
+    /**
+     * @brief Set the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids excluded from all virtual screens.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    /**
+     * @brief Add node ids into the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids to add.
+     * @return 0 means success, others failed.
+     */
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    /**
+     * @brief Remove node ids from the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids to remove.
+     * @return 0 means success, others failed.
+     */
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
+
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
 
     /*

@@ -99,6 +99,8 @@ ohos_unittest("RSSurfaceLayerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -183,6 +185,8 @@ ohos_unittest("RSSurfaceRCDLayerTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -265,6 +269,8 @@ ohos_unittest("RSSurfaceSolidFilledColorLayerTest") {
     "memmgr:memmgrclient",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

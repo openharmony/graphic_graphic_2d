@@ -48,9 +48,6 @@ public:
 
 void RSMemoryManagerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 

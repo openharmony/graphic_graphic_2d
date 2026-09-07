@@ -38,6 +38,8 @@
 #include "image_filter_ani/ani_image_filter.h"
 #include "mask_filter_ani/ani_mask_filter.h"
 #include "shadow_layer_ani/ani_shadow_layer.h"
+#include "record_cmd_ani/ani_record_cmd.h"
+#include "record_cmd_utils_ani/ani_record_cmd_utils.h"
 
 const char* ANI_CLASS_CLEANER_NAME = "@ohos.graphics.drawing.drawing.Cleaner";
 
@@ -94,6 +96,8 @@ static void Clean(ani_env* env, ani_object object)
         {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
         {"MaskFilter", SafeDelete<OHOS::Rosen::Drawing::AniMaskFilter>},
         {"ShadowLayer", SafeDelete<OHOS::Rosen::Drawing::AniShadowLayer>},
+        {"RecordCmd", SafeDelete<OHOS::Rosen::Drawing::AniRecordCmd>},
+        {"RecordCmdUtils", SafeDelete<OHOS::Rosen::Drawing::AniRecordCmdUtils>},
     };
 
     auto it = deleteMap.find(className);
@@ -159,7 +163,9 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniRectUtils::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniImageFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniMaskFilter::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniShadowLayer::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniShadowLayer::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniRecordCmd::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniRecordCmdUtils::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }

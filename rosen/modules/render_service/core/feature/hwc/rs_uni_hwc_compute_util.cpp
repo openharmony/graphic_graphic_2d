@@ -629,6 +629,11 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     std::vector<RectI> currIntersectedRoundCornerAABBs = {};
     hwcNode->ResetVcldInfo();
     const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
+    if (hwcNodeGeo == nullptr) {
+        RS_LOGE("node[%{public}s] id[%{public}" PRIu64 "] GetBoundsGeometry is null.",
+            hwcNode->GetName().c_str(), hwcNode->GetId());
+        return;
+    }
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
     HwcPropertyContext ctx;
     ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();

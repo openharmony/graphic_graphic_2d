@@ -65,12 +65,15 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     auto& rsVulkanContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     rsVulkanContext.GetRsVulkanInterface();
     rsVulkanContext.IsValid();
-    rsVulkanContext.CreateSkiaGetProc();
-    rsVulkanContext.GetPhysicalDevice();
-    rsVulkanContext.GetDevice();
-    rsVulkanContext.GetQueue();
     rsVulkanContext.GetGrVkBackendContext();
-    rsVulkanContext.GetVulkanVersion();
+    auto interface = rsVulkanContext.GetRsVulkanInterface();
+    if (interface) {
+        interface->CreateSkiaGetProc();
+        interface->GetPhysicalDevice();
+        interface->GetDevice();
+        interface->GetQueue();
+        interface->GetVulkanVersion();
+    }
     return true;
 }
 } // namespace Rosen

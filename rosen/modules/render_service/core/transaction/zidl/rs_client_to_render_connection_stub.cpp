@@ -32,6 +32,7 @@
 
 #include "command/rs_command_factory.h"
 #include "command/rs_command_verify_helper.h"
+#include "common/rs_special_layer_manager.h"
 #include "common/rs_xcollie.h"
 #include "engine/rs_base_render_util.h"
 #include "hgm_frame_rate_manager.h"
@@ -117,6 +118,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST),
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE),
@@ -1625,6 +1629,60 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_BLACKLIST): {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUInt64Vector(&blackList)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_GLOBAL_BLACKLIST Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_GLOBAL_BLACKLIST blackList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetGlobalBlackList(blackList);
+            if (result != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_GLOBAL_BLACKLIST failed(%{public}d)!", result);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::ADD_GLOBAL_BLACKLIST): {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUInt64Vector(&blackList)) {
+                RS_LOGE("RSClientToRenderConnectionStub::ADD_GLOBAL_BLACKLIST Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+                RS_LOGE("RSClientToRenderConnectionStub::ADD_GLOBAL_BLACKLIST blackList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AddGlobalBlackList(blackList);
+            if (result != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::ADD_GLOBAL_BLACKLIST failed(%{public}d)!", result);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_GLOBAL_BLACKLIST): {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUInt64Vector(&blackList)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_GLOBAL_BLACKLIST Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_GLOBAL_BLACKLIST blackList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = RemoveGlobalBlackList(blackList);
+            if (result != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_GLOBAL_BLACKLIST failed(%{public}d)!", result);
             }
             break;
         }

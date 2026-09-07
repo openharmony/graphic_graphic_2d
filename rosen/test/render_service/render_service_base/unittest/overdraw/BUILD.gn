@@ -45,6 +45,7 @@ ohos_unittest("overdraw_test") {
     "googletest:gmock",
     "hilog:libhilog",
     "skia:skia_canvaskit",
+    "init:libbegetutil",
   ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"

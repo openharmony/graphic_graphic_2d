@@ -201,6 +201,12 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
+
     int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     void SetFreeMultiWindowStatus(bool enable);
