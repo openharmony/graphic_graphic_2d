@@ -137,6 +137,7 @@ void RSMultiScreenUtil::HandleVirtualExtendDisplay(
     uniParam->SetSecurityDisplay(params.IsSecurityDisplay());
     drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(screenProperty);
     RSUniRenderThread::Instance().SetBlackList(drawable.currentBlackList_);
+    RSUniRenderThread::Instance().SetTypeBlackList(screenProperty.GetTypeBlackList());
     RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
     drawable.curSecExemption_ = params.GetSecurityExemption();
     uniParam->SetSecExemption(drawable.curSecExemption_);
