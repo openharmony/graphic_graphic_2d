@@ -461,6 +461,43 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnoredTest003, TestSize.Level1)
 }
 
 /*
+ * @tc.name: IsSubTreeShouldIgnoredTest004
+ * @tc.desc: Test IsSubTreeShouldIgnored with non-positive scale
+ * @tc.type: FUNC
+ * @tc.require: issue26145
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnoredTest004, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    constexpr float negativeScale{-1.f};
+    constexpr float zeroScale{0.f};
+    constexpr float positiveScale{1.f};
+
+    RSProperties renderProperties1;
+    renderProperties1.SetScaleX(negativeScale);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties1));
+
+    RSProperties renderProperties2;
+    renderProperties2.SetScaleY(negativeScale);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties2));
+
+    RSProperties renderProperties3;
+    renderProperties3.SetScaleX(zeroScale);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties3));
+
+    RSProperties renderProperties4;
+    renderProperties4.SetScaleY(zeroScale);
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties4));
+
+    RSProperties renderProperties5;
+    renderProperties5.SetScaleX(positiveScale);
+    renderProperties5.SetScaleY(positiveScale);
+    EXPECT_FALSE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties5));
+}
+
+/*
  * @tc.name: CalculateDrawRect
  * @tc.desc: Test CalculateDrawRect with invalid properties.
  * @tc.type: FUNC
