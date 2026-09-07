@@ -3047,6 +3047,20 @@ HWTEST_F(RSCanvasNodeTest, SetandGetRotationVector001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetTranslateVector001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetTranslateVector001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    Vector2f quaternion(std::numeric_limits<int>::max(), 2.f);
+    canvasNode->SetTranslate(quaternion);
+    ASSERT_FALSE(canvasNode->modifiersNGCreatedBySetter_.empty());
+}
+
+/**
  * @tc.name: CreateBlurFilter001
  * @tc.desc:
  * @tc.type:FUNC
