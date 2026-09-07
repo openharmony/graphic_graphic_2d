@@ -947,6 +947,31 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
                    " on fallback node.", animId);
         return;
     }
+
+    // fallback: iterate all rsUIContexts, try node-level or context-level callback
+    std::vector<std::shared_ptr<RSUIContext>> contexts;
+    [&contexts, &rsUIContext] {
+        auto& contextManager = RSUIContextManager::Instance();
+        std::unique_lock<std::mutex> lock(contextManager.mutex_);
+        contexts.reserve(contextManager.rsUIContextMap_.size());
+        for (const auto& [_, ctx] : contextManager.rsUIContextMap_) {
+            if (ctx != rsUIContext) {
+                contexts.push_back(ctx);
+            }
+        }
+    }();
+    for (const auto& ctx : contexts) {
+        if (auto node = ctx->GetNodeMap().GetNode<RSNode>(nodeId)) {
+            if (node->AnimationCallback(animId, event)) {
+                return;
+            }
+        } else {
+            if (ctx->AnimationCallback(animId, event)) {
+                return;
+            }
+        }
+    }
+
     // if node not found, try fallback node
     auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
