@@ -95,6 +95,7 @@ ohos_unittest("RSBufferManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -123,6 +124,7 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -166,6 +168,7 @@ ohos_unittest("RSVirtualScreenParallelManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -217,6 +220,7 @@ ohos_unittest("RSRenderPipelineTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -317,6 +321,7 @@ ohos_unittest("RSRenderServiceUnitTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "ability_base:want",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
@@ -358,6 +363,7 @@ ohos_unittest("RSUniRenderJudgementTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -395,6 +401,7 @@ ohos_unittest("RSUniRenderProcessorTest") {
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -440,6 +447,7 @@ ohos_unittest("RSUniRenderThreadTest") {
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -485,6 +493,7 @@ ohos_unittest("RSRenderServiceVisitorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -538,6 +547,7 @@ ohos_unittest("RSComposerAdapterTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -582,6 +592,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -626,6 +637,7 @@ ohos_unittest("RSProcessorFactoryTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -677,6 +689,7 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -727,6 +740,7 @@ ohos_unittest("RSDropFrameProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -771,6 +785,7 @@ ohos_unittest("RSBaseRenderUtilTest") {
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -832,6 +847,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "egl:libEGL",
@@ -875,6 +891,7 @@ ohos_unittest("RSUniRenderUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -920,6 +937,7 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -955,6 +973,7 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1049,6 +1068,7 @@ ohos_unittest("RSMainThreadTest") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1098,6 +1118,7 @@ ohos_unittest("RSMainThreadProfilerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1148,6 +1169,7 @@ ohos_unittest("RSRenderTaskTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1187,6 +1209,7 @@ ohos_unittest("RSSLRScaleTest") {
   sources = [ "rs_slr_scale_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "drivers_interface_display:display_commontype_idl_headers",
@@ -1217,6 +1240,7 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1270,6 +1294,7 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1321,6 +1346,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1362,6 +1388,7 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1406,6 +1433,7 @@ ohos_unittest("RSRenderEngineTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1448,6 +1476,7 @@ ohos_unittest("RSDividedRenderUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1492,6 +1521,7 @@ ohos_unittest("RSDrawFrameTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1529,6 +1559,7 @@ ohos_unittest("RSUniRenderEngineTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1575,6 +1606,7 @@ ohos_unittest("RSHwcContextTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1628,6 +1660,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1676,6 +1709,7 @@ ohos_unittest("RSSolidLayerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1819,6 +1853,7 @@ ohos_unittest("RSOpincLayerSplitterPlannerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1854,6 +1889,7 @@ ohos_unittest("RSOpincLayerSplitterProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1898,6 +1934,7 @@ ohos_unittest("RSOpincSplitControllerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1933,6 +1970,7 @@ ohos_unittest("RSLayerSplitSurfaceBufferTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -1967,6 +2005,7 @@ ohos_unittest("RSSplitSurfaceTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -2036,6 +2075,7 @@ ohos_unittest("RSSurfacePermissionTest") {
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
@@ -2143,6 +2183,7 @@ ohos_static_library("rs_test_common") {
   }
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
