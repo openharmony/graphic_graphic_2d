@@ -340,24 +340,6 @@ public:
 
     RSUIDirectorLifecycleState GetCurrentState() const;
 
-    // HybridDraw Start
-    static void SetTypicalResidentProcess(bool isTypicalResidentProcess = false) {}
-
-    static bool IsHybridRenderEnabled()
-    {
-        return false;
-    }
-
-    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq) {
-        return false;
-    }
-
-    static uint32_t GetHybridRenderTextBlobLenCount()
-    {
-        return 0;
-    }
-    // HybridDraw End
-
 private:
     /**
      * @brief Initializes the RSUIDirector instance.

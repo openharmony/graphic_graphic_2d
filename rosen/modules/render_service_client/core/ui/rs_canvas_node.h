@@ -152,29 +152,6 @@ public:
      */
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
-    // HybridDraw Start
-    bool IsHybridRenderCanvas() const
-    {
-        return false;
-    }
-
-    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr)
-    {
-        return false;
-    }
-
-    bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr)
-    {
-        return false;
-    }
-
-    bool ResetSurface(int width, int height)
-    {
-        return false;
-    }
-    // HybridDraw End
-    
     /**
      * @brief Set a pixel map.
      *

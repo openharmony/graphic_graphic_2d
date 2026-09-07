@@ -812,16 +812,6 @@ enum DrawNodeType : uint32_t {
     GeometryPropertyType
 };
 
-// HybridDraw Start
-enum class ComponentEnableSwitch : uint8_t {
-    TEXTBLOB = 0,
-    SVG,
-    HMSYMBOL,
-    CANVAS,
-    MAX_VALUE,
-};
-// HybridDraw End
-
 typedef enum : uint32_t {
     SA_WATER_MARK_DEFAULT_SIZE = 0, // 512KB
     SA_WATER_MARK_MIDDLE_SIZE = 1, // 6M
