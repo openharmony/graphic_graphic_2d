@@ -252,7 +252,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadius_Te
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, rRectCornerParams[i], sizeX, sizeY);
 
         auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
@@ -274,7 +274,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadius_Pr
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, rRectCornerParams[i + 1], sizeX, sizeY);
         backgroundTestNode->SetBorderStyle(0, 0, 0, 0);
         backgroundTestNode->SetBorderWidth(5, 5, 5, 5);
@@ -302,7 +302,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_RRectShape_ClipTe
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         InitFrostedGlassFilterDefault(frostedGlassFilter);
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
@@ -319,7 +319,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_RRectShape_ClipTe
         backgroundTestNode->SetClipToBounds(true);
 
         auto colorNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f colorBounds{0, 0, sizeX, sizeY};
         colorNode->SetBounds(colorBounds);
         colorNode->SetFrame(colorBounds);
@@ -351,7 +351,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_Capsule_ClipTest)
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         InitFrostedGlassFilterDefault(frostedGlassFilter);
         backgroundTestNode->SetBounds(capsuleBounds[i]);
@@ -362,7 +362,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_Capsule_ClipTest)
         backgroundTestNode->SetClipToBounds(true);
 
         auto colorNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f colorBounds{0, 0, sizeX, sizeY};
         colorNode->SetBounds(colorBounds);
         colorNode->SetFrame(colorBounds);
@@ -386,7 +386,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_LeftSideRadiusExcee
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, leftSideExceedParams[i], sizeX, sizeY);
 
         auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
@@ -406,7 +406,7 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadiusExc
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
         auto backgroundTestNode = RSCanvasNode::Create(false, false,
-        RSGraphicTestDirector::Instance().GetRSUIContext());
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, nonUniformExceedParams[i], sizeX, sizeY);
 
         auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
