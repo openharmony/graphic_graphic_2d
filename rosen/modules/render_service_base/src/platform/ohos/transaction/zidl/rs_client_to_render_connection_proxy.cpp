@@ -48,6 +48,10 @@ constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 // PixelMap) must stay on the direct path: such replies cannot be cloned back safely by the
 // timeout executor. Calls carrying binder objects/fds in the input parcel are filtered at
 // runtime via GetOffsetsSize() in the SendRequest wrapper.
+// EXECUTE_SYNCHRONOUS_TASK is deliberately not listed: current RSSyncTask subclasses reply
+// with plain data only, and the call is a prime beneficiary of timeout protection (it waits
+// on the RS main thread). If a future sync task ever replies with objects, the executor's
+// reply offsets guard fails safe with UNKNOWN_ERROR instead of corrupting the caller.
 bool IsReplyNotClonable(uint32_t code)
 {
     switch (static_cast<RSIClientToRenderConnectionInterfaceCode>(code)) {

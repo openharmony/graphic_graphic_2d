@@ -15,12 +15,14 @@
 
 #include <atomic>
 #include <chrono>
+#include <fcntl.h>
 #include <functional>
 #include <gtest/gtest.h>
 #include <iremote_object.h>
 #include <message_option.h>
 #include <message_parcel.h>
 #include <thread>
+#include <unistd.h>
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_system_properties.h"
@@ -121,6 +123,48 @@ HWTEST_F(RSIpcSyncExecutorTest, NormalComplete, TestSize.Level1)
     ASSERT_TRUE(reply.ReadInt32(value));
     ASSERT_EQ(value, TEST_REPLY_VALUE);
     ASSERT_EQ(executor.GetInFlightTimeoutCount(), countBefore);
+}
+
+/**
+ * @tc.name: NullRemoteRejected
+ * @tc.desc: A null remote is rejected with NULLPTR_ERROR without submitting any work.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSIpcSyncExecutorTest, NullRemoteRejected, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto& executor = RSSIpcSyncExecutor::GetInstance();
+    int32_t ret = executor.ExecuteSyncWithTimeout(nullptr, TEST_CODE, data, reply, option, TEST_TIMEOUT_MS);
+    ASSERT_EQ(ret, static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR));
+}
+
+/**
+ * @tc.name: DataWithObjectsRejected
+ * @tc.desc: A data parcel carrying binder objects/fds is rejected with UNKNOWN_ERROR instead
+ *           of being byte-cloned, and SendRequest is never reached.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSIpcSyncExecutorTest, DataWithObjectsRejected, TestSize.Level1)
+{
+    sptr<MockIRemoteObject> remote = new MockIRemoteObject();
+    std::atomic<uint32_t> callCount { 0 };
+    remote->sendRequestImpl_ = [&callCount](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+        callCount.fetch_add(1);
+        return NO_ERROR;
+    };
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int fd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(fd, 0);
+    ASSERT_TRUE(data.WriteFileDescriptor(fd));
+    close(fd);
+    auto& executor = RSSIpcSyncExecutor::GetInstance();
+    int32_t ret = executor.ExecuteSyncWithTimeout(remote, TEST_CODE, data, reply, option, TEST_TIMEOUT_MS);
+    ASSERT_EQ(ret, static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR));
+    ASSERT_EQ(callCount.load(), 0); // never submitted
 }
 
 /**
@@ -309,12 +353,17 @@ HWTEST_F(RSIpcSyncExecutorTest, PeerDeathDrainsCount, TestSize.Level1)
 
 /**
  * @tc.name: ConfigRead
- * @tc.desc: The timeout parameter channel returns a positive value (default or configured).
+ * @tc.desc: The timeout parameter channel returns a value within the clamped range
+ *           (default or configured, out-of-range parameters fall back to default).
  * @tc.type: FUNC
  */
 HWTEST_F(RSIpcSyncExecutorTest, ConfigRead, TestSize.Level1)
 {
-    ASSERT_GT(RSSystemProperties::GetIpcSyncTimeoutMs(), 0u);
+    constexpr uint32_t MIN_CONFIG_TIMEOUT_MS = 1000;
+    constexpr uint32_t MAX_CONFIG_TIMEOUT_MS = 5000;
+    uint32_t timeoutMs = RSSystemProperties::GetIpcSyncTimeoutMs();
+    ASSERT_GE(timeoutMs, MIN_CONFIG_TIMEOUT_MS);
+    ASSERT_LE(timeoutMs, MAX_CONFIG_TIMEOUT_MS);
 }
 
 /**
@@ -331,9 +380,10 @@ HWTEST_F(RSIpcSyncExecutorTest, TestingEntrypoints, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    uint32_t countBefore = executor.GetInFlightTimeoutCount();
     int32_t ret = executor.ExecuteSyncWithTimeout(remote, TEST_CODE, data, reply, option, TEST_NORMAL_TIMEOUT_MS);
     ASSERT_EQ(ret, NO_ERROR); // limit 3 > current count: normal path
-    ASSERT_GE(executor.GetInFlightTimeoutCount(), 0u);
+    ASSERT_EQ(executor.GetInFlightTimeoutCount(), countBefore); // success does not leak the count
 }
 } // namespace Rosen
 } // namespace OHOS

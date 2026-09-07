@@ -34,6 +34,18 @@ namespace {
 // corrupted and rejected before allocation.
 constexpr size_t MAX_CLONE_PARCEL_SIZE = 128 * 1024 * 1024; // 128M
 
+// Dedicated concurrent queue for offloaded sync IPC workers. max_concurrency matches the
+// fail-fast budget, so a hung RS pins at most DEFAULT_MAX_INFLIGHT_TIMEOUT FFRT workers and
+// cannot starve the client process's other FFRT tasks on the default queue.
+// Leaked intentionally: a static destructor at process exit could hang on workers still
+// blocked in SendRequest to a dead RS.
+ffrt::queue& IpcQueue()
+{
+    static ffrt::queue* queue = new ffrt::queue(ffrt::queue_concurrent, "rs_ipc_sync",
+        ffrt::queue_attr().max_concurrency(RSSIpcSyncExecutor::DEFAULT_MAX_INFLIGHT_TIMEOUT));
+    return *queue;
+}
+
 // Deep-copies the raw bytes of a plain-data parcel into a heap-held parcel.
 // Caller contract: src must not contain binder objects or fds (no object offsets);
 // such calls are filtered out by the proxy wrappers before reaching the executor.
@@ -92,6 +104,17 @@ void RSSIpcSyncExecutor::RunWorker(
 int32_t RSSIpcSyncExecutor::ExecuteSyncWithTimeout(const sptr<IRemoteObject>& remote, uint32_t code,
     MessageParcel& data, MessageParcel& reply, const MessageOption& option, uint32_t timeoutMs)
 {
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSSIpcSyncExecutor: remote is null, code %{public}u", code);
+        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
+    }
+    if (data.GetOffsetsSize() > 0) {
+        // Defensive guard for future callers bypassing the proxy wrappers: cloning raw bytes
+        // would keep flat_binder_object payloads without offset translation, leaving dangling
+        // handles on the RS side. Such calls must stay on the direct path.
+        ROSEN_LOGE("RSSIpcSyncExecutor: data parcel of code %{public}u carries objects, refuse to offload", code);
+        return static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+    }
     if (inFlightTimeoutCount_.load(std::memory_order_relaxed) >= maxInFlightTimeout_.load(std::memory_order_relaxed)) {
         ROSEN_LOGE("RSSIpcSyncExecutor: too many in-flight timeouts, reject sync IPC code %{public}u", code);
         return static_cast<int32_t>(RSInterfaceErrorCode::IPC_TIMEOUT_ERROR);
@@ -103,7 +126,7 @@ int32_t RSSIpcSyncExecutor::ExecuteSyncWithTimeout(const sptr<IRemoteObject>& re
         ROSEN_LOGE("RSSIpcSyncExecutor: clone data parcel failed, code %{public}u", code);
         return static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
     }
-    ffrt::submit([remote, code, ctx, option]() { RunWorker(remote, code, ctx, option); });
+    IpcQueue().submit([remote, code, ctx, option]() { RunWorker(remote, code, ctx, option); });
 
     std::unique_lock<std::mutex> lock(ctx->mutex_);
     if (!ctx->cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&ctx]() { return ctx->done_; })) {
