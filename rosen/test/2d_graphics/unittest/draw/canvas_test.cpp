@@ -1282,6 +1282,155 @@ HWTEST_F(CanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawSingleCharacterTest001
+ * @tc.desc: Test DrawSingleCharacter with valid typeface and unicode.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    int32_t unicode = static_cast<int32_t>('a');
+    scalar x = 10.0f;
+    scalar y = 10.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest002
+ * @tc.desc: Test DrawSingleCharacter cache hit on second call.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest002, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    int32_t unicode = static_cast<int32_t>('b');
+    scalar x = 20.0f;
+    scalar y = 20.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest003
+ * @tc.desc: Test DrawSingleCharacter with pre-filled cache hit.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest003, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    uint32_t typefaceHash = typeface->GetHash();
+    GlyphCacheKey key = {static_cast<int32_t>('c'), typefaceHash, {}};
+    GlyphCache::Instance().Put(key, 100);
+    int32_t unicode = static_cast<int32_t>('c');
+    scalar x = 30.0f;
+    scalar y = 30.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest004
+ * @tc.desc: Test DrawSingleCharacter with nullptr typeface goes to direct UnicharToGlyph.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest004, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    font.SetTypeface(nullptr);
+    int32_t unicode = static_cast<int32_t>('d');
+    scalar x = 40.0f;
+    scalar y = 40.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest005
+ * @tc.desc: Test DrawSingleCharacter with invalid unicode goes to fallback.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest005, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    int32_t unicode = 0xFFFF;
+    scalar x = 50.0f;
+    scalar y = 50.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest006
+ * @tc.desc: Test DrawSingleCharacter with nullptr typeface and invalid unicode.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest006, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    font.SetTypeface(nullptr);
+    int32_t unicode = 0xFFFF;
+    scalar x = 60.0f;
+    scalar y = 60.0f;
+    canvas->DrawSingleCharacter(unicode, font, x, y);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterTest007
+ * @tc.desc: Test DrawSingleCharacter with LRU cache eviction.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterTest007, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(2);
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    canvas->DrawSingleCharacter(static_cast<int32_t>('e'), font, 0, 0);
+    canvas->DrawSingleCharacter(static_cast<int32_t>('f'), font, 0, 0);
+    canvas->DrawSingleCharacter(static_cast<int32_t>('g'), font, 0, 0);
+    GlyphCache::Instance().Clear();
+}
+
+/**
  * @tc.name: DrawSingleCharacterWithFeaturesTest001
  * @tc.desc: Test DrawSingleCharacterWithFeatures with nullptr fontFeatures.
  * @tc.type: FUNC

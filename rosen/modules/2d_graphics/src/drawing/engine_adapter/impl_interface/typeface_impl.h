@@ -30,9 +30,9 @@ namespace Rosen {
 namespace Drawing {
 
 enum class SerializeBehavior : uint32_t {
-    DO_INCLUDE_DATA,
-    DONT_INCLUDE_DATA,
-    INCLUDE_DATA_IF_LOCAL,
+    DO_INCLUDE_DATA,        // include the actual font data in the serialization stream
+    DONT_INCLUDE_DATA,      // do not include the actual font data
+    INCLUDE_DATA_IF_LOCAL,  // include font data only if the typeface is locally resident
 };
 
 class Typeface;

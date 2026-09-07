@@ -584,8 +584,7 @@ void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar
 
 void CoreCanvas::DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y)
 {
-    std::function<void(uint16_t, const Font&)> drawSingleCharacterProc = [&](uint16_t currentGlyph,
-        const Font& currentFont) {
+    auto drawSingleCharacterProc = [&](uint16_t currentGlyph, const Font& currentFont) {
         uint16_t glyphs[1] = {currentGlyph};
         Point positions[1] = {Point(0, 0)};
         Point origin(x, y);
