@@ -48,6 +48,9 @@ static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // scree
 // IRemoteObject) must stay on the direct path: such replies cannot be cloned back safely by
 // the timeout executor. Calls carrying binder objects/fds in the input parcel are filtered
 // at runtime via GetOffsetsSize() in the SendRequest wrapper.
+// REGISTER_SHARED_TYPEFACE must be listed explicitly: its input parcel carries an fd only for
+// base typefaces (originId_ == 0); variation typefaces send plain data yet the reply still
+// carries an fd when the service registers a new shared typeface (needUpdate != 0).
 [[maybe_unused]] bool IsReplyNotClonable(uint32_t code)
 {
     switch (static_cast<RSIClientToServiceConnectionInterfaceCode>(code)) {
@@ -57,6 +60,7 @@ static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // scree
         case RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER:
         case RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE:
         case RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL:
+        case RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE:
             return true;
         default:
             return false;

@@ -2535,6 +2535,33 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestReplyNotClonableDirect
 }
 
 /**
+ * @tc.name: SendRequestRegisterSharedTypefaceDirect
+ * @tc.desc: REGISTER_SHARED_TYPEFACE stays on the direct path even when the input parcel
+ *           carries plain data only (variation typeface, originId_ > 0): the reply carries
+ *           an fd when the service registers a new shared typeface and cannot be cloned back.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestRegisterSharedTypefaceDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_TRUE(data.WriteUint32(1)); // plain-data input, no fd
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
  * @tc.name: RegisterTypefaceDirectPath
  * @tc.desc: RegisterTypeface retries SendRequest in a loop and bypasses the timeout executor;
  *           its IPC always runs on the calling thread.
