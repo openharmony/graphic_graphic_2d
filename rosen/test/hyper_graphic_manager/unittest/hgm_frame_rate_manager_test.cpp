@@ -738,7 +738,7 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
 
 /**
  * @tc.name: HandleEventTest
- * @tc.desc: Verify the result of HandleEventTest
+ * @tc.desc: Verify game, idle and scene event handling
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -746,24 +746,22 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
 {
     std::string pkg0 = "com.pkg.other:0:-1";
     std::string pkg1 = "com.pkg.other:1:-1";
-
-    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    auto mgr = std::make_unique<HgmFrameRateManager>();
     auto& hgm = HgmCore::Instance();
-    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
-    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
-    mgr->DeliverRefreshRateVote({ "VOTER_GAMES", 120, 90, 0 }, true);
 
+    mgr->DeliverRefreshRateVote({ "VOTER_GAMES", 120, 90, 0 }, true);
     if (hgm.mPolicyConfigData_ == nullptr) {
         return;
     }
-    EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
 
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
-    ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
+    EXPECT_EQ(nullptr, hgm.GetPolicyConfigData());
 
-    EventInfo eventInfo = { .eventName = "VOTER_GAMES", .eventStatus = false,
+    EventInfo eventInfo = {
+        .eventName = "VOTER_GAMES",
+        .eventStatus = false,
         .description = pkg0,
     };
     mgr->HandleRefreshRateEvent(0, eventInfo);
@@ -775,30 +773,69 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
     mgr->HandleGamesEvent(1, eventInfo);
     mgr->HandleIdleEvent(true);
     mgr->HandleIdleEvent(false);
+
     auto screenSetting = mgr->multiAppStrategy_.GetScreenSetting();
-    screenSetting.sceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig{ "1", "1" }));
+    screenSetting.sceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig { "1", "1" }));
     screenSetting.gameSceneList.insert(make_pair(testScene, "1"));
-    screenSetting.ancoSceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig{ "1", "1" }));
+    screenSetting.ancoSceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig { "1", "1" }));
     mgr->multiAppStrategy_.SetScreenSetting(screenSetting);
-    EventInfo eventInfo2 = { .eventName = "VOTER_SCENE", .eventStatus = true, .description = testScene };
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
-    eventInfo2.eventStatus = false;
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
+
+    EventInfo sceneEvent = {
+        .eventName = "VOTER_SCENE",
+        .eventStatus = true,
+        .description = testScene,
+    };
+    mgr->HandleRefreshRateEvent(0, sceneEvent);
+    sceneEvent.eventStatus = false;
+    mgr->HandleRefreshRateEvent(0, sceneEvent);
 
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
-    eventInfo2.eventName = "VOTER_VIDEO_CALL";
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
-    eventInfo2.eventName = "VOTER_VIRTUALDISPLAY";
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
-    eventInfo2.eventName = "VOTER_MULTISELFOWNEDSCREEN";
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
-    eventInfo2.eventName = "RS_FRAME_RATE_CONTROL_ENABLE";
-    eventInfo2.eventStatus = true;
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
+}
+
+/**
+ * @tc.name: HandleOtherEventTest
+ * @tc.desc: Verify other refresh rate events
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleOtherEventTest, Function | SmallTest | Level0)
+{
+    auto mgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .eventStatus = false,
+        .description = testScene,
+    };
+
+    mgr->HandleRefreshRateEvent(0, eventInfo);
+    eventInfo.eventName = "VOTER_VIRTUALDISPLAY";
+    mgr->HandleRefreshRateEvent(0, eventInfo);
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    mgr->HandleRefreshRateEvent(0, eventInfo);
+}
+
+/**
+ * @tc.name: HandleRsFrameRateControlEventTest
+ * @tc.desc: Verify RS frame rate control enable event
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleRsFrameRateControlEventTest, Function | SmallTest | Level0)
+{
+    auto mgr = std::make_unique<HgmFrameRateManager>();
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    const bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+
+    EventInfo eventInfo = {
+        .eventName = "RS_FRAME_RATE_CONTROL_ENABLE",
+        .eventStatus = true,
+    };
+
+    mgr->HandleRefreshRateEvent(0, eventInfo);
     EXPECT_TRUE(energyPolicy.GetRsFrameRateControlEnabled());
-    eventInfo2.eventStatus = false;
-    mgr->HandleRefreshRateEvent(0, eventInfo2);
+    eventInfo.eventStatus = false;
+    mgr->HandleRefreshRateEvent(0, eventInfo);
     EXPECT_FALSE(energyPolicy.GetRsFrameRateControlEnabled());
     energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
 }
