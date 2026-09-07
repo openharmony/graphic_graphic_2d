@@ -1111,6 +1111,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdList
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
     EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+    node->UpdateBufferInfo(nullptr, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
 }
 #endif
 } // namespace OHOS::Rosen
