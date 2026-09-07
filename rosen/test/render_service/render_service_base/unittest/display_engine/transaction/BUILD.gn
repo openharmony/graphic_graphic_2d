@@ -57,10 +57,7 @@ ohos_unittest("RSIDisplayEngineControlInterfaceCodeAccessVerifierTest") {
  
 group("unittest") {
   testonly = true
-  deps = [
-    ":RSIDisplayEngineControlInterfaceCodeAccessVerifierTest",
-    "zidl/",
-  ]
+  deps = [ ":RSIDisplayEngineControlInterfaceCodeAccessVerifierTest" ]
 }
  
 ###############################################################################
