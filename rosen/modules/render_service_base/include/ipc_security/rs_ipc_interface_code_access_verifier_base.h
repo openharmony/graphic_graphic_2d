@@ -84,6 +84,7 @@ protected:
     bool CheckPermission(CodeUnderlyingType code) const;
     bool IsStylusServiceCalling(const std::string& callingCode) const;
     bool IsExfusionServiceCalling(const std::string& callingCode) const;
+    bool IsGameServiceCalling(const std::string& callingCode) const;
     bool IsTaskManagerCalling(const std::string& callingCode) const;
     bool IsRssCalling(const std::string& callingCode) const;
 
