@@ -49,6 +49,9 @@ ffrt::queue& IpcQueue()
 // Deep-copies the raw bytes of a plain-data parcel into a heap-held parcel.
 // Caller contract: src must not contain binder objects or fds (no object offsets);
 // such calls are filtered out by the proxy wrappers before reaching the executor.
+// The clone must stay writable (ParseFrom would mark it read-only): the binder layer appends
+// the HiTrace id to the data parcel on the sending thread, and a read-only clone would break
+// the trace chain with a "Write idBytes fail" log on every offloaded call.
 std::unique_ptr<MessageParcel> CloneDataParcel(const MessageParcel& src)
 {
     auto holder = std::make_unique<MessageParcel>();
@@ -60,20 +63,17 @@ std::unique_ptr<MessageParcel> CloneDataParcel(const MessageParcel& src)
         ROSEN_LOGE("RSSIpcSyncExecutor: invalid data parcel size %{public}zu, refuse to clone", size);
         return nullptr;
     }
-    void* buffer = malloc(size);
-    if (buffer == nullptr) {
+    // WriteBuffer may append up to 3 zero pad bytes for 4-byte alignment; receivers never read
+    // past their declared fields, so trailing padding is harmless.
+    if (!holder->WriteBuffer(reinterpret_cast<const void*>(src.GetData()), size)) {
+        ROSEN_LOGE("RSSIpcSyncExecutor: clone data parcel failed, size %{public}zu", size);
         return nullptr;
     }
-    errno_t err = memcpy_s(buffer, size, reinterpret_cast<const void*>(src.GetData()), size);
-    if (err != EOK) {
-        free(buffer);
-        return nullptr;
-    }
-    // ParseFrom takes ownership of buffer; the parcel frees it on destruction.
-    if (!holder->ParseFrom(reinterpret_cast<uintptr_t>(buffer), size)) {
-        free(buffer);
-        return nullptr;
-    }
+    // All offloaded calls originate from the two RS proxies, which write the interface token
+    // first; restore the parcel member so IPCObjectProxy::GetDescriptor(data) keeps logging the
+    // descriptor instead of caching an empty string for the proxy's lifetime.
+    holder->ReadInterfaceToken();
+    holder->RewindRead(0);
     return holder;
 }
 } // namespace

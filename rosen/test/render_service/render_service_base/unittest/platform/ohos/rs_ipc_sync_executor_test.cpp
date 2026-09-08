@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstring>
 #include <fcntl.h>
 #include <functional>
 #include <gtest/gtest.h>
@@ -23,6 +24,9 @@
 #include <message_parcel.h>
 #include <thread>
 #include <unistd.h>
+#include <vector>
+
+#include "securec.h"
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_system_properties.h"
@@ -123,6 +127,46 @@ HWTEST_F(RSIpcSyncExecutorTest, NormalComplete, TestSize.Level1)
     ASSERT_TRUE(reply.ReadInt32(value));
     ASSERT_EQ(value, TEST_REPLY_VALUE);
     ASSERT_EQ(executor.GetInFlightTimeoutCount(), countBefore);
+}
+
+/**
+ * @tc.name: ClonedDataStaysWritableAndKeepsToken
+ * @tc.desc: The cloned data parcel must stay writable so the binder layer can append the
+ *           HiTrace id on the worker thread, must restore the interface token member for
+ *           descriptor logging, and must carry the payload bytes unchanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSIpcSyncExecutorTest, ClonedDataStaysWritableAndKeepsToken, TestSize.Level1)
+{
+    const std::u16string token = u"OHOS.Rosen.TestDescriptor";
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInterfaceToken(token));
+    ASSERT_TRUE(data.WriteInt32(TEST_DATA_VALUE));
+    std::vector<uint8_t> expected(data.GetDataSize());
+    ASSERT_TRUE(memcpy_s(expected.data(), expected.size(),
+        reinterpret_cast<const void*>(data.GetData()), data.GetDataSize()) == EOK);
+
+    sptr<MockIRemoteObject> remote = new MockIRemoteObject();
+    remote->sendRequestImpl_ = [&](uint32_t, MessageParcel& cloned, MessageParcel&, MessageOption&) {
+        // byte-level: prefix identical to the caller's parcel (WriteBuffer may add 0-3 pad bytes)
+        EXPECT_GE(cloned.GetDataSize(), expected.size());
+        EXPECT_EQ(memcmp(reinterpret_cast<const void*>(cloned.GetData()), expected.data(), expected.size()), 0);
+        // writable: a ParseFrom-based clone would reject this write
+        EXPECT_TRUE(cloned.WriteInt32(0));
+        // interface token member restored for IPCObjectProxy::GetDescriptor
+        EXPECT_EQ(cloned.GetInterfaceToken(), token);
+        // payload still readable from position 0
+        EXPECT_EQ(cloned.ReadInterfaceToken(), token);
+        int32_t value = 0;
+        EXPECT_TRUE(cloned.ReadInt32(value));
+        EXPECT_EQ(value, TEST_DATA_VALUE);
+        return NO_ERROR;
+    };
+    MessageParcel reply;
+    MessageOption option;
+    auto& executor = RSSIpcSyncExecutor::GetInstance();
+    int32_t ret = executor.ExecuteSyncWithTimeout(remote, TEST_CODE, data, reply, option, TEST_NORMAL_TIMEOUT_MS);
+    ASSERT_EQ(ret, NO_ERROR);
 }
 
 /**
