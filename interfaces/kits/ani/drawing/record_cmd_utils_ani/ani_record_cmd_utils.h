@@ -22,6 +22,8 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
+class AniCanvas;
+
 class AniRecordCmdUtils final {
 public:
     explicit AniRecordCmdUtils(std::shared_ptr<RSRecordCmdUtils> rsRecordCmdUtils = nullptr)
@@ -38,8 +40,11 @@ public:
 
     std::shared_ptr<RSRecordCmdUtils> GetRSRecordCmdUtils();
 
+    void OnCanvasDestroyed(AniCanvas* canvas);
+
 private:
     std::shared_ptr<RSRecordCmdUtils> rsRecordCmdUtils_ = nullptr;
+    AniCanvas* recordingCanvas_ = nullptr;
 };
 
 } // namespace Drawing
