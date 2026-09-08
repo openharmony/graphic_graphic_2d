@@ -359,6 +359,8 @@ RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()
         .isMirrored = RandomDataBasicType::GetRandomBool(),
         .mirrorNodeId = RandomDataBasicType::GetRandomUint64(),
         .isSync = RandomDataBasicType::GetRandomBool(),
+        .mirrorSourceRotation = RandomDataBasicType::GetRandomUint32(),
+        .positionZ = RandomDataBasicType::GetRandomFloat(),
     };
     return data;
 }
