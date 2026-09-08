@@ -127,6 +127,21 @@ bool FilterCommon::Grayscale()
     return true;
 }
 
+bool FilterCommon::SetMapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions)
+{
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
+    auto mapColorByBrightness = EffectImageFilter::MapColorByBrightness(colors, positions);
+    if (!mapColorByBrightness) {
+        EFFECT_LOG_E("[FilterCommon]mapColorByBrightness is nullptr.");
+        return false;
+    }
+    sConstructor_->AddNextFilter(mapColorByBrightness);
+    return true;
+}
+
 bool FilterCommon::CreateSDF(int spreadFactor, bool generateDerivs)
 {
     if (sConstructor_ == nullptr) {

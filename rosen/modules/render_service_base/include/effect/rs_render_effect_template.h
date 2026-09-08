@@ -70,6 +70,7 @@ public:
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
             case RSNGEffectType::SPIN_BLUR: return "SpinBlur";
             case RSNGEffectType::HALO_BLOOM: return "HaloBloom";
+            case RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS: return "MapColorByBrightness";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
             case RSNGEffectType::WARPED_RING_MASK: return "WarpedRingMask";
             case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";

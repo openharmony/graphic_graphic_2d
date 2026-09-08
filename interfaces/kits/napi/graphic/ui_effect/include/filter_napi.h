@@ -36,6 +36,7 @@
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_motion_blur_para.h"
 #include "filter/include/filter_hdr_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
@@ -96,6 +97,7 @@ private:
     static napi_value SetFrostedGlass(napi_env env, napi_callback_info info);
     static napi_value SetFrostedGlassBlur(napi_env env, napi_callback_info info);
     static napi_value SetMotionBlur(napi_env env, napi_callback_info info);
+    static napi_value SetMapColorByBrightness(napi_env env, napi_callback_info info);
 
     static void RegisterFilterParaUnmarshallingCallback();
 
@@ -110,6 +112,8 @@ private:
     static bool GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue);
     static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
         uint32_t arraySize);
+    static bool GetMapColorByBrightnessArray(napi_env env, napi_value* argValue,
+        std::shared_ptr<MapColorByBrightnessPara>& para, uint32_t arraySize);
 
     std::shared_ptr<Filter> m_FilterObj = nullptr;
 };

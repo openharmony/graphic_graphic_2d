@@ -67,6 +67,11 @@ DECLARE_FILTER(HaloBloom, HALO_BLOOM,
     ADD_PROPERTY_TAG(HaloBloom, GlowExposure)
 );
 
+DECLARE_FILTER(MapColorByBrightness, MAP_COLOR_BY_BRIGHTNESS,
+    ADD_PROPERTY_TAG(MapColorByBrightness, Colors),
+    ADD_PROPERTY_TAG(MapColorByBrightness, Positions)
+);
+
 DECLARE_FILTER(Dispersion, DISPERSION,
     ADD_PROPERTY_TAG(Dispersion, Mask),
     ADD_PROPERTY_TAG(Dispersion, Opacity),

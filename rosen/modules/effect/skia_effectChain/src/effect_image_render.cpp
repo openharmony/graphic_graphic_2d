@@ -29,6 +29,7 @@ static constexpr float POSITIVE_MIN_THRESHOLD = 0.0f;
 static constexpr float GAMMA_MIN_THRESHOLD = 1e-6;
 // limits for mapColorByBrightness filter pamameters
 static constexpr std::pair<float, float> COLOR_POSITION_LIMITS{0.0f, 1.0f};
+static constexpr size_t COLORS_MAX_SIZE = 5;
 
 static Vector4f GetLimitedPara(const Vector4f& para, float minThreshold)
 {
@@ -73,7 +74,8 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const
     }
     std::vector<Vector4f> colorValues;
     std::vector<float> positionValues;
-    for (size_t i = 0; i < colors.size(); i++) {
+    size_t n = colors.size() > COLORS_MAX_SIZE ? COLORS_MAX_SIZE : colors.size();
+    for (size_t i = 0; i < n; i++) {
         Vector4f color = GetLimitedPara(colors[i], POSITIVE_MIN_THRESHOLD);
         float position = std::clamp(positions[i], COLOR_POSITION_LIMITS.first, COLOR_POSITION_LIMITS.second);
         colorValues.push_back(color);

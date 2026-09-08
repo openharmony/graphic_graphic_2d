@@ -26,12 +26,14 @@
 #endif
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_halo_bloom_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_para.h"
 #include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_unmarshalling_singleton.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
+#include "property/include/rs_ui_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1177,6 +1179,69 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHaloBloomParaStoresNewArguments, TestSi
     EXPECT_EQ(haloBloomPara->GetTintColor(), tintColor);
     EXPECT_FLOAT_EQ(haloBloomPara->GetBloomFactor(), bloomFactor);
     EXPECT_FLOAT_EQ(haloBloomPara->GetGlowExposure(), glowExposure);
+}
+
+/**
+ * @tc.name: RSUIEffectMapColorByBrightnessParaStoresNewArguments
+ * @tc.desc: Verify MapColorByBrightnessPara stores colors and positions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectMapColorByBrightnessParaStoresNewArguments, TestSize.Level1)
+{
+    auto mapColorPara = std::make_shared<MapColorByBrightnessPara>();
+    const std::vector<Vector4f> colors = {
+        Vector4f(0.1f, 0.2f, 0.3f, 1.0f),
+        Vector4f(0.5f, 0.6f, 0.7f, 1.0f),
+    };
+    const std::vector<float> positions = { 0.0f, 1.0f };
+
+    EXPECT_EQ(mapColorPara->GetParaType(), FilterPara::ParaType::MAP_COLOR_BY_BRIGHTNESS);
+
+    mapColorPara->SetColors(colors);
+    mapColorPara->SetPositions(positions);
+
+    EXPECT_EQ(mapColorPara->GetColors(), colors);
+    EXPECT_EQ(mapColorPara->GetPositions(), positions);
+}
+
+/**
+ * @tc.name: RSUIEffectMapColorByBrightnessCreateFilter
+ * @tc.desc: Verify RSNGFilterBase::Create converts MapColorByBrightnessPara to a valid filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectMapColorByBrightnessCreateFilter, TestSize.Level1)
+{
+    auto para = std::make_shared<MapColorByBrightnessPara>();
+    const std::vector<Vector4f> colors = {
+        Vector4f(0.1f, 0.2f, 0.3f, 1.0f),
+        Vector4f(0.5f, 0.6f, 0.7f, 1.0f),
+    };
+    const std::vector<float> positions = {0.0f, 1.0f};
+    para->SetColors(colors);
+    para->SetPositions(positions);
+
+    auto filter = RSNGFilterBase::Create(para);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+
+    auto filterByType = RSNGFilterBase::Create(RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+    ASSERT_NE(filterByType, nullptr);
+    EXPECT_EQ(filterByType->GetType(), RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+}
+
+/**
+ * @tc.name: RSUIEffectMapColorByBrightnessCreateNullPara
+ * @tc.desc: Verify RSNGFilterBase::Create returns nullptr for null para
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectMapColorByBrightnessCreateNullPara, TestSize.Level1)
+{
+    auto filter = RSNGFilterBase::Create(nullptr);
+    EXPECT_EQ(filter, nullptr);
+
+    auto basePara = std::make_shared<FilterPara>();
+    auto filterFromBase = RSNGFilterBase::Create(basePara);
+    EXPECT_EQ(filterFromBase, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
