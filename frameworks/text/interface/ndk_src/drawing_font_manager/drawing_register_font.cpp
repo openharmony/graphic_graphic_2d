@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#ifdef BUILD_NON_SDK_VER
+#ifdef ENABLE_TEXT_ENHANCE
 #include <filesystem>
 #endif
 #include <cstdlib>
@@ -41,7 +41,7 @@ using namespace OHOS::Rosen;
 #define ERROR_NULL_FONT_COLLECTION 8
 #define ERROR_FILE_CORRUPTION 9
 
-#ifdef BUILD_NON_SDK_VER
+#ifdef ENABLE_TEXT_ENHANCE
 static bool StdFilesystemExists(const std::string& p, std::error_code& ec)
 {
     return std::filesystem::exists(p, ec);
@@ -62,7 +62,7 @@ inline T1* ConvertToOriginalText(T2* ptr)
 
 uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& buffer, std::streamsize& size)
 {
-#ifdef BUILD_NON_SDK_VER
+#ifdef ENABLE_TEXT_ENHANCE
     std::error_code ec;
     bool ret = StdFilesystemExists(path, ec);
     if (ec) {

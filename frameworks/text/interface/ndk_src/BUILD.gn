@@ -16,11 +16,13 @@ import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 ohos_source_set("text_ndk") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
+  if (platform_is_ohos) {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
   }
 
   include_dirs = [
@@ -57,14 +59,25 @@ ohos_source_set("text_ndk") {
     "drawing_typography/drawing_text_typography_style_attributes.cpp",
   ]
 
+  if (is_arkui_x) {
+    sources -= [
+      "drawing_font_manager/drawing_text_font_descriptor.cpp",
+      "drawing_font_manager/drawing_text_font_descriptor_attributes.cpp",
+    ]
+    sources += [
+      "drawing_font_manager/drawing_text_font_descriptor_arkuix.cpp",
+    ]
+    deps += [
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  }
+
   if (ohos_indep_compiler_enable) {
     include_dirs +=
         [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
   }
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "ipc:ipc_single",
-  ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   configs = [ "$rosen_text_root:rosen_text_config" ]
 
@@ -78,10 +91,14 @@ ohos_source_set("text_ndk") {
       "hilog:libhilog",
       "icu:shared_icuuc",
       "image_framework:image_native",
+      "ipc:ipc_single",
     ]
   } else {
     deps += [ "$rosen_root/modules/platform:hilog" ]
-    defines = [ "MODULE_DRAWING" ]
+    defines = [
+      "MODULE_DRAWING",
+      "USE_M133_SKIA",
+    ]
     external_deps += [ "skia:skia_canvaskit" ]
   }
   part_name = "graphic_2d"
