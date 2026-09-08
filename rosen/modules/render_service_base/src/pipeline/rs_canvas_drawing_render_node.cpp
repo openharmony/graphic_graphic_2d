@@ -602,6 +602,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
                 SplitDrawCmdList(OP_COUNT_LIMIT_PER_FRAME - lastOpCount, drawCmdList, true);
             } else {
                 drawCmdListsNG_[modifierType].emplace_back(drawCmdList);
+                hasDrawCmdList_ = true;
                 opCountAfterReset_ += opItemSize;
             }
         }
@@ -626,6 +627,7 @@ size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
             break;
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(drawCmdList);
+        hasDrawCmdList_ = true;
         cachedOpCount_ -= opItemSize;
         opCountAfterReset_ += opItemSize;
     }
@@ -678,6 +680,7 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
             cachedOpCount_ -= firstCmdList->GetOpItemSize();
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(firstCmdList);
+        hasDrawCmdList_ = true;
         opCountAfterReset_ += firstCmdList->GetOpItemSize();
     }
     drawCmdList->ClearOp();
@@ -742,7 +745,7 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
             stagingRenderParams->SetBufferDraw(IsBufferDraw());
         }
         if (sizeOutOfGpuLimit_) {
-            firstBufferAcquired_ = false;
+            clientRender_ = false;
             UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
         }
     }
@@ -880,9 +883,19 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     bufferDirty_ = true;
     MarkNonGeometryChanged();
     SetContentDirty();
-    if (!firstBufferAcquired_ && buffer != nullptr) {
-        firstBufferAcquired_ = true;
-        ClearOp();
+
+    if (buffer != nullptr) {
+        // If the previous frame did not use client rendering, in which case hasDrawCmdList_ is true,
+        // clear previous OPs when receiving a buffer (already in client rendering mode)
+        if (!clientRender_ || hasDrawCmdList_) {
+            ClearOp();
+        }
+        if (hasDrawCmdList_) {
+            hasDrawCmdList_ = false;
+            // Mark CONTENT_STYLE dirty to clean up the residual RSCustomModifierDrawable
+            dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+        }
+        clientRender_ = true;
     }
     if (canvasParams->IsBufferSynced()) {
         canvasParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
@@ -942,7 +955,7 @@ void RSCanvasDrawingRenderNode::SetSurfaceHandler(std::shared_ptr<RSSurfaceHandl
  
 bool RSCanvasDrawingRenderNode::IsBufferDraw()
 {
-    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && firstBufferAcquired_;
+    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && clientRender_;
 }
  
 bool RSCanvasDrawingRenderNode::IsHybridEnabled()

@@ -1,0 +1,248 @@
+﻿/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// The macro definition of the property tags is as follows
+// DECLARE_ANIMATABLE_PROPERTY_TAG(EffectName, PropName, Type)
+// DECLARE_NONANIMATABLE_PROPERTY_TAG(EffectName, PropName, Type)
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusY, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Blur, DisableSystemAdaptation, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Blur, ExpandDrawRegion, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, Saturation, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, Brightness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, MaskColor, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaterialBlur, ColorMode, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaterialBlur, DisableSystemAdaptation, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DispDistort, Factor, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DispDistort, Mask, MASK_PTR);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorA, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorB, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorC, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, AlphaA, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, AlphaB, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ProgressA, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ProgressB, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, TotalAlpha, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Alpha, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Color, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Mask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Bloom, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, UseRawColor, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Positions, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Strengths, std::vector<float>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradient, Mask, MASK_PTR);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpinBlur, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpinBlur, Angle, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SpinBlur, Samples, int);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, TintColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, BloomFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, GlowExposure, float);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Dispersion, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, Opacity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, GreenOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, BlueOffset, Vector2f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint0, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint4, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint5, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint6, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint7, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint8, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint9, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint10, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint11, Vector2f);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DirectionLight, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Factor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Direction, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Intensity, float);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaskTransition, Factor, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Inverse, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Radius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Mask, MASK_PTR);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Position, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, RotationAngle, Vector3f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleAblation, Progress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleAblation, AblationRate, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, Centers0, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, Centers1, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, Centers2, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, Centers3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleAblation, GlowLevel, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleAblation, GlowBrightness, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, MaxParticleCount, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, Wind, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, TurbScale, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, TurbEvo, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, TurbAmp, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ParticleAblation, ExpansionSize, Vector2f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEmboss, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEdl, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgAlpha, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, RefractParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightNeg, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightAngles, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightDir, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightRates, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightKBS, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightPos, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightNeg, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBlurParams, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeWeightsEmboss, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgRates, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgPos, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, WaveMask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseMaterialType, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, ColorBlendMode, int);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, VibrancyStrength, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, LumaParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColorFraction, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SamplingScale, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, SkipFrameEnable, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint0, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint4, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint5, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint6, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint7, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint8, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle0, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle4, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle5, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle6, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle7, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle8, Vector2f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, NoiseScale, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, RiseWeight, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, Progress, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, BlurIntensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MixStrength, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskImage, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Factor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Width, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, Height, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, CornerRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, BorderWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, OffsetX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, OffsetY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ZoomOffsetX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ZoomOffsetY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ShadowOffsetX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ShadowOffsetY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ShadowSize, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Magnifier, ShadowStrength, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, GradientMaskColor1, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, GradientMaskColor2, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, OuterContourColor1, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, OuterContourColor2, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, SDFShape, std::shared_ptr<RSNGRenderShapeBase>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, SkipFrameEnable, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SpreadFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMaxIntensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MaxBloomIntensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomFalloffPow, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MinBorderWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MaxBorderWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SDFImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SDFShape, std::shared_ptr<RSNGRenderShapeBase>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LUCorner, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RUCorner, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RBCorner, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LBCorner, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Radius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Anchor, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);
