@@ -3258,6 +3258,48 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
 }
 
 /**
+ * @tc.name: SetDualScreenState004
+ * @tc.desc: Test SetDualScreenState with all valid screen ids and DUAL_SCREEN_ENTER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetDualScreenState004, Function | SmallTest | Level2)
+{
+    auto screenIds = rsInterfaces->GetAllScreenIds();
+    for (auto screenId : screenIds) {
+        EXPECT_NE(screenId, INVALID_SCREEN_ID);
+        RSScreenType type;
+        auto typeRet = rsInterfaces->GetScreenType(screenId, type);
+        if (typeRet != StatusCode::SUCCESS || type == RSScreenType::VIRTUAL_TYPE_SCREEN) {
+            continue;
+        }
+        auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+        EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+    }
+}
+
+/**
+ * @tc.name: SetDualScreenState005
+ * @tc.desc: Test SetDualScreenState with all valid screen ids and DUAL_SCREEN_EXIT
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetDualScreenState005, Function | SmallTest | Level2)
+{
+    auto screenIds = rsInterfaces->GetAllScreenIds();
+    for (auto screenId : screenIds) {
+        EXPECT_NE(screenId, INVALID_SCREEN_ID);
+        RSScreenType type;
+        auto typeRet = rsInterfaces->GetScreenType(screenId, type);
+        if (typeRet != StatusCode::SUCCESS || type == RSScreenType::VIRTUAL_TYPE_SCREEN) {
+            continue;
+        }
+        auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_EXIT);
+        EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+    }
+}
+
+/**
  * @tc.name: SetAsMainScreenTest001
  * @tc.desc: Test SetAsMainScreenTest when set INVALID_SCREEN_ID
  * @tc.type: FUNC

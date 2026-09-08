@@ -656,6 +656,7 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
         RS_LOGE("%{public}s: failed to set DualScreenStatus. ret: %{public}d", __func__, ret);
         return StatusCode::HDI_ERROR;
     }
+    UPDATE_PROPERTY(DualScreenState, status);
     return StatusCode::SUCCESS;
 }
 

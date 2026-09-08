@@ -6131,6 +6131,7 @@ static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
         case ScreenPropertyType::SAMPLING_OPTION:
         case ScreenPropertyType::SCREEN_STATUS:
         case ScreenPropertyType::SCREEN_SWITCH_STATUS:
+        case ScreenPropertyType::DUAL_SCREEN_STATE:
         case ScreenPropertyType::WHITE_LIST:
             return true;
         default:

@@ -64,6 +64,7 @@ enum class ScreenPropertyType : uint32_t {
     IS_MAIN_SCREEN,
     IS_ROG_RESOLUTION,
     IS_HDI_ROG_ENABLE,
+    DUAL_SCREEN_STATE,
     SAMPLING_MODE,
 
     SCREEN_PROPERTY_TYPE_SIZE,  // record num of property type
@@ -146,6 +147,8 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, void*, nullptr)
 #endif
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_ROG_RESOLUTION, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_HDI_ROG_ENABLE, bool, false);
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::DUAL_SCREEN_STATE,
+    uint64_t, static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_EXIT));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SAMPLING_MODE,
     uint32_t, static_cast<uint32_t>(ScreenSamplingMode::DEVICE_DSS));
 
@@ -235,6 +238,7 @@ public:
     ScreenPowerStatus GetScreenPowerStatus() const;
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
+    DualScreenStatus GetDualScreenState() const;
 #ifndef ROSEN_CROSS_PLATFORM
     std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
 #endif
