@@ -119,6 +119,7 @@ ohos_unittest("RSTunnelLayerManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -169,6 +170,7 @@ ohos_unittest("RSTunnelLayerHelperTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -219,6 +221,7 @@ ohos_unittest("RSTunnelRouteArbiterTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -293,6 +296,7 @@ ohos_unittest("RSHeteroHDRHpaeTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "ffrt:libffrt",
@@ -343,6 +347,7 @@ ohos_unittest("RSOcclusionHandlerTest") {
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -385,6 +390,7 @@ ohos_unittest("RSOcclusionNodeTest") {
     "skia:skia_canvaskit",
     "hitrace:hitrace_meter",
     "googletest:gmock_main",
+    "eventhandler:libeventhandler",
   ]
 }
 
@@ -418,6 +424,7 @@ ohos_unittest("RSPointerWindowManagerTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -508,6 +515,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -566,6 +574,7 @@ ohos_unittest("RSDrmUtilTest") {
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
     "hisysevent:libhisysevent",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -614,6 +623,7 @@ ohos_unittest("RSHdrUtilTest") {
     "googletest:gmock_main",
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -648,6 +658,7 @@ ohos_unittest("RSLayerCacheManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "ffrt:libffrt",
     "graphic_surface:surface",
@@ -704,6 +715,7 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -757,6 +769,7 @@ ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
   ]
   include_dirs = [ "../../../../../modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -803,6 +816,7 @@ ohos_unittest("RSUniUiCaptureTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -858,6 +872,7 @@ ohos_unittest("RSUifirstManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -897,6 +912,7 @@ ohos_unittest("RSUifirstManagerTest2") {
   }
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "egl:libEGL",
@@ -930,6 +946,7 @@ ohos_unittest("RSRenderGroupCacheTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -956,6 +973,7 @@ ohos_unittest("RSOpincDrawCacheTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -985,6 +1003,7 @@ ohos_unittest("RSOpincDrawCacheLayerPartTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1032,6 +1051,7 @@ ohos_unittest("RSDrawWindowCacheTest") {
     "googletest:gmock_main",
     "graphic_surface:surface",
     "libxml2:libxml2",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1063,6 +1083,7 @@ ohos_unittest("RSSubThreadManagerTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1108,6 +1129,7 @@ ohos_unittest("RSSubThreadTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1160,6 +1182,7 @@ ohos_unittest("RSSubThreadCacheTest") {
     "googletest:gmock_main",
     "graphic_surface:surface",
     "libxml2:libxml2",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1176,6 +1199,7 @@ ohos_unittest("RSVsyncRateReduceManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1220,6 +1244,7 @@ ohos_source_set("mock_dlsym") {
   ]
  
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "egl:libEGL",
@@ -1262,6 +1287,7 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1309,6 +1335,7 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest1") {
     "../../../../../modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -1353,6 +1380,7 @@ ohos_unittest("RSVKImageManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1416,6 +1444,7 @@ ohos_unittest("RSEglImageManagerTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "drivers_interface_display:display_commontype_idl_headers",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1458,6 +1487,7 @@ if (rs_enable_gpu) {
       "libxml2:libxml2",
       "egl:libEGL",
       "opengles:libGLES",
+      "eventhandler:libeventhandler",
     ]
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
@@ -1568,6 +1598,7 @@ ohos_unittest("HgmRenderContextTest") {
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
     "opengles:libGLES",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1617,6 +1648,7 @@ ohos_unittest("LppVideoHandlerTest") {
     "egl:libEGL",
     "opengles:libGLES",
     "hisysevent:libhisysevent",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1667,6 +1699,7 @@ ohos_unittest("RSAncoManagerTest") {
     "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
     "opengles:libGLES",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1704,6 +1737,7 @@ ohos_unittest("RSWindowKeyFrameDrawableTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1736,6 +1770,7 @@ ohos_unittest("OverlayDisplayTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1780,6 +1815,7 @@ ohos_unittest("TvMetadataTest") {
     "../../../../../modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -1827,6 +1863,7 @@ ohos_unittest("RSUniHwcComputeUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1870,6 +1907,7 @@ ohos_unittest("RSRDOTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -1918,6 +1956,7 @@ ohos_unittest("RSSpecialLayerUtilsTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "hisysevent:libhisysevent",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1948,6 +1987,7 @@ ohos_unittest("RSMultiScreenUtilTest") {
     "graphic_surface:surface",
     "libxml2:libxml2",
     "hisysevent:libhisysevent",
+    "eventhandler:libeventhandler",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1963,6 +2003,7 @@ ohos_unittest("RSUniDirtyComputeUtilTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -2009,6 +2050,7 @@ ohos_unittest("RSUniDirtyOcclusionUtilTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -2057,6 +2099,7 @@ ohos_unittest("RSFrameStabilityManagerTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -2104,6 +2147,7 @@ ohos_unittest("RSWindowCaptureTaskTest") {
   ]
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -2143,6 +2187,7 @@ ohos_unittest("RSHpaeRenderListenerTest") {
   sources = [ "hpae/rs_hpae_render_listener_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
@@ -2177,6 +2222,7 @@ ohos_unittest("RSHpaeManagerTest") {
   sources = [ "hpae/rs_hpae_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "c_utils:utils",
     "hilog:libhilog",
@@ -2213,6 +2259,7 @@ ohos_unittest("RSChipsetVsyncTest") {
   sources = [ "chipset_vsync/rs_chipset_vsync_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
@@ -2231,6 +2278,7 @@ ohos_unittest("RSUniHwcEventManagerTest") {
   sources = [ "hwc_event/rs_uni_hwc_event_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -2269,6 +2317,7 @@ ohos_unittest("RSTvShutter3DManagerTest") {
   sources = []
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
@@ -2377,6 +2426,7 @@ ohos_static_library("rs_test_common") {
   }
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
@@ -2451,6 +2501,7 @@ ohos_unittest("RSProtectiveSolidRenderNodeTest") {
     "libxml2:libxml2",
     "egl:libEGL",
     "opengles:libGLES",
+    "eventhandler:libeventhandler",
   ]
   defines = []
   defines += gpu_defines
