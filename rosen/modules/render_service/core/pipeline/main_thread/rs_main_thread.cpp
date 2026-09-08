@@ -1837,9 +1837,6 @@ void RSMainThread::ProcessCommandForUniRender()
             if (surfaceHandler == nullptr) {
                 return;
             }
-            if (surfaceHandler->GetBuffer() != nullptr) {
-                canvasDrawingSelfDrawables_.emplace_back(canvasDrawingNode->GetRenderDrawable());
-            }
             if (!RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(*surfaceHandler, timestamp_)) {
                 return;
             }
@@ -3119,7 +3116,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 SetHasSurfaceLockLayer(node->GetFixRotationByUser());
             }
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-            renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->protectiveSolidDrawables_ = std::move(protectiveSolidDrawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
@@ -3191,7 +3187,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-        renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
         renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->protectiveSolidDrawables_ = std::move(protectiveSolidDrawables_);
@@ -5478,7 +5473,6 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         protectiveSolidDrawables_.clear();
         ClearSelfDrawingNodes();
         selfDrawables_.clear();
-        canvasDrawingSelfDrawables_.clear();
         RSPointerWindowManager::Instance().ResetHardCursorDrawables();
 #endif
     }
