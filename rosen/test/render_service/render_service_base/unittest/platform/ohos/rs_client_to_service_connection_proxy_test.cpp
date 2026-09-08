@@ -2578,9 +2578,13 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterTypefaceDirectPath, TestS
     auto callerTid = std::this_thread::get_id();
     std::thread::id sendTid;
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
-        .WillRepeatedly([&](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+        .WillRepeatedly([&](uint32_t code, MessageParcel&, MessageParcel& reply, MessageOption&) {
             sendTid = std::this_thread::get_id();
-            reply.WriteBool(true);
+            if (code == static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE)) {
+                reply.WriteUint8(Drawing::REGISTERED);
+            } else {
+                reply.WriteBool(true);
+            }
             return NO_ERROR;
         });
     uint64_t globalUniqueId = 1;
