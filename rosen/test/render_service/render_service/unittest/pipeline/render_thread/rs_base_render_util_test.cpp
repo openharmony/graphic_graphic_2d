@@ -23,6 +23,7 @@
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "params/rs_screen_render_params.h"
 #include "engine/rs_base_render_util.h"
+#include "draw/surface.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen.h"
@@ -38,6 +39,8 @@ constexpr uint32_t TEST_HEIGHT = 0x10;
 constexpr uint32_t TEST_STRIDE_ALIGNMENT = 0x8;
 constexpr uint64_t TEST_TIMEOUT = 0;
 constexpr uint32_t HDR_METADATA_KEY_COUNT = 7;
+constexpr uint32_t API17 = 17;
+constexpr uint32_t API18 = 18;
 
 namespace OHOS::Rosen {
 constexpr Rect RECT_ONE = {0, 0, 100, 100};
@@ -501,7 +504,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
         RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
         RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
-        ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
+        ASSERT_EQ(surfaceConsumer->GetName(), "ScreenNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
     // release buffer
@@ -734,6 +737,23 @@ HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: WriteSurfaceRenderNodeToPng_NullSurfaceHandler_001
+ * @tc.desc: Test WriteSurfaceRenderNodeToPng when surfaceHandler is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_NullSurfaceHandler_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "2");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->surfaceHandler_.reset();
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode));
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
  * @tc.name: ConvertBufferToBitmap_001
  * @tc.desc: Test ConvertBufferToBitmap IsBufferValid
  * @tc.type: FUNC
@@ -843,7 +863,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 
     free(bufferHandle->virAddr);
     bufferHandle->virAddr = nullptr;
@@ -860,6 +880,103 @@ HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     bool result = RSBaseRenderUtil::WritePixelMapToPng(*pixelMap);
     ASSERT_EQ(false, result);
+}
+
+/*
+ * @tc.name: WritePixelMapToPng_Proceed_001
+ * @tc.desc: Test WritePixelMapToPng when dump type is PIXELMAP, covers the proceed branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_Proceed_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "3");
+    Media::InitializationOptions opts;
+    opts.size.width = 0x10;
+    opts.size.height = 0x10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    bool result = RSBaseRenderUtil::WritePixelMapToPng(*pixelMap);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NotSurfaceBufferType_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when dump type is not SURFACEBUFFER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NotSurfaceBufferType_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "0");
+    sptr<SurfaceBuffer> buffer;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NullBuffer_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NullBuffer_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    sptr<SurfaceBuffer> buffer;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_NullBufferHandle_001
+ * @tc.desc: Test WriteSurfaceBufferToPng when bufferHandle is nullptr (buffer not allocated)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_NullBufferHandle_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
+}
+
+/*
+ * @tc.name: WriteSurfaceBufferToPng_Proceed_001
+ * @tc.desc: Test WriteSurfaceBufferToPng with an allocated RGBA buffer, covers the proceed branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceBufferToPng_Proceed_001, TestSize.Level2)
+{
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "4");
+    auto* impl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x10,
+        .height = 0x10,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    ASSERT_EQ(impl->Alloc(requestConfig), OHOS::GSERROR_OK);
+    sptr<SurfaceBuffer> buffer = impl;
+    bool result = RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
 }
 
 /*
@@ -884,6 +1001,35 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer
+ * @tc.desc: hasCropMetadata true but buffer nullptr -> dstRect falls back to srcRect (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer, TestSize.Level2)
+{
+    RectF localBounds;
+    BufferDrawParam params;
+    params.hasCropMetadata = true;
+    params.buffer = nullptr;
+    params.srcRect = Drawing::Rect(1, 2, 3, 4);
+    ASSERT_EQ(params.buffer, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    ASSERT_NE(rsNode->GetRSSurfaceHandler(), nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
+        rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+    // buffer nullptr + hasCropMetadata -> else branch: dstRect = srcRect
+    EXPECT_EQ(params.dstRect.GetLeft(), params.srcRect.GetLeft());
+    EXPECT_EQ(params.dstRect.GetTop(), params.srcRect.GetTop());
+    EXPECT_EQ(params.dstRect.GetWidth(), params.srcRect.GetWidth());
+    EXPECT_EQ(params.dstRect.GetHeight(), params.srcRect.GetHeight());
 }
 
 /*
@@ -1413,6 +1559,35 @@ HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: WriteToPng_NullData_001
+ * @tc.desc: Test WriteToPng with null data pointer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_NullData_001, TestSize.Level2)
+{
+    WriteToPngParam param{};
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteToPng("/data/WriteToPng_NullData.png", param));
+}
+
+/*
+ * @tc.name: WriteToPng_BufferTooSmall_001
+ * @tc.desc: Test WriteToPng when buffer size is smaller than height * stride
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_BufferTooSmall_001, TestSize.Level2)
+{
+    WriteToPngParam param{};
+    uint8_t dummy = 0;
+    param.data = &dummy;
+    param.height = 2;
+    param.stride = 100;
+    param.size = 10;
+    EXPECT_EQ(false, RSBaseRenderUtil::WriteToPng("/data/WriteToPng_BufferTooSmall.png", param));
+}
+
+/*
  * @tc.name: RotateEnumToInt_001
  * @tc.desc: Test RotateEnumToInt GRAPHIC_FLIP_H
  * @tc.type: FUNC
@@ -1470,6 +1645,44 @@ HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Leve
     bitmap2->Build(10, 10, bitmapFormat);
     bool result2 = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap2, debugInfo);
     ASSERT_EQ(true, result2);
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPng_SurfaceProceed_001
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng(Surface) reaches localtime_r and proceeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPng_SurfaceProceed_001, TestSize.Level2)
+{
+    auto dumpImgParam = OHOS::system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0");
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", "1");
+    auto surface = Drawing::Surface::MakeRasterN32Premul(0x10, 0x10);
+    ASSERT_NE(surface, nullptr);
+    std::string debugInfo = "surface_proceed";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(surface, debugInfo);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", dumpImgParam);
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPng_ImageProceed_001
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng(Image) reaches localtime_r and proceeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPng_ImageProceed_001, TestSize.Level2)
+{
+    auto dumpImgParam = OHOS::system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0");
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", "1");
+    auto surface = Drawing::Surface::MakeRasterN32Premul(0x10, 0x10);
+    ASSERT_NE(surface, nullptr);
+    auto image = surface->GetImageSnapshot();
+    ASSERT_NE(image, nullptr);
+    std::string debugInfo = "image_proceed";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(image, debugInfo);
+    EXPECT_EQ(true, result);
+    OHOS::system::SetParameter("persist.sys.graphic.dumpImgEnabled", dumpImgParam);
 }
 
 /*
@@ -2181,5 +2394,470 @@ HWTEST_F(RSBaseRenderUtilTest, DropFirstFlushedBufferTest, TestSize.Level2)
     surfaceHandler->consumer_ = IConsumerSurface::Create();
     ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 2);
     ASSERT_FALSE(RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, id));
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_NewVersion001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with API version >= API18
+ *           Branch: if (nodeParams != nullptr && nodeParams->GetApiCompatibleVersion() >= API18)
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_NewVersion001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_API18";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API18);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_90,
+        Gravity::CENTER,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_NewVersion002
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with node name "RosenWeb"
+ *           Branch: if (nodeParams != nullptr && nodeParams->GetName() == "RosenWeb")
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_NewVersion002, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "RosenWeb";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+    
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_270,
+        Gravity::CENTER,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_NewVersion003
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with FrameGravityNewVersionEnabled
+ *           Branch: if (nodeParams != nullptr && nodeParams->GetFrameGravityNewVersionEnabled())
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_NewVersion003, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_NewVersionEnabled";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetFrameGravityNewVersionEnabled(true);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_180,
+        Gravity::TOP,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_OldVersion001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with old version logic
+ *           Branch: else branch at line 1255 (nodeParams == nullptr or conditions not met)
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_OldVersion001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_OldVersion";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API17);
+    rsNode->SetFrameGravityNewVersionEnabled(false);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_90,
+        Gravity::BOTTOM,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_Rotation90_001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with GRAPHIC_ROTATE_90 in new version
+ *           Branch: rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_Rotation90_001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_Rotate90";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API18);
+
+    RectF localBounds(0, 0, 200, 100);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_90,
+        Gravity::TOP_LEFT,
+        localBounds,
+        params);
+    
+    EXPECT_EQ(localBounds.width_, 100);
+    EXPECT_EQ(localBounds.height_, 200);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_Rotation270_001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with GRAPHIC_ROTATE_270 in old version
+ *           Branch: rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_Rotation270_001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_Rotate270";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API17);
+
+    RectF localBounds(0, 0, 300, 150);
+    BufferDrawParam params;
+    params.buffer = SurfaceBuffer::Create();
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_270,
+        Gravity::BOTTOM_RIGHT,
+        localBounds,
+        params);
+    
+    EXPECT_EQ(localBounds.width_, 150);
+    EXPECT_EQ(localBounds.height_, 300);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_SplitLayerTag001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with splitLayerTag true
+ *           Branch: if (params.splitLayerTag) return
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_SplitLayerTag001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_SplitLayer";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API18);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.splitLayerTag = true;
+    params.buffer = SurfaceBuffer::Create();
+    
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_90,
+        Gravity::CENTER,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_HasCropMetadata001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity with hasCropMetadata true
+ *           Branch: if (UNLIKELY(params.hasCropMetadata))
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_HasCropMetadata001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.name = "TestNode_CropMetadata";
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsNode->SetIsOnTheTree(true);
+    rsNode->SetApiCompatibleVersion(API18);
+
+    RectF localBounds(0, 0, 100, 100);
+    BufferDrawParam params;
+    params.hasCropMetadata = true;
+    params.srcRect = Drawing::Rect(0, 0, 50, 50);
+    
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    buffer->Alloc(requestConfig);
+    params.buffer = buffer;
+    
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
+        GraphicTransformType::GRAPHIC_ROTATE_NONE,
+        Gravity::CENTER,
+        localBounds,
+        params);
+}
+
+/*
+ * @tc.name: ParseTransactionData_NullPtr001
+ * @tc.desc: Test ParseTransactionData with invalid parcel data
+ *           Branch: if (!transactionData) return nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, ParseTransactionData_NullPtr001, TestSize.Level2)
+{
+    MessageParcel parcel;
+    uint32_t parcelNumber = 1;
+    
+    auto result = RSBaseRenderUtil::ParseTransactionData(parcel, parcelNumber);
+    ASSERT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: ParseTransactionData_Success001
+ * @tc.desc: Test ParseTransactionData with valid transaction data
+ *           Branch: successful parsing and return transData
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, ParseTransactionData_Success001, TestSize.Level2)
+{
+    MessageParcel parcel;
+    
+    RSTransactionData transactionData;
+    transactionData.SetSendingPid(getpid());
+    
+    parcel.WriteParcelable(&transactionData);
+    
+    uint32_t parcelNumber = 1;
+    auto result = RSBaseRenderUtil::ParseTransactionData(parcel, parcelNumber);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetSendingPid(), getpid());
+}
+
+/*
+ * @tc.name: CreateYuvToRGBABitMap_InvalidWidth001
+ * @tc.desc: Test CreateYuvToRGBABitMap with invalid width (width <= 0)
+ *           Branch: if (width <= 0 || height <= 0) return false
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_InvalidWidth001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    auto* handle = new BufferHandle();
+    handle->width = 0;
+    handle->height = TEST_HEIGHT;
+    handle->stride = TEST_WIDTH;
+    handle->size = TEST_WIDTH * TEST_HEIGHT;
+    handle->format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
+    impl->SetBufferHandle(handle);
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: CreateYuvToRGBABitMap_InvalidHeight001
+ * @tc.desc: Test CreateYuvToRGBABitMap with invalid height (height <= 0)
+ *           Branch: if (width <= 0 || height <= 0) return false
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_InvalidHeight001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    auto* handle = new BufferHandle();
+    handle->width = TEST_WIDTH;
+    handle->height = 0;
+    handle->stride = TEST_WIDTH;
+    handle->size = TEST_WIDTH * TEST_HEIGHT;
+    handle->format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
+    impl->SetBufferHandle(handle);
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_FALSE(result);
+}
+
+#if __SIZEOF_SIZE_T__ == 4
+/*
+ * @tc.name: CreateYuvToRGBABitMap_BufferSizeOverflow001
+ * @tc.desc: Test CreateYuvToRGBABitMap with buffer size overflow (bufferSize > SIZE_MAX)
+ *           Branch: if (bufferSize > std::numeric_limits<size_t>::max()) return false
+ *           Note: Only on 32-bit where size_t is 32-bit. On 64-bit this is dead code.
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_BufferSizeOverflow001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    auto* handle = new BufferHandle();
+    constexpr int32_t OVERFLOW_DIM = 32768; // 32768 * 32768 * 4 = 4G > UINT32_MAX
+    handle->width = OVERFLOW_DIM;
+    handle->height = OVERFLOW_DIM;
+    handle->stride = OVERFLOW_DIM;
+    handle->size = static_cast<uint64_t>(OVERFLOW_DIM) * OVERFLOW_DIM;
+    handle->format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
+    impl->SetBufferHandle(handle);
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_FALSE(result);
+}
+#endif
+
+/*
+ * @tc.name: CreateYuvToRGBABitMap_LenOverflow001
+ * @tc.desc: Test ConvertYUV420SPToRGBA with buffer len overflow (stride * height > INT32_MAX)
+ *           Branch: if (len > INT32_MAX) return false
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_LenOverflow001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 50000, // Large width so allocator sets a large stride
+        .height = 1,    // Small height so allocation succeeds
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+    };
+    ASSERT_EQ(impl->Alloc(requestConfig), OHOS::GSERROR_OK);
+    impl->handle_->width = TEST_WIDTH;  // 16, small width so bufferSize is manageable
+    impl->handle_->height = 50000;       // Large height for overflow
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: CreateYuvToRGBABitMap_TotalLenOverflow001
+ * @tc.desc: Test ConvertYUV420SPToRGBA with totalLen overflow (len * 1.5 > INT32_MAX, len <= INT32_MAX)
+ *           Branch: if (totalLen > INT32_MAX) return false
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_TotalLenOverflow001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 40000, // Large width so allocator sets stride ~40000
+        .height = 1,    // Small height so allocation succeeds
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+    };
+    ASSERT_EQ(impl->Alloc(requestConfig), OHOS::GSERROR_OK);
+    impl->handle_->width = TEST_WIDTH;  // 16, small width so bufferSize is manageable
+    impl->handle_->height = 40000;       // Large height: len=40000*40000=1.6B <= INT32_MAX, totalLen=2.4B > INT32_MAX
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: CreateYuvToRGBABitMap_PaddingHeight001
+ * @tc.desc: Test ConvertYUV420SPToRGBA with PADDING_HEIGHT_32, covers i >= srcBuf->GetHeight() continue branch
+ *           Branch: if (i >= srcBuf->GetHeight()) continue
+ * @tc.type: FUNC
+ * @tc.require: issue24925
+ */
+HWTEST_F(RSBaseRenderUtilTest, CreateYuvToRGBABitMap_PaddingHeight001, TestSize.Level2)
+{
+    auto* impl = new SurfaceBufferImpl();
+    auto* handle = new BufferHandle();
+    handle->width = TEST_WIDTH;    // 16
+    handle->height = 0x11;          // 17, not aligned to 32, triggers padding
+    handle->stride = TEST_WIDTH;    // 16
+    // size must cover padded height (32 rows): stride * 32 * 1.5 = 768
+    constexpr int32_t PADDED_SIZE = 768;
+    handle->size = PADDED_SIZE;
+    handle->format = GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
+    // virAddr must be valid and large enough for pixel access
+    std::vector<uint8_t> srcData(PADDED_SIZE, 0);
+    handle->virAddr = srcData.data();
+    impl->SetBufferHandle(handle);
+
+    sptr<SurfaceBuffer> buffer = impl;
+    std::vector<uint8_t> newBuffer;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    EXPECT_TRUE(result);
 }
 } // namespace OHOS::Rosen

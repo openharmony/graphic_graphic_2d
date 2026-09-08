@@ -232,6 +232,8 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
     ASSERT_NE(ret, DrawingError::ERR_OK);
     ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, nullptr, true);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
     OH_NativeBuffer_Unreference(dstBuffer);
 }
 

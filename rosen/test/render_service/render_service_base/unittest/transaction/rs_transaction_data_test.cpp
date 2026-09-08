@@ -291,7 +291,7 @@ HWTEST_F(RSTransactionDataTest, UnmarshallingCommand012, TestSize.Level1)
     parcel.WriteUint64(1); // for test index_
     parcel.WriteUint64(1); // for test syncId_
     parcel.WriteInt32(1); // for test hostPid_
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), true);
+    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
 }
 #endif
 

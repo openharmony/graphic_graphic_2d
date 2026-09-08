@@ -52,7 +52,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -131,6 +130,7 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
 #include "property/rs_spatial_effect_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
@@ -292,11 +292,8 @@ const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 3, 10023 },
 };
 
-const ProtectiveSolidConfig PROTECTIVE_SOLID_CONFIGS[] = {
-    {{0, 0, 2232, 2128}, {0, 2128, 2232, 200}},   // LM
-    {{0, 1136, 2232, 2048}, {0, 936, 2232, 200}},  // RM
-    {{0, 0, 2232, 1136}, {0, 1136, 2232, 200}},   // N
-};
+const RectI PROTECTIVE_SOLID_N_RECT { 0, 0, 2232, 1136 };
+const Vector4f PROTECTIVE_SOLID_N_BOUNDS { 0, 1136, 2232, 200 };
 
 static int64_t SystemTime()
 {
@@ -894,9 +891,6 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     {
         RS_TRACE_BEGIN(forRefresh ? "ResetTransactionDataPidInfo" : "ClearTransactionDataPidInfo");
         ClearTransactionDataPidInfo(pid, forRefresh);
-        if (IsRequestedNextVSync()) {
-            SetDirtyFlag();
-        }
         RS_TRACE_END();
     }
 
@@ -963,25 +957,27 @@ void RSMainThread::OnScreenDisconnected(ScreenId screenId)
     DestroyScreenNode(screenId);
 }
 
-std::shared_ptr<RSProtectiveSolidRenderNode> RSMainThread::CreateProtectiveSolidRenderNode(ScreenId screenId)
+void RSMainThread::CreateProtectiveSolidRenderNode(ScreenId screenId)
 {
     auto& nodeMap = context_->GetMutableNodeMap();
     auto it = protectiveSolidNodeIdMap_.find(screenId);
     if (it != protectiveSolidNodeIdMap_.end()) {
         auto existingNode = nodeMap.GetRenderNode<RSProtectiveSolidRenderNode>(it->second);
         if (existingNode) {
-            RS_TRACE_NAME_FMT("The ProtectiveSolidRenderNode has created, ScreenId[%" PRIu64 "], NodeId:%llu", screenId,
-                existingNode->GetId());
-            RS_LOGI("%{public}s, the ProtectiveSolidRenderNode has created, ScreenId[%{public}" PRIu64 "], "
-                "NodeId[%{public}" PRIu64 "]", __func__, screenId, existingNode->GetId());
-            return existingNode;
+            RS_OPTIONAL_TRACE_NAME_FMT("The ProtectiveSolidRenderNode has created, ScreenId[%" PRIu64 "], NodeId:%llu",
+                screenId, existingNode->GetId());
+            return;
         }
     }
-    auto node =
-        std::make_shared<RSProtectiveSolidRenderNode>(GenerateUniqueNodeIdForRS(), context_->weak_from_this());
-    RS_TRACE_NAME_FMT("CreateProtectiveSolidRenderNode ScreenId[%" PRIu64"], NodeId:%llu", screenId, node->GetId());
-    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "]",
-        __func__, screenId, node->GetId());
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(GenerateUniqueNodeIdForRS(), context_->weak_from_this());
+    node->GetMutableRenderProperties().SetBounds(PROTECTIVE_SOLID_N_BOUNDS);
+    auto bounds = node->GetRenderProperties().GetBounds();
+    RS_TRACE_NAME_FMT("CreateProtectiveSolidRenderNode ScreenId[%" PRIu64 "], NodeId:%llu, "
+                      "bounds[%f, %f, %f, %f]",
+        screenId, node->GetId(), bounds.x_, bounds.y_, bounds.z_, bounds.w_);
+    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "] "
+            "bounds[%{public}f, %{public}f, %{public}f, %{public}f]",
+        __func__, screenId, node->GetId(), bounds.x_, bounds.y_, bounds.z_, bounds.w_);
     nodeMap.RegisterRenderNode(node);
     nodeMap.TraverseScreenNodes([screenId, node](const std::shared_ptr<RSScreenRenderNode>& screenNode) {
         if (screenNode && screenNode->GetScreenId() == screenId) {
@@ -989,7 +985,6 @@ std::shared_ptr<RSProtectiveSolidRenderNode> RSMainThread::CreateProtectiveSolid
         }
     });
     protectiveSolidNodeIdMap_[screenId] = node->GetId();
-    return node;
 }
 
 void RSMainThread::DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId)
@@ -1023,32 +1018,28 @@ void RSMainThread::DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId no
     nodeMap.UnregisterRenderNode(protectiveSolidNode->GetId());
 }
 
-void RSMainThread::HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property)
+void RSMainThread::HandleProtectiveSolidNode(ScreenId id)
 {
-    auto activeRectProperty = static_cast<ScreenProperty<activeRectValType>*>(property.GetRefPtr());
-    if (!activeRectProperty) {
-        return;
-    }
     if (!RSSystemProperties::IsSpecialFoldDisplay() || id != 0) {
         return;
     }
-    auto activeRect = std::get<0>(activeRectProperty->Get());
-    auto cfg = std::find_if(std::begin(PROTECTIVE_SOLID_CONFIGS), std::end(PROTECTIVE_SOLID_CONFIGS),
-        [&activeRect](const auto& entry) { return entry.rect == activeRect; });
-    if (cfg != std::end(PROTECTIVE_SOLID_CONFIGS)) {
-        auto node = CreateProtectiveSolidRenderNode(id);
-        node->GetMutableRenderProperties().SetBounds(cfg->bounds);
-        auto bounds = node->GetRenderProperties().GetBounds();
-        RS_TRACE_NAME_FMT("HandleActiveRectOption bounds[%f, %f, %f, %f] nodeId[%llu]",
-            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
-        RS_LOGI("HandleActiveRectOption bounds[%{public}f, %{public}f, %{public}f, %{public}f]"
-            " nodeId[%{public}" PRIu64 "]",
-            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
+    std::shared_ptr<RSScreenRenderNode> innerNode;
+    context_->GetMutableNodeMap().TraverseScreenNodes([&innerNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == 0) {
+            innerNode = node;
+        }
+    });
+    if (!innerNode) {
+        return;
+    }
+    const auto& sp = innerNode->GetScreenProperty();
+    bool powerOn = (sp.GetScreenPowerStatus() == ScreenPowerStatus::POWER_STATUS_ON);
+    if (powerOn && sp.GetActiveRect() == PROTECTIVE_SOLID_N_RECT) {
+        CreateProtectiveSolidRenderNode(id);
     } else {
-        auto it = protectiveSolidNodeIdMap_.find(id);
-        if (it != protectiveSolidNodeIdMap_.end()) {
-            DestroyProtectiveSolidRenderNode(id, it->second);
-            protectiveSolidNodeIdMap_.erase(it);
+        for (auto it = protectiveSolidNodeIdMap_.begin(); it != protectiveSolidNodeIdMap_.end();) {
+            DestroyProtectiveSolidRenderNode(it->first, it->second);
+            it = protectiveSolidNodeIdMap_.erase(it);
         }
     }
 }
@@ -1064,9 +1055,7 @@ void RSMainThread::OnScreenPropertyChanged(
     HandlePowerStatusChanged(id, type, property);
     HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
-    if (type == ScreenPropertyType::ACTIVE_RECT_OPTION) {
-        HandleActiveRectOption(id, property);
-    }
+    // [Planning]: HandleProtectiveSolidNode
 }
 
 void RSMainThread::ReleaseImageMem()
@@ -2191,12 +2180,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     auto preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
                     const auto& consumer = surfaceHandler->GetConsumer();
                     if (consumer != nullptr) {
-                        RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(buffer, consumer->GetUniqueId());
                         RSSurfaceFpsManager::GetInstance().RecordFlushTime(surfaceHandler->GetNodeId(), vsyncId_,
                             buffer ? buffer->GetFlushedTimestamp() : 0);
                     }
-                    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer,
-                        RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(buffer, bufferOwnerCount, surfaceHandler->GetDamageRegion(),
                         surfaceHandler->GetAcquireFence(), preBuffer, preBufferOwnerCount);
                     auto scalingModeChanged = surfaceHandler->CheckScalingModeChanged();
@@ -2276,6 +2262,22 @@ static bool CheckOverlayDisplayEnable()
 #else
     return false;
 #endif
+}
+
+void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+{
+    auto filterIds = HveFilter::GetHveFilter().GetFilterIds(surfaceNode->GetId());
+    if (!filterIds.empty()) {
+        for (const auto& id : filterIds) {
+            auto node = GetContext().GetNodeMap().GetRenderNode(id);
+            if (node == nullptr) {
+                RS_LOGD("%s: Invalid filter:[%{public}" PRIu64 "]", __func__, id);
+                continue;
+            }
+            node->SetContentDirty();
+        }
+    }
+    HveFilter::GetHveFilter().ClearSurfaceToFilterNodeMap();
 }
 
 void RSMainThread::CollectInfoForHardwareComposer()
@@ -2426,7 +2428,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 surfaceNode->SetIntersectWithFilterNode(false);
-                surfaceNode->SetContentDirty();
+                HveFilter::GetHveFilter().IsApsConfigParamsEnabled()?
+                    HveHandleFilterNodes(surfaceNode) : surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " surfaceNode intersects with hve filter",
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());

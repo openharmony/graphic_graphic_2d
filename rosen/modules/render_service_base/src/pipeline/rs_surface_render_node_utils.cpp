@@ -39,18 +39,18 @@ bool RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(const RSSurfaceRenderNode&
 
     auto geoPtr = hwcNode.GetRenderProperties().GetBoundsGeometry();
 #ifndef ROSEN_CROSS_PLATFORM
-    auto region = surfaceHandler->GetDamageRegion();
-    RectF realRect = RectF(region.x, region.y, region.w, region.h);
+    auto damageRelRegion = surfaceHandler->GetDamageRegion();
+    RectF damageRelRect = RectF(damageRelRegion.x, damageRelRegion.y, damageRelRegion.w, damageRelRegion.h);
+    RectF dirtyRelRect = geoPtr->MapRectWithoutRounding(damageRelRect, hwcNode.GetBufferRelMatrix());
+    RectI dirtyAbsRect = geoPtr->MapAbsRect(dirtyRelRect);
 #else
-    auto region = geoPtr->GetAbsRect();
-    RectF realRect = RectF(region.left_, region.top_, region.width_, region.height_);
+    RectI dirtyAbsRect = geoPtr->GetAbsRect();
 #endif
-    auto dirtyRect = geoPtr->MapRect(realRect, hwcNode.GetBufferRelMatrix());
     RS_OPTIONAL_TRACE_FMT("RSSurfaceRenderNodeUtils::IntersectHwcDamageWith: node:[name: %s, id: %" PRIu64 "], "
-        "dirtyRect: [%d,%d,%d,%d] rect: [%d,%d,%d,%d]", hwcNode.GetName().c_str(), hwcNode.GetId(),
-        dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight(),
+        "dirtyAbsRect: [%d,%d,%d,%d] rect: [%d,%d,%d,%d]", hwcNode.GetName().c_str(), hwcNode.GetId(),
+        dirtyAbsRect.GetLeft(), dirtyAbsRect.GetTop(), dirtyAbsRect.GetWidth(), dirtyAbsRect.GetHeight(),
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
-    return dirtyRect.Intersect(rect);
+    return dirtyAbsRect.Intersect(rect);
 }
 
 } // namespace Rosen

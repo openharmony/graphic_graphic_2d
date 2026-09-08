@@ -1673,7 +1673,8 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_003, testing::ext::TestSize.Level1)
             gamuts.resize(modeIdx - 1);
             return GRAPHIC_DISPLAY_SUCCESS;
         });
-
+    rsScreen->supportedPhysicalColorGamuts_.insert(
+        rsScreen->supportedPhysicalColorGamuts_.end(), {COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB});
     ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::SUCCESS);
 }
 
@@ -1735,6 +1736,8 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_005, testing::ext::TestSize.Level1)
     EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
         .Times(1)
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    rsScreen->supportedPhysicalColorGamuts_.insert(
+        rsScreen->supportedPhysicalColorGamuts_.end(), {COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB});
     ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::HDI_ERROR);
 }
 
@@ -2685,6 +2688,14 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     EXPECT_NE(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
+
+    id = 0;
+    MultiScreenParam::SetSkipFrameByActiveRefreshRate(true);
+    EXPECT_TRUE(MultiScreenParam::IsSkipFrameByActiveRefreshRate());
+    rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
+    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
 }
 
 /*
@@ -3536,6 +3547,7 @@ HWTEST_F(RSScreenTest, SetRogResolution002, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_unique<RSScreen>(0);
     ASSERT_NE(nullptr, rsScreen);
 
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->property_.SetPhysicalModeParams(100, 100, 0);
     EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _))
         .WillOnce(testing::Return(0));

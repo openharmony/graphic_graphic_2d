@@ -34,10 +34,10 @@ enum AttachmentType : uint32_t {
 };
 
 struct WebGLAttachmentInfo {
-    GLsizei width = 0;
-    GLsizei height = 0;
-    GLenum format;
-    GLenum type;
+    GLsizei width { 0 };
+    GLsizei height { 0 };
+    GLenum format { 0 };
+    GLenum type { 0 };
 };
 
 struct WebGLAttachment {
@@ -116,7 +116,7 @@ public:
     WebGLAttachment* GetAttachment(GLenum attachment) const;
     void RemoveAttachment(GLenum target, GLuint id, AttachmentType type);
     GLenum CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context) const;
-    GLenum CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context, WebGLAttachmentInfo info,
+    GLenum CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context, WebGLAttachmentInfo& info,
         std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const;
     GLenum CheckAttachStatus(Impl::WebGLRenderingContextBaseImpl* context,
         std::vector<WebGLAttachment*>& attachments) const;

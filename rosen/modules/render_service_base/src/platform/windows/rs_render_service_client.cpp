@@ -85,7 +85,11 @@ public:
         }
 
         auto func = [callback](int64_t time, int64_t frameCount) {
-            callback.callbackWithId_(time, frameCount, callback.userData_);
+            if (callback.callbackWithId_ != nullptr) {
+                callback.callbackWithId_(time, frameCount, callback.userData_);
+            } else if (callback.callback_ != nullptr) {
+                callback.callback_(time, callback.userData_);
+            }
         };
         client_->SetVsyncCallback(func);
         client_->RequestNextVsync();
@@ -605,6 +609,11 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+}
+
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    return {};
 }
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)

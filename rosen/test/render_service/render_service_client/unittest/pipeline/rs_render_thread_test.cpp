@@ -537,24 +537,74 @@ HWTEST_F(RSRenderThreadTest, GetIsRunning001, TestSize.Level1)
     ASSERT_TRUE(RSRenderThread::Instance().GetIsRunning());
 }
 
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
 /**
- * @tc.name: CreateAndInitRenderContextIfNeedTest
- * @tc.desc: test results of CreateAndInitRenderContextIfNeed
+ * @tc.name: CreateAndInitRenderContextIfNeedTest001
+ * @tc.desc: renderContext_ null + cacheDir empty: create context, SetCacheDir skipped
  * @tc.type: FUNC
- * @tc.require: issueIA61E9
+ * @tc.require:
  */
-HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest2, TestSize.Level1)
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest001, TestSize.Level1)
 {
     auto thread = std::make_shared<RSRenderThread>();
+    ASSERT_NE(thread, nullptr);
     thread->renderContext_ = nullptr;
     thread->cacheDir_ = "";
     thread->CreateAndInitRenderContextIfNeed();
     EXPECT_NE(thread->renderContext_, nullptr);
+    thread->renderContext_ = nullptr;
+}
 
+/**
+ * @tc.name: CreateAndInitRenderContextIfNeedTest002
+ * @tc.desc: renderContext_ null + cacheDir non-empty: create context and call SetCacheDir
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest002, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSRenderThread>();
+    ASSERT_NE(thread, nullptr);
     thread->renderContext_ = nullptr;
     thread->cacheDir_ = "testDir";
     thread->CreateAndInitRenderContextIfNeed();
     EXPECT_NE(thread->renderContext_, nullptr);
     thread->renderContext_ = nullptr;
 }
+
+/**
+ * @tc.name: CreateAndInitRenderContextIfNeedTest003
+ * @tc.desc: renderContext_ already non-null: function is no-op, pointer unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest003, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSRenderThread>();
+    ASSERT_NE(thread, nullptr);
+    thread->renderContext_ = nullptr;
+    thread->cacheDir_ = "";
+    thread->CreateAndInitRenderContextIfNeed();
+    ASSERT_NE(thread->renderContext_, nullptr);
+    auto savedContext = thread->renderContext_;
+    thread->CreateAndInitRenderContextIfNeed();
+    EXPECT_EQ(thread->renderContext_, savedContext);
+    thread->renderContext_ = nullptr;
+}
+#else
+/**
+ * @tc.name: CreateAndInitRenderContextIfNeedTest004
+ * @tc.desc: GPU macros undefined: function body compiled out, renderContext_ stays null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest004, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSRenderThread>();
+    ASSERT_NE(thread, nullptr);
+    thread->renderContext_ = nullptr;
+    thread->CreateAndInitRenderContextIfNeed();
+    EXPECT_EQ(thread->renderContext_, nullptr);
+}
+#endif
 } // namespace OHOS::Rosen

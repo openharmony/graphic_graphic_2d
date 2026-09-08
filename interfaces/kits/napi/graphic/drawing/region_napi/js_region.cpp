@@ -19,6 +19,7 @@
 #include "path_napi/js_path.h"
 #include "native_value.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -84,7 +85,7 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
     std::shared_ptr<Region> region = nullptr;
     if (argCount == ARGC_ONE) {
         JsRegion* jsOther = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, jsOther);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, jsOther, &REGION_TYPE_TAG);
         Region* other = jsOther->GetRegion();
         region = other == nullptr ? std::make_shared<Region>() : std::make_shared<Region>(*other);
     } else if (argCount == ARGC_FOUR) {
@@ -103,7 +104,7 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
         region = std::make_shared<Region>();
     }
     JsRegion* jsRegion = new JsRegion(region);
-    status = napi_wrap(env, jsThis, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsRegion, JsRegion::Destructor, nullptr, &REGION_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRegion;
         ROSEN_LOGE("JsRegion::Constructor Failed to wrap native instance");
@@ -124,7 +125,7 @@ void JsRegion::Destructor(napi_env env, void* nativeObject, void* finalize)
 
 napi_value JsRegion::GetBoundaryPath(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBoundaryPath(env, info) : nullptr;
 }
 
@@ -142,7 +143,7 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::GetBounds(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBounds(env, info) : nullptr;
 }
 
@@ -159,7 +160,7 @@ napi_value JsRegion::OnGetBounds(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsComplex(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsComplex(env, info) : nullptr;
 }
 
@@ -175,7 +176,7 @@ napi_value JsRegion::OnIsComplex(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsEmpty(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEmpty(env, info) : nullptr;
 }
 
@@ -191,7 +192,7 @@ napi_value JsRegion::OnIsEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsEqual(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
 }
 
@@ -206,7 +207,7 @@ napi_value JsRegion::OnIsEqual(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
@@ -218,7 +219,7 @@ napi_value JsRegion::OnIsEqual(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsPointContained(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsPointContained(env, info) : nullptr;
 }
 
@@ -242,7 +243,7 @@ napi_value JsRegion::OnIsPointContained(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsRegionContained(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsRegionContained(env, info) : nullptr;
 }
 
@@ -257,7 +258,7 @@ napi_value JsRegion::OnIsRegionContained(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* other = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, other, &REGION_TYPE_TAG);
     if (other->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRegionContained other is nullptr");
         return nullptr;
@@ -268,7 +269,7 @@ napi_value JsRegion::OnIsRegionContained(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::Offset(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnOffset(env, info) : nullptr;
 }
 
@@ -292,7 +293,7 @@ napi_value JsRegion::OnOffset(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::Op(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnOp(env, info) : nullptr;
 }
 
@@ -307,7 +308,7 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsRegion* region = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, region);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, region, &REGION_TYPE_TAG);
     if (region->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnOp region is nullptr");
         return nullptr;
@@ -327,7 +328,7 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickReject(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickReject(env, info) : nullptr;
 }
 
@@ -356,7 +357,7 @@ napi_value JsRegion::OnQuickReject(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickRejectRegion(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectRegion(env, info) : nullptr;
 }
 
@@ -371,7 +372,7 @@ napi_value JsRegion::OnQuickRejectRegion(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
@@ -383,7 +384,7 @@ napi_value JsRegion::OnQuickRejectRegion(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetEmpty(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetEmpty(env, info) : nullptr;
 }
 
@@ -400,7 +401,7 @@ napi_value JsRegion::OnSetEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetRect(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRect(env, info) : nullptr;
 }
 
@@ -429,7 +430,7 @@ napi_value JsRegion::OnSetRect(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetRegion(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRegion(env, info) : nullptr;
 }
 
@@ -444,7 +445,7 @@ napi_value JsRegion::OnSetRegion(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRegion region is nullptr");
@@ -456,7 +457,7 @@ napi_value JsRegion::OnSetRegion(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetPath(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetPath(env, info) : nullptr;
 }
 
@@ -471,13 +472,13 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath jsPath is nullptr");
         return nullptr;
     }
     JsRegion* jsClip = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsClip);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsClip, &REGION_TYPE_TAG);
     if (jsClip->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath jsClip is nullptr");
         return nullptr;
@@ -488,7 +489,7 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsRect(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsRect(env, info) : nullptr;
 }
 
@@ -504,7 +505,7 @@ napi_value JsRegion::OnIsRect(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickContains(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickContains(env, info) : nullptr;
 }
 

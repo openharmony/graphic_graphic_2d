@@ -25,6 +25,7 @@ config("effect_config") {
 }
 
 ohos_shared_library("effect_common") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

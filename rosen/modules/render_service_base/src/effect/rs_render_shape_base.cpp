@@ -74,7 +74,6 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
         }
     },
     {RSNGEffectType::SDF_DISTORT_OP_SHAPE, [] {
-            ROSEN_LOGE("RSNGRenderSDFDistortOpShape Created");
             return std::make_shared<RSNGRenderSDFDistortOpShape>();
         }
     },
@@ -98,8 +97,8 @@ static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRec
             auto distortion = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeBarrelDistortionRenderTag>()->Get();
             float left = transformRect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * transformRect.GetWidth();
             float top = transformRect.GetTop() + std::min(luCorner[1], ruCorner[1]) * transformRect.GetHeight();
-            float right = std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
-            float bottom = std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
+            float right = transformRect.GetLeft() + std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
+            float bottom = transformRect.GetTop() + std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
             float width = std::abs(right - left);
             float height = std::abs(bottom - top);
             constexpr float halfUV = 0.5f;
@@ -216,7 +215,7 @@ void RSNGRenderShapeHelper::FillEmptyDistortOpShape(
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, add default SDF_RRECT_SHAPE, node %{public}"
             PRIu64, nodeId);
     }
-    if (sync) {
+    if (sync && innerShape && innerShape->GetType() == RSNGEffectType::SDF_RRECT_SHAPE) {
         auto defaultShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
         defaultShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, update SDF_RRECT_SHAPE, node %{public}"

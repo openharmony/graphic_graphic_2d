@@ -15,6 +15,8 @@
 
 #include "animation/rs_interpolating_spring_animation.h"
 
+#include <cmath>
+
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "command/rs_animation_command.h"
@@ -60,7 +62,7 @@ const RSAnimationTimingCurve& RSInterpolatingSpringAnimation::GetTimingCurve() c
 void RSInterpolatingSpringAnimation::SetZeroThreshold(const float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold < ZERO) {
+    if (zeroThreshold < ZERO || !std::isfinite(zeroThreshold)) {
         ROSEN_LOGE("RSInterpolatingSpringAnimation::SetZeroThreshold: invalid threshold.");
         return;
     }

@@ -51,6 +51,9 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
@@ -836,11 +839,8 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-    UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
-    if (uiMode3D == UIMode3D::MODE_SHUTTER_3D) {
-        curScreenNode_->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
-        hwcVisitor_->UpdateHwcNodeEnableByShutter3DLayer();
-    }
+    RSTvShutter3DManager::Instance().UpdateHwcNodeEnableByShutter3DLayer(
+        *curScreenNode_, RSMainThread::Instance()->GetUIMode3D());
 #endif
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
@@ -2895,7 +2895,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D && hwcNodePtr->IsFullScreen()) {
+        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D &&
+            RSTvShutter3DManager::Instance().IsFullScreen(*hwcNodePtr)) {
             isInvalidZorder = false;
         }
 #endif
@@ -3822,12 +3823,12 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
-    if (curSurfaceDirtyManager_) {
-        ScheduleColorPickIfCurrentSurfaceDirty(node, *curSurfaceDirtyManager_);
+    if (auto colorPicker = node.GetColorPickerDrawable()) {
+        if (curSurfaceDirtyManager_) {
+            ScheduleColorPickIfCurrentSurfaceDirty(node, *curSurfaceDirtyManager_, colorPicker);
+        }
+        HandleColorPickerHwcDisable(node, colorPicker);
     }
-
-    // Check if HWC should be disabled for ColorPicker node
-    HandleColorPickerHwcDisable(node);
 
     // add if node is dirty
     node.AddToPendingSyncList();
@@ -4619,6 +4620,12 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
     if (!colorPicker) {
         return;
     }
+    HandleColorPickerHwcDisable(node, colorPicker);
+}
+
+void RSUniRenderVisitor::HandleColorPickerHwcDisable(
+    RSRenderNode& node, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& colorPicker)
+{
     using State = DrawableV2::ColorPickerState;
     if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
         RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
@@ -4630,17 +4637,21 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
 void RSUniRenderVisitor::ScheduleColorPickIfCurrentSurfaceDirty(
     RSRenderNode& node, RSDirtyRegionManager& dirtyManager)
 {
+    auto drawable = node.GetColorPickerDrawable();
+    if (!drawable) {
+        return;
+    }
+    ScheduleColorPickIfCurrentSurfaceDirty(node, dirtyManager, drawable);
+}
+
+void RSUniRenderVisitor::ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node,
+    RSDirtyRegionManager& dirtyManager, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable)
+{
     if (!curSurfaceNode_) {
         return;
     }
 
-    if (!RSColorPickerUtils::DirtyInCurrentSurface(node, dirtyManager.GetCurrentFrameDirtyRegion())) {
-        return;
-    }
-
-    auto drawable = node.GetColorPickerDrawable();
-    if (!drawable) {
-        RS_LOGW("ScheduleColorPickIfCurrentSurfaceDirty: node %" PRIu64 " missing drawable", node.GetId());
+    if (!RSColorPickerUtils::DirtyInCurrentSurface(node, dirtyManager.GetCurrentFrameDirtyRegion(), drawable)) {
         return;
     }
 

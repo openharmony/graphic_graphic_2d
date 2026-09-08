@@ -33,7 +33,6 @@
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
@@ -128,6 +127,8 @@ static void InitRsDrawableSlotToIndexVec()
     for (size_t i = 0; i < static_cast<size_t>(RSDrawableSlot::MAX); i++) {
         rsDrawableSlotToIndexVec[i] = nullptr;
     }
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MASK)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.maskIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::TRANSITION)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.transitionIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] =
@@ -2051,17 +2052,6 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
-        bool isUseSelfDrawingDirtyRegion = buffer->GetSurfaceBufferWidth() == rect.w &&
-            buffer->GetSurfaceBufferHeight() == rect.h && rect.x == 0 && rect.y == 0;
-        if (isUseSelfDrawingDirtyRegion) {
-            Rect selfDrawingDirtyRect;
-            bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
-            if (isDirtyRectValid) {
-                rect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
-                    selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
-                RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]", rect.x, rect.y, rect.w, rect.h);
-            }
-        }
         auto matrix = surfaceNode->GetBufferRelMatrix();
         auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
             RectF(rect.x, rect.y, rect.w, rect.h), matrix).ConvertTo<float>();
@@ -2815,7 +2805,10 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
-    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+    if (!drawableVec_) {
+        return nullptr;
+    }
+    if (auto& drawable = findMapValueRef(*drawableVec_, static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER))) {
         return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
     }
     return nullptr;
@@ -3578,6 +3571,8 @@ void RSRenderNode::UpdateDisplayList()
         return (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(endIndex))
             != nullptr ? stagingDrawCmdList_.size() - 1 : -1);
     };
+    // Update index of MASK
+    stagingDrawCmdIndex_.maskIndex_ = AppendDrawFunc(RSDrawableSlot::MASK);
     // Update index of TRANSITION
     stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
 
@@ -4859,9 +4854,10 @@ void RSRenderNode::OnSync()
         return;
     }
     // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    bool skipPartialSync = IsUifirstSkipPartialSync();
     DrawableV2::RSRenderNodeSingleDrawableLocker
-        singleLocker(IsUifirstSkipPartialSync() ? nullptr : renderDrawable_.get());
-    if (!IsUifirstSkipPartialSync() && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker(skipPartialSync ? nullptr : renderDrawable_.get());
+    if (!skipPartialSync && UNLIKELY(!singleLocker.IsLocked())) {
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
@@ -4919,7 +4915,7 @@ void RSRenderNode::OnSync()
         }
         unobscuredUECChildrenNeedSync_ = false;
     }
-    if (!IsUifirstSkipPartialSync()) {
+    if (!skipPartialSync) {
         if (!dirtySlots_.empty()) {
             auto& drawableMap = GetDrawableVec(__func__);
             for (const auto& slot : dirtySlots_) {

@@ -16,6 +16,7 @@
 #include "js_point_utils.h"
 #include "native_value.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -63,7 +64,7 @@ napi_value JsPointUtils::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsPointUtils *jsPointUtils = new JsPointUtils();
-    status = napi_wrap(env, jsThis, jsPointUtils, JsPointUtils::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsPointUtils, JsPointUtils::Destructor, nullptr, &POINT_UTILS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPointUtils;
         ROSEN_LOGE("JsPointUtils::Constructor Failed to wrap native instance");

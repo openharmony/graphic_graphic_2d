@@ -389,7 +389,6 @@ public:
     static bool GetAIBarOptEnabled();
     static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
-    static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
@@ -423,7 +422,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static std::atomic_bool cacheEnabledForRotation_ = false;
-    static inline bool forceHpsBlurDisabled_ = false;
+    static inline std::atomic<bool> forceHpsBlurDisabled_{false};
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;

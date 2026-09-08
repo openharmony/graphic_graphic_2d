@@ -19,7 +19,6 @@
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "metadata_helper.h"
@@ -56,7 +55,6 @@ const Rect DEFAULT_RECT = { 0, 0, 200, 200 };
 const RectF DEFAULT_SELF_DRAW_RECT = { 0, 0, 200, 200 };
 
 const int DEFAULT_NODE_ID = 1;
-const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
 public:
@@ -82,24 +80,6 @@ public:
         -34.4f,
         std::numeric_limits<float>::max(),
         std::numeric_limits<float>::min(),
-    };
-    static inline BufferRequestConfig requestConfig = {
-        .width = 200,
-        .height = 200,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
-    };
-
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
     };
 
     static void SetUpTestCase();
@@ -1213,33 +1193,6 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateBufferDirtyRegion, TestSize.Level1)
     RectI drawRegion{0, 0, 1000, 1000};
     node.UpdateBufferDirtyRegion(dirtyRect, drawRegion);
     ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: UpdateBufferDirtyRegion002
- * @tc.desc: test UpdateBufferDirtyRegion when gpuDirtyRegion is valid
- * @tc.type: FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSRenderNodeUnitTest3, UpdateBufferDirtyRegion002, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_EQ(src, nullptr);
-
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
-    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    surfaceNode->UpdateBufferDirtyRegion();
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "common/rs_event_def.h"
 #include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "ipc_callbacks/rs_iexposed_event_callback_ipc_interface_code.h"
 
@@ -57,6 +58,8 @@ HWTEST_F(RSExposedEventCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     ASSERT_NE(stub, nullptr);
     auto code = static_cast<uint32_t>(RSIExposedEventCallbackInterfaceCode::ON_EXPOSED_EVENT);
     data.WriteInterfaceToken(RSIExposedEventCallback::GetDescriptor());
+    auto eventData = std::make_shared<RSExtScreenUnsupportData>();
+    data.WriteParcelable(eventData.get());
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
@@ -115,6 +118,25 @@ HWTEST_F(RSExposedEventCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     auto code = static_cast<uint32_t>(RSIExposedEventCallbackInterfaceCode::ON_EXPOSED_EVENT);
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest005
+ * @tc.desc: Verify OnRemoteRequest returns ERR_NULL_OBJECT when ReadParcelable returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSExposedEventCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto stub = std::make_shared<RSExposedEventCallbackStubMock>();
+    ASSERT_NE(stub, nullptr);
+    auto code = static_cast<uint32_t>(RSIExposedEventCallbackInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteInterfaceToken(RSIExposedEventCallback::GetDescriptor());
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
 }
 
 } // namespace OHOS::Rosen

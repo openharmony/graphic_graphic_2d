@@ -232,9 +232,10 @@ public:
      * @brief UI Dvsync feature switch on or switch off.
      *
      * @param dvsyncSwitch true: switch on, false: switch off.
+     * @param fromWhom the caller type, default is INNER.
      * @return Returns an error code.
      */
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM);
 
     /**
      * @brief callback will be called when isOpen is true, and stop when isOpen is false.

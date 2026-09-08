@@ -912,15 +912,16 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     bufferCache.pendingBufferMap_.clear();
-    bufferCache.AddPendingBuffer(1, buffer, 1);
-    auto& nodeBufferMap = bufferCache.pendingBufferMap_[1].second;
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
+    bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+    auto& nodeBufferMap = bufferCache.pendingBufferMap_[pid][nodeId].second;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->ReleaseDmaSurfaceBuffer(true);
     ASSERT_EQ(drawable->renderParams_, nullptr);
     ASSERT_EQ(nodeBufferMap.empty(), false);
-    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
     auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
     renderParams->SetCanvasDrawingResetSurfaceIndex(1);
     drawable->ReleaseDmaSurfaceBuffer(true);
@@ -1098,11 +1099,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckBackendTextureTest, TestSiz
 }
 
 /**
- * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.name: OnDrawAbnormalProcessTest002
  * @tc.desc: Test OnDraw with abnormal process check
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest002, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     NodeId nodeId = 1;

@@ -72,16 +72,16 @@ public:
     void SetUp() override;
     void TearDown() override;
 #ifdef RS_ENABLE_VK
-    static std::set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+    static std::unordered_set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
         uint32_t imageNums);
 #endif
 };
 
 #ifdef RS_ENABLE_VK
-std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+std::unordered_set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
     uint32_t imageNums)
 {
-    std::set<uint64_t> bufferIdCache;
+    std::unordered_set<uint64_t> bufferIdCache;
     for (uint32_t i = 0; i < imageNums; i++) {
         auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
@@ -685,6 +685,33 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
     ASSERT_NE(params.paint.shaderEffect_, nullptr);
 #endif
 }
+
+/*
+ * @tc.name: ColorSpaceConvertor_NullConverterDisplay
+ * @tc.desc: colorSpaceConverterDisplay_ nullptr -> 643 true-branch early return (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor_NullConverterDisplay, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    // no Init() -> colorSpaceConverterDisplay_ stays nullptr (default) -> early return branch
+    auto shaderEffect = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_WHITE);
+    ASSERT_NE(shaderEffect, nullptr);
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_NE(params.buffer, nullptr);
+    params.paint.SetShaderEffect(shaderEffect); // sentinel: prove early return did not overwrite
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
+    // 643 true-branch: early return before 658 SetShaderEffect(outputShader) -> shaderEffect_ unchanged
+    EXPECT_EQ(params.paint.shaderEffect_, shaderEffect);
+#endif
+}
+
 #endif
 
 /**

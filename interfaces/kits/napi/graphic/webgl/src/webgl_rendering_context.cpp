@@ -30,7 +30,7 @@ namespace Rosen {
 using namespace std;
 bool WebGLRenderingContext::Export(napi_env env, napi_value exports)
 {
-    LOGD("WebGL WebGLRenderingContext::Export env %{private}p mContextRef %{private}p", env, contextRef_);
+    LOGD("WebGL WebGLRenderingContext::Export start");
     napi_value instanceValue = GetContextInstance(env,
         GetClassName(), [](napi_env env, napi_callback_info info) -> napi_value {
             napi_value thisVar = nullptr;
@@ -98,14 +98,14 @@ string WebGLRenderingContext::GetClassName()
 
 WebGLRenderingContext::~WebGLRenderingContext()
 {
-    LOGD("WebGLRenderingContext::~WebGLRenderingContext id %{private}p", this);
+    LOGD("WebGLRenderingContext::~WebGLRenderingContext");
     ObjectManager::GetInstance().DeleteWebGLObject(false, this);
 }
 
 WebGLRenderingContext::WebGLRenderingContext(napi_env env, napi_value exports)
     : WebGLRenderingContextBasicBase(), NExporter(env, exports), contextImpl_(0, this)
 {
-    LOGD("WebGLRenderingContext::WebGLRenderingContext id %{private}p", this);
+    LOGD("WebGLRenderingContext::WebGLRenderingContext");
 }
 } // namespace Rosen
 } // namespace OHOS

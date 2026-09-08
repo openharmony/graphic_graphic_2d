@@ -1104,7 +1104,8 @@ HWTEST_F(RSDrawCmdTest, GetRsImageCacheTest, TestSize.Level1)
     auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMapT);
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
     extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
-    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, colorSpace);
+    Drawing::SamplingOptions samplingOptions;
+    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, samplingOptions, colorSpace);
 }
 #endif
 

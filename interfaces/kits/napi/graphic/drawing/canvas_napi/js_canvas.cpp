@@ -52,6 +52,7 @@
 #include "text_blob_napi/js_text_blob.h"
 #include "roundRect_napi/js_roundrect.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "js_native_api.h"
 #include "utils/performanceCaculate.h"
 #if defined(OHOS_PLATFORM) || defined(ROSEN_ARKUI_X)
@@ -278,7 +279,7 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     jsCanvas->mPixelMap_ = pixelMapNapi->GetPixelNapiInner();
-    status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
@@ -340,7 +341,7 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("jsCanvas::CreateJsCanvas Create canvas object failed!");
         return nullptr;
     }
-    status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &JsCanvas::NAPI_TYPE_TAG, nullptr);
+    status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
@@ -397,7 +398,7 @@ JsCanvas::~JsCanvas()
 
 napi_value JsCanvas::Clear(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClear(env, info) : nullptr;
 }
 
@@ -429,7 +430,7 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawShadow(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawShadow(env, info) : nullptr;
 }
 
@@ -442,7 +443,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_SEVEN] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SEVEN);
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     Point3 offset;
     Point3 lightPos;
@@ -486,7 +487,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawArc(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawArc(env, info) : nullptr;
 }
 
@@ -524,7 +525,7 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawArcWithCenter(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawArcWithCenter(env, info) : nullptr;
 }
 
@@ -569,7 +570,7 @@ napi_value JsCanvas::OnDrawArcWithCenter(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawRect(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRect(env, info) : nullptr;
 }
 
@@ -619,7 +620,7 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
 napi_value JsCanvas::QuickRejectPath(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectPath(env, info) : nullptr;
 }
 
@@ -634,7 +635,7 @@ napi_value JsCanvas::OnQuickRejectPath(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     if (jsPath == nullptr || jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnQuickRejectPath path is nullptr");
@@ -648,7 +649,7 @@ napi_value JsCanvas::OnQuickRejectPath(napi_env env, napi_callback_info info)
 napi_value JsCanvas::QuickRejectRect(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectRect(env, info) : nullptr;
 }
 
@@ -676,7 +677,7 @@ napi_value JsCanvas::OnQuickRejectRect(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawCircle(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawCircle(env, info) : nullptr;
 }
 
@@ -711,7 +712,7 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawImage(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImage(env, info) : nullptr;
 }
 
@@ -757,7 +758,7 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         m_canvas->DrawImage(*image, px, py, Drawing::SamplingOptions());
     } else {
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
 
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
@@ -785,7 +786,7 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawColor(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawColor(env, info) : nullptr;
 }
 
@@ -849,7 +850,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawOval(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawOval(env, info) : nullptr;
 }
 
@@ -881,7 +882,7 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawPoint(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPoint(env, info) : nullptr;
 }
 
@@ -936,7 +937,7 @@ static bool OnMakePoints(napi_env& env, Point* point, uint32_t size, napi_value&
 
 napi_value JsCanvas::DrawPoints(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPoints(env, info) : nullptr;
 }
 
@@ -998,7 +999,7 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawPath(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPath(env, info) : nullptr;
 }
 
@@ -1013,7 +1014,7 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPath path is nullptr");
@@ -1033,7 +1034,7 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawLine(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawLine(env, info) : nullptr;
 }
 
@@ -1069,7 +1070,7 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawText(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawText(env, info) : nullptr;
 }
 
@@ -1084,7 +1085,7 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
 
     JsTextBlob* jsTextBlob = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsTextBlob);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsTextBlob, &TEXT_BLOB_TYPE_TAG);
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, x);
     double y = 0.0;
@@ -1138,7 +1139,7 @@ bool GetGlyphPositions(napi_env env, napi_value& jsPosition, uint32_t size,
 napi_value JsCanvas::DrawGlyphs(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawGlyphs(env, info) : nullptr;
 }
 
@@ -1182,7 +1183,7 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     int32_t glyphCount = 0;
     GET_INT32_PARAM(ARGC_FOUR, glyphCount);
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_FIVE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_FIVE, jsFont, &FONT_TYPE_TAG);
     std::shared_ptr<Font> font = GetValidFont(jsFont->GetFont());
     if (font == nullptr) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -1222,7 +1223,7 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawSingleCharacter(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawSingleCharacter(env, info) : nullptr;
 }
 
@@ -1247,7 +1248,7 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, x);
     double y = 0.0;
@@ -1280,7 +1281,7 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
 napi_value JsCanvas::DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawSingleCharacterWithFeatures(env, info) : nullptr;
 }
 
@@ -1317,7 +1318,7 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
     }
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
 
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, x);
@@ -1355,7 +1356,7 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
 
 napi_value JsCanvas::DrawPixelMapMesh(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPixelMapMesh(env, info) : nullptr;
 }
 
@@ -1585,7 +1586,7 @@ bool GetIndices(napi_env env, uint32_t indicesLength, napi_value& indicesArray,
 
 napi_value JsCanvas::DrawVertices(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawVertices(env, info) : nullptr;
 }
 
@@ -1635,7 +1636,7 @@ napi_value JsCanvas::OnDrawVertices(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawRegion(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRegion(env, info) : nullptr;
 }
 
@@ -1649,7 +1650,7 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     if (jsRegion->GetRegion() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRegion region is nullptr");
         return nullptr;
@@ -1665,7 +1666,7 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawBackground(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawBackground(env, info) : nullptr;
 }
 
@@ -1680,7 +1681,7 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsBrush* jsBrush = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsBrush);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsBrush, &BRUSH_TYPE_TAG);
     if (jsBrush->GetBrush() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawBackground brush is nullptr");
         return nullptr;
@@ -1697,7 +1698,7 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRoundRect(env, info) : nullptr;
 }
 
@@ -1712,7 +1713,7 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRoundRect* jsRoundRect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRoundRect, &ROUND_RECT_TYPE_TAG);
 
     m_canvas->DrawRoundRect(jsRoundRect->GetRoundRect());
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -1725,7 +1726,7 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawNestedRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawNestedRoundRect(env, info) : nullptr;
 }
 
@@ -1740,10 +1741,10 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsRoundRect* jsOuter = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsOuter);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsOuter, &ROUND_RECT_TYPE_TAG);
 
     JsRoundRect* jsInner = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsInner);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsInner, &ROUND_RECT_TYPE_TAG);
 
     m_canvas->DrawNestedRoundRect(jsOuter->GetRoundRect(), jsInner->GetRoundRect());
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -1756,7 +1757,7 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
 
 napi_value JsCanvas::GetTotalMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetTotalMatrix(env, info) : nullptr;
 }
 
@@ -1776,7 +1777,7 @@ napi_value JsCanvas::OnGetTotalMatrix(napi_env env, napi_callback_info info)
 napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
@@ -1790,7 +1791,7 @@ napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPen* jsPen = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPen);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPen, &PEN_TYPE_TAG);
 
     if (jsPen->GetPen() == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachPen pen is nullptr");
@@ -1804,7 +1805,7 @@ napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
 napi_value JsCanvas::AttachBrush(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
@@ -1818,7 +1819,7 @@ napi_value JsCanvas::AttachBrush(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsBrush* jsBrush = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsBrush);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsBrush, &BRUSH_TYPE_TAG);
 
     if (jsBrush->GetBrush() == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachBrush brush is nullptr");
@@ -1832,7 +1833,7 @@ napi_value JsCanvas::AttachBrush(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DetachPen(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
@@ -1849,7 +1850,7 @@ napi_value JsCanvas::DetachPen(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DetachBrush(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
@@ -1865,7 +1866,7 @@ napi_value JsCanvas::DetachBrush(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Skew(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSkew(env, info) : nullptr;
 }
 
@@ -1890,7 +1891,7 @@ napi_value JsCanvas::OnSkew(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Rotate(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRotate(env, info) : nullptr;
 }
 
@@ -1917,7 +1918,7 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetSaveCount(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetSaveCount(env, info) : nullptr;
 }
 
@@ -1932,7 +1933,7 @@ napi_value JsCanvas::OnGetSaveCount(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetWidth(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetWidth(env, info) : nullptr;
 }
 
@@ -1947,7 +1948,7 @@ napi_value JsCanvas::OnGetWidth(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetHeight(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetHeight(env, info) : nullptr;
 }
 
@@ -1962,7 +1963,7 @@ napi_value JsCanvas::OnGetHeight(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipPath(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipPath(env, info) : nullptr;
 }
 
@@ -1977,7 +1978,7 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     Path* path = jsPath->GetPath();
     if (path == nullptr) {
@@ -2006,7 +2007,7 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRegion(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRegion(env, info) : nullptr;
 }
 
@@ -2021,7 +2022,7 @@ napi_value JsCanvas::OnClipRegion(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
 
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
@@ -2042,7 +2043,7 @@ napi_value JsCanvas::OnClipRegion(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Translate(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnTranslate(env, info) : nullptr;
 }
 
@@ -2067,7 +2068,7 @@ napi_value JsCanvas::OnTranslate(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Save(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSave(env, info) : nullptr;
 }
 
@@ -2082,7 +2083,7 @@ napi_value JsCanvas::OnSave(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::SaveLayer(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSaveLayer(env, info) : nullptr;
 }
 
@@ -2137,7 +2138,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
     Drawing::Brush* drawingBrushPtr = nullptr;
     if (valueType == napi_object) {
         JsBrush* jsBrush = nullptr;
-        napi_status status = napi_unwrap(env, argv[ARGC_ONE], reinterpret_cast<void**>(&jsBrush));
+        napi_status status = napi_unwrap_s(env, argv[ARGC_ONE], &BRUSH_TYPE_TAG, reinterpret_cast<void**>(&jsBrush));
         if (status != napi_ok || jsBrush == nullptr) {
             if (drawingRectPtr != nullptr) {
                 delete drawingRectPtr;
@@ -2160,7 +2161,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::RestoreToCount(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRestoreToCount(env, info) : nullptr;
 }
 
@@ -2183,7 +2184,7 @@ napi_value JsCanvas::OnRestoreToCount(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Restore(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRestore(env, info) : nullptr;
 }
 
@@ -2199,7 +2200,7 @@ napi_value JsCanvas::OnRestore(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRect(env, info) : nullptr;
 }
 
@@ -2242,7 +2243,7 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRoundRect(env, info) : nullptr;
 }
 
@@ -2258,7 +2259,7 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);
 
     JsRoundRect* jsRoundRect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRoundRect, &ROUND_RECT_TYPE_TAG);
     if (jsRoundRect == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRegion jsRoundRect is nullptr");
         return nullptr;
@@ -2286,7 +2287,7 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::SetMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSetMatrix(env, info) : nullptr;
 }
 
@@ -2301,7 +2302,7 @@ napi_value JsCanvas::OnSetMatrix(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSetMatrix matrix is nullptr");
@@ -2314,7 +2315,7 @@ napi_value JsCanvas::OnSetMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Scale(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnScale(env, info) : nullptr;
 }
 
@@ -2339,7 +2340,7 @@ napi_value JsCanvas::OnScale(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ConcatMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnConcatMatrix(env, info) : nullptr;
 }
 
@@ -2354,7 +2355,7 @@ napi_value JsCanvas::OnConcatMatrix(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnConcatMatrix matrix is nullptr");
@@ -2367,7 +2368,7 @@ napi_value JsCanvas::OnConcatMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::IsClipEmpty(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnIsClipEmpty(env, info) : nullptr;
 }
 
@@ -2383,7 +2384,7 @@ napi_value JsCanvas::OnIsClipEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetLocalClipBounds(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetLocalClipBounds(env, info) : nullptr;
 }
 
@@ -2431,7 +2432,7 @@ void JsCanvas::RestoreCanvas()
 napi_value JsCanvas::DrawImageNine(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageNine(env, info) : nullptr;
 }
 
@@ -2489,7 +2490,7 @@ napi_value JsCanvas::OnDrawImageNine(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawImageLattice(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageLattice(env, info) : nullptr;
 }
 
@@ -2513,7 +2514,7 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
     }
 
     JsLattice* jsLattice = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsLattice);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsLattice, &LATTICE_TYPE_TAG);
     std::shared_ptr<Lattice> lattice = jsLattice->GetLattice();
     if (lattice == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageLattice lattice is nullptr");
@@ -2548,7 +2549,7 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawImageRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageRect(env, info) : nullptr;
 }
 
@@ -2596,7 +2597,8 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
         m_canvas->DrawImageRect(*image, dstRect, Drawing::SamplingOptions());
     } else {
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_TWO, jsSamplingOptions); // (optional) arg #2: samplingOptions
+        // (optional) arg #2: samplingOptions
+        GET_UNWRAP_PARAM_S(ARGC_TWO, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImageRect get samplingOptions is nullptr");
@@ -2626,7 +2628,7 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawImageRectWithSrc(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageRectWithSrc(env, info) : nullptr;
 }
 
@@ -2650,7 +2652,7 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions());
     } else if (argc == ARGC_FOUR) { // without optional arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
@@ -2669,7 +2671,7 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         canvas.DrawImageRect(*image, srcRect, dstRect, *samplingOptions.get());
     } else if (argc == ARGC_FIVE) {  // with optional arg #3 (samplingOptions) and arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
@@ -2745,7 +2747,7 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
 
 napi_value JsCanvas::ResetMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnResetMatrix(env, info) : nullptr;
 }
 
@@ -2761,7 +2763,7 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ResetClip(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnResetClip(env, info) : nullptr;
 }
 
@@ -2827,7 +2829,7 @@ napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info
 
 napi_value JsCanvas::IsOpaque(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnIsOpaque(env, info) : nullptr;
 }
 

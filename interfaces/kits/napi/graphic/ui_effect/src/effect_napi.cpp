@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include "effect_napi.h"
+
+#include <cfloat>
+#include <cmath>
 #include "ui_effect_napi_utils.h"
 
 #include "mask_napi.h"
@@ -337,11 +340,17 @@ bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, size_t length,
 float EffectNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
     double tmp = 0.0;
-    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
-        napi_get_value_double(env, argValue, &tmp) == napi_ok) {
-            return static_cast<float>(tmp);
+    if (UIEffectNapiUtils::GetType(env, argValue) != napi_number ||
+        napi_get_value_double(env, argValue, &tmp) != napi_ok || std::isnan(tmp)) {
+        return 0.0f;
     }
-    return 0.0f;
+    if (tmp > FLT_MAX) {
+        return FLT_MAX;
+    }
+    if (tmp < -FLT_MAX) {
+        return -FLT_MAX;
+    }
+    return static_cast<float>(tmp);
 }
 
 static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)

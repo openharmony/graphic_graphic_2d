@@ -55,6 +55,25 @@ bool GetEnableEDREffectEdgeLight(std::shared_ptr<RSNGRenderFilterBase> renderFil
     return ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f);
 }
 
+bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderColorGradientEffect>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    bool isUseEDR = false;
+    auto lamba = [&isUseEDR](const Vector4f& v4) {
+        if (ROSEN_GNE(v4.x_, 1.0f) || ROSEN_GNE(v4.y_, 1.0f) || ROSEN_GNE(v4.z_, 1.0f)) {
+            isUseEDR = true;
+        }
+    };
+    ColorGradientEffectColorRenderTags colorTag{};
+    std::apply([&shader, &lamba](auto&&... args) {
+        (lamba(shader->Getter<std::decay_t<decltype(args)>>()->Get()), ...);
+        }, colorTag);
+    return isUseEDR;
+}
+
 bool GetEnableEDREffectColorGradient(std::shared_ptr<RSNGRenderFilterBase> renderFilter)
 {
     auto filter = std::static_pointer_cast<RSNGRenderColorGradientFilter>(renderFilter);
@@ -87,25 +106,6 @@ bool GetEnableEDREffectSoundWave(std::shared_ptr<RSNGRenderFilterBase> renderFil
            ROSEN_GNE(colorC.x_, 1.0f) || ROSEN_GNE(colorC.y_, 1.0f) || ROSEN_GNE(colorC.z_, 1.0f);
 }
 
-bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> renderShader)
-{
-    auto shader = std::static_pointer_cast<RSNGRenderColorGradientEffect>(renderShader);
-    if (!shader) {
-        return false;
-    }
-    bool isUseEDR = false;
-    auto lamba = [&isUseEDR](const Vector4f& v4) {
-        if (ROSEN_GNE(v4.x_, 1.0f) || ROSEN_GNE(v4.y_, 1.0f) || ROSEN_GNE(v4.z_, 1.0f)) {
-            isUseEDR = true;
-        }
-    };
-    ColorGradientEffectColorRenderTags colorTag{};
-    std::apply([&shader, &lamba](auto&&... args) {
-        (lamba(shader->Getter<std::decay_t<decltype(args)>>()->Get()), ...);
-        }, colorTag);
-    return isUseEDR;
-}
-
 bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
 {
     auto shader = std::static_pointer_cast<RSNGRenderRoundedRectFlowlight>(renderShader);
@@ -136,6 +136,12 @@ bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderSha
            ROSEN_GNE(brightness, 1.0f);
 }
 
+static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT = {
+    {RSNGEffectType::EDGE_LIGHT, GetEnableEDREffectEdgeLight},
+    {RSNGEffectType::COLOR_GRADIENT, GetEnableEDREffectColorGradient},
+    {RSNGEffectType::SOUND_WAVE, GetEnableEDREffectSoundWave},
+};
+
 bool GetEnableEDRContourDiagonalFlowLight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
 {
     auto shader = std::static_pointer_cast<RSNGRenderContourDiagonalFlowLight>(renderShader);
@@ -150,19 +156,12 @@ bool GetEnableEDRContourDiagonalFlowLight(std::shared_ptr<RSNGRenderShaderBase> 
     return ROSEN_GNE(color0.w_, diagonalEDRThreshold) ||  ROSEN_GNE(color1.w_, diagonalEDRThreshold);
 }
 
-static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT = {
-    {RSNGEffectType::EDGE_LIGHT, GetEnableEDREffectEdgeLight},
-    {RSNGEffectType::COLOR_GRADIENT, GetEnableEDREffectColorGradient},
-    {RSNGEffectType::SOUND_WAVE, GetEnableEDREffectSoundWave},
-};
-
 static std::unordered_map<RSNGEffectType, ShaderEDRChecker> edrShaderCheckerLUT = {
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, GetEnableEDRShaderColorGradient},
     {RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT, GetEnableEDRContourDiagonalFlowLight},
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, GetEnableEDRShaderRoundedRectFlowlight},
     {RSNGEffectType::AIBAR_GLOW, GetEnableEDRShaderAIBarGlow},
 };
-
 std::mutex g_dataMutex;
 }  // namespace
 
@@ -197,7 +196,7 @@ bool RSEffectLuminanceManager::GetEnableHdrEffect(std::shared_ptr<RSNGRenderFilt
     auto it = edrFilterCheckerLUT.find(renderFilter->GetType());
     return it != edrFilterCheckerLUT.end() ? it->second(renderFilter) : false;
 }
- 
+
 bool RSEffectLuminanceManager::GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase> renderShader)
 {
     if (!renderShader) {

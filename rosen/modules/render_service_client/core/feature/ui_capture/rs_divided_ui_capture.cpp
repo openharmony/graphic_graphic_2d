@@ -135,6 +135,11 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
         pixmapWidth = specifiedAreaRect_.GetWidth();
         pixmapHeight = specifiedAreaRect_.GetHeight();
     }
+    if (pixmapWidth <= 0 || pixmapHeight <= 0) {
+        RS_LOGE("RSDividedUICapture::CreatePixelMapByNode invalid size, width:%{public}d, height:%{public}d",
+            pixmapWidth, pixmapHeight);
+        return nullptr;
+    }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
@@ -153,7 +158,11 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::shared_p
         RS_LOGE("RSDividedUICapture::CopyDataToPixelMap failed, img or pixelmap is nullptr");
         return false;
     }
-    auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    auto size = static_cast<int64_t>(pixelmap->GetRowBytes()) * pixelmap->GetHeight();
+    if (size <= 0 || size > static_cast<int64_t>(UINT32_MAX)) {
+        RS_LOGE("RSDividedUICapture::CopyDataToPixelMap invalid size: %{public}" PRId64, size);
+        return false;
+    }
     auto colorType = (pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16) ?
         Drawing::ColorType::COLORTYPE_RGBA_F16 : Drawing::ColorType::COLORTYPE_RGBA_8888;
 #ifdef ROSEN_OHOS
@@ -182,6 +191,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::shared_p
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
         RS_LOGE("RSDividedUICapture::CopyDataToPixelMap readPixels failed");
+        ::munmap(data, size);
         ::close(fd);
         return false;
     }
@@ -239,8 +249,12 @@ std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
 #endif
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        return Drawing::Surface::MakeRenderTarget(
-            RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext(), false, info);
+        auto renderContext = RSRenderThread::Instance().GetRenderContext();
+        if (renderContext == nullptr) {
+            RS_LOGE("RSDividedUICapture::CreateSurface: renderContext is nullptr");
+            return nullptr;
+        }
+        return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
     }
 #endif
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());

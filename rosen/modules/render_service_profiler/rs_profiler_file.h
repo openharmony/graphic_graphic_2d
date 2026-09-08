@@ -181,7 +181,7 @@ public:
     int64_t GetClosestVsyncId(int64_t vsyncId);
     double ConvertVsyncId2Time(int64_t vsyncId);
     int64_t ConvertTime2VsyncId(double time) const;
-    void GetVsyncList(std::set<int64_t>& vsyncSet) const;
+    void GetVsyncList(std::set<int64_t>& vsyncList) const;
     void GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const;
 
 private:
@@ -193,7 +193,7 @@ private:
     void LayerWriteHeaderOfTrack(const Track& track)
     {
         uint32_t recordSize = track.size();
-        Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
+        Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
         for (auto item : track) {
             offsetVersionHandler_.WriteU64(file_, item.first);
             offsetVersionHandler_.WriteU64(file_, item.second);
@@ -209,15 +209,27 @@ private:
     template<typename Track>
     bool LayerReadHeaderOfTrack(Track& track)
     {
-        uint32_t recordSize = 0u;
-        Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
-        if (recordSize > chunkSizeMax) {
+        uint32_t count = 0u;
+        if (!Utils::FileRead(file_, &count, sizeof(count))) {
             return false;
         }
-        track.resize(recordSize);
-        for (size_t i = 0; i < recordSize; i++) {
-            offsetVersionHandler_.ReadU64(file_, track[i].first);
-            offsetVersionHandler_.ReadU64(file_, track[i].second);
+        // chunkSizeMax bounds total bytes; convert to element count to avoid huge resize
+        constexpr size_t trackElementSize = sizeof(typename Track::value_type);
+        constexpr size_t maxCount = chunkSizeMax / trackElementSize;
+        if (count > maxCount) {
+            return false;
+        }
+        // reject if declared bytes exceed remaining file size
+        const size_t declaredBytes = static_cast<size_t>(count) * trackElementSize;
+        if (declaredBytes > Utils::FileSize(file_)) {
+            return false;
+        }
+        track.resize(count);
+        for (size_t i = 0; i < count; i++) {
+            if (!offsetVersionHandler_.ReadU64(file_, track[i].first) ||
+                !offsetVersionHandler_.ReadU64(file_, track[i].second)) {
+                return false;
+            }
         }
         return true;
     }
@@ -246,7 +258,7 @@ private:
     uint64_t writeDataOff_ = 0u; // last byte of file where we can continue writing
     std::string headerFirstFrame_;
     std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes_;
-    std::mutex writeMutex_;
+    mutable std::mutex writeMutex_;
     bool wasChanged_ = false;
     std::vector<uint8_t> preparedHeader_;
     bool preparedHeaderMode_ = false;

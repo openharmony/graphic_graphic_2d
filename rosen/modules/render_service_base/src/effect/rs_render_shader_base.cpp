@@ -234,12 +234,13 @@ void RSNGRenderShaderHelper::SetCornerRadius(const std::shared_ptr<RSNGRenderSha
     }
 }
 
-std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSNGRenderShaderHelper::GetCachedBlurImage(Drawing::Canvas* canvas)
+std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> 
+    RSNGRenderShaderHelper::GetCachedBlurImage(Drawing::Canvas* canvas)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
     const auto& effectData = paintFilterCanvas->GetEffectData();
     if (effectData == nullptr) {
-        ROSEN_LOGE("HarmoniumEffect effectData null");
+        ROSEN_LOGD("HarmoniumEffect effectData null");
         return nullptr;
     }
     return effectData;
@@ -261,6 +262,37 @@ RectF RSNGRenderShaderHelper::CalcRect(const std::shared_ptr<RSNGRenderShaderBas
         current = current->nextEffect_;
     }
     return drawRect;
+}
+
+void RSNGRenderShaderHelper::SetSDFShape(const std::shared_ptr<RSNGRenderShaderBase>& shader,
+    const std::shared_ptr<RSNGRenderShapeBase>& sdfShape)
+{
+    auto current = shader;
+    while (current) {
+        switch (current->GetType()) {
+            case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: {
+                const auto& sdfEdgeLightEffect = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(current);
+                sdfEdgeLightEffect->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfShape,
+                    PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+                break;
+            }
+            case RSNGEffectType::FROSTED_GLASS_EFFECT: {
+                const auto& frostedGlassEffect = std::static_pointer_cast<RSNGRenderFrostedGlassEffect>(current);
+                frostedGlassEffect->Setter<FrostedGlassEffectShapeRenderTag>(sdfShape,
+                    PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+                break;
+            }
+            case RSNGEffectType::SPATIAL_GLASS_EFFECT: {
+                const auto& spatialGlassEffect = std::static_pointer_cast<RSNGRenderSpatialGlassEffect>(current);
+                spatialGlassEffect->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfShape,
+                    PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+                break;
+            }
+            default:
+                break;
+        }
+        current = current->nextEffect_;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

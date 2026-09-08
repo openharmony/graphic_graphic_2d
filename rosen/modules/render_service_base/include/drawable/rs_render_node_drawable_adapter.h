@@ -69,6 +69,7 @@ class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
+    int8_t maskIndex_                   = -1;
     int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
     int8_t colorPickerIndex_           = -1;

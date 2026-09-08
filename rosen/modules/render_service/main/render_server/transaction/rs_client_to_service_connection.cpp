@@ -33,7 +33,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "engine/rs_uni_render_engine.h"
@@ -1802,6 +1801,15 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
+bool RSClientToServiceConnection::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    if (hgmContext_ == nullptr) {
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
+        return false;
+    }
+    return hgmContext_->SetHgmExclusiveScreen(remotePid_, screenId.value_or(INVALID_SCREEN_ID));
+}
+
 
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)
@@ -2216,23 +2224,6 @@ ErrCode RSClientToServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainS
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetCurtainScreenUsingStatus(isCurtainScreenOn);
-    }
-    return ERR_OK;
-}
-
-ErrCode RSClientToServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.empty() || pidList.size() > PIDLIST_SIZE_MAX) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetGpuCrcDirtyEnabledPidList(pidList);
     }
     return ERR_OK;
 }

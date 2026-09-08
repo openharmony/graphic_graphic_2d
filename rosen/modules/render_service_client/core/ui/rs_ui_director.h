@@ -430,7 +430,7 @@ private:
     bool dvsyncUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
     bool skipDestroyUIContext_ = false;
-    RSUIDirectorLifecycleState currentUIDirectorState_;
+    RSUIDirectorLifecycleState currentUIDirectorState_ = RSUIDirectorLifecycleState::CREATE;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

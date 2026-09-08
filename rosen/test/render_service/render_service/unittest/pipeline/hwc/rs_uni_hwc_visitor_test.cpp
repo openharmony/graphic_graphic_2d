@@ -1431,7 +1431,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByAlpha_002, TestSize.Level2)
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, TestSize.Level1)
 {
-    std::vector<RectI> abovedBounds;
+    std::vector<std::pair<RectI, RectI>> abovedBounds;
 
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -1442,8 +1442,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-
+    // test curScreenNode_ is nullptr
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+
     // test hwcNodes is empty
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 
@@ -1455,7 +1466,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 
     // test hwcNodes is not empty, and abovedBounds is not empty
-    abovedBounds.emplace_back(RectI{0, 0, 200, 200});
+    abovedBounds.emplace_back(RectI{0, 0, 200, 200}, RectI{0, 0, 200, 200});
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 }
 
@@ -1468,9 +1479,18 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+ 
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    std::vector<RectI> abovedBounds;
+    std::vector<std::pair<RectI, RectI>> abovedBounds;
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
@@ -1508,10 +1528,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, Test
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps003, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    std::vector<RectI> aboveBounds;
+    std::vector<std::pair<RectI, RectI>> aboveBounds;
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
 
     RSSurfaceRenderNodeConfig surfaceConfig;

@@ -97,6 +97,7 @@ public:
     static bool Set(void* data, size_t size, int32_t value, size_t count);
 
     // File system routines
+    static bool IsSandboxPath(const std::string& path);
     static std::string GetRealPath(const std::string& path);
     static std::string MakePath(const std::string& directory, const std::string& file);
     static std::string NormalizePath(const std::string& path);
@@ -118,35 +119,6 @@ public:
     static void FileSeek(FILE* file, int64_t offset, int32_t origin);
     static bool FileRead(FILE* file, void* data, size_t size);
     static void FileWrite(FILE* file, const void* data, size_t size);
-
-    template<typename T>
-    static bool FileRead(FILE* file, T* data, size_t size)
-    {
-        return FileRead(file, reinterpret_cast<void*>(data), size);
-    }
-
-    template<typename T>
-    static void FileWrite(FILE* file, const T* data, size_t size)
-    {
-        FileWrite(file, reinterpret_cast<const void*>(data), size);
-    }
-
-    // deprecated
-    static bool FileRead(void* data, size_t size, size_t count, FILE* file);
-    static void FileWrite(const void* data, size_t size, size_t count, FILE* file);
-
-    template<typename T>
-    static bool FileRead(T* data, size_t size, size_t count, FILE* file)
-    {
-        return FileRead(reinterpret_cast<void*>(data), size, count, file);
-    }
-
-    template<typename T>
-    static void FileWrite(const T* data, size_t size, size_t count, FILE* file)
-    {
-        FileWrite(reinterpret_cast<const void*>(data), size, count, file);
-    }
-    // end of deprecation
 
     // NodeId/Pid routines
     static constexpr pid_t ExtractPid(uint64_t id)

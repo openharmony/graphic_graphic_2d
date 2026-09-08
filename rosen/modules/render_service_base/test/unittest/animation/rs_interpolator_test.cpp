@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -412,6 +413,203 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling002, TestSize.Level1)
     EXPECT_EQ(interpolator6, nullptr);
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling002 end";
+}
+
+/**
+ * @tc.name: RSSpringInterpolatorUnmarshallingNaNInf001
+ * @tc.desc: Verify RSSpringInterpolator Unmarshalling rejects NaN and Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSSpringInterpolatorUnmarshallingNaNInf001, TestSize.Level1)
+{
+    Parcel parcelResponseNaN;
+    parcelResponseNaN.WriteUint64(123124);
+    parcelResponseNaN.WriteFloat(NAN);
+    parcelResponseNaN.WriteFloat(1.0f);
+    parcelResponseNaN.WriteFloat(1.0f);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelResponseNaN), nullptr);
+
+    Parcel parcelResponseInf;
+    parcelResponseInf.WriteUint64(123124);
+    parcelResponseInf.WriteFloat(INFINITY);
+    parcelResponseInf.WriteFloat(1.0f);
+    parcelResponseInf.WriteFloat(1.0f);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelResponseInf), nullptr);
+
+    Parcel parcelDampingNaN;
+    parcelDampingNaN.WriteUint64(123124);
+    parcelDampingNaN.WriteFloat(1.0f);
+    parcelDampingNaN.WriteFloat(NAN);
+    parcelDampingNaN.WriteFloat(1.0f);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelDampingNaN), nullptr);
+
+    Parcel parcelDampingInf;
+    parcelDampingInf.WriteUint64(123124);
+    parcelDampingInf.WriteFloat(1.0f);
+    parcelDampingInf.WriteFloat(INFINITY);
+    parcelDampingInf.WriteFloat(1.0f);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelDampingInf), nullptr);
+
+    Parcel parcelVelocityNaN;
+    parcelVelocityNaN.WriteUint64(123124);
+    parcelVelocityNaN.WriteFloat(1.0f);
+    parcelVelocityNaN.WriteFloat(1.0f);
+    parcelVelocityNaN.WriteFloat(NAN);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelVelocityNaN), nullptr);
+
+    Parcel parcelVelocityInf;
+    parcelVelocityInf.WriteUint64(123124);
+    parcelVelocityInf.WriteFloat(1.0f);
+    parcelVelocityInf.WriteFloat(1.0f);
+    parcelVelocityInf.WriteFloat(INFINITY);
+    EXPECT_EQ(RSSpringInterpolator::Unmarshalling(parcelVelocityInf), nullptr);
+}
+
+/**
+ * @tc.name: RSCubicBezierInterpolatorUnmarshallingNaNInf001
+ * @tc.desc: Verify RSCubicBezierInterpolator Unmarshalling rejects NaN/Inf for x1/y1
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCubicBezierInterpolatorUnmarshallingNaNInf001, TestSize.Level1)
+{
+    Parcel parcelX1NaN;
+    parcelX1NaN.WriteUint64(123123);
+    parcelX1NaN.WriteFloat(NAN);
+    parcelX1NaN.WriteFloat(0.0f);
+    parcelX1NaN.WriteFloat(1.0f);
+    parcelX1NaN.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelX1NaN), nullptr);
+
+    Parcel parcelX1Inf;
+    parcelX1Inf.WriteUint64(123123);
+    parcelX1Inf.WriteFloat(INFINITY);
+    parcelX1Inf.WriteFloat(0.0f);
+    parcelX1Inf.WriteFloat(1.0f);
+    parcelX1Inf.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelX1Inf), nullptr);
+
+    Parcel parcelY1NaN;
+    parcelY1NaN.WriteUint64(123123);
+    parcelY1NaN.WriteFloat(0.0f);
+    parcelY1NaN.WriteFloat(NAN);
+    parcelY1NaN.WriteFloat(1.0f);
+    parcelY1NaN.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelY1NaN), nullptr);
+
+    Parcel parcelY1Inf;
+    parcelY1Inf.WriteUint64(123123);
+    parcelY1Inf.WriteFloat(0.0f);
+    parcelY1Inf.WriteFloat(INFINITY);
+    parcelY1Inf.WriteFloat(1.0f);
+    parcelY1Inf.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelY1Inf), nullptr);
+}
+
+/**
+ * @tc.name: RSCubicBezierInterpolatorUnmarshallingNaNInf002
+ * @tc.desc: Verify RSCubicBezierInterpolator Unmarshalling rejects NaN/Inf for x2/y2
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCubicBezierInterpolatorUnmarshallingNaNInf002, TestSize.Level1)
+{
+    Parcel parcelX2NaN;
+    parcelX2NaN.WriteUint64(123123);
+    parcelX2NaN.WriteFloat(0.0f);
+    parcelX2NaN.WriteFloat(0.0f);
+    parcelX2NaN.WriteFloat(NAN);
+    parcelX2NaN.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelX2NaN), nullptr);
+
+    Parcel parcelX2Inf;
+    parcelX2Inf.WriteUint64(123123);
+    parcelX2Inf.WriteFloat(0.0f);
+    parcelX2Inf.WriteFloat(0.0f);
+    parcelX2Inf.WriteFloat(INFINITY);
+    parcelX2Inf.WriteFloat(1.0f);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelX2Inf), nullptr);
+
+    Parcel parcelY2NaN;
+    parcelY2NaN.WriteUint64(123123);
+    parcelY2NaN.WriteFloat(0.0f);
+    parcelY2NaN.WriteFloat(0.0f);
+    parcelY2NaN.WriteFloat(1.0f);
+    parcelY2NaN.WriteFloat(NAN);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelY2NaN), nullptr);
+
+    Parcel parcelY2Inf;
+    parcelY2Inf.WriteUint64(123123);
+    parcelY2Inf.WriteFloat(0.0f);
+    parcelY2Inf.WriteFloat(0.0f);
+    parcelY2Inf.WriteFloat(1.0f);
+    parcelY2Inf.WriteFloat(INFINITY);
+    EXPECT_EQ(RSCubicBezierInterpolator::Unmarshalling(parcelY2Inf), nullptr);
+}
+
+/**
+ * @tc.name: RSSpringInterpolatorConstructorNaNInf001
+ * @tc.desc: Verify RSSpringInterpolator constructor NaN/Inf fallback to defaults
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSSpringInterpolatorConstructorNaNInf001, TestSize.Level1)
+{
+    auto interp1 = RSSpringInterpolator(NAN, 1.0f, 0.0f);
+    EXPECT_TRUE(interp1.estimatedDuration_ > 0.0f);
+
+    auto interp2 = RSSpringInterpolator(INFINITY, 1.0f, 0.0f);
+    EXPECT_TRUE(interp2.estimatedDuration_ > 0.0f);
+
+    auto interp3 = RSSpringInterpolator(1.0f, NAN, 0.0f);
+    EXPECT_TRUE(interp3.estimatedDuration_ > 0.0f);
+
+    auto interp4 = RSSpringInterpolator(1.0f, INFINITY, 0.0f);
+    EXPECT_TRUE(interp4.estimatedDuration_ > 0.0f);
+
+    auto interp5 = RSSpringInterpolator(1.0f, 1.0f, NAN);
+    EXPECT_TRUE(interp5.estimatedDuration_ > 0.0f);
+
+    auto interp6 = RSSpringInterpolator(1.0f, 1.0f, INFINITY);
+    EXPECT_TRUE(interp6.estimatedDuration_ > 0.0f);
+
+    auto interp7 = RSSpringInterpolator(1.0f, 1.0f, 0.0f);
+    EXPECT_TRUE(interp7.estimatedDuration_ > 0.0f);
+}
+
+/**
+ * @tc.name: RSCubicBezierInterpolatorConstructorNaNInf001
+ * @tc.desc: Verify RSCubicBezierInterpolator constructor NaN/Inf fallback to defaults
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCubicBezierInterpolatorConstructorNaNInf001, TestSize.Level1)
+{
+    auto interp1 = RSCubicBezierInterpolator(NAN, 0.0f, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(interp1.controlX1_, 0.42f);
+
+    auto interp2 = RSCubicBezierInterpolator(INFINITY, 0.0f, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(interp2.controlX1_, 0.42f);
+
+    auto interp3 = RSCubicBezierInterpolator(0.0f, NAN, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(interp3.controlY1_, 0.0f);
+
+    auto interp4 = RSCubicBezierInterpolator(0.0f, INFINITY, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(interp4.controlY1_, 0.0f);
+
+    auto interp5 = RSCubicBezierInterpolator(0.0f, 0.0f, NAN, 1.0f);
+    EXPECT_FLOAT_EQ(interp5.controlX2_, 0.58f);
+
+    auto interp6 = RSCubicBezierInterpolator(0.0f, 0.0f, INFINITY, 1.0f);
+    EXPECT_FLOAT_EQ(interp6.controlX2_, 0.58f);
+
+    auto interp7 = RSCubicBezierInterpolator(0.0f, 0.0f, 1.0f, NAN);
+    EXPECT_FLOAT_EQ(interp7.controlY2_, 1.0f);
+
+    auto interp8 = RSCubicBezierInterpolator(0.0f, 0.0f, 1.0f, INFINITY);
+    EXPECT_FLOAT_EQ(interp8.controlY2_, 1.0f);
+
+    auto interp9 = RSCubicBezierInterpolator(0.0f, 0.0f, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(interp9.controlX1_, 0.0f);
+    EXPECT_FLOAT_EQ(interp9.controlY1_, 0.0f);
+    EXPECT_FLOAT_EQ(interp9.controlX2_, 1.0f);
+    EXPECT_FLOAT_EQ(interp9.controlY2_, 1.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

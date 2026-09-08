@@ -15,6 +15,7 @@
 
 #include "effect_image_chain.h"
 
+#include "common/rs_common_def.h"
 #include "effect_utils.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_mask_transition_shader_filter.h"
@@ -137,6 +138,10 @@ void EffectImageChain::UpdateImage()
 
 void EffectImageChain::ScaleCanvas(float scaleX, float scaleY)
 {
+    if (canvas_ == nullptr) {
+        EFFECT_COMM_LOG_E("EffectImageChain::ScaleCanvas: canvas is nullptr");
+        return;
+    }
     canvas_->Scale(scaleX, scaleY);
     canvasRec_.SetRight(canvasRec_.GetRight() * scaleX);
     canvasRec_.SetBottom(canvasRec_.GetBottom() * scaleY);
@@ -172,6 +177,10 @@ DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& s
 
 void EffectImageChain::UpdateCanvas()
 {
+    if (ROSEN_LE(canvasRec_.GetRight(), 0.0f) || ROSEN_LE(canvasRec_.GetBottom(), 0.0f)) {
+        EFFECT_COMM_LOG_E("EffectImageChain::UpdateCanvas: canvasRec is invalid");
+        return;
+    }
     if (!ROSEN_EQ(canvasRec_.GetRight(), imageRec_.GetRight()) ||
         !ROSEN_EQ(canvasRec_.GetBottom(), imageRec_.GetBottom())) {
         float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
@@ -209,10 +218,17 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
  
     image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    if (image_ == nullptr) {
+        EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: extract drawing image failed.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
 
     if (RSSystemProperties::IsUseVulkan()) {
         gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        gpuContext_->SetResourceCacheLimits(0, 0);
+        if (gpuContext_ != nullptr) {
+            gpuContext_->SetResourceCacheLimits(0, 0);
+        }
     }
     if (gpuContext_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: create gpuContext failed.");
@@ -502,6 +518,7 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
         return DrawingError::ERR_NOT_PREPARED;
     }
 
+    //CPU not supported
     if (forceCPU_) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
@@ -718,11 +735,6 @@ DrawingError EffectImageChain::Draw()
             ret = DrawingError::ERR_PIXEL_READ;
             break;
         }
-
-        if (gpuContext_) {
-            gpuContext_->FlushAndSubmit(true);
-            gpuContext_->VmaDefragment();
-        }
     } while (false);
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -749,8 +761,14 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         UpdateCanvas();
         DrawOnFilter();
 
-        VkSemaphore semaphore;
+        VkSemaphore semaphore = VK_NULL_HANDLE;
         NativeBufferUtils::CreateVkSemaphore(semaphore);
+        if (semaphore == VK_NULL_HANDLE) {
+            EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: CreateVkSemaphore failed");
+            fenceId_ = -1;
+            ret = DrawingError::ERR_SURFACE;
+            break;
+        }
         GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
         auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
         auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
@@ -782,6 +800,7 @@ DrawingError EffectImageChain::DrawNativeBuffer()
 
 int32_t EffectImageChain::GetfenceId()
 {
+    std::lock_guard<std::mutex> lock(apiMutex_);
     return fenceId_;
 }
 
@@ -819,6 +838,10 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
 
 #if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
     image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    if (image_ == nullptr) {
+        EFFECT_COMM_LOG_E("EffectImageChain::InitWithoutCanvas: extract drawing image failed.");
+        return DrawingError::ERR_IMAGE_NULL;
+    }
 #if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
     // If image_ release earlier, grContext may release and cause null pointer error
     // Store image_ pointer to maintain correct image life cycle when use DDGR
@@ -847,7 +870,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
     }
     dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
 
-    EFFECT_LOG_I("Init w %{public}d, h %{public}d, f %{public}d, alpha %{public}d, useDMA 1",
+    EFFECT_LOG_D("Init w %{public}d, h %{public}d, f %{public}d, alpha %{public}d, useDMA 1",
         opts.size.width, opts.size.height, srcPixelMap_->GetPixelFormat(), srcPixelMap_->GetAlphaType());
     return DrawingError::ERR_OK;
 }
@@ -921,6 +944,10 @@ void EffectImageChain::SetForceReleaseGpuContext(bool releaseGpuContext)
 static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
     const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
 {
+    if (params == nullptr) {
+        EFFECT_COMM_LOG_E("GenerateExtShaderWaterGlass: params is nullptr");
+        return nullptr;
+    }
     auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
         static_cast<uint32_t>(Drawing::GEFilterType::WATER_GLASS), sizeof(Drawing::GEWaterGlassDataParams),
         static_cast<void*>(params.get()));
@@ -935,6 +962,10 @@ static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
 static std::shared_ptr<GEShaderFilter> GenerateExtShaderReededGlass(
     const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
 {
+    if (params == nullptr) {
+        EFFECT_COMM_LOG_E("GenerateExtShaderReededGlass: params is nullptr");
+        return nullptr;
+    }
     auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
         static_cast<uint32_t>(Drawing::GEFilterType::REEDED_GLASS), sizeof(Drawing::GEReededGlassDataParams),
         static_cast<void*>(params.get()));
@@ -1036,11 +1067,11 @@ DrawingError EffectImageChain::ApplyScale(
     if (ROSEN_EQ(scaleX, 1.0f) || ROSEN_EQ(scaleY, 1.0f)) {
         return DrawingError::ERR_OK;
     }
+    std::lock_guard<std::mutex> lock(apiMutex_);
     if (!prepared_) {
         EFFECT_LOG_E("EffectImageChain::ApplyScale: Not ready, need prepare first.");
         return DrawingError::ERR_NOT_PREPARED;
     }
-    std::lock_guard<std::mutex> lock(apiMutex_);
     if (forceCPU_) {
         EFFECT_LOG_E("EffectImageChain::ApplyScale: Cannot use CPU to scale currently.");
         return DrawingError::ERR_ILLEGAL_INPUT;

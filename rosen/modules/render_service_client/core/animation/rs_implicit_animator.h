@@ -24,6 +24,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_macros.h"
 
+#ifndef gettid
 #ifdef _WIN32
 #include <windows.h>
 #define gettid GetCurrentThreadId
@@ -37,6 +38,7 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
 #endif
 
 namespace OHOS {

@@ -66,6 +66,7 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent);
     void NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
+    bool SetHgmExclusiveScreen(pid_t pid, ScreenId screenId);
     ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);
     ErrCode NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
@@ -91,8 +92,6 @@ private:
 
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
-
-    void InitHfbcConfig();
 
     const std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_;
     const sptr<VSyncDistributor> appVSyncDistributor_;

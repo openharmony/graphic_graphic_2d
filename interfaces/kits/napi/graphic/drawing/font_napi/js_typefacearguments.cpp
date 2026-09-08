@@ -18,6 +18,7 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 
 namespace OHOS::Rosen {
@@ -72,7 +73,8 @@ napi_value JsTypeFaceArguments::Constructor(napi_env env, napi_callback_info inf
     auto typeFaceArguments = std::make_shared<TypeFaceArgumentsHelper>();
     JsTypeFaceArguments* jsTypeFaceArguments = new JsTypeFaceArguments(typeFaceArguments);
 
-    status = napi_wrap(env, jsThis, jsTypeFaceArguments, JsTypeFaceArguments::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsTypeFaceArguments, JsTypeFaceArguments::Destructor,
+        nullptr, &TYPEFACE_ARGUMENTS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsTypeFaceArguments;
         ROSEN_LOGE("faile to wrap native instance");
@@ -129,7 +131,8 @@ napi_value JsTypeFaceArguments::AddVariation(napi_env env, napi_callback_info in
     double value = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, value);
 
-    JsTypeFaceArguments* jsTypeFaceArguments = CheckParamsAndGetThis<JsTypeFaceArguments>(env, info);
+    JsTypeFaceArguments* jsTypeFaceArguments = CheckParamsAndGetThisWithTag<JsTypeFaceArguments>(
+        env, info, &TYPEFACE_ARGUMENTS_TYPE_TAG);
     if (jsTypeFaceArguments == nullptr) {
         ROSEN_LOGE("JsTypeFaceArguments::AddVariation this is nullptr");
         return nullptr;

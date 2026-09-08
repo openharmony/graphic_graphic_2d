@@ -39,8 +39,24 @@ public:
         const std::shared_ptr<Derived>& other, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) = 0;
     virtual void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) = 0;
     virtual void Detach() = 0;
+    virtual std::shared_ptr<Derived> CopyAsSingleEffect() = 0;
 
-    // Should only be called on not-attached effect.
+    /**
+    * @brief Append a single effect to the end of the current effect chain, enabling all
+    * effects in the chain to take effect simultaneously.
+    *
+    * If an effect has been attached, create a new effect via CopyAsSingleEffect(),
+    * and then call Append() on the newly created effect.
+    * eg. auto newEffect = oriEffect->CopyAsSingleEffect();
+    * newEffect->Append();
+    *
+    * @param effect The effect to append. Must not already have its own subsequent chain.
+    * @note Should only be called on not-attached effect.
+    * @see RSNGEffectTemplate::CopyAsSingleEffect for creating a new effect.
+    * @return true if the append succeeded, or if the input effect is nullptr (treated as success);
+    * false if the append failed (the effect already has a chain, the chain length
+    * exceeds the limit, or the effect is identical to the current tail).
+    */
     bool Append(const std::shared_ptr<Derived>& effect)
     {
         if (!effect) {
@@ -125,6 +141,27 @@ public:
         return Type;
     }
 
+    /**
+     * @brief Clone a new effect, with the new effect having the same parameters as the original.
+     *
+     * This function is used for solving the problem of calling the Append function.
+     * In this case, you need to call this function to clone a new effect,
+     * the parameters of which are the same as those of the original effect.
+     *
+     * @note The new effect does not have nextEffect_ and is not attached to the node.
+     * @see RSNGEffectBase::Append for cascading multiple effects.
+     * @return Shared pointer to the new effect.
+     */
+    std::shared_ptr<Base> CopyAsSingleEffect() override
+    {
+        auto res = std::make_shared<RSNGEffectTemplate>();
+        std::apply([&res](const auto&... args) {
+                (res->template Setter<std::decay_t<decltype(args)>>(args.value_->Get()), ...);
+            },
+            properties_);
+        return res; // Implicit upcast from std::shared_ptr<RSNGEffectTemplate> to std::shared_ptr<Base>.
+    }
+
     std::shared_ptr<typename Base::RenderEffectBase> GetRenderEffect() override
     {
         // 1. fill render filter's properties
@@ -147,6 +184,10 @@ public:
         }
 
         auto otherDown = std::static_pointer_cast<RSNGEffectTemplate>(other);
+        // effect chain structure changed, eg. a => a->b
+        if (Base::GetEffectCount() != otherDown->GetEffectCount()) {
+            return false;
+        }
         auto& otherProps = otherDown->GetProperties();
         std::apply([&otherProps](const auto&... args) {
                 (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);

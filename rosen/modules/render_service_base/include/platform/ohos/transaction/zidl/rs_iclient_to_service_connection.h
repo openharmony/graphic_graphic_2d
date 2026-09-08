@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_ICLIENT_TO_SERVICE_CONNECTION_H
 
 #include <iremote_broker.h>
+#include <optional>
 #include <string>
 #include "transaction/rs_render_service_client_info.h"
 #ifndef ENABLE_RS_PROXY
@@ -315,6 +316,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) = 0;
+
     virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
 
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
@@ -415,8 +418,6 @@ public:
     virtual RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
-
-    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) = 0;
 
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 

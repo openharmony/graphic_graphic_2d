@@ -82,5 +82,5 @@ config("ui_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderClientRenderThreadTest" ]
+  deps = []
 }

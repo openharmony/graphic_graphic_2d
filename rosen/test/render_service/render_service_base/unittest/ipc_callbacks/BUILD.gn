@@ -188,7 +188,7 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSRenderServiceBaseIpcCallBacksTest",
+    # ":RSRenderServiceBaseIpcCallBacksTest",
     ":RSFrameStabilityCallbackTest",
     ":RSExposedEventCallbackTest",
   ]

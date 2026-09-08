@@ -366,6 +366,15 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     });
 }
 
+bool HgmContext::SetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
+{
+    bool result = false;
+    HgmTaskHandleThread::Instance().ScheduleTask([frameRateManager = frameRateManager_, pid, screenId, &result] {
+        result = frameRateManager->HandleSetHgmExclusiveScreen(pid, screenId);
+    }).wait();
+    return result;
+}
+
 ErrCode HgmContext::NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus)
 {
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid, lightFactorStatus] {

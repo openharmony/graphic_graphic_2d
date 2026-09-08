@@ -123,5 +123,162 @@ HWTEST_F(RSRenderNodeShadowDrawableTest, DrawWithNullDrawCommandTest, TestSize.L
     EXPECT_EQ(validDrawable->drawCount_, 1);
 }
 
+/**
+ * @tc.name: DrawWithMaskAndShadowTest
+ * @tc.desc: Verify Draw only draws MASK and SHADOW, skips other slots
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawWithMaskAndShadowTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    auto saveAll = std::make_shared<TestRSDrawable>();
+    auto mask = std::make_shared<TestRSDrawable>();
+    auto shadow = std::make_shared<TestRSDrawable>();
+    nodeDrawable->drawCmdList_ = {saveAll, mask, shadow};
+    nodeDrawable->drawCmdIndex_.maskIndex_ = 1;
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 2;
+    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    nodeDrawable->renderParams_->SetShouldPaint(true);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    rsRenderNodeShadowDrawable->Draw(pfCanvas);
+
+    EXPECT_EQ(saveAll->drawCount_, 0);
+    EXPECT_EQ(mask->drawCount_, 1);
+    EXPECT_EQ(shadow->drawCount_, 1);
+}
+
+/**
+ * @tc.name: DrawWithoutMaskTest
+ * @tc.desc: Verify Draw only draws SHADOW when maskIndex is -1
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawWithoutMaskTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    auto saveAll = std::make_shared<TestRSDrawable>();
+    auto shadow = std::make_shared<TestRSDrawable>();
+    nodeDrawable->drawCmdList_ = {saveAll, shadow};
+    nodeDrawable->drawCmdIndex_.maskIndex_ = -1;
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 1;
+    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    nodeDrawable->renderParams_->SetShouldPaint(true);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    rsRenderNodeShadowDrawable->Draw(pfCanvas);
+
+    EXPECT_EQ(saveAll->drawCount_, 0);
+    EXPECT_EQ(shadow->drawCount_, 1);
+}
+
+/**
+ * @tc.name: DrawSkipsNonEssentialSlotsTest
+ * @tc.desc: Verify Draw skips SAVE_ALL and TRANSITION, only draws MASK and SHADOW
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawSkipsNonEssentialSlotsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    auto saveAll = std::make_shared<TestRSDrawable>();
+    auto mask = std::make_shared<TestRSDrawable>();
+    auto transition = std::make_shared<TestRSDrawable>();
+    auto shadow = std::make_shared<TestRSDrawable>();
+    nodeDrawable->drawCmdList_ = {saveAll, mask, transition, shadow};
+    nodeDrawable->drawCmdIndex_.maskIndex_ = 1;
+    nodeDrawable->drawCmdIndex_.transitionIndex_ = 2;
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 3;
+    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    nodeDrawable->renderParams_->SetShouldPaint(true);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    rsRenderNodeShadowDrawable->Draw(pfCanvas);
+
+    EXPECT_EQ(saveAll->drawCount_, 0);
+    EXPECT_EQ(mask->drawCount_, 1);
+    EXPECT_EQ(transition->drawCount_, 0);
+    EXPECT_EQ(shadow->drawCount_, 1);
+}
+
+/**
+ * @tc.name: DrawShadowIndexOutOfRangeTest
+ * @tc.desc: Verify Draw returns early when shadowIndex is out of range
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawShadowIndexOutOfRangeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 5;
+    nodeDrawable->drawCmdList_.resize(1);
+    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    nodeDrawable->renderParams_->SetShouldPaint(true);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    rsRenderNodeShadowDrawable->Draw(pfCanvas);
+
+    EXPECT_TRUE(nodeDrawable->GetRenderParams()->GetShouldPaint());
+}
+
+/**
+ * @tc.name: DrawParamsNullTest
+ * @tc.desc: Verify Draw returns early when params is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawParamsNullTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    auto shadow = std::make_shared<TestRSDrawable>();
+    nodeDrawable->drawCmdList_ = {shadow};
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 0;
+    nodeDrawable->renderParams_ = nullptr;
+
+    Drawing::Canvas canvas;
+    rsRenderNodeShadowDrawable->Draw(canvas);
+
+    EXPECT_EQ(shadow->drawCount_, 0);
+}
+
+/**
+ * @tc.name: DrawShouldPaintFalseTest
+ * @tc.desc: Verify Draw returns early when ShouldPaint is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawShouldPaintFalseTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+
+    auto shadow = std::make_shared<TestRSDrawable>();
+    nodeDrawable->drawCmdList_ = {shadow};
+    nodeDrawable->drawCmdIndex_.shadowIndex_ = 0;
+    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    nodeDrawable->renderParams_->SetShouldPaint(false);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    rsRenderNodeShadowDrawable->Draw(pfCanvas);
+
+    EXPECT_EQ(shadow->drawCount_, 0);
+}
+
 } // namespace Rosen
 } // namespace OHOS

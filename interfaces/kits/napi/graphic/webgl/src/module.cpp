@@ -42,6 +42,23 @@ using namespace std;
 
 namespace OHOS {
 namespace Rosen {
+template<class T>
+static T* GetOrCreateWebGLContext(napi_env env, napi_value exports, bool webGL2, const string& contextId)
+{
+    auto& objectManager = ObjectManager::GetInstance();
+    T* context = static_cast<T*>(objectManager.GetWebGLContext(webGL2, contextId));
+    if (context != nullptr) {
+        return context;
+    }
+
+    auto newContext = make_unique<T>(env, exports);
+    if (!objectManager.AddWebGLObject(webGL2, contextId, newContext.get())) {
+        LOGE("WebGL context count exceeds the supported limit");
+        return nullptr;
+    }
+    return newContext.release();
+}
+
 static napi_value ExportWebGlObj(napi_env env, napi_value exports)
 {
     std::vector<unique_ptr<NExporter>> products;
@@ -85,26 +102,18 @@ static napi_value Export(napi_env env, napi_value exports)
     string webgl1Str = vec[0].substr(webglItem, 5); // length of webgl
     if (webgl2Str == "webgl2") {
         WebGL2RenderingContext *webGl2RenderingContext =
-            static_cast<WebGL2RenderingContext *>(ObjectManager::GetInstance().GetWebGLContext(true, idStr));
+            GetOrCreateWebGLContext<WebGL2RenderingContext>(env, exports, true, idStr);
         if (webGl2RenderingContext == nullptr) {
-            webGl2RenderingContext = new (std::nothrow) WebGL2RenderingContext(env, exports);
-            if (webGl2RenderingContext == nullptr) {
-                return nullptr;
-            }
-            ObjectManager::GetInstance().AddWebGLObject(true, idStr, webGl2RenderingContext);
+            return nullptr;
         }
         if (!webGl2RenderingContext->SetWebGLContextAttributes(vec) || !webGl2RenderingContext->Export(env, exports)) {
             return nullptr;
         }
     } else if (webgl1Str == "webgl") {
         WebGLRenderingContext *webGlRenderingContext =
-            static_cast<WebGLRenderingContext *>(ObjectManager::GetInstance().GetWebGLContext(false, idStr));
+            GetOrCreateWebGLContext<WebGLRenderingContext>(env, exports, false, idStr);
         if (webGlRenderingContext == nullptr) {
-            webGlRenderingContext = new (std::nothrow) WebGLRenderingContext(env, exports);
-            if (webGlRenderingContext == nullptr) {
-                return nullptr;
-            }
-            ObjectManager::GetInstance().AddWebGLObject(false, idStr, webGlRenderingContext);
+            return nullptr;
         }
         if (!webGlRenderingContext->SetWebGLContextAttributes(vec) || !webGlRenderingContext->Export(env, exports)) {
             return nullptr;

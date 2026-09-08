@@ -80,6 +80,10 @@ struct HrpServiceFileInfo : public HrpServiceBaseFileInfo {
 
 static inline bool HrpServiceValidDirOrFileName(const std::string& name)
 {
+    if (name.find('\0') != std::string::npos) {
+        return false;
+    }
+
     return (name.length() <= HRP_SERVICE_FILE_NAME_MAX_SIZE &&
             name.find("\\") == std::string::npos && name.find("/") == std::string::npos &&
             name != "." && name != "..");

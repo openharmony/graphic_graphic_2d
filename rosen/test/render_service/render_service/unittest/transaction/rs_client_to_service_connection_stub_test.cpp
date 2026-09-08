@@ -2844,110 +2844,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenCorrectionTest004, TestSi
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteInt32(-1);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest003
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest004
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest005
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid and mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: SetOptimizeCanvasDirtyPidListTest001
  * @tc.desc: Test SetOptimizeCanvasDirtyPidList when data is invalid
  * @tc.type: FUNC
@@ -4258,6 +4154,39 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRefreshRateMode, TestSize.Level
 }
 
 /**
+ * @tc.name: SetHgmExclusiveScreen
+ * @tc.desc: Test SetHgmExclusiveScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHgmExclusiveScreen, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    ScreenId screenId = 0;
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+
+    screenId = INVALID_SCREEN_ID;
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
  * @tc.name: SyncFrameRateRange001
  * @tc.desc: Test SyncFrameRateRange001
  * @tc.type: FUNC
@@ -5166,9 +5095,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->SetVmaCacheStatus(false);
     connection->SetCurtainScreenUsingStatus(false);
     connection->renderProcessManagerAgent_ = nullptr;
-    // test SetGpuCrcDirtyEnabledPidList and
-    std::vector<int32_t> pidList = {};
-    connection->SetGpuCrcDirtyEnabledPidList(pidList);
     // test RegisterUIExtensionCallback
     connection->RegisterUIExtensionCallback(0, nullptr);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
@@ -5249,6 +5175,59 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     // test GetPidGpuMemoryInMB
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
+}
+
+/**
+ * @tc.name: testnullptrCase009
+ * @tc.desc: Test testnullptrCase
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase009, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
+    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+
+    connection->renderProcessManagerAgent_ = nullptr;
+    // test NotifyLightFactorStatus
+    connection->NotifyLightFactorStatus(0);
+    // test NotifyAppStrategyConfigChangeEvent
+    const std::string pkgName = "";
+    const std::vector<std::pair<std::string, std::string>> newConfig = {};
+    connection->NotifyAppStrategyConfigChangeEvent(pkgName, 0, newConfig);
+    // test NotifyRefreshRateEvent
+    EventInfo eventInfo;
+    connection->NotifyRefreshRateEvent(eventInfo);
+    // tese SetWindowExpectedRefreshRate
+    const std::unordered_map<uint64_t, EventInfo> eventInfos = {};
+    connection->SetWindowExpectedRefreshRate(eventInfos);
+    // test SetWindowExpectedRefreshRate
+    std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
+    connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
+    // test NotifySoftVsyncRateDiscountEvent
+    connection->NotifySoftVsyncRateDiscountEvent(0, pkgName, 0);
+    // test NotifyTouchEvent
+    connection->vsyncManagerAgent_ = nullptr;
+    connection->NotifyTouchEvent(0, 0, 0);
+    connection->vsyncManagerAgent_ = vsyncManagerAgent;
+    // test NotifyDynamicModeEvent
+    connection->NotifyDynamicModeEvent(false);
+    // test NotifyHgmConfigEvent
+    connection->NotifyHgmConfigEvent(pkgName, false);
+    // test NotifyXComponentExpectedFrameRate
+    connection->NotifyXComponentExpectedFrameRate(pkgName, 0);
+    // test SetHgmExclusiveScreen
+    connection->SetHgmExclusiveScreen(std::nullopt);
+    connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    auto hgmContext = connection->hgmContext_;
+    connection->hgmContext_ = nullptr;
+    EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
+    connection->hgmContext_ = hgmContext;
 }
 
 /**
@@ -6209,6 +6188,95 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_Success, TestSiz
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_EmptyData
+ * @tc.desc: Test SetUIMode3D stub when data is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_EmptyData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetUIMode3D_Mode2D
+ * @tc.desc: Test SetUIMode3D stub with MODE_2D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_Mode2D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_2D));
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_ModeShutter3D
+ * @tc.desc: Test SetUIMode3D stub with MODE_SHUTTER_3D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_ModeShutter3D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_SHUTTER_3D));
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_ModeGlassesFree3D
+ * @tc.desc: Test SetUIMode3D stub with MODE_GLASSESFREE_3D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_ModeGlassesFree3D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_GLASSESFREE_3D));
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_InvalidMode
+ * @tc.desc: Test SetUIMode3D stub with invalid mode value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(999);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen
 #endif

@@ -137,6 +137,38 @@ HWTEST_F(RSSpringAnimationTest, RSSpringSetZeroThresholdTest_003, TestSize.Level
 }
 
 /**
+ * @tc.name: RSSpringSetZeroThresholdTest_004
+ * @tc.desc: Verify SetZeroThreshold rejects NaN value
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSSpringAnimationTest, RSSpringSetZeroThresholdTest_004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSSpringAnimation>(nullptr, property, byValue);
+    animation->SetZeroThreshold(NAN);
+    EXPECT_EQ(animation->zeroThreshold_, 0.0f);
+}
+
+/**
+ * @tc.name: RSSpringSetZeroThresholdTest_005
+ * @tc.desc: Verify SetZeroThreshold rejects Inf value
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSSpringAnimationTest, RSSpringSetZeroThresholdTest_005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSSpringAnimation>(nullptr, property, byValue);
+    animation->SetZeroThreshold(INFINITY);
+    EXPECT_EQ(animation->zeroThreshold_, 0.0f);
+}
+
+/**
  * @tc.name: RSInterpolatingSpringSetZeroThresholdTest_001
  * @tc.desc: Verify RSInterpolatingSpringAnimation SetZeroThreshold with positive value
  * @tc.type: FUNC
@@ -191,6 +223,38 @@ HWTEST_F(RSSpringAnimationTest, RSInterpolatingSpringSetZeroThresholdTest_003, T
     animation->SetZeroThreshold(zeroThreshold);
     EXPECT_EQ(animation->zeroThreshold_, zeroThreshold);
     GTEST_LOG_(INFO) << "RSSpringAnimationTest RSInterpolatingSpringSetZeroThresholdTest_003 end";
+}
+
+/**
+ * @tc.name: RSInterpolatingSpringSetZeroThresholdTest_004
+ * @tc.desc: Verify RSInterpolatingSpringAnimation SetZeroThreshold rejects NaN value
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSSpringAnimationTest, RSInterpolatingSpringSetZeroThresholdTest_004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->SetZeroThreshold(NAN);
+    EXPECT_EQ(animation->zeroThreshold_, 0.0f);
+}
+
+/**
+ * @tc.name: RSInterpolatingSpringSetZeroThresholdTest_005
+ * @tc.desc: Verify RSInterpolatingSpringAnimation SetZeroThreshold rejects Inf value
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSSpringAnimationTest, RSInterpolatingSpringSetZeroThresholdTest_005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->SetZeroThreshold(INFINITY);
+    EXPECT_EQ(animation->zeroThreshold_, 0.0f);
 }
 
 /**

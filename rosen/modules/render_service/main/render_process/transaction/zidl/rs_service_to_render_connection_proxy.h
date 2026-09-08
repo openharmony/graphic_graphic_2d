@@ -143,7 +143,6 @@ private:
     static inline BrokerDelegator<RSServiceToRenderConnectionProxy> delegator_;
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
     void WriteAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 };
 } // namespace Rosen
 } // namespace OHOS

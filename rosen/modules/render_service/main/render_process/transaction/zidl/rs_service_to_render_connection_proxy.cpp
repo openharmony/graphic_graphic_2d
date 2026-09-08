@@ -935,6 +935,10 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetVmaCacheStatus Remote is nullptr");
+        return;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
@@ -1613,6 +1617,10 @@ int32_t RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCal
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback Remote is nullptr");
+        return RS_CONNECTION_ERROR;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Send request err.");
@@ -1910,29 +1918,6 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenRefresh(ScreenId id)
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
     }
     return err;
-}
-
-ErrCode RSServiceToRenderConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInterfaceToken failed.");
-        return ERR_INVALID_VALUE;
-    }
-    if (!data.WriteInt32Vector(pidList)) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInt32Vector err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: SendRequest failed, err is %{public}d.", err);
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
 }
 
 void RSServiceToRenderConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)

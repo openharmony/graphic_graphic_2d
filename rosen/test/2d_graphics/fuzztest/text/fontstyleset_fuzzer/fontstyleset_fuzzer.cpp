@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <securec.h>
 
 #include "get_object.h"
@@ -46,9 +47,11 @@ bool FontStyleSetFuzzTest001(const uint8_t* data, size_t size)
         familyName[i] =  GetObject<char>();
     }
     familyName[count - 1] = '\0';
-    FontStyleSet* fontStyleSet = fontMgr->MatchFamily(familyName);
-    int index = GetObject<int>();
-    fontStyleSet->CreateTypeface(index);
+    std::unique_ptr<FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName));
+    if (fontStyleSet != nullptr) {
+        int index = GetObject<int>();
+        fontStyleSet->CreateTypeface(index);
+    }
     if (familyName != nullptr) {
         delete [] familyName;
         familyName = nullptr;
@@ -76,11 +79,13 @@ bool FontStyleSetFuzzTest002(const uint8_t* data, size_t size)
         familyName[i] =  GetObject<char>();
     }
     familyName[count - 1] = '\0';
-    FontStyleSet* fontStyleSet = fontMgr->MatchFamily(familyName);
-    std::string str(familyName);
-    int index = GetObject<int>();
-    fontStyleSet->GetStyle(index, &fontStyle, &str);
-    fontStyleSet->MatchStyle(fontStyle);
+    std::unique_ptr<FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName));
+    if (fontStyleSet != nullptr) {
+        std::string str(familyName);
+        int index = GetObject<int>();
+        fontStyleSet->GetStyle(index, &fontStyle, &str);
+        fontStyleSet->MatchStyle(fontStyle);
+    }
     if (familyName != nullptr) {
         delete [] familyName;
         familyName = nullptr;

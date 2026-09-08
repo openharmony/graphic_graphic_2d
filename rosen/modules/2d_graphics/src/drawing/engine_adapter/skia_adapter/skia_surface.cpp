@@ -473,6 +473,7 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds, bool a
 
 BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 {
+#ifdef RS_ENABLE_GPU
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return {};
@@ -497,6 +498,9 @@ BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
     backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
 #endif
     return backendTexture;
+#else
+    return {};
+#endif
 }
 
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
@@ -579,6 +583,7 @@ SemaphoresSubmited SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         }
         return SemaphoresSubmited::DRAWING_SUBMIT_YES;
     }
+#ifdef RS_ENABLE_GPU
     if (drawingflushInfo != nullptr) {
         GrFlushInfo flushInfo;
         flushInfo.fNumSemaphores = drawingflushInfo->numSemaphores;
@@ -600,6 +605,8 @@ SemaphoresSubmited SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         return isSubmited == GrSemaphoresSubmitted::kYes ? SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_YES :
             SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO;
     }
+#endif
+
 #ifdef USE_M133_SKIA
     auto rContext = GrAsDirectContext(skSurface_->recordingContext());
     if (rContext) {
@@ -680,10 +687,6 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 
 void SkiaSurface::ClearDrawingArea()
 {
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        return;
-    }
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return;

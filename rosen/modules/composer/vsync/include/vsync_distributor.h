@@ -74,7 +74,7 @@ public:
     virtual void CloseReceiveFd() override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
-    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
+    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
@@ -163,7 +163,8 @@ public:
     void SetFrameIsRender(bool isRender);
     uint32_t GetRefreshRate();
     bool IsUiDvsyncOn();
-    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
+    VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection,
+        FromWhom fromWhom = DEFAULT_FROMWHOM);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList);
     virtual int64_t GetUiCommandDelayTime();

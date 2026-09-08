@@ -15,6 +15,8 @@
 
 #include "animation/rs_spring_animation.h"
 
+#include <cmath>
+
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_spring_animation.h"
 #include "command/rs_animation_command.h"
@@ -62,7 +64,7 @@ const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
 void RSSpringAnimation::SetZeroThreshold(const float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold < ZERO) {
+    if (zeroThreshold < ZERO || !std::isfinite(zeroThreshold)) {
         ROSEN_LOGE("RSSpringAnimation::SetZeroThreshold: invalid threshold.");
         return;
     }

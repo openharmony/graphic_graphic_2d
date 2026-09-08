@@ -15,6 +15,7 @@
 
 #include "js_path_effect.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "path_napi/js_path.h"
 #include "native_value.h"
 #include "utils/performanceCaculate.h"
@@ -83,7 +84,7 @@ napi_value JsPathEffect::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsPathEffect *jsPathEffect = new JsPathEffect();
-    status = napi_wrap(env, jsThis, jsPathEffect, JsPathEffect::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsPathEffect, JsPathEffect::Destructor, nullptr, &PATH_EFFECT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPathEffect;
         ROSEN_LOGE("JsPathEffect::Constructor failed to wrap native instance");
@@ -180,10 +181,10 @@ napi_value JsPathEffect::CreateComposePathEffect(napi_env env, napi_callback_inf
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsPathEffect *jsPathEffect1 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPathEffect1);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPathEffect1, &PATH_EFFECT_TYPE_TAG);
 
     JsPathEffect *jsPathEffect2 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsPathEffect2);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsPathEffect2, &PATH_EFFECT_TYPE_TAG);
 
     std::shared_ptr<PathEffect> pathEffect1 = jsPathEffect1->GetPathEffect();
     std::shared_ptr<PathEffect> pathEffect2 = jsPathEffect2->GetPathEffect();
@@ -194,20 +195,26 @@ napi_value JsPathEffect::CreateComposePathEffect(napi_env env, napi_callback_inf
 
 napi_value JsPathEffect::Create(napi_env env, std::shared_ptr<PathEffect> pathEffect)
 {
+    if (pathEffect == nullptr) {
+        ROSEN_LOGE("JsPathEffect::Create pathEffect is null");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || pathEffect == nullptr) {
-        ROSEN_LOGE("JsPathEffect::Create object is null");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsPathEffect::Create napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsPathEffect> jsPathEffect = std::make_unique<JsPathEffect>(pathEffect);
-    napi_wrap(env, objValue, jsPathEffect.release(), JsPathEffect::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("JsPathEffect::Create objValue is null");
+    status = napi_wrap_s(env, objValue, jsPathEffect.get(), JsPathEffect::Finalizer,
+        nullptr, &PATH_EFFECT_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsPathEffect::Create failed to wrap native instance");
         return nullptr;
     }
+    jsPathEffect.release();
     return objValue;
 }
 
@@ -218,7 +225,7 @@ napi_value JsPathEffect::CreatePathDashEffect(napi_env env, napi_callback_info i
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsPathEffect::CreatePathDashEffect path is nullptr");
         return nullptr;
@@ -245,10 +252,10 @@ napi_value JsPathEffect::CreateSumPathEffect(napi_env env, napi_callback_info in
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsPathEffect* jsPathEffect1 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPathEffect1);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPathEffect1, &PATH_EFFECT_TYPE_TAG);
 
     JsPathEffect* jsPathEffect2 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsPathEffect2);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsPathEffect2, &PATH_EFFECT_TYPE_TAG);
 
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateSumPathEffect(*jsPathEffect1->GetPathEffect(),
         *jsPathEffect2->GetPathEffect());

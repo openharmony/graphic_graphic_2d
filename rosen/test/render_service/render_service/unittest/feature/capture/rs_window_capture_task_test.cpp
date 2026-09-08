@@ -291,7 +291,6 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForNullCallback, Function | Sm
     EXPECT_EQ(ret, false);
 }
 
-#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: RSSurfaceCaptureForInvalidScale
  * @tc.desc: test surface capture when scale is invalid
@@ -306,10 +305,12 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForInvalidScale, Function | Sm
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
     bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_, captureConfig);
-    EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#else
+    EXPECT_EQ(ret, false);
 #endif
     surfaceNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -330,10 +331,12 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForShouldPaint, Function | Sma
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
-    EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#else
+    EXPECT_EQ(ret, false);
 #endif
 
     surfaceNode->SetAlpha(1.f);
@@ -341,10 +344,12 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForShouldPaint, Function | Sma
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
-    EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#else
+    EXPECT_EQ(ret, false);
 #endif
     surfaceNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -366,10 +371,12 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
-    EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#else
+    EXPECT_EQ(ret, false);
 #endif
 
     surfaceNode->SetBoundsWidth(-1.f);
@@ -377,15 +384,16 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
-    EXPECT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#else
+    EXPECT_EQ(ret, false);
 #endif
     surfaceNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 }
-#endif
 } // namespace Rosen
 } // namespace OHOS

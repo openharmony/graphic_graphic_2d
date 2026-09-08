@@ -32,7 +32,7 @@ ohos_unittest("RSAnimationTest") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "$rosen_root/modules/render_service_client:render_service_client_src"
+    "$rosen_root/modules/render_service_client:render_service_client_src",
   ]
 
   external_deps = [
@@ -63,7 +63,7 @@ ohos_unittest("RSAnimationTest1") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "$rosen_root/modules/render_service_client:render_service_client_src"
+    "$rosen_root/modules/render_service_client:render_service_client_src",
   ]
 
   external_deps = [
@@ -92,7 +92,7 @@ ohos_unittest("RSAnimationTest2") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "$rosen_root/modules/render_service_client:render_service_client_src"
+    "$rosen_root/modules/render_service_client:render_service_client_src",
   ]
 
   external_deps = [

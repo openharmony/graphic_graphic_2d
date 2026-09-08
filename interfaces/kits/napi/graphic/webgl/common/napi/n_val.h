@@ -69,6 +69,14 @@ public:
 
     std::tuple<bool, int64_t> ToInt64() const;
 
+    std::tuple<bool, GLint> ToGLint() const;
+
+    std::tuple<bool, GLuint> ToGLuint() const;
+
+    std::tuple<bool, GLintptr> ToGLintptr() const;
+
+    std::tuple<bool, GLsizeiptr> ToGLsizeiptr() const;
+
     std::tuple<bool, GLenum> ToGLenum() const;
 
     std::tuple<bool, GLsizei> ToGLsizei() const;

@@ -16,6 +16,8 @@
 #ifndef WEBGL_UNIFORM_LOCATION_H
 #define WEBGL_UNIFORM_LOCATION_H
 
+#include <cstdint>
+
 #include "napi/n_exporter.h"
 #include "webgl_object.h"
 
@@ -45,6 +47,16 @@ public:
         return location_;
     }
 
+    void SetProgramId(uint32_t programId)
+    {
+        programId_ = programId;
+    }
+
+    uint32_t GetProgramId() const
+    {
+        return programId_;
+    }
+
     explicit WebGLUniformLocation() : location_(0) {};
     WebGLUniformLocation(napi_env env, napi_value exports) : NExporter(env, exports), location_(0) {};
     ~WebGLUniformLocation() {};
@@ -61,11 +73,13 @@ public:
 
     void SetUniformLocationName(const std::string &name)
     {
-        name_ = std::move(name);
+        name_ = name;
     }
+
 private:
     std::string name_ {};
     int location_;
+    uint32_t programId_ { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

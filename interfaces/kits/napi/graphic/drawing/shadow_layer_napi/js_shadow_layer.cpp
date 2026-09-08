@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -61,7 +62,8 @@ napi_value JsShadowLayer::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsShadowLayer *jsShadowLayer = new JsShadowLayer();
-    status = napi_wrap(env, jsThis, jsShadowLayer, JsShadowLayer::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsShadowLayer, JsShadowLayer::Destructor,
+        nullptr, &SHADOW_LAYER_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsShadowLayer;
         ROSEN_LOGE("JsShadowLayer::Constructor failed to wrap native instance");
@@ -117,21 +119,26 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 
 napi_value JsShadowLayer::CreateLooper(napi_env env, const std::shared_ptr<BlurDrawLooper> blurDrawLooper)
 {
+    if (blurDrawLooper == nullptr) {
+        ROSEN_LOGE("JsShadowLayer::CreateLooper blurDrawLooper is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || blurDrawLooper == nullptr) {
-        ROSEN_LOGE("JsShadowLayer::CreateLooper object is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsShadowLayer::CreateLooper napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsShadowLayer> jsShadowLayer = std::make_unique<JsShadowLayer>(blurDrawLooper);
-    napi_wrap(env, objValue, jsShadowLayer.release(), JsShadowLayer::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("JsShadowLayer::CreateLooper objValue is null!");
+    status = napi_wrap_s(env, objValue, jsShadowLayer.get(), JsShadowLayer::Finalizer,
+        nullptr, &SHADOW_LAYER_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsShadowLayer::CreateLooper failed to wrap native instance");
         return nullptr;
     }
-
+    jsShadowLayer.release();
     return objValue;
 }
 

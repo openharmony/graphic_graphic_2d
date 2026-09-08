@@ -75,6 +75,7 @@ public:
 private:
     int UpdateRatesLevel();
     void CalcRates();
+    void UpdateLastVSyncRateMap();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);

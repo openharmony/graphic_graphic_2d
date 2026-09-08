@@ -15,15 +15,12 @@
 
 #include "gtest/gtest.h"
 
-#include <parameters.h>
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "limit_number.h"
-#include "metadata_helper.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -43,7 +40,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr Rect DEFAULT_RECT = {0, 0, 200, 200};
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 class RSUniRenderProcessorTest : public testing::Test {
 public:
@@ -52,20 +48,10 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
-
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
-    };
-
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -332,7 +318,7 @@ HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
         auto renderEngine = std::make_shared<RSRenderEngine>();
         ASSERT_NE(renderEngine, nullptr);
         bool result = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
-        ASSERT_EQ(result, false);
+        ASSERT_EQ(result, true);
     }
 }
 
@@ -742,10 +728,12 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("GetLayerInfo001_test");
     ASSERT_NE(consumer, nullptr);
+#ifdef RS_ENABLE_VK
     sptr<SyncFence> acquireFence = nullptr;
     SetTunnelLayerSnapshot(params.GetId());
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result, nullptr);
+#endif
 }
 
 /**
@@ -846,39 +834,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     auto composerClient = RSComposerClient::Create(nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-}
-
-/**
- * @tc.name: GetLayerInfo006
- * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo when layer have selfDrawingDirtyRegion
- * @tc.type:FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
-{
-    ASSERT_NE(renderProcessor, nullptr);
-    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
-    renderProcessor->composerClient_ = composerClient;
-    RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
-    sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    sptr<SyncFence> acquireFence = nullptr;
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_EQ(src, nullptr);
-
-    params.SetBuffer(buffer, nullptr, DEFAULT_RECT);
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
-    result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -1802,6 +1757,34 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayer_AllBranchesCoveredTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateLayer_NullSurfaceHandlerTest001
+ * @tc.desc: Test CreateLayer when surfaceHandler is nullptr
+ *           The if (surfaceHandler == nullptr) branch should be hit and return early
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateLayer_NullSurfaceHandlerTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        surfaceNode->surfaceHandler_.reset();
+        EXPECT_NO_FATAL_FAILURE(renderProcessor->CreateLayer(*surfaceNode, *params));
+        EXPECT_FALSE(params->GetLayerCreated());
+    }
+}
+
+/**
  * @tc.name: CreateLayerForRenderThread_NullBufferTest001
  * @tc.desc: Test CreateLayerForRenderThread when buffer is nullptr
  *           The if (buffer == nullptr || consumer == nullptr) branch at line 199 should be true
@@ -2707,6 +2690,24 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_SurfaceDrawableAsyncTest0
 }
 
 /**
+ * @tc.name: ProcessOfflineLayer_NullSurfaceDrawableTest001
+ * @tc.desc: Test ProcessOfflineLayer with null surfaceDrawable
+ *           The if (surfaceDrawable == nullptr) branch should be hit and return false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_NullSurfaceDrawableTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        ASSERT_NE(renderProcessor, nullptr);
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nullDrawable;
+        bool async = true;
+        bool result = renderProcessor->ProcessOfflineLayer(nullDrawable, async);
+        EXPECT_EQ(result, false);
+    }
+}
+
+/**
  * @tc.name: ProcessOfflineLayer_SurfaceDrawableSyncPostFailedTest001
  * @tc.desc: Test ProcessOfflineLayer with surfaceDrawable and async=false, PostProcessOfflineTask fails
  *           When async=false and PostProcessOfflineTask returns false, function should return false early
@@ -3080,5 +3081,108 @@ HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread005,
         }
         EXPECT_EQ(renderProcessor->layers_.size(), testRects.size());
     }
+}
+
+/**
+ * @tc.name: GetLayerInfo_PreBufferFromLayerBufferNoOfflineTest001
+ * @tc.desc: Test GetLayerInfo preBuffer handling when offlineResult is null
+ *           Covers the new true branch at line 383: if (!offlineResult && layerBuffer != buffer)
+ *           When offlineResult is null and the layer is freshly created, layerBuffer is nullptr.
+ *           Since buffer is non-null, the condition is true and SetPreBuffer(layerBuffer=nullptr) is
+ *           called, ignoring the preBuffer parameter. GetPreBuffer() should return nullptr, proving
+ *           the preBuffer parameter is NOT used on this path.
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_PreBufferFromLayerBufferNoOfflineTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    RSLayerInfo layerInfo;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
+    layerInfo.dstRect = {0, 0, 100, 100};
+    layerInfo.srcRect = {0, 0, 100, 100};
+    layerInfo.zOrder = 1;
+    layerInfo.alpha = 1.0f;
+    params.SetLayerInfo(layerInfo);
+    params.SetHwcGlobalPositionEnabled(false);
+
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test-prebuf-nolayer");
+    // Pass a non-null preBuffer to prove it is ignored on this branch.
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    ASSERT_EQ(preBuffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> acquireFence = nullptr;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    ASSERT_NE(result, nullptr);
+    // layerBuffer was nullptr for a fresh layer, so SetPreBuffer(nullptr) was called.
+    EXPECT_EQ(result->GetPreBuffer(), nullptr);
+    // New buffer is set on the layer.
+    EXPECT_EQ(result->GetBuffer(), buffer);
+}
+
+/**
+ * @tc.name: GetLayerInfo_PreBufferFromParamsWithOfflineTest001
+ * @tc.desc: Test GetLayerInfo preBuffer handling when offlineResult is non-null
+ *           Covers the new SetPreBuffer(preBuffer) call inside the if (offlineResult) block at
+ *           line 389. On this path the outer if (!offlineResult) is skipped and the inner
+ *           if (offlineResult) calls SetPreBuffer(preBuffer) with the parameter value.
+ *           GetPreBuffer() should return the preBuffer passed in.
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_PreBufferFromParamsWithOfflineTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    RSLayerInfo layerInfo;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
+    layerInfo.dstRect = {0, 0, 100, 100};
+    layerInfo.srcRect = {0, 0, 100, 100};
+    layerInfo.zOrder = 1;
+    layerInfo.alpha = 1.0f;
+    params.SetLayerInfo(layerInfo);
+    params.SetHwcGlobalPositionEnabled(false);
+
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test-prebuf-offline");
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    ASSERT_EQ(preBuffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> acquireFence = nullptr;
+
+    auto offlineResult = std::make_shared<ProcessOfflineResult>();
+    offlineResult->buffer = buffer;
+    offlineResult->consumer = consumer;
+    offlineResult->damageRect = {0, 0, 50, 50};
+    offlineResult->bufferRect = {0, 0, 100, 100};
+    offlineResult->taskSuccess = true;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(
+        params, buffer, preBuffer, consumer, acquireFence, offlineResult);
+    ASSERT_NE(result, nullptr);
+    // With offlineResult, SetPreBuffer(preBuffer) is called inside the if (offlineResult) block.
+    EXPECT_EQ(result->GetPreBuffer(), preBuffer);
+    EXPECT_EQ(result->GetBuffer(), buffer);
 }
 }

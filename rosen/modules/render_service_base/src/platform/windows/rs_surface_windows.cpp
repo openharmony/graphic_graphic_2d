@@ -123,7 +123,9 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     int32_t width = frameWindows->width_;
     int32_t height = frameWindows->height_;
     int32_t size = width * height * 0x4;
-    onRender_(addr, size, width, height, uiTimestamp);
+    if (onRender_ != nullptr) {
+        onRender_(addr, size, width, height, uiTimestamp);
+    }
 
 #ifdef USE_GLFW_WINDOW
     GlfwRenderContext::GetGlobal()->SwapBuffers();

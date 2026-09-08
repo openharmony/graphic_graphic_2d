@@ -61,6 +61,7 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+constexpr size_t VOTE_INFO_SIMPLE_PREFIX_LEN = 6;
 
 bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
 {
@@ -702,6 +703,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
+        HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
         RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -804,6 +806,23 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         DeliverRefreshRateVote({eventName, eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
             eventInfo.eventStatus);
     }
+}
+
+bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
+{
+    HGM_LOGI("pid: %{public}d screenId: %{public}" PRIu64, pid, screenId);
+    RS_TRACE_NAME_FMT("%s: pid: %d screenId: %" PRIu64, __func__, pid, screenId);
+    if (screenId != INVALID_SCREEN_ID) {
+        if (auto screen = HgmCore::Instance().GetScreen(screenId);
+            !screen || !screen->GetSelfOwnedScreenFlag()) {
+            return false;
+        }
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    } else {
+        cleanPidCallback_[pid].erase(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    }
+    hgmExclusiveScreenId_.store(screenId);
+    return true;
 }
 
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
@@ -1199,6 +1218,11 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
 void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo)
 {
     HgmCore::Instance().SetMultiSelfOwnedScreenEnable(eventInfo.eventStatus);
+    if (eventInfo.eventStatus && eventInfo.maxRefreshRate <= OLED_NULL_HZ) {
+        RS_TRACE_NAME_FMT("%s: eventStatus: %d maxRefreshRate: %d",
+            __func__, eventInfo.eventStatus, eventInfo.maxRefreshRate);
+        return;
+    }
     DeliverRefreshRateVote(
         {"VOTER_MULTISELFOWNEDSCREEN", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
         eventInfo.eventStatus);
@@ -1220,8 +1244,9 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
     } else {
         lastVoteInfo_ = resultVoteInfo;
-        HGM_LOGI("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
-            static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
+        HGM_LOGI_SHORT("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
+            static_cast<int>(curScreenId_.load()), curRefreshRateMode_,
+            resultVoteInfo.ToSimpleString().erase(0, VOTE_INFO_SIMPLE_PREFIX_LEN).c_str());
     }
 
     // max used here
@@ -1280,7 +1305,9 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         return;
     }
 
-    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+    if (IsSupportLiteAS(isGameSupportAS_)) {
+        HGM_LOGI("ProcessAdaptiveSync RSAdaptiveVsync mode: %{public}d", isGameSupportAS_);
+        RS_TRACE_NAME_FMT("ProcessAdaptiveSync RSAdaptiveVsync mode: %d", isGameSupportAS_);
         isAdaptive_.store(isGameSupportAS_);
         return;
     }
@@ -1379,11 +1406,14 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
                     HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
                     break;
+                case CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN:
+                    hgmExclusiveScreenId_.store(INVALID_SCREEN_ID);
+                    break;
                 default:
                     break;
             }
         }
-        iter->second.clear();
+        cleanPidCallback_.erase(iter);
     }
     softVSyncManager_.EraseGameRateDiscountMap(pid);
     frameVoter_.CleanVote(pid);

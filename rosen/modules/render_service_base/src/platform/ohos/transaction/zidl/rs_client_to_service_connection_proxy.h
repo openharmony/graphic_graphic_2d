@@ -265,6 +265,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) override;
+
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) override;
@@ -358,8 +360,6 @@ public:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
-
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 

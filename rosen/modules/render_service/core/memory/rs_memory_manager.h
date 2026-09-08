@@ -35,6 +35,8 @@ struct EventQuota {
     int romRsvSize = 30720;
 };
 
+
+
 class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, std::string& type, bool isLite = false);
@@ -99,7 +101,7 @@ private:
     static void DumpMemorySnapshot(DfxString& log);
     static void FillMemorySnapshot();
     static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
-        const std::string& hidumperReport, const std::string& filePath, bool needNodeAndUiTreeinfo = false);
+        const std::string& hidumperReport, const std::string& filePath, bool needNodeAndUiTreeInfo = false);
     static void WriteInfoToFile(const std::string& filePath, const std::string& logInfo);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);

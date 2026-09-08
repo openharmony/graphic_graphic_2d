@@ -164,6 +164,15 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_UNWRAP_PARAM_S(argc, value, tag)                                                                           \
+    do {                                                                                                               \
+        if ((napi_unwrap_s(env, argv[(argc)], (tag), reinterpret_cast<void**>(&(value))) != napi_ok) ||                \
+            (value) == nullptr) {                                                                                      \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+    } while (0)
+
 #define GET_UNWRAP_PARAM_OR_NULL(argc, value)                                                                          \
     do {                                                                                                               \
         napi_valuetype valueType = napi_undefined;                                                                     \
@@ -176,6 +185,24 @@ private:
                 std::string("Incorrect valueType ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");  \
         }                                                                                                              \
         if (valueType == napi_object && napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) {   \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect unwrap ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");     \
+        }                                                                                                              \
+    } while (0)
+
+#define GET_UNWRAP_PARAM_S_OR_NULL(argc, value, tag)                                                                   \
+    do {                                                                                                               \
+        napi_valuetype valueType = napi_undefined;                                                                     \
+        if (napi_typeof(env, argv[argc], &valueType) != napi_ok) {                                                     \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+        if (valueType != napi_null && valueType != napi_object) {                                                      \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect valueType ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");  \
+        }                                                                                                              \
+        if ((valueType) == napi_object && napi_unwrap_s(                                                               \
+            env, argv[(argc)], (tag), reinterpret_cast<void**>(&(value))) != napi_ok) {                                \
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
                 std::string("Incorrect unwrap ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");     \
         }                                                                                                              \
@@ -248,6 +275,32 @@ T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char
     napi_value& resObject = propertyNameValue ? propertyNameValue : object;
     if (resObject) {
         return napi_unwrap(env, resObject, (void **)(&pointerValue)) == napi_ok ?
+            reinterpret_cast<T*>(pointerValue) : nullptr;
+    }
+    return nullptr;
+}
+
+template<class T>
+T* CheckParamsAndGetThisWithTag(const napi_env env, napi_callback_info info,
+    const napi_type_tag* typeTag, const char* name = nullptr)
+{
+    if (env == nullptr || info == nullptr || typeTag == nullptr) {
+        return nullptr;
+    }
+    napi_value object = nullptr;
+    napi_value propertyNameValue = nullptr;
+    napi_value pointerValue = nullptr;
+    if (napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr) != napi_ok) {
+        return nullptr;
+    }
+    if (object != nullptr && name != nullptr) {
+        if (napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue) != napi_ok) {
+            return nullptr;
+        }
+    }
+    napi_value& resObject = propertyNameValue ? propertyNameValue : object;
+    if (resObject) {
+        return napi_unwrap_s(env, resObject, typeTag, (void **)(&pointerValue)) == napi_ok ?
             reinterpret_cast<T*>(pointerValue) : nullptr;
     }
     return nullptr;

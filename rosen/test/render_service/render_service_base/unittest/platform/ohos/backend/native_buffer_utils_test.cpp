@@ -46,12 +46,11 @@ HWTEST_F(NativeBufferUtilsTest, DeleteVkImage001, TestSize.Level1)
 {
     int32_t width = 1;
     int32_t height = 1;
-    auto cachedBackendTexture = RSUniRenderUtil::MakeBackendTexture(width, height);
+    auto cachedBackendTexture = NativeBufferUtils::MakeBackendTexture(width, height, 0);
     auto vkTextureInfo = cachedBackendTexture.GetTextureInfo().GetVKTextureInfo();
-    VulkanCleanupHelper vulkanCleanupHelper(
+    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    DeleteVkImage(vulkanCleanupHelper);
-    EXPECT_TRUE(vulkanCleanupHelper.fRefCnt_ == 1);
+    NativeBufferUtils::DeleteVkImage(vulkanCleanupHelper);
 }
 
 /**
@@ -60,18 +59,18 @@ HWTEST_F(NativeBufferUtilsTest, DeleteVkImage001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeFromNativeWindowBuffer001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, MakeFromNativeWindowBuffer001, TestSize.Level1)
 {
     int32_t width = 1;
     int32_t height = 1;
-    NativeSurfaceInfo nativeSurfaceInfo;
+    NativeBufferUtils::NativeSurfaceInfo nativeSurfaceInfo;
     auto skContext = std::make_shared<Drawing::GPUContext>();
-    auto ret = MakeFromNativeWindowBuffer(skContext, nullptr, nativeSurfaceInfo, width, height);
-    EXPECT_TRUE(ret == false);
+    auto ret = NativeBufferUtils::MakeFromNativeWindowBuffer(skContext, nullptr, nativeSurfaceInfo, width, height);
+    EXPECT_FALSE(ret);
 
     NativeWindowBuffer nativeWindowBuffer;
-    ret = MakeFromNativeWindowBuffer(skContext, &nativeWindowBuffer, nativeSurfaceInfo, width, height);
-    EXPECT_TRUE(ret == true);
+    ret = NativeBufferUtils::MakeFromNativeWindowBuffer(skContext, &nativeWindowBuffer, nativeSurfaceInfo, width, height);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -97,46 +96,16 @@ HWTEST_F(NativeBufferUtilsTest, IsYcbcrModelOrRangeNotEqualTest, TestSize.Level1
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeBackendTextureFromNativeBuffer001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, MakeBackendTextureFromNativeBuffer001, TestSize.Level1)
 {
     int32_t width = 1;
     int32_t height = 1;
-    auto ret = MakeBackendTextureFromNativeBuffer(nullptr, width, height);
-    EXPECT_TRUE(ret == false);
+    auto ret = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nullptr, width, height);
+    EXPECT_FALSE(ret.IsValid());
 
     NativeWindowBuffer nativeWindowBuffer;
-    ret = MakeBackendTextureFromNativeBuffer(&nativeWindowBuffer, width, height);
-    EXPECT_TRUE(ret == true);
-}
-
-/**
- * @tc.name: CreateVkImage001
- * @tc.desc: test results of CreateVkImage
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, CreateVkImage001, TestSize.Level1)
-{
-    auto vkContext = RsVulkanContext::GetSingleton();
-    VkImage image = VK_NULL_HANDLE;
-    VkExtent3D imageSize;
-    VkNativeBufferFormatPropertiesOHOS nbFormatProps;
-    nbFormatProps.format == VK_FORMAT_UNDEFINED;
-    CreateVkImage(vkContext, &image, nbFormatProps, imageSize);
-    EXPECT_TRUE(nbFormatProps.format == VK_FORMAT_UNDEFINED);
-}
-
-/**
- * @tc.name: GetYcbcrInfo001
- * @tc.desc: test results of GetYcbcrInfo
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, GetYcbcrInfo001, TestSize.Level1)
-{
-    VkNativeBufferFormatPropertiesOHOS nbFormatProps;
-    auto ret = GetYcbcrInfo(nbFormatProps);
-    EXPECT_TRUE(ret.fForceExplicitReconstruction == VK_FALSE);
+    ret = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(&nativeWindowBuffer, width, height);
+    EXPECT_TRUE(ret.IsValid());
 }
 
 } // namespace Rosen

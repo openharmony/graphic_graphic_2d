@@ -1171,6 +1171,13 @@ public:
      */
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    /**
+     * @brief Set HGM exclusive screen.
+     * @param screenId the exclusive screen id, nullopt to disable exclusive mode.
+     * @return return true on success, return false on failure.
+     */
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
+
     /*
     * @brief Support setting softVsync frame rate through windowId.
     * @param eventInfos a map,key is windowId, value is eventInfo

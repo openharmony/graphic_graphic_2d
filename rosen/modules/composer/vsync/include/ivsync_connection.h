@@ -18,6 +18,7 @@
 
 #include <iremote_broker.h>
 #include "graphic_common.h"
+#include "vsync_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,7 +36,7 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) = 0;
 
     virtual VsyncError Destroy() = 0;
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) = 0;
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM) = 0;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) = 0;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) = 0;

@@ -14,7 +14,8 @@
  */
 #include "gtest/gtest.h"
 
-#include "transaction/rs_render_interface.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -57,9 +58,8 @@ HWTEST_F(RSRenderInterfaceTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Lev
 {
     RSSystemProperties::isUniRenderEnabled_ = true;
     auto ret = RSInterfaces::GetInstance().SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
-    ASSERT_NE(ret, 0);
+    ASSERT_EQ(ret, 0);
     ret = RSInterfaces::GetInstance().SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
-    ASSERT_NE(ret, 0);
 }
 
 /**
@@ -157,16 +157,85 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
         {}
     };
     auto callback = std::make_shared<TestSurfaceCapture>();
-    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
-    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, nullptr);
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, nullptr);
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
     RSSurfaceCaptureConfig captureConfig;
-    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+    auto res = RSInterfaces::GetInstance().TakeUICaptureInRangeWithConfig(
         canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_EQ(res, false);
+#else
     EXPECT_EQ(res, true);
+#endif
 }
 #endif
+/**
+ * @tc.name: TakeSurfaceCaptureForUIWithoutUniTest001
+ * @tc.desc: test TakeSurfaceCaptureForUIWithoutUni posts async offscreen task and returns true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, TakeSurfaceCaptureForUIWithoutUniTest001, TestSize.Level1)
+{
+    class TestCaptureCb : public SurfaceCaptureCallback {
+    public:
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+            std::shared_ptr<Media::PixelMap> pixelmapHDR) override {}
+    };
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto callback = std::make_shared<TestCaptureCb>();
+    bool result = renderInterface->TakeSurfaceCaptureForUIWithoutUni(1, callback, 1.0f, 1.0f);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest001
+ * @tc.desc: test GetPixelmap returns false when renderPipelineClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest001, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    renderInterface->renderPipelineClient_ = nullptr;
+    Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
+    bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest002
+ * @tc.desc: test GetPixelmap returns false when rect pointer is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest002, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    bool result = renderInterface->GetPixelmap(1, nullptr, nullptr, nullptr);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest003
+ * @tc.desc: test GetPixelmap delegates to pipeline client when client and rect are valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
+    bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

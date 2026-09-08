@@ -288,7 +288,7 @@ void RSCaptureRecorder::EndInstantCaptureDrawing()
         RSSystemProperties::SetInstantRecording(false);
         return;
     }
-    Utils::FileWrite(reinterpret_cast<uint8_t*>(parcelBuf), sizeof(uint8_t), parcelSize, f);
+    Utils::FileWrite(f, reinterpret_cast<uint8_t*>(parcelBuf), sizeof(uint8_t) * parcelSize);
     Utils::FileClose(f);
 
     Network::SendDclPath(drawCmdListFilename);

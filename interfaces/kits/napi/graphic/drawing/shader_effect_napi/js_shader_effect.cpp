@@ -20,6 +20,7 @@
 #include "image/image.h"
 #include "sampling_options_napi/js_sampling_options.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "utils/log.h"
 
 namespace OHOS::Rosen {
@@ -72,7 +73,8 @@ napi_value JsShaderEffect::Constructor(napi_env env, napi_callback_info info)
 
     auto shaderEffect = std::make_shared<ShaderEffect>();
     JsShaderEffect *jsShaderEffect = new JsShaderEffect(shaderEffect);
-    status = napi_wrap(env, jsThis, jsShaderEffect, JsShaderEffect::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsShaderEffect, JsShaderEffect::Destructor,
+        nullptr, &SHADER_EFFECT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsShaderEffect;
         ROSEN_LOGE("failed to wrap native instance");
@@ -179,7 +181,7 @@ napi_value JsShaderEffect::CreateLinearGradient(napi_env env, napi_callback_info
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_FIVE, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_FIVE, jsMatrix, &MATRIX_TYPE_TAG);
         if (jsMatrix->GetMatrix() != nullptr) {
             drawingMatrixPtr = jsMatrix->GetMatrix().get();
         }
@@ -261,7 +263,7 @@ napi_value JsShaderEffect::CreateRadialGradient(napi_env env, napi_callback_info
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_FIVE, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_FIVE, jsMatrix, &MATRIX_TYPE_TAG);
         if (jsMatrix->GetMatrix() != nullptr) {
             drawingMatrixPtr = jsMatrix->GetMatrix().get();
         }
@@ -344,7 +346,7 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_SIX, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_SIX, jsMatrix, &MATRIX_TYPE_TAG);
         if (jsMatrix->GetMatrix() != nullptr) {
             drawingMatrixPtr = jsMatrix->GetMatrix().get();
         }
@@ -365,7 +367,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
             "Incorrect CreateComposeShader parameter0 type.");
     }
     JsShaderEffect* dstJsShaderEffect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, dstJsShaderEffect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, dstJsShaderEffect, &SHADER_EFFECT_TYPE_TAG);
     if (dstJsShaderEffect->GetShaderEffect() == nullptr) {
         ROSEN_LOGE("JsShaderEffect::CreateBlendShader destination ShaderEffect is nullptr");
         return nullptr;
@@ -376,7 +378,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
             "Incorrect CreateComposeShader parameter1 type.");
     }
     JsShaderEffect* srcJsShaderEffect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, srcJsShaderEffect);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, srcJsShaderEffect, &SHADER_EFFECT_TYPE_TAG);
     if (srcJsShaderEffect->GetShaderEffect() == nullptr) {
         ROSEN_LOGE("JsShaderEffect::CreateBlendShader source ShaderEffect is nullptr");
         return nullptr;
@@ -473,7 +475,7 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_SEVEN, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_SEVEN, jsMatrix, &MATRIX_TYPE_TAG);
         if (jsMatrix->GetMatrix() != nullptr) {
             drawingMatrixPtr = jsMatrix->GetMatrix().get();
         }
@@ -509,7 +511,7 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
     GET_ENUM_PARAM_RANGE(ARGC_ONE, jsTileModeX, 0, static_cast<int32_t>(TileMode::DECAL));
     GET_ENUM_PARAM_RANGE(ARGC_TWO, jsTileModeY, 0, static_cast<int32_t>(TileMode::DECAL));
     JsSamplingOptions* jsSamplingOptions = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+    GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
     std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
     if (samplingOptions == nullptr) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
@@ -518,7 +520,7 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
     Drawing::Matrix matrix;
     if (argc == ARGC_FIVE) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM_OR_NULL(ARGC_FOUR, jsMatrix);
+        GET_UNWRAP_PARAM_S_OR_NULL(ARGC_FOUR, jsMatrix, &MATRIX_TYPE_TAG);
 
         if (jsMatrix != nullptr && jsMatrix->GetMatrix() != nullptr) {
             matrix = *jsMatrix->GetMatrix();
@@ -533,20 +535,26 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
 
 napi_value JsShaderEffect::Create(napi_env env, const std::shared_ptr<ShaderEffect> gradient)
 {
+    if (gradient == nullptr) {
+        ROSEN_LOGE("[NAPI]JsShaderEffect is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || gradient == nullptr) {
-        ROSEN_LOGE("[NAPI]Object or JsShaderEffect is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("[NAPI]napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsShaderEffect> jsShaderEffect = std::make_unique<JsShaderEffect>(gradient);
-    napi_wrap(env, objValue, jsShaderEffect.release(), JsShaderEffect::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("[NAPI]objValue is null!");
+    status = napi_wrap_s(env, objValue, jsShaderEffect.get(), JsShaderEffect::Finalizer,
+        nullptr, &SHADER_EFFECT_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("[NAPI]Failed to wrap native instance");
         return nullptr;
     }
+    jsShaderEffect.release();
     return objValue;
 }
 

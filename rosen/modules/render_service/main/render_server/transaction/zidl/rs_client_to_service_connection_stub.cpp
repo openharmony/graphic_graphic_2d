@@ -153,6 +153,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
@@ -205,7 +206,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET_RECENT),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION),
@@ -1918,9 +1918,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t pixel{0};
-            if (!data.ReadInt32(pixel)) {
+            uint32_t pixel{0};
+            if (!data.ReadUint32(pixel)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT read pixelFormat failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pixel >= GRAPHIC_PIXEL_FMT_BUTT) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT pixelFormat is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2544,6 +2549,23 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 eventName, eventStatus, minRefreshRate, maxRefreshRate, description
             };
             NotifyRefreshRateEvent(eventInfo);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN) : {
+            ScreenId screenId{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HGM_EXCLUSIVE_SCREEN Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::optional<ScreenId> optScreenId;
+            if (screenId != INVALID_SCREEN_ID) {
+                optScreenId = screenId;
+            }
+            bool result = SetHgmExclusiveScreen(optScreenId);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID) : {
@@ -3238,16 +3260,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                         "failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST) : {
-            std::vector<int32_t> pidList;
-            if (!data.ReadInt32Vector(&pidList)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST Read pidList failed!");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            SetGpuCrcDirtyEnabledPidList(pidList);
             break;
         }
         case static_cast<uint32_t>(

@@ -16,6 +16,7 @@
 #include "text/font_language_query.h"
 #include "text/font_unicode_query.h"
 
+#include <algorithm>
 #include <vector>
 #include <memory>
 #include <set>
@@ -229,24 +230,40 @@ static const std::unordered_map<UnicodeRangeId, UnicodeRangeInfo> unicodeRangeBi
         {"xld-Lydi"}}}
 };
 
-namespace {
-bool MatchesAnyRange(uint32_t unicode, const std::vector<std::pair<uint32_t, uint32_t>>& ranges)
+static std::vector<UnicodeRangeInfo> FlattenAndSort(
+    const std::unordered_map<UnicodeRangeId, UnicodeRangeInfo>& rangeMap)
 {
-    for (const auto& range : ranges) {
-        if (unicode >= range.first && unicode <= range.second) {
-            return true;
+    std::vector<UnicodeRangeInfo> result;
+    for (const auto& [id, info] : rangeMap) {
+        for (const auto& range : info.ranges) {
+            result.push_back({{range}, info.languages});
         }
     }
-    return false;
+    std::sort(result.begin(), result.end(),
+        [](const UnicodeRangeInfo& a, const UnicodeRangeInfo& b) {
+            return a.ranges[0].first < b.ranges[0].first;
+        });
+    return result;
 }
 
-bool HasMatchingUnicode(const std::vector<uint32_t>& unicodeList,
-    const std::vector<std::pair<uint32_t, uint32_t>>& ranges)
+static std::vector<UnicodeRangeInfo> unicodeRangeBitConfigSorted;
+
+namespace {
+bool HasMatchingUnicode(size_t& index, const std::vector<uint32_t>& unicodeList,
+    uint32_t rangeStart, uint32_t rangeEnd)
 {
-    for (uint32_t unicode : unicodeList) {
-        if (MatchesAnyRange(unicode, ranges)) {
-            return true;
+    while (index < unicodeList.size()) {
+        uint32_t unicode = unicodeList[index];
+        if (unicode < rangeStart) {
+            index++;
+            continue;
         }
+        if (unicode > rangeEnd) {
+            return false;
+        }
+        index = static_cast<size_t>(std::upper_bound(unicodeList.begin() + index + 1,
+            unicodeList.end(), rangeEnd) - unicodeList.begin());
+        return true;
     }
     return false;
 }
@@ -261,10 +278,18 @@ std::vector<std::string> FontLanguageQuery::GenerateFontSupportedLanguages(const
 
     std::vector<uint32_t> unicodeList = FontUnicodeQuery::GenerateUnicodeItem(typeface);
 
+    if (unicodeRangeBitConfigSorted.empty()) {
+        unicodeRangeBitConfigSorted = FlattenAndSort(unicodeRangeBitConfig);
+    }
+
     std::set<std::string> languageSet;
-    for (const auto& entry : unicodeRangeBitConfig) {
-        if (HasMatchingUnicode(unicodeList, entry.second.ranges)) {
-            languageSet.insert(entry.second.languages.begin(), entry.second.languages.end());
+    size_t index = 0;
+    for (const auto& entry : unicodeRangeBitConfigSorted) {
+        if (index >= unicodeList.size()) {
+            break;
+        }
+        if (HasMatchingUnicode(index, unicodeList, entry.ranges[0].first, entry.ranges[0].second)) {
+            languageSet.insert(entry.languages.begin(), entry.languages.end());
         }
     }
     return std::vector<std::string>(languageSet.begin(), languageSet.end());

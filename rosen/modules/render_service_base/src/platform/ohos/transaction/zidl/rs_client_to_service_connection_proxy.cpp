@@ -2406,6 +2406,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenColorGamut(ScreenId id, Scree
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenColorGamut Read mode failed");
             return READ_PARCEL_ERR;
         }
+        if (readMode >= static_cast<uint32_t>(ScreenColorGamut::COLOR_GAMUT_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenColorGamut colorGamut out of range: %u", readMode);
+            return READ_PARCEL_ERR;
+        }
         mode = static_cast<ScreenColorGamut>(readMode);
     }
     return result;
@@ -2664,6 +2668,10 @@ int32_t RSClientToServiceConnectionProxy::GetPixelFormat(ScreenId id, GraphicPix
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPixelFormat Read readFormat failed");
             return READ_PARCEL_ERR;
         }
+        if (readFormat >= GRAPHIC_PIXEL_FMT_BUTT) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPixelFormat pixelFormat out of range: 0x%u", readFormat);
+            return READ_PARCEL_ERR;
+        }
         pixelFormat = static_cast<GraphicPixelFormat>(readFormat);
     }
     return result;
@@ -2779,6 +2787,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenHDRFormat(ScreenId id, Screen
         uint32_t readFormat{0};
         if (!reply.ReadUint32(readFormat)) {
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenHDRFormat1 Read readFormat failed");
+            return READ_PARCEL_ERR;
+        }
+        if (readFormat >= static_cast<uint32_t>(ScreenHDRFormat::SCREEN_HDR_FORMAT_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenHDRFormat hdrFormat out of range: %u", readFormat);
             return READ_PARCEL_ERR;
         }
         hdrFormat = static_cast<ScreenHDRFormat>(readFormat);
@@ -4399,6 +4411,36 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
+bool RSClientToServiceConnectionProxy::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    ScreenId id = screenId.value_or(INVALID_SCREEN_ID);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteUint64 screenId err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Send Request err.");
+        return false;
+    }
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Read result failed");
+        return false;
+    }
+    return result;
+}
+
 ErrCode RSClientToServiceConnectionProxy::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     MessageParcel data;
@@ -5510,11 +5552,6 @@ bool RSClientToServiceConnectionProxy::ProfilerIsSecureScreen()
         return false;
     }
     return retValue;
-}
-
-ErrCode RSClientToServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList)

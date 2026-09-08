@@ -477,4 +477,19 @@ HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersBothEmpty, TestSize.Level1)
     EXPECT_EQ(out, "RSCmdModifiers: [empty]");
 }
 
+/**
+ * @tc.name: DumpNodeWithNullAnimation
+ * @tc.desc: Test DumpNode skips null animation entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpNodeWithNullAnimation, TestSize.Level1)
+{
+    auto node = TestableRSNode::Create();
+    ASSERT_NE(node, nullptr);
+    node->animations_.emplace(1, nullptr);
+    std::string dump = node->DumpNode(0);
+    EXPECT_NE(dump.find("animation:1"), std::string::npos);
+    EXPECT_EQ(dump.find("animationInfo:"), std::string::npos);
+}
+
 } // namespace OHOS::Rosen

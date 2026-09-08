@@ -116,7 +116,6 @@ public:
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) override;
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     // Game
     void ReportGameStateData(GameStateData info) override;

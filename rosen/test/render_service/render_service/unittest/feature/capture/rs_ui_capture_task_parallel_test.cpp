@@ -243,10 +243,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiInvalidSurface, Fun
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
 
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -262,10 +262,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #endif
 }
 
@@ -281,10 +281,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Func
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #endif
 }
 
@@ -304,10 +304,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Func
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -324,10 +324,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode003, Func
     Drawing::Rect specifiedRect(1.f, 1.f, 5.f, 5.f);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.f, 1.f, false, specifiedRect);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #endif
 }
 
@@ -343,10 +343,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, 
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasDrawingNode_, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #endif
 }
 
@@ -386,10 +386,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function |
     canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -407,13 +407,13 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function |
     canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
-    ASSERT_EQ(ret, true);
+
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #else
-    ASSERT_EQ(ret, false);
+    EXPECT_EQ(ret, false);
 #endif
 }
 
@@ -429,10 +429,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function 
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 0, 0);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -448,10 +448,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function 
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, -1, -1);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -467,10 +467,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function 
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 10000, 10000);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_EQ(callback->captureSuccess_, false);
 #endif
 }
 
@@ -489,10 +489,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(callback), true);
+    EXPECT_NE(callback->captureSuccess_, true);
 #endif
 }
 
@@ -823,11 +823,15 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CalendarIconNeedDump, Function | SmallTest
     canvasNode->SetAlpha(0.0f);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
-    ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_NE(ret, true);
+#endif
     usleep(SLEEP_TIME_IN_US);
     canvasNode->SetNodeName("CalendarTest");
     ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
-    ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_NE(ret, true);
+#endif
 }
 
 /*

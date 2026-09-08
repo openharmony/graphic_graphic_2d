@@ -53,7 +53,9 @@ protected:
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
+    bool UnmarshallingSpringParams(Parcel& parcel);
 #endif
+    bool ValidateSpringParams() const;
     RSRenderInterpolatingSpringAnimation() = default;
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;

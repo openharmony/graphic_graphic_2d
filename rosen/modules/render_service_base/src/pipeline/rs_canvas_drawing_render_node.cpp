@@ -720,11 +720,13 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
 #endif
 
     auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+    if (stagingRenderParams != nullptr) {
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
+        stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
+        stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
-    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+        stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+    }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (surfaceHandler_ != nullptr) {
         static uint32_t maxGpuSupportedWidth = 0;
@@ -734,7 +736,9 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
             []() { RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight); });
         sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
             height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
-        stagingRenderParams->SetBufferDraw(IsBufferDraw());
+        if (stagingRenderParams != nullptr) {
+            stagingRenderParams->SetBufferDraw(IsBufferDraw());
+        }
         if (sizeOutOfGpuLimit_) {
             firstBufferAcquired_ = false;
             UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);

@@ -35,7 +35,7 @@ public:
     static void Run();
     static void Stop();
     static void ForceShutdown();
-    static bool IsRunning();
+    static bool IfThreadCanBeStarted();
 
     static void SendRdcPath(const std::string& path);
     static void SendDclPath(const std::string& path);
@@ -74,9 +74,12 @@ private:
 
 private:
     static std::atomic<bool> isRunning_;
+    static std::atomic<bool> requestStopRunning_;
     static std::atomic<bool> forceShutdown_;
     static std::atomic<bool> blockBinary_;
     static std::chrono::steady_clock::time_point ping_;
+
+    static std::mutex isRunningMutex_;
 
     static std::mutex incomingMutex_;
     static std::queue<std::vector<std::string>> incoming_;

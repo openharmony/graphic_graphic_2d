@@ -30,7 +30,10 @@ class RSB_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 
-    RSRenderAnimationType GetType() const override { return RSRenderAnimationType::PROPERTY_ANIMATION; }
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::PROPERTY_ANIMATION;
+    }
 
     void DumpAnimationInfo(std::string& out) const override;
     void DumpProperty(std::string& out) const;

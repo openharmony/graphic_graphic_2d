@@ -99,7 +99,7 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     if (clientToService == nullptr) {
         return false;
     }
-    bool enable;
+    bool enable = false;
     return clientToService->GetUniRenderEnabled(enable) == ERR_OK && enable;
 }
 
@@ -1675,6 +1675,15 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     if (clientToService != nullptr) {
         clientToService->NotifyRefreshRateEvent(eventInfo);
     }
+}
+
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService != nullptr) {
+        return clientToService->SetHgmExclusiveScreen(screenId);
+    }
+    return false;
 }
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
