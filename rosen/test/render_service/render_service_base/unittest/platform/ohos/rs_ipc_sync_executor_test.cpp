@@ -168,6 +168,34 @@ HWTEST_F(RSIpcSyncExecutorTest, DataWithObjectsRejected, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReplyWithObjectsRejected
+ * @tc.desc: A reply carrying binder objects/fds cannot be cloned back; the call fails safe
+ *           with UNKNOWN_ERROR and the caller's reply parcel stays untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSIpcSyncExecutorTest, ReplyWithObjectsRejected, TestSize.Level1)
+{
+    sptr<MockIRemoteObject> remote = new MockIRemoteObject();
+    remote->sendRequestImpl_ = [](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+        int fd = open("/dev/null", O_RDONLY);
+        if (fd < 0 || !reply.WriteFileDescriptor(fd)) {
+            return UNKNOWN_ERROR;
+        }
+        close(fd);
+        return NO_ERROR;
+    };
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto& executor = RSSIpcSyncExecutor::GetInstance();
+    uint32_t countBefore = executor.GetInFlightTimeoutCount();
+    int32_t ret = executor.ExecuteSyncWithTimeout(remote, TEST_CODE, data, reply, option, TEST_NORMAL_TIMEOUT_MS);
+    ASSERT_EQ(ret, static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR));
+    ASSERT_EQ(reply.GetDataSize(), 0);
+    ASSERT_EQ(executor.GetInFlightTimeoutCount(), countBefore);
+}
+
+/**
  * @tc.name: WorkerErrorCode
  * @tc.desc: SendRequest failure on the worker is returned as-is, not as a timeout.
  * @tc.type: FUNC

@@ -126,7 +126,14 @@ int32_t RSSIpcSyncExecutor::ExecuteSyncWithTimeout(const sptr<IRemoteObject>& re
         ROSEN_LOGE("RSSIpcSyncExecutor: clone data parcel failed, code %{public}u", code);
         return static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
     }
-    IpcQueue().submit([remote, code, ctx, option]() { RunWorker(remote, code, ctx, option); });
+    auto handle = IpcQueue().submit_h([remote, code, ctx, option]() { RunWorker(remote, code, ctx, option); });
+    if (handle == nullptr) {
+        // FFRT refused the task; fall back to a direct in-thread send (pre-offload behavior)
+        // instead of leaking an in-flight slot that no worker can ever reclaim.
+        ROSEN_LOGE("RSSIpcSyncExecutor: submit failed, code %{public}u, fall back to direct send", code);
+        MessageOption optionCopy = option;
+        return remote->SendRequest(code, data, reply, optionCopy);
+    }
 
     std::unique_lock<std::mutex> lock(ctx->mutex_);
     if (!ctx->cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&ctx]() { return ctx->done_; })) {

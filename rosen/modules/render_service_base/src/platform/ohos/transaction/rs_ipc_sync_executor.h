@@ -46,6 +46,11 @@ struct SyncIpcContext {
 // Offloads synchronous binder SendRequest calls to an FFRT worker and bounds the caller's
 // waiting time with condition_variable::wait_for, so a frozen RS process returns an error
 // to the client business thread instead of blocking it forever.
+// Threading note: while a call is offloaded, the calling thread waits on the condition
+// variable and no longer participates in binder; a nested incoming transaction RS sends
+// back during the call is handled on the rs_ipc_sync worker thread instead of the calling
+// thread. Offloaded interfaces must not rely on synchronous RS->client callbacks running
+// on the calling thread.
 class RSSIpcSyncExecutor final {
 public:
     static constexpr uint32_t DEFAULT_MAX_INFLIGHT_TIMEOUT = 16;
@@ -53,9 +58,12 @@ public:
     static RSSIpcSyncExecutor& GetInstance();
 
     // Runs remote->SendRequest on a worker thread and waits at most timeoutMs on the calling
-    // thread. Returns the SendRequest result code when the worker completes, or
+    // thread. The timeout budget starts at submission and includes FFRT queueing time, so a
+    // call may time out while still queued when the queue is saturated. Returns the
+    // SendRequest result code when the worker completes, or
     // RSInterfaceErrorCode::IPC_TIMEOUT_ERROR on timeout or when too many timed-out calls are
-    // still in flight (fail-fast).
+    // still in flight (fail-fast). If FFRT refuses the task, the call is sent directly on
+    // the calling thread without timeout protection.
     // Caller contract: sync option only, and both parcels carry plain data only (no binder
     // objects or fds); callers are responsible for filtering such calls out beforehand.
     int32_t ExecuteSyncWithTimeout(const sptr<IRemoteObject>& remote, uint32_t code, MessageParcel& data,
