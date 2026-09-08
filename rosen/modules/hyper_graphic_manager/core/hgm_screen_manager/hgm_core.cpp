@@ -47,7 +47,9 @@ void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* con
     HgmTaskHandleThread::Instance().PostTask([mode = std::move(mode)] {
         auto& hgmCore = HgmCore::Instance();
         auto curMode = hgmCore.GetCurrentRefreshRateMode();
-        hgmCore.GetPolicyConfigData()->UpdateRefreshRateForSettings(mode);
+        if (const auto& configData = hgmCore.GetPolicyConfigData()) {
+            configData->UpdateRefreshRateForSettings(mode);
+        }
         hgmCore.SetRefreshRateMode(curMode);
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
         HILOG_COMM_INFO("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
