@@ -79,6 +79,10 @@
 #include "ressched_event_listener.h"
 #endif
 
+#define TAG_COUNTER3    "counter3"
+#define TAG_VSYNC_ID_S  "vsyncId_s"
+#define TAG_VSYNC_ID_E  "vsyncId_e"
+
 #undef LOG_TAG
 #define LOG_TAG "RSRenderComposer"
 
@@ -250,10 +254,16 @@ void RSRenderComposer::SetAFBCEnabled(bool enabled)
     enableAFBC_ = enabled;
 }
 
-void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
+void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter, uint64_t syncId = 0,
+    const std::string& vsyncContext = "")
 {
 #ifdef HIPERF_TRACE_ENABLE
-    RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64, counterContext.c_str(), counter);
+    uint64_t vsyncId = 0;
+    RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64 " %{public}" PRIu64, counterContext.c_str(), counter, syncId);
+    if (!vsyncContext.empty()) {
+        RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64 " %{public}" PRIu64,
+                vsyncContext.c_str(), syncId, vsyncId);
+    }
 #endif
 }
 
@@ -279,7 +289,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     RSTimer timer(threadName.c_str(), COMPOSER_TIMEOUT);
     auto layers = rsRenderComposerContext_->GetNeedCompositionLayersVec();
     AddSolidColorLayer(layers);
-    PrintHiperfSurfaceLog("counter3", static_cast<uint64_t>(layers.size()));
+    PrintHiperfSurfaceLog(TAG_COUNTER3, static_cast<uint64_t>(layers.size()), pipelineParam.vsyncId, TAG_VSYNC_ID_S);
     int64_t startTime = GetCurTimeCount();
     RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(screenId_);
 
@@ -360,6 +370,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     if (composerToRenderConnection_ != nullptr && pipelineParam.hasLppVideo) {
         composerToRenderConnection_->NotifyLppLayerToRender(pipelineParam.vsyncId, lppLayerCollector_.GetLppLayerId());
     }
+    PrintHiperfSurfaceLog(TAG_VSYNC_ID_E, pipelineParam.vsyncId);
     EndCheck(timer);
     if (isDisconnected_ && unExecuteTaskNum_ == 0) {
         RS_TRACE_NAME_FMT("Clear output, screenId : %" PRIu64, screenId_);
