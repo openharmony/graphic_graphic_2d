@@ -415,13 +415,14 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
     return skTypeface;
 }
 
-std::shared_ptr<Data> SkiaTypeface::Serialize() const
+std::shared_ptr<Data> SkiaTypeface::Serialize(SerializeBehavior behavior) const
 {
     if (!skTypeface_) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-    auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
+    auto skBehavior = static_cast<SkTypeface::SerializeBehavior>(static_cast<uint32_t>(behavior));
+    auto skData = skTypeface_->serialize(skBehavior);
     auto data = std::make_shared<Data>();
     auto skiaData = data->GetImpl<SkiaData>();
     if (!skiaData) {
