@@ -657,14 +657,18 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
     // Clean up the content of the previous frame
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
+    auto mirrorSourceScreenInfo = mirrorSourceScreenParams->GetScreenInfo();
+    // When mirror scale (SLR or source sampling) is active, the single-self-drawing optimization
+    // would draw without the scale and cause display inconsistency. Fall back to normal path.
+    bool hasMirrorScale = (slrManager != nullptr) || mirrorSourceScreenInfo.isSamplingOn;
     // If the self-drawing node is not fullscreen, need to re-adaptation curCanvas_ clear
-    if (RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas, *mirrorSourceScreenParams, params)) {
+    if (!hasMirrorScale &&
+        RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas, *mirrorSourceScreenParams, params)) {
         return;
     }
     processor->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
 
-    auto mirrorSourceScreenInfo = mirrorSourceScreenParams->GetScreenInfo();
     float mirrorSourceSamplingScale = mirrorSourceScreenInfo.isSamplingOn ? mirrorSourceScreenInfo.samplingScale : 1.0f;
 
     curCanvas->Save();
