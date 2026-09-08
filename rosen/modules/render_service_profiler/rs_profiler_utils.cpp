@@ -553,11 +553,12 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     if (realPath.empty() && ShouldFileBeCreated(options) && IsSandboxPath(path)) {
         const int fd = open(path.data(), O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW, S_IRUSR | S_IWUSR);
         if (fd != -1) {
+            fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
             if (auto file = fdopen(fd, options.data())) {
                 return file;
             }
             unlink(path.data());
-            close(fd);
+            fdsan_close_with_tag(fd, LOG_DOMAIN);
             HRPE("FileOpen: Cannot create file '%s' (%s)", path.data(), options.data()); // NOLINT
             return nullptr;
         }

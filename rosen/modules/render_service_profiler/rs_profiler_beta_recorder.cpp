@@ -216,12 +216,7 @@ void RSProfiler::ClearBetaRecordFiles()
 {
     constexpr uint32_t maxCacheFiles = 10u;
     for (uint32_t i = 0; i < maxCacheFiles; i++) {
-        auto fullPath = GetBetaRecordFileName(i);
-        auto file = Utils::FileOpen(fullPath, "wbe");
-        if (Utils::IsFileValid(file)) {
-            Utils::FileClose(file);
-            remove(fullPath.c_str());
-        }
+        Utils::FileDelete(GetBetaRecordFileName(i));
     }
 }
 
