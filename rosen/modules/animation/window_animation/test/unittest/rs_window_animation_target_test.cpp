@@ -185,5 +185,49 @@ HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcelProxyNodeNotNull001, TestSiz
     EXPECT_EQ(target->windowId_, 1u);
     GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelProxyNodeNotNull001 end";
 }
+
+/**
+ * @tc.name: ReadFromParcelBundleNameTooLong001
+ * @tc.desc: Verify ReadFromParcel returns false when bundleName exceeds max length
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcelBundleNameTooLong001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelBundleNameTooLong001 start";
+    Parcel parcel;
+    std::string longName(513, 'a');
+    parcel.WriteString(longName);
+    parcel.WriteString("testAbility");
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(100.0f);
+    parcel.WriteFloat(200.0f);
+    parcel.WriteFloat(0.0f);
+    auto target = std::make_shared<RSWindowAnimationTarget>();
+    ASSERT_FALSE(target->ReadFromParcel(parcel));
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelBundleNameTooLong001 end";
+}
+
+/**
+ * @tc.name: ReadFromParcelAbilityNameTooLong001
+ * @tc.desc: Verify ReadFromParcel returns false when abilityName exceeds max length
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcelAbilityNameTooLong001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelAbilityNameTooLong001 start";
+    Parcel parcel;
+    std::string longName(513, 'a');
+    parcel.WriteString("testBundle");
+    parcel.WriteString(longName);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(100.0f);
+    parcel.WriteFloat(200.0f);
+    parcel.WriteFloat(0.0f);
+    auto target = std::make_shared<RSWindowAnimationTarget>();
+    ASSERT_FALSE(target->ReadFromParcel(parcel));
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelAbilityNameTooLong001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

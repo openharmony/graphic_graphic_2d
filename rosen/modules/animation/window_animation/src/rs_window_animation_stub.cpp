@@ -68,6 +68,10 @@ int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
         WALOGE("Failed to read starting app type!");
         return ERR_INVALID_DATA;
     }
+    if (type < FROM_LAUNCHER || type > FROM_OTHER) {
+        WALOGE("Invalid starting app type: %{public}d", type);
+        return ERR_INVALID_DATA;
+    }
     sptr<RSWindowAnimationTarget> startingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (startingWindowTarget == nullptr) {
         WALOGE("Failed to read starting window target!");
