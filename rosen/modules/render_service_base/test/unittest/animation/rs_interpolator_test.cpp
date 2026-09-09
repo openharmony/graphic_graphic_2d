@@ -675,5 +675,62 @@ HWTEST_F(RSInterpolatorTest, Init001, TestSize.Level1)
     EXPECT_EQ(extractedPid, currentPid);
     GTEST_LOG_(INFO) << "RSInterpolatorTest Init001 end";
 }
+
+/**
+ * @tc.name: EnsureValidId001
+ * @tc.desc: Verify EnsureValidId returns original id when pid matches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId001 start";
+    RSInterpolator::Init();
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    pid_t currentPid = GetRealPid();
+    EXPECT_EQ(ExtractPid(interpolator->id_), currentPid);
+    EXPECT_EQ(interpolator->EnsureValidId(), interpolator->id_);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId001 end";
+}
+
+/**
+ * @tc.name: EnsureValidId002
+ * @tc.desc: Verify EnsureValidId corrects id when pid is 0 (pre-Init)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId002 start";
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    uint32_t originalCounter = static_cast<uint32_t>(interpolator->id_);
+    interpolator->id_ = static_cast<uint64_t>(originalCounter);
+    pid_t currentPid = GetRealPid();
+    EXPECT_EQ(ExtractPid(interpolator->id_), 0);
+    uint64_t result = interpolator->EnsureValidId();
+    EXPECT_EQ(ExtractPid(result), currentPid);
+    EXPECT_EQ(static_cast<uint32_t>(result), originalCounter);
+    EXPECT_EQ(ExtractPid(interpolator->id_), 0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId002 end";
+}
+
+/**
+ * @tc.name: EnsureValidId003
+ * @tc.desc: Verify EnsureValidId corrects id when pid is wrong non-zero value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId003 start";
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    uint32_t originalCounter = static_cast<uint32_t>(interpolator->id_);
+    constexpr pid_t fakeWrongPid = 9999;
+    interpolator->id_ = (static_cast<uint64_t>(fakeWrongPid) << 32) | originalCounter;
+    pid_t currentPid = GetRealPid();
+    EXPECT_NE(ExtractPid(interpolator->id_), currentPid);
+    uint64_t result = interpolator->EnsureValidId();
+    EXPECT_EQ(ExtractPid(result), currentPid);
+    EXPECT_EQ(static_cast<uint32_t>(result), originalCounter);
+    EXPECT_EQ(ExtractPid(interpolator->id_), fakeWrongPid);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId003 end";
+}
 } // namespace Rosen
 } // namespace OHOS
