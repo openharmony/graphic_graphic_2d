@@ -53,7 +53,7 @@ bool RSCubicBezierInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("Marshalling RSCubicBezierInterpolator type failed");
         return false;
     }
-    if (!parcel.WriteUint64(id_)) {
+    if (!parcel.WriteUint64(EnsureValidId())) {
         ROSEN_LOGE("Marshalling RSCubicBezierInterpolator id failed");
         return false;
     }
@@ -173,7 +173,7 @@ bool LinearInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("Marshalling LinearInterpolator type failed");
         return false;
     }
-    if (!parcel.WriteUint64(id_)) {
+    if (!parcel.WriteUint64(EnsureValidId())) {
         ROSEN_LOGE("Marshalling LinearInterpolator id failed");
         return false;
     }
@@ -200,7 +200,7 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write type failed");
         return false;
     }
-    if (!parcel.WriteUint64(id_)) {
+    if (!parcel.WriteUint64(EnsureValidId())) {
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write id failed");
         return false;
     }
@@ -966,7 +966,7 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write type failed");
         return false;
     }
-    if (!parcel.WriteUint64(id_)) {
+    if (!parcel.WriteUint64(EnsureValidId())) {
         ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write id failed");
         return false;
     }
@@ -1005,7 +1005,7 @@ bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("StepsInterpolator marshalling write type failed.");
         return false;
     }
-    if (!parcel.WriteUint64(id_)) {
+    if (!parcel.WriteUint64(EnsureValidId())) {
         ROSEN_LOGE("StepsInterpolator marshalling write id failed.");
         return false;
     }

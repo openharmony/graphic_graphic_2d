@@ -52,6 +52,7 @@ public:
     virtual InterpolatorType GetType() = 0;
     static void Init();
     void UpdateId();
+    uint64_t EnsureValidId() const;
 protected:
     RSInterpolator();
     RSInterpolator(uint64_t id) : id_(id) {};
