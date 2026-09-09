@@ -70,7 +70,8 @@ public:
     void LogCommandInfo(RSTransactionData& transactionData);
     void LogHwcBufferUpdate(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool bufferConsumed);
     void LogAnimatingNodes();
-    void ReportEnergyStats(uint64_t energy);
+    // DFX: report energy statistics during Animate (feature switch controlled)
+    void ReportEnergyStats(HgmRPEnergy& energy);
 
 private:
     // result of the single-pass ancestor traversal to logicalDisplayNode
