@@ -55,7 +55,6 @@ ohos_shared_library("effectKit_ani") {
     "./include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
-    "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain/include",
     "$graphic_2d_root/utils/color_manager/export",
