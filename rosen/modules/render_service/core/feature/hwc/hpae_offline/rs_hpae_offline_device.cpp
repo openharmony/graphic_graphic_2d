@@ -235,7 +235,7 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
 {
 #ifdef HETERO_HDR_ENABLE
     RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-    if (RSHeteroHDRManager::Instance().GetNeedClearBufferAndMHC()) {    
+    if (RSHeteroHDRManager::Instance().GetNeedClearBufferAndMHC()) {
         RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ").", context->nodeId);
         return false;
     }
