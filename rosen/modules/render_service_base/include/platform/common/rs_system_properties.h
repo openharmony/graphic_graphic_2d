@@ -396,6 +396,8 @@ public:
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
     static bool GetPreparePhaseQuickSkipEnabled();
+    static bool IsSelectivePrepareOptEnabled();
+    static bool IsSelectivePrepareOptDebugEnabled();
     static bool GetUnmarshalParallelEnabled();
     static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetBootCompleted();

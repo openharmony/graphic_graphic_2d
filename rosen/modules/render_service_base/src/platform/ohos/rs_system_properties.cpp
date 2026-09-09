@@ -1749,6 +1749,22 @@ bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
     return quickSkipEnabled;
 }
 
+bool RSSystemProperties::IsSelectivePrepareOptEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.rosen.graphic.selective_prepare_opt", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::IsSelectivePrepareOptDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.graphic.selective_prepare_opt_debug", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetScaleImageAsyncEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");

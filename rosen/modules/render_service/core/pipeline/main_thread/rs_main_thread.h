@@ -74,6 +74,7 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
+class RSSelectivePrepareManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -942,6 +943,7 @@ private:
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
     std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
+    std::unique_ptr<RSSelectivePrepareManager> selectivePrepareManager_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool isWebCommandOnly_ = false;
