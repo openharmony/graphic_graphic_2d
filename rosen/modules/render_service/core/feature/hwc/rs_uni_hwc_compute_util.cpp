@@ -298,6 +298,9 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const RSScreenPro
     if (node.GetHwcGlobalPositionEnabled()) {
         return;
     }
+    if (node.GetDelegateMode()) {
+        return;
+    }
     auto dstRect = node.GetDstRect();
     auto srcRect = node.GetSrcRect();
     auto originSrcRect = srcRect;
