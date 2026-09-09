@@ -268,6 +268,20 @@ GraphicCompositionType RSSurfaceLayer::GetCompositionType() const
     return compositionType_;
 }
 
+void RSSurfaceLayer::SetAlphaType(GraphicAlphaType alphaType)
+{
+    if (alphaType_ == alphaType) {
+        return;
+    }
+    alphaType_ = alphaType;
+    SetRSLayerCmd<RSRenderLayerAlphaTypeCmd>(alphaType);
+}
+
+GraphicAlphaType RSSurfaceLayer::GetAlphaType() const
+{
+    return alphaType_;
+}
+
 void RSSurfaceLayer::SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions)
 {
     if (visibleRegions_ == visibleRegions) {

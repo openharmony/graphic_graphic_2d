@@ -114,6 +114,16 @@ GraphicCompositionType RSRenderSurfaceLayer::GetCompositionType() const
     return compositionType_;
 }
 
+void RSRenderSurfaceLayer::SetAlphaType(GraphicAlphaType alphaType)
+{
+    alphaType_ = alphaType;
+}
+
+GraphicAlphaType RSRenderSurfaceLayer::GetAlphaType() const
+{
+    return alphaType_;
+}
+
 void RSRenderSurfaceLayer::SetHdiCompositionType(GraphicCompositionType type)
 {
     hdiCompositionType_ = type;
@@ -729,6 +739,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     transformType_ = rsLayer->GetTransform();
     compositionType_ = rsLayer->GetCompositionType();
     hdiCompositionType_ = rsLayer->GetHdiCompositionType();
+    alphaType_ = rsLayer->GetAlphaType();
     blendType_ = rsLayer->GetBlendType();
     colorTransformMatrix_ = rsLayer->GetColorTransform();
     colorSpace_ = rsLayer->GetColorDataSpace();

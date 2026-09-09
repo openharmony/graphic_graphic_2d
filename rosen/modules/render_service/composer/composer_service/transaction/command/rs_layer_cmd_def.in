@@ -21,6 +21,7 @@ DECLARE_RSLAYER_CMD(Zorder, int32_t, ZORDER)
 DECLARE_RSLAYER_CMD(Type, GraphicLayerType, TYPE)
 DECLARE_RSLAYER_CMD(Transform, GraphicTransformType, TRANSFORM)
 DECLARE_RSLAYER_CMD(CompositionType, GraphicCompositionType, COMPOSITION_TYPE)
+DECLARE_RSLAYER_CMD(AlphaType, GraphicAlphaType, ALPHA_TYPE)
 DECLARE_RSLAYER_CMD(Gravity, int32_t, GRAVITY)
 DECLARE_RSLAYER_CMD(BlendType, GraphicBlendType, BLEND_TYPE)
 

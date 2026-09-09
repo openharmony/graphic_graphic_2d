@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "consumer_surface.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -2401,6 +2402,80 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AllBranchesCoveredTest001, TestS
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
     EXPECT_TRUE(result->GetIsNeedComposition());
+}
+
+/**
+ * @tc.name: GetLayerInfo_AlphaTypeFromConsumerTest001
+ * @tc.desc: Test GetLayerInfo sets AlphaType from consumer when GetAlphaType succeeds
+ *           Covers the success branch: `if (consumer->GetAlphaType(alphaType) == GSERROR_OK)`
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AlphaTypeFromConsumerTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    SetTunnelLayerSnapshot(params.GetId());
+    params.SetHwcGlobalPositionEnabled(true);
+
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test_alpha_ok");
+    ASSERT_NE(consumer, nullptr);
+    // Set AlphaType on the buffer queue via producer so consumer GetAlphaType returns OPAQUE
+    sptr<IBufferProducer> producerObj = consumer->GetProducer();
+    ASSERT_NE(producerObj, nullptr);
+    auto producer = Surface::CreateSurfaceAsProducer(producerObj);
+    ASSERT_NE(producer, nullptr);
+    EXPECT_EQ(producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE), GSERROR_OK);
+
+    sptr<SyncFence> acquireFence = nullptr;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+}
+
+/**
+ * @tc.name: GetLayerInfo_AlphaTypeDefaultOnGetFailTest001
+ * @tc.desc: Test GetLayerInfo keeps default AlphaType when consumer GetAlphaType fails
+ *           Covers the failure branch: `consumer->GetAlphaType(alphaType) != GSERROR_OK`
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AlphaTypeDefaultOnGetFailTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    SetTunnelLayerSnapshot(params.GetId());
+    params.SetHwcGlobalPositionEnabled(true);
+
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    // Use uninitialized ConsumerSurface (no Init) so consumer_ is nullptr and GetAlphaType fails
+    sptr<IConsumerSurface> consumer = new ConsumerSurface("test_alpha_fail");
+    ASSERT_NE(consumer, nullptr);
+
+    sptr<SyncFence> acquireFence = nullptr;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    ASSERT_NE(result, nullptr);
+    // Layer keeps default PREMUL when consumer GetAlphaType fails
+    EXPECT_EQ(result->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
 }
 
 /**
