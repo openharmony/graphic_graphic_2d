@@ -824,6 +824,60 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Composition_And_Blend_Applied,
 }
 
 /**
+ * Function: UpdateRSLayerCmd_AlphaType_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply AlphaType command and verify SetAlphaType/GetAlphaType on RSRenderSurfaceLayer
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_AlphaType_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    // Default is PREMUL
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicAlphaType>>(
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    auto cmd = std::make_shared<RSRenderLayerAlphaTypeCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+}
+
+/**
+ * Function: SetAlphaType_GetAlphaType_DirectSetter
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: directly call SetAlphaType and verify GetAlphaType returns the value
+ */
+HWTEST(RSRenderSurfaceLayerTest, SetAlphaType_GetAlphaType_DirectSetter, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+}
+
+/**
+ * Function: CopyLayerInfo_CopiesAlphaType
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: set AlphaType on src, copy to dst, verify dst has the alphaType
+ *                  (covers new `alphaType_ = rsLayer->GetAlphaType()` line in CopyLayerInfo)
+ */
+HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesAlphaType, TestSize.Level1)
+{
+    auto src = std::make_shared<RSRenderSurfaceLayer>();
+    src->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+
+    auto dst = std::make_shared<RSRenderSurfaceLayer>();
+    EXPECT_EQ(dst->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+
+    dst->CopyLayerInfo(src);
+    EXPECT_EQ(dst->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+}
+
+/**
  * Function: UpdateRSLayerCmd_TunnelHandle_NonNull_Applied
  * Type: Function
  * Rank: Important(2)

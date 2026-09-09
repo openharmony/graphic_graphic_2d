@@ -301,6 +301,14 @@ public:
     {
         return compType_;
     }
+    void SetAlphaType(GraphicAlphaType alphaType) override
+    {
+        alphaType_ = alphaType;
+    }
+    GraphicAlphaType GetAlphaType() const override
+    {
+        return alphaType_;
+    }
     void SetHdiCompositionType(GraphicCompositionType type) override
     {
         hdiCompType_ = type;
@@ -738,6 +746,7 @@ private:
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicCompositionType compType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
     GraphicCompositionType hdiCompType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
+    GraphicAlphaType alphaType_ = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;

@@ -354,6 +354,54 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_004, Function | SmallTe
 }
 
 /*
+ * @tc.name: CreateLayerBufferDrawParam_005
+ * @tc.desc: Test CreateLayerBufferDrawParam with AlphaType set on layer
+ *           Verifies layer->GetAlphaType() returns the expected value that would be
+ *           cast to Drawing::AlphaType in the new `params.alphaType = static_cast<...>` line.
+ *           CreateLayerBufferDrawParam is also called to ensure no crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_005, Function | SmallTest | Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+
+    // Default alphaType is PREMUL; verify layer reports it correctly (source for static_cast)
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+    // Call CreateLayerBufferDrawParam to ensure no crash with default alphaType
+    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+
+    // Set non-default AlphaType and verify layer reports the new value
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+}
+
+/*
+ * @tc.name: CreateLayerBufferDrawParam_006
+ * @tc.desc: Test CreateLayerBufferDrawParam keeps default alphaType when buffer is nullptr
+ *           (early return before the alphaType assignment line)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_006, Function | SmallTest | Level2)
+{
+    bool forceCPU = false;
+    // No buffer set, so CreateLayerBufferDrawParam returns before the alphaType assignment line
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+
+    BufferDrawParam params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+    // Default alphaType in BufferDrawParam is PREMUL, not overwritten because buffer is nullptr
+    EXPECT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+}
+
+/*
  * @tc.name: GetRotationFromMatrix
  * @tc.desc:
  * @tc.type: FUNC

@@ -967,6 +967,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     auto boundRect = layer->GetBoundSize();
     params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
     params.splitLayerTag = layer->GetSplitLayerTag();
+    params.alphaType = static_cast<Drawing::AlphaType>(layer->GetAlphaType());
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
