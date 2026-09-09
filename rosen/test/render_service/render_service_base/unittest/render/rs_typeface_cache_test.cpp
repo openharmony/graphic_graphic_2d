@@ -72,7 +72,7 @@ public:
     bool IsThemeTypeface() const override { return false; }
     void SetIsThemeTypeface(bool) override {}
     // Return default-constructed Data whose skData_ is null → GetData() returns nullptr
-    std::shared_ptr<Drawing::Data> Serialize() const override
+    std::shared_ptr<Drawing::Data> Serialize(Drawing::SerializeBehavior) const override
     {
         return std::make_shared<Drawing::Data>();
     }
@@ -110,7 +110,7 @@ public:
     bool IsThemeTypeface() const override { return false; }
     void SetIsThemeTypeface(bool) override {}
     // Return Data built with BuildEmpty() → GetData() non-null but GetSize() == 0
-    std::shared_ptr<Drawing::Data> Serialize() const override
+    std::shared_ptr<Drawing::Data> Serialize(Drawing::SerializeBehavior) const override
     {
         auto data = std::make_shared<Drawing::Data>();
         data->BuildEmpty();
