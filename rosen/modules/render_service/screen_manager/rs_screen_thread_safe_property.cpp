@@ -393,6 +393,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetHdiRogEnable(
     return { ScreenPropertyType::IS_HDI_ROG_ENABLE, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetDualScreenState(DualScreenStatus dualScreenStatus)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::DUAL_SCREEN_STATE>(static_cast<uint64_t>(dualScreenStatus));
+    return { ScreenPropertyType::DUAL_SCREEN_STATE, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingMode(ScreenSamplingMode samplingMode)
 {
     UniqueLock lock(propertyMutex_);
@@ -692,6 +699,12 @@ bool RSScreenThreadSafeProperty::GetHdiRogEnable() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetHdiRogEnable();
+}
+
+DualScreenStatus RSScreenThreadSafeProperty::GetDualScreenState() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetDualScreenState();
 }
 
 ScreenSamplingMode RSScreenThreadSafeProperty::GetSamplingMode() const

@@ -301,6 +301,11 @@ bool RSScreenProperty::GetHdiRogEnable() const
     return Get<ScreenPropertyType::IS_HDI_ROG_ENABLE>();
 }
 
+DualScreenStatus RSScreenProperty::GetDualScreenState() const
+{
+    return static_cast<DualScreenStatus>(Get<ScreenPropertyType::DUAL_SCREEN_STATE>());
+}
+
 ScreenInfo RSScreenProperty::GetScreenInfo() const
 {
     ScreenInfo info;
@@ -387,6 +392,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::IS_MAIN_SCREEN)
         UNMARSHALL_CASE(ScreenPropertyType::IS_ROG_RESOLUTION)
         UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
+        UNMARSHALL_CASE(ScreenPropertyType::DUAL_SCREEN_STATE)
         UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_MODE)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
