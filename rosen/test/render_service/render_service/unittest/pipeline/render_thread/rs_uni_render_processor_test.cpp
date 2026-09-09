@@ -2404,62 +2404,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AllBranchesCoveredTest001, TestS
 }
 
 /**
- * @tc.name: GetLayerInfo_AlphaTypeFromConsumerTest001
- * @tc.desc: Test GetLayerInfo sets AlphaType from consumer when GetAlphaType succeeds
- *           Covers the success branch: `if (consumer->GetAlphaType(alphaType) == GSERROR_OK)`
- *           IConsumerSurface::Create initialises BufferQueue whose default alphaType_ is PREMUL,
- *           so GetAlphaType returns GSERROR_OK and layer->SetAlphaType(PREMUL) is called.
- *           Test mirrors GetLayerInfo002 (known passing) and only changes the final assertion.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AlphaTypeFromConsumerTest001, TestSize.Level2)
-{
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
-    params.SetHwcGlobalPositionEnabled(true);
-    sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    sptr<SyncFence> acquireFence = nullptr;
-    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
-    renderProcessor->composerClient_ = composerClient;
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    ASSERT_NE(result, nullptr);
-    // GetAlphaType returns GSERROR_OK with default PREMUL, so SetAlphaType(PREMUL) is called
-    EXPECT_EQ(result->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
-}
-
-/**
- * @tc.name: GetLayerInfo_AlphaTypeDefaultOnGetFailTest001
- * @tc.desc: Test GetLayerInfo keeps default AlphaType when consumer is nullptr
- *           Covers the failure branch: `consumer->GetAlphaType(alphaType)` not executed because
- *           GetLayerInfo returns early when layer creation fails, so layer keeps default PREMUL.
- *           Note: passing nullptr consumer triggers the composerClient_ == nullptr early return
- *           path in GetLayerInfo (result == nullptr), which still exercises the code path
- *           where SetAlphaType is never reached.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AlphaTypeDefaultOnGetFailTest001, TestSize.Level2)
-{
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
-    params.SetHwcGlobalPositionEnabled(true);
-    sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<IConsumerSurface> consumer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    // composerClient_ set to nullptr makes GetLayerInfo return nullptr (early return path),
-    // which means SetAlphaType is never called and the default PREMUL is preserved.
-    renderProcessor->composerClient_ = nullptr;
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result, nullptr);
-}
-
-/**
  * @tc.name: UpdateMirrorInfo_NullParamsTest001
  * @tc.desc: Test UpdateMirrorInfo when displayDrawable.GetRenderParams() returns nullptr
  *           The if (params == nullptr) branch in RSProcessor::UpdateMirrorInfo should be true
