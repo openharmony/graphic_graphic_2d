@@ -14,6 +14,9 @@
  */
 #include "feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.h"
 #include "common/rs_optional_trace.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "pipeline/rs_canvas_drawing_render_node.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -95,6 +98,13 @@ void RSDynamicLayerSkipController::CheckNodeDrawProperty(RSRenderNode& node)
         // self-drawing surface node is considered to has draw content.
         auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         OrBit(node, LayerDrawContent::SELF, surfaceNode && surfaceNode->IsSelfDrawingType());
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        // CanvasDrawingNode in hybrid mode renders content from buffer,
+        // but its CONTENT_STYLE drawable may be cleared. Check IsBufferDraw() to
+        // detect its draw content.
+        auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        OrBit(node, LayerDrawContent::SELF, canvasDrawingNode && canvasDrawingNode->IsBufferDraw());
+#endif
         SetBit(node, LayerDrawContent::UPDATE, false);
     }
 }
