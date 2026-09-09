@@ -57,6 +57,9 @@ const Vector3f DEFAULT_ED_LIGHT_KBS = Vector3f(0.6027f, 0.627451f, 2.0f);
 const Vector3f DEFAULT_ED_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
 const Vector3f DEFAULT_ED_LIGHT_NEG = Vector3f(3.2f, 2.0f, 1.0f);
 const Vector4f DEFAULT_MATERIAL_COLOR = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+const int DEFAULT_COLOR_BLEND_MODE = 0; // MaterialColorBlendMode::LINEAR_MIX
+const Vector3f DEFAULT_LUMA_PARAMS = Vector3f{0.6628f, 0.3137f, 0.1538f};
+const float DEFAULT_MATERIAL_COLOR_FRACTION = 0.0f;
 const bool DEFAULT_BASE_VIBRANCY_ENABLED = true;
 const float DEFAULT_SAMPLING_SCALE = 1.0f;
  
@@ -330,6 +333,22 @@ const std::vector<Vector4f> materialColorParams = {
     Vector4f{0.3f, 0.3f, 0.3f, 0.5f},
     Vector4f{1.0f, 1.0f, 1.0f, 0.5f}
 };
+
+// 29. colorBlendMode: MaterialColorBlendMode {LINEAR_MIX=0, TINTED_GLASS=1}
+const std::vector colorBlendModeParams = {0, 1, -1, 2};
+
+// 30. lumaParams: [-1.0, 1.0] per component
+const std::vector lumaParamsParams = {
+Vector3f{0.6628f, 0.3137f, 0.1538f},
+Vector3f{0.0f, 0.0f, 0.0f},
+Vector3f{1.0f, 1.0f, 1.0f},
+Vector3f{-1.0f, -1.0f, -1.0f},
+Vector3f{0.5f, 0.5f, 0.5f},
+Vector3f{1.0f, 0.0f, -1.0f}
+};
+
+// 31. materialColorFraction: [0.0, 1.0]
+const std::vector materialColorFractionParams = {0.0f, 0.2f, 0.5f, 0.8f, 1.0f, -1.0f};
 
 constexpr int DOUBLE_RIPPLE_MASK_PARAMS_COUNT = 7;
 const std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMaskParams = {
