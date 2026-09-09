@@ -268,6 +268,28 @@ bool RSInterfaceCodeAccessVerifierBase::IsExfusionServiceCalling(const std::stri
     return false;
 }
 
+bool RSInterfaceCodeAccessVerifierBase::IsGameServiceCalling(const std::string& callingCode) const
+{
+    // Gameservice service calls only
+    static constexpr uint32_t GAME_SERVICE_UID = 7011;
+    static const std::string GAME_SERVICE_PROCESS_NAME = "gameservice_server";
+    Security::AccessToken::NativeTokenInfo tokenInfo;
+    int32_t ret = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(GetTokenID(), tokenInfo);
+    if (ret == ERR_OK) {
+        bool isGameServiceProcessName = (tokenInfo.processName == GAME_SERVICE_PROCESS_NAME);
+        bool isNativeCalling = (GetTokenType() == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+        bool isGameServiceUid = (OHOS::IPCSkeleton::GetCallingUid() == GAME_SERVICE_UID);
+        bool isGameServiceCalling = isNativeCalling && isGameServiceUid && isGameServiceProcessName;
+        if (!isGameServiceCalling) {
+            RS_LOGE("%{public}s ipc interface code access denied: not gameservice service calling",
+                callingCode.c_str());
+        }
+        return isGameServiceCalling;
+    }
+    RS_LOGE("%{public}s ipc interface code access denied: GetNativeTokenInfo error", callingCode.c_str());
+    return false;
+}
+
 bool RSInterfaceCodeAccessVerifierBase::IsTaskManagerCalling(const std::string& callingCode) const
 {
     static constexpr uint32_t TASK_MANAGER_SERVICE_UID = 7005;
@@ -305,6 +327,11 @@ bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsTaskManagerCalling(const std::string& callingCode) const
+{
+    return true;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsGameServiceCalling(const std::string& callingCode) const
 {
     return true;
 }

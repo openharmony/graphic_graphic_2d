@@ -25,6 +25,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 
 class Canvas;
+class JsCanvas;
 
 class JsRecordCmdUtils final {
 public:
@@ -46,6 +47,8 @@ public:
         return rsRecordCmdUtils_;
     }
 
+    void OnCanvasDestroyed(JsCanvas* canvas);
+
 private:
     napi_value OnBeginRecording(napi_env env, napi_callback_info info);
     napi_value OnFinishRecording(napi_env env, napi_callback_info info);
@@ -54,6 +57,7 @@ private:
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<RSRecordCmdUtils> rsRecordCmdUtils_ = nullptr;
+    JsCanvas* recordingCanvas_ = nullptr;
 };
 
 } // namespace Drawing

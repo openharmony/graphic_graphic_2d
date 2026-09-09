@@ -232,16 +232,17 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
         return ERR_INVALID_VALUE;
     }
     // After a synchronous task times out, it will no longer be executed.
-    auto isTimeout = std::make_shared<bool>(0);
-    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
+    auto canExecute = std::make_shared<std::atomic<bool>>(true);
     std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), isTimeoutWeak] {
-        if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
+    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
+        if (mainThread == nullptr) {
             return;
         }
-        task->Process(mainThread->GetContext());
+        if (canExecute->exchange(false)) {
+            task->Process(mainThread->GetContext());
+        }
     }).wait_for(span);
-    isTimeout.reset();
+    canExecute->exchange(false);
     return ERR_OK;
 }
 
@@ -449,18 +450,18 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
 namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    const Drawing::Rect& specifiedAreaRect)
+    const Drawing::Rect& specifiedAreaRect, bool isSystemCalling)
 {
 #ifdef RS_ENABLE_GPU
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect, isSystemCalling]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect, isSystemCalling);
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
         context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(id, false);
-        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        RSMainThread::Instance()->AddUiCaptureTask(id, isSystemCalling, captureTask);
         return;
     }
 
@@ -468,7 +469,7 @@ void TakeSurfaceCaptureForUiParallel(
     if (node != nullptr && node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
         RSMainThread::Instance()->PostTask(captureTask);
     } else {
-        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        RSMainThread::Instance()->AddUiCaptureTask(id, isSystemCalling, captureTask);
     }
 #endif
 }
@@ -518,7 +519,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect, isSystemCalling);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }
@@ -824,7 +825,7 @@ void RSRenderPipelineAgent::TakeUICaptureInRange(
         }
         RS_TRACE_NAME_FMT("RSRenderPipelineAgent::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
         RS_LOGD("RSRenderPipelineAgent::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
-        TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+        TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {}, isSystemCalling);
     };
     pipeline->PostMainThreadTask(captureTask);
 }

@@ -36,7 +36,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr int MAX_KEYFRAME_SIZE_NUMBER = 100000;
+static constexpr int MAX_KEYFRAME_SIZE_NUMBER = 1000;
 
 enum RSTransitionEffectType : uint16_t {
     FADE = 1,
@@ -70,10 +70,6 @@ RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parc
     uint64_t id{0};
     if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
-        return nullptr;
-    }
-    if (id == 0) {
-        ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id == 0");
         return nullptr;
     }
     float x1 = 0;
@@ -126,6 +122,14 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
     RSInterpolator* rawInterpolator = UnmarshallingFromParcel(parcel);
     if (rawInterpolator == nullptr) {
         ROSEN_LOGE("RSInterpolator::Unmarshalling rawInterpolator is nullptr");
+        return nullptr;
+    }
+
+    pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+    if (callingPid != 0 && ExtractPid(rawInterpolator->id_) != callingPid) {
+        ROSEN_LOGE("RSInterpolator::Unmarshalling, id pid mismatch, callingPid=%{public}d, idPid=%{public}d",
+            static_cast<int>(callingPid), static_cast<int>(ExtractPid(rawInterpolator->id_)));
+        delete rawInterpolator;
         return nullptr;
     }
 

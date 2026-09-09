@@ -41,10 +41,22 @@ namespace Drawing {
 #endif
 
 class Canvas;
+class JsRecordCmdUtils;
+
 class JsCanvas final {
 public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~JsCanvas();
+
+    void Invalidate()
+    {
+        m_canvas = nullptr;
+        creator_ = nullptr;
+    }
+    void SetCreator(JsRecordCmdUtils* creator)
+    {
+        creator_ = creator;
+    }
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -193,6 +205,7 @@ private:
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
+    JsRecordCmdUtils* creator_ = nullptr;
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif

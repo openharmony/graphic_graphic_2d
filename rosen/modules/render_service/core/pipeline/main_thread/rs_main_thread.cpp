@@ -252,7 +252,8 @@ constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
-constexpr int32_t MAX_UI_CAPTURE_COUNT = 5;
+constexpr int32_t MAX_NON_SYSTEM_UI_CAPTURE_COUNT = 5;
+constexpr int32_t MAX_SYSTEM_UI_CAPTURE_COUNT = 20;
 constexpr int32_t MAX_SYNC_WINDOW_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
@@ -2304,7 +2305,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
 #endif
     hasProtectedLayer_ = RSDrmUtil::IsDRMNodesOnTheTree();
     CheckIfHardwareForcedDisabled();
-    if (!pendingUiCaptureTasks_.empty() || !pendingSyncWindowCaptureTasks_.empty()) {
+    if (!pendingNonSystemUiCaptureTasks_.empty() || !pendingSystemUiCaptureTasks_.empty() ||
+        !pendingSyncWindowCaptureTasks_.empty()) {
         doDirectComposition_ = false;
         AddDisableReason("syncCapture");
     }
@@ -2747,20 +2749,25 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
-void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
+void RSMainThread::AddUiCaptureTask(NodeId id, bool isSystemCalling, std::function<void()> task)
 {
-    pendingUiCaptureTasks_.emplace_back(id, task);
+    if (isSystemCalling) {
+        pendingSystemUiCaptureTasks_.emplace_back(id, task);
+    } else {
+        pendingNonSystemUiCaptureTasks_.emplace_back(id, task);
+    }
     // Republish the trigger snapshot so a listener firing between vsyncs sees this snapshot
     // request and defers to GO_NORMAL instead of direct-committing onto DSS.
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     const auto& nodeMap = context_->GetNodeMap();
     auto node = nodeMap.GetRenderNode(id);
     if (!node) {
-        RS_LOGW("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64, id);
+        RS_LOGW("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64
+            ", isSystemCalling: %{public}u", id, isSystemCalling);
     } else {
         bool isNeedSetTreeStateChangeDirty = node && (node->IsDirty() || node->IsSubTreeDirty());
-        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isDirty:%d, subDirty:%d, isOnTheTree:%d",
-            node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
+        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isSystem:%d, isDirty:%d, subDirty:%d, isOnTheTree:%d",
+            isSystemCalling, node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
         if (isNeedSetTreeStateChangeDirty) {
             node->SetChildrenTreeStateChangeDirty();
             node->SetParentTreeStateChangeDirty(true);
@@ -2833,31 +2840,49 @@ void RSMainThread::PrepareCaptureQueue(
 
 void RSMainThread::PrepareSyncCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor)
 {
-    PrepareCaptureQueue(pendingUiCaptureTasks_, uiCaptureTasks_);
+    PrepareCaptureQueue(pendingNonSystemUiCaptureTasks_, nonSystemUiCaptureTasks_);
+    PrepareCaptureQueue(pendingSystemUiCaptureTasks_, systemUiCaptureTasks_);
     PrepareCaptureQueue(pendingSyncWindowCaptureTasks_, syncWindowCaptureTasks_);
     context_->GetSyncCaptureHelper().CleanupStaleEntries(2 * TIME_OF_CAPTURE_TASK_REMAIN);
 }
 
-void RSMainThread::ProcessSyncCaptureTasks()
+static void ProcessUiCaptureQueue(std::queue<std::tuple<NodeId, std::function<void()>>>& readyQueue,
+    int32_t (&getInCaptureProgress)(), int32_t limit, const char* category)
 {
-#ifdef RS_ENABLE_GPU
-    // Process UI capture tasks
-    while (!uiCaptureTasks_.empty()) {
-        if (RSUiCaptureTaskParallel::GetCaptureCount() >= MAX_UI_CAPTURE_COUNT) {
-            RS_LOGW("ProcessSyncCaptureTasks syncUICapture reach limit this frame, "
-                "processed:%{public}d, limit:%{public}d",
-                RSUiCaptureTaskParallel::GetCaptureCount(), MAX_UI_CAPTURE_COUNT);
+    while (!readyQueue.empty()) {
+        // inCaptureProgress: 已 ++ 未 -- 的在途截图数; remaining: 队列待派发数
+        int32_t inCaptureProgress = getInCaptureProgress();
+        if (inCaptureProgress >= limit) {
+            int32_t remaining = static_cast<int32_t>(readyQueue.size());
+            RS_LOGW("ProcessSyncCaptureTasks %{public}s reach limit this frame, "
+                "inCaptureProgress:%{public}d, limit:%{public}d, remaining:%{public}d",
+                category, inCaptureProgress, limit, remaining);
+            RS_TRACE_NAME_FMT("%s reach limit: inCaptureProgress=%d, remaining=%d",
+                category, inCaptureProgress, remaining);
             break;
         }
-        NodeId nodeId = std::get<0>(uiCaptureTasks_.front());
-        auto captureTask = std::get<1>(uiCaptureTasks_.front());
-        uiCaptureTasks_.pop();
-        RS_LOGD("ProcessSyncCaptureTasks uiCapture execute, id: %{public}" PRIu64, nodeId);
+        NodeId nodeId = std::get<0>(readyQueue.front());
+        auto captureTask = std::get<1>(readyQueue.front());
+        readyQueue.pop();
+        int32_t remaining = static_cast<int32_t>(readyQueue.size());
+        RS_LOGD("ProcessSyncCaptureTasks %{public}s execute, id: %{public}" PRIu64
+            ", inCaptureProgress:%{public}d, remaining:%{public}d",
+            category, nodeId, inCaptureProgress, remaining);
         captureTask();
         if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable()) {
             RSBufferReclaim::GetInstance().RemoveUICaptureNode(nodeId);
         }
     }
+}
+
+void RSMainThread::ProcessSyncCaptureTasks()
+{
+#ifdef RS_ENABLE_GPU
+    // Process UI capture tasks (non-system / system, separate FIFOs and limits)
+    ProcessUiCaptureQueue(nonSystemUiCaptureTasks_, RSUiCaptureTaskParallel::GetNonSystemCaptureCount,
+        MAX_NON_SYSTEM_UI_CAPTURE_COUNT, "nonSystemUICapture");
+    ProcessUiCaptureQueue(systemUiCaptureTasks_, RSUiCaptureTaskParallel::GetSystemCaptureCount,
+        MAX_SYSTEM_UI_CAPTURE_COUNT, "systemUICapture");
     // Process sync window capture tasks
     int32_t processedThisFrame = 0;
     while (!syncWindowCaptureTasks_.empty()) {
@@ -2877,12 +2902,15 @@ void RSMainThread::ProcessSyncCaptureTasks()
             RSBufferReclaim::GetInstance().RemoveUICaptureNode(nodeId);
         }
     }
+    RS_TRACE_NAME_FMT("ProcessSyncCaptureTasks done: nonSystemInCaptureProgress=%d, systemInCaptureProgress=%d",
+        RSUiCaptureTaskParallel::GetNonSystemCaptureCount(), RSUiCaptureTaskParallel::GetSystemCaptureCount());
 #endif
 }
 
 bool RSMainThread::IsSnapshotPendingThisFrame() const
 {
-    return !pendingUiCaptureTasks_.empty() || !uiCaptureTasks_.empty() ||
+    return !pendingNonSystemUiCaptureTasks_.empty() || !nonSystemUiCaptureTasks_.empty() ||
+        !pendingSystemUiCaptureTasks_.empty() || !systemUiCaptureTasks_.empty() ||
         !pendingSyncWindowCaptureTasks_.empty() || !syncWindowCaptureTasks_.empty() ||
         !pendingWindowCapTasks_.empty() || !windowCapTasks_.empty();
 }
@@ -3066,7 +3094,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
     bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
-    bool hasPendingCaptureTasks = !pendingUiCaptureTasks_.empty() || !uiCaptureTasks_.empty() ||
+    bool hasPendingCaptureTasks = !pendingNonSystemUiCaptureTasks_.empty() || !nonSystemUiCaptureTasks_.empty() ||
+        !pendingSystemUiCaptureTasks_.empty() || !systemUiCaptureTasks_.empty() ||
         !pendingSyncWindowCaptureTasks_.empty() || !syncWindowCaptureTasks_.empty();
     bool willGoDirectComposition = doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_ &&
                                    !isCachedSurfaceUpdated_ && pointerSkip && !hasPendingCaptureTasks;

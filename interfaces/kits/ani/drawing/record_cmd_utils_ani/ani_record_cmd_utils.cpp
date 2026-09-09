@@ -67,7 +67,18 @@ void AniRecordCmdUtils::Constructor(ani_env* env, ani_object obj)
 
 AniRecordCmdUtils::~AniRecordCmdUtils()
 {
+    if (recordingCanvas_ != nullptr) {
+        recordingCanvas_->Invalidate();
+        recordingCanvas_ = nullptr;
+    }
     rsRecordCmdUtils_ = nullptr;
+}
+
+void AniRecordCmdUtils::OnCanvasDestroyed(AniCanvas* canvas)
+{
+    if (recordingCanvas_ == canvas) {
+        recordingCanvas_ = nullptr;
+    }
 }
 
 ani_object AniRecordCmdUtils::BeginRecording(ani_env* env, ani_object obj, ani_int width, ani_int height)
@@ -84,6 +95,12 @@ ani_object AniRecordCmdUtils::BeginRecording(ani_env* env, ani_object obj, ani_i
         return CreateAniUndefined(env);
     }
 
+    if (aniRecordCmdUtils->recordingCanvas_ != nullptr) {
+        ROSEN_LOGE("AniRecordCmdUtils::BeginRecording already in recording");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Already in recording.");
+        return CreateAniUndefined(env);
+    }
+
     auto bounds = Drawing::Rect(0, 0, width, height);
     Drawing::Canvas *canvas = aniRecordCmdUtils->GetRSRecordCmdUtils()->BeginRecording(bounds);
     if (canvas == nullptr) {
@@ -93,7 +110,14 @@ ani_object AniRecordCmdUtils::BeginRecording(ani_env* env, ani_object obj, ani_i
         return CreateAniUndefined(env);
     }
 
-    return AniCanvas::CreateAniCanvas(env, canvas);
+    ani_object aniCanvasObj = AniCanvas::CreateAniCanvas(env, canvas);
+    auto* aniCanvas = GetNativeFromObj<AniCanvas>(env, aniCanvasObj,
+        AniGlobalField::GetInstance().canvasNativeObj);
+    if (aniCanvas != nullptr) {
+        aniCanvas->SetCreator(aniRecordCmdUtils);
+        aniRecordCmdUtils->recordingCanvas_ = aniCanvas;
+    }
+    return aniCanvasObj;
 }
 
 ani_object AniRecordCmdUtils::FinishRecording(ani_env* env, ani_object obj)
@@ -103,6 +127,11 @@ ani_object AniRecordCmdUtils::FinishRecording(ani_env* env, ani_object obj)
     if (aniRecordCmdUtils == nullptr || aniRecordCmdUtils->GetRSRecordCmdUtils() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return CreateAniUndefined(env);
+    }
+
+    if (aniRecordCmdUtils->recordingCanvas_ != nullptr) {
+        aniRecordCmdUtils->recordingCanvas_->Invalidate();
+        aniRecordCmdUtils->recordingCanvas_ = nullptr;
     }
 
     std::shared_ptr<Drawing::RecordCmd> recordCmd = aniRecordCmdUtils->GetRSRecordCmdUtils()->FinishRecording();

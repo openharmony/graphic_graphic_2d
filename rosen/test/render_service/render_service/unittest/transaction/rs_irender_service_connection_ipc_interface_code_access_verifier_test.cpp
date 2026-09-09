@@ -22,7 +22,9 @@ namespace OHOS::Rosen {
 namespace {
     constexpr uint32_t ROOT_UID = 0;
     constexpr uint32_t EXFUSION_UID = 7015;
+    constexpr uint32_t GAME_SERVICE_UID = 7011;
     constexpr const char* EXFUSION_SERVICE_PROCESS_NAME = "exfusion_display_service";
+    constexpr const char* GAME_SERVICE_PROCESS_NAME = "gameservice_server";
 }
 class RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest : public testing::Test {
 public:
@@ -260,6 +262,34 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExfusio
     ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), true);
 #endif
     setuid(ROOT_UID);
+}
+
+/**
+ * @tc.name: IsGameServiceCallingTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issue#IAS6LQ
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsGameServiceCallingTest001,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    const std::string callingCode = "gameservice_test";
+#ifdef ENABLE_IPC_SECURITY
+    MockAccessTokenKit::MockAccessTokenKitRet(-1);
+    ASSERT_EQ(verifier->IsGameServiceCalling(callingCode), false);
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(false);
+    ASSERT_EQ(verifier->IsGameServiceCalling(callingCode), false);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName(GAME_SERVICE_PROCESS_NAME);
+    ASSERT_EQ(verifier->IsGameServiceCalling(callingCode), false);
+    setuid(GAME_SERVICE_UID);
+    ASSERT_EQ(verifier->IsGameServiceCalling(callingCode), true);
+    setuid(ROOT_UID);
+#else
+    ASSERT_EQ(verifier->IsGameServiceCalling(callingCode), true);
+#endif
 }
 
 /**

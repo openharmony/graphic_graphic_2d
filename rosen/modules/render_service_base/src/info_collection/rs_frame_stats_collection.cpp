@@ -18,6 +18,7 @@
 #ifdef ROSEN_OHOS
 #include <parameters.h>
 #endif
+#include <iomanip>
 #include <sstream>
 
 #include "drawable/rs_drawable.h"
@@ -33,68 +34,16 @@ const FrameStatsLevel RSFrameStatsCollection::enabledLevel_ = FrameStatsLevel::D
 #endif
 
 namespace {
-const char* DrawableSlotToString(int8_t slot)
+std::string DrawableSlotToString(int8_t slot)
 {
-    static const char* names[] = {
-        "SAVE_ALL",                    // 0
-        "MASK",                        // 1
-        "TRANSITION",                  // 2
-        "ENV_FOREGROUND_COLOR",        // 3
-        "COLOR_PICKER",                // 4
-        "SPATIAL_EFFECT",              // 5
-        "MATERIAL_FILTER",             // 6
-        "SHADOW",                      // 7
-        "FOREGROUND_FILTER",           // 8
-        "OUTLINE",                     // 9
-        "MATERIAL_SHADER",            // 10
-        "SAVE_CLIP_TO_BOUNDS",        // 11
-        "BG_SAVE_BOUNDS",             // 12
-        "CLIP_TO_BOUNDS",             // 13
-        "BLENDER",                    // 14
-        "BACKGROUND_COLOR",           // 15
-        "BACKGROUND_SHADER",          // 16
-        "BACKGROUND_NG_SHADER",       // 17
-        "BACKGROUND_IMAGE",           // 18
-        "BACKGROUND_FILTER",          // 19
-        "USE_EFFECT",                 // 20
-        "BACKGROUND_STYLE",           // 21
-        "DYNAMIC_LIGHT_UP",           // 22
-        "ENV_FOREGROUND_COLOR_STRATEGY", // 23
-        "BG_RESTORE_BOUNDS",          // 24
-        "SAVE_FRAME",                 // 25
-        "FRAME_OFFSET",               // 26
-        "CLIP_TO_FRAME",              // 27
-        "CUSTOM_CLIP_TO_FRAME",       // 28
-        "CONTENT_STYLE",              // 29
-        "CHILDREN",                   // 30
-        "FOREGROUND_STYLE",           // 31
-        "RESTORE_FRAME",              // 32
-        "FG_SAVE_BOUNDS",             // 33
-        "FG_CLIP_TO_BOUNDS",          // 34
-        "BINARIZATION",               // 35
-        "COLOR_FILTER",               // 36
-        "LIGHT_UP_EFFECT",            // 37
-        "DYNAMIC_DIM",                // 38
-        "COMPOSITING_FILTER",         // 39
-        "FOREGROUND_COLOR",           // 40
-        "FOREGROUND_SHADER",          // 41
-        "FG_RESTORE_BOUNDS",          // 42
-        "COVERAGE_NG_SHADER",         // 43
-        "BORDER",                     // 44
-        "OVERLAY",                    // 45
-        "PARTICLE_EFFECT",            // 46
-        "PIXEL_STRETCH",              // 47
-        "RESTORE_CLIP_TO_BOUNDS",     // 48
-        "OVERLAY_NG_SHADER",          // 49
-        "RESTORE_BLENDER",            // 50
-        "RESTORE_FOREGROUND_FILTER",  // 51
-        "RESTORE_ALL",                // 52
-    };
     constexpr int8_t count = static_cast<int8_t>(RSDrawableSlot::MAX);
+    constexpr int8_t drawableWidth = 2;
     if (slot >= 0 && slot < count) {
-        return names[static_cast<size_t>(slot)];
+        std::ostringstream oss;
+        oss << "drawableType_" << std::setw(drawableWidth) << std::setfill('0') << static_cast<int>(slot);
+        return oss.str();
     }
-    return "UNKNOWN_DRAWABLE";
+    return "drawableType_Unknown";
 }
 } // namespace
 
@@ -156,7 +105,6 @@ void RSFrameStatsCollection::InitCounterNames()
         "RSRenderComposer|CommitAndGetReleaseFence";
 
     // Per-layer rate counters (dynamic indexing)
-    static constexpr uint32_t rates[] = { 10, 15, 20, 24, 30, 36, 40, 45, 48, 60, 72, 80, 90, 120, 144 };
     for (size_t slot = 0; slot < FrameStatsCounter::LAYER_SLOTS; ++slot) {
         // slot 0..3 -> Layers1..4, slot 4 -> Layers5+
         std::string layerLabel = (slot < FrameStatsCounter::LAYER_SLOTS - 1)
@@ -166,7 +114,8 @@ void RSFrameStatsCollection::InitCounterNames()
             size_t idx = static_cast<size_t>(FrameStatsCounter::Global::RSRenderComposer_Base)
                 + static_cast<size_t>(FrameStatsCounter::RSRenderComposer::PerLayerRate_Begin)
                 + slot * FrameStatsCounter::RATE_COUNT + r;
-            counterNames_[idx] = "RSRenderComposer|" + layerLabel + "|" + std::to_string(rates[r]) + "Hz";
+            counterNames_[idx] = "RSRenderComposer|" + layerLabel + "|" +
+                std::to_string(FrameStatsCounter::RATES[r]) + "Hz";
         }
     }
 
@@ -186,25 +135,24 @@ void RSFrameStatsCollection::IncrementBySurfaceNode(
     const std::string& surfaceNodeName, const std::string& counterName, uint64_t value,
     FrameStatsDetail detail)
 {
-    if (surfaceNodeName.empty() || counterName.empty()) {
+    if (counterName.empty()) {
         return;
     }
+    const std::string& nodeName = surfaceNodeName.empty() ? "UnknownSurfaceNode" : surfaceNodeName;
     std::lock_guard<std::mutex> lock(registrationMtx_);
     if (detail == FrameStatsDetail::MainThread) {
-        mainThreadDetailStats_[surfaceNodeName][counterName] += value;
+        mainThreadDetailStats_[nodeName][counterName] += value;
     } else {
-        uniRenderThreadDetailStats_[surfaceNodeName][counterName] += value;
+        uniRenderThreadDetailStats_[nodeName][counterName] += value;
     }
 }
 
 void RSFrameStatsCollection::IncrementDrawableBySurfaceNode(
     const std::string& surfaceNodeName, int8_t slot, uint64_t value)
 {
-    if (surfaceNodeName.empty()) {
-        return;
-    }
+    const std::string& nodeName = surfaceNodeName.empty() ? "UnknownSurfaceNode" : surfaceNodeName;
     std::lock_guard<std::mutex> lock(registrationMtx_);
-    mainThreadDetailStats_[surfaceNodeName][DrawableSlotToString(slot)] += value;
+    mainThreadDetailStats_[nodeName][DrawableSlotToString(slot)] += value;
 }
 
 std::vector<FrameStatsEntry> RSFrameStatsCollection::GetFrameStats() const

@@ -501,12 +501,12 @@ void Typeface::SetIsThemeTypeface(bool isTheme)
     }
 }
 
-std::shared_ptr<Data> Typeface::Serialize() const
+std::shared_ptr<Data> Typeface::Serialize(SerializeBehavior behavior) const
 {
     if (!typefaceImpl_) {
         return nullptr;
     }
-    return typefaceImpl_->Serialize();
+    return typefaceImpl_->Serialize(behavior);
 }
 
 std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)

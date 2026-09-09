@@ -67,7 +67,8 @@
 | 遮挡裁剪/可见区 | `occlusion-culling.md` | `VisibleRegion`, `visible dirty`, `cross`, `Offscreen`, `stencil`  |
 | OPINC/组渲染 | `opinc-rendergroup.md` | `opinc/`, `render_group/` | 性能/图测 |
 | UIFirst 子线程渲染 | `uifirst.md` | `uifirst/`, `RSUifirstManager`, `SubThread` | 性能/图测 |
-| layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
+| 特殊图层/黑白名单/special_layer | `special-layer.md` | `special_layer/`, `SpecialLayer`, `BlackList`, `WhiteList` | layer |
+| layer/tunnel | `layer-special-tunnel.md` | `layer/`, `tunnel_layer/`, `Tunnel` | layer |
 | overlay/多屏 | `overlay-multi-screen.md` | `overlay_display/`, `multi_screen/`, `Overlay` | 多屏/设备 |
 | HDR | `hdr.md` | `hdr/`, `RSHdrUtil` | HDR/XTS |
 | HGM/LTPO/DVSync | `hyper-graphic-manager.md` | `hyper_graphic_manager/`, `vrate/`, `Hgm*` | HGM |
@@ -131,6 +132,7 @@
 | occlusion、visible region、opaque region、stencil、遮挡剔除 | `occlusion-culling.md` |
 | visible dirty、first-level cross、Offscreen | `occlusion-culling.md`；涉及 dirty 求交时补读 `dirty-region.md` |
 | Surface/节点被错误跳过、完全遮挡后仍在绘制 | `occlusion-culling.md` |
+| 安全图层、跳过图层、截图跳过图层、黑名单、白名单、安全屏 | `special-layer.md`、`screen-manager.md` |
 
 ## 跨文档补读
 

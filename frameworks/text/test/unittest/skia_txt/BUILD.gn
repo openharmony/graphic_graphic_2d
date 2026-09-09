@@ -47,6 +47,8 @@ text_unittest("rosen_text_skia_txt_test") {
     "$rosen_root/modules/2d_graphics/include/text",
   ]
 
+  deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -54,6 +56,7 @@ text_unittest("rosen_text_skia_txt_test") {
     "hilog:libhilog",
     "icu:shared_icuuc",
     "image_framework:image_native",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "skia:skia_paragraph_ohos_new",

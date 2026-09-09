@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 
-static pid_t pid_ = GetRealPid();
+static pid_t g_pid = 0;
 
 const std::shared_ptr<RSInterpolator> RSInterpolator::DEFAULT =
     std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
@@ -39,14 +39,17 @@ RSInterpolator::RSInterpolator() : id_(GenerateId()) {}
 
 void RSInterpolator::Init()
 {
-    pid_ = GetRealPid();
+    g_pid = GetRealPid();
+    DEFAULT->id_ = GenerateId();
+}
+
+void RSInterpolator::UpdateId()
+{
+    id_ = GenerateId();
 }
 
 uint64_t RSInterpolator::GenerateId()
 {
-    if (pid_ == 0) {
-        pid_ = GetRealPid();
-    }
     static std::atomic<uint32_t> currentId_ = 0;
 
     auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
@@ -55,7 +58,7 @@ uint64_t RSInterpolator::GenerateId()
     }
 
     // concat two 32-bit numbers to one 64-bit number
-    return ((AnimationId)pid_ << 32) | (currentId);
+    return ((AnimationId)g_pid << 32) | (currentId);
 }
 
 float RSInterpolator::Interpolate(float input)

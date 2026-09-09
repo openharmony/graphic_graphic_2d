@@ -142,5 +142,18 @@ std::shared_ptr<RSInterpolator> RSAnimationTimingCurve::GetInterpolator(int dura
 
     return interpolator_;
 }
+
+void RSAnimationTimingCurve::Init()
+{
+    auto updateId = [](const RSAnimationTimingCurve& curve) {
+        curve.interpolator_->UpdateId();
+    };
+    updateId(LINEAR);
+    updateId(SHARP);
+    updateId(EASE);
+    updateId(EASE_IN);
+    updateId(EASE_OUT);
+    updateId(EASE_IN_OUT);
+}
 } // namespace Rosen
 } // namespace OHOS

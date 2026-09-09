@@ -40,7 +40,8 @@ public:
      * @param rsCapturePixelMap Indicates the pixelmap that user wants to use.
      */
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect);
+        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
+        bool isSystemCalling = false);
 
     /**
      * @brief Create resources for capture.
@@ -66,17 +67,23 @@ public:
      */
     static void ProcessUiCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, NodeId id,
         const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        CaptureError captureErrorCode = CaptureError::CAPTURE_OK);
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, bool isSystemCalling = false);
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool needDump = false,
-        CaptureError errorCode = CaptureError::CAPTURE_OK, bool isHdrCapture = false);
+        CaptureError errorCode = CaptureError::CAPTURE_OK, bool isHdrCapture = false,
+        bool isSystemCalling = false);
 #endif
 
-    static int32_t GetCaptureCount()
+    static int32_t GetNonSystemCaptureCount()
     {
-        return captureCount_;
+        return nonSystemCaptureCount_;
+    }
+
+    static int32_t GetSystemCaptureCount()
+    {
+        return systemCaptureCount_;
     }
 
 private:
@@ -104,12 +111,14 @@ private:
     Drawing::Matrix startMatrix_;
     Drawing::Matrix endMatrix_;
     const RSSurfaceCaptureConfig captureConfig_ = {};
-    static inline std::atomic<int32_t> captureCount_ = 0;
+    static inline std::atomic<int32_t> nonSystemCaptureCount_ = 0;
+    static inline std::atomic<int32_t> systemCaptureCount_ = 0;
     RectI startRect_ = {};
     RectI endRect_ = {};
     bool isStartEndNodeSame_ = false;
     bool needDump_ = false;
     bool isHdrCapture_ = false;
+    bool isSystemCalling_ = false;
     CaptureError errorCode_ = CaptureError::CAPTURE_OK;
 };
 } // namespace Rosen
