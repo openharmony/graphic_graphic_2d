@@ -97,6 +97,18 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int SLEEP_TIME_US = 1000;
+// The high 16 bits of listenerId encode the creator pid; keep in sync with
+// SurfaceTransactionListener::CreateUniqueId in render_service_client.
+constexpr uint32_t LISTENER_ID_PID_SHIFT_BITS = 48;
+constexpr uint32_t PID_MASK_16BIT = 0xFFFF;
+
+// Only 16 pid bits are kept in listenerId, so remote pids are compared in the low 16 bits;
+// pids colliding there are indistinguishable, which is already assumed by listener routing.
+bool IsListenerIdOwnedByRemote(uint64_t listenerId, pid_t remotePid)
+{
+    return static_cast<uint32_t>(listenerId >> LISTENER_ID_PID_SHIFT_BITS) ==
+           (static_cast<uint32_t>(remotePid) & PID_MASK_16BIT);
+}
 const std::string REGISTER_NODE = "RegisterNode";
 const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
@@ -104,7 +116,7 @@ constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
-}
+} // namespace
 const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 
 // we guarantee that when constructing this object,
@@ -851,6 +863,16 @@ bool RSClientToRenderConnection::SetDelegateMode(NodeId id, bool isSetDelegateMo
     if (renderPipelineAgent_ == nullptr) {
         return false;
     }
+    // MARK_WEB_NODE is a oneway IPC: GetCallingPid() always returns 0 on Linux kernel binder,
+    // so ownership is validated against remotePid_, the trusted peer pid captured at
+    // (synchronous) connection creation. Only the node owner may enable delegate mode,
+    // otherwise any process could hijack another process's surface into delegate compositing.
+    if (ExtractPid(id) != remotePid_ || pid != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: SetDelegateMode fail: node %{public}" PRIu64
+                " or pid %{public}d not owned by remote pid %{public}d",
+            id, pid, remotePid_);
+        return false;
+    }
     return renderPipelineAgent_->SetDelegateMode(id, isSetDelegateMode, pid);
 }
 
@@ -868,12 +890,39 @@ bool RSClientToRenderConnection::RegisterSurfaceTransactionListenerNew(sptr<RSIS
     if (renderPipelineAgent_ == nullptr) {
         return false;
     }
+    // The delegate identity must belong to the caller itself: surfaceTransactionIdentityInfoMap_
+    // decides which (pid, tid) transactions are diverted into the delegate composite queue, so a
+    // forged identity would hijack another process's transaction flow. remotePid_ also covers
+    // oneway calls where GetCallingPid() returns 0.
+    if (static_cast<pid_t>(pid) != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: RegisterSurfaceTransactionListenerNew fail: "
+                "identity pid %{public}u not owned by remote pid %{public}d",
+            pid, remotePid_);
+        return false;
+    }
+    // listenerId must stay in the caller's own bucket: listeners are grouped by the pid encoded
+    // in its high 16 bits, and a foreign-pid listenerId could fill the victim's bucket up to
+    // MAX_MAP_SIZE and block the victim's own registration.
+    if (!IsListenerIdOwnedByRemote(listenerId, remotePid_)) {
+        RS_LOGE("DelegateModeDebugTag: RegisterSurfaceTransactionListenerNew fail: "
+                "listenerId %{public}" PRIu64 " not owned by remote pid %{public}d",
+            listenerId, remotePid_);
+        return false;
+    }
     return renderPipelineAgent_->RegisterSurfaceTransactionListener(listener, listenerId, pid, tid);
 }
 
 bool RSClientToRenderConnection::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
 {
     if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    // Only the owner may unregister its listener, otherwise one process could tear down
+    // another process's delegate listener and break its buffer release notifications.
+    if (!IsListenerIdOwnedByRemote(listenerId, remotePid_)) {
+        RS_LOGE("DelegateModeDebugTag: UnRegisterSurfaceTransactionListener fail: "
+                "listenerId %{public}" PRIu64 " not owned by remote pid %{public}d",
+            listenerId, remotePid_);
         return false;
     }
     return renderPipelineAgent_->UnRegisterSurfaceTransactionListener(listenerId);
