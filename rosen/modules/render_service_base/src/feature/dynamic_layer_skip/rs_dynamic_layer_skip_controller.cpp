@@ -272,7 +272,8 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
     }
 }
 
-void RSDynamicLayerSkipController::VerifyScreenLayerValidity(float screenNodeGlobalZOrder)
+void RSDynamicLayerSkipController::VerifyScreenLayerValidity(
+    float screenNodeGlobalZOrder, GraphicColorGamut screenColorGamut)
 {
     screenLayerInvalid_ = false;
     // functions to finally decide whether screen layer is invalid or not (based on hardware enable status).
@@ -283,7 +284,8 @@ void RSDynamicLayerSkipController::VerifyScreenLayerValidity(float screenNodeGlo
     // find any condition that needs screen layer.
     // 1. any layer that is hardware disabled.
     // 2. any layer that is above screen layer and transparent.
-    auto checkSurfaceInvalid = [screenNodeGlobalZOrder](const auto& surfaceWeakPtr) {
+    // 3. any layer whose color gamut differs from the screen layer's color gamut.
+    auto checkSurfaceInvalid = [screenNodeGlobalZOrder, screenColorGamut](const auto& surfaceWeakPtr) {
         auto surfacePtr = surfaceWeakPtr.lock();
         if (UNLIKELY(surfacePtr == nullptr)) {
             return true;
@@ -295,6 +297,13 @@ void RSDynamicLayerSkipController::VerifyScreenLayerValidity(float screenNodeGlo
         if (surfacePtr->IsHardwareForcedDisabled()) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "%s SurfaceNode[%" PRIu64 "]" " is hardware disabled.", __func__, surfacePtr->GetId());
+            return true;
+        }
+        auto surfaceColorGamut = surfacePtr->GetColorSpace();
+        if (surfaceColorGamut != screenColorGamut) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s SurfaceNode[%" PRIu64 "] color gamut[%d] differs from screen[%d]",
+                __func__, surfacePtr->GetId(), static_cast<int32_t>(surfaceColorGamut),
+                static_cast<int32_t>(screenColorGamut));
             return true;
         }
         if (surfaceHandler->GetGlobalZOrder() > screenNodeGlobalZOrder) {

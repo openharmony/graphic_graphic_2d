@@ -35,7 +35,8 @@ public:
 
     void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
 
-    void VerifyScreenLayerValidity(float screenNodeGlobalZOrder);
+    void VerifyScreenLayerValidity(
+        float screenNodeGlobalZOrder, GraphicColorGamut screenColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
 private:
     void CheckNodeDrawProperty(RSRenderNode& node);

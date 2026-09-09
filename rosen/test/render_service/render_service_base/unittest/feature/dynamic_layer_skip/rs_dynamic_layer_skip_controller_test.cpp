@@ -830,4 +830,43 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_VirtualFiel
         EXPECT_FALSE(controller.virtualScreenLayerInvalid_);
     }
 }
+
+/**
+ * @tc.name: VerifyScreenLayerValidity_ColorGamutMismatch
+ * @tc.desc: test VerifyScreenLayerValidity func when surface color gamut differs from screen color gamut.
+ * @tc.type: FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_ColorGamutMismatch, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // surface color gamut (SRGB) differs from screen color gamut (DISPLAY_P3) -> screen layer is not invalid.
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareForcedDisabled_ = false;
+    controller.targetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_FALSE(controller.IsScreenLayerInvalid());
+}
+
+/**
+ * @tc.name: VerifyScreenLayerValidity_ColorGamutMatch
+ * @tc.desc: test VerifyScreenLayerValidity func when surface color gamut matches screen color gamut.
+ * @tc.type: FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_ColorGamutMatch, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // surface color gamut matches screen color gamut -> screen layer is invalid.
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareForcedDisabled_ = false;
+    surfaceNode->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    controller.targetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_TRUE(controller.IsScreenLayerInvalid());
+}
 } // namespace OHOS::Rosen
