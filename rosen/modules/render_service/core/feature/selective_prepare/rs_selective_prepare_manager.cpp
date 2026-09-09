@@ -619,12 +619,13 @@ void RSSelectivePrepareManager::LogAnimatingNodes()
     }
 }
 
-void RSSelectivePrepareManager::ReportEnergyStats(uint64_t energy)
+void RSSelectivePrepareManager::ReportEnergyStats(HgmRPEnergy& energy)
 {
-    if (!RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
+    if (!RSSystemProperties::IsSelectivePrepareOptEnabled() || !selectivePrepareOptActive_) {
         return;
     }
-    RS_TRACE_NAME_FMT(
-        "SelectivePrepareOpt: energy stats energy=%" PRIu64 " hitCount=%u", energy, selectivePrepareOptHitCount_);
+    energy.AddEnergyCommonData(
+        EnergyEvent::ANIMATION_EXEC_TIME,
+        "SELECTIVE_PREPARE_OPT_HIT_COUNT", std::to_string(selectivePrepareOptHitCount_));
 }
 } // namespace OHOS::Rosen
