@@ -246,7 +246,6 @@ public:
         bgNode->AddChild(effectNode);
         RegisterNode(effectNode);
 
-
         // 3. shader child (child of effectNode): reads the blurred texture and applies the shader + SDF
         auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         if (!effectChildNode) {
@@ -377,5 +376,4 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
         SetBgBlurAndSdfEffectChildNode(i, columnCount, rowCount, frostedGlass);
     }
 }
-
 } // namespace OHOS::Rosen
