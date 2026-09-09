@@ -117,7 +117,8 @@ void RsDelegateCompositeCallbackManager::OnCleanCacheForBufferInfoMap(
                 info.buffer->GetSeqNum(), info.fence, clientPid);
             continue;
         }
-        info.buffer->RegisterBufferDestructorCallback(&RsDelegateCompositeCallbackManager::BufferDestructorCallback);
+        info.buffer->RegisterBufferDestructorCallbackFunc(
+            &RsDelegateCompositeCallbackManager::BufferDestructorCallback);
         DFX_LOGD(g_enableDfx, "RsDelegateCompositeCleanCacheDfx: PrepareBufferReleaseInfo, bufferSeqnum=%{public}u",
             info.buffer->GetSeqNum());
         RsDelegateCompositeCallbackManager::GetInstance().PrepareBufferReleaseInfo(nodeId, queueId,
