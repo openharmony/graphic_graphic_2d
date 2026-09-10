@@ -2656,7 +2656,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateSoftVSync001, Function | MediumTest | Level0
     frameRateMgr->lastVoteInfo_.max = OLED_60_HZ;
 
     frameRateMgr->rsFrameRateLinker_->SetExpectedRange(FrameRateRange { OLED_60_HZ, OLED_60_HZ, OLED_60_HZ });
-    frameRateMgr->rsFrameRateLinker_->SetFrameRate(OLED_60_HZ, false);
+    frameRateMgr->rsFrameRateLinker_->SetFrameRate(OLED_60_HZ);
 
     frameRateMgr->UpdateSoftVSync(false);
 
@@ -2701,7 +2701,7 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChanged, Function | Small
     bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
     energyPolicy.SetRsFrameRateControlEnabled(true);
     mgr.rsFrameRateLinker_->SetExpectedRange(FrameRateRange { 0, 1, 1 });
-    mgr.rsFrameRateLinker_->SetFrameRate(OLED_60_HZ, false);
+    mgr.rsFrameRateLinker_->SetFrameRate(OLED_60_HZ);
     mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.rsFrameRateLinker_->GetFrameRate(), OLED_120_HZ);
@@ -2724,7 +2724,7 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeEarlyReturn, Function | SmallTest | 
     auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
     bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
     energyPolicy.SetRsFrameRateControlEnabled(false);
-    mgr.rsFrameRateLinker_->SetFrameRate(0, false);
+    mgr.rsFrameRateLinker_->SetFrameRate(0);
 
     mgr.DeliverRefreshRateVote(
         { "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
@@ -2811,7 +2811,7 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouch, Function 
     bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
     energyPolicy.SetRsFrameRateControlEnabled(true);
     mgr.rsFrameRateLinker_->SetExpectedRange(FrameRateRange { 0, 1, 1 });
-    mgr.rsFrameRateLinker_->SetFrameRate(OLED_60_HZ, false);
+    mgr.rsFrameRateLinker_->SetFrameRate(OLED_60_HZ);
     mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
     VoteInfo resultVoteInfo = mgr.ProcessRefreshRateVote();
     FrameRateRange finalRange = {
