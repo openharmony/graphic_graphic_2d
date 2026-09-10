@@ -925,7 +925,10 @@ ohos_unittest("RSUifirstManagerTest2") {
 ## Build RSSelectivePrepareManagerTest
 ohos_unittest("RSSelectivePrepareManagerTest") {
   module_out_path = module_output_path
-  sources = [ "selective_prepare/rs_selective_prepare_manager_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "selective_prepare/rs_selective_prepare_manager_test.cpp",
+  ]
   sanitize = {
     cfi = true
     cfi_cross_dso = true
