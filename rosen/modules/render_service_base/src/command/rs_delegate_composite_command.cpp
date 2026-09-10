@@ -180,19 +180,13 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
         return;
     }
     RS_TRACE_NAME_FMT("ProcessCmdTypeSetBuffer, configList size=%u", configList_.size());
+    // This path is shared by CanvasDrawingNode hybrid rendering and the delegate composite
+    // flow, so no delegate-mode gate here; config.nodeId ownership (caller may only flush to
+    // its own nodes) is enforced per command via GetAllNodeIds at unmarshalling.
     for (const auto& config : configList_) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
             context.GetNodeMap().GetRenderNode(config.nodeId));
         if (!node || !node->GetRSSurfaceHandler()) {
-            continue;
-        }
-        // Only nodes explicitly marked delegate mode by their owner (MARK_WEB_NODE) accept
-        // delegate buffer transactions, so other surfaces cannot be injected from here.
-        // config.nodeId ownership is validated per command via GetAllNodeIds at unmarshalling.
-        if (!node->GetDelegateMode()) {
-            ROSEN_LOGE("DelegateModeDebugTag: ProcessCmdTypeSetBuffer fail: "
-                       "node(id:%{public}" PRIu64 ") is not in delegate mode",
-                config.nodeId);
             continue;
         }
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
