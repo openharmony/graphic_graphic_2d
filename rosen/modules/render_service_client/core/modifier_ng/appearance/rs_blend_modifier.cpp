@@ -166,4 +166,9 @@ void RSBlendModifier::SetColorfulBrightnessHdrEnabled(bool val)
     Setter<RSProperty>(RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED, val);
 }
 
+void RSBlendModifier::SetColorfulBrightnessTintedColorPercent(float val)
+{
+    Setter(RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT, val);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

@@ -1214,7 +1214,7 @@ HWTEST_F(RSNodeTest2, SetBlender, TestSize.Level1)
  * @tc.desc: test SetBlender with ColorfulBrightnessBlender on a fresh node. Covers COLORFUL_BRIGHTNESS_BLENDER type
  *           match, colorfulBrightnessBlender!=nullptr true, modifier==nullptr branch (fresh node has no BLENDER
  *           modifier so DetachFgBrightnessProperties is skipped), and ApplyColorfulBrightnessBlender creating all
- *           11 COLORFUL_* properties.
+ *           12 COLORFUL_* properties.
  * @tc.type: FUNC
  * @tc.require: issueICLU4I
  */
@@ -1242,6 +1242,7 @@ HWTEST_F(RSNodeTest2, SetColorfulBrightnessBlender001, TestSize.Level1)
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH));
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF));
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT));
 }
 
 /**
@@ -1271,7 +1272,7 @@ HWTEST_F(RSNodeTest2, SetColorfulBrightnessBlender002, TestSize.Level1)
 /**
  * @tc.name: SetBlenderColorfulToBrightness001
  * @tc.desc: test switching from ColorfulBrightnessBlender to BrightnessBlender. Covers brightness-path
- *           modifier!=nullptr true and DetachColorfulBrightnessBlenderProperties where all 14 COLORFUL_*
+ *           modifier!=nullptr true and DetachColorfulBrightnessBlenderProperties where all 13 COLORFUL_*
  *           HasProperty checks are true.
  * @tc.type: FUNC
  * @tc.require: issueICLU4I

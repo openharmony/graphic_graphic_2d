@@ -2236,7 +2236,8 @@ std::string RSProperties::GetColorfulBrightnessBlenderDescription() const
            ", negativeCoeff.z: " + std::to_string(params->negativeCoeff_.z_) +
            ", vibrancyStrength: " + std::to_string(params->vibrancyStrength_) +
            ", lumaDiff: " + std::to_string(params->lumaDiff_) +
-           ", hdrEnabled: " + std::to_string(params->hdrEnabled_);
+           ", hdrEnabled: " + std::to_string(params->hdrEnabled_) +
+           ", tintedColorPercent: " + std::to_string(params->tintedColorPercent_);
 }
 
 bool RSProperties::IsShadowBlenderValid() const

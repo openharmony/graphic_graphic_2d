@@ -207,6 +207,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH, ThresholdType::ZERO },
     { RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF, ThresholdType::ZERO },
     { RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_PLACEHOLDER, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_STRATEGY, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_INTERVAL, ThresholdType::ZERO },
