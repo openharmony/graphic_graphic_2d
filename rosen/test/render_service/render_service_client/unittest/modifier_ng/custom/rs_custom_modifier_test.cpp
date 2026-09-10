@@ -26,6 +26,7 @@
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_root_node.h"
 #include "ui/rs_canvas_node.h"
 
 using namespace testing;
