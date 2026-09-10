@@ -2951,7 +2951,7 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     }
 
     const auto& properties = GetRenderProperties();
-    auto invokeFunc = [&properties, this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+    auto checkRegionInsideFunc = [&properties, this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
         if (filterDrawable != nullptr) {
             auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
             auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
@@ -2966,20 +2966,23 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
-    if (filterDrawable != nullptr) {
+    bool isForeground = false;
+    auto checkRegionChangeFunc = [&isForeground, this](std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
         auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
         auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
+        bool regionChanged = snapshotRegion != lastSnapshotRegion &&
             !IsForceClearOrUseFilterCache(filterDrawable);
-        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
+        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty"
+            " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
+            snapshotRegion.ToString().c_str());
         if (regionChanged) {
-            MarkFilterStatusChanged(filterDrawable, true, true);
+            MarkFilterStatusChanged(filterDrawable, isForeground, true);
         }
-    }
+    };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, checkRegionChangeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, checkRegionInsideFunc);
+    isForeground = true;
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER, checkRegionChangeFunc);
 #endif
 }
 
