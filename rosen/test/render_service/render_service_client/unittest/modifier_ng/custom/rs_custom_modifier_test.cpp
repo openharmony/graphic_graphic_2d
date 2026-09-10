@@ -543,9 +543,8 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRender_OnTreeCanvasNode_SendsProper
 HWTEST_F(RSCustomModifierHelperTest, UpdateToRender_OffTreeNonCanvasNode_SendsProperty, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
-    // Use RSDisplayNode which is not CANVAS_NODE
-    RSDisplayNodeConfig config;
-    auto node = RSDisplayNode::Create(config);
+    // Use RSRootNode which is not CANVAS_NODE and is off-tree by default
+    auto node = RSRootNode::Create();
     ASSERT_FALSE(node->GetIsOnTheTree());
     ASSERT_NE(node->GetType(), RSUINodeType::CANVAS_NODE);
     modifier->node_ = node;
