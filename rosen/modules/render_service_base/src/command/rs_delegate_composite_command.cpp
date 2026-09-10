@@ -180,9 +180,6 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
         return;
     }
     RS_TRACE_NAME_FMT("ProcessCmdTypeSetBuffer, configList size=%u", configList_.size());
-    // This path is shared by CanvasDrawingNode hybrid rendering and the delegate composite
-    // flow, so no delegate-mode gate here; config.nodeId ownership (caller may only flush to
-    // its own nodes) is enforced per command via GetAllNodeIds at unmarshalling.
     for (const auto& config : configList_) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
             context.GetNodeMap().GetRenderNode(config.nodeId));
