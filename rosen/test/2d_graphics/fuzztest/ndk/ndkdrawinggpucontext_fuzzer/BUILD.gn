@@ -62,6 +62,7 @@ ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
     "openssl:libcrypto_shared",
     "egl:libEGL",
     "opengles:libGLES",
+    "bounds_checking_function:libsec_shared",
   ]
 
   part_name = "graphic_2d"
