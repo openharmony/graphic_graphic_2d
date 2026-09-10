@@ -16,16 +16,20 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <fcntl.h>
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
 #include <mutex>
 #include <system_ability_definition.h>
+#include <thread>
 #include <unistd.h>
 
 #include "feature/capture/rs_ui_capture.h"
 #include "file_ex.h"
+#include "common/rs_common_def.h"
 #include "common/rs_event_def.h"
+#include "text/typeface.h"
 #include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.h"
@@ -2425,6 +2429,181 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetDisplayEngineControl_Success, 
     EXPECT_CALL(*remoteObject, SendRequest(code, _, _, _)).WillRepeatedly(testing::Return(0));
     auto ret = mockProxy->GetDisplayEngineControl();
     EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: SendRequestNullRemote
+ * @tc.desc: SendRequest returns NULLPTR_ERROR when the remote object is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestNullRemote, TestSize.Level1)
+{
+    auto nullProxy = std::make_shared<RSClientToServiceConnectionProxy>(nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = nullProxy->SendRequest(0, data, reply, option);
+    ASSERT_EQ(ret, static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR));
+}
+
+/**
+ * @tc.name: SendRequestAsyncDirect
+ * @tc.desc: Async calls are sent directly on the calling thread and never offloaded.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestAsyncDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: SendRequestSyncOffloaded
+ * @tc.desc: Sync plain-data calls run on the executor worker and the reply is cloned back.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestSyncOffloaded, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            reply.WriteInt32(1);
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_NE(sendTid, callerTid); // offloaded to the timeout executor worker
+    int32_t value = 0;
+    ASSERT_TRUE(reply.ReadInt32(value));
+    ASSERT_EQ(value, 1);
+}
+
+/**
+ * @tc.name: SendRequestSyncWithFdDirect
+ * @tc.desc: Sync calls whose input parcel carries fds/binder objects stay on the direct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestSyncWithFdDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int fd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(fd, 0);
+    ASSERT_TRUE(data.WriteFileDescriptor(fd));
+    close(fd);
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: SendRequestReplyNotClonableDirect
+ * @tc.desc: Sync calls whose reply may carry objects (e.g. CREATE_VSYNC_CONNECTION) stay on
+ *           the direct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestReplyNotClonableDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+    ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: SendRequestRegisterSharedTypefaceDirect
+ * @tc.desc: REGISTER_SHARED_TYPEFACE stays on the direct path even when the input parcel
+ *           carries plain data only (variation typeface, originId_ > 0): the reply carries
+ *           an fd when the service registers a new shared typeface and cannot be cloned back.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestRegisterSharedTypefaceDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_TRUE(data.WriteUint32(1)); // plain-data input, no fd
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: RegisterTypefaceDirectPath
+ * @tc.desc: RegisterTypeface retries SendRequest in a loop and bypasses the timeout executor;
+ *           its IPC always runs on the calling thread.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterTypefaceDirectPath, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    if (typeface == nullptr) {
+        GTEST_SKIP() << "default typeface unavailable in this environment";
+    }
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([&](uint32_t code, MessageParcel&, MessageParcel& reply, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            if (code == static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE)) {
+                reply.WriteUint8(Drawing::REGISTERED);
+            } else {
+                reply.WriteBool(true);
+            }
+            return NO_ERROR;
+        });
+    uint64_t globalUniqueId = 1;
+    mockProxy->RegisterTypeface(globalUniqueId, typeface);
+    ASSERT_EQ(sendTid, callerTid);
 }
 } // namespace Rosen
 } // namespace OHOS

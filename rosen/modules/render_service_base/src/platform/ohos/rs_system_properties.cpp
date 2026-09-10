@@ -1895,5 +1895,23 @@ bool RSSystemProperties::IsSimulateTest()
     static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
     return isSimulateTest;
 }
+
+uint32_t RSSystemProperties::GetIpcSyncTimeoutMs()
+{
+    // Default 5s: a process frozen for 6s is killed, the timeout must fire before that.
+    static constexpr uint32_t DEFAULT_IPC_SYNC_TIMEOUT_MS = 5000;
+    // Lower values risk false timeouts on a slow-but-alive RS; higher values break the
+    // must-fire-before-freeze-kill premise. Out-of-range parameters fall back to default.
+    static constexpr int32_t MIN_IPC_SYNC_TIMEOUT_MS = 1000;
+    static constexpr int32_t MAX_IPC_SYNC_TIMEOUT_MS = 5000;
+    // Static snapshot like IsSimulateTest(): stable within the process lifetime; a changed
+    // persist.sys.graphic.ipcSyncTimeoutMs takes effect on the next process start.
+    static int32_t timeoutParam =
+        system::GetIntParameter("persist.sys.graphic.ipcSyncTimeoutMs", static_cast<int>(DEFAULT_IPC_SYNC_TIMEOUT_MS));
+    if (timeoutParam < MIN_IPC_SYNC_TIMEOUT_MS || timeoutParam > MAX_IPC_SYNC_TIMEOUT_MS) {
+        return DEFAULT_IPC_SYNC_TIMEOUT_MS;
+    }
+    return static_cast<uint32_t>(timeoutParam);
+}
 } // namespace Rosen
 } // namespace OHOS
