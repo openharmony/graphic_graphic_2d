@@ -22,6 +22,10 @@
 #include <vector>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
+#include "common/rs_rect.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
+#include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 
 namespace OHOS::Rosen {
 class RSContext;
