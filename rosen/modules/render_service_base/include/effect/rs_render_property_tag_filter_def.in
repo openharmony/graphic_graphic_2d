@@ -62,9 +62,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, TintColor, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, BloomFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HaloBloom, GlowExposure, float);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Colors, std::vector<Vector4f>);
-DECLARE_ANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Positions, std::vector<float>);
-
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Dispersion, Mask, MASK_PTR);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, Opacity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
@@ -249,3 +246,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Radius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Anchor, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Colors, std::vector<Vector4f>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Positions, std::vector<float>);

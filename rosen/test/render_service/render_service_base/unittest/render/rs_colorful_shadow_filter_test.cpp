@@ -301,5 +301,62 @@ HWTEST_F(RSColorfulShadowFilterTest, ConstructorTest002, TestSize.Level1)
     EXPECT_EQ(shadowFilter.type_, RSColorfulShadowFilter::FilterType::COLORFUL_SHADOW);
     EXPECT_NE(shadowFilter.hash_, 0);
 }
+
+/**
+ * @tc.name: HashSameParamsTest
+ * @tc.desc: test that same constructor parameters produce the same hash value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorfulShadowFilterTest, HashSameParamsTest, TestSize.Level1)
+{
+    constexpr float blurRadius = 10.0f;
+    constexpr float offsetX = 5.0f;
+    constexpr float offsetY = 3.0f;
+    RSColorfulShadowFilter filter1(blurRadius, offsetX, offsetY);
+    RSColorfulShadowFilter filter2(blurRadius, offsetX, offsetY);
+    EXPECT_EQ(filter1.hash_, filter2.hash_);
+}
+
+/**
+ * @tc.name: HashDifferentBlurRadiusTest
+ * @tc.desc: test that different blurRadius values produce different hash values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorfulShadowFilterTest, HashDifferentBlurRadiusTest, TestSize.Level1)
+{
+    constexpr float offsetX = 5.0f;
+    constexpr float offsetY = 3.0f;
+    RSColorfulShadowFilter filter1(10.0f, offsetX, offsetY);
+    RSColorfulShadowFilter filter2(20.0f, offsetX, offsetY);
+    EXPECT_NE(filter1.hash_, filter2.hash_);
+}
+
+/**
+ * @tc.name: HashDifferentOffsetXTest
+ * @tc.desc: test that different offsetX values produce different hash values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorfulShadowFilterTest, HashDifferentOffsetXTest, TestSize.Level1)
+{
+    constexpr float blurRadius = 10.0f;
+    constexpr float offsetY = 3.0f;
+    RSColorfulShadowFilter filter1(blurRadius, 1.0f, offsetY);
+    RSColorfulShadowFilter filter2(blurRadius, 2.0f, offsetY);
+    EXPECT_NE(filter1.hash_, filter2.hash_);
+}
+
+/**
+ * @tc.name: HashDifferentOffsetYTest
+ * @tc.desc: test that different offsetY values produce different hash values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorfulShadowFilterTest, HashDifferentOffsetYTest, TestSize.Level1)
+{
+    constexpr float blurRadius = 10.0f;
+    constexpr float offsetX = 5.0f;
+    RSColorfulShadowFilter filter1(blurRadius, offsetX, 1.0f);
+    RSColorfulShadowFilter filter2(blurRadius, offsetX, 2.0f);
+    EXPECT_NE(filter1.hash_, filter2.hash_);
+}
 } // namespace Rosen
 } // namespace OHOS

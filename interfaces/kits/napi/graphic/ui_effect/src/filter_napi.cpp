@@ -1833,7 +1833,7 @@ bool FilterNapi::GetMapColorByBrightnessArray(napi_env env, napi_value* argValue
             FILTER_LOG_E("GetMapColorByBrightnessArray get args fail");
             return false;
         }
-        Vector4f color;
+        Vector4f color = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
         if (!ParseJsRGBAColor(env, jsColor, color)) {
             FILTER_LOG_E("GetMapColorByBrightnessArray parse color fail");
             return false;
@@ -1879,32 +1879,26 @@ napi_value FilterNapi::SetMapColorByBrightness(napi_env env, napi_callback_info 
         return nullptr;
     }
 
-    if (colorArraySize < NUM_1) {
-        FILTER_LOG_E("FilterNapi SetMapColorByBrightness color count less than 1");
-        return nullptr;
-    }
-    if (posArraySize != colorArraySize) {
-        FILTER_LOG_E("FilterNapi SetMapColorByBrightness positions count not equal to colors count");
-        return nullptr;
-    }
-
-    constexpr uint32_t maxColorCount = 5;
-    uint32_t effectiveColorCount = std::min(colorArraySize, maxColorCount);
-
-    auto para = std::make_shared<MapColorByBrightnessPara>();
-    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
-        FILTER_LOG_E("FilterNapi SetMapColorByBrightness para is nullptr"));
-    UIEFFECT_NAPI_CHECK_RET_D(
-        GetMapColorByBrightnessArray(env, argv, para, effectiveColorCount), nullptr,
-        FILTER_LOG_E("FilterNapi SetMapColorByBrightness parsing array fail"));
-
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMapColorByBrightness napi_unwrap fail"));
-    filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.mapColorByBrightness", 1);
+    if (colorArraySize < NUM_1 || posArraySize != colorArraySize) {
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness param Error");
+        return thisVar;
+    }
+
+    constexpr uint32_t maxColorCount = 5;
+    uint32_t effectiveColorCount = std::min(colorArraySize, maxColorCount);
+    auto para = std::make_shared<MapColorByBrightnessPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness para is nullptr"));
+    UIEFFECT_NAPI_CHECK_RET_D(
+        GetMapColorByBrightnessArray(env, argv, para, effectiveColorCount), thisVar,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness parsing array fail"));
+
+    filterObj->AddPara(para);
     return thisVar;
 }
 
