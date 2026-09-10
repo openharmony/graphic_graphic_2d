@@ -4162,6 +4162,31 @@ void RSNode::SetIsOnTheTree(bool flag)
     }
 }
 
+bool RSNode::FlushCachedModifiersRecursively()
+{
+    // Indicates whether any cached modifier was actually flushed,
+    // used by the caller to determine if screenshot should be synchronous.
+    bool flushed = false;
+    std::queue<std::shared_ptr<RSNode>> nodeQueue;
+    auto self = shared_from_this();
+    nodeQueue.push(self);
+    while (!nodeQueue.empty()) {
+        auto current = nodeQueue.front();
+        nodeQueue.pop();
+        if (!current) {
+            continue;
+        }
+        flushed = current->FlushCachedModifiers() || flushed;
+        for (const auto& childWeak : current->GetChildren()) {
+            auto child = childWeak.lock();
+            if (child) {
+                nodeQueue.push(child);
+            }
+        }
+    }
+    return flushed;
+}
+
 bool RSNode::SetNodeState(RSNodeState state)
 {
     RSNodeState oldState = nodeState_;

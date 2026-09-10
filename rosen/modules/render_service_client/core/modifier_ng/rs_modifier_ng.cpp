@@ -290,6 +290,7 @@ void RSModifier::DetachProperty(RSPropertyType type)
     properties_.erase(it);
     // actually do the detach
     property->Detach();
+    OnDetachProperty(property->GetId());
     auto node = node_.lock();
     if (!node) {
         // not attached yet

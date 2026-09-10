@@ -18,12 +18,14 @@
 #include <algorithm>
 #include <string>
 
+#include "command_modifier/rs_canvas_node_command_modifier.h"
+
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
-#include "command_modifier/rs_canvas_node_command_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_obj_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -253,6 +255,26 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     boundsChangedCallback_ = callback;
+}
+
+void RSCanvasNode::SetIsOnTheTree(bool onTheTree)
+{
+    if (onTheTree) {
+        FlushCachedModifiers();
+    }
+    RSNode::SetIsOnTheTree(onTheTree);
+}
+
+bool RSCanvasNode::FlushCachedModifiers()
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    // Indicates whether any cached modifier was actually flushed,
+    // used to determine if screenshot should be synchronous.
+    bool flushed = false;
+    for (const auto& [_, modifier] : modifiersNG_) {
+        flushed = modifier->FlushCachedProperty() || flushed;
+    }
+    return flushed;
 }
 
 void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
