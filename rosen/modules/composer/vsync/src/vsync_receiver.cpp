@@ -100,7 +100,6 @@ VsyncError VSyncReceiver::Init(bool needAddFd)
         hasVsyncThread = true;
     }
     VsyncError ret = connection_->GetReceiveFd(fd_);
-    fdsan_exchange_owner_tag(fd_, 0, LOG_DOMAIN);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
     }
