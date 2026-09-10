@@ -538,7 +538,8 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
             geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        stagingSDFShaderEffect_ = geShape ? geShape->GenerateDrawingShader(0.0f, 0.0f) : nullptr;
+        stagingSDFShaderEffect_ = geShape ? geShape->GenerateDrawingShader(
+            stagingSdfDrawRect_.GetWidth(), stagingSdfDrawRect_.GetHeight()) : nullptr;
     }
     auto begin = stagingLightSourcesAndPosVec_.begin();
     auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
