@@ -25,7 +25,6 @@
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
-#include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 
 namespace OHOS::Rosen {
 class RSContext;
@@ -33,7 +32,6 @@ class RSDirtyRegionManager;
 class RSRenderNode;
 class RSScreenRenderNode;
 class RSSurfaceRenderNode;
-class RSTransactionData;
 
 // SelectivePrepareOpt: when only a few whitelisted nodes animate (rotation-only, infinite
 // loop, shallow canvas-only subtree), skip the whole-tree QuickPrepare and only prepare these
@@ -71,11 +69,6 @@ public:
     {
         return selectivePrepareOptHitCount_;
     }
-    void LogCommandInfo(RSTransactionData& transactionData);
-    void LogHwcBufferUpdate(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool bufferConsumed);
-    void LogAnimatingNodes();
-    // DFX: report energy statistics during Animate (feature switch controlled)
-    void ReportEnergyStats(HgmRPEnergy& energy);
 
 private:
     // result of the single-pass ancestor traversal to logicalDisplayNode

@@ -33,7 +33,6 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
-#include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -573,57 +572,5 @@ bool RSSelectivePrepareManager::PrepareOptNodes()
     selectivePrepareOptHitCount_++;
     PropagateDirtyRegions(screenNode, nodeSurfacePairs);
     return true;
-}
-
-void RSSelectivePrepareManager::LogCommandInfo(RSTransactionData& transactionData)
-{
-    if (!RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
-        return;
-    }
-    std::string nodeIds;
-    for (auto& [nodeId, followType, command] : transactionData.GetPayload()) {
-        nodeIds += std::to_string(nodeId) + ",";
-    }
-    RS_TRACE_NAME_FMT("SelectivePrepareOpt: command info pid=%d count=%lu nodes=[%s]", transactionData.GetSendingPid(),
-        transactionData.GetCommandCount(), nodeIds.c_str());
-}
-
-void RSSelectivePrepareManager::LogHwcBufferUpdate(
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool bufferConsumed)
-{
-    if (!RSSystemProperties::IsSelectivePrepareOptDebugEnabled() || !surfaceNode) {
-        return;
-    }
-    RS_TRACE_NAME_FMT("SelectivePrepareOpt: hwc buffer update surface=%s id=%" PRIu64 " consumed=%d",
-        surfaceNode->GetName().c_str(), surfaceNode->GetId(), bufferConsumed);
-}
-
-void RSSelectivePrepareManager::LogAnimatingNodes()
-{
-    if (!RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
-        return;
-    }
-    auto context = context_.lock();
-    if (!context) {
-        return;
-    }
-    for (auto& [id, weakNode] : context->GetAnimatingNodeList()) {
-        auto node = weakNode.lock();
-        if (!node) {
-            continue;
-        }
-        RS_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: animating nodeId=%" PRIu64 " onTree=%d", node->GetId(), node->IsOnTheTree());
-    }
-}
-
-void RSSelectivePrepareManager::ReportEnergyStats(HgmRPEnergy& energy)
-{
-    if (!RSSystemProperties::IsSelectivePrepareOptEnabled() || !selectivePrepareOptActive_) {
-        return;
-    }
-    energy.AddEnergyCommonData(
-        EnergyEvent::ANIMATION_EXEC_TIME,
-        "SELECTIVE_PREPARE_OPT_HIT_COUNT", std::to_string(selectivePrepareOptHitCount_));
 }
 } // namespace OHOS::Rosen

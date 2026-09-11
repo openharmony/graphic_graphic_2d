@@ -1796,7 +1796,6 @@ void RSMainThread::ProcessCommandForUniRender()
                 if (!rsTransaction) {
                     continue;
                 }
-                selectivePrepareManager_->LogCommandInfo(*rsTransaction);
                 RS_TRACE_NAME_FMT("[pid:%d, index:%d]", rsTransactionElem.first, rsTransaction->GetIndex());
                 // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
                 // 0, or if there have been previous transactions of this process considered as synchronous, then all
@@ -2410,9 +2409,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 hardwareEnabledDrwawables_.emplace_back(std::make_tuple(surfaceNode->GetScreenNodeId(),
                     surfaceNode->GetLogicalDisplayNodeId(), surfaceNode->GetRenderDrawable()));
             }
-
-            selectivePrepareManager_->LogHwcBufferUpdate(
-                surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
 
             // set content dirty for hwc node if needed
             if (isHardwareForcedDisabled_) {
@@ -4408,12 +4404,10 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     doWindowAnimate_ = curWinAnim;
     RSUifirstManager::Instance().SetSystemDoWindowAnimate(doWindowAnimate_);
-    selectivePrepareManager_->LogAnimatingNodes();
     RS_LOGD_IF(DEBUG_PIPELINE, "Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
         hgmRenderContext_->GetHgmRPEnergy()->StatisticAnimationTime(timestamp / NS_PER_MS);
-        selectivePrepareManager_->ReportEnergyStats(*hgmRenderContext_->GetHgmRPEnergy());
         // greater than one frame time (16.6 ms)
         constexpr int64_t oneFrameTimeInFPS60 = 17;
         // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
