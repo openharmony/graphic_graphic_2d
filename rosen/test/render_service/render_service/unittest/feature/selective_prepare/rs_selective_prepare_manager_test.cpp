@@ -71,6 +71,9 @@ public:
     // reset only the per-frame flags between simulated frames; keep pendingActivation_ so the
     // two-frame activation flow progresses (frame N pending -> frame N+1 eligibility)
     void ResetEligibleState();
+    // undo AddActiveNode side effects from SetDirty-triggering operations (MarkNodeGroup,
+    // MarkOnTree, RemoveChild...): clear the active list and re-add only the expected node
+    void ResetActiveList(const std::shared_ptr<RSRenderNode>& node);
 
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<RSRenderNode> displayNode_;
@@ -95,7 +98,7 @@ void RSSelectivePrepareManagerTest::SetUp()
     context_->Initialize();
     manager_ = std::make_unique<RSSelectivePrepareManager>(context_);
     // ensure the feature switch is on for all cases; individual cases may turn it off
-    system::SetParameter(FEATURE_SWITCH, "true");
+    system::SetParameter(FEATURE_SWITCH, "1");
 }
 
 void RSSelectivePrepareManagerTest::TearDown()
@@ -151,13 +154,18 @@ void RSSelectivePrepareManagerTest::BuildStandardTree()
 
     displayNode_->AddChild(containerNode_);
     containerNode_->AddChild(awemeSurfaceNode_);
-    // the aweme surface is the instance root of its subtree: mark it on the tree (with itself as
-    // instance root and the display/screen ids) BEFORE adding optNode, so AddChild propagation
-    // fills optNode's cached tree ids
-    awemeSurfaceNode_->SetIsOnTheTree(
-        true, AWEME_SURFACE_ID, AWEME_SURFACE_ID, INVALID_NODEID, SCREEN_NODE_ID, DISPLAY_NODE_ID);
     awemeSurfaceNode_->AddChild(optNode_);
-    MarkOnTree(containerNode_);
+    // AddChild propagation puts every node on the tree, but SetIsOnTheTree has an early-return
+    // when the flag is unchanged, so the explicit id overrides below via SetIsOnTheTree would be
+    // no-ops; set the cached tree ids directly on the members instead
+    awemeSurfaceNode_->instanceRootNodeId_ = AWEME_SURFACE_ID;
+    awemeSurfaceNode_->firstLevelNodeId_ = AWEME_SURFACE_ID;
+    awemeSurfaceNode_->screenNodeId_ = SCREEN_NODE_ID;
+    awemeSurfaceNode_->logicalDisplayNodeId_ = DISPLAY_NODE_ID;
+    optNode_->instanceRootNodeId_ = AWEME_SURFACE_ID;
+    optNode_->firstLevelNodeId_ = AWEME_SURFACE_ID;
+    optNode_->screenNodeId_ = SCREEN_NODE_ID;
+    optNode_->logicalDisplayNodeId_ = DISPLAY_NODE_ID;
 
     // register AFTER tree setup so OnRegister overwrites the context with the (now initialized)
     // nodeMap context and the instance root id is already propagated; OnRegister also calls
@@ -172,6 +180,15 @@ void RSSelectivePrepareManagerTest::BuildStandardTree()
     AttachInfiniteRotation(optNode_);
     context_->RegisterAnimatingRenderNode(optNode_);
     context_->AddActiveNode(optNode_);
+}
+
+void RSSelectivePrepareManagerTest::ResetActiveList(const std::shared_ptr<RSRenderNode>& node)
+{
+    {
+        std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+        context_->activeNodesInRoot_.clear();
+    }
+    context_->AddActiveNode(node);
 }
 
 void RSSelectivePrepareManagerTest::ResetEligibleState()
@@ -189,7 +206,7 @@ void RSSelectivePrepareManagerTest::ResetEligibleState()
 HWTEST_F(RSSelectivePrepareManagerTest, FeatureDisabled, TestSize.Level2)
 {
     BuildStandardTree();
-    system::SetParameter(FEATURE_SWITCH, "false");
+    system::SetParameter(FEATURE_SWITCH, "0");
     manager_->CheckAndSetup();
     EXPECT_FALSE(manager_->IsActive());
     EXPECT_FALSE(manager_->pendingActivation_);
@@ -344,6 +361,9 @@ HWTEST_F(RSSelectivePrepareManagerTest, ContainerNodeGroup, TestSize.Level2)
 {
     BuildStandardTree();
     containerNode_->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_FOREGROUND_FILTER, true, false);
+    // MarkNodeGroup internally calls SetDirty(true)->AddActiveNode(container), polluting the
+    // count check; restore the active list to contain only the animating node
+    ResetActiveList(optNode_);
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);
@@ -431,6 +451,8 @@ HWTEST_F(RSSelectivePrepareManagerTest, ContainsSurfaceNode, TestSize.Level2)
     BuildStandardTree();
     auto childSurface = RSTestUtil::CreateSurfaceNode();
     optNode_->AddChild(childSurface);
+    // AddChild only marks the list dirty; regenerate so GetSortedChildren reflects the new child
+    optNode_->GenerateFullChildrenList();
     EXPECT_FALSE(manager_->IsCanvasOnlySubtree(optNode_));
 }
 
@@ -474,7 +496,9 @@ HWTEST_F(RSSelectivePrepareManagerTest, OptNodeNotCanvas, TestSize.Level2)
     MarkOnTree(surfaceOpt);
     AttachInfiniteRotation(surfaceOpt);
     context_->RegisterAnimatingRenderNode(surfaceOpt);
-    context_->AddActiveNode(surfaceOpt);
+    // RemoveChild/MarkOnTree trigger SetDirty->AddActiveNode on multiple nodes; restore the
+    // active list to contain only the new animating node
+    ResetActiveList(surfaceOpt);
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);
@@ -498,6 +522,12 @@ HWTEST_F(RSSelectivePrepareManagerTest, DeepSubtree, TestSize.Level2)
     optNode_->AddChild(child1);
     child1->AddChild(child2);
     child2->AddChild(child3);
+    // regenerate sorted children lists on each level after AddChild
+    optNode_->GenerateFullChildrenList();
+    child1->GenerateFullChildrenList();
+    child2->GenerateFullChildrenList();
+    // AddChild puts children on the tree which may SetDirty->AddActiveNode; restore the count
+    ResetActiveList(optNode_);
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);
@@ -519,6 +549,7 @@ HWTEST_F(RSSelectivePrepareManagerTest, BranchingSubtree, TestSize.Level2)
     auto child2 = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID + 2);
     optNode_->AddChild(child1);
     optNode_->AddChild(child2);
+    optNode_->GenerateFullChildrenList();
     EXPECT_FALSE(manager_->IsSubtreeShallow(optNode_));
 }
 
