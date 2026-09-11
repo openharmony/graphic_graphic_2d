@@ -791,7 +791,8 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
     // get VPE shader
     auto srcWidth = params.srcRect.GetWidth();
     auto srcHeight = params.srcRect.GetHeight();
-    if (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f)) {
+    bool isSrcRectInvalid = (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f));
+    if (isSrcRectInvalid) {
         RS_LOGE("RSBaseRenderEngine::GlassFree3DShaderConvert srcRect invalid.");
         return;
     }
