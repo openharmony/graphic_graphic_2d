@@ -190,7 +190,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool backToFP16 = true;
     if (isHdrOn && !needOffscreen) {
 #ifdef ROSEN_OHOS
-        backToFP16 = RSHdrUtil::NeedBackToFP16(GetId(), screenParams);
+        backToFP16 = RSHdrUtil::NeedBackToFP16(params->GetHasDstAlphaBlendModeNode(), screenParams);
 #endif
         needOffscreen = backToFP16;
     }

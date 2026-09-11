@@ -815,10 +815,10 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap003, TestSize.Level1)
 
     node.UpdateDisplayBlendModeMap(true, displayNodeId);
     // should return early because EDR gain is disabled or hardware HDR is disabled by default
-    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     node.UpdateDisplayBlendModeMap(false, displayNodeId);
-    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**
@@ -867,7 +867,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap005, TestSize.Level1)
 
     // Manually add to blendModeNodeMap to simulate a previous increase
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_NE(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**

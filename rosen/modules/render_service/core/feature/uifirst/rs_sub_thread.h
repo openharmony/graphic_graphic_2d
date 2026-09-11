@@ -69,7 +69,7 @@ public:
     {
         return grContext_;
     }
-    std::pair<bool, float> GetHdrParams(RSSurfaceRenderParams* surfaceParam, bool isHdrSurface, NodeId surfaceId);
+    std::pair<bool, float> GetHdrParams(RSSurfaceRenderParams* surfaceParam, bool isHdrSurface);
 private:
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas);

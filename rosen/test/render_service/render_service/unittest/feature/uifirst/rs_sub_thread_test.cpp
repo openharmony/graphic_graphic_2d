@@ -627,7 +627,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
 
     {
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_TRUE(result.first);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
@@ -642,8 +642,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
         surfaceParams->ancestorScreenDrawable_ = screenDrawable;
 
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
-        EXPECT_TRUE(result.first);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
 
@@ -656,7 +655,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
         surfaceParams->ancestorScreenDrawable_ = screenDrawable;
 
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_TRUE(result.first);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
@@ -693,7 +692,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsSuccessWithBrightnessRatio, TestSize.Level
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(2);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
-    auto result = curThread->GetHdrParams(surfaceParams.get(), true, 2);
+    auto result = curThread->GetHdrParams(surfaceParams.get(), true);
     if (result.first) {
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     } else {

@@ -1289,7 +1289,6 @@ HWTEST_F(RSHdrUtilTest, NeedBackToFP16Test001, TestSize.Level1)
 {
     auto screenParams = std::make_shared<RSScreenRenderParams>(NODE_ID);
     ASSERT_NE(screenParams, nullptr);
-    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(NODE_ID, screenParams.get()), true);
 
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     NodeId displayNodeId = 100;
@@ -1301,32 +1300,32 @@ HWTEST_F(RSHdrUtilTest, NeedBackToFP16Test001, TestSize.Level1)
 
     screenParams = std::make_shared<RSScreenRenderParams>(displayNodeId);
     screenParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams.get()), true);
+    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(false, screenParams.get()), true);
 
     screenParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     screenParams->SetHasForceHwcHdrSurface(true);
-    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams.get()), true);
+    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(false, screenParams.get()), true);
 
     screenParams->SetHasForceHwcHdrSurface(false);
     screenParams->SetExistHWCNode(true);
-    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams.get()), true);
+    EXPECT_EQ(RSHdrUtil::NeedBackToFP16(false, screenParams.get()), true);
 
     screenParams->SetExistHWCNode(false);
     displayNode->IncreaseBlendModeNode(1);
-    EXPECT_GT(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
-    bool resultA = RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams.get());
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
+    bool resultA = RSHdrUtil::NeedBackToFP16(true, screenParams.get());
     EXPECT_EQ(resultA, true);
 
     NodeId displayNodeId2 = 200;
     auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
     ASSERT_NE(displayNode2, nullptr);
     context->GetMutableNodeMap().RegisterRenderNode(displayNode2);
-    EXPECT_EQ(displayNode2->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode2->HasDstAlphaBlendModeNode());
     auto params2 = std::make_shared<RSScreenRenderParams>(displayNodeId2);
     params2->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     params2->SetHasForceHwcHdrSurface(false);
     params2->SetExistHWCNode(false);
-    bool resultB = RSHdrUtil::NeedBackToFP16(displayNodeId2, params2.get());
+    bool resultB = RSHdrUtil::NeedBackToFP16(false, params2.get());
 }
 #endif
 } // namespace OHOS::Rosen

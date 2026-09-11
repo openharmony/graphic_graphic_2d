@@ -55,6 +55,7 @@
 #include <iremote_stub.h>
 #include "visitor/rs_node_visitor.h"
 #include "render/rs_image_cache.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
@@ -3316,6 +3317,15 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
+    {
+        auto context = GetContext().lock();
+        if (context) {
+            auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(
+                GetLogicalDisplayNodeId());
+            surfaceParams->SetHasDstAlphaBlendModeNode(
+                displayNode ? displayNode->HasDstAlphaBlendModeNode() : false);
+        }
+    }
     surfaceParams->specialLayerManager_ = specialLayerManager_;
     surfaceParams->animateState_ = animateState_;
     surfaceParams->isRotating_ = isRotating_;

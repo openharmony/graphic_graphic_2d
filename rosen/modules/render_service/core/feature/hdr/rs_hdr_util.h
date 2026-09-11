@@ -81,7 +81,7 @@ public:
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
     static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     static bool HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawing::UIColor& dstColor);
-    static bool NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams);
+    static bool NeedBackToFP16(bool hasDstAlphaBlendModeNode, RSScreenRenderParams* screenParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,

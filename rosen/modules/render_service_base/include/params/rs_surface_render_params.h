@@ -615,6 +615,20 @@ public:
         return hasHdrPresent_;
     }
 
+    void SetHasDstAlphaBlendModeNode(bool hasDstAlphaBlendModeNode)
+    {
+        if (hasDstAlphaBlendModeNode_ == hasDstAlphaBlendModeNode) {
+            return;
+        }
+        hasDstAlphaBlendModeNode_ = hasDstAlphaBlendModeNode;
+        needSync_ = true;
+    }
+
+    bool GetHasDstAlphaBlendModeNode() const
+    {
+        return hasDstAlphaBlendModeNode_;
+    }
+
     void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
@@ -1029,6 +1043,7 @@ private:
     bool hasFingerprint_ = false;
     // hdr
     bool hasHdrPresent_ = false;
+    bool hasDstAlphaBlendModeNode_ = false;
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
