@@ -51,6 +51,7 @@
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
+#include "feature/selective_prepare/rs_selective_prepare_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -74,7 +75,6 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
-class RSSelectivePrepareManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {

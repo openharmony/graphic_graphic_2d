@@ -24,6 +24,7 @@
 #include "animation/rs_render_animation.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_render_node.h"
@@ -93,11 +94,8 @@ bool RSSelectivePrepareManager::CollectAndCheckNodes(
     for (auto& [rootId, nodes] : context->GetActiveNodes()) {
         activeNodeCount += static_cast<uint32_t>(nodes.size());
         if (activeNodeCount > onTreeAnimatingCount) {
-            break;
+            return false;
         }
-    }
-    if (activeNodeCount != onTreeAnimatingCount) {
-        return false;
     }
     return optNode != nullptr;
 }
@@ -513,7 +511,7 @@ bool RSSelectivePrepareManager::CollectNodeSurfacePairs(
     if (nodeSurfacePairs.empty()) {
         return false;
     }
-    auto& screenDirtyManager = screenNode->GetDirtyManager();
+    auto screenDirtyManager = screenNode->GetDirtyManager();
     if (!screenDirtyManager) {
         return false;
     }
@@ -529,7 +527,7 @@ bool RSSelectivePrepareManager::CollectNodeSurfacePairs(
 void RSSelectivePrepareManager::PropagateDirtyRegions(
     const std::shared_ptr<RSScreenRenderNode>& screenNode, const OptNodeSurfacePairs& nodeSurfacePairs)
 {
-    auto& screenDirtyManager = screenNode->GetDirtyManager();
+    auto screenDirtyManager = screenNode->GetDirtyManager();
     std::set<NodeId> processedSurfaces;
     for (auto& [optNode, hostSurfaceNode] : nodeSurfacePairs) {
         if (!processedSurfaces.insert(hostSurfaceNode->GetId()).second) {
@@ -619,12 +617,13 @@ void RSSelectivePrepareManager::LogAnimatingNodes()
     }
 }
 
-void RSSelectivePrepareManager::ReportEnergyStats(uint64_t energy)
+void RSSelectivePrepareManager::ReportEnergyStats(HgmRPEnergy& energy)
 {
-    if (!RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
+    if (!RSSystemProperties::IsSelectivePrepareOptEnabled() || !selectivePrepareOptActive_) {
         return;
     }
-    RS_TRACE_NAME_FMT(
-        "SelectivePrepareOpt: energy stats energy=%" PRIu64 " hitCount=%u", energy, selectivePrepareOptHitCount_);
+    energy.AddEnergyCommonData(
+        EnergyEvent::ANIMATION_EXEC_TIME,
+        "SELECTIVE_PREPARE_OPT_HIT_COUNT", std::to_string(selectivePrepareOptHitCount_));
 }
 } // namespace OHOS::Rosen

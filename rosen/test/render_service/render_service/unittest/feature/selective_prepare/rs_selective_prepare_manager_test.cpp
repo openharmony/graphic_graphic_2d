@@ -113,7 +113,9 @@ std::shared_ptr<RSRenderAnimatableProperty<float>> RSSelectivePrepareManagerTest
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, propertyId);
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::TRANSFORM, property, 0, ModifierNG::RSPropertyType::ROTATION);
+        ModifierNG::RSModifierType::TRANSFORM,
+        std::static_pointer_cast<RSRenderProperty<float>>(property), 0,
+        ModifierNG::RSPropertyType::ROTATION);
     if (modifier != nullptr) {
         node->AddModifier(modifier);
     }
@@ -340,7 +342,7 @@ HWTEST_F(RSSelectivePrepareManagerTest, ContainerNodeGroup, TestSize.Level2)
 HWTEST_F(RSSelectivePrepareManagerTest, ContainerAlphaNotOne, TestSize.Level2)
 {
     BuildStandardTree();
-    containerNode_->GetRenderProperties().SetAlpha(0.5f);
+    containerNode_->GetMutableRenderProperties().SetAlpha(0.5f);
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);
@@ -377,7 +379,7 @@ HWTEST_F(RSSelectivePrepareManagerTest, TraverseCount, TestSize.Level2)
 HWTEST_F(RSSelectivePrepareManagerTest, SkipsOptNodeOwnAlpha, TestSize.Level2)
 {
     BuildStandardTree();
-    optNode_->GetRenderProperties().SetAlpha(0.3f);
+    optNode_->GetMutableRenderProperties().SetAlpha(0.5f);
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);

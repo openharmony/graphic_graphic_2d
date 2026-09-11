@@ -4409,11 +4409,11 @@ void RSMainThread::Animate(uint64_t timestamp)
     doWindowAnimate_ = curWinAnim;
     RSUifirstManager::Instance().SetSystemDoWindowAnimate(doWindowAnimate_);
     selectivePrepareManager_->LogAnimatingNodes();
-    selectivePrepareManager_->ReportEnergyStats(timestamp);
     RS_LOGD_IF(DEBUG_PIPELINE, "Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
         hgmRenderContext_->GetHgmRPEnergy()->StatisticAnimationTime(timestamp / NS_PER_MS);
+        selectivePrepareManager_->ReportEnergyStats(*hgmRenderContext_->GetHgmRPEnergy());
         // greater than one frame time (16.6 ms)
         constexpr int64_t oneFrameTimeInFPS60 = 17;
         // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
