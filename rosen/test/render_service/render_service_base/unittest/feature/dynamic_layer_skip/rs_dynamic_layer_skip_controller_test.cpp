@@ -178,6 +178,25 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, HasFullScreenSelfDrawingSurface001, T
 }
 
 /**
+ * @tc.name: HasFullScreenSelfDrawingSurface002
+ * @tc.desc: test HasFullScreenSelfDrawingSurface with surfaceWindowType > SYSTEM_SCB_WINDOW (return false)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, HasFullScreenSelfDrawingSurface002, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    RSSurfaceRenderNodeConfig config;
+    config.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rootNode, nullptr);
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    EXPECT_FALSE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+}
+
+/**
  * @tc.name: DetectScreenLayerValidity001
  * @tc.desc: test DetectScreenLayerValidity func
  * @tc.type:FUNC

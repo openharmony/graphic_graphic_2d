@@ -53,6 +53,11 @@ bool RSDynamicLayerSkipController::IsScreenLayerInvalid() const
     return screenLayerInvalid_;
 }
 
+bool RSDynamicLayerSkipController::MeetsPreliminarySkipCriteria() const
+{
+    return !targetSelfDrawingSurface_.empty();
+}
+
 void RSDynamicLayerSkipController::Init(const RectI& screenRect, bool globalDisabled)
 {
     globalDisabled_ = globalDisabled;
@@ -175,7 +180,8 @@ void RSDynamicLayerSkipController::VisitRenderNode(std::shared_ptr<RSSurfaceRend
 
 bool RSDynamicLayerSkipController::HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode)
 {
-    if (rootNode.GetSurfaceWindowType() != SurfaceWindowType::DEFAULT_WINDOW) {
+    // only default-window (normal app) or certain scb window can trigger this detection.
+    if (rootNode.GetSurfaceWindowType() > SurfaceWindowType::SYSTEM_SCB_WINDOW) {
         return false;
     }
     const auto& childrenHardwareEnabledNodes = rootNode.GetChildHardwareEnabledNodes();

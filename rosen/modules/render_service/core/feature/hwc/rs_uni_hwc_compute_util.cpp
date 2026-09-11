@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #include "property/rs_properties_painter.h"
 
 #include "common/rs_optional_trace.h"
-#include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcComputeUtil"
@@ -576,7 +576,7 @@ void RSUniHwcComputeUtil::UpdateHwcEnableByProperty(const std::shared_ptr<RSSurf
 void RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     const std::shared_ptr<RSRenderNode>& parent)
 {
-    if (!RSUniHwcPrevalidateUtil::GetInstance().IsVcldEnabled()) {
+    if (!RSUniHwcPrevalidateParamUtil::GetIsVcldEnabled()) {
         return;
     }
     if (hwcNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {

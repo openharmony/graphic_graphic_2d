@@ -11805,5 +11805,104 @@ HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_AllConditionsTrue, T
 
     rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
 }
+
+/*
+ * @tc.name: PrevalidateHwcNode004
+ * @tc.desc: Test PrevalidateHwcNode with non-empty prevalidLayers (prevalidLayers.empty() = false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
+{
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    screenNode->screenInfo_.width = 2560;
+    screenNode->screenInfo_.height = 1080;
+    screenNode->screenInfo_.phyWidth = 2560;
+    screenNode->screenInfo_.phyHeight = 1080;
+ 
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->isOnTheTree_ = true;
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    auto bufferHandle = hwcNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    hwcNode->SetSrcRect({0, 0, 500, 500});
+    hwcNode->SetDstRect({0, 0, 500, 500});
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
+    screenNode->GetAllMainAndLeashSurfaces().push_back(surfaceNode);
+ 
+    RSUniHwcPrevalidateUtil::GetInstance().loadSuccess_ = true;
+    RSUniHwcPrevalidateUtil::GetInstance().preValidateFunc_ =
+        static_cast<OHOS::Rosen::PreValidateFunc>([](
+            uint32_t id, const std::vector<RequestLayerInfo>& infos,
+            std::map<uint64_t, RequestCompositionType>& strategy) {
+            strategy[0] = RequestCompositionType::DEVICE;
+            return 0;
+        });
+ 
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    rsUniRenderVisitor->PrevalidateHwcNode();
+    EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
+ 
+    RSUniHwcPrevalidateUtil::GetInstance().preValidateFunc_ = nullptr;
+    RSUniHwcPrevalidateUtil::GetInstance().loadSuccess_ = false;
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/*
+ * @tc.name: PrevalidateHwcNode005
+ * @tc.desc: Test PrevalidateHwcNode with PreValidate returning false (prevalidate failed, return early)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode005, TestSize.Level2)
+{
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    screenNode->screenInfo_.width = 2560;
+    screenNode->screenInfo_.height = 1080;
+    screenNode->screenInfo_.phyWidth = 2560;
+    screenNode->screenInfo_.phyHeight = 1080;
+ 
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->isOnTheTree_ = true;
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    auto bufferHandle = hwcNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    hwcNode->SetSrcRect({0, 0, 500, 500});
+    hwcNode->SetDstRect({0, 0, 500, 500});
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
+    screenNode->GetAllMainAndLeashSurfaces().push_back(surfaceNode);
+ 
+    RSUniHwcPrevalidateUtil::GetInstance().loadSuccess_ = true;
+    RSUniHwcPrevalidateUtil::GetInstance().preValidateFunc_ =
+        static_cast<OHOS::Rosen::PreValidateFunc>([](
+            uint32_t id, const std::vector<RequestLayerInfo>& infos,
+            std::map<uint64_t, RequestCompositionType>& strategy) {
+            return -1;
+        });
+ 
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    rsUniRenderVisitor->PrevalidateHwcNode();
+    EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
+ 
+    RSUniHwcPrevalidateUtil::GetInstance().preValidateFunc_ = nullptr;
+    RSUniHwcPrevalidateUtil::GetInstance().loadSuccess_ = false;
+    RSTestUtil::UnregisterConsumerListener();
+}
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

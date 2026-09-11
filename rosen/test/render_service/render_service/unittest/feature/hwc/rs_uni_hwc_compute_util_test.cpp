@@ -23,6 +23,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -1735,8 +1736,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_006, Function | Sma
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1748,8 +1748,6 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function |
 
     ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
     ASSERT_FLOAT_EQ(hwcNode->GetVcldInfo().radius, 0.0f);
-
-    uniHwcPrevalidateUtil.loadSuccess_ = true;
 }
 
 /**
@@ -1760,8 +1758,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function |
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1784,8 +1781,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_AncoLayer, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1808,8 +1804,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_AncoLayer, Function | Sm
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ZeroCornerRadius, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1831,8 +1826,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ZeroCornerRadius, Functi
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest001, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1858,8 +1852,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest001, Fun
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest002, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1885,8 +1878,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest002, Fun
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RadiusTooSmall, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1917,8 +1909,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RadiusTooSmall, Function
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithSurfaceParam, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1945,8 +1936,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithSurfaceParam,
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithoutSurfaceParam, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
