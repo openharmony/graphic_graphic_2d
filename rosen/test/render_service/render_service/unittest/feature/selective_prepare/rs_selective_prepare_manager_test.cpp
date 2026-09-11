@@ -90,6 +90,9 @@ void RSSelectivePrepareManagerTest::TearDownTestCase() {}
 void RSSelectivePrepareManagerTest::SetUp()
 {
     context_ = std::make_shared<RSContext>();
+    // Initialize sets nodeMap's context; without it RegisterRenderNode->OnRegister would
+    // overwrite node contexts with an empty weak_ptr
+    context_->Initialize();
     manager_ = std::make_unique<RSSelectivePrepareManager>(context_);
     // ensure the feature switch is on for all cases; individual cases may turn it off
     system::SetParameter(FEATURE_SWITCH, "true");
@@ -116,10 +119,8 @@ std::shared_ptr<RSRenderAnimatableProperty<float>> RSSelectivePrepareManagerTest
     const std::shared_ptr<RSRenderNode>& node, PropertyId propertyId, int repeatCount, AnimationId animationId)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, propertyId);
-    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::TRANSFORM,
-        std::static_pointer_cast<RSRenderProperty<float>>(property), 0,
-        ModifierNG::RSPropertyType::ROTATION);
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::TRANSFORM,
+        std::static_pointer_cast<RSRenderProperty<float>>(property), 0, ModifierNG::RSPropertyType::ROTATION);
     if (modifier != nullptr) {
         node->AddModifier(modifier);
     }
@@ -145,15 +146,8 @@ void RSSelectivePrepareManagerTest::BuildStandardTree()
     surfaceConfig.id = AWEME_SURFACE_ID;
     surfaceConfig.name = AWEME_SURFACE_NAME;
     awemeSurfaceNode_ = RSTestUtil::CreateSurfaceNode(surfaceConfig);
-    // RSTestUtil does not pass context; set it for GetContext() dependent paths
-    awemeSurfaceNode_->context_ = context_;
     optNode_ = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID, context_);
     optNode_->InitRenderParams();
-
-    // register in the node map so GetInstanceRootNode()->GetRenderNode(AWEME_SURFACE_ID) resolves
-    context_->GetMutableNodeMap().RegisterRenderNode(awemeSurfaceNode_);
-    context_->GetMutableNodeMap().RegisterRenderNode(optNode_);
-    context_->GetMutableNodeMap().RegisterRenderNode(containerNode_);
 
     displayNode_->AddChild(containerNode_);
     containerNode_->AddChild(awemeSurfaceNode_);
@@ -164,6 +158,16 @@ void RSSelectivePrepareManagerTest::BuildStandardTree()
         true, AWEME_SURFACE_ID, AWEME_SURFACE_ID, INVALID_NODEID, SCREEN_NODE_ID, DISPLAY_NODE_ID);
     awemeSurfaceNode_->AddChild(optNode_);
     MarkOnTree(containerNode_);
+
+    // register AFTER tree setup so OnRegister overwrites the context with the (now initialized)
+    // nodeMap context and the instance root id is already propagated; OnRegister also calls
+    // SetDirty(true)->AddActiveNode, so clear the active list afterwards to keep the count check
+    // driven solely by the explicit AddActiveNode below
+    context_->GetMutableNodeMap().RegisterRenderNode(awemeSurfaceNode_);
+    {
+        std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+        context_->activeNodesInRoot_.clear();
+    }
 
     AttachInfiniteRotation(optNode_);
     context_->RegisterAnimatingRenderNode(optNode_);
