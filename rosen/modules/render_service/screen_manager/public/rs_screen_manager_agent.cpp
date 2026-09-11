@@ -502,13 +502,14 @@ int32_t RSScreenManagerAgent::SetVirtualScreenResolution(ScreenId id, uint32_t w
     return screenManager_->SetVirtualScreenResolution(id, width, height);
 }
 
-int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManager_->SetRogScreenResolution(id, width, height);
+    return screenManager_->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 int32_t RSScreenManagerAgent::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)

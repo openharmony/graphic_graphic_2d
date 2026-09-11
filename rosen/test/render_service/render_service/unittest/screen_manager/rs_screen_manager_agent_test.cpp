@@ -989,7 +989,8 @@ HWTEST_F(RSScreenManagerAgentTest, SetRogScreenResolution001, Function | SmallTe
     ScreenId screenId = GenerateScreenId();
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
-    auto ret = screenManagerAgent_->SetRogScreenResolution(screenId, newWidth, newHeight);
+    auto ret = screenManagerAgent_->SetRogScreenResolution(screenId, newWidth, newHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 

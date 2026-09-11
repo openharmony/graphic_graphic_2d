@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "limit_number.h"
 
@@ -25,6 +26,26 @@ namespace OHOS::Rosen {
 namespace {
 const RectI DEFAULT_RECT = {0, 0, 100, 100};
 constexpr NodeId DEFAULT_NODEID = 1;
+constexpr ScreenId DEFAULT_SCREENID = 0;
+constexpr uint32_t ROG_RENDER_WIDTH = 1080;
+constexpr uint32_t ROG_RENDER_HEIGHT = 2400;
+constexpr uint32_t ROG_RATIO = 2;
+constexpr uint32_t DEFAULT_REFRESH_RATE = 60;
+
+std::shared_ptr<RSScreenRenderNode> CreateScreenNodeWithSamplingMode(ScreenSamplingMode samplingMode,
+    uint32_t phyWidth = ROG_RENDER_WIDTH * ROG_RATIO, uint32_t phyHeight = ROG_RENDER_HEIGHT * ROG_RATIO)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_NODEID, DEFAULT_SCREENID);
+    auto resolution = resolutionValType(ROG_RENDER_WIDTH, ROG_RENDER_HEIGHT);
+    screenNode->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION,
+        sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution));
+    auto phyResolution = phyResolutionValType(phyWidth, phyHeight, DEFAULT_REFRESH_RATE);
+    screenNode->UpdateScreenProperty(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE,
+        sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolution));
+    screenNode->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(samplingMode)));
+    return screenNode;
+}
 } // namespace
 
 constexpr int32_t SET_DISPLAY_NITS = 100;
@@ -688,5 +709,146 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetNeedClearRelatedCacheTest, TestSize.Level
     EXPECT_EQ(params.IsNeedClearRelatedCache(), false);
     params.SetNeedClearRelatedCache(true);
     EXPECT_EQ(params.IsNeedClearRelatedCache(), true);
+}
+
+/**
+ * @tc.name: GetScreenInfoIfNeedRogScaleNotDefaultParams
+ * @tc.desc: test GetScreenInfoIfNeedRogScale returns false when params type is not default
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNotDefaultParams, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    auto screenNode = CreateScreenNodeWithSamplingMode(ScreenSamplingMode::DEVICE_GPU);
+    params.SetAncestorScreenNode(screenNode);
+    params.SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
+
+    ScreenInfo screenInfo;
+    ASSERT_FALSE(params.GetScreenInfoIfNeedRogScale(screenInfo));
+}
+
+/**
+ * @tc.name: GetScreenInfoIfNeedRogScaleNoScreenNode
+ * @tc.desc: test GetScreenInfoIfNeedRogScale returns false without ancestor screen node
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNoScreenNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+ 
+    ScreenInfo screenInfo;
+    ASSERT_FALSE(params.GetScreenInfoIfNeedRogScale(screenInfo));
+}
+
+/**
+ * @tc.name: GetScreenInfoIfNeedRogScaleNotDeviceGpu
+ * @tc.desc: test GetScreenInfoIfNeedRogScale returns false when sampling mode is not DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNotDeviceGpu, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    auto screenNode = CreateScreenNodeWithSamplingMode(ScreenSamplingMode::OFFSCREEN);
+    params.SetAncestorScreenNode(screenNode);
+ 
+    ScreenInfo screenInfo;
+    ASSERT_FALSE(params.GetScreenInfoIfNeedRogScale(screenInfo));
+}
+
+/**
+ * @tc.name: SyncVisibleRegion001
+ * @tc.desc: test OnSync copies visible regions unchanged when surface has no ancestor screen
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SyncVisibleRegion001, TestSize.Level2)
+{
+    RSSurfaceRenderParams source(DEFAULT_NODEID);
+    source.visibleRegion_ = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
+    source.visibleRegionInVirtual_ = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
+
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSSurfaceRenderParams>(DEFAULT_NODEID);
+    ASSERT_NE(target, nullptr);
+    source.OnSync(target);
+
+    auto targetParams = static_cast<RSSurfaceRenderParams*>(target.get());
+    ASSERT_EQ(targetParams->visibleRegion_.GetBound(), source.visibleRegion_.GetBound());
+    ASSERT_EQ(targetParams->visibleRegionInVirtual_.GetBound(), source.visibleRegionInVirtual_.GetBound());
+}
+
+/**
+ * @tc.name: SyncVisibleRegion002
+ * @tc.desc: test OnSync scales visible regions by rog ratio when sampling mode is DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SyncVisibleRegion002, TestSize.Level2)
+{
+    RSSurfaceRenderParams source(DEFAULT_NODEID);
+    auto screenNode = CreateScreenNodeWithSamplingMode(ScreenSamplingMode::DEVICE_GPU);
+    source.SetAncestorScreenNode(screenNode);
+    source.visibleRegion_ = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
+    source.visibleRegionInVirtual_ = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
+
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSSurfaceRenderParams>(DEFAULT_NODEID);
+    ASSERT_NE(target, nullptr);
+    source.OnSync(target);
+
+    auto targetParams = static_cast<RSSurfaceRenderParams*>(target.get());
+    RectI expectedVisibleRect(0, 0, DEFAULT_RECT.GetWidth() * ROG_RATIO, DEFAULT_RECT.GetHeight() * ROG_RATIO);
+    ASSERT_EQ(targetParams->visibleRegion_.GetBound().ToRectI(), expectedVisibleRect);
+    ASSERT_EQ(targetParams->visibleRegionInVirtual_.GetBound().ToRectI(), expectedVisibleRect);
+}
+
+/**
+ * @tc.name: ClipAndScaleDirtyManager001
+ * @tc.desc: test ClipAndScaleDirtyManager only intersects dirty when no ancestor screen node
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClipAndScaleDirtyManager001, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.SetOldDirtyInSurface(DEFAULT_RECT);
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_RECT);
+    params.ClipAndScaleDirtyManager(dirtyManager);
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+/**
+ * @tc.name: ClipAndScaleDirtyManager002
+ * @tc.desc: test ClipAndScaleDirtyManager intersects then scales dirty by rog ratio for DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClipAndScaleDirtyManager002, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    auto screenNode = CreateScreenNodeWithSamplingMode(ScreenSamplingMode::DEVICE_GPU);
+    params.SetAncestorScreenNode(screenNode);
+    params.SetOldDirtyInSurface(DEFAULT_RECT);
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_RECT);
+    params.ClipAndScaleDirtyManager(dirtyManager);
+ 
+    RectI expectedRect(0, 0, DEFAULT_RECT.GetWidth() * ROG_RATIO, DEFAULT_RECT.GetHeight() * ROG_RATIO);
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), expectedRect);
+}
+
+/**
+ * @tc.name: ClipAndScaleDirtyManager003
+ * @tc.desc: test ClipAndScaleDirtyManager handles null dirty manager without crash
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClipAndScaleDirtyManager003, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.ClipAndScaleDirtyManager(nullptr);
+    EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen
