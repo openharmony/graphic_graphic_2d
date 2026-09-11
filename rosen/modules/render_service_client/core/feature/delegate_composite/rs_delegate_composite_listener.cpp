@@ -13,16 +13,19 @@
  * limitations under the License.
  */
 #ifndef ROSEN_CROSS_PLATFORM
-#include "command/rs_command.h"
 #include "rs_delegate_composite_listener.h"
-#include "ipc_callbacks/rs_delegate_composite_callback_stub.h"
+
 #include "rs_trace.h"
-#include "platform/ohos/rs_render_service_connect_hub.h"
-#include "transaction/rs_render_pipeline_client.h"
-#include "transaction/rs_interfaces.h"
-#include "ui/rs_ui_context_manager.h"
+#include "sandbox_utils.h"
+
+#include "command/rs_command.h"
 #include "command/rs_delegate_composite_command.h"
+#include "ipc_callbacks/rs_delegate_composite_callback_stub.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_render_service_connect_hub.h"
+#include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_pipeline_client.h"
+#include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,8 +37,10 @@ static uint64_t CreateUniqueId()
     static uint64_t nextId = 0;
     static constexpr uint64_t NEXTID_MASK_48BIT = 0xFFFFFFFFFFFF;
     nextId++;
-    // 0xFFFF is pid mask. 48 is pid offset.bufferId_ high 16bit is pid, low 48bit is Auto-increment id
-    uint64_t uniqueId = ((static_cast<uint64_t>(getpid()) & 0xFFFF) << 48);
+    // 0xFFFF is pid mask. 48 is pid offset.bufferId_ high 16bit is pid, low 48bit is Auto-increment id.
+    // GetRealPid() keeps the encoded pid equal to the binder calling pid seen by the server,
+    // even in sandboxed processes where getpid() is virtualized.
+    uint64_t uniqueId = ((static_cast<uint64_t>(GetRealPid()) & 0xFFFF) << 48);
     uniqueId |= (nextId & NEXTID_MASK_48BIT);
     return uniqueId;
 }
@@ -47,15 +52,21 @@ std::unique_ptr<OHOS::Rosen::RSCommand> SurfaceTransactionListener::GetCommand(u
         return nullptr;
     }
     cmdSeqNum = CommandSeqNum_++;
-    RS_TRACE_NAME_FMT("SurfaceTransactionCommand GetCommand: uniqueId=%llu, commandSeqNum=%llu",
-        uniqueId_, cmdSeqNum);
-    return std::make_unique<SurfaceTransactionCommand>(uniqueId_, cmdSeqNum, workPid_, workTid_);
+    // Static is safe: GetRealPid() is constant within a process, and this nodeId
+    // is only used to pass server-side PID validation (ExtractPid(nodeId) == callingPid),
+    // same as RSModifiersDraw::ConvertTransaction, with the standard NodeId format
+    // (pid << 32 | sequence).
+    static NodeId nodeId = static_cast<NodeId>(GetRealPid()) << 32;
+    RS_TRACE_NAME_FMT("SurfaceTransactionCommand GetCommand: uniqueId=%llu, commandSeqNum=%llu", uniqueId_, cmdSeqNum);
+    return std::make_unique<SurfaceTransactionCommand>(uniqueId_, cmdSeqNum, workPid_, workTid_, nodeId);
 }
 
 SurfaceTransactionListener::SurfaceTransactionListener(sptr<IRemoteObject> connectToRender)
 {
     workTid_ = gettid();
-    workPid_ = getpid();
+    // GetRealPid() matches the binder calling pid seen by the server, so the identity written
+    // by SurfaceTransactionCommand::Process stays consistent in sandboxed processes.
+    workPid_ = GetRealPid();
     uniqueId_ = CreateUniqueId();
     connectToRender_ = connectToRender;
 }

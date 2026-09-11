@@ -335,10 +335,18 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetRect(MessageParcel* messageP
 void SurfaceTransactionCommand::Process(RSContext& context)
 {
     (void)context;
-    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Process, srcId=%" PRIu64
-        ", seqNum=%" PRIu64 ", pid=%d, tid=%d",
+    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Process, srcId=%" PRIu64 ", seqNum=%" PRIu64
+                               ", pid=%d, tid=%d",
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
 #ifdef RS_ENABLE_DELEGATE_COMPOSITE
+    // For non-system callers, ExtractPid(nodeId_) has been validated to equal the IPC calling
+    // pid at unmarshalling (see RSTransactionData::CheckNonSystemCommand). Reject commands whose
+    // self-reported pid does not match it, otherwise a forged command could write an arbitrary
+    // (pid, tid) into the delegate identity map and divert another process's transactions.
+    if (commandSendPid_ != ExtractPid(nodeId_)) {
+        RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand::Process fail: sender pid mismatch");
+        return;
+    }
     RsDelegateCompositeCallbackManager::GetInstance().AddSurfaceTransactionCmdInfo(
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
 #endif
@@ -350,13 +358,15 @@ RSCommand* SurfaceTransactionCommand::Unmarshalling(Parcel& parcel)
     uint64_t seqNum = 0;
     int32_t pid = 0;
     int32_t tid = 0;
-    if (!parcel.ReadUint64(srcId) || !parcel.ReadUint64(seqNum) || !parcel.ReadInt32(pid) || !parcel.ReadInt32(tid)) {
+    NodeId nodeId = 0;
+    if (!parcel.ReadUint64(srcId) || !parcel.ReadUint64(seqNum) || !parcel.ReadInt32(pid) || !parcel.ReadInt32(tid) ||
+        !parcel.ReadUint64(nodeId)) {
         RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand::Unmarshalling fail");
         return nullptr;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Unmarshalling. srcId=%llu, seqNum=%llu, pid=%d, tid=%d",
-        srcId, seqNum, pid, tid);
-    return new SurfaceTransactionCommand(srcId, seqNum, pid, tid);
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "SurfaceTransactionCommand::Unmarshalling. srcId=%llu, seqNum=%llu, pid=%d, tid=%d", srcId, seqNum, pid, tid);
+    return new SurfaceTransactionCommand(srcId, seqNum, pid, tid, nodeId);
 }
 
 bool SurfaceTransactionCommand::Marshalling(Parcel& parcel) const
@@ -368,21 +378,24 @@ bool SurfaceTransactionCommand::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!parcel.WriteUint64(commandSrcId_) || !parcel.WriteUint64(commandSeqNum_) ||
-        !parcel.WriteInt32(commandSendPid_) || !parcel.WriteInt32(commandSendTid_)) {
+        !parcel.WriteInt32(commandSendPid_) || !parcel.WriteInt32(commandSendTid_) || !parcel.WriteUint64(nodeId_)) {
         RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand Marshalling fail: write command fail");
         return false;
     }
     return true;
 }
 
-SurfaceTransactionCommand::SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid)
+SurfaceTransactionCommand::SurfaceTransactionCommand(
+    uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid, NodeId nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::SurfaceTransactionCommand: "
-        "srcId=%llu, seqNum=%llu, pid=%d, tid=%d", srcId, seqNum, pid, tid);
+                               "srcId=%llu, seqNum=%llu, pid=%d, tid=%d",
+        srcId, seqNum, pid, tid);
     commandSrcId_ = srcId;
     commandSeqNum_ = seqNum;
     commandSendPid_ = pid;
     commandSendTid_ = tid;
+    nodeId_ = nodeId;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -685,6 +685,51 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop005, TestSize.Level2)
 }
 
 /**
+ * @tc.name: LayerCrop006
+ * @tc.desc: LayerCrop test when node is in delegate mode, dstRect/srcRect stay untouched
+ * @tc.type: FUNC
+ * @tc.require: issuesIBT79X
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop006, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.SetHwcGlobalPositionEnabled(false);
+    node.SetDelegateMode(true);
+    ASSERT_TRUE(node.GetDelegateMode());
+    // dstRect exceeds the empty screen, so the crop logic would rewrite both rects
+    // if the delegate-mode node were not skipped.
+    node.SetDstRect(RectI(-10, -10, 100, 100));
+    node.SetSrcRect(RectI(0, 0, 100, 100));
+    RSScreenProperty screenProperty;
+    RSUniHwcComputeUtil::LayerCrop(node, screenProperty);
+    EXPECT_EQ(node.GetDstRect(), RectI(-10, -10, 100, 100));
+    EXPECT_EQ(node.GetSrcRect(), RectI(0, 0, 100, 100));
+}
+
+/**
+ * @tc.name: LayerCrop007
+ * @tc.desc: LayerCrop test when node is not in delegate mode, crop is applied as usual
+ * @tc.type: FUNC
+ * @tc.require: issuesIBT79X
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop007, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.SetHwcGlobalPositionEnabled(false);
+    ASSERT_FALSE(node.GetDelegateMode());
+    node.SetDstRect(RectI(-10, -10, 100, 100));
+    node.SetSrcRect(RectI(0, 0, 100, 100));
+    RSScreenProperty screenProperty;
+    RSUniHwcComputeUtil::LayerCrop(node, screenProperty);
+    // control group of LayerCrop006: without delegate mode the same rects get cropped
+    // to the empty screen (0, 0, 0, 0)
+    EXPECT_EQ(node.GetDstRect(), RectI(0, 0, 0, 0));
+    EXPECT_EQ(node.GetSrcRect(), RectI(0, 0, 0, 0));
+}
+
+/**
  * @tc.name: SrcRectRotateTransformTest
  * @tc.desc: Verify function SrcRectRotateTransform
  * @tc.type: FUNC
