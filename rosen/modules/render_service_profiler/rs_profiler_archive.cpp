@@ -16,79 +16,74 @@
 #include "rs_profiler_archive.h"
 
 namespace OHOS::Rosen {
-void Archive::Serialize(char& value)
+Archive& Archive::Serialize(char& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(float& value)
+Archive& Archive::Serialize(float& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(double& value)
+Archive& Archive::Serialize(double& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(int8_t& value)
+Archive& Archive::Serialize(int8_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(int16_t& value)
+Archive& Archive::Serialize(int16_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(int32_t& value)
+Archive& Archive::Serialize(int32_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(uint8_t& value)
+Archive& Archive::Serialize(uint8_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(uint16_t& value)
+Archive& Archive::Serialize(uint16_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(uint32_t& value)
+Archive& Archive::Serialize(uint32_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(uint64_t& value)
+Archive& Archive::Serialize(uint64_t& value)
 {
-    Serialize(&value, sizeof(value));
+    return Serialize(&value, sizeof(value));
 }
 
-void Archive::Serialize(std::string& value)
+Archive& Archive::Serialize(std::string& value)
 {
     size_t size = value.size();
     Serialize(size);
 
-    if (IsReading()) {
-        static const auto MAX_SIZE = std::string().max_size();
-        value.resize(size < MAX_SIZE ? size : 0);
+    if (IsReading() && Good()) {
+        constexpr auto maxSize = 64 * 1024 * 1024;
+        MarkCorruptedIf(size >= maxSize);
+        value.resize(Good() ? size : 0);
     }
-
-    Serialize(value.data(), value.size());
+    return Serialize(value.data(), value.size());
 }
 
-void Archive::Serialize(void* data, size_t size)
+Archive& Archive::Serialize(void* data, size_t size)
 {
-    if (!data || (size == 0)) {
-        return;
+    if (Good() && data && size) {
+        MarkCorruptedIf(IsReading() ? !Read(data, size) : !Write(data, size));
     }
-
-    if (IsReading()) {
-        Read(data, size);
-    } else {
-        Write(data, size);
-    }
+    return *this;
 }
 } // namespace OHOS::Rosen

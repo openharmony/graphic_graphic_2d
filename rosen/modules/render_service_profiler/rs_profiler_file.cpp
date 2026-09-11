@@ -339,22 +339,27 @@ std::string RSFile::ReadHeader()
     }
 
     // ALL TEXTURES
-    ImageCache::Deserialize(file_);
+    if (!ImageCache::Deserialize(file_)) {
+        return "Cannot read image cache";
+    }
 
     if (preparedHeaderMode_) {
         const auto headerEndOffset = Utils::FileTell(file_);
         Utils::FileSeek(file_, static_cast<int64_t>(headerStartOffset), SEEK_SET);
         if (headerEndOffset < headerStartOffset || (headerEndOffset - headerStartOffset) > headerSizeMax) {
+            ImageCache::Reset();
             return "Invalid prepared header data size";
         }
         preparedHeader_.resize(headerEndOffset - headerStartOffset);
         if (!Utils::FileRead(file_, preparedHeader_.data(), preparedHeader_.size())) {
+            ImageCache::Reset();
             return "Cannot read prepared header data";
         }
     }
 
     // READ LAYERS OFFSETS
     if (!ReadLayersOffset()) {
+        ImageCache::Reset();
         return "Cannot read layers offset";
     }
     return {};
@@ -560,7 +565,7 @@ void RSFile::ReadLogEventRestart(uint32_t layer)
 double RSFile::GetEOFTime() const
 {
     const std::lock_guard<std::mutex> guard(mutex_);
-    if (layerData_.empty()) {
+    if (!file_ || layerData_.empty()) {
         return 0.0;
     }
     const auto& layerData = layerData_[0];
@@ -981,7 +986,9 @@ void RSFile::CacheVsyncId2Time(uint32_t layer)
         }
 
         RSCaptureData captureData;
-        captureData.Deserialize(data);
+        if (!captureData.Deserialize(data)) {
+            continue;
+        }
         const auto vsyncId = captureData.GetPropertyInt64(RSCaptureData::KEY_RS_VSYNC_ID);
         if (vsyncId > 0 && !mapVsyncId2Time_.count(vsyncId)) {
             mapVsyncId2Time_.insert({ vsyncId, time });

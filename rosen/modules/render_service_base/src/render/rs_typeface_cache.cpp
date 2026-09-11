@@ -621,19 +621,22 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& stream)
         }
     }
 
-    size_t count = 0;
-    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
-
-    for (const auto& [font, ids] : fonts) {
+    size_t count = 0u;
+    std::vector<std::pair<std::shared_ptr<Drawing::Data>, std::vector<uint64_t>>> blobs;
+    for (auto& [font, ids] : fonts) {
         const auto blob = font->Serialize();
-        const auto data = blob ? blob->GetData() : nullptr;
-        const size_t size = blob ? blob->GetSize() : 0;
-        if (!data || !size) {
-            continue;
+        if (blob && blob->GetData() && blob->GetSize()) {
+            count += ids.size();
+            blobs.emplace_back(blob, std::move(ids));
         }
+    }
 
+    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    for (const auto& [blob, ids] : blobs) {
         stream.write(reinterpret_cast<const char*>(&ids[0]), sizeof(ids[0]));
+        const auto size = blob->GetSize();
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        const auto data = blob->GetData();
         stream.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
 
         constexpr size_t dummy = std::numeric_limits<size_t>::max();
@@ -641,20 +644,14 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& stream)
             stream.write(reinterpret_cast<const char*>(&ids[index]), sizeof(ids[index]));
             stream.write(reinterpret_cast<const char*>(&dummy), sizeof(dummy));
         }
-
-        count += ids.size();
     }
-
-    stream.seekp(0, std::ios_base::beg);
-    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
-    stream.seekp(0, std::ios_base::end);
 }
 
 std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
 {
     constexpr uint64_t mask = 1ull << 62;
     constexpr size_t maxSize = 40'000'000u;
-    constexpr size_t maxTotalSize = 500u * 1024u * 1024u;
+    constexpr size_t maxTotalSize = 128u * 1024u * 1024u;
 
     size_t count = 0u;
     if (!stream.read(reinterpret_cast<char*>(&count), sizeof(count))) {

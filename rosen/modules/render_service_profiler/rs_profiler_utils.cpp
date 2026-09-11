@@ -536,13 +536,7 @@ bool Utils::FileDelete(const std::string& path)
         g_recordInMemory = std::stringstream(std::ios::in | std::ios::out | std::ios::binary);
         return true;
     }
-
-    const std::string realPath = GetRealPath(path);
-    if (!FileExists(realPath)) {
-        return false;
-    }
-
-    return std::filesystem::remove(realPath);
+    return std::filesystem::remove(GetRealPath(path));
 }
 
 FILE* Utils::FileOpen(const std::string& path, const std::string& options)
@@ -554,31 +548,31 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         return g_recordInMemoryFile;
     }
 
-    const std::string realPath = GetRealPath(path);
-    if (realPath.empty()) {
-        HRPE("FileOpen: '%s' is invalid!", path.data()); // NOLINT
-        return nullptr;
-    }
-
+    const auto realPath = GetRealPath(path);
 #ifndef RENDER_PROFILER_APPLICATION
-    if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
-        const int fd = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW, S_IRUSR | S_IWUSR);
+    if (realPath.empty() && ShouldFileBeCreated(options) && IsSandboxPath(path)) {
+        const int fd = open(path.data(), O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW, S_IRUSR | S_IWUSR);
         if (fd != -1) {
             fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
             if (auto file = fdopen(fd, options.data())) {
                 return file;
             }
-            unlink(realPath.data());
+            unlink(path.data());
             fdsan_close_with_tag(fd, LOG_DOMAIN);
-            HRPE("FileOpen: fdopen failed on '%s'!", realPath.data()); // NOLINT
+            HRPE("FileOpen: Cannot create file '%s' (%s)", path.data(), options.data()); // NOLINT
             return nullptr;
         }
     }
 #endif
 
+    if (realPath.empty()) {
+        HRPE("FileOpen: Invalid path '%s'", path.data()); // NOLINT
+        return nullptr;
+    }
+
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {
-        HRPE("FileOpen: Cannot open '%s' with options '%s'!", realPath.data(), options.data()); // NOLINT
+        HRPE("FileOpen: Cannot open '%s' (%s)", realPath.data(), options.data()); // NOLINT
     }
     return file;
 }
@@ -706,23 +700,30 @@ bool Utils::FileRead(FILE* file, void* data, size_t size)
     return true;
 }
 
-void Utils::FileWrite(FILE* file, const void* data, size_t size)
+bool Utils::FileWrite(FILE* file, const void* data, size_t size)
 {
-    const size_t maxDataSize = 2'000'000'000; // To make sure size is a valid value
-    if (!data || (size == 0) || (size > maxDataSize)) {
+    if (!size) {
+        return true;
+    }
+
+    constexpr size_t maxSize = 2'000'000'000;
+    if (!data || (size > maxSize)) {
         HRPD("FileWrite: data or size is invalid, size %zu", size); // NOLINT
-        return;
+        return false;
     }
 
     if (file == g_recordInMemoryFile) {
         const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
         g_recordInMemory.seekg(g_recordInMemory.tellp());
-        return;
+        return !!g_recordInMemory;
     }
+
     if (fwrite(data, size, 1, file) < 1) {
         HRPE("FileWrite: Error while writing to file"); // NOLINT
+        return false;
     }
+    return true;
 }
 
 } // namespace OHOS::Rosen

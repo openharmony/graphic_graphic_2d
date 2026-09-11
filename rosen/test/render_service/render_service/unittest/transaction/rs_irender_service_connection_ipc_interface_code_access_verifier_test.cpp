@@ -17,6 +17,9 @@
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
 #include "platform/ohos/transaction/rs_iclient_to_render_connection_ipc_interface_code_access_verifier.h"
 #include "mock/mock_accesstoken_kit.h"
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace {
@@ -444,4 +447,203 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, RemoveGlo
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }
+
+#ifdef RS_PROFILER_ENABLED
+/**
+ * @tc.name: IsFeatureVerificationPassedProfilerEnabledTest001
+ * @tc.desc: test IsFeatureVerificationPassed with PROFILER codes when HRP service is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedProfilerEnabledTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    RSProfiler::SetHrpServiceEnabled(true);
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    RSProfiler::SetHrpServiceEnabled(false);
+}
+
+/**
+ * @tc.name: IsFeatureVerificationPassedProfilerDisabledTest001
+ * @tc.desc: test IsFeatureVerificationPassed with PROFILER codes when HRP service is disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedProfilerDisabledTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    RSProfiler::SetHrpServiceEnabled(false);
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    RSProfiler::SetHrpServiceEnabled(true);
+}
+
+/**
+ * @tc.name: IsInterfaceCodeAccessibleProfilerDisabledTest001
+ * @tc.desc: test IsInterfaceCodeAccessible returns false when PROFILER code and HRP service disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsInterfaceCodeAccessibleProfilerDisabledTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    RSProfiler::SetHrpServiceEnabled(false);
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    RSProfiler::SetHrpServiceEnabled(true);
+}
+
+/**
+ * @tc.name: IsInterfaceCodeAccessibleProfilerEnabledTest001
+ * @tc.desc: test IsInterfaceCodeAccessible returns false for PROFILER codes even when HRP service
+ *           enabled, because PROFILER codes have no case in IsExclusiveVerificationPassed and
+ *           fall to default:false when ENABLE_IPC_SECURITY is defined
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsInterfaceCodeAccessibleProfilerEnabledTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    RSProfiler::SetHrpServiceEnabled(true);
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+#ifdef ENABLE_IPC_SECURITY
+    // PROFILER codes pass IsFeatureVerificationPassed but have no case in
+    // IsExclusiveVerificationPassed, so IsInterfaceCodeAccessible returns false
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+#else
+    // Without ENABLE_IPC_SECURITY, only IsFeatureVerificationPassed is checked,
+    // so PROFILER codes are accessible when HRP service is enabled
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+#endif
+    RSProfiler::SetHrpServiceEnabled(false);
+}
+#endif
+
+/**
+ * @tc.name: IsFeatureVerificationPassedDefaultBranchTest001
+ * @tc.desc: Verify IsFeatureVerificationPassed returns true for non-PROFILER codes (default branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedDefaultBranchTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+}
+
+/**
+ * @tc.name: IsFeatureVerificationPassedProfilerCodeTest001
+ * @tc.desc: Verify IsFeatureVerificationPassed for PROFILER codes (covers PROFILER case branch).
+ *           When RS_PROFILER_ENABLED is not defined, RS_PROFILER_HRP_SERVICE_ENABLED() expands
+ *           to false, so PROFILER codes should return false. When defined, HRP service state
+ *           determines the result.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedProfilerCodeTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+#ifdef RS_PROFILER_ENABLED
+    RSProfiler::SetHrpServiceEnabled(false);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    RSProfiler::SetHrpServiceEnabled(true);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    RSProfiler::SetHrpServiceEnabled(false);
+#else
+    // When RS_PROFILER_ENABLED is not defined, RS_PROFILER_HRP_SERVICE_ENABLED() expands to false
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+#endif
+}
+
+/**
+ * @tc.name: IsFeatureVerificationPassedProfilerCodeTest002
+ * @tc.desc: Verify IsFeatureVerificationPassed for PROFILER_SERVICE_POPULATE_FILES code
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedProfilerCodeTest002, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+#ifdef RS_PROFILER_ENABLED
+    RSProfiler::SetHrpServiceEnabled(false);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    RSProfiler::SetHrpServiceEnabled(true);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    RSProfiler::SetHrpServiceEnabled(false);
+#else
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+#endif
+}
+
+/**
+ * @tc.name: IsFeatureVerificationPassedProfilerCodeTest003
+ * @tc.desc: Verify IsFeatureVerificationPassed for PROFILER_IS_SECURE_SCREEN code
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedProfilerCodeTest003, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+#ifdef RS_PROFILER_ENABLED
+    RSProfiler::SetHrpServiceEnabled(false);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+    RSProfiler::SetHrpServiceEnabled(true);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+    RSProfiler::SetHrpServiceEnabled(false);
+#else
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), false);
+#endif
+}
+
 } // namespace OHOS::Rosen
