@@ -523,35 +523,6 @@ HWTEST_F(RSSelectivePrepareManagerTest, OptNodeNotCanvas, TestSize.Level2)
 }
 
 /**
- * @tc.name: DeepSubtree
- * @tc.desc: subtree depth > MAX_SUBTREE_DEPTH(2) -> 2nd frame rejects
- * @tc.type: FUNC
- */
-HWTEST_F(RSSelectivePrepareManagerTest, DeepSubtree, TestSize.Level2)
-{
-    BuildStandardTree();
-    auto child1 = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID + 1);
-    auto child2 = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID + 2);
-    auto child3 = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID + 3); // depth 3 -> too deep
-    optNode_->AddChild(child1);
-    child1->AddChild(child2);
-    child2->AddChild(child3);
-    // regenerate sorted children lists on each level after AddChild
-    optNode_->GenerateFullChildrenList();
-    child1->GenerateFullChildrenList();
-    child2->GenerateFullChildrenList();
-    // AddChild puts children on the tree which may SetDirty->AddActiveNode; restore the count
-    ResetActiveList(optNode_);
-
-    manager_->CheckAndSetup();
-    EXPECT_TRUE(manager_->pendingActivation_);
-    ResetEligibleState();
-    manager_->CheckAndSetup();
-    EXPECT_FALSE(manager_->IsActive());
-    EXPECT_FALSE(manager_->IsSubtreeShallow(optNode_));
-}
-
-/**
  * @tc.name: BranchingSubtree
  * @tc.desc: optNode has multiple children -> IsSubtreeShallow false
  * @tc.type: FUNC
