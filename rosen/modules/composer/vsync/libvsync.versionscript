@@ -91,5 +91,16 @@
         _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
         _ZThn120_N4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
         _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE11AsInterfaceEv;
-        VersionScript
+        _ZN4OHOS5Rosen3NowEv;
+        _ZTVNSt3__h20__shared_ptr_emplaceIN4ffrt5queueENS_9allocatorIS2_EEEE;
+        _ZN13ScopedBytraceD2Ev;
+        _ZN16ScopedDebugTraceC1ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN16ScopedDebugTraceD2Ev;
+        _ZN13ScopedBytraceC1ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN13ScopedBytrace3EndEv;
+        _ZN16ScopedDebugTraceC2ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN13ScopedBytraceC2ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN13ScopedBytraceD1Ev;
+        _ZN16ScopedDebugTraceD1Ev;
+        _ZN16ScopedDebugTrace18debugTraceEnabled_E;
 };
