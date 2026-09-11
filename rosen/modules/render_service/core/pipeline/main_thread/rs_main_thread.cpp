@@ -73,6 +73,7 @@
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
+#include "feature/selective_prepare/rs_selective_prepare_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -484,6 +485,7 @@ RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::
     context_->Initialize();
     tunnelLayerManager_ = std::make_unique<RSTunnelLayerManager>(context_);
     tunnelRouteArbiter_ = std::make_unique<RSTunnelRouteArbiter>();
+    selectivePrepareManager_ = std::make_unique<RSSelectivePrepareManager>(context_);
     virtualScreenParallelManager_ = std::make_shared<RSVirtualScreenParallelManager>();
 }
 
@@ -573,6 +575,9 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
+        if (isUniRender_) {
+            selectivePrepareManager_->CheckAndSetup();
+        }
 #ifdef RS_ENABLE_GPU
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
@@ -1763,6 +1768,7 @@ void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
 void RSMainThread::ProcessCommandForUniRender()
 {
 #ifdef RS_ENABLE_GPU
+    selectivePrepareManager_->SetHasCommandInFrame(false);
     std::shared_ptr<TransactionDataMap> transactionDataEffective = nullptr;
     std::string transactionFlags;
     {
@@ -1784,6 +1790,7 @@ void RSMainThread::ProcessCommandForUniRender()
         transactionFlags_ = transactionFlags;
     }
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
+        selectivePrepareManager_->SetHasCommandInFrame(true);
         for (auto& rsTransactionElem : *transactionDataEffective) {
             for (auto& rsTransaction : rsTransactionElem.second) {
                 if (!rsTransaction) {
@@ -1905,6 +1912,7 @@ void RSMainThread::ProcessDelegateCompositeCommand()
 
 void RSMainThread::ProcessCommandForDividedRender()
 {
+    selectivePrepareManager_->SetHasCommandInFrame(false);
     const auto& nodeMap = context_->GetNodeMap();
     RS_TRACE_BEGIN("RSMainThread::ProcessCommand");
     {
@@ -1937,6 +1945,7 @@ void RSMainThread::ProcessCommandForDividedRender()
         context_->transactionTimestamp_ = timestamp;
         for (auto& command : commands) {
             if (command && command->IsCallingPidValid()) {
+                selectivePrepareManager_->SetHasCommandInFrame(true);
                 command->Process(*context_);
             }
         }
@@ -2281,6 +2290,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
     if (!isUniRender_) {
         return;
     }
+    selectivePrepareManager_->SetHasGpuSurfaceDirty(false);
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // pre proc for tv overlay display
     RSOverlayDisplayManager::Instance().PreProcForRender();
@@ -2375,7 +2385,11 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 surfaceNode->SetForceUIFirstChanged(false);
             }
 
+            // GPU-path surface buffer update invalidates cached ancestor state of SelectivePrepareOpt
             if (!surfaceNode->IsHardwareEnabledType()) {
+                if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                    selectivePrepareManager_->SetHasGpuSurfaceDirty(true);
+                }
                 return;
             }
 
@@ -3151,7 +3165,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         RSSpatialEffectManager::Instance()->ProcessDepthNodeAndSpatialEffectNodeDirty();
-        rootNode->QuickPrepare(uniVisitor);
+        if (!selectivePrepareManager_->PrepareOptNodes()) {
+            rootNode->QuickPrepare(uniVisitor);
+        }
         uniVisitor->ResetCrossNodesVisitedStatus();
 
 #ifdef RES_SCHED_ENABLE

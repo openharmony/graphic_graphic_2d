@@ -32,6 +32,7 @@ group("unittest") {
     ":RSPointerWindowManagerTest",
     ":RSOpincDrawCacheLayerPartTest",
     ":RSProtectiveSolidRenderNodeTest",
+    ":RSSelectivePrepareManagerTest",
     ":RSSpecialLayerUtilsTest",
     ":RSSubThreadCacheTest",
     ":RSSurfaceCaptureTaskParallelTest",
@@ -928,6 +929,48 @@ ohos_unittest("RSUifirstManagerTest2") {
     "libxml2:libxml2",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+  ]
+  defines = []
+  defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSSelectivePrepareManagerTest
+ohos_unittest("RSSelectivePrepareManagerTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "selective_prepare/rs_selective_prepare_manager_test.cpp",
+  ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "hitrace:hitrace_meter",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "libxml2:libxml2",
   ]
   defines = []
   defines += gpu_defines
