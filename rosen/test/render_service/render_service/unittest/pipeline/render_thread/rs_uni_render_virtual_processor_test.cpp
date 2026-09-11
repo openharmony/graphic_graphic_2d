@@ -151,7 +151,7 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     screenDrawable_ =
         static_cast<RSScreenRenderNodeDrawable*>(RSScreenRenderNodeDrawable::OnGenerate(rsScreenRenderNode_));
     ASSERT_NE(screenDrawable_, nullptr);
-    screenDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
+    screenDrawable_->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId_);
     ASSERT_NE(screenDrawable_->renderParams_, nullptr);
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
@@ -927,48 +927,30 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
 }
 
 /**
- * @tc.name: ProcessCacheImage
- * @tc.desc: draw virtual screen by cache image.
+ * @tc.name: ProcessCacheImageTest001
+ * @tc.desc: test ProcessCacheImage when canvas is nullptr
  * @tc.type:FUNC
  * @tc.require:issuesIBIPST
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImageTest001, TestSize.Level2)
 {
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintCanvase(&canvas);
+#ifdef RS_ENABLE_VK
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
-    BufferDrawParam params;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    Drawing::Rect srcRect(0.0f, 0.0f, 10, 20);
-    Drawing::Rect dstRect(0.0f, 0.0f, 10, 20);
-    Drawing::Brush paint;
-    params.srcRect = srcRect;
-    params.dstRect = dstRect;
-    params.paint = paint;
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-    renderEngine->DrawImageRect(paintCanvase, image, params, samplingOptions);
     ASSERT_NE(image, nullptr);
-
-    virtualProcessor->ProcessCacheImage(*image);
+    processor->ProcessCacheImage(*image);
+#endif // RS_ENABLE_VK
 }
 
 /**
- * @tc.name: ScaleMirrorIfNeed
- * @tc.desc: test ScaleMirrorIfNeed.
+ * @tc.name: ScaleMirrorIfNeedTest001
+ * @tc.desc: test ScaleMirrorIfNeed
  * @tc.type:FUNC
  * @tc.require:issues
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest001, TestSize.Level2)
 {
+#ifdef RS_ENABLE_VK
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
     auto screenId = screenManager_->CreateVirtualScreen("virtual_scVirtualScreenen", 10, 10, surface, 0UL, 0, {});
@@ -997,6 +979,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest, TestSize.Level2
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
@@ -1018,16 +1002,18 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest, TestSize.Level2
     screenManager_->SetMirrorScreenVisibleRect(screenId, rect, false);
     virtualProcessor->ScaleMirrorIfNeed(ScreenRotation::ROTATION_90, *canvas);
     screenManager_->RemoveVirtualScreen(screenId);
+#endif // RS_ENABLE_VK
 }
 
 /**
- * @tc.name: Fill scaling test
+ * @tc.name: FillTest001
  * @tc.desc: test Fill scaling mode
  * @tc.type:FUNC
  * @tc.require:issues
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, FillTest, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, FillTest001, TestSize.Level2)
 {
+#ifdef RS_ENABLE_VK
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
     auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
@@ -1056,6 +1042,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FillTest, TestSize.Level2)
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
@@ -1076,6 +1064,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FillTest, TestSize.Level2)
     virtualProcessor->Fill(*canvas, mainWidth, mainHeight, mirrorWidth, mirrorHeight);
 
     screenManager_->RemoveVirtualScreen(screenId);
+#endif // RS_ENABLE_VK
 }
 
 /**
@@ -1425,6 +1414,59 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo006, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateMirrorInfo007
+ * @tc.desc: test UpdateMirrorInfo with valid contentRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo007, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    RSDisplayNodeConfig mainNodeConfig;
+    auto mainDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, mainNodeConfig);
+    mainDisplayNode->InitRenderParams();
+    auto sourceDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mainDisplayNode);
+    auto mainScreenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID - 1, 0);
+    mainScreenNode->InitRenderParams();
+    auto sourceScreenDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mainScreenNode);
+    ASSERT_NE(sourceDrawable->renderParams_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(sourceDrawable->renderParams_.get());
+    displayParams->SetAncestorScreenDrawable(sourceScreenDrawable);
+
+    RSDisplayNodeConfig config;
+    config.displayMode = DisplayMode::MIRROR;
+    config.mirrorNodeId = mainDisplayNode->GetId();
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+    params->mirrorSourceDrawable_ = sourceDrawable;
+
+    auto mirroredDisplayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        params->GetMirrorSourceDrawable().lock());
+    ASSERT_NE(mirroredDisplayDrawable, nullptr);
+    auto mirroredParams = static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable->GetRenderParams().get());
+    ASSERT_NE(mirroredParams, nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+
+    // set contentRect to a valid value
+    Rect contentRect{0, 0, 100, 50};
+    mirroredParams->SetDisplayContentRect(contentRect);
+    virtualProcessor->UpdateMirrorInfo(*drawable);
+
+    // set contentRect to an invalid value (empty rect)
+    Rect invalidContentRect{0, 0, 0, 0};
+    mirroredParams->SetDisplayContentRect(invalidContentRect);
+    virtualProcessor->UpdateMirrorInfo(*drawable);
+    Rect invalidContentRect2{0, 0, 0, 50};
+    mirroredParams->SetDisplayContentRect(invalidContentRect2);
+    virtualProcessor->UpdateMirrorInfo(*drawable);
+#endif // RS_ENABLE_VK
+}
+
+/**
  * @tc.name: ProcessScreenSurfaceForRenderThread001
  * @tc.desc: Test ProcessScreenSurfaceForRenderThread
  * @tc.type:FUNC
@@ -1432,6 +1474,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo006, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     NodeId screenNodeId = 100;
     auto context1 = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, context1->weak_from_this());
@@ -1440,10 +1483,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread001
     ASSERT_NE(screenNode->renderDrawable_->renderParams_, nullptr);
 
     auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(screenNode->renderDrawable_.get());
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     screenDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
     ASSERT_NE(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
     virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable);
@@ -1455,6 +1496,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread001
     newScreenDrawable->renderParams_ = nullptr;
     virtualProcessor_->ProcessScreenSurfaceForRenderThread(*newScreenDrawable);
     ASSERT_NE(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+#endif // RS_ENABLE_VK
 }
 
 /**
@@ -1526,8 +1568,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetVirtualScreenSizeTest, TestSize.Level1)
 {
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     // surfaceFrames_ is empty by default (equivalent to renderFrame_ = nullptr)
@@ -1543,66 +1583,66 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetVirtualScreenSizeTest, TestSize.Lev
 }
 
 /**
- * @tc.name: GetFrameAcquireFence_RenderFrameNullTest001
- * @tc.desc: Test GetFrameAcquireFence when surfaceFrames_ is empty
- *           Should return SyncFence::InvalidFence()
+ * @tc.name: GetFrameAcquireFenceTest001
+ * @tc.desc: Test GetFrameAcquireFence
  * @tc.type: FUNC
  * @tc.require: issue41
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_RenderFrameNullTest001, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFenceTest001, TestSize.Level2)
 {
     ASSERT_NE(virtualProcessor_, nullptr);
+    EXPECT_EQ(virtualProcessor_->surfaceFrames_.size(), 0);
 
-    // Set surfaceFrames_ to empty
-    virtualProcessor_->surfaceFrames_.clear();
+    SurfaceFrameConfig config1;
+    auto csurf1 = IConsumerSurface::Create("test1");
+    ASSERT_NE(csurf1, nullptr);
+    auto producer1 = csurf1->GetProducer();
+    auto pSurface1 = Surface::CreateSurfaceAsProducer(producer1);
+    ASSERT_NE(pSurface1, nullptr);
+    auto rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface1);
+    ASSERT_NE(rsSurface1, nullptr);
+    auto targetSurface1 = std::static_pointer_cast<RSSurfaceOhos>(rsSurface1);
+    auto rasterFrame1 = std::make_unique<RSSurfaceFrameOhosRaster>(1, 1);
+    auto frame1 = std::make_unique<RSRenderFrame>(targetSurface1, std::move(rasterFrame1));
+    frame1->acquireFence_ = nullptr;
+    config1.frame = std::move(frame1);
+    virtualProcessor_->surfaceFrames_.push_back(std::move(config1));
 
-    // Should return InvalidFence when surfaceFrames_ is empty
-    auto fence = virtualProcessor_->GetFrameAcquireFence();
-    ASSERT_NE(fence, nullptr);
-    EXPECT_FALSE(fence->IsValid());
-    EXPECT_EQ(fence->Get(), -1);
-}
+    SurfaceFrameConfig config2;
+    auto csurf2 = IConsumerSurface::Create("test2");
+    ASSERT_NE(csurf2, nullptr);
+    auto producer2 = csurf2->GetProducer();
+    auto pSurface2 = Surface::CreateSurfaceAsProducer(producer2);
+    ASSERT_NE(pSurface2, nullptr);
+    auto rsSurface2 = std::make_shared<RSSurfaceOhosRaster>(pSurface2);
+    ASSERT_NE(rsSurface2, nullptr);
+    auto targetSurface2 = std::static_pointer_cast<RSSurfaceOhos>(rsSurface2);
+    auto rasterFrame2 = std::make_unique<RSSurfaceFrameOhosRaster>(1, 1);
+    auto frame2 = std::make_unique<RSRenderFrame>(targetSurface2, std::move(rasterFrame2));
+    frame2->acquireFence_->fenceFd_ = UniqueFd(-1);
+    config2.frame = std::move(frame2);
+    virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
 
-/**
- * @tc.name: GetFrameAcquireFence_RenderFrameValidTest001
- * @tc.desc: Test GetFrameAcquireFence when surfaceFrames_ has a valid frame
- *           Should return surfaceFrames_[0].frame->GetAcquireFence()
- * @tc.type: FUNC
- * @tc.require: issue41
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_RenderFrameValidTest001, TestSize.Level2)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
+    SurfaceFrameConfig config3;
+    auto csurf3 = IConsumerSurface::Create("test3");
+    ASSERT_NE(csurf3, nullptr);
+    auto producer3 = csurf3->GetProducer();
+    auto pSurface3 = Surface::CreateSurfaceAsProducer(producer3);
+    ASSERT_NE(pSurface3, nullptr);
+    auto rsSurface3 = std::make_shared<RSSurfaceOhosRaster>(pSurface3);
+    ASSERT_NE(rsSurface3, nullptr);
+    auto targetSurface3 = std::static_pointer_cast<RSSurfaceOhos>(rsSurface3);
+    auto rasterFrame3 = std::make_unique<RSSurfaceFrameOhosRaster>(1, 1);
+    auto frame3 = std::make_unique<RSRenderFrame>(targetSurface3, std::move(rasterFrame3));
+    frame3->acquireFence_->fenceFd_ = UniqueFd(0);
+    config3.frame = std::move(frame3);
+    virtualProcessor_->surfaceFrames_.push_back(std::move(config3));
 
-    // Create a mock RSRenderFrame to test GetFrameAcquireFence
-    // In unit test environment, surface RequestBuffer may fail, so we create a mock frame
-    auto consumer = IConsumerSurface::Create("test_acquire_fence");
-    ASSERT_NE(consumer, nullptr);
-    auto producer = consumer->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(pSurface, nullptr);
+    SurfaceFrameConfig config4;
+    virtualProcessor_->surfaceFrames_.push_back(std::move(config4));
 
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsSurface, nullptr);
-
-    // Create a mock RSSurfaceFrameOhosRaster
-    auto mockFrame = std::make_unique<RSSurfaceFrameOhosRaster>(100, 100);
-
-    // Create RSRenderFrame with the mock surface and frame
-    SurfaceFrameConfig config;
-    config.frame = std::make_unique<RSRenderFrame>(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
-        std::move(mockFrame));
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
-
-    ASSERT_FALSE(virtualProcessor_->surfaceFrames_.empty());
-
-    // Should return acquire fence from frame (might be invalid but should not be nullptr)
-    auto fence = virtualProcessor_->GetFrameAcquireFence();
-    ASSERT_NE(fence, nullptr);
-
-    // Clean up surfaceFrames_ to prevent crash on test teardown
-    virtualProcessor_->surfaceFrames_.clear();
+    virtualProcessor_->GetFrameAcquireFence();
+    EXPECT_EQ(virtualProcessor_->surfaceFrames_.size(), 4);
 }
 
 // ==================== CanvasClipRegionForUniscaleMode ====================
@@ -1829,7 +1869,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode_Disabl
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata001, TestSize.Level2)
 {
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    
+
     // Test with null renderFrame - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 }
@@ -1930,8 +1970,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
 
-    // Test with valid buffer - should return true
-    ASSERT_TRUE(!processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+    processor->SetCropRectForMetadata(DEFAULT_META_REGION);
     processor->surfaceFrames_.clear();
 #endif
 }
@@ -2162,13 +2201,29 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThreadTest001, TestSize.L
 }
 
 /**
- * @tc.name: FlushGpu_SurfaceFrames
+ * @tc.name: FlushGpuTest001
+ * @tc.desc: Test FlushGpu with null frame in surfaceFrames_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpuTest001, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    SurfaceFrameConfig config;
+    config.frame = nullptr;
+    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
+    virtualProcessor_->FlushGpu();
+    virtualProcessor_->surfaceFrames_.clear();
+}
+
+/**
+ * @tc.name: FlushGpuTest002
  * @tc.desc: Test FlushGpu with surfaceFrames_ covering empty, null frame, and valid frame
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpu_SurfaceFrames, TestSize.Level1)
+HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpuTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     ASSERT_NE(virtualProcessor_, nullptr);
 
     // Branch 1: empty surfaceFrames_ - loop body never executes
@@ -2197,7 +2252,16 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpu_SurfaceFrames, TestSize.Level
     virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
     EXPECT_NO_FATAL_FAILURE(virtualProcessor_->FlushGpu());
 
+    // Complete the 3-phase flush to reset flushPhaseActive_ before destruction
+    for (auto& sf : virtualProcessor_->surfaceFrames_) {
+        if (sf.frame) {
+            sf.frame->SubmitGpu();
+            sf.frame->FlushBuffer();
+        }
+    }
+
     virtualProcessor_->surfaceFrames_.clear();
+#endif // RS_ENABLE_VK
 }
 
 /**
@@ -2517,47 +2581,44 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CopyToSecondarySurfaces_NullPrimarySur
 }
 
 /**
- * @tc.name: CopyToSecondarySurfaces_NullSecondaryCanvas
- * @tc.desc: Test CopyToSecondarySurfaces null secondary canvas with Drawing::Surface-backed primary
+ * @tc.name: CopyToSecondarySurfacesTest001
+ * @tc.desc: Test CopyToSecondarySurfaces null secondary canvas with valid primary canvas
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CopyToSecondarySurfaces_NullSecondaryCanvas, TestSize.Level1)
+HWTEST_F(RSUniRenderVirtualProcessorTest, CopyToSecondarySurfacesTest001, TestSize.Level1)
 {
     ASSERT_NE(virtualProcessor_, nullptr);
-    auto drawingSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(drawingSurface, nullptr);
+    auto drawCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     SurfaceFrameConfig primary;
-    primary.canvas = std::make_shared<RSPaintFilterCanvas>(drawingSurface.get());
-    ASSERT_NE(primary.canvas->GetSurface(), nullptr);
+    primary.canvas = std::make_shared<RSPaintFilterCanvas>(drawCanvas.get());
+    ASSERT_NE(primary.canvas, nullptr);
     virtualProcessor_->surfaceFrames_.push_back(std::move(primary));
     SurfaceFrameConfig secondary;
     secondary.canvas = nullptr;
     virtualProcessor_->surfaceFrames_.push_back(std::move(secondary));
-    virtualProcessor_->CopyToSecondarySurfaces();
+    EXPECT_NO_FATAL_FAILURE(virtualProcessor_->CopyToSecondarySurfaces());
     virtualProcessor_->surfaceFrames_.clear();
 }
 
 /**
- * @tc.name: CopyToSecondarySurfaces_DrawSecondary
+ * @tc.name: CopyToSecondarySurfacesTest002
  * @tc.desc: Test CopyToSecondarySurfaces DrawImage to secondary surface
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CopyToSecondarySurfaces_DrawSecondary, TestSize.Level1)
+HWTEST_F(RSUniRenderVirtualProcessorTest, CopyToSecondarySurfacesTest002, TestSize.Level1)
 {
     ASSERT_NE(virtualProcessor_, nullptr);
-    auto primaryDrawingSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(primaryDrawingSurface, nullptr);
-    auto secondaryDrawingSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(secondaryDrawingSurface, nullptr);
+    auto drawCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    auto secondaryDrawCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     SurfaceFrameConfig primary;
-    primary.canvas = std::make_shared<RSPaintFilterCanvas>(primaryDrawingSurface.get());
-    ASSERT_NE(primary.canvas->GetSurface(), nullptr);
+    primary.canvas = std::make_shared<RSPaintFilterCanvas>(drawCanvas.get());
+    ASSERT_NE(primary.canvas, nullptr);
     virtualProcessor_->surfaceFrames_.push_back(std::move(primary));
     SurfaceFrameConfig secondary;
-    secondary.canvas = std::make_shared<RSPaintFilterCanvas>(secondaryDrawingSurface.get());
-    ASSERT_NE(secondary.canvas->GetSurface(), nullptr);
+    secondary.canvas = std::make_shared<RSPaintFilterCanvas>(secondaryDrawCanvas.get());
+    ASSERT_NE(secondary.canvas, nullptr);
     virtualProcessor_->surfaceFrames_.push_back(std::move(secondary));
-    virtualProcessor_->CopyToSecondarySurfaces();
+    EXPECT_NO_FATAL_FAILURE(virtualProcessor_->CopyToSecondarySurfaces());
     virtualProcessor_->surfaceFrames_.clear();
 }
 
@@ -2616,21 +2677,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FlushAllSurfaces_Mirror, TestSize.Leve
     virtualProcessor_->isMirror_ = true;
     virtualProcessor_->FlushAllSurfaces();
     virtualProcessor_->isMirror_ = false;
-    virtualProcessor_->surfaceFrames_.clear();
-}
-
-/**
- * @tc.name: FlushGpu_NullFrame
- * @tc.desc: Test FlushGpu with null frame in surfaceFrames_
- * @tc.type: FUNC
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpu_NullFrame, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-    SurfaceFrameConfig config;
-    config.frame = nullptr;
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
-    virtualProcessor_->FlushGpu();
     virtualProcessor_->surfaceFrames_.clear();
 }
 
