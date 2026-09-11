@@ -1051,6 +1051,9 @@ ohos_unittest("RSUniRenderVisitorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (defined(graphic_2d_feature_tv_shutter_3d_enable) && graphic_2d_feature_tv_shutter_3d_enable) {
+    defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
+  }
 }
 
 

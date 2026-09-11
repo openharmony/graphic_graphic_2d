@@ -9390,6 +9390,59 @@ HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest001, TestSize.Level1)
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+/**
+ * @tc.name: Shutter3DForceCloseHdr_001
+ * @tc.desc: Test HandlePixelFormat closes hdr when screen is in shutter 3d mode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, Shutter3DForceCloseHdr_001, TestSize.Level1)
+{
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    ON_CALL(mockInterface, GetNonlinearRatio(testing::_, testing::_)).WillByDefault(testing::Return(1.0));
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(14, 0, rsContext->weak_from_this());
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(0);
+    rsScreenRenderNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ASSERT_EQ(rsScreenRenderNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::NO_HDR);
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: Shutter3DForceCloseHdr_002
+ * @tc.desc: Test HandlePixelFormat keeps hdr status when screen is not in shutter 3d mode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, Shutter3DForceCloseHdr_002, TestSize.Level1)
+{
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    ON_CALL(mockInterface, GetNonlinearRatio(testing::_, testing::_)).WillByDefault(testing::Return(1.0));
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(13, 0, rsContext->weak_from_this());
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(0);
+    ASSERT_EQ(rsScreenRenderNode->GetUIMode3D(), UIMode3D::MODE_2D);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::HDR_PHOTO);
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+#endif // RS_ENABLE_TV_SHUTTER_3D
+
 /**
  * @tc.name: DisableHardwareHdrTest002
  * @tc.desc: Test HandlePixelFormat with disable hardware hdr.
