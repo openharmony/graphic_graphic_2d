@@ -16,21 +16,18 @@
 #include "rs_uni_hwc_prevalidate_util.h"
 
 #include <dlfcn.h>
-#include <functional>
-#include <string>
+#include <memory>
 
+#include "common/rs_singleton.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "engine/rs_base_render_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
-#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
-#include "hwc_param.h"
-#include "pipeline/render_thread/rs_uni_render_util.h"
-#include "utils/rect.h"
-
-#include "common/rs_common_hook.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "utils/rect.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcPrevalidateUtil"
@@ -38,12 +35,23 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t MATRIX_SIZE = 9;
 constexpr uint32_t ROTATION_360 = 360;
 constexpr uint64_t USAGE_SOLID_LAYER_ENABLE = 1ULL << 59;
 constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
 constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
 constexpr uint64_t USAGE_NONE_PREMULTIPLIED = 1ULL << 62;
+constexpr uint64_t USAGE_DUAL_PREVIEW = 1ULL << 50;
+constexpr uint64_t USAGE_UNI_RENDER_LAYER_NULL = 1ULL << 51;
+
+// RAII wrapper for dlopen handles. Calling dlclose automatically on scope exit
+struct DlCloser {
+    void operator()(void* handle) const {
+        if (handle) {
+            dlclose(handle);
+        }
+    }
+};
+using DlHandle = std::unique_ptr<void, DlCloser>;
 
 inline void LogPrevalidateLayerInfo(const char* nodeName, uint64_t nodeId,
     const RequestLayerInfo& info, const RSScreenProperty& screenProperty)
@@ -67,35 +75,35 @@ RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 
 RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 {
-    preValidateHandle_ = dlopen("libprevalidate_client.z.so", RTLD_NOW);
-    if (preValidateHandle_ == nullptr) {
-        RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
+    DlHandle handle(dlopen("libprevalidate_client.z.so", RTLD_NOW));
+    if (!handle) {
+        RS_LOGW("Load library failed, reason: %{public}s", dlerror());
         return;
     }
-    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(preValidateHandle_, "InitPrevalidate"));
+    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(handle.get(), "InitPrevalidate"));
     if ((initFunc == nullptr) || (initFunc() != 0)) {
-        RS_LOGW("[%{public}s]: prevalidate init failed", __func__);
-        dlclose(preValidateHandle_);
-        preValidateHandle_ = nullptr;
+        RS_LOGW("Prevalidate init failed");
         return;
     }
-    preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
-    handleEventFunc_ = reinterpret_cast<HandleEventFunc>(dlsym(preValidateHandle_, "HandleHWCEvent"));
-    getVcldEnabledInfoFunc_ = reinterpret_cast<GetVcldEnabledInfoFunc>(dlsym(preValidateHandle_, "GetVcldEnabled"));
-    if (preValidateFunc_ == nullptr || handleEventFunc_ == nullptr) {
-        RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
-        dlclose(preValidateHandle_);
-        preValidateHandle_ = nullptr;
-        preValidateFunc_ = nullptr;
-        handleEventFunc_ = nullptr;
-        getVcldEnabledInfoFunc_ = nullptr;
+    auto preValidateFunc = reinterpret_cast<PreValidateFunc>(dlsym(handle.get(), "RequestLayerStrategy"));
+    auto handleEventFunc = reinterpret_cast<HandleEventFunc>(dlsym(handle.get(), "HandleHWCEvent"));
+    if (preValidateFunc == nullptr || handleEventFunc == nullptr) {
+        RS_LOGW("Load func failed, reason: %{public}s", dlerror());
         return;
     }
-    RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
+    // GetVcldEnabled is an optional symbol: its absence is not a load failure;
+    auto getVcldEnabledInfoFunc = reinterpret_cast<GetVcldEnabledInfoFunc>(dlsym(handle.get(), "GetVcldEnabled"));
+    if (getVcldEnabledInfoFunc != nullptr) {
+        bool isVcldEnabled = false;
+        (void)getVcldEnabledInfoFunc(isVcldEnabled);
+        RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(isVcldEnabled);
+        RS_LOGI("Load vcld enable success: %{public}d", isVcldEnabled);
+    }
+    preValidateFunc_ = preValidateFunc;
+    handleEventFunc_ = handleEventFunc;
     loadSuccess_ = true;
-    UpdateVcldEnabledInfo();
-    arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
-    isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
+    preValidateHandle_ = handle.release(); // transfer ownership to the member on success
+    RS_LOGI("Load success");
 }
 
 void RSUniHwcPrevalidateUtil::HandleHwcEvent(
@@ -108,17 +116,6 @@ void RSUniHwcPrevalidateUtil::HandleHwcEvent(
     RS_LOGI("RSUniHwcPrevalidateUtil::HandleEvent deviceId:%{public}" PRIu32 ", eventId:%{public}" PRIu32 "",
         deviceId, eventId);
     handleEventFunc_(deviceId, eventId, eventData);
-}
-
-RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
-{
-    if (preValidateHandle_) {
-        dlclose(preValidateHandle_);
-        preValidateHandle_ = nullptr;
-        preValidateFunc_ = nullptr;
-        handleEventFunc_ = nullptr;
-        getVcldEnabledInfoFunc_ = nullptr;
-    }
 }
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
@@ -137,17 +134,8 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
     return ret == 0;
 }
 
-void RSUniHwcPrevalidateUtil::UpdateVcldEnabledInfo()
-{
-    if (!getVcldEnabledInfoFunc_) {
-        RS_LOGI("PreValidate getVcldEnabledInfoFunc is null");
-        return;
-    }
-    (void)getVcldEnabledInfoFunc_(isVcldEnabled_);
-}
-
-bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
-    RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps,
+bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t& zOrder,
+    RSSurfaceRenderNode::SharedPtr node,
     const RSScreenProperty& screenProperty, RequestLayerInfo &info)
 {
     if (!node || !node->GetRSSurfaceHandler()->GetConsumer()) {
@@ -157,119 +145,31 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     if (!buffer) {
         return false;
     }
-    info.id = node->GetId();
-    auto src = node->GetSrcRect();
-    auto dst = node->GetDstRect();
-    Rect crop{0, 0, 0, 0};
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
-    if (stagingSurfaceParams == nullptr) {
-        RS_LOGE("node[%{public}s] id[%{public}" PRIu64 "] GetStagingRenderParams is null.",
-            node->GetName().c_str(), node->GetId());
+    auto params = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
+    if (params == nullptr) {
         return false;
     }
-    if (buffer->GetCropMetadata(crop)) {
-        float scaleX = static_cast<float>(crop.w) / buffer->GetWidth();
-        float scaleY = static_cast<float>(crop.h) / buffer->GetHeight();
-        info.srcRect = {
-            static_cast<uint32_t>(std::ceil(src.left_ * scaleX)),
-            static_cast<uint32_t>(std::ceil(src.top_ * scaleY)),
-            static_cast<uint32_t>(std::floor(src.width_ * scaleX)),
-            static_cast<uint32_t>(std::floor(src.height_ * scaleY))
-        };
-    } else {
-        info.srcRect = {src.left_, src.top_, src.width_, src.height_};
-    }
-    if (!screenProperty.IsRogResolution() || screenProperty.GetHdiRogEnable() || IsPointerWindow(node)) {
-        info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
-    } else {
-        auto rogWidthRatio = screenProperty.GetRogWidthRatio();
-        auto rogHeightRatio = screenProperty.GetRogHeightRatio();
-        Drawing::Rect adjustedDstRect(
-            std::floor(dst.GetLeft() * rogWidthRatio),
-            std::floor(dst.GetTop() * rogHeightRatio),
-            std::ceil(dst.GetRight() * rogWidthRatio),
-            std::ceil(dst.GetBottom() * rogHeightRatio));
-        Drawing::Rect screenRect(0.f, 0.f,
-            static_cast<float>(screenProperty.GetPhyWidth()),
-            static_cast<float>(screenProperty.GetPhyHeight()));
-        adjustedDstRect.Intersect(screenRect);
-        info.dstRect = {
-            static_cast<uint32_t>(std::max(0.f, adjustedDstRect.GetLeft())),
-            static_cast<uint32_t>(std::max(0.f, adjustedDstRect.GetTop())),
-            static_cast<uint32_t>(adjustedDstRect.GetWidth()),
-            static_cast<uint32_t>(adjustedDstRect.GetHeight())
-        };
-    }
-    info.zOrder = zorder;
-    info.bufferUsage = buffer->GetUsage();
-    info.format = buffer->GetFormat();
-    info.fps = fps;
-    info.transform = static_cast<int>(transform);
-    info.bufferHandle = buffer->GetBufferHandle();
-    UpdateLayerUsage(node, info, stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
-
-    if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat(buffer)) {
-        info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {1};
-    } else {
-        info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
-    }
-
-    if (arsrPreEnabled_ && CheckIfDoArsrPre(buffer, node->GetName())) {
-        std::string bundleName = node ->GetBundleName();
-        auto hwcHmsAppConfigFromHgm = HWCParam::GetSourceTuningForHmsApp();
-        auto hwcHmsAppIter = hwcHmsAppConfigFromHgm.find(bundleName);
-        if (hwcHmsAppIter != hwcHmsAppConfigFromHgm.end() && hwcHmsAppIter->second == "1") {
-            node->SetArsrTag(false);
-        } else {
-            info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
-            node->SetArsrTag(true);
-        }
-    }
-    if (IsVcldEnabled()) {
-        std::vector<int8_t> valueBlob(sizeof(RSVcldParam));
-        *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = node->GetVcldInfo();
-        info.perFrameParameters["VcldParam"] = valueBlob;
-    }
-    CheckIfDoCopybit(buffer, transform, info, node);
     node->SetDeviceOfflineEnable(false);
-    const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
-    if (layerLinearMatrix.size() == MATRIX_SIZE) {
-        std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
-        if (memcpy_s(valueBlob.data(), valueBlob.size(), layerLinearMatrix.data(),
-            MATRIX_SIZE * sizeof(float)) == EOK) {
-            info.perFrameParameters["LayerLinearMatrix"] = valueBlob;
-        }
-    }
+    uint32_t appZOrder = node->IsHardwareEnabledTopSurface() ? node->GetAppWindowZOrder() : zOrder++;
+    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node);
+    uint32_t fps = screenProperty.GetRefreshRate();
+    FillCommonFields(info, node->GetId(), appZOrder, fps, buffer);
+    info.bufferHandle = buffer->GetBufferHandle();
+    info.transform = static_cast<int>(transform);
+    ComputeSurfaceSrcRect(info, node, buffer);
+    ComputeSurfaceDstRect(info, node, screenProperty);
+    UpdateSurfaceLayerUsage(node, info, params->GetIsHwcEnabledBySolidLayer());
+    RSUniHwcPrevalidateParamUtil::ApplySourceCropTuning(buffer, info);
+    RSUniHwcPrevalidateParamUtil::ApplyArsrEnhance(node, info);
+    RSUniHwcPrevalidateParamUtil::ApplyVcldParam(node->GetVcldInfo(), info);
+    RSUniHwcPrevalidateParamUtil::ApplyCopybit(buffer, transform, info, node);
+    RSUniHwcPrevalidateParamUtil::ApplyLayerLinearMatrix(params->GetLayerLinearMatrix(), info);
     LogPrevalidateLayerInfo(node->GetName().c_str(), node->GetId(), info, screenProperty);
     return true;
 }
 
-bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(const sptr<SurfaceBuffer>& buffer)
-{
-    if (!buffer) {
-        return false;
-    }
-    auto format = buffer->GetFormat();
-    if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
-        format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        return false;
-    }
-    return true;
-}
-
-bool RSUniHwcPrevalidateUtil::IsNeedDssRotate(GraphicTransformType transform) const
-{
-    if (transform > GRAPHIC_ROTATE_270) {
-        transform = RSBaseRenderUtil::GetRotateTransform(transform);
-    }
-    if (transform == GRAPHIC_ROTATE_90 || transform == GRAPHIC_ROTATE_270) {
-        return true;
-    }
-    return false;
-}
-
 bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
-    RSScreenRenderNode::SharedPtr node, const RSScreenProperty& screenProperty, uint32_t fps, RequestLayerInfo &info)
+    RSScreenRenderNode::SharedPtr node, const RSScreenProperty& screenProperty, RequestLayerInfo &info)
 {
     if (!node) {
         return false;
@@ -287,25 +187,23 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     if (!buffer || !surfaceHandler->GetConsumer()) {
         return false;
     }
-    info.id = node->GetId();
+    uint32_t fps = screenProperty.GetRefreshRate();
+    FillCommonFields(info, node->GetId(), zorder, fps, buffer);
     info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
     if (screenProperty.GetHdiRogEnable()) {
         info.dstRect = {0, 0, screenProperty.GetWidth(), screenProperty.GetHeight()};
     } else {
         info.dstRect = {0, 0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight()};
     }
-    info.zOrder = zorder;
-    info.bufferUsage = buffer->GetUsage();
-    info.layerUsage = info.layerUsage | USAGE_UNI_LAYER;
-    info.format = buffer->GetFormat();
-    info.fps = fps;
+    bool isUniRenderLayerNull = node->GetDynamicLayerSkipController()->MeetsPreliminarySkipCriteria();
+    UpdateScreenUsage(screenProperty.GetDualScreenState(), isUniRenderLayerNull, info);
     LayerRotate(info, surfaceHandler->GetConsumer());
     LogPrevalidateLayerInfo("ScreenNode", node->GetId(), info, screenProperty);
     return true;
 }
 
 bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedPtr node,
-    const RSScreenProperty& screenProperty, uint32_t fps, RequestLayerInfo &info)
+    const RSScreenProperty& screenProperty, RequestLayerInfo &info)
 {
     if (!node || !node->GetConsumer()) {
         return false;
@@ -315,7 +213,8 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedP
         return false;
     }
 
-    info.id = node->GetId();
+    uint32_t fps = screenProperty.GetRefreshRate();
+    FillCommonFields(info, node->GetId(), static_cast<uint32_t>(node->GetGlobalZOrder()), fps, buffer);
     auto src = node->GetSrcRect();
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
@@ -325,59 +224,75 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedP
     info.dstRect.y = static_cast<uint32_t>(static_cast<float>(dst.top_) * heightRatio);
     info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * widthRatio);
     info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * heightRatio);
-    info.zOrder = static_cast<uint32_t>(node->GetGlobalZOrder());
-    info.bufferUsage = buffer->GetUsage();
-    info.format = buffer->GetFormat();
-    info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
     LayerRotate(info, node->GetConsumer());
     LogPrevalidateLayerInfo("RCDNode", node->GetId(), info, screenProperty);
     return true;
 }
 
+std::vector<RequestLayerInfo> RSUniHwcPrevalidateUtil::CollectLayerInfo(
+    const RSScreenRenderNode::SharedPtr screenRenderNode, uint32_t zOrder)
+{
+    std::vector<RequestLayerInfo> prevalidLayers;
+    if (!screenRenderNode) {
+        return prevalidLayers;
+    }
+    const auto& screenProperty = screenRenderNode->GetScreenProperty();
+    CollectSurfaceNodeLayerInfo(prevalidLayers, screenRenderNode, zOrder, screenProperty);
+    if (prevalidLayers.empty()) {
+        return prevalidLayers;
+    }
+    RequestLayerInfo screenLayer;
+    if (CreateScreenNodeLayerInfo(zOrder++, screenRenderNode, screenProperty, screenLayer)) {
+        prevalidLayers.emplace_back(screenLayer);
+    }
+    AddRcdLayers(prevalidLayers, screenRenderNode->GetId(), screenProperty);
+    return prevalidLayers;
+}
+
 void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
-    const RSScreenRenderNode::SharedPtr screenRenderNode, uint32_t curFps, uint32_t &zOrder,
+    const RSScreenRenderNode::SharedPtr screenRenderNode, uint32_t& zOrder,
     const RSScreenProperty& screenProperty)
 {
     if (!screenRenderNode) {
         return;
     }
+    auto collectSurfaceNodeLayer = [&prevalidLayers, &zOrder, &screenProperty](
+        const RSSurfaceRenderNode::SharedPtr& node) {
+        RequestLayerInfo surfaceLayer;
+        if (CreateSurfaceNodeLayerInfo(zOrder, node, screenProperty, surfaceLayer)) {
+            prevalidLayers.emplace_back(surfaceLayer);
+        }
+    };
     auto& surfaceNodes = screenRenderNode->GetAllMainAndLeashSurfaces();
     for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (!surfaceNode) {
-            continue;
-        }
-        if (RSUniHwcPrevalidateUtil::CheckHwcNode(surfaceNode)) {
-            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, curFps, zOrder,
-                screenProperty);
+        if (surfaceNode && CheckHwcNode(surfaceNode)) {
+            collectSurfaceNodeLayer(surfaceNode);
         }
     }
-    auto& hwcNodes = screenRenderNode->GetChildHwcNodes();
-    for (const auto& hwcNode : hwcNodes) {
+    for (const auto& hwcNode : screenRenderNode->GetChildHwcNodes()) {
         auto hwcNodePtr = hwcNode.lock();
-        if (!RSUniHwcPrevalidateUtil::CheckHwcNode(hwcNodePtr)) {
-            continue;
+        if (CheckHwcNode(hwcNodePtr)) {
+            collectSurfaceNodeLayer(hwcNodePtr);
         }
-        RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder, screenProperty);
     }
 }
 
-void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
-    std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
-    uint32_t curFps, uint32_t& zOrder, const RSScreenProperty& screenProperty)
+void RSUniHwcPrevalidateUtil::AddRcdLayers(std::vector<RequestLayerInfo>& prevalidLayers,
+    NodeId screenId, const RSScreenProperty& screenProperty)
 {
-    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node);
-    RequestLayerInfo surfaceLayer;
-    uint32_t appWindowZOrder = 0;
-    if (IsPointerWindow(node)) {
-        appWindowZOrder = node->GetAppWindowZOrder();
-    } else {
-        appWindowZOrder = zOrder++;
+    if (!RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        return;
     }
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
-        appWindowZOrder, node, transform, curFps, screenProperty, surfaceLayer)) {
-        prevalidLayers.emplace_back(surfaceLayer);
+    RequestLayerInfo rcdLayer;
+    auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(screenId);
+    if (CreateRCDLayerInfo(rcdSurface, screenProperty, rcdLayer)) {
+        prevalidLayers.emplace_back(rcdLayer);
+    }
+    rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(screenId);
+    if (CreateRCDLayerInfo(rcdSurface, screenProperty, rcdLayer)) {
+        prevalidLayers.emplace_back(rcdLayer);
     }
 }
 
@@ -386,18 +301,11 @@ bool RSUniHwcPrevalidateUtil::CheckHwcNode(const RSSurfaceRenderNode::SharedPtr&
     if (!node || !node->IsOnTheTree()) {
         return false;
     }
-    if (node->IsHardwareForcedDisabled() || node->GetAncoForceDoDirect()) {
+    auto isHardCursor = node->GetHardCursorStatus();
+    if ((!isHardCursor && node->IsHardwareForcedDisabled()) || node->GetAncoForceDoDirect()) {
         return false;
     }
     return true;
-}
-
-bool RSUniHwcPrevalidateUtil::IsPointerWindow(const RSSurfaceRenderNode::SharedPtr& node)
-{
-    if (!node || !node->IsOnTheTree()) {
-        return false;
-    }
-    return node->IsHardwareEnabledTopSurface();
 }
 
 void RSUniHwcPrevalidateUtil::LayerRotate(RequestLayerInfo& info, const sptr<IConsumerSurface>& surface)
@@ -424,43 +332,75 @@ void RSUniHwcPrevalidateUtil::CopyCldInfo(const CldInfo& src, RequestLayerInfo& 
     info.cldInfo.baseColor = src.baseColor;
 }
 
-bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const sptr<SurfaceBuffer>& buffer, const std::string& nodeName)
+void RSUniHwcPrevalidateUtil::FillCommonFields(RequestLayerInfo& info, uint64_t id, uint32_t zOrder,
+    uint32_t fps, const sptr<SurfaceBuffer>& buffer)
 {
-    if (!buffer) {
-        return false;
-    }
-    static const std::unordered_set<std::string> videoLayers {
-        "xcomponentIdSurface",
-        "componentIdSurface",
-        "SceneViewer Model totemweather0",
-        "UnityPlayerSurface",
-    };
-    if (IsYUVBufferFormat(buffer) || (videoLayers.count(nodeName) > 0)) {
-        return true;
-    }
-    return false;
+    info.id = id;
+    info.zOrder = zOrder;
+    info.bufferUsage = buffer->GetUsage();
+    info.format = buffer->GetFormat();
+    info.fps = fps;
 }
 
-void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer,
-    GraphicTransformType transform, RequestLayerInfo& info, const RSSurfaceRenderNode::SharedPtr node)
+void RSUniHwcPrevalidateUtil::ComputeSurfaceSrcRect(RequestLayerInfo& info,
+    const RSSurfaceRenderNode::SharedPtr node, const sptr<SurfaceBuffer>& buffer)
 {
-    if (!isCopybitSupported_ || !buffer) {
-        return;
-    }
-    if (IsYUVBufferFormat(buffer) && IsNeedDssRotate(transform)) {
-        info.perFrameParameters["TryToDoCopybit"] = std::vector<int8_t> {1};
-        if (node) {
-            node->SetCopybitTag(true);
-        }
+    auto src = node->GetSrcRect();
+    Rect crop{0, 0, 0, 0};
+    auto bufferWidth = buffer->GetWidth();
+    auto bufferHeight = buffer->GetHeight();
+    if (buffer->GetCropMetadata(crop) && bufferWidth > 0 && bufferHeight > 0) {
+        float scaleX = static_cast<float>(crop.w) / bufferWidth;
+        float scaleY = static_cast<float>(crop.h) / bufferHeight;
+        info.srcRect = {
+            static_cast<uint32_t>(std::max(0.f, std::ceil(src.left_ * scaleX))),
+            static_cast<uint32_t>(std::max(0.f, std::ceil(src.top_ * scaleY))),
+            static_cast<uint32_t>(std::max(0.f, std::floor(src.width_ * scaleX))),
+            static_cast<uint32_t>(std::max(0.f, std::floor(src.height_ * scaleY)))
+        };
+    } else {
+        info.srcRect = {
+            static_cast<uint32_t>(std::max(0, src.left_)),
+            static_cast<uint32_t>(std::max(0, src.top_)),
+            static_cast<uint32_t>(std::max(0, src.width_)),
+            static_cast<uint32_t>(std::max(0, src.height_))
+        };
     }
 }
 
-bool RSUniHwcPrevalidateUtil::IsVcldEnabled()
+void RSUniHwcPrevalidateUtil::ComputeSurfaceDstRect(RequestLayerInfo& info,
+    const RSSurfaceRenderNode::SharedPtr node, const RSScreenProperty& screenProperty)
 {
-    return isVcldEnabled_;
+    auto dst = node->GetDstRect();
+    if (!screenProperty.IsRogResolution() || screenProperty.GetHdiRogEnable() || node->IsHardwareEnabledTopSurface()) {
+        info.dstRect = {
+            static_cast<uint32_t>(std::max(0, dst.left_)),
+            static_cast<uint32_t>(std::max(0, dst.top_)),
+            static_cast<uint32_t>(std::max(0, dst.width_)),
+            static_cast<uint32_t>(std::max(0, dst.height_))
+        };
+    } else {
+        auto rogWidthRatio = screenProperty.GetRogWidthRatio();
+        auto rogHeightRatio = screenProperty.GetRogHeightRatio();
+        Drawing::Rect adjustedDstRect(
+            std::floor(dst.GetLeft() * rogWidthRatio),
+            std::floor(dst.GetTop() * rogHeightRatio),
+            std::ceil(dst.GetRight() * rogWidthRatio),
+            std::ceil(dst.GetBottom() * rogHeightRatio));
+        Drawing::Rect screenRect(0.f, 0.f,
+            static_cast<float>(screenProperty.GetPhyWidth()),
+            static_cast<float>(screenProperty.GetPhyHeight()));
+        adjustedDstRect.Intersect(screenRect);
+        info.dstRect = {
+            static_cast<uint32_t>(std::max(0.f, adjustedDstRect.GetLeft())),
+            static_cast<uint32_t>(std::max(0.f, adjustedDstRect.GetTop())),
+            static_cast<uint32_t>(adjustedDstRect.GetWidth()),
+            static_cast<uint32_t>(adjustedDstRect.GetHeight())
+        };
+    }
 }
 
-void RSUniHwcPrevalidateUtil::UpdateLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
+void RSUniHwcPrevalidateUtil::UpdateSurfaceLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
     RequestLayerInfo& info, bool isHwcEnabledBySolidLayer)
 {
     if (node->IsHardwareEnabledTopSurface() && node->GetHardCursorStatus()) {
@@ -471,6 +411,18 @@ void RSUniHwcPrevalidateUtil::UpdateLayerUsage(const RSSurfaceRenderNode::Shared
     }
     if (node->GetBlendType() != GraphicBlendType::GRAPHIC_BLEND_SRCOVER) {
         info.layerUsage |= USAGE_NONE_PREMULTIPLIED;
+    }
+}
+
+void RSUniHwcPrevalidateUtil::UpdateScreenUsage(const DualScreenStatus dualScreenState,
+    const bool isUniRenderLayerNull, RequestLayerInfo& info)
+{
+    info.layerUsage = info.layerUsage | USAGE_UNI_LAYER;
+    if (dualScreenState == DualScreenStatus::DUAL_SCREEN_ENTER) {
+        info.layerUsage |= USAGE_DUAL_PREVIEW;
+    }
+    if (isUniRenderLayerNull) {
+        info.layerUsage |= USAGE_UNI_RENDER_LAYER_NULL;
     }
 }
 } //Rosen

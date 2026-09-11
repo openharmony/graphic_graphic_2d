@@ -28,6 +28,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -2806,58 +2807,25 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         hwcVisitor_->PrintHiperfCounterLog("counter2", static_cast<uint64_t>(0));
         return;
     }
-    std::vector<RequestLayerInfo> prevalidLayers;
-    uint32_t curFps = curScreenNode_->GetScreenProperty().GetRefreshRate();
     uint32_t zOrder = static_cast<uint32_t>(globalZOrder_);
-    // add surfaceNode layer
-    RSUniHwcPrevalidateUtil::GetInstance().CollectSurfaceNodeLayerInfo(
-        prevalidLayers, curScreenNode_, curFps, zOrder,
-        curScreenNode_->GetScreenProperty());
+    auto prevalidLayers = RSUniHwcPrevalidateUtil::CollectLayerInfo(curScreenNode_, zOrder);
+
     RS_TRACE_NAME_FMT("PrevalidateHwcNode hwcLayer: %u", prevalidLayers.size());
-    if (prevalidLayers.size() == 0) {
+    if (prevalidLayers.empty()) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode no hardware layer");
         hwcVisitor_->PrintHiperfCounterLog("counter2", INPUT_HWC_LAYERS);
         RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
             OfflineDeviceType::HPAE_OFFLINE_DEVICE);
         return;
     }
-    // add display layer
-    RequestLayerInfo screenLayer;
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateScreenNodeLayerInfo(
-        zOrder++, curScreenNode_, curScreenNode_->GetScreenProperty(), curFps, screenLayer)) {
-        prevalidLayers.emplace_back(screenLayer);
-    }
-    // add rcd layer
-    RequestLayerInfo rcdLayer;
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curScreenNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-            rcdSurface, curScreenNode_->GetScreenProperty(), curFps, rcdLayer)) {
-            prevalidLayers.emplace_back(rcdLayer);
-        }
-        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curScreenNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-            rcdSurface, curScreenNode_->GetScreenProperty(), curFps, rcdLayer)) {
-            prevalidLayers.emplace_back(rcdLayer);
-        }
-    }
     hwcVisitor_->PrintHiperfCounterLog("counter2", static_cast<uint64_t>(prevalidLayers.size()));
     std::map<uint64_t, RequestCompositionType> strategy;
-    if (!RSUniHwcPrevalidateUtil::GetInstance().PreValidate(curScreenNode_->GetScreenId(), prevalidLayers, strategy)) {
+    if (!RSUniHwcPrevalidateUtil::GetInstance().PreValidate(
+        curScreenNode_->GetScreenId(), prevalidLayers, strategy)) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode prevalidate failed");
         return;
     }
-    {
-        std::vector<uint64_t> offlineNodeIds;
-        for (const auto& elem : strategy) {
-            if (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
-                elem.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
-                offlineNodeIds.push_back(elem.first);
-            }
-        }
-        RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
-            OfflineDeviceType::HPAE_OFFLINE_DEVICE, offlineNodeIds);
-    }
+    RSUniHwcPrevalidateParamUtil::ProcessOfflineStrategy(strategy);
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     UpdateHwcNodeEnableByPrevalidate(strategy, nodeMap);
 }

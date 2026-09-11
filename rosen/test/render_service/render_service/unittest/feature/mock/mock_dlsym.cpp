@@ -26,6 +26,7 @@ namespace Rosen {
 
 bool g_handleEventFuncNull = false;
 bool g_preValidateFuncNull = false;
+bool g_dlopenNull = false;
 
 int32_t MockHandleEventFunc(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
@@ -39,6 +40,24 @@ int32_t MockPreValidateFunc(uint32_t,
 }
 
 int32_t MockInitFunc()
+{
+    return 0;
+}
+
+extern "C" void *dlopen(const char *filename, int flag)
+{
+    if (g_dlopenNull) {
+        return nullptr;
+    }
+    return reinterpret_cast<void *>(0x1);
+}
+
+extern "C" char *dlerror()
+{
+    return const_cast<char *>("mock dlerror");
+}
+
+extern "C" int dlclose(void *handle)
 {
     return 0;
 }

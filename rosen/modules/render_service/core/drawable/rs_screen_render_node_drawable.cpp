@@ -1285,7 +1285,10 @@ bool RSScreenRenderNodeDrawable::SkipFrame(uint32_t refreshRate, const RSScreenP
         case SKIP_FRAME_BY_ACTIVE_REFRESH_RATE:
             if (refreshRate > screenProperty.GetRefreshRate()) {
                 needSkip = SkipFrameByRefreshRate(refreshRate, screenProperty.GetRefreshRate());
-                GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+                auto params = static_cast<RSScreenRenderParams*>(renderParams_.get());
+                if (params && !params->GetLayerSkipContext().screenLayerInvalid_) {
+                    GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+                }
             }
             break;
         default:
