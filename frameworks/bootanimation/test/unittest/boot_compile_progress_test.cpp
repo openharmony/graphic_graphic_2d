@@ -47,7 +47,6 @@ namespace {
     constexpr int32_t TEST_SCREEN_STATUS_1 = 1;
     constexpr int32_t TEST_FRAME_NUM_15 = 15;
     constexpr int32_t TEST_FRAME_NUM_25 = 25;
-    constexpr int32_t TEST_MAX_LENGTH = 1920;
     constexpr int32_t TEST_ROG_WIDTH_1440 = 1440;
     constexpr int32_t TEST_ROG_HEIGHT_2560 = 2560;
     constexpr int32_t TEST_FRAME_NUM_0 = 0;
@@ -438,7 +437,7 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_Normal_ExecuteSuccessf
     progress->screenStatus_ = TEST_SCREEN_STATUS_NEGATIVE;
     progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
-    progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, 0);
+    progress->SetSpecialProgressFrame(0);
     EXPECT_TRUE(true);
 }
 
@@ -464,7 +463,7 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_NegativeConfig_Execute
     progress->screenStatus_ = TEST_SCREEN_STATUS_1;
     progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
-    progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, TEST_SCREEN_STATUS_1);
+    progress->SetSpecialProgressFrame(TEST_SCREEN_STATUS_1);
     EXPECT_TRUE(true);
 }
 
@@ -482,7 +481,7 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_ScreenIdNotFound_Retur
     progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
     constexpr int32_t INVALID_SCREEN_ID = 999;
-    progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, INVALID_SCREEN_ID);
+    progress->SetSpecialProgressFrame(INVALID_SCREEN_ID);
     EXPECT_TRUE(true);
 }
 
