@@ -80,7 +80,10 @@ public:
     std::unique_ptr<RSSelectivePrepareManager> manager_;
 };
 
-void RSSelectivePrepareManagerTest::SetUpTestCase() {}
+void RSSelectivePrepareManagerTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 
 void RSSelectivePrepareManagerTest::TearDownTestCase() {}
 
@@ -95,11 +98,12 @@ void RSSelectivePrepareManagerTest::SetUp()
 void RSSelectivePrepareManagerTest::TearDown()
 {
     manager_->ResetState();
-    context_.reset();
+    // destroy nodes before the context: node destructors may access the context/node map
     optNode_.reset();
     awemeSurfaceNode_.reset();
     containerNode_.reset();
     displayNode_.reset();
+    context_.reset();
 }
 
 void RSSelectivePrepareManagerTest::MarkOnTree(const std::shared_ptr<RSRenderNode>& node, NodeId logicalDisplayNodeId)
@@ -132,13 +136,24 @@ std::shared_ptr<RSRenderAnimatableProperty<float>> RSSelectivePrepareManagerTest
 
 void RSSelectivePrepareManagerTest::BuildStandardTree()
 {
-    displayNode_ = std::make_shared<RSRenderNode>(DISPLAY_NODE_ID, true);
-    containerNode_ = std::make_shared<RSCanvasRenderNode>(CONTAINER_NODE_ID);
+    // nodes must carry the test context for GetInstanceRootNode()->GetNodeMap() lookups, and
+    // canvas nodes need InitRenderParams() so that stagingRenderParams_ is not null
+    displayNode_ = std::make_shared<RSRenderNode>(DISPLAY_NODE_ID, true, context_);
+    containerNode_ = std::make_shared<RSCanvasRenderNode>(CONTAINER_NODE_ID, context_);
+    containerNode_->InitRenderParams();
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = AWEME_SURFACE_ID;
     surfaceConfig.name = AWEME_SURFACE_NAME;
     awemeSurfaceNode_ = RSTestUtil::CreateSurfaceNode(surfaceConfig);
-    optNode_ = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID);
+    // RSTestUtil does not pass context; set it for GetContext() dependent paths
+    awemeSurfaceNode_->context_ = context_;
+    optNode_ = std::make_shared<RSCanvasRenderNode>(OPT_NODE_ID, context_);
+    optNode_->InitRenderParams();
+
+    // register in the node map so GetInstanceRootNode()->GetRenderNode(AWEME_SURFACE_ID) resolves
+    context_->GetMutableNodeMap().RegisterRenderNode(awemeSurfaceNode_);
+    context_->GetMutableNodeMap().RegisterRenderNode(optNode_);
+    context_->GetMutableNodeMap().RegisterRenderNode(containerNode_);
 
     displayNode_->AddChild(containerNode_);
     containerNode_->AddChild(awemeSurfaceNode_);
@@ -449,6 +464,8 @@ HWTEST_F(RSSelectivePrepareManagerTest, OptNodeNotCanvas, TestSize.Level2)
     awemeSurfaceNode_->RemoveChild(optNode_);
     context_->UnregisterAnimatingRenderNode(optNode_->GetId());
     auto surfaceOpt = RSTestUtil::CreateSurfaceNode();
+    // animating node needs the context for GetInstanceRootNode()->GetNodeMap() resolution
+    surfaceOpt->context_ = context_;
     awemeSurfaceNode_->AddChild(surfaceOpt);
     MarkOnTree(surfaceOpt);
     AttachInfiniteRotation(surfaceOpt);
