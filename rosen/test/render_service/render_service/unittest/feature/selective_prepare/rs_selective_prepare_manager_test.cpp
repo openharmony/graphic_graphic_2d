@@ -486,18 +486,19 @@ HWTEST_F(RSSelectivePrepareManagerTest, NonCanvasRoot, TestSize.Level2)
 HWTEST_F(RSSelectivePrepareManagerTest, OptNodeNotCanvas, TestSize.Level2)
 {
     BuildStandardTree();
-    // make the optNode a surface node instead of canvas: detach canvas optNode, attach a surface optNode
-    awemeSurfaceNode_->RemoveChild(optNode_);
+    // replace the animating node with a surface node: keep the canvas optNode in the tree (not
+    // animating), add a surface optNode as another child of the aweme surface; RemoveChild on
+    // optNode triggers ResetParent->SetContentDirty->SetDirty side-effect chains that pollute
+    // the active list in ways hard to fully undo, and removing it is not required for the test
     context_->UnregisterAnimatingRenderNode(optNode_->GetId());
     auto surfaceOpt = RSTestUtil::CreateSurfaceNode();
     // animating node needs the context for GetInstanceRootNode()->GetNodeMap() resolution
     surfaceOpt->context_ = context_;
     awemeSurfaceNode_->AddChild(surfaceOpt);
-    MarkOnTree(surfaceOpt);
     AttachInfiniteRotation(surfaceOpt);
     context_->RegisterAnimatingRenderNode(surfaceOpt);
-    // RemoveChild/MarkOnTree trigger SetDirty->AddActiveNode on multiple nodes; restore the
-    // active list to contain only the new animating node
+    // AddChild/AttachInfiniteRotation trigger SetDirty->AddActiveNode on multiple nodes;
+    // restore the active list to contain only the new animating node
     ResetActiveList(surfaceOpt);
 
     manager_->CheckAndSetup();
