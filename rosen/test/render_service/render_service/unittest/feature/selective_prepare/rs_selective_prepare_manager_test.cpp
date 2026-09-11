@@ -487,19 +487,32 @@ HWTEST_F(RSSelectivePrepareManagerTest, OptNodeNotCanvas, TestSize.Level2)
 {
     BuildStandardTree();
     // replace the animating node with a surface node: keep the canvas optNode in the tree (not
-    // animating), add a surface optNode as another child of the aweme surface; RemoveChild on
-    // optNode triggers ResetParent->SetContentDirty->SetDirty side-effect chains that pollute
-    // the active list in ways hard to fully undo, and removing it is not required for the test
+    // animating), add a surface optNode as another child of the aweme surface
     context_->UnregisterAnimatingRenderNode(optNode_->GetId());
     auto surfaceOpt = RSTestUtil::CreateSurfaceNode();
     // animating node needs the context for GetInstanceRootNode()->GetNodeMap() resolution
     surfaceOpt->context_ = context_;
     awemeSurfaceNode_->AddChild(surfaceOpt);
+    // AddChild propagation should set these, but SetIsOnTheTree has side effects that may
+    // interfere; set the tree ids directly for reliability (same approach as BuildStandardTree)
+    surfaceOpt->instanceRootNodeId_ = AWEME_SURFACE_ID;
+    surfaceOpt->firstLevelNodeId_ = AWEME_SURFACE_ID;
+    surfaceOpt->screenNodeId_ = SCREEN_NODE_ID;
+    surfaceOpt->logicalDisplayNodeId_ = DISPLAY_NODE_ID;
     AttachInfiniteRotation(surfaceOpt);
     context_->RegisterAnimatingRenderNode(surfaceOpt);
     // AddChild/AttachInfiniteRotation trigger SetDirty->AddActiveNode on multiple nodes;
     // restore the active list to contain only the new animating node
     ResetActiveList(surfaceOpt);
+
+    // diagnostic: verify the eligibility chain before the actual assertion
+    ASSERT_TRUE(surfaceOpt->IsOnTheTree());
+    auto root = surfaceOpt->GetInstanceRootNode();
+    ASSERT_NE(root, nullptr);
+    auto surf = root->ReinterpretCastTo<RSSurfaceRenderNode>();
+    ASSERT_NE(surf, nullptr);
+    EXPECT_NE(surf->GetName().find("aweme"), std::string::npos);
+    EXPECT_TRUE(manager_->IsRotationOnlyAnimation(surfaceOpt));
 
     manager_->CheckAndSetup();
     EXPECT_TRUE(manager_->pendingActivation_);
