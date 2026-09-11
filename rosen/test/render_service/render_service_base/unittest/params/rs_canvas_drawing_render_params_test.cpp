@@ -184,10 +184,11 @@ HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_ConsumerSurfaceSkipTest, TestSi
 {
     constexpr NodeId id = 1;
     auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
-    auto target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
     source->SetBufferDraw(true);
     source->OnSync(target);
-    ASSERT_EQ(target->GetConsumerSurface(), nullptr);
+    auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
+    ASSERT_EQ(targetParams->GetConsumerSurface(), nullptr);
 }
 
 /**
@@ -199,11 +200,12 @@ HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_ConsumerSurfaceSyncTest, TestSi
 {
     constexpr NodeId id = 1;
     auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
-    auto target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
     auto consumerSurface = IConsumerSurface::Create("TestConsumer");
     source->SetConsumerSurface(consumerSurface);
     source->OnSync(target);
-    ASSERT_EQ(target->GetConsumerSurface(), consumerSurface);
+    auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
+    ASSERT_EQ(targetParams->GetConsumerSurface(), consumerSurface);
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace OHOS::Rosen
