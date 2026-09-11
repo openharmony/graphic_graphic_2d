@@ -17,6 +17,9 @@
 #include "graphic_common.h"
 #include "vsync_log.h"
 
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
 constexpr int MAX_RETRY = 5;
 constexpr int RETRY_INTERVAL = 1000; // 1000us = 1ms
 constexpr unsigned int DVSYNC_ANIMATION_LIST_SIZE_MAX = 20;
@@ -200,6 +203,7 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
         VLOGE("GetReceiveFd Invalid fd:%{public}d", fd);
         return VSYNC_ERROR_API_FAILED;
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     return VSYNC_ERROR_OK;
 }
 
