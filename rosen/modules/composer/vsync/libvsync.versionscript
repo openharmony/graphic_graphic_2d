@@ -91,4 +91,5 @@
         _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
         _ZThn120_N4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
         _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE11AsInterfaceEv;
+        VersionScript
 };
