@@ -67,7 +67,10 @@ void HgmContextTest::SetUpTestCase()
     hgmContextForProcess = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, rsVSyncDistributor);
 }
 
-void HgmContextTest::TearDownTestCase() {}
+void HgmContextTest::TearDownTestCase()
+{
+    renderService = nullptr;
+}
 
 void HgmContextTest::SetUp() {}
 
