@@ -260,6 +260,24 @@ bool GPUContextFuzzTest005(const uint8_t* data, size_t size)
 
 /*
  * 测试以下 GPUContext 接口：
+ * 1. SetTextCacheEnforced(bool isEnforced)
+ */
+bool GPUContextFuzzTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return false;
+    }
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    if (gpuContext == nullptr) {
+        return false;
+    }
+    bool isEnforced = GetObject<bool>();
+    gpuContext->SetTextCacheEnforced(isEnforced);
+    return true;
+}
+
+/*
+ * 测试以下 GPUContext 接口：
  * 1. RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
  * 2. GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
  * 3. SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
