@@ -47,7 +47,6 @@ auto frameRateMgr = hgmCore.GetFrameRateMgr();
 // used for ProcessHgmFrameRateTest to prevent crash
 std::shared_ptr<HgmContext> hgmContextForProcess = nullptr;
 sptr<RSScreenManager> screenManagerForProcess = nullptr;
-auto renderService = sptr<RSRenderService>::MakeSptr();
 }
 
 class HgmContextTest : public testing::Test {
@@ -56,10 +55,12 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    inline static sptr<RSRenderService> renderService = nullptr;
 };
 
 void HgmContextTest::SetUpTestCase()
 {
+    renderService = sptr<RSRenderService>::MakeSptr();
     auto rsVSyncDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
     hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
