@@ -750,7 +750,7 @@ HWTEST_F(GpuContextTest, SetTextCacheEnforcedTest, TestSize.Level1)
 {
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->SetTextCacheEnforced(fasle);
+    gpuContext->SetTextCacheEnforced(false);
 }
 
 /**
