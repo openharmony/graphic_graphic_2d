@@ -1822,11 +1822,6 @@ RSRenderNode::~RSRenderNode()
     }
 }
 
-bool RSRenderNode::MustReleaseOnMainThread() const
-{
-    return HasAnimation() || !RSSystemProperties::GetBgNodeReleaseEnabled();
-}
-
 void RSRenderNode::FallbackAnimationsToRoot()
 {
     if (!HasAnimation()) {
