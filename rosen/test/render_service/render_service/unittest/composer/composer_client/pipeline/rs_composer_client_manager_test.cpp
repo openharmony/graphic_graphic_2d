@@ -56,6 +56,7 @@ public:
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override {}
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override {}
 
     sptr<IRemoteObject> AsObject() override
     {
@@ -110,6 +111,13 @@ public:
         markTunnelInvalidSurfaceId = surfaceId;
     }
 
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override
+    {
+        activeRectSwitchCalled = true;
+        lastActiveRectFlag = flag;
+        lastActiveRect = activeRect;
+    }
+
     bool commitTunnelCalled = false;
     uint64_t lastSurfaceId = 0;
     uint64_t lastTunnelLayerId = 0;
@@ -117,6 +125,9 @@ public:
     int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
     bool markTunnelInvalidCalled = false;
     uint64_t markTunnelInvalidSurfaceId = 0;
+    bool activeRectSwitchCalled = false;
+    bool lastActiveRectFlag = false;
+    RectI lastActiveRect;
 };
 
 sptr<SurfaceBuffer> CreateTunnelTestBuffer()
@@ -979,6 +990,96 @@ HWTEST_F(RSComposerClientManagerTest, ComposerClient_MarkTunnelSurfaceInvalid_Fo
     client->MarkTunnelSurfaceInvalid(surfaceId);
     EXPECT_TRUE(conn->markTunnelInvalidCalled);
     EXPECT_EQ(conn->markTunnelInvalidSurfaceId, surfaceId);
+}
+
+/**
+ * @tc.name: SetActiveRectSwitchStatus_NoClient_NoCrash
+ * @tc.desc: Test SetActiveRectSwitchStatus with no client for screenId returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, SetActiveRectSwitchStatus_NoClient_NoCrash, TestSize.Level1)
+{
+    RSComposerClientManager mgr;
+    constexpr ScreenId screenId = 8300;
+    RectI activeRect(1, 2, 3, 4);
+    EXPECT_NO_FATAL_FAILURE(mgr.SetActiveRectSwitchStatus(screenId, true, activeRect));
+    EXPECT_EQ(mgr.GetComposerClient(screenId), nullptr);
+}
+
+/**
+ * @tc.name: SetActiveRectSwitchStatus_ForwardToMatchedClient
+ * @tc.desc: Test SetActiveRectSwitchStatus forwards flag and rect to the client for the matching screenId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, SetActiveRectSwitchStatus_ForwardToMatchedClient, TestSize.Level1)
+{
+    auto conn = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    ASSERT_NE(conn, nullptr);
+    auto client = RSComposerClient::Create(conn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    RSComposerClientManager mgr;
+    constexpr ScreenId screenId = 8301;
+    constexpr ScreenId otherScreenId = 8302;
+    mgr.AddComposerClient(screenId, client);
+
+    RectI activeRect(10, 20, 30, 40);
+    EXPECT_FALSE(conn->activeRectSwitchCalled);
+
+    // unrelated screen: not forwarded
+    mgr.SetActiveRectSwitchStatus(otherScreenId, false, activeRect);
+    EXPECT_FALSE(conn->activeRectSwitchCalled);
+
+    // matching screen: forwarded through client and context to the connection
+    mgr.SetActiveRectSwitchStatus(screenId, true, activeRect);
+    EXPECT_TRUE(conn->activeRectSwitchCalled);
+    EXPECT_TRUE(conn->lastActiveRectFlag);
+    EXPECT_EQ(conn->lastActiveRect.left_, activeRect.left_);
+    EXPECT_EQ(conn->lastActiveRect.top_, activeRect.top_);
+    EXPECT_EQ(conn->lastActiveRect.width_, activeRect.width_);
+    EXPECT_EQ(conn->lastActiveRect.height_, activeRect.height_);
+}
+
+/**
+ * @tc.name: ComposerContext_SetActiveRectSwitchStatus_NullConnection_NoCrash
+ * @tc.desc: Test RSComposerContext::SetActiveRectSwitchStatus with null connection returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, ComposerContext_SetActiveRectSwitchStatus_NullConnection_NoCrash, TestSize.Level1)
+{
+    sptr<IRSRenderToComposerConnection> nullConn = nullptr;
+    auto client = RSComposerClient::Create(nullConn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    auto ctx = client->GetComposerContext();
+    ASSERT_NE(ctx, nullptr);
+
+    RectI activeRect(5, 6, 7, 8);
+    EXPECT_NO_FATAL_FAILURE(ctx->SetActiveRectSwitchStatus(true, activeRect));
+}
+
+/**
+ * @tc.name: ComposerClient_SetActiveRectSwitchStatus_ForwardsToContext
+ * @tc.desc: Test RSComposerClient::SetActiveRectSwitchStatus forwards to context and connection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, ComposerClient_SetActiveRectSwitchStatus_ForwardsToContext, TestSize.Level1)
+{
+    auto conn = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    ASSERT_NE(conn, nullptr);
+    auto client = RSComposerClient::Create(conn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    RectI activeRect(50, 60, 70, 80);
+    EXPECT_FALSE(conn->activeRectSwitchCalled);
+
+    client->SetActiveRectSwitchStatus(false, activeRect);
+    EXPECT_TRUE(conn->activeRectSwitchCalled);
+    EXPECT_FALSE(conn->lastActiveRectFlag);
+    EXPECT_EQ(conn->lastActiveRect.left_, activeRect.left_);
+    EXPECT_EQ(conn->lastActiveRect.top_, activeRect.top_);
+    EXPECT_EQ(conn->lastActiveRect.width_, activeRect.width_);
+    EXPECT_EQ(conn->lastActiveRect.height_, activeRect.height_);
 }
 
 } // namespace OHOS::Rosen

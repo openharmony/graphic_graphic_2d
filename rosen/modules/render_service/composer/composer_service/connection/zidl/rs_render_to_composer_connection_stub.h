@@ -37,6 +37,7 @@ private:
     int32_t SetComposerToRenderConnectionStub(OHOS::MessageParcel& parcel);
     int32_t PreAllocProtectedFrameBuffersStub(OHOS::MessageParcel& parcel);
     int32_t MarkTunnelSurfaceInvalidSurfaceIdStub(OHOS::MessageParcel& parcel);
+    int32_t SetActiveRectSwitchStatusStub(OHOS::MessageParcel& parcel);
     pid_t lastSendingPid_ = 0;
 };
 } // namespace OHOS::Rosen
