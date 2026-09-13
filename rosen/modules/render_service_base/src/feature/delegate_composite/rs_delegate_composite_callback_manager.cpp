@@ -117,8 +117,13 @@ void RsDelegateCompositeCallbackManager::OnCleanCacheForBufferInfoMap(
                 info.buffer->GetSeqNum(), info.fence, clientPid);
             continue;
         }
-        info.buffer->RegisterBufferDestructorCallbackFunc(
-            &RsDelegateCompositeCallbackManager::BufferDestructorCallback);
+        if (!info.buffer->RegisterBufferDestructorCallbackFunc(
+            &RsDelegateCompositeCallbackManager::BufferDestructorCallback)) {
+            // without the callback the release info is never processed, skip it to avoid a stale record
+            ROSEN_LOGE("DelegateModeDebugTag: register buffer destructor callback fail, bufferSeqnum=%{public}u",
+                info.buffer->GetSeqNum());
+            continue;
+        }
         DFX_LOGD(g_enableDfx, "RsDelegateCompositeCleanCacheDfx: PrepareBufferReleaseInfo, bufferSeqnum=%{public}u",
             info.buffer->GetSeqNum());
         RsDelegateCompositeCallbackManager::GetInstance().PrepareBufferReleaseInfo(nodeId, queueId,
