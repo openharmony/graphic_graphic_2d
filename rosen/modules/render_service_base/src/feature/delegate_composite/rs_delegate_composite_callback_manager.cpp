@@ -119,9 +119,10 @@ void RsDelegateCompositeCallbackManager::OnCleanCacheForBufferInfoMap(
         }
         if (!info.buffer->RegisterBufferDestructorCallbackFunc(
             &RsDelegateCompositeCallbackManager::BufferDestructorCallback)) {
-            // without the callback the release info is never processed, skip it to avoid a stale record
-            ROSEN_LOGE("DelegateModeDebugTag: register buffer destructor callback fail, bufferSeqnum=%{public}u",
-                info.buffer->GetSeqNum());
+            ROSEN_LOGE("DelegateModeDebugTag: register buffer destructor callback fail, fallback to "
+                "immediate release notify, bufferSeqnum=%{public}u", info.buffer->GetSeqNum());
+            RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(nodeId, queueId,
+                info.buffer->GetSeqNum(), info.fence, clientPid);
             continue;
         }
         DFX_LOGD(g_enableDfx, "RsDelegateCompositeCleanCacheDfx: PrepareBufferReleaseInfo, bufferSeqnum=%{public}u",

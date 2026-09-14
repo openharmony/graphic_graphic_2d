@@ -80,7 +80,8 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
     bool ret = false;
     if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
         if (!buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
-            // the callback is not there, which means it was dropped when DoBufferReclaim registered it
+            // DoBufferReclaim only keeps the record after a successful registration, so reaching here means
+            // the callback was registered; a false here is unexpected and only kept as a defensive warning.
             RS_LOGW("DoBufferResume: destructor callback is not registered");
         }
         ret = true;
