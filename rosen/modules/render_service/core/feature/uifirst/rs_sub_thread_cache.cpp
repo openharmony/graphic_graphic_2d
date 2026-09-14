@@ -363,12 +363,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
-        if (func) {
-            std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
-        }
+        ClearCacheSurface(false);
         RS_LOGE("InitCacheSurface gpuContext == nullptr");
         return;
     }
@@ -402,12 +397,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
-            if (func) {
-                std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-                func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                    cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-                ClearCacheSurface();
-            }
+            ClearCacheSurface(false);
             RS_LOGE("InitCacheSurface !cacheBackendTexture_.IsValid() || !vkTextureInfo");
             return;
         }
