@@ -2093,7 +2093,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest050, TestSize.Level1)
     int32_t height = 20;
     auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
     auto p = Drawing::Point(width, height);
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     for (int i = 0; i < Drawing::MAX_OPITEMSIZE - 1; i++) {
         rootCanvas->DrawPoint(p);
     }
@@ -2135,7 +2135,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest051, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2190,7 +2190,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2263,7 +2263,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2302,7 +2302,7 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest001, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
     EXPECT_TRUE(recordCanvasTmp != nullptr);
     auto width1 = recordCmdUtils->GetWidth();
@@ -2320,7 +2320,7 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest002, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
     EXPECT_TRUE(recordCanvasTmp != nullptr);
     auto height1 = recordCmdUtils->GetHeight();
@@ -2338,7 +2338,7 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest003, TestSize.Level1)
     auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
     ASSERT_TRUE(canvas != nullptr);
     auto p = Drawing::Point(200, 200);
-    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
     auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
     ASSERT_TRUE(recordCmdUtils2 != nullptr);
     Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
@@ -2360,7 +2360,7 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest004, TestSize.Level1)
     auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
     ASSERT_TRUE(canvas != nullptr);
     auto p = Drawing::Point(200, 200);
-    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
     auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
     ASSERT_TRUE(recordCmdUtils2 != nullptr);
     Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
@@ -2383,7 +2383,7 @@ HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest005, TestSize.Level1)
     auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
     ASSERT_TRUE(canvas != nullptr);
     auto p = Drawing::Point(200, 200);
-    Drawing::Rect rect = Drawing::Rect(0, 0, 200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
     auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
     ASSERT_TRUE(recordCmdUtils2 != nullptr);
     Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
