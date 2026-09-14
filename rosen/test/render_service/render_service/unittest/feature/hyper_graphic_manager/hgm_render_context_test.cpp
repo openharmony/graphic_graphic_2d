@@ -116,7 +116,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest, TestSize.Level1)
  */
 HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
 {
-    RSRenderService renderService;
+    auto renderService = sptr<RSRenderService>::MakeSptr();
     auto& hgmCore = HgmCore::Instance();
     auto mgr = hgmCore.GetFrameRateMgr();
     if (mgr == nullptr) {
@@ -124,24 +124,24 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     }
     auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
-    renderService.hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
-    auto hgmProcessCallback = [hgmContext = renderService.hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+    renderService->hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
+    auto hgmProcessCallback = [hgmContext = renderService->hgmContext_](uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
         const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
         hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     };
-    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
     renderServiceAgent->RegisterHgmProcessCallback(hgmProcessCallback);
-    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
+    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService->renderProcessManager_);
+    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService->screenManager_);
     auto renderToServiceConnection =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
-    renderService.hgmContext_->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
-    renderService.hgmContext_->ltpoEnabled_ = true;
-    renderService.hgmContext_->isDelayMode_ = true;
-    renderService.hgmContext_->pipelineOffsetPulseNum_ = 1;
-    renderService.hgmContext_->isAdaptive_ = SupportASStatus::SUPPORT_AS;
-    renderService.hgmContext_->gameNodeName_ = "gameNodeName";
+    renderService->hgmContext_->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
+    renderService->hgmContext_->ltpoEnabled_ = true;
+    renderService->hgmContext_->isDelayMode_ = true;
+    renderService->hgmContext_->pipelineOffsetPulseNum_ = 1;
+    renderService->hgmContext_->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    renderService->hgmContext_->gameNodeName_ = "gameNodeName";
     hgmCore.SetPendingScreenRefreshRate(60);
     hgmCore.SetPendingConstraintRelativeTime(2);
 
@@ -165,8 +165,8 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     EXPECT_EQ(hgmRenderContext.isAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
     EXPECT_EQ(pipelineParam.pendingScreenRefreshRate, 60);
     EXPECT_EQ(pipelineParam.pendingConstraintRelativeTime, 2);
-    EXPECT_EQ(renderService.hgmContext_->currVsyncId_, 100);
-    EXPECT_EQ(renderService.hgmContext_->rsCurrRange_.preferred_, 60);
+    EXPECT_EQ(renderService->hgmContext_->currVsyncId_, 100);
+    EXPECT_EQ(renderService->hgmContext_->rsCurrRange_.preferred_, 60);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     mgr->rsFrameRateLinker_ = nullptr;
 
