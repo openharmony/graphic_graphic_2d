@@ -422,10 +422,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MAIN_SCREEN");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_RESPONSE");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
             break;
@@ -619,6 +615,7 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_PAGE_NAME):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_JANK_STATS):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_COMPLETE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_JANK_FRAME):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_START):
