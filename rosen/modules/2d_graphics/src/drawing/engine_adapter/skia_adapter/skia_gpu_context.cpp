@@ -640,6 +640,12 @@ void SkiaGPUContext::VmaDefragment()
 void SkiaGPUContext::SetParam(const std::string& name, const std::string& value)
 {}
 
+void SkiaGPUContext::SetTextCacheEnforced(bool isEnforced)
+{
+    // Skia Not Implement SetTextCacheEnforced
+    LOGD("SkiaGPUContext::SetTextCacheEnforced, not implement");
+    return;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

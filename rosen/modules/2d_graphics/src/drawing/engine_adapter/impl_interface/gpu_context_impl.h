@@ -144,6 +144,8 @@ public:
     virtual void SetEarlyZEnabled(bool flag) = 0;
 
     virtual void SetParam(const std::string& name, const std::string& value) = 0;
+
+    virtual void SetTextCacheEnforced(bool isEnforced) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

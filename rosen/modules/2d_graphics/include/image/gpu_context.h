@@ -408,6 +408,8 @@ public:
      * @param value             Value to set.
      */
     void SetParam(const std::string& name, const std::string& value);
+
+    void SetTextCacheEnforced(bool isEnforced);
 private:
     std::shared_ptr<GPUContextImpl> impl_;
 };
