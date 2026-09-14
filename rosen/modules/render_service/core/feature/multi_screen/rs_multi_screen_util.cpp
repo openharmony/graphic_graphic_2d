@@ -706,6 +706,10 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
             __func__, hwcNodes.size(), hwcTopNodes.size(), slrManager != nullptr);
         processor->ProcessScreenSurfaceForRenderThread(*mirrorSourceScreenDrawable);
     }
+    if (mirroredScreenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
+        curCanvas->Scale(widthRatio, heightRatio);
+    }
 
     curCanvas->Save();
     if (slrManager) {
