@@ -81,17 +81,17 @@ private:
     void SelectivePrepareFastPath(
         const std::shared_ptr<RSRenderNode>& node, const std::shared_ptr<RSSurfaceRenderNode>& hostSurfaceNode);
     // eligibility entry: surface-level O(1) checks + single ancestor traversal
-    bool CheckSurfaceEligibility(const std::shared_ptr<RSRenderNode>& optNode,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled);
+    bool CheckSurfaceEligibility(
+        const std::shared_ptr<RSRenderNode>& optNode, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     // R3/R4: surface-level filter/effect/PointLight aggregate flags, O(1)
-    bool CheckSurfaceFilterAndLight(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled);
+    bool CheckSurfaceFilterAndLight(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     // R1+R3: single traversal from optNode up to logicalDisplayNode (exclusive), checks
     // NodeGroup and intermediate alpha; skips optNode's own state
     AncestorCheckResult CheckAncestorStateToDisplay(
         const std::shared_ptr<RSRenderNode>& optNode, NodeId logicalDisplayNodeId);
     // already-active frame safety net: re-check surface alpha only, O(1)
-    bool HandleAlreadyActive(const std::shared_ptr<RSRenderNode>& optNode,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled);
+    bool HandleAlreadyActive(
+        const std::shared_ptr<RSRenderNode>& optNode, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     // infinite loop (repeatCount == -1) + subtree depth <= 2 + no branching
     bool IsSubtreeShallow(const std::shared_ptr<RSRenderNode>& node);
     // all nodes of the subtree (optNode included) are CANVAS_NODE or CANVAS_DRAWING_NODE
