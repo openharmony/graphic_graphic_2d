@@ -1828,7 +1828,7 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget002, TestSize.Level
 
 /**
  * @tc.name: IsConvergeCloseToTarget003
- * @tc.desc: Verify IsConvergeCloseToTarget with valid endThreshold_ and normal comparison
+ * @tc.desc: Verify IsConvergeCloseToTarget with valid endThreshold_ and normal comparison (critical damping)
  * @tc.type:FUNC
  */
 HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget003, TestSize.Level1)
@@ -1838,7 +1838,8 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget003, TestSize.Level
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto animMock =
         std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    // Critical damping (>=1.0) takes the current-value proximity path.
+    animMock->SetSpringParameters(1.0f, 1.0f, 0.0f);
     auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
     animMock->Attach(renderNode.get());
     animMock->Start();
@@ -1852,7 +1853,7 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget003, TestSize.Level
 
 /**
  * @tc.name: IsConvergeCloseToTarget004
- * @tc.desc: Verify IsConvergeCloseToTarget returns false when value is genuinely far from target
+ * @tc.desc: Verify IsConvergeCloseToTarget returns false when value is genuinely far from target (critical damping)
  * @tc.type:FUNC
  */
 HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget004, TestSize.Level1)
@@ -1862,7 +1863,8 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget004, TestSize.Level
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto animMock =
         std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    // Critical damping (>=1.0) takes the current-value proximity path.
+    animMock->SetSpringParameters(1.0f, 1.0f, 0.0f);
     auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
     animMock->Attach(renderNode.get());
     animMock->Start();
@@ -1871,6 +1873,108 @@ HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget004, TestSize.Level
     // GetAnimationProperty returns lastValue_ (0.0f), endValue_ is 1.0f
     // Small endThreshold_ -> |0.0 - 1.0| = 1.0 > 0.001 -> false
     animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(0.001f);
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget005
+ * @tc.desc: Verify underdamped IsConvergeCloseToTarget returns true when amplitude envelope decays below threshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Underdamped (<1.0) takes the amplitude-envelope path instead of the instantaneous value.
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Large prevMappedTime_ -> envelope decays to ~0 -> below a loose threshold -> true.
+    animMock->prevMappedTime_ = 100.0f;
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    EXPECT_TRUE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget006
+ * @tc.desc: Verify underdamped IsConvergeCloseToTarget returns false when amplitude envelope is still large
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget006, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Underdamped (<1.0) takes the amplitude-envelope path instead of the instantaneous value.
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // prevMappedTime_ = 0 -> envelope ~1.155, well above a tiny threshold -> not converged.
+    animMock->prevMappedTime_ = 0.0f;
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(0.001f);
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget007
+ * @tc.desc: Verify IsConvergeCloseToTarget returns false when GetAnimationProperty returns nullptr (critical damping)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget007, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Critical damping (>=1.0) takes the current-value proximity path.
+    animMock->SetSpringParameters(1.0f, 1.0f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Replace the estimator with a bare base whose GetAnimationProperty() returns nullptr.
+    animMock->springValueEstimator_ = std::make_shared<RSSpringValueEstimatorBase>();
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    // GetAnimationProperty() returns nullptr -> null-guard branch -> false
+    EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
+}
+
+/**
+ * @tc.name: IsConvergeCloseToTarget008
+ * @tc.desc: Verify underdamped IsConvergeCloseToTarget returns false when GetFrameThreshold returns nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, IsConvergeCloseToTarget008, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Underdamped (<1.0) takes the amplitude-envelope path.
+    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    animMock->Attach(renderNode.get());
+    animMock->Start();
+    animMock->AttachRenderProperty(property);
+    animMock->OnInitialize(0);
+    // Replace the estimator with a bare base whose GetFrameThreshold() returns nullptr.
+    animMock->springValueEstimator_ = std::make_shared<RSSpringValueEstimatorBase>();
+    animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    // GetFrameThreshold() returns nullptr -> null-guard branch -> false
     EXPECT_FALSE(animMock->IsConvergeCloseToTarget());
 }
 
@@ -2056,7 +2160,8 @@ HWTEST_F(RSRenderSpringAnimationTest, CheckConvergeStatus003, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto animMock =
         std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    animMock->SetSpringParameters(1.0f, 0.5f, 0.0f);
+    // Critical damping (>=1.0) takes the current-value proximity path.
+    animMock->SetSpringParameters(1.0f, 1.0f, 0.0f);
     auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
     animMock->Attach(renderNode.get());
     animMock->Start();
@@ -2066,7 +2171,7 @@ HWTEST_F(RSRenderSpringAnimationTest, CheckConvergeStatus003, TestSize.Level1)
     animMock->endThreshold_ = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     // GetAnimationProperty returns lastValue_ (0.0f, the origin value)
     // IsAbsNearEqual: |0.0 - 1.0| = 1.0 <= |1.0| → true
-    // WillOverShoot: underdamped → false → !false = true
+    // WillOverShoot: critical with zero initial velocity → false → !false = true
     // IsConvergeEnd: true && true → true
     EXPECT_TRUE(animMock->CheckConvergeStatus(1.0f));
 }
