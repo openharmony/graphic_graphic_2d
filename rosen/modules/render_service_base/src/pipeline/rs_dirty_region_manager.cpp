@@ -471,7 +471,7 @@ void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
     }
     advancedDirtyRegion_ = {};
     Occlusion::Region tempRegion = Occlusion::Region();
-    for (auto& rect : currentFrameAdvancedDirtyRegion_) {
+    for (const auto& rect : currentFrameAdvancedDirtyRegion_) {
         if (rect.IsEmpty()) {
             continue;
         }
@@ -480,11 +480,11 @@ void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
     }
 
     for (unsigned int i = historySize_; i > historySize_ - age; --i) {
-        auto rects = GetAdvancedDirtyHistory((i - 1));
+        const auto& rects = GetAdvancedDirtyHistory((i - 1));
         if (rects.empty()) {
             continue;
         }
-        for (auto& rect : rects) {
+        for (const auto& rect : rects) {
             if (rect.IsEmpty()) {
                 continue;
             }
@@ -521,7 +521,7 @@ RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
     return dirtyHistory_[i];
 }
 
-std::vector<RectI> RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i) const
+const std::vector<RectI>& RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i) const
 {
     if (i >= HISTORY_QUEUE_MAX_SIZE) {
         i %= HISTORY_QUEUE_MAX_SIZE;

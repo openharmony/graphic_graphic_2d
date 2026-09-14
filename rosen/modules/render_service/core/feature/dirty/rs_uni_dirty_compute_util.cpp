@@ -455,8 +455,11 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
     const auto& displayDrawables = params.GetDisplayDrawables();
     for (const auto& drawable : displayDrawables) {
         const auto& displayDrawable = static_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable*>(drawable.get());
+        if (UNLIKELY(displayDrawable == nullptr)) {
+            continue;
+        }
         const auto& displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
-        if (UNLIKELY(displayDrawable == nullptr || displayParams == nullptr)) {
+        if (UNLIKELY(displayParams == nullptr)) {
             continue;
         }
         if (RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*displayParams, &params) !=
@@ -474,6 +477,10 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     auto mirrorScreenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    if (UNLIKELY(mirrorScreenParams == nullptr)) {
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mirrorScreenParams!");
+        return false;
+    }
     auto mainDrawable = mirrorScreenParams->GetMirrorSourceDrawable().lock();
     if (mainDrawable == nullptr) {
         RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mainDrawable!");
