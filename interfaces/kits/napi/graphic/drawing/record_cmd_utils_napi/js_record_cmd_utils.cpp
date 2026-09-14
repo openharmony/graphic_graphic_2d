@@ -152,7 +152,7 @@ napi_value JsRecordCmdUtils::OnBeginRecording(napi_env env, napi_callback_info i
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid params.");
     }
 
-    auto bounds = Drawing::Rect(0, 0, width, height);
+    auto bounds = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas *canvas = rsRecordCmdUtils_->BeginRecording(bounds);
     if (canvas == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::BeginRecording BeginRecording failed");

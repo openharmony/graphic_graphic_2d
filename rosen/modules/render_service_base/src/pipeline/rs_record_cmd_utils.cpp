@@ -21,13 +21,12 @@ namespace OHOS {
 namespace Rosen {
 
 RSRecordCmdUtils::RSRecordCmdUtils()
-    : extendRecordingCanvas_(nullptr), cullRect_(Drawing::Rect()) {}
+    : extendRecordingCanvas_(nullptr), cullRect_(Drawing::RectI()) {}
 
-Drawing::Canvas* RSRecordCmdUtils::BeginRecording(Drawing::Rect& bounds)
+Drawing::Canvas* RSRecordCmdUtils::BeginRecording(Drawing::RectI& bounds)
 {
-    Drawing::RectI rect = bounds.RoundOut();
-    int32_t width = rect.GetWidth();
-    int32_t height = rect.GetHeight();
+    int32_t width = bounds.GetWidth();
+    int32_t height = bounds.GetHeight();
     if (width <= 0 || height <= 0) {
         ROSEN_LOGE("RSRecordCmdUtils::BeginRecording failed, rect is valid.");
         return nullptr;
@@ -46,20 +45,18 @@ std::shared_ptr<Drawing::RecordCmd> RSRecordCmdUtils::FinishRecording()
     }
     auto recordCmd = std::make_shared<Drawing::RecordCmd>(extendRecordingCanvas_->GetDrawCmdList(), cullRect_);
     extendRecordingCanvas_ = nullptr;
-    cullRect_ = Drawing::Rect();
+    cullRect_ = Drawing::RectI();
     return recordCmd;
 }
 
 int32_t RSRecordCmdUtils::GetWidth()
 {
-    Drawing::RectI rect = cullRect_.RoundOut();
-    return rect.GetWidth();
+    return cullRect_.GetWidth();
 }
 
 int32_t RSRecordCmdUtils::GetHeight()
 {
-    Drawing::RectI rect = cullRect_.RoundOut();
-    return rect.GetHeight();
+    return cullRect_.GetHeight();
 }
 } // namespace Rosen
 } // namespace OHOS

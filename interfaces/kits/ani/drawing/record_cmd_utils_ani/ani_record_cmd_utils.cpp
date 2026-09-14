@@ -101,7 +101,7 @@ ani_object AniRecordCmdUtils::BeginRecording(ani_env* env, ani_object obj, ani_i
         return CreateAniUndefined(env);
     }
 
-    auto bounds = Drawing::Rect(0, 0, width, height);
+    auto bounds = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas *canvas = aniRecordCmdUtils->GetRSRecordCmdUtils()->BeginRecording(bounds);
     if (canvas == nullptr) {
         ROSEN_LOGE("AniRecordCmdUtils::BeginRecording BeginRecording failed");

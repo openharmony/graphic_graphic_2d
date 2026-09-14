@@ -56,7 +56,7 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsBeginRecording(OH_Drawing_RecordCm
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     RSRecordCmdUtils* recordCmdUtils = CastToCmdUtils(cRecordCmdUtils);
-    auto bounds = Drawing::Rect(0, 0, width, height);
+    auto bounds = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* canvasPtr = recordCmdUtils->BeginRecording(bounds);
     if (canvasPtr == nullptr) {
         return OH_DRAWING_ERROR_ALLOCATION_FAILED;
