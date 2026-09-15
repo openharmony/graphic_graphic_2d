@@ -66,6 +66,9 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         if (name == "DisableHwcOnExpandScreen") {
             HWCParam::SetDisableHwcOnExpandScreen(isEnabled);
             RS_LOGI("parse DisableHwcOnExpandScreen %{public}d", HWCParam::IsDisableHwcOnExpandScreen());
+        } else if (name == "EnableHwcOnWiredMirror") {
+            HWCParam::SetEnableHwcOnWiredMirror(isEnabled);
+            RS_LOGI("parse EnableHwcOnWiredMirror %{public}d", HWCParam::IsEnableHwcOnWiredMirror());
         } else if (name == "SolidLayerInMultiWindowEnabled") {
             HWCParam::SetSolidLayerInMultiWindowEnable(isEnabled);
             RS_LOGI("parse SetSolidLayerInMultiWindowEnable %{public}d", HWCParam::IsSolidLayerInMultiWindowEnable());

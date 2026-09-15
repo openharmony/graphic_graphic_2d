@@ -1553,7 +1553,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         }
     }
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
-        !RSUniRenderThread::IsInCaptureProcess()) {
+        !RSUniRenderThread::IsInCaptureProcess() &&
+        (!canvas.IsOnMultipleScreen() ||
+         surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED))) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }

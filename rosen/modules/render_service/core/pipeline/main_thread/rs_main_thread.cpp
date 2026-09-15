@@ -2524,18 +2524,24 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
+    bool enableHwcForWiredMirror = HWCParam::IsEnableHwcOnWiredMirror();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
+    // Wired mirror can keep main screen hardware composer enabled when enableHwcForWiredMirror is on
     isHardwareForcedDisabled_ =
         (!hasProtectedLayer_ &&
  	     (isHardwareForcedDisabled_ || isFoldScreenSwitching ||
- 	      (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode)) || hasColorFilter)) ||
+                (isMultiDisplay &&
+                    (isExpandScreenOrWiredProjectionCase &&
+                     !enableHwcForWiredMirror && !enableHwcForMirrorMode)) ||
+                hasColorFilter)) ||
  	    CheckOverlayDisplayEnable();
     RS_OPTIONAL_TRACE_FMT("hwc debug: CheckIfHardwareForcedDisabled hasProtectedLayer:%d isHardwareForcedDisabled:%d"
         " doWindowAnimate:%d isFoldScreenSwitching:%d isMultiDisplay:%d isExpandScreenOrWiredProjectionCase:%d"
-        " enableHwcForMirrorMode:%d hasColorFilter:%d overlayDisplayEnable:%d",
+        " enableHwcForMirrorMode:%d enableHwcForWiredMirror:%d hasColorFilter:%d overlayDisplayEnable:%d",
         hasProtectedLayer_, isHardwareForcedDisabled_, doWindowAnimate_.load(), isFoldScreenSwitching, isMultiDisplay,
-        isExpandScreenOrWiredProjectionCase, enableHwcForMirrorMode, hasColorFilter, CheckOverlayDisplayEnable());
+        isExpandScreenOrWiredProjectionCase, enableHwcForMirrorMode, enableHwcForWiredMirror,
+        hasColorFilter, CheckOverlayDisplayEnable());
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
         doDirectComposition_ = false;
