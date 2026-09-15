@@ -101,15 +101,20 @@ bool RSSelectivePrepareManager::CollectAndCheckNodes(
 
 void RSSelectivePrepareManager::CheckAndSetup()
 {
+    bool debugEnabled = RSSystemProperties::IsSelectivePrepareOptDebugEnabled();
     if (!RSSystemProperties::IsSelectivePrepareOptEnabled()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: disabled by feature switch");
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: disabled by feature switch");
+        }
         ResetState();
         return;
     }
     // O(1) exit conditions: GPU surface buffer update or transaction commands in this frame
     if (hasGpuSurfaceDirty_ || hasCommandInFrame_) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [gpuDirty=%d cmdInFrame=%d]", hasGpuSurfaceDirty_, hasCommandInFrame_);
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [gpuDirty=%d cmdInFrame=%d]", hasGpuSurfaceDirty_, hasCommandInFrame_);
+        }
         ResetState();
         return;
     }
@@ -117,8 +122,10 @@ void RSSelectivePrepareManager::CheckAndSetup()
     uint32_t onTreeAnimatingCount = 0;
     uint32_t activeNodeCount = 0;
     if (!CollectAndCheckNodes(optNode, onTreeAnimatingCount, activeNodeCount)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [onTreeAnimatingCount=%u activeNodeCount=%u]",
-            onTreeAnimatingCount, activeNodeCount);
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [onTreeAnimatingCount=%u activeNodeCount=%u]",
+                onTreeAnimatingCount, activeNodeCount);
+        }
         ResetState();
         return;
     }
@@ -127,41 +134,49 @@ void RSSelectivePrepareManager::CheckAndSetup()
     if (selectivePrepareOptActive_) {
         // already active: cached ancestor state stays valid while O(1) conditions hold, only the
         // surface alpha safety net is re-checked (whitelist/rotation cannot change without commands)
-        HandleAlreadyActive(optNode, surfaceNode);
+        HandleAlreadyActive(optNode, surfaceNode, debugEnabled);
         return;
     }
     // whitelist: surface name of the animating node, checked before animation type
     const std::string& surfaceName = surfaceNode ? surfaceNode->GetName() : "";
     if (surfaceName.find(SURFACE_NAME_WHITELIST) == std::string::npos) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surface=%s not in aweme whitelist]", surfaceName.c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surface=%s not in aweme whitelist]", surfaceName.c_str());
+        }
         ResetState();
         return;
     }
     if (!IsRotationOnlyAnimation(optNode)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [notRotationOnly] nodeId=%" PRIu64, optNode->GetId());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [notRotationOnly] nodeId=%" PRIu64, optNode->GetId());
+        }
         ResetState();
         return;
     }
     if (!pendingActivation_) {
         // first frame O(1) conditions pass: keep running QuickPrepare to fill aggregate caches
         pendingActivation_ = true;
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: pending activation [nodeId=%" PRIu64 " surface=%s]",
-            optNode->GetId(), surfaceName.c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: pending activation [nodeId=%" PRIu64 " surface=%s]",
+                optNode->GetId(), surfaceName.c_str());
+        }
         return;
     }
-    if (!CheckSurfaceEligibility(optNode, surfaceNode)) {
+    if (!CheckSurfaceEligibility(optNode, surfaceNode, debugEnabled)) {
         pendingActivation_ = false;
         return;
     }
     if (!IsSubtreeShallow(optNode)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [subtreeNotShallow] nodeId=%" PRIu64, optNode->GetId());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [subtreeNotShallow] nodeId=%" PRIu64, optNode->GetId());
+        }
         pendingActivation_ = false;
         return;
     }
     if (!IsCanvasOnlySubtree(optNode)) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [subtreeNotCanvasOnly] nodeId=%" PRIu64, optNode->GetId());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [subtreeNotCanvasOnly] nodeId=%" PRIu64, optNode->GetId());
+        }
         pendingActivation_ = false;
         return;
     }
@@ -169,46 +184,61 @@ void RSSelectivePrepareManager::CheckAndSetup()
     pendingActivation_ = false;
     selectivePrepareOptNodes_.clear();
     selectivePrepareOptNodes_.emplace_back(optNode);
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "SelectivePrepareOpt: activated [nodeId=%" PRIu64 " surface=%s]", optNode->GetId(), surfaceName.c_str());
+    if (debugEnabled) {
+        RS_TRACE_NAME_FMT(
+            "SelectivePrepareOpt: activated [nodeId=%" PRIu64 " surface=%s]", optNode->GetId(), surfaceName.c_str());
+    }
 }
 
-bool RSSelectivePrepareManager::CheckSurfaceFilterAndLight(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+bool RSSelectivePrepareManager::CheckSurfaceFilterAndLight(
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled)
 {
     // subtree filter/effect aggregate flags written by last QuickPrepare, O(1)
     if (surfaceNode->ChildHasVisibleFilter()) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceChildHasFilter] surface=%s", surfaceNode->GetName().c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceChildHasFilter] surface=%s", surfaceNode->GetName().c_str());
+        }
         return false;
     }
     if (surfaceNode->ChildHasVisibleEffect()) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceChildHasEffect] surface=%s", surfaceNode->GetName().c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceChildHasEffect] surface=%s", surfaceNode->GetName().c_str());
+        }
         return false;
     }
     // surface's own filters
     const auto& properties = surfaceNode->GetRenderProperties();
     if (properties.GetFilter() != nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceHasFilter] surface=%s", surfaceNode->GetName().c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceHasFilter] surface=%s", surfaceNode->GetName().c_str());
+        }
         return false;
     }
     if (properties.GetBackgroundFilter() != nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceHasBgFilter] surface=%s", surfaceNode->GetName().c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceHasBgFilter] surface=%s", surfaceNode->GetName().c_str());
+        }
         return false;
     }
     // PointLight aggregate flag
     const auto& pointLightManager = RSPointLightManager::Instance(surfaceNode->GetLogicalDisplayNodeId());
     if (pointLightManager && pointLightManager->GetChildHasVisibleIlluminated(surfaceNode)) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceHasPointLight] surface=%s", surfaceNode->GetName().c_str());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceHasPointLight] surface=%s", surfaceNode->GetName().c_str());
+        }
         return false;
     }
     // globalAlpha_ is the product of all alphas from root to surface written by last QuickPrepare
     if (!ROSEN_EQ(surfaceNode->GetGlobalAlpha(), 1.0f)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceAlphaNot1] surface=%s globalAlpha=%f",
-            surfaceNode->GetName().c_str(), surfaceNode->GetGlobalAlpha());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceAlphaNot1] surface=%s globalAlpha=%f",
+                surfaceNode->GetName().c_str(), surfaceNode->GetGlobalAlpha());
+        }
         return false;
     }
     return true;
@@ -237,47 +267,55 @@ RSSelectivePrepareManager::AncestorCheckResult RSSelectivePrepareManager::CheckA
     return result;
 }
 
-bool RSSelectivePrepareManager::CheckSurfaceEligibility(
-    const std::shared_ptr<RSRenderNode>& optNode, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+bool RSSelectivePrepareManager::CheckSurfaceEligibility(const std::shared_ptr<RSRenderNode>& optNode,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled)
 {
     if (!surfaceNode) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "SelectivePrepareOpt: reject [surfaceEligibility] surface is null, nodeId=%" PRIu64, optNode->GetId());
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT(
+                "SelectivePrepareOpt: reject [surfaceEligibility] surface is null, nodeId=%" PRIu64, optNode->GetId());
+        }
         return false;
     }
-    if (!CheckSurfaceFilterAndLight(surfaceNode)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceEligibility] surface=%s"
-                                   " childFilter=%d childEffect=%d globalAlpha=%f",
-            surfaceNode->GetName().c_str(), surfaceNode->ChildHasVisibleFilter(),
-            surfaceNode->ChildHasVisibleEffect(), surfaceNode->GetGlobalAlpha());
+    if (!CheckSurfaceFilterAndLight(surfaceNode, debugEnabled)) {
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceEligibility] surface=%s"
+                              " childFilter=%d childEffect=%d globalAlpha=%f",
+                surfaceNode->GetName().c_str(), surfaceNode->ChildHasVisibleFilter(),
+                surfaceNode->ChildHasVisibleEffect(), surfaceNode->GetGlobalAlpha());
+        }
         return false;
     }
     // single-pass traversal covering container canvas nodes above the surface
     AncestorCheckResult result = CheckAncestorStateToDisplay(optNode, surfaceNode->GetLogicalDisplayNodeId());
     if (result.hasNodeGroup || result.hasAlphaNotOne) {
-        if (result.hasNodeGroup) {
-            RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [hasNodeGroup] nodeId=%" PRIu64, optNode->GetId());
+        if (debugEnabled) {
+            if (result.hasNodeGroup) {
+                RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [hasNodeGroup] nodeId=%" PRIu64, optNode->GetId());
+            }
+            if (result.hasAlphaNotOne) {
+                RS_TRACE_NAME_FMT(
+                    "SelectivePrepareOpt: reject [intermediateAlphaNot1] nodeId=%" PRIu64, optNode->GetId());
+            }
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceEligibility] nodeId=%" PRIu64
+                              " hasNodeGroup=%d hasAlphaNotOne=%d traversed=%u",
+                optNode->GetId(), result.hasNodeGroup, result.hasAlphaNotOne, result.traverseCount);
         }
-        if (result.hasAlphaNotOne) {
-            RS_OPTIONAL_TRACE_NAME_FMT(
-                "SelectivePrepareOpt: reject [intermediateAlphaNot1] nodeId=%" PRIu64, optNode->GetId());
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: reject [surfaceEligibility] nodeId=%" PRIu64
-                                   " hasNodeGroup=%d hasAlphaNotOne=%d traversed=%u",
-            optNode->GetId(), result.hasNodeGroup, result.hasAlphaNotOne, result.traverseCount);
         return false;
     }
     return true;
 }
 
-bool RSSelectivePrepareManager::HandleAlreadyActive(
-    const std::shared_ptr<RSRenderNode>& optNode, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+bool RSSelectivePrepareManager::HandleAlreadyActive(const std::shared_ptr<RSRenderNode>& optNode,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, bool debugEnabled)
 {
     // safety net: cached ancestor state is trusted while O(1) conditions hold, only surface
     // alpha is re-checked here
     if (!surfaceNode || !ROSEN_EQ(surfaceNode->GetGlobalAlpha(), 1.0f)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: deactivated [surfaceAlpha=%f]",
-            surfaceNode ? surfaceNode->GetGlobalAlpha() : -1.0f);
+        if (debugEnabled) {
+            RS_TRACE_NAME_FMT("SelectivePrepareOpt: deactivated [surfaceAlpha=%f]",
+                surfaceNode ? surfaceNode->GetGlobalAlpha() : -1.0f);
+        }
         ResetState();
         return false;
     }
@@ -414,11 +452,13 @@ void RSSelectivePrepareManager::SelectivePrepareFastPath(
     // step 6
     node->UpdateRenderParams();
     node->AddToPendingSyncList();
-    const auto& dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
-    RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareFastPath nodeId=%" PRIu64 " surface=%s"
-                               " dirty=[%d, %d, %d, %d]",
-        node->GetId(), hostSurfaceNode->GetName().c_str(), dirtyRect.GetLeft(), dirtyRect.GetTop(),
-        dirtyRect.GetWidth(), dirtyRect.GetHeight());
+    if (RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
+        const auto& dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
+        RS_TRACE_NAME_FMT("SelectivePrepareFastPath nodeId=%" PRIu64 " surface=%s"
+                          " dirty=[%d, %d, %d, %d]",
+            node->GetId(), hostSurfaceNode->GetName().c_str(), dirtyRect.GetLeft(), dirtyRect.GetTop(),
+            dirtyRect.GetWidth(), dirtyRect.GetHeight());
+    }
 }
 
 bool RSSelectivePrepareManager::CollectNodeSurfacePairs(
@@ -504,9 +544,11 @@ void RSSelectivePrepareManager::PropagateDirtyRegions(
         hostSurfaceNode->AddToPendingSyncList();
     }
     screenNode->AddToPendingSyncList();
-    const auto& screenDirty = screenDirtyManager->GetCurrentFrameDirtyRegion();
-    RS_OPTIONAL_TRACE_NAME_FMT("SelectivePrepareOpt: fast path hit, screenDirty=[%d, %d, %d, %d]",
-        screenDirty.GetLeft(), screenDirty.GetTop(), screenDirty.GetWidth(), screenDirty.GetHeight());
+    if (RSSystemProperties::IsSelectivePrepareOptDebugEnabled()) {
+        const auto& screenDirty = screenDirtyManager->GetCurrentFrameDirtyRegion();
+        RS_TRACE_NAME_FMT("SelectivePrepareOpt: fast path hit, screenDirty=[%d, %d, %d, %d]", screenDirty.GetLeft(),
+            screenDirty.GetTop(), screenDirty.GetWidth(), screenDirty.GetHeight());
+    }
 }
 
 bool RSSelectivePrepareManager::PrepareOptNodes()
