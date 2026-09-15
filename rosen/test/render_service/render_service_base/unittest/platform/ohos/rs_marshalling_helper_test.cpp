@@ -56,6 +56,7 @@
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
+#include "iconsumer_surface.h"
 #include "message_parcel.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #endif
@@ -2719,6 +2720,76 @@ HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigUnmarshallingFailTest, Test
 #ifdef ROSEN_OHOS
 // The sptr<IRemoteObject> marshalling path was removed from RSMarshallingHelper:
 // transaction data must not carry remote objects anymore.
+
+/**
+ * @tc.name: UnmarshallingSurfaceTypeConfusionTest
+ * @tc.desc: Remote object that is not an IBufferProducer: iface_cast returns null, so
+ *           CreateSurfaceAsProducer returns null; Unmarshalling must fail closed (false, nullptr).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceTypeConfusionTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteBool(true)); // hasSurface = true
+    // Stub of a foreign interface: iface_cast<IBufferProducer> on it returns null (type confusion).
+    sptr<RSBufferAvailableCallbackStub> stub = new RSBufferAvailableCallbackStubMock();
+    ASSERT_NE(stub, nullptr);
+    ASSERT_NE(stub->AsObject(), nullptr);
+    ASSERT_TRUE(parcel.WriteRemoteObject(stub->AsObject()));
+
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingSurfaceReadBoolFailTest
+ * @tc.desc: Empty parcel: ReadBool(hasSurface) fails, Unmarshalling returns false and surface stays null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceReadBoolFailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingSurfaceNoRemoteObjectTest
+ * @tc.desc: hasSurface=true but no remote object written; ReadRemoteObject returns null, Unmarshalling returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceNoRemoteObjectTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteBool(true));
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingSurfaceSuccessTest
+ * @tc.desc: Real producer round-trip: CreateSurfaceAsProducer returns non-null,
+ *           Unmarshalling returns true (covers surface==nullptr false-side).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceSuccessTest, TestSize.Level1)
+{
+    auto consumer = IConsumerSurface::Create();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteBool(true));
+    ASSERT_TRUE(parcel.WriteRemoteObject(producer->AsObject()));
+
+    sptr<Surface> surface = nullptr;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_NE(surface, nullptr);
+}
 #endif
 
 /**
