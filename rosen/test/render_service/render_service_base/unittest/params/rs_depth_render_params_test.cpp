@@ -146,12 +146,12 @@ HWTEST_F(RSDepthRenderParamsTest, SetAndGetDepthImage001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAndGetUseSurfaceDepth
+ * @tc.name: SetAndGetUseSurfaceDepth001
  * @tc.desc: Verify SetUseSurfaceDepth & GetUseSurfaceDepth
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSDepthRenderParamsTest, SetAndGetUseSurfaceDepth, TestSize.Level1)
+HWTEST_F(RSDepthRenderParamsTest, SetAndGetUseSurfaceDepth001, TestSize.Level1)
 {
     constexpr NodeId testNodeId = 114;
     RSDepthRenderParams params(testNodeId);
