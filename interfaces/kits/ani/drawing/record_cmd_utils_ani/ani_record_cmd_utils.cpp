@@ -137,6 +137,8 @@ ani_object AniRecordCmdUtils::FinishRecording(ani_env* env, ani_object obj)
     std::shared_ptr<Drawing::RecordCmd> recordCmd = aniRecordCmdUtils->GetRSRecordCmdUtils()->FinishRecording();
     if (recordCmd == nullptr) {
         ROSEN_LOGE("AniRecordCmdUtils::FinishRecording FinishRecording failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRecordCmdUtils::FinishRecording recordCmd is nullptr.");
         return CreateAniUndefined(env);
     }
 
