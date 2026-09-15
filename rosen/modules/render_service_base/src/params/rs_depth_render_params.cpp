@@ -28,6 +28,7 @@ void RSDepthRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
         return;
     }
     targetDepthParams->depthImage_ = depthImage_;
+    targetDepthParams->useSurfaceDepth_ = useSurfaceDepth_;
     targetDepthParams->depthSrcSurfaceDrawable_ = depthSrcSurfaceDrawable_;
     targetDepthParams->depthCameraPara_ = depthCameraPara_;
     targetDepthParams->depthLightPara_ = depthLightPara_;
@@ -46,6 +47,16 @@ void RSDepthRenderParams::SetDepthImage(const std::shared_ptr<Drawing::Image>& d
 std::shared_ptr<Drawing::Image> RSDepthRenderParams::GetDepthImage() const
 {
     return depthImage_;
+}
+
+void RSDepthRenderParams::SetUseSurfaceDepth(bool useSurfaceDepth)
+{
+    useSurfaceDepth_ = useSurfaceDepth;
+}
+
+bool RSDepthRenderParams::GetUseSurfaceDepth() const
+{
+    return useSurfaceDepth_;
 }
 
 void RSDepthRenderParams::ResetDepthSrcSurfaceDrawable()

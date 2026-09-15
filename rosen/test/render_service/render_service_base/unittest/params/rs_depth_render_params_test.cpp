@@ -146,6 +146,21 @@ HWTEST_F(RSDepthRenderParamsTest, SetAndGetDepthImage001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAndGetUseSurfaceDepth
+ * @tc.desc: Verify SetUseSurfaceDepth & GetUseSurfaceDepth
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDepthRenderParamsTest, SetAndGetUseSurfaceDepth, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 114;
+    RSDepthRenderParams params(testNodeId);
+
+    params.SetUseSurfaceDepth(true);
+    EXPECT_TRUE(params.GetUseSurfaceDepth());
+}
+
+/**
  * @tc.name: SetAndGetDepthCameraPara001
  * @tc.desc: Verify SetDepthCameraPara & GetDepthCameraPara
  * @tc.type: FUNC
