@@ -6692,7 +6692,8 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer001, TestSize.Level1)
     EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
-    surfaceNode->name_ = "NoRosenWeb";
+    surfaceNode->name_ = "OrdinarySurface";
+    EXPECT_FALSE(surfaceNode->IsRosenWeb());
     mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
     EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
 
@@ -6702,7 +6703,8 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer001, TestSize.Level1)
     EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
-    surfaceNode->name_ = "NoRosenWeb";
+    surfaceNode->name_ = "OrdinarySurface";
+    EXPECT_FALSE(surfaceNode->IsRosenWeb());
     mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
     EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
 
@@ -6810,6 +6812,49 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
     mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
     EXPECT_LE(mainThread->curFrameBufferReclaimCount_, MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME);
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer005
+ * @tc.desc: 验证非 RosenWeb 节点的 delegate 回收分支及功能开关
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceNode->name_ = "OrdinarySurface";
+    surfaceNode->isOnTheTree_ = false;
+    surfaceHandler->SetLastBufferId(1);
+    ASSERT_FALSE(surfaceNode->IsRosenWeb());
+    ASSERT_FALSE(surfaceNode->GetDelegateMode());
+    ASSERT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(surfaceNode->GetId()));
+
+    auto& reclaimParam = BufferReclaimParam::GetInstance();
+    const bool enable = reclaimParam.IsBufferReclaimEnable();
+    const auto reclaimCount = mainThread->curFrameBufferReclaimCount_;
+    mainThread->curFrameBufferReclaimCount_ = 0;
+    reclaimParam.SetBufferReclaimEnable(true);
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(surfaceHandler->lastBufferReclaimNum_, 0);
+
+    surfaceNode->SetDelegateMode(true);
+    EXPECT_TRUE(surfaceNode->GetDelegateMode());
+    reclaimParam.SetBufferReclaimEnable(false);
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(surfaceHandler->lastBufferReclaimNum_, 0);
+
+    reclaimParam.SetBufferReclaimEnable(true);
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    // 首次准备尚未达到回收帧数阈值，不投递异步任务。
+    EXPECT_EQ(surfaceHandler->lastBufferReclaimNum_, 1);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+    reclaimParam.SetBufferReclaimEnable(enable);
+    mainThread->curFrameBufferReclaimCount_ = reclaimCount;
 }
 
 /**

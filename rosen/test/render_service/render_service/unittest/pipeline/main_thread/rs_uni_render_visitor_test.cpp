@@ -29,6 +29,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
@@ -149,6 +150,14 @@ public:
     MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
     MOCK_CONST_METHOD0(GetFilterRect, RectI());
     MOCK_METHOD0(CheckIfOcclusionChanged, bool());
+};
+
+// 仅模拟内核换入换出接口，保留 handler 和回收管理器的真实调用链。
+class MockReclaimSurfaceBuffer : public SurfaceBufferImpl {
+public:
+    MOCK_METHOD0(TryReclaim, GSError());
+    MOCK_METHOD0(TryResumeIfNeeded, GSError());
+    MOCK_METHOD0(IsReclaimed, bool());
 };
 
 void RSUniRenderVisitorTest::SetUpTestCase()
@@ -3897,6 +3906,52 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
 
     screenManager->RemoveVirtualScreen(screenId);
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(isBufferReclaimEnable);
+}
+
+/**
+ * @tc.name: BeforeUpdateSurfaceDirtyCalcDelegateBufferResume
+ * @tc.desc: 验证非 RosenWeb 节点仅在 delegate 模式及回收开关均开启时恢复 buffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResume, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    node->name_ = "OrdinarySurface";
+    ASSERT_FALSE(node->IsRosenWeb());
+    ASSERT_FALSE(node->GetDelegateMode());
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto visitor = InitRSUniRenderVisitor();
+    sptr<MockReclaimSurfaceBuffer> buffer = new MockReclaimSurfaceBuffer();
+    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
+    EXPECT_CALL(*buffer, TryReclaim()).WillOnce(Return(GSERROR_OK));
+    auto& bufferReclaim = RSBufferReclaim::GetInstance();
+    ASSERT_TRUE(bufferReclaim.DoBufferReclaim(buffer));
+
+    auto& reclaimParam = BufferReclaimParam::GetInstance();
+    const bool enable = reclaimParam.IsBufferReclaimEnable();
+    EXPECT_CALL(*buffer, IsReclaimed()).Times(0);
+    EXPECT_CALL(*buffer, TryResumeIfNeeded()).Times(0);
+    reclaimParam.SetBufferReclaimEnable(true);
+    EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
+
+    node->SetDelegateMode(true);
+    EXPECT_TRUE(node->GetDelegateMode());
+    reclaimParam.SetBufferReclaimEnable(false);
+    EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
+    EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));
+
+    EXPECT_CALL(*buffer, IsReclaimed()).WillOnce(Return(true));
+    EXPECT_CALL(*buffer, TryResumeIfNeeded()).WillOnce(Return(GSERROR_OK));
+    reclaimParam.SetBufferReclaimEnable(true);
+    EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
+    EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));
+
+    reclaimParam.SetBufferReclaimEnable(enable);
+    bufferReclaim.RemoveBufferReclaim(buffer->GetBufferId());
+    surfaceHandler->CleanCache();
 }
 
 /**
