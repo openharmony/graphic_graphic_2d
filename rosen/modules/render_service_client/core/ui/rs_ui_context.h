@@ -273,13 +273,12 @@ private:
     bool DestroyModifiersDraw();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    void SetCacheDir(const std::string& cacheFilePath);
+
     CommitTransactionCallback CreateCommitTransactionCallback();
     void UnblockUIThread();
 
-    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent()
-    {
-        return canvasModifiersDrawAgent_;
-    }
+    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent();
 
     void OnCanvasDrawingNodeUpdate()
     {
@@ -323,6 +322,8 @@ private:
     std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
 
     bool canvasDrawingNodeUpdated_ = false;
+
+    std::string cacheDir_;
 
     std::mutex uiMutex_;
     std::condition_variable uiCV_;

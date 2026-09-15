@@ -653,9 +653,7 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
         return;
     }
-    if (auto canvasModifiersDrawAgent = rsUIContext_->GetCanvasModifiersDrawAgent()) {
-        canvasModifiersDrawAgent->SetCacheDir(cacheDir_);
-    }
+    rsUIContext_->SetCacheDir(cacheDir_);
 #endif
 }
 
