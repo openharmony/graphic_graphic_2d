@@ -35,22 +35,28 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         AniGlobalMethod::GetInstance().paragraphStyleBreakStrategy, paragraphStyle->breakStrategy);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textHeightBehavior,
         AniGlobalMethod::GetInstance().paragraphStyleTextHeightBehavior, paragraphStyle->textHeightBehavior);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTrailingSpaceOptimized,
-        paragraphStyle->isTrailingSpaceOptimized);
-    AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniGlobalMethod::GetInstance().paragraphStyleAutoSpace, paragraphStyle->enableAutoSpace);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
-        paragraphStyle->compressHeadPunctuation);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleTrailingSpaceOptimized,
+        paragraphStyle->isTrailingSpaceOptimized, paragraphStyle->isTrailingSpaceOptimizedExplicit);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleAutoSpace,
+        paragraphStyle->enableAutoSpace, paragraphStyle->enableAutoSpaceExplicit);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
+        paragraphStyle->compressHeadPunctuation, paragraphStyle->compressHeadPunctuationExplicit);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStylePunctuationOverflow,
         paragraphStyle->punctuationOverflow);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textVerticalAlign,
         AniGlobalMethod::GetInstance().paragraphStyleVerticalAlign, paragraphStyle->verticalAlignment);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleIncludeFontPadding,
-        paragraphStyle->includeFontPadding);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFallbackLineSpacing,
-        paragraphStyle->fallbackLineSpacing);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleOrphanCharOptimization,
-        paragraphStyle->orphanCharOptimization);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleIncludeFontPadding,
+        paragraphStyle->includeFontPadding, paragraphStyle->includeFontPaddingExplicit);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleFallbackLineSpacing,
+        paragraphStyle->fallbackLineSpacing, paragraphStyle->fallbackLineSpacingExplicit);
+    AniTextUtils::ReadOptionalBoolFieldWithExplicit(env, obj,
+        AniGlobalMethod::GetInstance().paragraphStyleOrphanCharOptimization,
+        paragraphStyle->orphanCharOptimization, paragraphStyle->orphanCharOptimizationExplicit);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
         paragraphStyle->lineSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFirstLineIndent,

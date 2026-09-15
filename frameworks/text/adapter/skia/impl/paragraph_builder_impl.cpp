@@ -21,6 +21,7 @@
 #include "text_font_utils.h"
 #include "draw/color.h"
 #include "modules/skparagraph/include/ParagraphStyle.h"
+#include "modules/skparagraph/include/TextGlobalConfig.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "paragraph_line_fetcher_impl.h"
@@ -36,6 +37,20 @@ const char* DefaultLocale()
 {
     static const char* LOCALE_ZH = "zh-Hans";
     return LOCALE_ZH;
+}
+
+bool MergeOptimizationSwitch(skt::GlobalOptimizationSwitchState global,
+    bool paraValue, bool paraExplicit)
+{
+    switch (global) {
+        case skt::GlobalOptimizationSwitchState::DISABLE:
+            return false;
+        case skt::GlobalOptimizationSwitchState::ENABLE:
+            return !(paraExplicit && !paraValue);
+        case skt::GlobalOptimizationSwitchState::UNSET:
+            return paraValue;
+    }
+    return paraValue;
 }
 } // anonymous namespace
 
@@ -198,16 +213,28 @@ void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
-    skStyle.setCompressHeadPunctuation(txt.compressHeadPunctuation);
+    skStyle.setCompressHeadPunctuation(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::COMPRESS_HEAD_PUNCTUATION),
+        txt.compressHeadPunctuation, txt.compressHeadPunctuationExplicit));
     skStyle.setPunctuationOverflow(txt.punctuationOverflow);
-    skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
-    skStyle.setEnableAutoSpace(txt.enableAutoSpace);
+    skStyle.setTrailingSpaceOptimized(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::TRAILING_SPACE_OPTIMIZED),
+        txt.isTrailingSpaceOptimized, txt.isTrailingSpaceOptimizedExplicit));
+    skStyle.setEnableAutoSpace(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::ENABLE_AUTO_SPACE),
+        txt.enableAutoSpace, txt.enableAutoSpaceExplicit));
     skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));
     skStyle.setLineSpacing(txt.lineSpacing);
     CheckAndSetIndents(txt, skStyle);
-    skStyle.setIncludeFontPadding(txt.includeFontPadding);
-    skStyle.setFallbackLineSpacing(txt.fallbackLineSpacing);
-    skStyle.setOrphanCharOptimization(txt.orphanCharOptimization);
+    skStyle.setIncludeFontPadding(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::INCLUDE_FONT_PADDING),
+        txt.includeFontPadding, txt.includeFontPaddingExplicit));
+    skStyle.setFallbackLineSpacing(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::FALLBACK_LINE_SPACING),
+        txt.fallbackLineSpacing, txt.fallbackLineSpacingExplicit));
+    skStyle.setOrphanCharOptimization(MergeOptimizationSwitch(
+        skt::TextGlobalConfig::GetOptimizationSwitch(skt::TextOptimizationSwitchId::ORPHAN_CHAR_OPTIMIZATION),
+        txt.orphanCharOptimization, txt.orphanCharOptimizationExplicit));
     skStyle.setUseLocaleForTextBreak(txt.useLocaleForTextBreak);
     skStyle.setDisableSpacingForControlChar(TextBundleConfigParser::GetInstance().IsDisableSpacingForControlChar() ||
         TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API26_VERSION));

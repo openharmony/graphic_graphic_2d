@@ -3752,6 +3752,7 @@ void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographySty
         return;
     }
     ConvertToOriginalText<TypographyStyle>(style)->isTrailingSpaceOptimized = trailingSpaceOptimized;
+    ConvertToOriginalText<TypographyStyle>(style)->isTrailingSpaceOptimizedExplicit = true;
 }
 
 void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace)
@@ -3760,6 +3761,7 @@ void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bo
         return;
     }
     ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
+    ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpaceExplicit = true;
 }
 
 OH_Drawing_TextStyle* OH_Drawing_CopyTextStyle(OH_Drawing_TextStyle* style)

@@ -145,6 +145,12 @@ struct RS_EXPORT TypographyStyle {
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
     bool orphanCharOptimization{false};
+    bool isTrailingSpaceOptimizedExplicit{false};
+    bool enableAutoSpaceExplicit{false};
+    bool compressHeadPunctuationExplicit{false};
+    bool includeFontPaddingExplicit{false};
+    bool fallbackLineSpacingExplicit{false};
+    bool orphanCharOptimizationExplicit{false};
     bool useLocaleForTextBreak{false};
 };
 } // namespace Rosen

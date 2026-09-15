@@ -67,6 +67,8 @@ public:
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::u16string& str);
     static ani_status ReadOptionalBoolField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value);
+    static ani_status ReadOptionalBoolFieldWithExplicit(
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value, bool& explicit);
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const std::vector<uint32_t>& enumValues,
         const ani_method getPropertyMethod, EnumType& value);

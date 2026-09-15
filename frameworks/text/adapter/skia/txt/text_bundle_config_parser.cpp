@@ -16,6 +16,8 @@
 #include "text_bundle_config_parser.h"
 #include "modules/skparagraph/include/TextGlobalConfig.h"
 
+#include <utility>
+
 #ifdef ENABLE_OHOS_ENHANCE
 #include "application_info.h"
 #include "bundlemgr/bundle_mgr_interface.h"
@@ -32,6 +34,33 @@ namespace SPText {
 const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
 const std::string DISABLE_SPACING_FOR_CONTROL_CHAR_META_DATA = "ohos.graphics2d.text.disable_spacing_for_control_char";
 const size_t VERSION_DIVISOR = 100;
+
+namespace {
+bool GetMetaDataValue(const std::string& metaData,
+    const AppExecFwk::BundleInfo& bundleInfo, std::string& value)
+{
+    for (const auto& info : bundleInfo.hapModuleInfos) {
+        for (const auto& data : info.metadata) {
+            if (data.name == metaData) {
+                value = data.value;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+skia::textlayout::GlobalOptimizationSwitchState ParseSwitchState(const std::string& value)
+{
+    if (value == "enable") {
+        return skia::textlayout::GlobalOptimizationSwitchState::ENABLE;
+    }
+    if (value == "disable") {
+        return skia::textlayout::GlobalOptimizationSwitchState::DISABLE;
+    }
+    return skia::textlayout::GlobalOptimizationSwitchState::UNSET;
+}
+} // namespace
 
 bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData,
     const AppExecFwk::BundleInfo& bundleInfo)
@@ -111,6 +140,33 @@ void TextBundleConfigParser::InitTextBundleConfig()
     disableSpacingForControlChar_ =
         IsMetaDataExistInModule(DISABLE_SPACING_FOR_CONTROL_CHAR_META_DATA, bundleInfo);
     TEXT_LOGI("Disable spacing for control char %{public}d", disableSpacingForControlChar_);
+    InitOptimizationSwitches(bundleInfo);
+}
+
+void TextBundleConfigParser::InitOptimizationSwitches(const AppExecFwk::BundleInfo& bundleInfo)
+{
+    static constexpr std::pair<skia::textlayout::TextOptimizationSwitchId, const char*> kSwitchMetaKeys[] = {
+        { skia::textlayout::TextOptimizationSwitchId::TRAILING_SPACE_OPTIMIZED,
+            "ohos.graphics2d.text.trailing_space_optimized" },
+        { skia::textlayout::TextOptimizationSwitchId::ENABLE_AUTO_SPACE,
+            "ohos.graphics2d.text.auto_space" },
+        { skia::textlayout::TextOptimizationSwitchId::COMPRESS_HEAD_PUNCTUATION,
+            "ohos.graphics2d.text.compress_head_punctuation" },
+        { skia::textlayout::TextOptimizationSwitchId::INCLUDE_FONT_PADDING,
+            "ohos.graphics2d.text.include_font_padding" },
+        { skia::textlayout::TextOptimizationSwitchId::FALLBACK_LINE_SPACING,
+            "ohos.graphics2d.text.fallback_line_spacing" },
+        { skia::textlayout::TextOptimizationSwitchId::ORPHAN_CHAR_OPTIMIZATION,
+            "ohos.graphics2d.text.orphan_char_optimization" },
+    };
+    for (const auto& [id, key] : kSwitchMetaKeys) {
+        std::string value;
+        auto state = skia::textlayout::GlobalOptimizationSwitchState::UNSET;
+        if (GetMetaDataValue(key, bundleInfo, value)) {
+            state = ParseSwitchState(value);
+        }
+        skia::textlayout::TextGlobalConfig::SetOptimizationSwitch(id, state);
+    }
 }
 #endif
 

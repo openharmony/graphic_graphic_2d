@@ -122,6 +122,7 @@ namespace OHOS::Rosen::Text {
     OH_Drawing_ErrorCode SetCompressHeadPunctuation(TypographyStyle* style, bool value)
     {
         style->compressHeadPunctuation = value;
+        style->compressHeadPunctuationExplicit = true;
         return OH_DRAWING_SUCCESS;
     }
 
@@ -134,6 +135,7 @@ namespace OHOS::Rosen::Text {
     OH_Drawing_ErrorCode SetIncludeFontPadding(TypographyStyle* style, bool value)
     {
         style->includeFontPadding = value;
+        style->includeFontPaddingExplicit = true;
         return OH_DRAWING_SUCCESS;
     }
 
@@ -146,6 +148,7 @@ namespace OHOS::Rosen::Text {
     OH_Drawing_ErrorCode SetFallbackLineSpacing(TypographyStyle* style, bool value)
     {
         style->fallbackLineSpacing = value;
+        style->fallbackLineSpacingExplicit = true;
         return OH_DRAWING_SUCCESS;
     }
 
