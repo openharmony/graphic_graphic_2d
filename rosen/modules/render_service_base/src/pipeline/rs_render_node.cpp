@@ -4771,7 +4771,7 @@ void RSRenderNode::InitRenderParams()
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
 #ifndef ROSEN_ARKUI_X
-        RS_LOGE("RSRenderNode::InitRenderParams failed");
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::InitRenderParams failed, renderDrawable_ is null");
 #endif
         return;
     }

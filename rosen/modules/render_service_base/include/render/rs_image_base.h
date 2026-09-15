@@ -109,6 +109,8 @@ protected:
         std::shared_ptr<Drawing::Image>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
     static void IncreaseCacheRefCount(uint64_t uniqueId,
             bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
+    static void DecreaseCacheRefCount(uint64_t uniqueId,
+            bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
 
     static constexpr bool PIXELMAP_IS_PROPERTIES_DIRTY_DEFAULT = false;
 

@@ -486,6 +486,18 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
     }
 }
 
+void RSImageBase::DecreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std::shared_ptr<Media::PixelMap>
+    pixelMap)
+{
+    if (useSkImage) {
+        RSImageCache::Instance().ReleaseDrawingImageCache(uniqueId);
+    } else if (pixelMap && !pixelMap->IsEditable()) {
+        RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    } else if (ShouldCacheEditablePixelMap(pixelMap)) {
+        RSImageCache::Instance().DecreaseRefCountAndReleaseEditablePixelMapCache(uniqueId);
+    }
+}
+
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

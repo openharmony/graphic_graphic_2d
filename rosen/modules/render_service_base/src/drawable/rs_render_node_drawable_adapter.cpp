@@ -138,7 +138,8 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
 #ifndef ROSEN_ARKUI_X
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
+        RS_LOGE_LIMIT(__func__, __line__,
+            "RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
 #endif
         return nullptr;
     }

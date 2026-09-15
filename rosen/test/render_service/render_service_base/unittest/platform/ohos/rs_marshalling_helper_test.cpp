@@ -1508,6 +1508,53 @@ HWTEST_F(RSMarshallingHelperTest, SkipPixelMapReadInt32FailTest, TestSize.Level1
 }
 
 /**
+ * @tc.name: SkipPixelMapNegativeSizeTest
+ * @tc.desc: Verify SkipPixelMap returns false when size is negative except -1
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapNegativeSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-2);
+    EXPECT_FALSE(RSMarshallingHelper::SkipPixelMap(parcel));
+}
+
+/**
+ * @tc.name: SkipPixelMapValidSizeTest
+ * @tc.desc: Verify SkipPixelMap skips pixelmap blob and keeps stream aligned
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapValidSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    constexpr int32_t blobSize = 8;
+    constexpr int32_t nextFieldValue = 100;
+    parcel.WriteInt32(blobSize);
+    parcel.WriteInt64(0);
+    parcel.WriteInt32(nextFieldValue);
+    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+    EXPECT_EQ(parcel.ReadInt32(), nextFieldValue);
+}
+
+/**
+ * @tc.name: SkipPixelMapZeroSizeTest
+ * @tc.desc: Verify SkipPixelMap returns true and keeps stream aligned when size is 0
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapZeroSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    constexpr int32_t nextFieldValue = 200;
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(nextFieldValue);
+    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+    EXPECT_EQ(parcel.ReadInt32(), nextFieldValue);
+}
+
+/**
  * @tc.name: MarshallingTest025
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC
