@@ -4131,12 +4131,12 @@ public:
 } // namespace
 
 /**
- * @tc.name: ClearInheritedPropertiesTest
- * @tc.desc: ClearInheritedProperties clears inherited properties of the given pid,
+ * @tc.name: ClearPersistentPropertiesTest
+ * @tc.desc: ClearPersistentProperties clears persistent properties of the given pid,
  *           tolerates null context and keeps properties of other pids.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, ClearPersistentPropertiesTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -4146,7 +4146,7 @@ HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
 
     // context_ is null: must not crash
     mainThread->context_ = nullptr;
-    mainThread->ClearInheritedProperties(pid);
+    mainThread->ClearPersistentProperties(pid);
 
     // context_ is valid: properties of the given pid are cleared, other pids kept
     mainThread->context_ = std::make_shared<RSContext>();
@@ -4156,7 +4156,7 @@ HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
     manager.Store(nodeId, std::make_shared<MainThreadTestProperty>());
     manager.Store(nodeIdOther, std::make_shared<MainThreadTestProperty>());
 
-    mainThread->ClearInheritedProperties(pid);
+    mainThread->ClearPersistentProperties(pid);
 
     EXPECT_EQ(manager.Get(nodeId, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
     EXPECT_NE(manager.Get(nodeIdOther, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
