@@ -184,10 +184,11 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
     Reset();
     bool frameRateChanged = false;
     bool controllerRateChanged = false;
-    uint32_t rsFrameRate = 0;
-    controllerRate_ = currRefreshRate > 0 ? currRefreshRate : sharedController->GetCurrentRate();
+    auto rsFrameRate = HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, finalRange);
+    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : sharedController->GetCurrentRate();
     if (HgmEnergyConsumptionPolicy::Instance().GetRsFrameRateControlEnabled()) {
         rsFrameRate = CalcRsFrameRate(finalRange, controllerRate_);
+        controllerRate_ = currRefreshRate > 0 ? currRefreshRate : sharedController->GetCurrentRate();
     }
     if (controllerRate_ != sharedController->GetCurrentRate() || rsFrameRate_ != rsFrameRate) {
         controllerRateChanged = controllerRate_ != sharedController->GetCurrentRate();
