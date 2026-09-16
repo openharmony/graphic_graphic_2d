@@ -1230,12 +1230,6 @@ HWTEST_F(RSUIContextTest, CacheDirAndCommitTransactionCallbackTest001, TestSize.
 {
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
-        return;
-    }
-
     // Branch 2: GetCanvasModifiersDrawAgent with non-empty cacheDir_
     // SetCacheDir stores cacheDir_ but agent is null, so the agent->SetCacheDir branch is skipped.
     // Then GetCanvasModifiersDrawAgent lazily creates agent and propagates cacheDir_ to it.
@@ -1244,6 +1238,8 @@ HWTEST_F(RSUIContextTest, CacheDirAndCommitTransactionCallbackTest001, TestSize.
     EXPECT_EQ(rsUIContext->cacheDir_, testCacheDir);
     ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
     auto agent = rsUIContext->GetCanvasModifiersDrawAgent();
+    ASSERT_NE(agent, nullptr);
+    agent = rsUIContext->GetCanvasModifiersDrawAgent();
     ASSERT_NE(agent, nullptr);
     ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
     // agent was created and cacheDir_ was non-empty, so SetCacheDir was called on agent
@@ -1266,9 +1262,12 @@ HWTEST_F(RSUIContextTest, CacheDirAndCommitTransactionCallbackTest001, TestSize.
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
     std::atomic<uint32_t> transactionDataIndex = 0;
+    callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
+    usleep(100000);
     // Invoke the callback; the outer lambda passes the null-check on modifiersDrawThread_
     // and posts the inner lambda via ScheduleTask. After callback returns, set
     // modifiersDrawThread_ to null so the inner lambda enters the else branch.
+    transactionData = std::make_unique<RSTransactionData>();
     callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
     rsUIContext->modifiersDrawThread_ = nullptr;
     // Wait for the inner lambda to complete on the ModifiersDraw thread.
