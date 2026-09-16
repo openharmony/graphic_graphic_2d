@@ -3876,6 +3876,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
         }
         auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
         surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+        if (surface == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Surface CreateSurfaceAsProducer failed");
+            return false;
+        }
     }
     return true;
 }
