@@ -927,9 +927,10 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     bool isParentPrepareInReverseOrder)
 {
     RS_TRACE_NAME_FMT("RSUniRender:%s %" PRIu64 " nodeId[%" PRIu64 "] dirtyStatus[%d] "
-        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]",
         __func__, node.GetScreenId(), node.GetId(), static_cast<int>(node.GetDirtyStatus()),
-        node.GetRenderProperties().IsDirty(), node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.GetRenderProperties().IsDirty(), node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty(),
+        dirtyFlag_);
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     if (!InitLogicalDisplayInfo(node)) {
@@ -1322,11 +1323,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 #endif
     RS_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u] subTreeDirty[%d], "
-        "crossDisplay:[%d] dirtyStatus[%d] isPropertyDirty[%d] isSubTreeAllDirty[%d]",
-        node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
+        "crossDisplay:[%d] dirtyStatus[%d] isPropertyDirty[%d] isSubTreeAllDirty[%d] containerDirty[%d] "
+        "accumGeoDirty[%d]", node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
         static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
         static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
-        node.GetRenderProperties().IsSubTreeAllDirty());
+        node.GetRenderProperties().IsSubTreeAllDirty(), curContainerDirty_, dirtyFlag_);
     RS_LOGD_IF(DEBUG_PIPELINE,
         "QuickPrepareSurfaceRenderNode:[%{public}s] nodeid:[%{public}" PRIu64 "] pid:[%{public}d] "
         "nodeType:[%{public}d] subTreeDirty[%{public}d] crossDisplay[%{public}d] dirtyStatus[%{public}d] "
@@ -1535,9 +1536,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
-        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]",
         __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
-        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty(), dirtyFlag_);
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -2014,9 +2015,9 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
 void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
-        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]",
         __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
-        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty(), dirtyFlag_);
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -2191,9 +2192,9 @@ void RSUniRenderVisitor::UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node)
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
-        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]",
         __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
-        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty(), dirtyFlag_);
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -2297,9 +2298,9 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
     bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
-        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]",
         __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
-        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty(), dirtyFlag_);
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -2689,9 +2690,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     if (node.IsLeashOrMainWindow()) {
         curScreenNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
         curScreenNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), node.GetOldDirtyInSurface());
-    }
-    // 2. Update Occlusion info before children preparation
-    if (node.IsLeashOrMainWindow()) {
+        // 2. Update Occlusion info before children preparation
         UpdateNodeVisibleRegion(node);
     }
     // 3. Update HwcNode Info for appNode
@@ -4223,9 +4222,9 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
     RS_TRACE_NAME_FMT("RSUniRender::%s:node[%" PRIu64 "] pid[%d] subTreeDirty[%d] dirtyStatus[%d]"
-        " isPropertyDirty[%d] isSubTreeAllDirty[%d]", __func__, node.GetId(),
+        " isPropertyDirty[%d] isSubTreeAllDirty[%d] accumGeoDirty[%d]", __func__, node.GetId(),
         ExtractPid(node.GetId()), node.IsSubTreeDirty(), static_cast<int>(node.GetDirtyStatus()),
-        node.GetRenderProperties().IsDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+        node.GetRenderProperties().IsDirty(), node.GetRenderProperties().IsSubTreeAllDirty(), dirtyFlag_);
     bool dirtyFlag = dirtyFlag_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     auto prepareClipRect = prepareClipRect_;

@@ -315,7 +315,7 @@ private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
     void MergeAdvancedDirtyHistory(unsigned int age);
-    std::vector<RectI> GetAdvancedDirtyHistory(unsigned int i) const;
+    const std::vector<RectI>& GetAdvancedDirtyHistory(unsigned int i) const;
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
     // get his rect according to index offset
