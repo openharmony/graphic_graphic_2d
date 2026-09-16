@@ -106,6 +106,14 @@ public:
 
     bool GetDirection() const { return animationFraction_.GetDirection(); }
 
+    void SetGroupReverseCycle(bool isReverse) { animationFraction_.SetGroupReverseCycle(isReverse); }
+    bool GetGroupReverseCycle() const { return animationFraction_.GetGroupReverseCycle(); }
+
+    void SetGroupAutoReverse(bool autoReverse) { animationFraction_.SetGroupAutoReverse(autoReverse); }
+    bool GetGroupAutoReverse() const { return animationFraction_.GetGroupAutoReverse(); }
+    void SetGroupRepeatCount(int repeatCount) { animationFraction_.SetGroupRepeatCount(repeatCount); }
+    int GetGroupRepeatCount() const { return animationFraction_.GetGroupRepeatCount(); }
+
     bool GetCurrentIsReverseCycle() const { return animationFraction_.GetCurrentIsReverseCycle(); }
 
     bool IsGroupAnimationChild() const { return isGroupAnimationChild_; }
@@ -125,6 +133,7 @@ public:
     bool IsCalculateAniamtionValue() const { return calculateAnimationValue_; }
 
     bool GetNeedUpdateStartTime() const { return needUpdateStartTime_; }
+    void SetNeedUpdateStartTime(bool value) { needUpdateStartTime_ = value; }
 
     void SetValueFraction(float fraction) { lastValueFraction_ = fraction; }
 

@@ -640,6 +640,78 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, SetFractionAnimator003, TestSiz
 }
 
 /**
+ * @tc.name: TimeDrivenGroupAnimator_AddAnimations001
+ * @tc.desc: Verify group speed/autoReverse/repeatCount propagated to children via AddAnimations override
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_AddAnimations001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_AddAnimations001 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetSpeed(2.0f);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(2);
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Child defaults: speed 1.0f, groupAutoReverse false, groupRepeatCount 0.
+    EXPECT_FLOAT_EQ(renderCurveAnimation->GetSpeed(), 1.0f);
+    EXPECT_FALSE(renderCurveAnimation->GetGroupAutoReverse());
+    EXPECT_EQ(renderCurveAnimation->GetGroupRepeatCount(), 0);
+    renderNode->AddAnimation(renderCurveAnimation);
+
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animations.emplace_back(NODE_ID, ANIMATION_ID);
+    animator->AddAnimations(animations);
+
+    // groupSpeed(2.0) * childSpeed(1.0) -> 2.0; autoReverse/repeatCount propagated from group.
+    EXPECT_FLOAT_EQ(renderCurveAnimation->GetSpeed(), 2.0f);
+    EXPECT_TRUE(renderCurveAnimation->GetGroupAutoReverse());
+    EXPECT_EQ(renderCurveAnimation->GetGroupRepeatCount(), 2);
+    EXPECT_EQ(animator->cachedAnimations_.size(), 1u);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_AddAnimations001 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_AddAnimations002
+ * @tc.desc: Cover branch: child weak_ptr expired in AddAnimations speed-multiply loop
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_AddAnimations002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_AddAnimations002 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetSpeed(3.0f);
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+
+    // Push an expired weak_ptr, then release context so base AddAnimations returns early without
+    // clearing cachedAnimations_. The override's loop then sees the expired entry and hits the
+    // nullptr continue branch (rs_render_interactive_implict_animator.cpp:194).
+    animator->cachedAnimations_.emplace_back(std::weak_ptr<RSRenderAnimation>());
+    context = nullptr;
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animator->AddAnimations(animations);
+    // Base returned early (context null); expired entry not cleared, skipped via continue.
+    EXPECT_EQ(animator->cachedAnimations_.size(), 1u);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_AddAnimations002 end";
+}
+
+/**
  * @tc.name: TimeDrivenGroupAnimator_StartAnimator001
  * @tc.desc: Cover branch: StartAnimator when already started (should return early)
  * @tc.type:FUNC
@@ -1227,7 +1299,7 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetCh
 
 /**
  * @tc.name: TimeDrivenGroupAnimator_ResetChildAnimations002
- * @tc.desc: Cover branch: ResetChildAnimations with AutoReverse true (FlipDirection)
+ * @tc.desc: Cover branch: ResetChildAnimations with AutoReverse true (toggles groupReverseCycle_)
  * @tc.type:FUNC
  */
 HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetChildAnimations002, TestSize.Level1)
@@ -1251,7 +1323,13 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetCh
     animator->cachedAnimations_.emplace_back(renderCurveAnimation);
     animator->animationFraction_.currentRepeatCount_ = 1;
 
+    // AutoReverse path now toggles groupReverseCycle_ (instead of FlipDirection on direction_).
+    EXPECT_FALSE(renderCurveAnimation->GetGroupReverseCycle());
     animator->ResetChildAnimations();
+    EXPECT_TRUE(renderCurveAnimation->GetGroupReverseCycle());
+    // Second reset toggles back to false, verifying XOR flip semantics.
+    animator->ResetChildAnimations();
+    EXPECT_FALSE(renderCurveAnimation->GetGroupReverseCycle());
 
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_ResetChildAnimations002 end";
 }
@@ -1306,7 +1384,10 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetCh
     animator->cachedAnimations_.emplace_back(renderCurveAnimation);
     animator->animationFraction_.currentRepeatCount_ = 1;
 
+    // Non-AutoReverse path now also sets needUpdateStartTime_ true after Restart.
+    renderCurveAnimation->SetNeedUpdateStartTime(false);
     animator->ResetChildAnimations();
+    EXPECT_TRUE(renderCurveAnimation->GetNeedUpdateStartTime());
 
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_ResetChildAnimations004 end";
 }

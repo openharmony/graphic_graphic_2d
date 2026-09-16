@@ -177,6 +177,28 @@ RSRenderTimeDrivenGroupAnimator::RSRenderTimeDrivenGroupAnimator(InteractiveImpl
         timingProtocol_.GetAutoReverse(), timingProtocol_.GetSpeed());
 }
 
+void RSRenderTimeDrivenGroupAnimator::AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations)
+{
+    RSRenderInteractiveImplictAnimator::AddAnimations(std::move(animations));
+
+    // Group speed must also scale child playback. The client SetSpeed is not propagated to the
+    // render animation, so multiply group speed into each child's speed here on the server side,
+    // otherwise group speed only affects the group round rhythm but not the child playback speed.
+    // Also propagate group's autoReverse and repeatCount to children for correct end position calculation.
+    float groupSpeed = timingProtocol_.GetSpeed();
+    bool groupAutoReverse = timingProtocol_.GetAutoReverse();
+    int groupRepeatCount = timingProtocol_.GetRepeatCount();
+    for (auto& weakAnim : cachedAnimations_) {
+        auto animation = weakAnim.lock();
+        if (animation == nullptr) {
+            continue;
+        }
+        animation->SetSpeed(groupSpeed * animation->GetSpeed());
+        animation->SetGroupAutoReverse(groupAutoReverse);
+        animation->SetGroupRepeatCount(groupRepeatCount);
+    }
+}
+
 void RSRenderTimeDrivenGroupAnimator::ContinueAnimator()
 {
     if (state_ != GroupAnimatorState::PAUSED) {
@@ -338,7 +360,7 @@ void RSRenderTimeDrivenGroupAnimator::OnAnimate(int64_t timestamp, int64_t& minL
 
 void RSRenderTimeDrivenGroupAnimator::UpdateFraction(int64_t timestamp, int64_t& minLeftDelayTime)
 {
-    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished] =
         animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false);
 
     RS_TRACE_NAME_FMT("RSRenderTimeDrivenGroupAnimator::UpdateFraction animator[%llu] fraction[%f] "
@@ -346,7 +368,7 @@ void RSRenderTimeDrivenGroupAnimator::UpdateFraction(int64_t timestamp, int64_t&
         id_, fraction, animationFraction_.GetRunningTime() / MS_TO_NS, timingProtocol_.GetDuration(),
         timingProtocol_.GetStartDelay(), timingProtocol_.GetRepeatCount(), cachedAnimations_.size());
 
-    if (isRepeatFinished) {
+    if (isActualRepeatFinished) {
         ResetChildAnimations();
     }
 
@@ -381,9 +403,13 @@ void RSRenderTimeDrivenGroupAnimator::ResetChildAnimations()
         }
 
         if (animationFraction_.GetAutoReverse()) {
-            animation->FlipDirection();
+            // Flip groupReverseCycle_ instead of direction_ to avoid polluting GetEndFraction()
+            animation->SetGroupReverseCycle(!animation->GetGroupReverseCycle());
         } else {
             animation->Restart();
+            // Skip child's Animate on the same frame (called later in node->Animate),
+            // so child doesn't accumulate deltaTime before group advances.
+            animation->SetNeedUpdateStartTime(true);
         }
     }
 }

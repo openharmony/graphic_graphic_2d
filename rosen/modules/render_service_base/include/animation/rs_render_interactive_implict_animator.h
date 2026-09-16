@@ -45,7 +45,7 @@ public:
         InteractiveImplictAnimatorId id, const std::weak_ptr<RSContext>& context = {});
     virtual ~RSRenderInteractiveImplictAnimator() = default;
 
-    void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations);
+    virtual void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations);
 
     virtual void PauseAnimator();
     virtual void ContinueAnimator();
@@ -89,6 +89,7 @@ public:
     void ContinueAnimator() override;
     void FinishAnimator(RSInteractiveAnimationPosition finishPos) override;
     void RemoveActiveChildAnimation(AnimationId animationId);
+    void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations) override;
 
 private:
     bool IsStarted() const { return state_ != GroupAnimatorState::INITIALIZED; }

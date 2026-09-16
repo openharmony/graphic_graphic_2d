@@ -328,7 +328,16 @@ public:
             if (fraction < startFraction) {
                 break;
             }
-            if ((fraction > startFraction) && (fraction <= endFraction)) {
+            // Check zero-duration keyframe first
+            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
+                bInFraction = true;
+                animationValue = keyframeValue;
+                preKeyframeValue = keyframeValue;
+                lastValue_ = keyframeValue;
+                continue;
+            }
+            // Check normal interval
+            if ((fraction >= startFraction) && (fraction <= endFraction)) {
                 bInFraction = true;
                 float intervalFraction = (fraction - startFraction) / (endFraction - startFraction);
                 auto interpolationValue = RSValueEstimator::Estimate(
@@ -339,13 +348,6 @@ public:
                 }
                 lastValue_ = interpolationValue;
                 preKeyframeValue = animationValue;
-                continue;
-            }
-            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
-                bInFraction = true;
-                animationValue = keyframeValue;
-                preKeyframeValue = keyframeValue;
-                lastValue_ = keyframeValue;
                 continue;
             }
             preKeyframeValue = keyframeValue;

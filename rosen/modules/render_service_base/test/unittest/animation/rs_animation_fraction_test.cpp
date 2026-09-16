@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation_common.h"
 #include "animation/rs_animation_fraction.h"
 
 using namespace testing;
@@ -54,38 +55,44 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction001, TestSize.Level1)
     int64_t leftDelayTime = 0;
     bool isFinished = false;
     bool isRepeatFinished = false;
+    bool isActualRepeatFinished = false;
     float result = 0.0f;
     float resultNegative = 0.0f;
     RSAnimationFraction fraction;
     fraction.SetDuration(0);
-    std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(0, leftDelayTime, false);
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(0, leftDelayTime, false);
     EXPECT_EQ(result, 1.0f);
 
     fraction.SetDuration(300);
     fraction.SetRepeatCount(0);
-    std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(0, leftDelayTime, false);
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(0, leftDelayTime, false);
     EXPECT_EQ(result, 1.0f);
 
     fraction.SetRepeatCount(1);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "0", nullptr);
-    std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(100, leftDelayTime, false);
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
     fraction.SetRepeatCount(1);
     fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
-    std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(100, leftDelayTime, false);
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
     leftDelayTime = 100;
     fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
-    std::tie(resultNegative, isDelay, isFinished, isRepeatFinished) =
+    std::tie(resultNegative, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(90, leftDelayTime, false);
     EXPECT_TRUE(resultNegative < result);
 
     fraction.startDelay_ = 300;
     leftDelayTime = 100;
     fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
-    std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(0, leftDelayTime, false);
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(0, leftDelayTime, false);
     EXPECT_FALSE(result);
 
     // Restore animationScale to default value
@@ -109,39 +116,40 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction002, TestSize.Level1)
     bool isFinishedFalse = false;
     bool isFinishedTrue = true;
     bool isRepeatFinished = false;
+    bool isActualRepeatFinished = false;
     float result = 0.0f;
     fraction.SetDuration(300);
     fraction.SetRepeatCount(1);
-    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
-    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
     fraction.SetDirection(false);
-    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
-    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
     fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
     fraction.SetDirection(true);
-    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
-    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
     leftDelayTime = 100;
     fraction.SetDirection(false);
-    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
-    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedTrue, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_NE(result, 0.0f);
 
@@ -149,11 +157,198 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction002, TestSize.Level1)
     fraction.SetDirection(true);
     fraction.runningTime_ = 0;
     leftDelayTime = 10000;
-    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished) =
+    std::tie(result, isDelay, isFinishedFalse, isRepeatFinished, isActualRepeatFinished) =
         fraction.GetAnimationFraction(100, leftDelayTime, false);
     EXPECT_FALSE(result);
 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction002 end";
+}
+
+/**
+ * @tc.name: GroupReverseCycle001
+ * @tc.desc: Verify SetGroupReverseCycle/GetGroupReverseCycle default and toggle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GroupReverseCycle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupReverseCycle001 start";
+    RSAnimationFraction fraction;
+    // default groupReverseCycle_ is false
+    EXPECT_FALSE(fraction.GetGroupReverseCycle());
+
+    fraction.SetGroupReverseCycle(true);
+    EXPECT_TRUE(fraction.GetGroupReverseCycle());
+
+    fraction.SetGroupReverseCycle(false);
+    EXPECT_FALSE(fraction.GetGroupReverseCycle());
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupReverseCycle001 end";
+}
+
+/**
+ * @tc.name: GetEffectiveDirection001
+ * @tc.desc: Verify GetEffectiveDirection XOR logic between direction_ and groupReverseCycle_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetEffectiveDirection001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetEffectiveDirection001 start";
+    RSAnimationFraction fraction;
+
+    // direction NORMAL, groupReverseCycle false -> NORMAL
+    fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    fraction.SetGroupReverseCycle(false);
+    EXPECT_EQ(fraction.GetEffectiveDirection(), ForwardDirection::NORMAL);
+
+    // direction NORMAL, groupReverseCycle true -> REVERSE (XOR flip)
+    fraction.SetGroupReverseCycle(true);
+    EXPECT_EQ(fraction.GetEffectiveDirection(), ForwardDirection::REVERSE);
+
+    // direction REVERSE, groupReverseCycle false -> REVERSE
+    fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    fraction.SetGroupReverseCycle(false);
+    EXPECT_EQ(fraction.GetEffectiveDirection(), ForwardDirection::REVERSE);
+
+    // direction REVERSE, groupReverseCycle true -> NORMAL (XOR flip)
+    fraction.SetGroupReverseCycle(true);
+    EXPECT_EQ(fraction.GetEffectiveDirection(), ForwardDirection::NORMAL);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetEffectiveDirection001 end";
+}
+
+/**
+ * @tc.name: GetAnimationFractionReverseCycle001
+ * @tc.desc: Verify GetAnimationFraction covers GetEffectiveDirection REVERSE branches in
+ *           IsStartRunning (runningTime_ decrement) and IsFinished (runningTime_ <= 0).
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetAnimationFractionReverseCycle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFractionReverseCycle001 start";
+    RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
+    RSAnimationFraction fraction;
+    fraction.SetDuration(300);
+    fraction.SetRepeatCount(2);
+    fraction.SetLastFrameTime(0);
+
+    int64_t leftDelayTime = 0;
+    bool isDelay = false;
+    bool isFinished = false;
+    bool isRepeatFinished = false;
+    bool isActualRepeatFinished = false;
+    float result = 0.0f;
+
+    // Set group reverse cycle so effective direction is REVERSE while direction_ stays NORMAL,
+    // covering GetEffectiveDirection-driven REVERSE branches in IsStartRunning/IsFinished.
+    fraction.SetGroupReverseCycle(true);
+    fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    // REVERSE effective direction decrements runningTime_ (<=0), so IsFinished REVERSE branch returns true.
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(300 * MS_TO_NS, leftDelayTime, false);
+    EXPECT_FALSE(isDelay);
+    EXPECT_TRUE(isFinished);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFractionReverseCycle001 end";
+}
+
+/**
+ * @tc.name: GetAnimationFractionActualRepeatFinished001
+ * @tc.desc: Verify isActualRepeatFinished is true after a repeat boundary and false within a cycle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetAnimationFractionActualRepeatFinished001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFractionActualRepeatFinished001 start";
+    RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
+    RSAnimationFraction fraction;
+    fraction.SetDuration(300);
+    fraction.SetRepeatCount(2);
+    fraction.SetLastFrameTime(0);
+
+    int64_t leftDelayTime = 0;
+    bool isDelay = false;
+    bool isFinished = false;
+    bool isRepeatFinished = false;
+    bool isActualRepeatFinished = false;
+    float result = 0.0f;
+
+    // Within the first cycle (no repeat boundary crossed): isActualRepeatFinished stays false.
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(100 * MS_TO_NS, leftDelayTime, false);
+    EXPECT_FALSE(isActualRepeatFinished);
+
+    // Crossing one duration boundary: currentRepeatCount_ increments -> isActualRepeatFinished true.
+    fraction.SetLastFrameTime(0);
+    fraction.runningTime_ = 0;
+    std::tie(result, isDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
+        fraction.GetAnimationFraction(300 * MS_TO_NS, leftDelayTime, false);
+    EXPECT_TRUE(isActualRepeatFinished);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFractionActualRepeatFinished001 end";
+}
+
+/**
+ * @tc.name: GroupAutoReverse001
+ * @tc.desc: Verify SetGroupAutoReverse/GetGroupAutoReverse default and toggle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GroupAutoReverse001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupAutoReverse001 start";
+    RSAnimationFraction fraction;
+    // default groupAutoReverse_ is false
+    EXPECT_FALSE(fraction.GetGroupAutoReverse());
+
+    fraction.SetGroupAutoReverse(true);
+    EXPECT_TRUE(fraction.GetGroupAutoReverse());
+
+    fraction.SetGroupAutoReverse(false);
+    EXPECT_FALSE(fraction.GetGroupAutoReverse());
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupAutoReverse001 end";
+}
+
+/**
+ * @tc.name: GroupRepeatCount001
+ * @tc.desc: Verify SetGroupRepeatCount/GetGroupRepeatCount getter/setter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GroupRepeatCount001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupRepeatCount001 start";
+    RSAnimationFraction fraction;
+    // default groupRepeatCount_ is 0
+    EXPECT_EQ(fraction.GetGroupRepeatCount(), 0);
+
+    fraction.SetGroupRepeatCount(2);
+    EXPECT_EQ(fraction.GetGroupRepeatCount(), 2);
+
+    fraction.SetGroupRepeatCount(3);
+    EXPECT_EQ(fraction.GetGroupRepeatCount(), 3);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GroupRepeatCount001 end";
+}
+
+/**
+ * @tc.name: GetEndFractionGroupAutoReverse001
+ * @tc.desc: Verify GetEndFraction considers groupAutoReverse + even groupRepeatCount
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetEndFractionGroupAutoReverse001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetEndFractionGroupAutoReverse001 start";
+    RSAnimationFraction fraction;
+    // isForward_ default true; default endFraction = 1.0 (no autoReverse, direction NORMAL).
+    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
+
+    // groupAutoReverse true + even groupRepeatCount -> endFraction 0.0 (isForward_ true).
+    fraction.SetGroupAutoReverse(true);
+    fraction.SetGroupRepeatCount(2);
+    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 0.0f);
+
+    // groupAutoReverse true + odd groupRepeatCount -> condition false, endFraction stays 1.0.
+    fraction.SetGroupRepeatCount(3);
+    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
+
+    // groupAutoReverse false -> group fields ignored, endFraction stays 1.0.
+    fraction.SetGroupAutoReverse(false);
+    fraction.SetGroupRepeatCount(2);
+    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetEndFractionGroupAutoReverse001 end";
 }
 
 /**
@@ -647,6 +842,34 @@ HWTEST_F(RSAnimationFractionTest, UpdateGroupWaitingTime015, TestSize.Level1)
     EXPECT_EQ(fraction.groupWaitingTime_, 200);
 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest UpdateGroupWaitingTime015 end";
+}
+
+/**
+ * @tc.name: UpdateGroupWaitingTimeGroupReverseCycle001
+ * @tc.desc: Cover REVERSE branch via GetEffectiveDirection (groupReverseCycle_ true, direction NORMAL)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, UpdateGroupWaitingTimeGroupReverseCycle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UpdateGroupWaitingTimeGroupReverseCycle001 start";
+    RSAnimationFraction fraction;
+    fraction.SetDuration(1000);
+    fraction.SetSpeed(1.0f);
+
+    // direction_ NORMAL + groupReverseCycle_ true -> GetEffectiveDirection() REVERSE,
+    // so UpdateGroupWaitingTime takes the REVERSE subtraction branch (rs_animation_fraction.cpp:153).
+    fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    fraction.SetGroupReverseCycle(true);
+    fraction.runningTime_ = 100; // > 0 to skip the runningTime_ <= 0 early return
+    fraction.groupWaitingTime_ = 100;
+
+    int64_t deltaTime = 30;
+    bool result = fraction.UpdateGroupWaitingTime(deltaTime, false);
+    // REVERSE branch: groupWaitingTime_ -= deltaWithSpeed (30) -> 70; 70 <= 0 is false.
+    EXPECT_FALSE(result);
+    EXPECT_EQ(fraction.groupWaitingTime_, 70);
+
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UpdateGroupWaitingTimeGroupReverseCycle001 end";
 }
 
 /**

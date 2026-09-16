@@ -1388,5 +1388,85 @@ HWTEST_F(RSRenderAnimationTest, ParseParamValidSpeed001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamValidSpeed001 end";
 }
 
+/**
+ * @tc.name: GroupReverseCycle001
+ * @tc.desc: Verify SetGroupReverseCycle/GetGroupReverseCycle propagate to animationFraction_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, GroupReverseCycle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupReverseCycle001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // default false
+    EXPECT_FALSE(renderAnimation->GetGroupReverseCycle());
+
+    renderAnimation->SetGroupReverseCycle(true);
+    EXPECT_TRUE(renderAnimation->GetGroupReverseCycle());
+
+    renderAnimation->SetGroupReverseCycle(false);
+    EXPECT_FALSE(renderAnimation->GetGroupReverseCycle());
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupReverseCycle001 end";
+}
+
+/**
+ * @tc.name: NeedUpdateStartTime001
+ * @tc.desc: Verify SetNeedUpdateStartTime/GetNeedUpdateStartTime getter/setter pair
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, NeedUpdateStartTime001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest NeedUpdateStartTime001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // default needUpdateStartTime_ is true
+    EXPECT_TRUE(renderAnimation->GetNeedUpdateStartTime());
+
+    renderAnimation->SetNeedUpdateStartTime(false);
+    EXPECT_FALSE(renderAnimation->GetNeedUpdateStartTime());
+
+    renderAnimation->SetNeedUpdateStartTime(true);
+    EXPECT_TRUE(renderAnimation->GetNeedUpdateStartTime());
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest NeedUpdateStartTime001 end";
+}
+
+/**
+ * @tc.name: GroupAutoReverse001
+ * @tc.desc: Verify SetGroupAutoReverse/GetGroupAutoReverse propagate to animationFraction_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, GroupAutoReverse001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupAutoReverse001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // default false
+    EXPECT_FALSE(renderAnimation->GetGroupAutoReverse());
+
+    renderAnimation->SetGroupAutoReverse(true);
+    EXPECT_TRUE(renderAnimation->GetGroupAutoReverse());
+
+    renderAnimation->SetGroupAutoReverse(false);
+    EXPECT_FALSE(renderAnimation->GetGroupAutoReverse());
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupAutoReverse001 end";
+}
+
+/**
+ * @tc.name: GroupRepeatCount001
+ * @tc.desc: Verify SetGroupRepeatCount/GetGroupRepeatCount propagate to animationFraction_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, GroupRepeatCount001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupRepeatCount001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // default 0
+    EXPECT_EQ(renderAnimation->GetGroupRepeatCount(), 0);
+
+    renderAnimation->SetGroupRepeatCount(2);
+    EXPECT_EQ(renderAnimation->GetGroupRepeatCount(), 2);
+
+    renderAnimation->SetGroupRepeatCount(3);
+    EXPECT_EQ(renderAnimation->GetGroupRepeatCount(), 3);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupRepeatCount001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS
