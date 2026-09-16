@@ -6460,6 +6460,7 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
     mainThread->isUniRender_ = true;
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
+    mainThread->hardwareBufferUpdateScreens_.insert(childNode->GetId());
 
     // add nullptr
     RSRenderNode::WeakPtr nullNode;
