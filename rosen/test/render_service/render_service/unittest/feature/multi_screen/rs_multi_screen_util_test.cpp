@@ -87,13 +87,9 @@ void RSMultiScreenUtilTest::SetUpTestCase()
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 }
 
-void RSMultiScreenUtilTest::TearDownTestCase()
-{
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
+void RSMultiScreenUtilTest::TearDownTestCase() {}
 
 void RSMultiScreenUtilTest::SetUp()
 {
@@ -138,14 +134,14 @@ void RSMultiScreenUtilTest::SetUp()
     screenParams_->screenInfo_.id = screenNode_->GetScreenId();
     screenParams_->renderNodeType_ = screenNode_->GetType();
     screenParams_->mirrorSourceDrawable_ = mirrorSourceScreenNode_->GetRenderDrawable();
-    screenParams_->logicalDisplayNodeDrawables_.emplace_back(displayDrawable_);
+    screenParams_->logicalDisplayNodeDrawables_.emplace_back(displayNode_->renderDrawable_);
     displayParams_->screenId_ = screenNode_->GetScreenId();
     displayParams_->renderNodeType_ = displayNode_->GetType();
     displayParams_->SetAncestorScreenDrawable(screenNode_->GetRenderDrawable());
     displayParams_->mirrorSourceDrawable_ = mirrorSourceDisplayNode_->GetRenderDrawable();
     mirrorSourceScreenParams_->screenInfo_.id = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceScreenParams_->renderNodeType_ = mirrorSourceScreenNode_->GetType();
-    mirrorSourceScreenParams_->logicalDisplayNodeDrawables_.emplace_back(mirrorSourceDisplayDrawable_);
+    mirrorSourceScreenParams_->logicalDisplayNodeDrawables_.emplace_back(mirrorSourceDisplayNode_->renderDrawable_);
     mirrorSourceDisplayParams_->screenId_ = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceDisplayParams_->renderNodeType_ = mirrorSourceDisplayNode_->GetType();
     mirrorSourceDisplayParams_->SetAncestorScreenDrawable(mirrorSourceScreenNode_->GetRenderDrawable());
@@ -168,18 +164,30 @@ void RSMultiScreenUtilTest::SetUp()
 
 void RSMultiScreenUtilTest::TearDown()
 {
-    auto cleanupScreenPropertySptrs = [](RSScreenRenderParams* params) {
-        if (params == nullptr) {
+    // Some testcases reset drawable renderParams_ or null drawable pointers, so params must be
+    // re-derived from nodes here to avoid dangling raw pointers.
+    // logicalDisplayNodeDrawables_ holds strong refs to display drawables and must be cleared
+    // before nodes are reset: deferred-deleted screen drawables (RSRenderNodeGC buckets) keep
+    // their params alive, otherwise display drawables never die and their stale drawable-cache
+    // entries make OnGenerate skip renderDrawable_ setup for new nodes in the next SetUp.
+    auto cleanupScreenDrawable = [](const RSRenderNodeDrawableAdapter::SharedPtr& drawable) {
+        if (drawable == nullptr || drawable->renderParams_ == nullptr) {
             return;
         }
+        auto* params = static_cast<RSScreenRenderParams*>(drawable->renderParams_.get());
+        params->logicalDisplayNodeDrawables_.clear();
         auto& props = params->screenProperty_.screenProperties_;
         for (auto& [key, sptrVal] : props) {
             sptrVal.ForceSetRefPtr(nullptr);
         }
         props.clear();
     };
-    cleanupScreenPropertySptrs(screenParams_);
-    cleanupScreenPropertySptrs(mirrorSourceScreenParams_);
+    if (screenNode_ != nullptr) {
+        cleanupScreenDrawable(screenNode_->GetRenderDrawable());
+    }
+    if (mirrorSourceScreenNode_ != nullptr) {
+        cleanupScreenDrawable(mirrorSourceScreenNode_->GetRenderDrawable());
+    }
     displayDrawable_ = nullptr;
     mirrorSourceDisplayDrawable_ = nullptr;
     screenDrawable_ = nullptr;
@@ -503,7 +511,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest004, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     // Enable virtual expand screen dirty and dirty align
@@ -535,7 +542,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest005, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     // Enable virtual expand screen dirty but disable dirty align
@@ -565,7 +571,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest006, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     // Enable virtual expand screen dirty and dirty align
@@ -595,7 +600,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest007, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     // Enable virtual expand screen dirty and dirty align
@@ -625,7 +629,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest008, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
@@ -647,7 +650,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest009, TestSize.Level
 
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
-    RSUniRenderThread::Instance().InitGrContext();
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
@@ -688,13 +690,13 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest010, TestSize.Level
     config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     processor->surfaceFrames_.push_back(std::move(config));
 
-    RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
     processor->needsOffscreenRender_ = false;
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    processor->surfaceFrames_.clear();
     EXPECT_NE(screenParams_, nullptr);
 }
 
@@ -729,13 +731,13 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest011, TestSize.Level
     config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     processor->surfaceFrames_.push_back(std::move(config));
 
-    RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(false);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
     processor->needsOffscreenRender_ = false;
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    processor->surfaceFrames_.clear();
     EXPECT_NE(screenParams_, nullptr);
 }
 
@@ -771,14 +773,14 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest012, TestSize.Level
     config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     processor->surfaceFrames_.push_back(std::move(config));
 
-    RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = true;
     processor->needsOffscreenRender_ = false;
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
+    processor->surfaceFrames_.clear();
     EXPECT_NE(screenParams_, nullptr);
 }
 
@@ -813,16 +815,83 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest013, TestSize.Level
     config.canvas = paintFilterCanvas_;
     config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     processor->surfaceFrames_.push_back(std::move(config));
+    processor->surfaceFrames_.push_back(SurfaceFrameConfig{});
 
-    RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
     processor->needsOffscreenRender_ = true;
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
     processor->needsOffscreenRender_ = false;
+    processor->surfaceFrames_.clear();
     EXPECT_NE(screenParams_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest014
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest014, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    int32_t tid = 0;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor, renderEngine, tid);
+#endif // RS_ENABLE_VK
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest015
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest015, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+
+    int32_t tid = -200;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().GetRenderEngine(), tid);
+#endif // RS_ENABLE_VK
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest016
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr and tid is zero
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest016, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+
+    int32_t tid = 0;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().GetRenderEngine(), tid);
+#endif // RS_ENABLE_VK
 }
 
 /**
@@ -949,6 +1018,35 @@ HWTEST_F(RSMultiScreenUtilTest, DrawPhysicalMirrorFromCacheTest003, TestSize.Lev
     displayDrawable_->enableVisibleRect_ = true;
     RSMultiScreenUtil::DrawPhysicalMirrorFromCache(*displayDrawable_, *displayParams_);
     EXPECT_EQ(mirrorSourceScreenDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: DrawPhysicalMirrorFromCacheTest004
+ * @tc.desc: Test DrawPhysicalMirrorFromCache when drawable.isMirrorSLRCopy_ && scaleManager
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSMultiScreenUtilTest, DrawPhysicalMirrorFromCacheTest004, TestSize.Level1)
+{
+    // when default，we set isMirrorSLRCopy_ to true and scaleManager valid
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->scaleManager_ = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
+    RSMultiScreenUtil::DrawPhysicalMirrorFromCache(*displayDrawable_, *displayParams_);
+
+    // then set scaleManager to nullptr
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->scaleManager_ = nullptr;
+    RSMultiScreenUtil::DrawPhysicalMirrorFromCache(*displayDrawable_, *displayParams_);
+
+    // then set isMirrorSLRCopy_ to false
+    displayDrawable_->isMirrorSLRCopy_ = false;
+    displayDrawable_->scaleManager_ = nullptr;
+    RSMultiScreenUtil::DrawPhysicalMirrorFromCache(*displayDrawable_, *displayParams_);
+
+    // restore isMirrorSLRCopy_ to false
+    displayDrawable_->isMirrorSLRCopy_ = false;
+    displayDrawable_->scaleManager_ = nullptr;
+    EXPECT_FALSE(displayDrawable_->isMirrorSLRCopy_);
 }
 
 /**
@@ -1200,10 +1298,6 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorDisplayTest003, TestSize.Level1
 HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorDisplayTest004, TestSize.Level1)
 {
     mirrorSourceScreenParams_->SetHDRPresent(false);
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(instance.uniRenderEngine_, nullptr);
-    instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     RSMultiScreenUtil::DrawVirtualMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
@@ -1214,12 +1308,6 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorDisplayTest004, TestSize.Level1
     screenParams->SetHDRPresent(true);
     RSMultiScreenUtil::DrawVirtualMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
     EXPECT_FALSE(virtualProcessor_->GetDrawVirtualMirrorCopy());
-    instance.uniRenderEngine_->skContext_ = nullptr;
-    if (instance.uniRenderEngine_->renderContext_ != nullptr) {
-        instance.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
-        instance.uniRenderEngine_->renderContext_ = nullptr;
-    }
-    instance.uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -1752,68 +1840,5 @@ HWTEST_F(RSMultiScreenUtilTest, GetMultiScreenParamsTest001, TestSize.Level1)
     displayParams_->SetAncestorScreenDrawable(nullptr);
     RSMultiScreenUtil::GetMultiScreenParams(*displayParams_);
     EXPECT_EQ(screenDrawable_, nullptr);
-}
-
-/**
- * @tc.name: HandleVirtualExtendScreen_RenderEngineNull
- * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAXXXX
- */
-HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNull, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenParams_, nullptr);
-
-    auto processor = RSProcessorFactory::CreateProcessor(
-        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
-    ASSERT_NE(processor, nullptr);
-
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
-    int32_t tid = 0;
-
-    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor, renderEngine, tid);
-}
-
-/**
- * @tc.name: HandleVirtualExtendScreen_RenderEngineNotNull
- * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAXXXX
- */
-HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenParams_, nullptr);
-
-    auto processor = RSProcessorFactory::CreateProcessor(
-        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
-    ASSERT_NE(processor, nullptr);
-
-    int32_t tid = -200;
-
-    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
-        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
-}
-
-/**
- * @tc.name: HandleVirtualExtendScreen_RenderEngineNotNull_TidZero
- * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr and tid is zero
- * @tc.type: FUNC
- * @tc.require: issueIAXXXX
- */
-HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull_TidZero, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenParams_, nullptr);
-
-    auto processor = RSProcessorFactory::CreateProcessor(
-        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
-    ASSERT_NE(processor, nullptr);
-
-    int32_t tid = 0;
-
-    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
-        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
 }
 } // namespace OHOS::Rosen
