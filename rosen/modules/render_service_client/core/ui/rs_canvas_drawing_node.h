@@ -153,10 +153,18 @@ protected:
 
     void SetIsOnTheTree(bool onTheTree) override;
 
+    /**
+     * @brief Empty override - cached property flush does not apply to CanvasDrawingNode.
+     */
+    bool FlushCachedModifiers() override
+    {
+        return false;
+    }
+
     void CreateRenderNode() override;
- 
+
     bool SetNodeState(RSNodeState state) override;
- 
+
     bool IsSkipContentModifierDraw() override;
  
     void SetSkipContentModifierDraw(bool skip) override;

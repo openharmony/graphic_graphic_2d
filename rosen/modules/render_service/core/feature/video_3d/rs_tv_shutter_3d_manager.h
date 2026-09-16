@@ -34,6 +34,7 @@ public:
     bool Prepare3DForDraw(const RSScreenRenderParams& params,
         const std::shared_ptr<Drawing::Surface>& drSurface, std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
     bool Process3DForFlush(UIMode3D uiMode3D, std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
+    bool ShouldForceCloseHdr(const RSScreenRenderNode& screenNode) const;
 
     void SetVideoDimType(VideoDimType type);
     void UpdateHwcNodeEnableByShutter3DLayer(RSScreenRenderNode& screenNode, UIMode3D uiMode3D);

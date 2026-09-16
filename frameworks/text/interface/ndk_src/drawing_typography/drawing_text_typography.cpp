@@ -32,7 +32,9 @@
 #include "font_parser.h"
 #include "font_utils.h"
 #include "recording/recording_canvas.h"
+#ifndef CROSS_PLATFORM
 #include "ohos/init_data.h"
+#endif
 #include "rosen_text/font_collection_mgr.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -51,10 +53,15 @@ using namespace OHOS::Rosen;
 namespace {
 __attribute__((constructor)) void Init()
 {
+#ifdef CROSS_PLATFORM
+    // Do nothing on ArkUI-X: AppMain sets the ICU data directory to the
+    // bundled systemres via SetArkuiXIcuDirectory at engine startup.
+#else
 #ifndef _WIN32
     SetHwIcuDirectory();
 #else
     u_setDataDirectory(".");
+#endif
 #endif
 }
 } // namespace

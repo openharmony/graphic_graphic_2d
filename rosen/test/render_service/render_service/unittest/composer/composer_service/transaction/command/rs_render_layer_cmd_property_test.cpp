@@ -114,6 +114,33 @@ HWTEST(RenderLayerCmdPropertyTest, Marshall_Unmarshall_Enum_And_Struct_Success, 
 }
 
 /**
+ * Function: Marshall_Unmarshall_AlphaType_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. marshal/unmarshal GraphicAlphaType (new template specialization)
+ *                  2. verify round-trip for all enum values
+ */
+HWTEST(RenderLayerCmdPropertyTest, Marshall_Unmarshall_AlphaType_Success, TestSize.Level1)
+{
+    const std::vector<GraphicAlphaType> alphaTypes = {
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL,
+    };
+    for (auto expected : alphaTypes) {
+        RSRenderLayerCmdProperty<GraphicAlphaType> prop(expected);
+        MessageParcel parcel;
+        ASSERT_TRUE(prop.OnMarshalling(parcel, prop.Get()));
+        std::shared_ptr<RSRenderLayerCmdProperty<GraphicAlphaType>> out;
+        ASSERT_TRUE(prop.OnUnmarshalling(parcel, out));
+        ASSERT_NE(out, nullptr);
+        EXPECT_EQ(out->Get(), expected);
+    }
+}
+
+/**
  * Function: Marshall_Unmarshall_Nullptr_SpecialTypes_Success
  * Type: Function
  * Rank: Important(2)

@@ -15,6 +15,7 @@
 
 #include "ani_canvas.h"
 #include "ani_drawing_transfer_util.h"
+#include "record_cmd_utils_ani/ani_record_cmd_utils.h"
 
 #include <cstdint>
 
@@ -2623,6 +2624,9 @@ ani_object AniCanvas::CanvasTransferDynamic(
 
 AniCanvas::~AniCanvas()
 {
+    if (creator_ != nullptr) {
+        creator_->OnCanvasDestroyed(this);
+    }
     if (owned_) {
         delete m_canvas;
     }

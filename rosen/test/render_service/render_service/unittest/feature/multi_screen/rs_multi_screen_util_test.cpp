@@ -1463,6 +1463,57 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorFromCacheTest009, TestSize.Leve
 }
 
 /**
+ * @tc.name: DrawVirtualMirrorFromCacheTest020
+ * @tc.desc: Test DrawVirtualMirrorFromCache skips ProcessSingleSelfDrawingNode when slrManager is active
+ * @tc.type: FUNC
+ * @tc.require: issue 32701
+ */
+HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorFromCacheTest020, TestSize.Level1)
+{
+    RSRenderThreadParams uniParam;
+    uniParam.isVirtualDirtyEnabled_ = false;
+
+    // enable ProcessSingleSelfDrawingNode optimization
+    system::SetParameter("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetVirtualSelfDrawOptEnabled());
+
+    // set slrManager so hasMirrorScale is true, optimization is skipped and normal path runs
+    virtualProcessor_->slrManager_ = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
+    RSMultiScreenUtil::DrawVirtualMirrorFromCache(*displayDrawable_, *displayParams_, virtualProcessor_, uniParam);
+    EXPECT_NE(displayDrawable_, nullptr);
+
+    // restore
+    virtualProcessor_->slrManager_ = nullptr;
+    system::SetParameter("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
+}
+
+/**
+ * @tc.name: DrawVirtualMirrorFromCacheTest021
+ * @tc.desc: Test DrawVirtualMirrorFromCache skips ProcessSingleSelfDrawingNode when isSamplingOn is active
+ * @tc.type: FUNC
+ * @tc.require: issue 32701
+ */
+HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorFromCacheTest021, TestSize.Level1)
+{
+    RSRenderThreadParams uniParam;
+    uniParam.isVirtualDirtyEnabled_ = false;
+
+    // enable ProcessSingleSelfDrawingNode optimization
+    system::SetParameter("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetVirtualSelfDrawOptEnabled());
+
+    // set isSamplingOn so hasMirrorScale is true, optimization is skipped and normal path runs
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = true;
+    mirrorSourceScreenParams_->screenInfo_ = screenInfo;
+    RSMultiScreenUtil::DrawVirtualMirrorFromCache(*displayDrawable_, *displayParams_, virtualProcessor_, uniParam);
+    EXPECT_TRUE(mirrorSourceScreenParams_->GetScreenInfo().isSamplingOn);
+
+    // restore
+    system::SetParameter("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
+}
+
+/**
  * @tc.name: DrawVirtualMirrorRebuildTest001
  * @tc.desc: Test DrawVirtualMirrorRebuild when drawable or params is nullptr
  * @tc.type: FUNC

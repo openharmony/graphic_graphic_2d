@@ -37,4 +37,23 @@ void RSUniHwcPrevalidateUtilTest1::SetUpTestCase()
 void RSUniHwcPrevalidateUtilTest1::TearDownTestCase() {}
 void RSUniHwcPrevalidateUtilTest1::SetUp() {}
 void RSUniHwcPrevalidateUtilTest1::TearDown() {}
+
+/**
+ * @tc.name: DlopenFailed001
+ * @tc.desc: test constructor when dlopen returns nullptr (handle is null)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest1, DlopenFailed001, TestSize.Level1)
+{
+    g_dlopenNull = true;
+    RSUniHwcPrevalidateUtil util;
+    g_dlopenNull = false;
+ 
+    ASSERT_EQ(util.preValidateHandle_, nullptr);
+    ASSERT_EQ(util.preValidateFunc_, nullptr);
+    ASSERT_EQ(util.handleEventFunc_, nullptr);
+    ASSERT_EQ(util.loadSuccess_, false);
+    ASSERT_EQ(util.IsPrevalidateEnable(), false);
+}
 }

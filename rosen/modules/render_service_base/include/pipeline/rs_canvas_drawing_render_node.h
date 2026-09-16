@@ -146,7 +146,6 @@ private:
     bool isNeverOnTree_ = true;
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
-    std::atomic<bool> isNeedProcess_ = false;
     bool waitSync_ = false;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;

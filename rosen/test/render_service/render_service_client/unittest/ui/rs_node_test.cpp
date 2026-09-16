@@ -19,15 +19,10 @@
 #include <thread>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "ui_effect/effect/include/brightness_blender.h"
-#include "ui_effect/effect/include/color_gradient_effect_para.h"
-#include "ui_effect/filter/include/filter_content_light_para.h"
-#include "ui_effect/filter/include/filter_displacement_distort_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "parameters.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -35,17 +30,15 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
-#include "feature/composite_layer/rs_composite_layer_utils.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
-#include "parameters.h"
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
-#include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -9352,4 +9345,104 @@ HWTEST_F(RSNodeTest, HasCreateRenderNodeInRS_DefaultTrue, TestSize.Level1)
     EXPECT_TRUE(rsNode->HasCreateRenderNodeInRS());
 }
 
+/**
+ * @tc.name: FlushCachedModifiersRecursively_TraversesAllChildren001
+ * @tc.desc: Test FlushCachedModifiersRecursively flushes modifiers on all nodes in the subtree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_TraversesAllChildren001, TestSize.Level1)
+{
+    // Build a tree: root -> child1 -> grandChild, root -> child2
+    auto root = CreateCanvasNode();
+    auto child1 = CreateCanvasNode();
+    auto child2 = CreateCanvasNode();
+    auto grandChild = CreateCanvasNode();
+    root->AddChild(child1, -1);
+    root->AddChild(child2, -1);
+    child1->AddChild(grandChild, -1);
+
+    // Add modifiers with cached state to each node
+    auto rootModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    rootModifier->cachedPropertyId_ = 1;
+    rootModifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    rootModifier->node_ = root;
+    root->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(rootModifier);
+
+    auto child1Modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    child1Modifier->cachedPropertyId_ = 2;
+    child1Modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    child1Modifier->node_ = child1;
+    child1->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(child1Modifier);
+
+    auto child2Modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    child2Modifier->cachedPropertyId_ = 3;
+    child2Modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    child2Modifier->node_ = child2;
+    child2->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(child2Modifier);
+
+    auto grandChildModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    grandChildModifier->cachedPropertyId_ = 4;
+    grandChildModifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    grandChildModifier->node_ = grandChild;
+    grandChild->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(grandChildModifier);
+
+    // Verify caches are set before flush
+    ASSERT_NE(rootModifier->cachedPropertyId_, 0);
+    ASSERT_NE(child1Modifier->cachedPropertyId_, 0);
+    ASSERT_NE(child2Modifier->cachedPropertyId_, 0);
+    ASSERT_NE(grandChildModifier->cachedPropertyId_, 0);
+
+    // Call FlushCachedModifiersRecursively on root
+    bool result = root->FlushCachedModifiersRecursively();
+    EXPECT_TRUE(result);
+
+    // All modifiers in the subtree should be flushed
+    EXPECT_EQ(rootModifier->cachedPropertyId_, 0);
+    EXPECT_EQ(child1Modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(child2Modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(grandChildModifier->cachedPropertyId_, 0);
+    EXPECT_EQ(rootModifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(child1Modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(child2Modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(grandChildModifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedModifiersRecursively_SingleNodeNoCrash001
+ * @tc.desc: Test FlushCachedModifiersRecursively with single node (no children) does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_SingleNodeNoCrash001, TestSize.Level1)
+{
+    auto node = CreateCanvasNode();
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    modifier->cachedPropertyId_ = 10;
+    modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    modifier->node_ = node;
+    node->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(modifier);
+
+    ASSERT_NE(modifier->cachedPropertyId_, 0);
+    bool result = node->FlushCachedModifiersRecursively();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedModifiersRecursively_EmptyModifiersNoCrash001
+ * @tc.desc: Test FlushCachedModifiersRecursively with nodes having no modifiers does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_EmptyModifiersNoCrash001, TestSize.Level1)
+{
+    auto root = CreateCanvasNode();
+    auto child = CreateCanvasNode();
+    root->AddChild(child, -1);
+    ASSERT_TRUE(root->modifiersNG_.empty());
+    ASSERT_TRUE(child->modifiersNG_.empty());
+    bool result = root->FlushCachedModifiersRecursively();
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(root->modifiersNG_.empty());
+    EXPECT_TRUE(child->modifiersNG_.empty());
+}
 } // namespace OHOS::Rosen

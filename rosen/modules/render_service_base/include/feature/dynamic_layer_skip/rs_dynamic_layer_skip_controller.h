@@ -29,13 +29,16 @@ public:
 
     bool IsScreenLayerInvalid() const;
 
+    bool MeetsPreliminarySkipCriteria() const;  // only used for pre-validate, ignore hardware status.
+
     void Init(const RectI& screenRect, bool globalDisabled);
 
     void VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node);
 
     void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
 
-    void VerifyScreenLayerValidity(float screenNodeGlobalZOrder);
+    void VerifyScreenLayerValidity(
+        float screenNodeGlobalZOrder, GraphicColorGamut screenColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
 private:
     void CheckNodeDrawProperty(RSRenderNode& node);

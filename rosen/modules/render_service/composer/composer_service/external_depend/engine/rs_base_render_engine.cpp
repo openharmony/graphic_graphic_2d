@@ -789,8 +789,23 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
     canvas.GetTotalMatrix().MapRect(absRect, params.dstRect);
     Drawing::Matrix matrix = canvas.GetTotalMatrix();
     // get VPE shader
+    auto srcWidth = params.srcRect.GetWidth();
+    auto srcHeight = params.srcRect.GetHeight();
+    bool isSrcRectInvalid = (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f));
+    if (isSrcRectInvalid) {
+        RS_LOGE("RSBaseRenderEngine::GlassFree3DShaderConvert srcRect invalid.");
+        return;
+    }
+    auto baseSx = params.dstRect.GetWidth() / srcWidth;
+    auto baseSy = params.dstRect.GetHeight() / srcHeight;
+    auto baseTx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * baseSx;
+    auto baseTy = params.dstRect.GetTop() - params.srcRect.GetTop() * baseSy;
+    Drawing::Matrix baseMatrix;
+    baseMatrix.SetScaleTranslate(baseSx, baseSy, baseTx, baseTy);
+    Drawing::Matrix mapMatrix;
+    mapMatrix.SetConcat(matrix, baseMatrix);
     auto inputShader = Drawing::ShaderEffect::CreateImageShader(
-        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, mapMatrix);
     if (inputShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::GlassFree3DShaderConvert inputShader is nullptr.");
         return;
@@ -806,8 +821,8 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
     Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
         .width = absWidth,
         .height = absHeight,
-        .screenWidth = canvas.GetHeight(),
-        .screenHeight = canvas.GetWidth(),
+        .screenWidth = canvas.GetWidth(),
+        .screenHeight = canvas.GetHeight(),
         .coordX = absRect.GetLeft(),
         .coordY = absRect.GetTop(),
         .swingX = swingData.eye_x,
@@ -815,9 +830,9 @@ void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, B
         .swingZ = swingData.eye_z,
         .panelName = panelName,
         .converterType = params.use3DShader && isFullScreen ? 1 : 0, // 1 means 3D, 0 means 2D
-        .u_matrix = { matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SKEW_X),
-            matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
-            matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y) }
+        .u_matrix = { mapMatrix.Get(Drawing::Matrix::SCALE_X), mapMatrix.Get(Drawing::Matrix::SKEW_X),
+            mapMatrix.Get(Drawing::Matrix::TRANS_X), mapMatrix.Get(Drawing::Matrix::SKEW_Y),
+            mapMatrix.Get(Drawing::Matrix::SCALE_Y), mapMatrix.Get(Drawing::Matrix::TRANS_Y) }
     };
     RS_TRACE_NAME_FMT("%s glassFree3D absRect width[%d], height[%d], canvas width[%d],"
         "height[%d], left: %f, top: %f, use3DShader: %d, isFullScreen: %d, matrix: [%f, %f, %f, %f, %f, %f]",

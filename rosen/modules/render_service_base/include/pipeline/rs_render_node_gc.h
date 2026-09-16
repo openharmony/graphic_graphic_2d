@@ -68,6 +68,8 @@ public:
     void ReleaseNodeBucket();
     void ReleaseNodeOnBgThread();
     void ReleaseNodeMemory(bool highPriority = false);
+    void ReleaseMainBucket(bool highPriority = false);
+    void ReleaseBgBucket();
     void SetMainTask(gcTask hook) {
         mainTask_ = hook;
     }

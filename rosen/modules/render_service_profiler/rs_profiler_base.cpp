@@ -52,8 +52,6 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
-#include "ge_shader_filter.h"
-
 namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
@@ -1539,10 +1537,8 @@ static const uint8_t* GetCachedAshmemData(uint64_t id, size_t size)
     if (!RSProfiler::IsReadMode()) {
         return nullptr;
     }
-    // ImageCache::Get returns a raw pointer into the cache map; another thread
-    // mutating the cache (Reset/Deserialize) would invalidate it. Snapshot the
-    // data under the cache's lock and keep it alive via a thread-local buffer
-    // so the caller can use the returned pointer without races.
+    // ImageCache::Copy snapshots the Image data under the cache's lock,
+    // preventing concurrent Reset/Deserialize from freeing it.
     thread_local std::vector<uint8_t> ashmem;
     auto copy = ImageCache::Copy(id);
     if (copy.data.size() != size) {

@@ -1295,49 +1295,35 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
         FilterMockNode(*context_);
         error = "FirstFrameUnmarshalling: Cannot set focus app info";
     }
+
+    if (!error.empty()) {
+        RSTypefaceCache::Instance().ReplayClear();
+    }
     return error;
 }
 
 void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        std::stringstream fonts;
+        const size_t flags = !IsBetaRecordEnabled();
+        stream.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
         if (!IsBetaRecordEnabled()) {
-            RSTypefaceCache::Instance().ReplaySerialize(fonts);
+            RSTypefaceCache::Instance().ReplaySerialize(stream);
         }
-        const auto data = fonts.str();
-        const auto size = data.size();
-        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        stream.write(data.data(), static_cast<std::streamsize>(size));
     }
 }
 
 std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        size_t size = 0u;
-        if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size))) {
-            return "TypefaceUnmarshalling: Cannot read size";
+        size_t flags = 0u;
+        if (!stream.read(reinterpret_cast<char*>(&flags), sizeof(flags))) {
+            return "TypefaceUnmarshalling: Cannot read flags";
         }
 
-        constexpr auto maxSize = 500u * 1024u * 1024u;
-        if (size > maxSize) {
-            return "TypefaceUnmarshalling: Size exceeds the limit";
+        if (flags > 0) {
+            return RSTypefaceCache::Instance().ReplayDeserialize(stream);
         }
-
-        if (!size) {
-            return "";
-        }
-
-        std::vector<char> data(size);
-        if (!stream.read(data.data(), static_cast<std::streamsize>(data.size()))) {
-            return "TypefaceUnmarshalling: Cannot read data";
-        }
-
-        std::stringstream fonts;
-        fonts.write(data.data(), static_cast<std::streamsize>(data.size()));
-        fonts.seekg(0);
-        return RSTypefaceCache::Instance().ReplayDeserialize(fonts);
     }
     return "";
 }
@@ -1937,7 +1923,7 @@ void RSProfiler::RecordStart(const ArgList& args)
         return;
     }
 
-    bool betaRecordStarted = args.String(0) == "BETAREC";
+    const auto betaRecordStarted = (args.String() == "BETAREC");
 
     bool transactionMutexLocked = false;
     uint64_t counterParseTransactionDataStart = 0;
@@ -1968,10 +1954,9 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     if (!OpenBetaRecordFile(g_recordFile)) {
-        const auto overridePath = args.String(1);
-        const auto path = (!overridePath.empty() && args.String(0) == "-f") ? overridePath : RSFile::GetDefaultPath();
+        const auto path = (args.String(0) == "-f") ? args.String(1) : "";
         g_recordFile.SetVersion(RSFILE_VERSION_LATEST);
-        g_recordFile.Create(path);
+        g_recordFile.Create(!path.empty() ? path : RSFile::GetDefaultPath());
     }
 
     if (!g_recordFile.IsOpen()) {
@@ -1983,23 +1968,21 @@ void RSProfiler::RecordStart(const ArgList& args)
     }
 
     g_recordMinVsync = g_recordMaxVsync = 0;
-
     g_recordFile.AddLayer(); // add 0 layer
 
     {
-        std::unique_lock<std::mutex> lockFFM(g_mutexFirstFrameMarshalling);
-
+        const std::unique_lock<std::mutex> guard(g_mutexFirstFrameMarshalling);
         FilterMockNode(*context_);
         RSTypefaceCache::Instance().ReplayClear();
-
         g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion(), betaRecordStarted));
     }
 
     if (transactionMutexLocked) {
+        const auto countersChanged = (GetParseTransactionDataStartCounter() != counterParseTransactionDataStart ||
+                                      GetParseTransactionDataEndCounter() != counterParseTransactionDataEnd ||
+                                      g_counterOnRemoteRequest != counterOnRemoteRequest);
         mainThread_->TransitionDataMutexUnlock();
-        if (GetParseTransactionDataStartCounter() != counterParseTransactionDataStart ||
-            GetParseTransactionDataEndCounter() != counterParseTransactionDataEnd ||
-            g_counterOnRemoteRequest != counterOnRemoteRequest) {
+        if (countersChanged) {
             g_recordStartTime = 0.0;
             g_lastCacheImageCount = 0;
             ImageCache::Reset();
@@ -2012,13 +1995,13 @@ void RSProfiler::RecordStart(const ArgList& args)
         }
     }
 
-    std::thread threadNodeMarshall([]() {
-        SetMarshalFirstFrameThreadFlag(true);
-        // marshall nodes for first frame in parallel
-        MarshalFirstFrameNodesLoop();
-        SetMarshalFirstFrameThreadFlag(false);
-    });
-    threadNodeMarshall.detach();
+    if (betaRecordStarted) {
+        std::thread([]() {
+            SetMarshalFirstFrameThreadFlag(true);
+            MarshalFirstFrameNodesLoop();
+            SetMarshalFirstFrameThreadFlag(false);
+        }).detach();
+    }
 
     g_recordFile.LayerAddHeaderProperty(0, "MetricsList", RsMetricGetList());
 
@@ -2034,15 +2017,13 @@ void RSProfiler::RecordStart(const ArgList& args)
         return;
     }
 
-    std::thread thread([]() {
+    std::thread([]() {
         while (IsRecording()) {
             SendTelemetry(Now() - g_recordStartTime);
             static constexpr int32_t GFX_METRICS_SEND_INTERVAL = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(GFX_METRICS_SEND_INTERVAL));
         }
-    });
-    thread.detach();
-
+    }).detach();
     SendMessage("Network: Record start"); // DO NOT TOUCH!
 }
 
@@ -2104,61 +2085,59 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         SendMessage("PlaybackPrepareFirstFrame: Invalid context");
         return;
     }
+
     if (!IsNoneMode()) {
-        SendMessage("Playback: PrepareFirstFrame failed. Record/Saving is in progress");
+        SendMessage("PlaybackPrepareFirstFrame: Record/Saving is in progress");
         return;
     }
 
     if (g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
-        Respond("FAILED: rsrecord_replay_prepare was already called");
+        SendMessage("PlaybackPrepareFirstFrame: Already called");
         return;
     }
+
     g_playbackPid = args.Pid();
     SetReplayStartTimeNano(0);
     g_playbackPauseTime = args.Fp64(1);
-    constexpr int pathArgPos = 2;
-    std::string path = args.String(pathArgPos);
-    if (!Utils::FileExists(path)) {
-        Respond("Can't playback non existing file '" + path + "'");
+    constexpr auto pathArgument = 2;
+    auto path = Utils::GetRealPath(args.String(pathArgument));
+    if (!Utils::IsSandboxPath(path)) {
+        SendMessage("PlaybackPrepareFirstFrame: File must be under /data directory");
         path = RSFile::GetDefaultPath();
     }
 
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
+    AnimeGetStartTimes().clear();
 
-    auto &animeMap = RSProfiler::AnimeGetStartTimes();
-    animeMap.clear();
-
-    Respond("Opening file " + path);
     std::string error;
-    g_playbackFile.Open(path, error);
-    if (!g_playbackFile.IsOpen()) {
-        SendMessage("Can't open file: %s", error.data());
+    if (!g_playbackFile.Open(path, error)) {
+        SendMessage("PlaybackPrepareFirstFrame: Cannot open file: %s", error.data());
         return;
     }
+    SendMessage("PlaybackPrepareFirstFrame: File open: %s", path.data());
 
     if (args.String(0) == "VSYNC") {
         g_playbackFile.CacheVsyncId2Time(0);
-        int64_t reqVSyncId = args.Int64(1);
-        int64_t realVSyncId = g_playbackFile.GetClosestVsyncId(reqVSyncId);
-        if (reqVSyncId != realVSyncId) {
-            Respond("WARNING: vsyncId=" + std::to_string(reqVSyncId) +
-                    " absent chosen the closest vsyncId=" + std::to_string(realVSyncId));
+        const auto vsync = args.Int64(1);
+        const auto real = g_playbackFile.GetClosestVsyncId(vsync);
+        if (vsync != real) {
+            SendMessage("PlaybackPrepareFirstFrame: Use closest vsyncId %" PRId64 " instead of requested %" PRId64,
+                real, vsync);
         }
-        g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(realVSyncId);
+        g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(real);
     }
 
-    AnimeGetStartTimesFromFile(animeMap);
+    AnimeGetStartTimesFromFile(AnimeGetStartTimes());
 
-    // get first frame data
-    if (auto errReason = FirstFrameUnmarshalling(g_playbackFile.GetHeaderFirstFrame(), g_playbackFile.GetVersion());
-        !errReason.empty()) {
-        Respond("Can't open file: " + errReason);
+    error = FirstFrameUnmarshalling(g_playbackFile.GetHeaderFirstFrame(), g_playbackFile.GetVersion());
+    if (!error.empty()) {
+        SendMessage("PlaybackPrepareFirstFrame: %s", error.data());
         FilterMockNode(*context_);
         g_playbackFile.Close();
         return;
     }
-    // The number of frames loaded before command processing
+
     constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
     SendMessage("awake_frame %d", g_playbackWaitFrames); // DO NOT TOUCH!
@@ -2678,8 +2657,8 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
     }
 
     const auto path = Utils::GetRealPath(args.String(1));
-    if (path.empty()) {
-        SendMessage("Error: Invalid path");
+    if (!Utils::IsSandboxPath(path)) {
+        SendMessage("Error: File must be under /data directory");
         return;
     }
 
@@ -2740,11 +2719,11 @@ void RSProfiler::MarshalSubTree(
         SetThreadSubMode(SubMode::NONE);
     });
 
+    TypefaceMarshalling(data, fileVersion);
+
     std::stringstream images;
     ImageCache::Serialize(images);
     ImageCache::Reset();
-
-    TypefaceMarshalling(data, fileVersion);
 
     const uint32_t imagesSize = images.str().size();
     data.write(reinterpret_cast<const char*>(&imagesSize), sizeof(imagesSize));
@@ -2767,16 +2746,14 @@ std::string RSProfiler::UnmarshalSubTree(
         return error;
     }
 
-    uint32_t pixelMapSize = 0u;
-    if (!data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize))) {
+    uint32_t imagesSize = 0u;
+    if (!data.read(reinterpret_cast<char*>(&imagesSize), sizeof(imagesSize)) || !ImageCache::Deserialize(data)) {
         RSTypefaceCache::Instance().ReplayClear();
-        return "UnmarshalSubTree: Cannot read pixelmap size";
+        return "UnmarshalSubTree: Cannot read image cache";
     }
 
-    ImageCache::Deserialize(data);
-
-    uint32_t nodeCount = 0u;
-    if (!data.read(reinterpret_cast<char*>(&nodeCount), sizeof(nodeCount))) {
+    uint32_t nodesSize = 0u;
+    if (!data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize))) {
         RSTypefaceCache::Instance().ReplayClear();
         ImageCache::Reset();
         return "UnmarshalSubTree: Cannot read node count";

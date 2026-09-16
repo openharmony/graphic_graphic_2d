@@ -48,6 +48,22 @@ public:
         return nodeId_;
     }
 
+    // Expose every target node id so that RSTransactionData::CheckNonSystemCommand validates
+    // the inner config.nodeId list as well; a config pointing to another process's node makes
+    // the whole command invalid instead of being silently skipped in Process.
+    std::vector<NodeId> GetAllNodeIds() const override
+    {
+        std::vector<NodeId> nodeIds;
+        if (cmdType_ == CmdType::SET_BUFFER) {
+            for (const auto& config : configList_) {
+                nodeIds.push_back(config.nodeId);
+            }
+        } else if (cmdType_ == CmdType::SET_RECT) {
+            nodeIds.push_back(nodeId_);
+        }
+        return nodeIds;
+    }
+
     uint16_t GetType() const override
     {
         return RSCommandType::DELEGATE_COMPOSITE;
@@ -99,11 +115,16 @@ private:
 
 class RSB_EXPORT SurfaceTransactionCommand : public RSCommand {
 public:
-    SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid);
+    SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid, NodeId nodeId);
 
     void Process(RSContext& context) override;
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
+
+    NodeId GetNodeId() const override
+    {
+        return nodeId_;
+    }
 
     uint16_t GetType() const override
     {
@@ -124,6 +145,7 @@ private:
     uint64_t commandSeqNum_ = 0;
     pid_t commandSendPid_ = 0;
     pid_t commandSendTid_ = 0;
+    NodeId nodeId_ = 0;
     using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
         RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD, Unmarshalling>;
     static Register instance_;

@@ -214,15 +214,22 @@ void AnimationCommandHelper::CreateInteractiveAnimatorGroup(RSContext& context,
     ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimatorGroup - id: %{public}" PRIu64
         ", animations: %{public}zu, startImmediately: %{public}d", groupId, animations.size(), startImmediately);
 
-    auto animator =
-        std::make_shared<RSRenderTimeDrivenGroupAnimator>(groupId, context.weak_from_this(), timingProtocol);
-    context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    if (animator == nullptr) {
+        animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(groupId, context.weak_from_this(), timingProtocol);
+        context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    } else if (!animator->IsTimeDriven()) {
+        ROSEN_LOGW("AnimationCommandHelper::CreateInteractiveAnimatorGroup - "
+            "animator[%{public}" PRIu64 "] is not a group animator", groupId);
+        return;
+    }
     animator->AddAnimations(std::move(animations));
 
     if (startImmediately) {
         auto currentTime = context.GetCurrentTimestamp();
-        animator->SetStartTime(currentTime);
-        animator->StartAnimator();
+        auto groupAnimator = std::static_pointer_cast<RSRenderTimeDrivenGroupAnimator>(animator);
+        groupAnimator->SetStartTime(currentTime);
+        groupAnimator->StartAnimator();
     }
 }
 

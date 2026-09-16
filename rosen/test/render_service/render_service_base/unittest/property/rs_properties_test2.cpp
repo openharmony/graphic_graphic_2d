@@ -1759,7 +1759,7 @@ HWTEST_F(PropertiesTest, HdrDarkenBlenderTest, TestSize.Level1)
  *           IsValid/Description and member setters.
  *           Covers: SetColorfulBrightnessBlenderParams has-value/nullopt branches, GetColorfulBrightnessBlenderParams
  *           effect_/no-effect branches, GetColorfulBrightnessBlenderDescription nullopt/value branches,
- *           SetColorfulBrightnessBlenderMember template first-init/already-init branches, all 11 member setters.
+ *           SetColorfulBrightnessBlenderMember template first-init/already-init branches, all 12 member setters.
  * @tc.type: FUNC
  */
 HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderParamsTest, TestSize.Level1)
@@ -1816,13 +1816,14 @@ HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderParamsTest, TestSize.Level1)
         ", negativeCoeff.z: " + std::to_string(neg.z_) +
         ", vibrancyStrength: " + std::to_string(vibrancyStrength) +
         ", lumaDiff: " + std::to_string(lumaDiff) +
-        ", hdrEnabled: " + std::to_string(false);
+        ", hdrEnabled: " + std::to_string(false) +
+        ", tintedColorPercent: " + std::to_string(1.0f);
     EXPECT_EQ(description, properties.GetColorfulBrightnessBlenderDescription());
 }
 
 /**
  * @tc.name: ColorfulBrightnessBlenderMemberSettersTest
- * @tc.desc: test all 11 ColorfulBrightnessBlender member setters via SetColorfulBrightnessBlenderMember template.
+ * @tc.desc: test all 12 ColorfulBrightnessBlender member setters via SetColorfulBrightnessBlenderMember template.
  *           First setter triggers params init (nullopt->value branch A1), subsequent setters
  *           hit already-init branch (A2). Verifies values are stored correctly.
  * @tc.type: FUNC
@@ -1853,6 +1854,7 @@ HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderMemberSettersTest, TestSize.Le
     properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::vibrancyStrength_, 0.33f);
     properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::lumaDiff_, 0.88f);
     properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::hdrEnabled_, false);
+    properties.SetColorfulBrightnessBlenderMember(&RSColorfulBrightnessBlenderPara::tintedColorPercent_, 0.66f);
 
     const auto* got = properties.GetColorfulBrightnessBlenderParams();
     EXPECT_NE(got, nullptr);
@@ -1868,6 +1870,7 @@ HWTEST_F(PropertiesTest, ColorfulBrightnessBlenderMemberSettersTest, TestSize.Le
     EXPECT_EQ(got->vibrancyStrength_, 0.33f);
     EXPECT_EQ(got->lumaDiff_, 0.88f);
     EXPECT_EQ(got->hdrEnabled_, false);
+    EXPECT_EQ(got->tintedColorPercent_, 0.66f);
     EXPECT_TRUE(properties.IsColorfulBrightnessBlenderValid());
 }
 

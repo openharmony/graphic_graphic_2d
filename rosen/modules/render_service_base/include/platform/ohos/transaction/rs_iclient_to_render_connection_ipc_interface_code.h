@@ -24,6 +24,9 @@ namespace Rosen {
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //If a command is not used and you want to delete it,
 //just COMMENT it - and never use this value anymore
+//If a new SYNCHRONOUS interface's reply can carry binder objects / fds / ashmem, also add
+//its code to IsReplyNotClonable() in rs_client_to_render_connection_proxy.cpp; otherwise
+//the sync-IPC timeout executor fails the call at runtime with UNKNOWN_ERROR.
 enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     COMMIT_TRANSACTION = 0x000000,
     CREATE_NODE = 0x000002,

@@ -209,6 +209,22 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.h @
 rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.cpp @lipeng123s
 rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.h @lipeng123s
 
+[pipeline]
+graphic_test/test/rs_framework/uni_render/ @lipeng123s
+graphic_test/test/rs_perform_feature/ @lipeng123s
+rosen/modules/render_service/ @lipeng123s
+rosen/modules/render_service/core/ @lipeng123s
+rosen/modules/render_service/core/pipeline/ @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/ @lipeng123s
+rosen/modules/render_service/core/system/ @lipeng123s
+rosen/modules/render_service_client/test/systemtest/ @lipeng123s
+rosen/test/render_service/ @lipeng123s
+rosen/test/render_service/render_service/fuzztest/ @lipeng123s
+rosen/test/render_service/render_service/systemtest/ @lipeng123s
+rosen/test/render_service/render_service/unittest/ @lipeng123s
+rosen/test/render_service/render_service/unittest/pipeline/ @lipeng123s
+rosen/test/render_service/render_service/unittest/system/ @lipeng123s
+
 [render_thread]
 rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @lipeng123s
 rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.h @lipeng123s
@@ -240,10 +256,10 @@ rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
-rosen/modules/render_service/core/pipeline/hwc/ @xiaojianfeng_jeffery
-rosen/modules/render_service/core/feature/hwc/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/hwc/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service/core/pipeline/hwc/ @show-chen
+rosen/modules/render_service/core/feature/hwc/ @show-chen
+rosen/modules/render_service_base/include/hwc/ @show-chen
+rosen/modules/render_service_base/src/hwc/ @show-chen
 
 [LTPO]
 interfaces/inner_api/hyper_graphic_manager/ @wh_qwe

@@ -170,6 +170,8 @@ public:
     void SetEarlyZEnabled(bool flag) override;
 
     void SetParam(const std::string& name, const std::string& value) override;
+
+    void SetTextCacheEnforced(bool isEnforced) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

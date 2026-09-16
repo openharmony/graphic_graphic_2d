@@ -189,6 +189,8 @@ public:
     GraphicIRect GetDelegateModeCropRect() override;
     bool GetDelegateMode() const override;
     void SetDelegateMode(bool isDelegateMode) override;
+    void SetAlphaType(GraphicAlphaType alphaType) override;
+    GraphicAlphaType GetAlphaType() const override;
 
 private:
     // rs layer pipeline info
@@ -211,6 +213,7 @@ private:
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
     GraphicCompositionType hdiCompositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicAlphaType alphaType_ = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_ = {0};

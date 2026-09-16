@@ -52,6 +52,7 @@ public:
     void SetColorfulBrightnessVibrancyStrength(float val);
     void SetColorfulBrightnessLumaDiff(float val);
     void SetColorfulBrightnessHdrEnabled(bool val);
+    void SetColorfulBrightnessTintedColorPercent(float val);
 
     RSColorBlendMode GetColorBlendMode() const;
     RSColorBlendApplyType GetColorBlendApplyType() const;

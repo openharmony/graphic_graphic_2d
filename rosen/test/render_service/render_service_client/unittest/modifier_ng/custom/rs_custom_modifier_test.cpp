@@ -26,6 +26,7 @@
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_root_node.h"
 #include "ui/rs_canvas_node.h"
 
 using namespace testing;
@@ -379,5 +380,182 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderHybridDrawTest, TestSize.Leve
     modifier->properties_[modifier->GetInnerPropertyType()] = property;
     modifier->UpdateToRender();
     ASSERT_EQ(property->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedProperty_WhenNoCache_ReturnsEarly
+ * @tc.desc: Test FlushCachedProperty when cachedPropertyId_ is 0, should return without error
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, FlushCachedProperty_WhenNoCache_ReturnsEarly, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    // No cache set, cachedPropertyId_ defaults to 0
+    ASSERT_EQ(modifier->cachedPropertyId_, 0);
+    bool result = modifier->FlushCachedProperty();
+    EXPECT_FALSE(result);
+    // Verify cache remains empty after no-op flush
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedProperty_WhenNodeNull_ReturnsEarly
+ * @tc.desc: Test FlushCachedProperty when node_ is expired, should return without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, FlushCachedProperty_WhenNodeNull_ReturnsEarly, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    // Set cache state manually to simulate a previously cached property
+    modifier->cachedPropertyId_ = 1;
+    modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    // node_ is default-constructed weak_ptr, lock() returns nullptr
+    ASSERT_EQ(modifier->node_.lock(), nullptr);
+    bool result = modifier->FlushCachedProperty();
+    EXPECT_FALSE(result);
+    // Cache should remain since node is null and UpdateProperty was not called
+    EXPECT_EQ(modifier->cachedPropertyId_, 1);
+    EXPECT_NE(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedProperty_WithCache_FlushesAndClears
+ * @tc.desc: Test FlushCachedProperty with valid cache and node, should call UpdateProperty and clear cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, FlushCachedProperty_WithCache_FlushesAndClears, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto node = std::make_shared<RSNodeMock>();
+    modifier->node_ = node;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    // Set up cache state
+    modifier->cachedPropertyId_ = 42;
+    modifier->cachedDrawCmdList_ = drawCmdList;
+    bool result = modifier->FlushCachedProperty();
+    EXPECT_TRUE(result);
+    // Cache should be cleared after flush
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: OnDetachProperty_WhenNoCache_NoChange
+ * @tc.desc: Test OnDetachProperty when there is no cached property, should do nothing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, OnDetachProperty_WhenNoCache_NoChange, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    ASSERT_EQ(modifier->cachedPropertyId_, 0);
+    modifier->OnDetachProperty(99);
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: OnDetachProperty_WhenIdNotMatch_NoChange
+ * @tc.desc: Test OnDetachProperty when the detached property id does not match cached id
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, OnDetachProperty_WhenIdNotMatch_NoChange, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    modifier->cachedPropertyId_ = 42;
+    modifier->cachedDrawCmdList_ = drawCmdList;
+    // Detach a different property id
+    modifier->OnDetachProperty(99);
+    // Cache should remain unchanged
+    EXPECT_EQ(modifier->cachedPropertyId_, 42);
+    EXPECT_NE(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: OnDetachProperty_WhenIdMatch_ClearsCache
+ * @tc.desc: Test OnDetachProperty when the detached property id matches cached id, should clear cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, OnDetachProperty_WhenIdMatch_ClearsCache, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    modifier->cachedPropertyId_ = 42;
+    modifier->cachedDrawCmdList_ = drawCmdList;
+    // Detach the same property id
+    modifier->OnDetachProperty(42);
+    // Cache should be cleared
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateToRender_OffTreeCanvasNode_CachesProperty
+ * @tc.desc: Test UpdateToRender when CanvasNode is off-tree, property should be cached not sent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRender_OffTreeCanvasNode_CachesProperty, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto node = RSCanvasNode::Create();
+    // Ensure node is off-tree (default) and is CANVAS_NODE type
+    ASSERT_FALSE(node->GetIsOnTheTree());
+    ASSERT_EQ(node->GetType(), RSUINodeType::CANVAS_NODE);
+    modifier->node_ = node;
+    modifier->lastDrawCmdListEmpty_ = false;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+    modifier->properties_[modifier->GetInnerPropertyType()] = property;
+    modifier->UpdateToRender();
+    // Off-tree CanvasNode: property should be cached instead of sent via UpdateProperty
+    EXPECT_NE(modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_NE(modifier->cachedPropertyId_, 0);
+}
+
+/**
+ * @tc.name: UpdateToRender_OnTreeCanvasNode_SendsProperty
+ * @tc.desc: Test UpdateToRender when CanvasNode is on-tree, property should be sent normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRender_OnTreeCanvasNode_SendsProperty, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto node = RSCanvasNode::Create();
+    // Set node on-tree
+    node->SetIsOnTheTree(true);
+    ASSERT_TRUE(node->GetIsOnTheTree());
+    modifier->node_ = node;
+    modifier->lastDrawCmdListEmpty_ = false;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+    modifier->properties_[modifier->GetInnerPropertyType()] = property;
+    modifier->UpdateToRender();
+    // On-tree: should NOT cache, property sent via UpdateProperty normally
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+}
+
+/**
+ * @tc.name: UpdateToRender_OffTreeNonCanvasNode_SendsProperty
+ * @tc.desc: Test UpdateToRender when node is off-tree but not CANVAS_NODE, should send normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRender_OffTreeNonCanvasNode_SendsProperty, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    // Use RSRootNode which is not CANVAS_NODE and is off-tree by default
+    auto node = RSRootNode::Create();
+    ASSERT_FALSE(node->GetIsOnTheTree());
+    ASSERT_NE(node->GetType(), RSUINodeType::CANVAS_NODE);
+    modifier->node_ = node;
+    modifier->lastDrawCmdListEmpty_ = false;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+    modifier->properties_[modifier->GetInnerPropertyType()] = property;
+    modifier->UpdateToRender();
+    // Off-tree but non-CANVAS_NODE: should NOT cache
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
 }
 } // namespace OHOS::Rosen

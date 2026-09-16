@@ -394,6 +394,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
         SetDeviceOfflineOriginalInfo(layer, params);
     }
     params.ClearPreBufferOnly();
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        layer->SetAlphaType(alphaType);
+    }
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
     RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;

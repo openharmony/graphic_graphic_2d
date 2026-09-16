@@ -150,7 +150,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
     ModifierNG::RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifierNG(context, ModifierNG::RSModifierType::CONTENT_STYLE);
-    isNeedProcess_ = false;
 
     Rosen::Drawing::Matrix mat;
     if (RSPropertiesPainter::GetGravityMatrix(
@@ -259,9 +258,6 @@ void RSCanvasDrawingRenderNode::SetNeedProcess(bool needProcess)
     }
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetNeedSync(needProcess);
-    isNeedProcess_ = needProcess;
-#else
-    isNeedProcess_ = false;
 #endif
 }
 

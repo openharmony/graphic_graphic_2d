@@ -68,6 +68,11 @@ public:
         return true;
     }
 
+    /**
+     * @brief Flushes the cached property to the server when the node goes back on the tree.
+     */
+    bool FlushCachedProperty() override;
+
     int16_t GetIndex() const
     {
         return Getter(RSPropertyType::CUSTOM_INDEX, 0);
@@ -99,6 +104,8 @@ protected:
 
     void UpdateToRender() override;
 
+    void OnDetachProperty(PropertyId id) override;
+
     virtual bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node)
     {
         return false;
@@ -110,6 +117,10 @@ private:
 
     bool lastDrawCmdListEmpty_ = false;
     bool noNeedUICaptured_ = false;
+
+    // Cached property for off-tree RSCanvasNode, flushed when node goes back on the tree
+    std::shared_ptr<Drawing::DrawCmdList> cachedDrawCmdList_;
+    PropertyId cachedPropertyId_ = 0;
 
     ContentTransitionType contentTransitionType_ = ContentTransitionType::IDENTITY;
     RSAnimationTimingProtocol timingProtocol_;

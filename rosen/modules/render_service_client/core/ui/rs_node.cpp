@@ -2533,6 +2533,9 @@ void RSNode::DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<Mod
     if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED)) {
         modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED);
     }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT);
+    }
 }
 
 void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
@@ -2571,6 +2574,8 @@ void RSNode::ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& ble
         &ModifierNG::RSBlendModifier::SetColorfulBrightnessLumaDiff>(blender.GetLumaDiff());
     SetPropertyNG<ModifierNG::RSBlendModifier,
         &ModifierNG::RSBlendModifier::SetColorfulBrightnessHdrEnabled>(blender.GetHdrEnabled());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessTintedColorPercent>(blender.GetTintedColorPercent());
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -4155,6 +4160,31 @@ void RSNode::SetIsOnTheTree(bool flag)
         }
         childPtr->SetIsOnTheTree(flag);
     }
+}
+
+bool RSNode::FlushCachedModifiersRecursively()
+{
+    // Indicates whether any cached modifier was actually flushed,
+    // used by the caller to determine if screenshot should be synchronous.
+    bool flushed = false;
+    std::queue<std::shared_ptr<RSNode>> nodeQueue;
+    auto self = shared_from_this();
+    nodeQueue.push(self);
+    while (!nodeQueue.empty()) {
+        auto current = nodeQueue.front();
+        nodeQueue.pop();
+        if (!current) {
+            continue;
+        }
+        flushed = current->FlushCachedModifiers() || flushed;
+        for (const auto& childWeak : current->GetChildren()) {
+            auto child = childWeak.lock();
+            if (child) {
+                nodeQueue.push(child);
+            }
+        }
+    }
+    return flushed;
 }
 
 bool RSNode::SetNodeState(RSNodeState state)

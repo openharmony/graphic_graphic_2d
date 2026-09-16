@@ -49,6 +49,8 @@ ohos_fuzztest("GpuContextFuzzTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "openssl:libcrypto_shared",

@@ -1362,6 +1362,46 @@ ohos_unittest("RSClientToRenderConnectionProxyTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSIpcSyncExecutorTest  ##################################
+ohos_unittest("RSIpcSyncExecutorTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_ipc_sync_executor_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSProxyTest  ##################################
 ohos_unittest("RSProxyTest") {
   module_out_path = module_output_path

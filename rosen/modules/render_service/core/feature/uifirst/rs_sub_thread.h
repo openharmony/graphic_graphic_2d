@@ -32,7 +32,8 @@
 #include "include/gpu/vk/GrVkBackendContext.h"
 #endif
 #endif
-#include "pipeline/parallel_render/rs_render_task.h"
+#include "drawable/rs_screen_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "render_context/render_context.h"
 #include "event_handler.h"
 

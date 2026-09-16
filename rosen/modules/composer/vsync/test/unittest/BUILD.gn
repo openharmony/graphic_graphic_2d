@@ -50,7 +50,10 @@ ohos_unittest("dvsync_lib_manager_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
 
-  external_deps = [ "ipc:ipc_single" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "ipc:ipc_single",
+  ]
 }
 
 ## UnitTest dvsync_lib_manager_test }}}
@@ -68,6 +71,7 @@ ohos_unittest("vsync_connection_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
     "googletest:gmock_main",
     "ipc:ipc_core",
@@ -109,6 +113,7 @@ ohos_unittest("vsync_system_ability_listener_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -130,6 +135,7 @@ ohos_unittest("vsync_controller_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
     "googletest:gmock_main",
     "ipc:ipc_core",
@@ -151,6 +157,7 @@ ohos_unittest("vsync_distributor_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
     "googletest:gmock_main",
     "ipc:ipc_core",
@@ -195,6 +202,7 @@ ohos_unittest("vsync_receiver_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -260,7 +268,10 @@ ohos_unittest("vsync_present_fence_test") {
 
   deps = [ ":vsync_test_common" ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "c_utils:utils",
+  ]
 }
 
 ## UnitTest vsync_present_fence_test }}}
@@ -283,6 +294,7 @@ ohos_unittest("dvsync_rate_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "ipc:ipc_core",
   ]
@@ -318,6 +330,7 @@ ohos_static_library("vsync_test_common") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

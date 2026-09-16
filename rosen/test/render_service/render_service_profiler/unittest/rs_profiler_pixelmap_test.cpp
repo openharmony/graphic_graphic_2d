@@ -469,11 +469,4 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataFailing, TestSize.Level1)
     }
 }
 
-HWTEST_F(RSProfilerPixelMapStorageTest, SurfaceBuffer, TestSize.Level1)
-{
-    sptr<SurfaceBuffer> buffer;
-    auto surfaceBuffer = PixelMapStorage::IncrementSurfaceBufferReference(buffer);
-    EXPECT_EQ(surfaceBuffer, nullptr);
-}
-
 } // namespace OHOS::Rosen

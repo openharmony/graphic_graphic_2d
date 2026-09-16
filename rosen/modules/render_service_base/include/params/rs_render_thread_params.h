@@ -286,11 +286,6 @@ public:
         return selfDrawables_;
     }
 
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetCanvasDrawingSelfDrawables() const
-    {
-        return canvasDrawingSelfDrawables_;
-    }
-
     const DrawablesVec& GetHardwareEnabledTypeDrawables() const
     {
         return hardwareEnabledTypeDrawables_;
@@ -761,7 +756,6 @@ private:
     AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
     DrawablesVec protectiveSolidDrawables_;
     std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;

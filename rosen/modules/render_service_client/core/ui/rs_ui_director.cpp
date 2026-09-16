@@ -21,6 +21,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_interpolator.h"
 #include "command/rs_message_processor.h"
@@ -88,6 +89,7 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
         AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
         RSInterpolator::Init();
+        RSAnimationTimingCurve::Init();
         RSAnimationFraction::Init();
     });
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);

@@ -165,6 +165,7 @@ ohos_unittest("RSProfilerTrace3DTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -373,6 +374,7 @@ ohos_unittest("RSProfilerTelemetryTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -465,6 +467,7 @@ ohos_unittest("RSProfilerHrpServiceTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -532,6 +535,7 @@ ohos_unittest("RSProfilerCapturingTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",

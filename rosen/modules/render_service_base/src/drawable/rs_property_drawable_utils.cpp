@@ -68,6 +68,7 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
         uniform half activeNegZ;
         uniform half lumaDiff;
         uniform half colorLimit;
+        uniform float tintedColorPercent;
 
         const vec3 lumaWeight = vec3(0.2126, 0.7152, 0.0722);
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
@@ -189,10 +190,11 @@ constexpr char COLORFUL_BRIGHTNESS_BLENDER_PROG[] = R"(
             float bgLuma = dot(bgSdrColor, lumaWeight);
 
             vec3 resColor = sdrColorFilter(bgSdrColor, bgLuma, fgRgb, darkenWeight);
-            resColor = mix(bgSdrColor, resColor, fgA);
+            resColor = mix(bgSdrColor, resColor, tintedColorPercent);
             resColor = Vibrancy(resColor);
             resColor = keepLumaDiff(resColor, darkenWeight);
             resColor = clamp(resColor, 0.0, colorLimit);
+            resColor = mix(bgSdrColor, resColor, fgA);
 
             vec3 straightGlassRgb = resColor * hdrExposure;
             
@@ -1324,6 +1326,7 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeColorfulBrightnes
     builder->SetUniform("activeNegZ", activeNegZ);
     builder->SetUniform("lumaDiff", params.lumaDiff_);
     builder->SetUniform("colorLimit", params.hdrEnabled_ ? 2.0f : 1.0f);
+    builder->SetUniform("tintedColorPercent", params.tintedColorPercent_);
     RS_OPTIONAL_TRACE_FMT("RSPropertyDrawableUtils::MakeColorfulBrightnessBlender dw=%f,fr=%f,vs=%f",
         params.darkenWeight_, params.fraction_, params.vibrancyStrength_);
     return builder->MakeBlender();

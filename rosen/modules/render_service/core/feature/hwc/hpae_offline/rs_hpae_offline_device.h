@@ -115,7 +115,6 @@ public:
     std::atomic<bool> preAllocBufferSucc = false;
     std::atomic<size_t> invalidFrames = 0;
     std::atomic<size_t> maxInvalidFrames = 0;
-    std::atomic<bool> isSetHeteroEnable = false;
     std::atomic<bool> skipDraw = false;
     std::atomic<bool> hasDrawn = false;
     std::mutex offlineConfigMutex;

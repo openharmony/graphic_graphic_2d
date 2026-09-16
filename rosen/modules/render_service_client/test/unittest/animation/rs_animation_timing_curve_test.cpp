@@ -19,7 +19,10 @@
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_curve_animation.h"
+#include "animation/rs_interpolator.h"
+#include "common/rs_common_def.h"
 #include "include/animation/rs_steps_interpolator.h"
+#include "sandbox_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -251,6 +254,37 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCurveNormal001, TestSize.Level1)
 
     auto spring = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, 0.0f, 0.001f);
     EXPECT_TRUE(spring.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+}
+
+/**
+ * @tc.name: Init001
+ * @tc.desc: Verify RSAnimationTimingCurve::Init() updates static curves' interpolator IDs with correct PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, Init001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest Init001 start";
+    RSInterpolator::Init();
+    RSAnimationTimingCurve::Init();
+    pid_t currentPid = GetRealPid();
+
+    auto checkCurve = [currentPid](const RSAnimationTimingCurve& curve, const char* name) {
+        auto interpolator = curve.interpolator_;
+        if (interpolator) {
+            pid_t extractedPid = ExtractPid(interpolator->id_);
+            EXPECT_EQ(extractedPid, currentPid) << name << " PID mismatch";
+        }
+    };
+
+    checkCurve(RSAnimationTimingCurve::LINEAR, "LINEAR");
+    checkCurve(RSAnimationTimingCurve::SHARP, "SHARP");
+    checkCurve(RSAnimationTimingCurve::EASE, "EASE");
+    checkCurve(RSAnimationTimingCurve::EASE_IN, "EASE_IN");
+    checkCurve(RSAnimationTimingCurve::EASE_OUT, "EASE_OUT");
+    checkCurve(RSAnimationTimingCurve::EASE_IN_OUT, "EASE_IN_OUT");
+    checkCurve(RSAnimationTimingCurve::SPRING, "SPRING");
+    checkCurve(RSAnimationTimingCurve::INTERACTIVE_SPRING, "INTERACTIVE_SPRING");
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest Init001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

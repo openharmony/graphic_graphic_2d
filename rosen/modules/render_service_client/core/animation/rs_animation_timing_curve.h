@@ -83,6 +83,8 @@ public:
         float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO_SPRING,
         std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
 
+    static void Init();
+
     RSAnimationTimingCurve();
     RSAnimationTimingCurve(const RSAnimationTimingCurve& timingCurve) = default;
     RSAnimationTimingCurve& operator=(const RSAnimationTimingCurve& timingCurve) = default;

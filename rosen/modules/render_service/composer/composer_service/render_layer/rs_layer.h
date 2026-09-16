@@ -205,6 +205,8 @@ public:
         GraphicIRect rect;
         return rect;
     };
+    virtual void SetAlphaType(GraphicAlphaType alphaType) = 0;
+    virtual GraphicAlphaType GetAlphaType() const = 0;
 };
 
 using RSLayerPtr = std::shared_ptr<RSLayer>;

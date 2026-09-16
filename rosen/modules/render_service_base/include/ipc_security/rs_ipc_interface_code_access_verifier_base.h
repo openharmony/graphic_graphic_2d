@@ -66,6 +66,9 @@ protected:
     /* specify the exclusive verification rules in the derived class */
     virtual bool IsExclusiveVerificationPassed(CodeUnderlyingType code) = 0;
 
+    /* specify the feature verification rules in the derived class (runs regardless of ENABLE_IPC_SECURITY) */
+    virtual bool IsFeatureVerificationPassed(CodeUnderlyingType code);
+
     /* specify tools for verifying the access right */
 #ifdef ENABLE_IPC_SECURITY
     static Security::AccessToken::ATokenTypeEnum GetTokenType();
@@ -84,6 +87,7 @@ protected:
     bool CheckPermission(CodeUnderlyingType code) const;
     bool IsStylusServiceCalling(const std::string& callingCode) const;
     bool IsExfusionServiceCalling(const std::string& callingCode) const;
+    bool IsGameServiceCalling(const std::string& callingCode) const;
     bool IsTaskManagerCalling(const std::string& callingCode) const;
     bool IsRssCalling(const std::string& callingCode) const;
 

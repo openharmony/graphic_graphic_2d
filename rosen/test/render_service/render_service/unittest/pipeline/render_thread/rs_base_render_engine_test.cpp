@@ -1448,6 +1448,39 @@ HWTEST_F(RSBaseRenderEngineUnitTest, GlassFree3DShaderConvert_NullImage, TestSiz
     std::shared_ptr<Drawing::Image> nullImage = nullptr;
     EXPECT_NO_FATAL_FAILURE(renderEngine->GlassFree3DShaderConvert(*canvas, params, nullImage, samplingOptions));
 }
+
+/**
+ * @tc.name: GlassFree3DShaderConvert_InvalidSrcRect
+ * @tc.desc: Test GlassFree3DShaderConvert with zero-size srcRect
+ *           Should hit isSrcRectInvalid branch and return early without crash
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, GlassFree3DShaderConvert_InvalidSrcRect, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    ASSERT_NE(renderEngine, nullptr);
+
+    std::unique_ptr<Drawing::Canvas> drawingCanvas =
+        std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+
+    BufferDrawParam params;
+    params.use3DShader = true;
+    // srcRect with zero height triggers the isSrcRectInvalid early-return branch
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 50.0f, 0.0f);
+    params.dstRect = DEFAULT_RECT;
+    Drawing::Brush paint;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+
+    EXPECT_NO_FATAL_FAILURE(renderEngine->GlassFree3DShaderConvert(*canvas, params, image, samplingOptions));
+}
 #endif
 
 /**

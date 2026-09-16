@@ -2516,4 +2516,68 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_NullManager_No
 
     rtThread.composerClientManager_ = savedManager;
 }
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_NullParams
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, params is nullptr (inner if short-circuit)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_NullParams, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto savedParams = std::move(screenDrawable_->renderParams_);
+    screenDrawable_->renderParams_ = nullptr;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
+    screenDrawable_->renderParams_ = std::move(savedParams);
+}
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_ScreenLayerInvalid
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, screenLayerInvalid_ is true (inner if false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_ScreenLayerInvalid, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->GetLayerSkipContext().screenLayerInvalid_ = true;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
+    params->GetLayerSkipContext().screenLayerInvalid_ = false;
+}
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_ScreenLayerValid
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, screenLayerInvalid_ is false (inner if true)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_ScreenLayerValid, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->GetLayerSkipContext().screenLayerInvalid_ = false;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
+}
 } // namespace OHOS::Rosen

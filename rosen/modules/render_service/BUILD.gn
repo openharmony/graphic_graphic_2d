@@ -150,6 +150,7 @@ ohos_shared_library("librender_service") {
     "core/feature/dirty/rs_uni_dirty_occlusion_util.cpp",
     "core/feature/drm/rs_drm_util.cpp",
     "core/feature/frame_stability/rs_frame_stability_manager.cpp",
+    "core/feature/selective_prepare/rs_selective_prepare_manager.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/hpae_offline/rs_offline_processor.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
@@ -386,6 +387,7 @@ ohos_shared_library("librender_service") {
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
+      "core/feature/hwc/rs_uni_hwc_prevalidate_param_util.cpp",
       "core/feature/hwc_event/rs_uni_hwc_event_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_bitmap_utils.cpp",
       "core/feature/round_corner_display/rs_rcd_image_loader.cpp",
@@ -431,7 +433,6 @@ ohos_shared_library("librender_service") {
     sources += [
       "core/feature/uifirst/rs_sub_thread.cpp",
       "core/feature/uifirst/rs_sub_thread_manager.cpp",
-      "core/pipeline/parallel_render/rs_render_task.cpp",
     ]
   }
 
@@ -609,22 +610,6 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_profiler",
     "$graphic_2d_root/rosen/modules/render_service_profiler/trace3dapi",
     ]
-
-  if (defined(rs_enable_parallel_upload) && rs_enable_parallel_upload) {
-    sources += [
-      "core/pipeline/parallel_render/resource/rs_upload_resource_thread.cpp",
-    ]
-    include_dirs += [ "$graphic_2d_root/rosen/modules/render_service/core/pipeline/parallel_render/resource" ]
-    if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      sources += [
-        "core/pipeline/parallel_render/resource/rs_resource_helper_drawing.cpp",
-      ]
-    } else {
-      sources += [
-        "core/pipeline/parallel_render/resource/rs_resource_helper_skia.cpp",
-      ]
-    }
-  }
 
   if (rs_enable_gpu) {
     deps += [

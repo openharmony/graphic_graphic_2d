@@ -301,6 +301,19 @@ HWTEST_F(SkiaGPUContextTest, SetEarlyZFlagTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTextCacheEnforcedTest001
+ * @tc.desc: Test SetTextCacheEnforced
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(SkiaGPUContextTest, SetTextCacheEnforcedTest001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetTextCacheEnforced(false);
+}
+
+/**
  * @tc.name: SetCurrentGpuResourceTag001
  * @tc.desc: Test SetCurrentGpuResourceTag
  * @tc.type: FUNC

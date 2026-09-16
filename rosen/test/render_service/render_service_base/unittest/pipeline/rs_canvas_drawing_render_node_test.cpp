@@ -90,16 +90,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     // case 1.2: Isn't NeedResetSurface
     rsCanvasDrawingRenderNode.isGpuSurface_ = true;
-    rsCanvasDrawingRenderNode.isNeedProcess_.store(true);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     // case 2.2.1: can GetGravityMatrix, recordingCanvas_ is false
     rsCanvasDrawingRenderNode.isGpuSurface_ = false;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetHeight(3048.0f);
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetWidth(2048.0f);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.recordingCanvas_ == nullptr);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.image_ != nullptr);
     EXPECT_FALSE(canvas_->GetRecordingState());
@@ -459,7 +456,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
     EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 
 /**

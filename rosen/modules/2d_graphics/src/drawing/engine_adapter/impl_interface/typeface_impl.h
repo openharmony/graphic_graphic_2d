@@ -28,6 +28,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+enum class SerializeBehavior : uint32_t {
+    DO_INCLUDE_DATA,        // include the actual font data in the serialization stream
+    DONT_INCLUDE_DATA,      // do not include the actual font data
+    INCLUDE_DATA_IF_LOCAL,  // include font data only if the typeface is locally resident
+};
+
 class Typeface;
 class TypefaceImpl : public BaseImpl {
 public:
@@ -49,7 +56,9 @@ public:
     virtual void SetIsCustomTypeface(bool isCustom) = 0;
     virtual bool IsThemeTypeface() const = 0;
     virtual void SetIsThemeTypeface(bool isTheme) = 0;
-    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual std::shared_ptr<Data> Serialize(
+        SerializeBehavior behavior = SerializeBehavior::DO_INCLUDE_DATA
+    ) const = 0;
     // provide default implementation for hashes
     virtual uint32_t GetHash() const = 0;
     virtual void SetHash(uint32_t) = 0;

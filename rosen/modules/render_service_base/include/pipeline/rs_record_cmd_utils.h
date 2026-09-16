@@ -34,7 +34,7 @@ public:
      * @return pointer to ExtendRecordingCanvas, it will be released after FinishRecording is called,
      * and can't be used any more.
      */
-    Drawing::Canvas* BeginRecording(Drawing::Rect& bounds);
+    Drawing::Canvas* BeginRecording(Drawing::RectI& bounds);
 
     /**
      * @brief Returns the recordcmd that records the drawing commands.
@@ -56,7 +56,7 @@ public:
 
 private:
     std::shared_ptr<ExtendRecordingCanvas> extendRecordingCanvas_;
-    Drawing::Rect cullRect_;
+    Drawing::RectI cullRect_;
 };
 } // namespace Rosen
 } // namespace OHOS

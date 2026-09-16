@@ -60,9 +60,9 @@ static timeval Timeout(uint32_t milliseconds)
 }
 
 template<typename T>
-static void SetOption(int32_t socket, int32_t level, int32_t option, const T& value)
+static bool SetOption(int32_t socket, int32_t level, int32_t option, const T& value)
 {
-    setsockopt(socket, level, option, reinterpret_cast<const char*>(&value), sizeof(value));
+    return setsockopt(socket, level, option, reinterpret_cast<const char*>(&value), sizeof(value)) != -1;
 }
 
 static void SetReuseAddress(int32_t socket, bool enable)
@@ -70,19 +70,19 @@ static void SetReuseAddress(int32_t socket, bool enable)
     SetOption(socket, SOL_SOCKET, SO_REUSEADDR, static_cast<int32_t>(enable));
 }
 
-static void SetSendTimeout(int32_t socket, uint32_t milliseconds)
+static bool SetSendTimeout(int32_t socket, uint32_t milliseconds)
 {
-    SetOption(socket, SOL_SOCKET, SO_SNDTIMEO, Timeout(milliseconds));
+    return SetOption(socket, SOL_SOCKET, SO_SNDTIMEO, Timeout(milliseconds));
 }
 
-static void SetReceiveTimeout(int32_t socket, uint32_t milliseconds)
+static bool SetReceiveTimeout(int32_t socket, uint32_t milliseconds)
 {
-    SetOption(socket, SOL_SOCKET, SO_RCVTIMEO, Timeout(milliseconds));
+    return SetOption(socket, SOL_SOCKET, SO_RCVTIMEO, Timeout(milliseconds));
 }
 
-static void SetNoDelay(int32_t socket, bool enable)
+static bool SetNoDelay(int32_t socket, bool enable)
 {
-    SetOption(socket, IPPROTO_TCP, TCP_NODELAY, static_cast<int32_t>(enable));
+    return SetOption(socket, IPPROTO_TCP, TCP_NODELAY, static_cast<int32_t>(enable));
 }
 
 static int32_t ToggleFlag(uint32_t flags, uint32_t flag, bool enable)
@@ -90,14 +90,18 @@ static int32_t ToggleFlag(uint32_t flags, uint32_t flag, bool enable)
     return enable ? static_cast<int32_t>(flags | flag) : static_cast<int32_t>(flags & ~flag);
 }
 
-static void SetBlocking(int32_t socket, bool enable)
+static bool SetBlocking(int32_t socket, bool enable)
 {
-    fcntl(socket, F_SETFL, ToggleFlag(fcntl(socket, F_GETFL, 0), O_NONBLOCK, !enable));
+    const auto flags = fcntl(socket, F_GETFL, 0);
+    return (flags != -1) &&
+           (fcntl(socket, F_SETFL, ToggleFlag(static_cast<uint32_t>(flags), O_NONBLOCK, !enable)) != -1);
 }
 
-static void SetCloseOnExec(int32_t socket, bool enable)
+static bool SetCloseOnExec(int32_t socket, bool enable)
 {
-    fcntl(socket, F_SETFD, ToggleFlag(fcntl(socket, F_GETFD, 0), FD_CLOEXEC, enable));
+    const auto flags = fcntl(socket, F_GETFD, 0);
+    return (flags != -1) &&
+           (fcntl(socket, F_SETFD, ToggleFlag(static_cast<uint32_t>(flags), FD_CLOEXEC, enable)) != -1);
 }
 
 Socket::~Socket()
@@ -166,8 +170,13 @@ void Socket::Open(const std::string& name)
         return;
     }
 
-    SetBlocking(socket_, false);
-    SetCloseOnExec(socket_, true);
+    if (!SetBlocking(socket_, false)) {
+        SOCKET_ERROR("SetBlocking(false) failed");
+    }
+
+    if (!SetCloseOnExec(socket_, true)) {
+        SOCKET_ERROR("SetCloseOnExec(true) failed");
+    }
 
     state_ = SocketState::CREATE;
 }
@@ -183,9 +192,17 @@ void Socket::AcceptClient()
     }
     fdsan_exchange_owner_tag(client_, 0, LOG_DOMAIN);
 
-    SetBlocking(client_, false);
-    SetCloseOnExec(client_, true);
-    SetNoDelay(client_, true);
+    if (!SetBlocking(client_, false)) {
+        SOCKET_ERROR("SetBlocking(false) failed");
+    }
+
+    if (!SetCloseOnExec(client_, true)) {
+        SOCKET_ERROR("SetCloseOnExec(true) failed");
+    }
+
+    if (!SetNoDelay(client_, true)) {
+        SOCKET_ERROR("SetNoDelay(true) failed");
+    }
 
     state_ = SocketState::CONNECTED;
 }
@@ -207,10 +224,17 @@ bool Socket::Send(const void* data, size_t size)
         return true;
     }
 
-    SetBlocking(client_, true);
+    if (!SetBlocking(client_, true)) {
+        SOCKET_ERROR("SetBlocking(true) failed");
+        return false;
+    }
 
     constexpr uint32_t timeout = 40;
-    SetSendTimeout(client_, timeout);
+    if (!SetSendTimeout(client_, timeout)) {
+        SOCKET_ERROR("SetSendTimeout failed");
+        SetBlocking(client_, false);
+        return false;
+    }
 
     const char* bytes = reinterpret_cast<const char*>(data);
     for (size_t tries = 0u, sent = 0u; sent < size;) {
@@ -251,8 +275,16 @@ bool Socket::Receive(void* data, size_t size)
     const uint32_t timeoutPad = 100;
     const uint32_t timeout = size / bandwitdth + timeoutPad;
 
-    SetBlocking(client_, true);
-    SetReceiveTimeout(client_, timeout);
+    if (!SetBlocking(client_, true)) {
+        SOCKET_ERROR("SetBlocking(true) failed");
+        return false;
+    }
+
+    if (!SetReceiveTimeout(client_, timeout)) {
+        SOCKET_ERROR("SetReceiveTimeout failed");
+        SetBlocking(client_, false);
+        return false;
+    }
 
     size_t received = 0;
     char* bytes = static_cast<char*>(data);

@@ -944,7 +944,7 @@ EffectImageChain::~EffectImageChain()
     surface_.reset();
     if (gpuContext_ && forceReleaseGpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
-#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+#if (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL)) && defined(USE_M133_SKIA)
         gpuContext_ = nullptr;
 #endif
     }

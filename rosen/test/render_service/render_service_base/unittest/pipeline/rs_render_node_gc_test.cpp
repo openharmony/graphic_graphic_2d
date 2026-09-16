@@ -18,9 +18,12 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_curve_animation.h"
+#include "drawable/rs_render_node_shadow_drawable.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "drawable/rs_render_node_shadow_drawable.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;
@@ -1259,6 +1262,316 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemoryBgBucket002, TestSize.Level1)
     gc.ReleaseNodeMemory();
     EXPECT_TRUE(gc.nodeBgBucket_.empty());
     EXPECT_TRUE(gc.nodeBucket_.empty());
+}
+
+/**
+ * @tc.name: MustReleaseOnMainThread_ReturnsTrueForLogicalDisplayNode
+ * @tc.desc: Test MustReleaseOnMainThread returns true for LOGICAL_DISPLAY_NODE type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, MustReleaseOnMainThread_ReturnsTrueForLogicalDisplayNode, TestSize.Level1)
+{
+    // LOGICAL_DISPLAY_NODE type must be released on main thread
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    EXPECT_TRUE(displayNode->MustReleaseOnMainThread());
+}
+
+/**
+ * @tc.name: MustReleaseOnMainThread_ReturnsTrueForProxyNode
+ * @tc.desc: Test MustReleaseOnMainThread returns true for PROXY_NODE type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, MustReleaseOnMainThread_ReturnsTrueForProxyNode, TestSize.Level1)
+{
+    // PROXY_NODE type must be released on main thread
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    auto proxyNode = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    EXPECT_TRUE(proxyNode->MustReleaseOnMainThread());
+}
+
+/**
+ * @tc.name: MustReleaseOnMainThread_ReturnsTrueWhenHasAnimation
+ * @tc.desc: Test MustReleaseOnMainThread returns true when node has animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, MustReleaseOnMainThread_ReturnsTrueWhenHasAnimation, TestSize.Level1)
+{
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto node = nodeAllocator.CreateRSCanvasRenderNode(0);
+    // CANVAS_NODE without animation, depends on GetBgNodeReleaseEnabled
+    // With animation, MustReleaseOnMainThread always returns true
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->MustReleaseOnMainThread());
+}
+
+/**
+ * @tc.name: MustReleaseOnMainThread_ReturnsFalseWhenNoAnimationAndBgReleaseEnabled
+ * @tc.desc: Test MustReleaseOnMainThread returns false for non-special node without animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, MustReleaseOnMainThread_ReturnsFalseWhenNoAnimationAndBgReleaseEnabled, TestSize.Level1)
+{
+    // RSCanvasRenderNode without animation: MustReleaseOnMainThread returns
+    // HasAnimation() || !GetBgNodeReleaseEnabled()
+    // When GetBgNodeReleaseEnabled() is true and no animation, result is false
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto node = nodeAllocator.CreateRSCanvasRenderNode(0);
+    EXPECT_FALSE(node->HasAnimation());
+    // Default GetBgNodeReleaseEnabled() is true, so result should be false
+    EXPECT_FALSE(node->MustReleaseOnMainThread());
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_SkipsOffTreeTaskWhenNoNodeNotOnTree
+ * @tc.desc: Test ReleaseMainBucket skips off-tree task when no node is pending
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_SkipsOffTreeTaskWhenNoNodeNotOnTree, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    g_offTreeTaskCount.store(0);
+    MainTaskGuard guard(MakeCountingTask());
+    nodeGC.ReleaseMainBucket(true);
+    EXPECT_EQ(g_offTreeTaskCount.load(), 0);
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_PostsOffTreeTaskWhenNodeNotOnTree
+ * @tc.desc: Test ReleaseMainBucket posts off-tree task when background node exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_PostsOffTreeTaskWhenNodeNotOnTree, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    g_offTreeTaskCount.store(0);
+    pid_t pid = 5;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(pid);
+    nodeGC.notOnTreeNodeMap_[pid][node->GetId()] = node->weak_from_this();
+    {
+        MainTaskGuard guard(MakeCountingTask());
+        nodeGC.ReleaseMainBucket(true);
+    }
+    EXPECT_EQ(g_offTreeTaskCount.load(), 1);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.find(pid), nodeGC.notOnTreeNodeMap_.end());
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_DirectlyReleasesOffTreeWhenNoMainTask
+ * @tc.desc: Test ReleaseMainBucket directly releases off-tree nodes when mainTask_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_DirectlyReleasesOffTreeWhenNoMainTask, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    pid_t pid = 5;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    nodeGC.backgroundPidSet_.insert(pid);
+    nodeGC.notOnTreeNodeMap_[pid][node->GetId()] = node->weak_from_this();
+    MainTaskGuard guard(nullptr);
+    nodeGC.ReleaseMainBucket(true);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.find(pid), nodeGC.notOnTreeNodeMap_.end());
+    ClearNotOnTreeState();
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_ReturnsEarlyWhenBucketEmpty
+ * @tc.desc: Test ReleaseMainBucket returns early when nodeBucket_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_ReturnsEarlyWhenBucketEmpty, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    // Empty nodeBucket_, should return without processing
+    nodeGC.ReleaseMainBucket(false);
+    EXPECT_EQ(nodeGC.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_ReleasesViaMainTask
+ * @tc.desc: Test ReleaseMainBucket releases nodes through mainTask_ when bucket has nodes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_ReleasesViaMainTask, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    // Add nodes to main bucket
+    auto ptr = new RSRenderNode(0);
+    nodeGC.AddNodeToBucket(ptr);
+    ASSERT_EQ(nodeGC.nodeBucket_.size(), 1u);
+    // With mainTask_ set (from SetUpTestCase), ReleaseMainBucket should process via task
+    nodeGC.ReleaseMainBucket(false);
+    EXPECT_EQ(nodeGC.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_ReleasesDirectlyWhenNoMainTask
+ * @tc.desc: Test ReleaseMainBucket releases nodes directly when mainTask_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_ReleasesDirectlyWhenNoMainTask, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    // Add nodes to main bucket
+    auto ptr = new RSRenderNode(0);
+    nodeGC.AddNodeToBucket(ptr);
+    ASSERT_EQ(nodeGC.nodeBucket_.size(), 1u);
+    // Temporarily set mainTask_ to null
+    MainTaskGuard guard(nullptr);
+    nodeGC.ReleaseMainBucket(false);
+    EXPECT_EQ(nodeGC.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_CallsDrawableReleaseOnHighPriority
+ * @tc.desc: Test ReleaseMainBucket calls drawableReleaseFunc_ on highPriority
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_CallsDrawableReleaseOnHighPriority, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    bool drawableReleaseCalled = false;
+    auto drawableReleaseFunc = [&drawableReleaseCalled](bool highPriority) { drawableReleaseCalled = true; };
+    nodeGC.SetDrawableReleaseFunc(drawableReleaseFunc);
+    nodeGC.imageReleaseFunc_ = nullptr;
+    // Add nodes to trigger processing
+    auto ptr = new RSRenderNode(0);
+    nodeGC.AddNodeToBucket(ptr);
+    nodeGC.ReleaseMainBucket(true);
+    EXPECT_TRUE(drawableReleaseCalled);
+    nodeGC.SetDrawableReleaseFunc(nullptr);
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_CallsImageReleaseOnHighPriority
+ * @tc.desc: Test ReleaseMainBucket calls imageReleaseFunc_ on highPriority
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_CallsImageReleaseOnHighPriority, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    bool imageReleaseCalled = false;
+    auto imageReleaseFunc = [&imageReleaseCalled]() { imageReleaseCalled = true; };
+    nodeGC.drawableReleaseFunc_ = nullptr;
+    nodeGC.SetImageReleaseFunc(imageReleaseFunc);
+    // Add nodes to trigger processing
+    auto ptr = new RSRenderNode(0);
+    nodeGC.AddNodeToBucket(ptr);
+    nodeGC.ReleaseMainBucket(true);
+    EXPECT_TRUE(imageReleaseCalled);
+    nodeGC.SetImageReleaseFunc(nullptr);
+}
+
+/**
+ * @tc.name: ReleaseBgBucket_ReturnsEarlyWhenBgBucketEmpty
+ * @tc.desc: Test ReleaseBgBucket returns early when bg bucket is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseBgBucket_ReturnsEarlyWhenBgBucketEmpty, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    gc.bgReleasePending_ = false;
+    // Empty bg bucket, should not set bgReleasePending_
+    gc.ReleaseBgBucket();
+    EXPECT_FALSE(gc.bgReleasePending_);
+}
+
+/**
+ * @tc.name: ReleaseBgBucket_ReturnsEarlyWhenBgReleasePending
+ * @tc.desc: Test ReleaseBgBucket returns early when bgReleasePending_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseBgBucket_ReturnsEarlyWhenBgReleasePending, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    // Add a node to bg bucket so it's not empty
+    auto* rawPtr = new RSCanvasRenderNode(0);
+    gc.AddNodeToBgBucket(rawPtr);
+    ASSERT_FALSE(gc.nodeBgBucket_.empty());
+    // Set bgReleasePending_ to true, should return without posting
+    gc.bgReleasePending_ = true;
+    gc.ReleaseBgBucket();
+    // bgReleasePending_ should remain true (not re-posted)
+    EXPECT_TRUE(gc.bgReleasePending_);
+    ClearBgBucket();
+}
+
+/**
+ * @tc.name: ReleaseBgBucket_PostsBgTaskWhenBucketHasNodes
+ * @tc.desc: Test ReleaseBgBucket posts background task when bucket has nodes and not pending
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseBgBucket_PostsBgTaskWhenBucketHasNodes, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    // Add a node to bg bucket
+    auto* rawPtr = new RSCanvasRenderNode(0);
+    gc.AddNodeToBgBucket(rawPtr);
+    ASSERT_FALSE(gc.nodeBgBucket_.empty());
+    gc.bgReleasePending_ = false;
+    gc.ReleaseBgBucket();
+    // After PostTask, bgReleasePending_ should be set to true
+    EXPECT_TRUE(gc.bgReleasePending_);
+    ClearBgBucket();
+}
+
+/**
+ * @tc.name: ReleaseNodeMemory_CallsBothBuckets
+ * @tc.desc: Test ReleaseNodeMemory calls both ReleaseMainBucket and ReleaseBgBucket
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemory_CallsBothBuckets, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    // Add nodes to both main and bg buckets
+    auto* mainPtr = new RSRenderNode(0);
+    gc.AddNodeToBucket(mainPtr);
+    auto* bgPtr = new RSCanvasRenderNode(1);
+    gc.AddNodeToBgBucket(bgPtr);
+    ASSERT_EQ(gc.nodeBucket_.size(), 1u);
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 1u);
+    gc.bgReleasePending_ = false;
+    // ReleaseNodeMemory should process both buckets
+    gc.ReleaseNodeMemory();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
 }
 
 } // namespace Rosen

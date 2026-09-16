@@ -37,7 +37,7 @@ public:
 
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
-    static constexpr int MAX_KEYFRAME_SIZE_NUMBER = 100000;
+    static constexpr int maxKeyframeSizeNumber = 1000;
 };
 
 void RSRenderKeyframeAnimationTest::SetUpTestCase() {}
@@ -431,14 +431,14 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam001, TestSize.Level1)
 
     int start = 0;
     int end = 1;
-    for (size_t i = 0; i < MAX_KEYFRAME_SIZE_NUMBER + 1; i++) {
+    for (size_t i = 0; i < maxKeyframeSizeNumber + 1; i++) {
         renderKeyframeAnimation->durationKeyframes_.push_back({ start, end, property1, interpolator });
     }
 
     Parcel parcel;
     renderKeyframeAnimation->isDurationKeyframe_ = true;
     auto result = renderKeyframeAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
     auto renderKeyframeAnimation1 = std::make_shared<RSRenderKeyframeAnimation>();
     result = renderKeyframeAnimation1->ParseParam(parcel);
     EXPECT_FALSE(result);
@@ -713,5 +713,62 @@ HWTEST_F(RSRenderKeyframeAnimationTest, GetType001, TestSize.Level1)
     EXPECT_EQ(renderKeyframeAnimation->GetType(), RSRenderAnimationType::KEYFRAME_ANIMATION);
 }
 
+/**
+ * @tc.name: ParseParam004
+ * @tc.desc: Verify ParseParam accepts keyframes at the boundary (size == 1000)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseParam004 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f, PROPERTY_ID);
+    auto interpolator = std::make_shared<RSStepsInterpolator>(0);
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    for (int i = 0; i < maxKeyframeSizeNumber; i++) {
+        renderKeyframeAnimation->durationKeyframes_.push_back({ 0, 1, property1, interpolator });
+    }
+
+    Parcel parcel;
+    auto result = renderKeyframeAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    parcel.RewindRead(0);
+    auto parsed = std::make_shared<RSRenderKeyframeAnimation>();
+    result = parsed->ParseParam(parcel);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseParam004 end";
+}
+
+/**
+ * @tc.name: ParseParam005
+ * @tc.desc: Verify ParseParam rejects keyframes exceeding the limit (size == 1001)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseParam005 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f, PROPERTY_ID);
+    auto interpolator = std::make_shared<RSStepsInterpolator>(0);
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    for (int i = 0; i < maxKeyframeSizeNumber + 1; i++) {
+        renderKeyframeAnimation->durationKeyframes_.push_back({ 0, 1, property1, interpolator });
+    }
+
+    Parcel parcel;
+    auto result = renderKeyframeAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    parcel.RewindRead(0);
+    auto parsed = std::make_shared<RSRenderKeyframeAnimation>();
+    result = parsed->ParseParam(parcel);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseParam005 end";
+}
 } // namespace Rosen
 } // namespace OHOS

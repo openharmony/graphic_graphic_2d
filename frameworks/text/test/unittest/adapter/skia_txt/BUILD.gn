@@ -49,6 +49,7 @@ text_unittest("rosen_text_adapt_test") {
     "hilog:libhilog",
     "icu:shared_icuuc",
     "image_framework:image_native",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "skia:skia_paragraph_ohos_new",
   ]

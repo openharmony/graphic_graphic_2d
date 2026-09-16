@@ -28,6 +28,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -457,6 +458,10 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
     bool forceCloseHDR = node.GetForceCloseHdr();
     bool isCloseHdr = forceCloseHDR || (RSLuminanceControl::Get().IsHardwareHdrDisabled() && !drmNodes_.empty());
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    bool isCloseHdrForTv3D = RSTvShutter3DManager::Instance().ShouldForceCloseHdr(node);
+    isCloseHdr |= isCloseHdrForTv3D;
+#endif
     RSLuminanceControl::Get().SetHdrStatus(screenId, isCloseHdr ? HdrStatus::NO_HDR : node.GetDisplayHdrStatus());
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);
@@ -472,6 +477,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
         isHdrOn = false;
     }
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    isHdrOn &= !isCloseHdrForTv3D;
+#endif
     node.SetLastDisplayHdrStatus(node.GetDisplayHdrStatus());
     node.SetHDRPresent(isHdrOn);
     hasDisplayHdrOn_ |= isHdrOn;
@@ -832,7 +840,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
 
-    node.ClearAllHwcNodeAndFilterNode();
     node.ResetChildHwcNodes();
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
@@ -852,7 +859,8 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
         // Callback for registered self drawing surfacenode
         RSMainThread::Instance()->SurfaceOcclusionCallback();
     }
-    dynamicLayerSkipController_->VerifyScreenLayerValidity(curScreenNode_->GetDisplayGlobalZOrder());
+    dynamicLayerSkipController_->VerifyScreenLayerValidity(curScreenNode_->GetDisplayGlobalZOrder(),
+        curScreenNode_->GetColorSpace());
     curScreenNode_->UpdatePartialRenderParams();
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
@@ -955,7 +963,6 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     RSUifirstManager::Instance().PreStatusProcess(displayNodeRotationChanged_ || isScreenRotationAnimating_);
 
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
-    node.ClearAllHwcNodeAndFilterNode();
     QuickPrepareChildren(node);
 
     PostPrepare(node, isParentPrepareInReverseOrder);
@@ -1176,6 +1183,8 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node)
 {
+    // Rebuild the aggregated list from children's lists; drop last frame's stale entries first.
+    node.ClearAllHwcNodeAndFilterNode();
     auto children = node.GetSortedChildren();
     std::for_each((*children).begin(), (*children).end(), [this, &node](
         const std::shared_ptr<RSRenderNode>& child) {
@@ -1256,7 +1265,6 @@ void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bo
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
-    node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
@@ -1302,7 +1310,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
-        node.ClearAllHwcNodeAndFilterNode();
         node.ResetChildHardwareEnabledNodes();
         CollectHwcAndFilterNodesInSkippedSubTree(node);
         CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
@@ -1440,7 +1447,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     prepareFilterClipRect_ = prepareClipRect_;
-    node.ClearAllHwcNodeAndFilterNode();
     node.ResetChildHardwareEnabledNodes();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
@@ -1588,7 +1594,6 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
     bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) ||
         ForcePrepareSubTree() || isOpincSubTreeDirty;
-    node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
@@ -2043,7 +2048,6 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node, 
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
-    node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
@@ -2248,7 +2252,6 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
     bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) ||
         ForcePrepareSubTree() || isOpincSubTreeDirty;
-    node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
@@ -2811,58 +2814,25 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         hwcVisitor_->PrintHiperfCounterLog("counter2", static_cast<uint64_t>(0));
         return;
     }
-    std::vector<RequestLayerInfo> prevalidLayers;
-    uint32_t curFps = curScreenNode_->GetScreenProperty().GetRefreshRate();
     uint32_t zOrder = static_cast<uint32_t>(globalZOrder_);
-    // add surfaceNode layer
-    RSUniHwcPrevalidateUtil::GetInstance().CollectSurfaceNodeLayerInfo(
-        prevalidLayers, curScreenNode_, curFps, zOrder,
-        curScreenNode_->GetScreenProperty());
+    auto prevalidLayers = RSUniHwcPrevalidateUtil::CollectLayerInfo(curScreenNode_, zOrder);
+
     RS_TRACE_NAME_FMT("PrevalidateHwcNode hwcLayer: %u", prevalidLayers.size());
-    if (prevalidLayers.size() == 0) {
+    if (prevalidLayers.empty()) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode no hardware layer");
         hwcVisitor_->PrintHiperfCounterLog("counter2", INPUT_HWC_LAYERS);
         RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
             OfflineDeviceType::HPAE_OFFLINE_DEVICE);
         return;
     }
-    // add display layer
-    RequestLayerInfo screenLayer;
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateScreenNodeLayerInfo(
-        zOrder++, curScreenNode_, curScreenNode_->GetScreenProperty(), curFps, screenLayer)) {
-        prevalidLayers.emplace_back(screenLayer);
-    }
-    // add rcd layer
-    RequestLayerInfo rcdLayer;
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curScreenNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-            rcdSurface, curScreenNode_->GetScreenProperty(), curFps, rcdLayer)) {
-            prevalidLayers.emplace_back(rcdLayer);
-        }
-        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curScreenNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-            rcdSurface, curScreenNode_->GetScreenProperty(), curFps, rcdLayer)) {
-            prevalidLayers.emplace_back(rcdLayer);
-        }
-    }
     hwcVisitor_->PrintHiperfCounterLog("counter2", static_cast<uint64_t>(prevalidLayers.size()));
     std::map<uint64_t, RequestCompositionType> strategy;
-    if (!RSUniHwcPrevalidateUtil::GetInstance().PreValidate(curScreenNode_->GetScreenId(), prevalidLayers, strategy)) {
+    if (!RSUniHwcPrevalidateUtil::GetInstance().PreValidate(
+        curScreenNode_->GetScreenId(), prevalidLayers, strategy)) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode prevalidate failed");
         return;
     }
-    {
-        std::vector<uint64_t> offlineNodeIds;
-        for (const auto& elem : strategy) {
-            if (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
-                elem.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
-                offlineNodeIds.push_back(elem.first);
-            }
-        }
-        RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
-            OfflineDeviceType::HPAE_OFFLINE_DEVICE, offlineNodeIds);
-    }
+    RSUniHwcPrevalidateParamUtil::ProcessOfflineStrategy(strategy);
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     UpdateHwcNodeEnableByPrevalidate(strategy, nodeMap);
 }
@@ -4295,7 +4265,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     RSWindowKeyFrameRenderNode::ResetLinkedWindowKeyFrameInfo(node);
 
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
-    node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {

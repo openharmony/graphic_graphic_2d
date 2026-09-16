@@ -40,11 +40,23 @@ struct DrawPixelMapMeshArgs {
     int32_t column = 0;
     int32_t row = 0;
 };
+class AniRecordCmdUtils;
+
 class AniCanvas final {
 public:
     AniCanvas() = default;
     explicit AniCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~AniCanvas();
+
+    void Invalidate()
+    {
+        m_canvas = nullptr;
+        creator_ = nullptr;
+    }
+    void SetCreator(AniRecordCmdUtils* creator)
+    {
+        creator_ = creator;
+    }
 
     static ani_status AniInit(ani_env *env);
     static void Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj);
@@ -176,6 +188,7 @@ private:
 
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
+    AniRecordCmdUtils* creator_ = nullptr;
 #ifdef ROSEN_OHOS
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif

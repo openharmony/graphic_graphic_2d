@@ -197,7 +197,8 @@ void RCDBitmapUtils::LoadOrReuseImage(const rs_rcd::RoundCornerLayer& target,
     std::shared_ptr<Drawing::Image>& outImage)
 {
     for (const auto& candidate : candidates) {
-        if (target.IsResourceEqual(candidate.first)) {
+        bool isCandidateValid = (target.IsResourceEqual(candidate.first)) && (candidate.second != nullptr);
+        if (isCandidateValid) {
             outImage = candidate.second;
             return;
         }
@@ -211,7 +212,9 @@ void RCDBitmapUtils::DecodeOrReuseBitmap(const std::shared_ptr<Drawing::Image>& 
     std::shared_ptr<Drawing::Bitmap>& outBitmap)
 {
     for (const auto& candidate : candidates) {
-        if (targetImage == candidate.first && candidate.second != nullptr) {
+        bool isCandidateValid = (targetImage != nullptr) && (candidate.first != nullptr) &&
+            (targetImage == candidate.first) && (candidate.second != nullptr);
+        if (isCandidateValid) {
             outBitmap = candidate.second;
             return;
         }

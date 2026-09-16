@@ -16,6 +16,7 @@
 #include "rs_tv_shutter_3d_manager.h"
 
 #include "platform/common/rs_log.h"
+#include "hdr/rs_base_hdr_util.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSTvShutter3DManager"
@@ -284,5 +285,17 @@ void RSTvShutter3DManager::UpdateHwcNodeEnableByShutter3DLayer(RSScreenRenderNod
         surfaceParams->SetHardwareEnabled(!hwcNodePtr->IsHardwareForcedDisabled());
         hwcNodePtr->AddToPendingSyncList();
     }
+}
+
+bool RSTvShutter3DManager::ShouldForceCloseHdr(const RSScreenRenderNode& screenNode) const
+{
+    if (screenNode.GetUIMode3D() != UIMode3D::MODE_SHUTTER_3D) {
+        return false;
+    }
+    float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenNode.GetScreenId(), 0);
+    if (ROSEN_NE(hdrBrightnessRatio, 1.0f)) {
+        return false;
+    }
+    return !RSBaseHdrUtil::GetRGBA1010108Enabled();
 }
 } // namespace OHOS::Rosen

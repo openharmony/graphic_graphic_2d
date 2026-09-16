@@ -741,6 +741,19 @@ HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTextCacheEnforcedTest
+ * @tc.desc: Test for SetTextCacheEnforced
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetTextCacheEnforcedTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetTextCacheEnforced(false);
+}
+
+/**
  * @tc.name: GPUContextOptionsSetIsUniRenderTest
  * @tc.desc: Test for GPUContextOptions SetIsUniRender and GetIsUniRender.
  * @tc.type: FUNC

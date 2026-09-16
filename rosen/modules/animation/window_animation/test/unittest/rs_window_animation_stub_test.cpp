@@ -693,5 +693,36 @@ HWTEST_F(RSWindowAnimationStubTest, ScreenUnlockInvalidCallbackObject001, TestSi
     ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
+/**
+ * @tc.name: StartApp004
+ * @tc.desc: Verify StartApp rejects invalid StartingAppType values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, StartApp004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp004 start";
+    MessageOption option;
+
+    MessageParcel dataNegative;
+    MessageParcel reply1;
+    dataNegative.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    dataNegative.WriteInt32(-1);
+    dataNegative.WriteParcelable(windowAnimationTarget_.get());
+    dataNegative.WriteRemoteObject(finishCallBack_->AsObject());
+    int res =
+        windowAnimationStub_->OnRemoteRequest(RSIWindowAnimationController::ON_START_APP, dataNegative, reply1, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel dataTooLarge;
+    MessageParcel reply2;
+    dataTooLarge.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    dataTooLarge.WriteInt32(static_cast<int>(FROM_OTHER) + 1);
+    dataTooLarge.WriteParcelable(windowAnimationTarget_.get());
+    dataTooLarge.WriteRemoteObject(finishCallBack_->AsObject());
+    res =
+        windowAnimationStub_->OnRemoteRequest(RSIWindowAnimationController::ON_START_APP, dataTooLarge, reply2, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp004 end";
+}
 } // namespace Rosen
 } // namespace OHOS

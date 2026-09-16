@@ -187,6 +187,9 @@ public:
 
     void SetDelegateModeCropRect(const GraphicIRect& crop) override;
     GraphicIRect GetDelegateModeCropRect() override;
+    void SetAlphaType(GraphicAlphaType alphaType) override;
+    GraphicAlphaType GetAlphaType() const override;
+
 protected:
     bool AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
 
@@ -214,6 +217,7 @@ private:
     GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicAlphaType alphaType_ = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_ = {0};

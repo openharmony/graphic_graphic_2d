@@ -422,10 +422,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MAIN_SCREEN");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_RESPONSE");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
             break;
@@ -532,7 +528,8 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FORCE_REFRESH): {
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH") ||
-                IsExfusionServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");
+                IsExfusionServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH") ||
+                IsGameServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_COLOR_FOLLOW): {
@@ -618,6 +615,7 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_PAGE_NAME):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_JANK_STATS):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_COMPLETE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_JANK_FRAME):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_START):
@@ -638,18 +636,26 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = true;
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
-            hasPermission = RS_PROFILER_HRP_SERVICE_ENABLED();
-            break;
-        }
         default: {
             hasPermission = false;
             break;
         }
     }
     return hasPermission;
+}
+
+bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsFeatureVerificationPassed(CodeUnderlyingType code)
+{
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
+            return RS_PROFILER_HRP_SERVICE_ENABLED();
+        }
+        default: {
+            return true;
+        }
+    }
 }
 
 #ifdef ENABLE_IPC_SECURITY

@@ -396,6 +396,7 @@ public:
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
     static bool GetPreparePhaseQuickSkipEnabled();
+    static bool IsSelectivePrepareOptEnabled();
     static bool GetUnmarshalParallelEnabled();
     static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetBootCompleted();
@@ -420,6 +421,10 @@ public:
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
     static bool IsSimulateTest();
+
+    // Timeout (ms) for offloaded synchronous IPC calls to render service.
+    static uint32_t GetIpcSyncTimeoutMs();
+
 private:
     RSSystemProperties() = default;
 

@@ -591,6 +591,42 @@ HWTEST_F(RSSurfaceLayerTest, SetGlassFree3D_SameValueNoCommand, Function | Small
 }
 
 /**
+ * @tc.name: SetAlphaType_DifferentValue_UpdatesAndGeneratesCommand
+ * @tc.desc: Verify SetAlphaType with a different value updates alphaType_ and generates command
+ *           Covers the `alphaType_ != alphaType` branch (set value + SetRSLayerCmd)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, SetAlphaType_DifferentValue_UpdatesAndGeneratesCommand, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+    // Default is PREMUL
+    EXPECT_EQ(lyr->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+
+    lyr->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    EXPECT_EQ(lyr->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+
+    lyr->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+    EXPECT_EQ(lyr->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+}
+
+/**
+ * @tc.name: SetAlphaType_SameValue_NoCommand
+ * @tc.desc: Verify SetAlphaType with same value returns early without generating command
+ *           Covers the `alphaType_ == alphaType` early-return branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, SetAlphaType_SameValue_NoCommand, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+    // Default is PREMUL, set same value should return early
+    EXPECT_EQ(lyr->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+    lyr->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+    EXPECT_EQ(lyr->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+}
+
+/**
  * @tc.name: LayerPropertiesChangeTest
  * @tc.desc: Test Change RSLayer Properties
  * @tc.type: FUNC

@@ -779,6 +779,11 @@ bool EffectNapi::ParseColorfulBrightnessBlender(napi_env env, napi_value paramOb
     if (ParseJsBoolValue(env, optionsObj, "hdrEnabled", hdrEnabled)) {
         blender->SetHdrEnabled(hdrEnabled);
     }
+
+    double tintedColorPercent = 1.0;
+    if (ParseJsDoubleValue(env, optionsObj, "tintedColorPercent", tintedColorPercent)) {
+        blender->SetTintedColorPercent(static_cast<float>(tintedColorPercent));
+    }
     return true;
 }
 

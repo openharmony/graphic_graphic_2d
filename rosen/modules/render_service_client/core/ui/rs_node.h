@@ -2235,10 +2235,26 @@ protected:
      */
     virtual void SetIsOnTheTree(bool flag);
 
+    /**
+     * @brief Flushes cached modifier properties when node goes back on the tree.
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    virtual bool FlushCachedModifiers()
+    {
+        return false;
+    }
+
+    /**
+     * @brief Flushes cached modifier properties for this node and all descendants
+     *        using level-order traversal (BFS).
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    bool FlushCachedModifiersRecursively();
+
     bool IsLazyLoadCommand(const RSCommand& command) const
     {
         return std::find(lazyLoadCommandTypes_.begin(), lazyLoadCommandTypes_.end(),
-            std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
+                   std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
     }
 
     bool IsChildOperationCommand(const RSCommand& command) const
@@ -2542,6 +2558,7 @@ private:
     std::bitset<3> hasReportedSetUIXXFilterCascade_ = 0b000;
 
     friend class RSUIDirector;
+    friend class RSRenderInterface;
     friend class RSTransition;
     friend class RSSpringAnimation;
     friend class RSShowingPropertiesFreezer;
@@ -2566,6 +2583,7 @@ private:
     template<typename T>
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
+    friend class RSCanvasNode;
     friend class RSSurfaceNode;
 
     // RSCmdModifier

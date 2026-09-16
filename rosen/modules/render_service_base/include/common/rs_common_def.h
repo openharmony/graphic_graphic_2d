@@ -797,6 +797,7 @@ enum class RSInterfaceErrorCode : uint32_t {
     WRITE_PARCEL_ERROR,
     UNKNOWN_ERROR,
     NULLPTR_ERROR,
+    IPC_TIMEOUT_ERROR, // synchronous IPC call timed out or was rejected by the overload guard
 };
 
 struct VSyncConnParam {

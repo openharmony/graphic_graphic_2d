@@ -73,11 +73,20 @@ public:
     }
     float GetVibrancyStrength() const { return vibrancyStrength_; }
 
-    void SetLumaDiff(float val) { lumaDiff_ = UIEffect::GetLimitedPara(val, {0.0f, 1.0f}); }
+    void SetLumaDiff(float val)
+    {
+        lumaDiff_ = UIEffect::GetLimitedPara(val, {0.0f, 1.0f});
+    }
     float GetLumaDiff() const { return lumaDiff_; }
 
     void SetHdrEnabled(bool val) { hdrEnabled_ = val; }
     bool GetHdrEnabled() const { return hdrEnabled_; }
+
+    void SetTintedColorPercent(float val)
+    {
+        tintedColorPercent_ = UIEffect::GetLimitedPara(val, {0.0f, 1.0f});
+    }
+    float GetTintedColorPercent() const { return tintedColorPercent_; }
 
 private:
     float fraction_ = 1.0f;
@@ -92,6 +101,7 @@ private:
     float vibrancyStrength_ = 0.0f;
     float lumaDiff_ = 0.0f;
     bool hdrEnabled_ = false;
+    float tintedColorPercent_ = 1.0f;
 };
 
 } // namespace Rosen

@@ -84,6 +84,10 @@ const RSBlendRenderModifier::LegacyPropertyApplierMap RSBlendRenderModifier::Leg
         RSRenderModifier::PropertyApplyHelper<bool,
             &RSProperties::SetColorfulBrightnessBlenderMember<bool>,
             &RSColorfulBrightnessBlenderPara::hdrEnabled_> },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT,
+        RSRenderModifier::PropertyApplyHelper<float,
+            &RSProperties::SetColorfulBrightnessBlenderMember<float>,
+            &RSColorfulBrightnessBlenderPara::tintedColorPercent_> },
 };
 
 void RSBlendRenderModifier::ResetProperties(RSProperties& properties)

@@ -45,9 +45,13 @@ constexpr RSLayerId TEST_UNI_LAYER_ID = 9999;
 
 void ClearUiCaptureTasks(RSMainThread& mainThread)
 {
-    mainThread.pendingUiCaptureTasks_.clear();
-    while (!mainThread.uiCaptureTasks_.empty()) {
-        mainThread.uiCaptureTasks_.pop();
+    mainThread.pendingNonSystemUiCaptureTasks_.clear();
+    while (!mainThread.nonSystemUiCaptureTasks_.empty()) {
+        mainThread.nonSystemUiCaptureTasks_.pop();
+    }
+    mainThread.pendingSystemUiCaptureTasks_.clear();
+    while (!mainThread.systemUiCaptureTasks_.empty()) {
+        mainThread.systemUiCaptureTasks_.pop();
     }
 }
 } // namespace
@@ -328,7 +332,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect_GlobalTrigger
     auto captureNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(captureNode, nullptr);
     mainThread->context_->GetMutableNodeMap().RegisterRenderNode(captureNode);
-    mainThread->AddUiCaptureTask(captureNode->GetId(), []() {});
+    mainThread->AddUiCaptureTask(captureNode->GetId(), false, []() {});
     ASSERT_TRUE(RSTunnelRouteArbiter::IsGlobalRouteForcedNormal());
 
     auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();

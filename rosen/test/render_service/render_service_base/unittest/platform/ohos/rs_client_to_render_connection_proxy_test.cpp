@@ -16,13 +16,16 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <fcntl.h>
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
 #include <mutex>
 #include <system_ability_definition.h>
+#include <thread>
 #include <unistd.h>
 
+#include "common/rs_common_def.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "file_ex.h"
 #include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
@@ -719,6 +722,122 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, UpdateFrameStabilityDetectionTest0
     FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
     int32_t ret = proxy->UpdateFrameStabilityDetection(oldTarget, newTarget);
     EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: SendRequestNullRemote
+ * @tc.desc: SendRequest returns NULLPTR_ERROR when the remote object is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestNullRemote, TestSize.Level1)
+{
+    auto nullProxy = std::make_shared<RSClientToRenderConnectionProxy>(nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = nullProxy->SendRequest(0, data, reply, option);
+    ASSERT_EQ(ret, static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR));
+}
+
+/**
+ * @tc.name: SendRequestAsyncDirect
+ * @tc.desc: Async calls are sent directly on the calling thread and never offloaded.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestAsyncDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: SendRequestSyncOffloaded
+ * @tc.desc: Sync plain-data calls run on the executor worker and the reply is cloned back.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestSyncOffloaded, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            reply.WriteInt32(1);
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_NE(sendTid, callerTid); // offloaded to the timeout executor worker
+    int32_t value = 0;
+    ASSERT_TRUE(reply.ReadInt32(value));
+    ASSERT_EQ(value, 1);
+}
+
+/**
+ * @tc.name: SendRequestSyncWithFdDirect
+ * @tc.desc: Sync calls whose input parcel carries fds/binder objects stay on the direct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestSyncWithFdDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int fd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(fd, 0);
+    ASSERT_TRUE(data.WriteFileDescriptor(fd));
+    close(fd);
+    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+
+/**
+ * @tc.name: SendRequestReplyNotClonableDirect
+ * @tc.desc: Sync calls whose reply may carry objects (e.g. GET_BITMAP) stay on the direct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestReplyNotClonableDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP);
+    ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
 }
 } // namespace Rosen
 } // namespace OHOS

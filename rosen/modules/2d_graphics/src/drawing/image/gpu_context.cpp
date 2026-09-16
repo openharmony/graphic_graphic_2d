@@ -370,6 +370,11 @@ void GPUContext::SetParam(const std::string& name, const std::string& value)
 {
     impl_->SetParam(name, value);
 }
+
+void GPUContext::SetTextCacheEnforced(bool isEnforced)
+{
+    impl_->SetTextCacheEnforced(isEnforced);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

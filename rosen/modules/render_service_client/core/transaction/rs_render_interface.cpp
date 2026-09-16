@@ -34,11 +34,12 @@
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_proxy_node.h"
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "ui/rs_ui_context.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_ui_context.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -181,6 +182,9 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
             uiContext->FlushCanvasDrawingNodeBuffers();
         }
 #endif // RS_MODIFIERS_DRAW_ENABLE
+        captureConfig.isSync = true;
+    }
+    if (node->FlushCachedModifiersRecursively()) {
         captureConfig.isSync = true;
     }
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;

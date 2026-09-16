@@ -39,78 +39,103 @@ class RSB_EXPORT Archive {
 public:
     bool IsReading() const
     {
-        return isReading_;
+        return reader_;
     }
 
-    void Serialize(char& value);
-    void Serialize(float& value);
-    void Serialize(double& value);
+    bool Good() const
+    {
+        return !corrupted_;
+    }
 
-    void Serialize(int8_t& value);
-    void Serialize(int16_t& value);
-    void Serialize(int32_t& value);
-    void Serialize(int64_t& value);
+    explicit operator bool() const
+    {
+        return Good();
+    }
 
-    void Serialize(uint8_t& value);
-    void Serialize(uint16_t& value);
-    void Serialize(uint32_t& value);
-    void Serialize(uint64_t& value);
+    bool operator!() const
+    {
+        return !Good();
+    }
 
-    void Serialize(std::string& value);
+    Archive& Serialize(char& value);
+    Archive& Serialize(float& value);
+    Archive& Serialize(double& value);
+
+    Archive& Serialize(int8_t& value);
+    Archive& Serialize(int16_t& value);
+    Archive& Serialize(int32_t& value);
+    Archive& Serialize(int64_t& value);
+
+    Archive& Serialize(uint8_t& value);
+    Archive& Serialize(uint16_t& value);
+    Archive& Serialize(uint32_t& value);
+    Archive& Serialize(uint64_t& value);
+
+    Archive& Serialize(std::string& value);
 
     template<typename T>
-    void Serialize(std::vector<T>& vector)
+    Archive& Serialize(std::vector<T>& vector)
     {
-        SerializeVectorBase(vector);
-        Serialize(vector.data(), vector.size());
+        if (SerializeVectorBase(vector)) {
+            Serialize(vector.data(), vector.size());
+        }
+        return *this;
     }
 
     template<typename T>
-    void Serialize(std::vector<T>& vector, void (*serializer)(Archive&, T&))
+    Archive& Serialize(std::vector<T>& vector, void (*serializer)(Archive&, T&))
     {
-        if (!serializer) {
-            return;
+        if (serializer && SerializeVectorBase(vector)) {
+            for (T& value : vector) {
+                serializer(*this, value);
+            }
         }
-
-        SerializeVectorBase(vector);
-        for (T& value : vector) {
-            serializer(*this, value);
-        }
+        return *this;
     }
 
     template<typename T>
-    void SerializeNonFlat(std::vector<T>& vector)
+    Archive& SerializeNonFlat(std::vector<T>& vector)
     {
-        SerializeVectorBase(vector);
-        for (T& value : vector) {
-            value.Serialize(*this);
+        if (SerializeVectorBase(vector)) {
+            for (T& value : vector) {
+                value.Serialize(*this);
+            }
         }
+        return *this;
     }
 
-    void Serialize(void* data, size_t size);
+    Archive& Serialize(void* data, size_t size);
 
 protected:
-    explicit Archive(bool reader) : isReading_(reader) {}
+    explicit Archive(bool reader) : reader_(reader) {}
 
     virtual ~Archive() = default;
 
     template<typename T>
-    void SerializeVectorBase(std::vector<T>& vector)
+    Archive& SerializeVectorBase(std::vector<T>& vector)
     {
         size_t size = vector.size();
         Serialize(size);
 
-        if (IsReading()) {
-            static const auto MAX_SIZE = std::vector<T>().max_size();
-            vector.resize(size < MAX_SIZE ? size : 0);
+        if (IsReading() && Good()) {
+            constexpr auto maxSize = 128u * 1024u * 1024u;
+            MarkCorruptedIf(size >= maxSize);
+            vector.resize(Good() ? size : 0);
         }
+        return *this;
     }
 
-    virtual void Read(void* data, size_t size) = 0;
-    virtual void Write(const void* data, size_t size) = 0;
+    void MarkCorruptedIf(bool condition)
+    {
+        corrupted_ |= condition;
+    }
+
+    virtual bool Read(void* data, size_t size) = 0;
+    virtual bool Write(const void* data, size_t size) = 0;
 
 private:
-    bool isReading_ = true;
+    bool reader_ = true;
+    bool corrupted_ = false;
 };
 
 // Data archives
@@ -121,19 +146,27 @@ public:
     {}
 
 protected:
-    void Read(void* data, size_t size) override
+    bool Read(void* data, size_t size) override
     {
-        if ((offset_ + size <= data_.size()) && Utils::Move(data, size, data_.data() + offset_, size)) {
+        if (Good() && (offset_ + size <= data_.size()) && Utils::Move(data, size, data_.data() + offset_, size)) {
             offset_ += size;
+            return true;
         }
+        return false;
     }
 
-    void Write(const void* data, size_t size) override
+    bool Write(const void* data, size_t size) override
     {
+        if (!Good() || (size > data_.max_size() - data_.size())) {
+            return false;
+        }
+
         data_.resize(data_.size() + size);
         if (Utils::Move(data_.data() + offset_, size, data, size)) {
             offset_ += size;
+            return true;
         }
+        return false;
     }
 
 protected:
@@ -166,14 +199,14 @@ public:
     }
 
 protected:
-    void Read(void* data, size_t size) override
+    bool Read(void* data, size_t size) override
     {
-        Utils::FileRead(file_, data, size);
+        return Good() && Utils::FileRead(file_, data, size);
     }
 
-    void Write(const void* data, size_t size) override
+    bool Write(const void* data, size_t size) override
     {
-        Utils::FileWrite(file_, data, size);
+        return Good() && Utils::FileWrite(file_, data, size);
     }
 
 protected:
@@ -193,14 +226,14 @@ public:
     {}
 
 protected:
-    void Read(void* data, size_t size) override
+    bool Read(void* data, size_t size) override
     {
-        stream_.read(reinterpret_cast<char*>(data), size);
+        return Good() && !!stream_.read(reinterpret_cast<char*>(data), static_cast<std::streamsize>(size));
     }
 
-    void Write(const void* data, size_t size) override
+    bool Write(const void* data, size_t size) override
     {
-        stream_.write(reinterpret_cast<const char*>(data), size);
+        return Good() && !!stream_.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
     }
 
 private:

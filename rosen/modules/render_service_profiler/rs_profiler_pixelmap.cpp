@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <cstdint>
 #include <message_parcel.h>
 #include <securec.h>
@@ -255,8 +256,8 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
         return false;
     }
 
-    auto surfaceBuffer = SurfaceBuffer::Create();
-    if (!surfaceBuffer) {
+    const auto buffer = SurfaceBuffer::Create();
+    if (!buffer) {
         return false;
     }
 
@@ -267,15 +268,18 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
         .format = image->dmaFormat,
         .usage = image->dmaUsage,
     };
-    surfaceBuffer->Alloc(config);
+    buffer->Alloc(config);
 
-    memory.base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-    if (!CopyImageData(*image, memory.base, surfaceBuffer->GetSize())) {
+    memory.base = static_cast<uint8_t*>(buffer->GetVirAddr());
+    if (!CopyImageData(*image, memory.base, buffer->GetSize())) {
         return false;
     }
-    surfaceBuffer->FlushCache();
+    buffer->FlushCache();
 
-    memory.context = IncrementSurfaceBufferReference(surfaceBuffer);
+    memory.context = buffer.GetRefPtr();
+    if (memory.context) {
+        buffer->IncStrongRef(memory.context);
+    }
     skipBytes = image->parcelSkipBytes;
     return true;
 }
@@ -316,7 +320,7 @@ bool PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const P
 
 bool PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
 {
-    const auto *data = map.GetPixels();
+    const auto data = map.GetPixels();
     const auto size = static_cast<size_t>(map.GetByteCount());
     if (!data || !size) {
         return false;
@@ -564,15 +568,6 @@ void PixelMapStorage::UnmapImage(void* image, size_t size)
     if (IsDataValid(image, size)) {
         ::munmap(image, size);
     }
-}
-
-SurfaceBuffer* PixelMapStorage::IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
-{
-    if (auto object = buffer.GetRefPtr()) {
-        object->IncStrongRef(object);
-        return object;
-    }
-    return nullptr;
 }
 
 bool PixelMapStorage::IsDataValid(const void* data, size_t size)
@@ -909,16 +904,16 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMapNstd(Parcel& parcel,
 
     if (IsPlaybackParcel(parcel)) {
         size_t skipBytes = 0u;
-        if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
+        if (PixelMapStorage::Pull(id, info, memory, skipBytes) && (skipBytes <= parcel.GetReadableBytes())) {
             parcel.SkipBytes(skipBytes);
             return Media::PixelMapRecordParcel::FinishUnmarshalling(map, parcel, info, memory, error);
         }
+        HRPE("UnmarshalPixelMapNstd: Cannot pull image %" PRIu64, id);
     }
 
     const auto parcelPosition = parcel.GetReadPosition();
     if (map && !Media::PixelMapRecordParcel::ReadMemInfoFromParcel(parcel, memory, error, readSafeFdFunc)) {
         delete map;
-        map = nullptr;
         return nullptr;
     }
 
@@ -966,16 +961,16 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
 
     if (IsPlaybackParcel(parcel)) {
         size_t skipBytes = 0u;
-        if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
+        if (PixelMapStorage::Pull(id, info, memory, skipBytes) && (skipBytes <= parcel.GetReadableBytes())) {
             parcel.SkipBytes(skipBytes);
             return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
         }
+        HRPE("UnmarshalPixelMap: Cannot pull image %" PRIu64, id);
     }
 
     const auto parcelPosition = parcel.GetReadPosition();
     if (map && !PixelMap::ReadMemInfoFromParcel(parcel, info, memory, error, readSafeFdFunc)) {
         delete map;
-        map = nullptr;
         return nullptr;
     }
 
@@ -985,13 +980,13 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
         }
     }
 
-    auto retPixelMap = PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
-    if (retPixelMap && (IsWriteMode() || IsWriteEmulationMode()) && retPixelMap->IsYuvFormat()) {
+    map = PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+    if (map && (IsWriteMode() || IsWriteEmulationMode()) && map->IsYuvFormat()) {
         Media::YUVDataInfo yuvInfo;
-        retPixelMap->GetImageYUVInfo(yuvInfo);
+        map->GetImageYUVInfo(yuvInfo);
         LogYUVDataInfo(id, yuvInfo);
     }
-    return retPixelMap;
+    return map;
 }
 
 void RSProfiler::LogYUVDataInfo(uint64_t id, const Media::YUVDataInfo& yuvInfo)
@@ -1016,7 +1011,7 @@ void RSProfiler::LogYUVDataInfo(uint64_t id, const Media::YUVDataInfo& yuvInfo)
     json["uvOffset"] = yuvInfo.uvOffset;
     json.PopObject();
 
-    RSProfiler::SendRSLogBase(RSProfilerLogType::PIXELMAP_YUV, json.GetDumpString());
+    SendRSLogBase(RSProfilerLogType::PIXELMAP_YUV, json.GetDumpString());
 }
 
 } // namespace OHOS::Rosen

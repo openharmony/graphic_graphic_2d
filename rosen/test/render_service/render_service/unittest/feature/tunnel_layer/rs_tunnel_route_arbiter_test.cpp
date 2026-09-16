@@ -59,9 +59,13 @@ void ActivateTunnelRuntime(RSTunnelRuntimeState& tunnelRuntime)
 
 void ClearUiCaptureTasks(RSMainThread& mainThread)
 {
-    mainThread.pendingUiCaptureTasks_.clear();
-    while (!mainThread.uiCaptureTasks_.empty()) {
-        mainThread.uiCaptureTasks_.pop();
+    mainThread.pendingNonSystemUiCaptureTasks_.clear();
+    while (!mainThread.nonSystemUiCaptureTasks_.empty()) {
+        mainThread.nonSystemUiCaptureTasks_.pop();
+    }
+    mainThread.pendingSystemUiCaptureTasks_.clear();
+    while (!mainThread.systemUiCaptureTasks_.empty()) {
+        mainThread.systemUiCaptureTasks_.pop();
     }
 }
 
@@ -583,7 +587,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
     mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
-    mainThread->AddUiCaptureTask(node->GetId(), []() {});
+    mainThread->AddUiCaptureTask(node->GetId(), false, []() {});
     ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
 
     const char* cause = RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread);

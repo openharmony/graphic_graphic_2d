@@ -67,6 +67,11 @@ public:
         return false;
     }
 
+    virtual bool FlushCachedProperty()
+    {
+        return false;
+    }
+
     void ResetRSNodeExtendModifierDirty()
     {
         if (auto node = node_.lock()) {
@@ -90,6 +95,7 @@ protected:
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const;
     virtual void UpdateToRender() {}
     virtual void MarkNodeDirty() {}
+    virtual void OnDetachProperty(PropertyId id) {}
 
     void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
 

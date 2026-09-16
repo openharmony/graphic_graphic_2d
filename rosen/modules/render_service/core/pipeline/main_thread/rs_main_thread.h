@@ -51,6 +51,7 @@
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
+#include "feature/selective_prepare/rs_selective_prepare_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -229,7 +230,7 @@ public:
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ReleaseImageMem();
 
-    void AddUiCaptureTask(NodeId id, std::function<void()> task);
+    void AddUiCaptureTask(NodeId id, bool isSystemCalling, std::function<void()> task);
     void AddSyncWindowCaptureTask(NodeId id, std::function<void()> task);
     void ProcessSyncCaptureTasks();
 
@@ -844,7 +845,6 @@ private:
 #ifdef RS_ENABLE_GPU
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
 
     // Enable HWCompose
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
@@ -898,9 +898,11 @@ private:
     // used for watermark
     std::mutex watermarkMutex_;
 
-    // for ui captures (UICAPTURE type, isSync)
-    std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
-    std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for ui captures (UICAPTURE type, isSync); split by caller identity to apply separate in-flight limits
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingNonSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> nonSystemUiCaptureTasks_;
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> systemUiCaptureTasks_;
     // for sync window captures (DEFAULT_CAPTURE type, isSync)
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingSyncWindowCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> syncWindowCaptureTasks_;
@@ -942,6 +944,7 @@ private:
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
     std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
+    std::unique_ptr<RSSelectivePrepareManager> selectivePrepareManager_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool isWebCommandOnly_ = false;

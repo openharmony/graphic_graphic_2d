@@ -5050,21 +5050,21 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     auto task = []() {};
 
     mainThread->ProcessSyncCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->AddUiCaptureTask(node2->GetId(), task);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+    mainThread->AddUiCaptureTask(node1->GetId(), false, task);
+    mainThread->AddUiCaptureTask(node2->GetId(), false, task);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), true);
 
     mainThread->PrepareSyncCaptureTasks(nullptr);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), false);
 
     mainThread->ProcessSyncCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
 }
@@ -5085,25 +5085,65 @@ HWTEST_F(RSMainThreadTest, AddUiCaptureTasksTest, TestSize.Level2)
     auto task = []() {};
 
     mainThread->ProcessSyncCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->AddUiCaptureTask(node2->GetId(), task);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+    mainThread->AddUiCaptureTask(node1->GetId(), false, task);
+    mainThread->AddUiCaptureTask(node2->GetId(), false, task);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), true);
 
     node1->SetDirty();
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
+    mainThread->AddUiCaptureTask(node1->GetId(), false, task);
     mainThread->PrepareSyncCaptureTasks(nullptr);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), false);
 
     mainThread->ProcessSyncCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), true);
 
     mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
+}
+
+/**
+ * @tc.name: AddUiCaptureTaskSystemRoutingTest
+ * @tc.desc: test AddUiCaptureTask routes system/non-system tasks to separate queues
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddUiCaptureTaskSystemRoutingTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node1 = RSTestUtil::CreateSurfaceNode();
+    auto node2 = RSTestUtil::CreateSurfaceNode();
+    auto task = []() {};
+
+    mainThread->ProcessSyncCaptureTasks();
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingSystemUiCaptureTasks_.empty(), true);
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node1);
+    mainThread->context_->nodeMap.RegisterRenderNode(node2);
+    mainThread->AddUiCaptureTask(node1->GetId(), false, task);
+    mainThread->AddUiCaptureTask(node2->GetId(), true, task);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->pendingSystemUiCaptureTasks_.empty(), false);
+
+    mainThread->PrepareSyncCaptureTasks(nullptr);
+    ASSERT_EQ(mainThread->pendingNonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->pendingSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->systemUiCaptureTasks_.empty(), false);
+
+    mainThread->ProcessSyncCaptureTasks();
+    ASSERT_EQ(mainThread->nonSystemUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->systemUiCaptureTasks_.empty(), true);
+
+    mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
+    mainThread->context_->nodeMap.UnregisterRenderNode(node2->GetId());
 }
 
 /**
@@ -6835,7 +6875,7 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     // case 1
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     node->isOnTheTree_ = false;
-    mainThread->AddUiCaptureTask(id, task);
+    mainThread->AddUiCaptureTask(id, false, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
     mainThread->PrepareSyncCaptureTasks(nullptr);
     mainThread->ProcessSyncCaptureTasks();
@@ -6843,7 +6883,7 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     // case 2
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
     node->isOnTheTree_ = false;
-    mainThread->AddUiCaptureTask(id, task);
+    mainThread->AddUiCaptureTask(id, false, task);
     EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
     mainThread->PrepareSyncCaptureTasks(nullptr);
     mainThread->ProcessSyncCaptureTasks();
@@ -6852,7 +6892,7 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     // case 3
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
     node->isOnTheTree_ = true;
-    mainThread->AddUiCaptureTask(id, task);
+    mainThread->AddUiCaptureTask(id, false, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
     mainThread->PrepareSyncCaptureTasks(nullptr);
     mainThread->ProcessSyncCaptureTasks();
@@ -6860,7 +6900,7 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     // case 4
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     node->isOnTheTree_ = true;
-    mainThread->AddUiCaptureTask(id, task);
+    mainThread->AddUiCaptureTask(id, false, task);
     EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
     mainThread->PrepareSyncCaptureTasks(nullptr);
     mainThread->ProcessSyncCaptureTasks();

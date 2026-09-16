@@ -46,6 +46,7 @@ enum class RSLayerCmdType : uint16_t {
     TYPE,
     TRANSFORM,
     COMPOSITION_TYPE,
+    ALPHA_TYPE,
     VISIBLE_REGIONS,
     DIRTY_REGIONS,
     BLEND_TYPE,
