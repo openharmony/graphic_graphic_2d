@@ -301,7 +301,8 @@ std::shared_ptr<RSNGFilterBase> ConvertHaloBloomFilterPara(std::shared_ptr<Filte
 std::shared_ptr<RSNGFilterBase> ConvertMapColorByBrightnessPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
-    if (filter == nullptr || filterPara == nullptr) {
+    bool isInvalid = (filter == nullptr || filterPara == nullptr);
+    if (isInvalid) {
         return nullptr;
     }
     auto mapColorByBrightnessFilter = std::static_pointer_cast<RSNGMapColorByBrightnessFilter>(filter);

@@ -1855,13 +1855,6 @@ bool FilterNapi::GetMapColorByBrightnessArray(napi_env env, napi_value* argValue
 
 napi_value FilterNapi::SetMapColorByBrightness(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetMapColorByBrightness failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi mapColorByBrightness failed, is not system app");
-        return nullptr;
-    }
-
     constexpr size_t requireArgc = NUM_2;
     size_t argCount = requireArgc;
     napi_status status;

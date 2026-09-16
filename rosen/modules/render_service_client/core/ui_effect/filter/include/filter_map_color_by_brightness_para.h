@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "filter_para.h"
-
 #include "common/rs_vector4.h"
 
 namespace OHOS {
