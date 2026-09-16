@@ -757,7 +757,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
-    EXPECT_EQ(nullptr, hgm.GetPolicyConfigData());
+    ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
 
     EventInfo eventInfo = {
         .eventName = "VOTER_GAMES",
@@ -1059,6 +1059,26 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO001, Function | SmallT
     hgmCore.SetPendingScreenRefreshRate(OLED_60_HZ);
     frameRateMgr->currRefreshRate_ = OLED_60_HZ;
     energyPolicy.SetRsFrameRateControlEnabled(false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, true, false);
+    EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: HandleFrameRateChangeForLTPO002
+ * @tc.desc: Test HandleFrameRateChangeForLTPO when RS frame rate control is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO002, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    hgmCore.SetPendingScreenRefreshRate(OLED_60_HZ);
+    frameRateMgr->currRefreshRate_ = OLED_60_HZ;
+    energyPolicy.SetRsFrameRateControlEnabled(true);
     frameRateMgr->HandleFrameRateChangeForLTPO(0, true, false);
     EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
     energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
@@ -2686,6 +2706,24 @@ HWTEST_F(HgmFrameRateMgrTest, CalcRefreshRateForLtpoVote001, Function | SmallTes
 }
 
 /**
+ * @tc.name: CalcRefreshRateForLtpoVote002
+ * @tc.desc: Test CalcRefreshRateForLtpoVote when preferred rate is greater than LTPO vote min rate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CalcRefreshRateForLtpoVote002, Function | SmallTest | Level0)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    energyPolicy.SetRsFrameRateControlEnabled(true);
+    FrameRateRange range;
+    range.Set(OLED_60_HZ, OLED_60_HZ, OLED_60_HZ);
+    EXPECT_EQ(frameRateMgr->CalcRefreshRateForLtpoVote(0, range), frameRateMgr->CalcRefreshRate(0, range));
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
  * @tc.name: MarkVoteChangeRsFrameRateChanged
  * @tc.desc: Test MarkVoteChange when rsFrameRateLinker is not null and rsFrameRateChanged is true
  * @tc.type: FUNC
@@ -2822,6 +2860,115 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouch, Function 
     uint32_t refreshRate = mgr.CalcRefreshRate(mgr.curScreenId_.load(), finalRange);
     mgr.currRefreshRate_.store(refreshRate);
     mgr.lastVoteInfo_ = VoteInfo();
+    mgr.changeGeneratorRateValid_.store(false);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    EXPECT_EQ(mgr.currRefreshRate_.load(), refreshRate);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: MarkVoteChangeRsControlEnabledWithoutLinker
+ * @tc.desc: Test MarkVoteChange when RS frame rate control is enabled but RS linker is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsControlEnabledWithoutLinker, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    energyPolicy.SetRsFrameRateControlEnabled(true);
+    mgr.rsFrameRateLinker_ = nullptr;
+    mgr.voterTouchEffective_ = true;
+    mgr.changeGeneratorRateValid_.store(false);
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    EXPECT_EQ(mgr.rsFrameRateLinker_, nullptr);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: MarkVoteChangeRefreshRateNotEqualIsolated
+ * @tc.desc: Test MarkVoteChange when refresh rate is different from current refresh rate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRefreshRateNotEqualIsolated,
+    Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    energyPolicy.SetRsFrameRateControlEnabled(false);
+    mgr.voterTouchEffective_ = false;
+    mgr.isAmbientStatus_ = LightFactorStatus::LOW_LEVEL;
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    mgr.currRefreshRate_.store(1);
+    mgr.changeGeneratorRateValid_.store(false);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    EXPECT_EQ(mgr.currRefreshRate_.load(), 1);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: MarkVoteChangeSameRateWithTouchEffective
+ * @tc.desc: Test MarkVoteChange when refresh rate is unchanged and touch is effective
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeSameRateWithTouchEffective, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    energyPolicy.SetRsFrameRateControlEnabled(false);
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    VoteInfo resultVoteInfo = mgr.ProcessRefreshRateVote();
+    FrameRateRange finalRange = {
+        resultVoteInfo.max,
+        resultVoteInfo.max,
+        resultVoteInfo.max
+    };
+    uint32_t refreshRate = mgr.CalcRefreshRate(mgr.curScreenId_.load(), finalRange);
+    refreshRate = mgr.dimmingManager_.CalcDimmingRefreshRate(refreshRate);
+    mgr.currRefreshRate_.store(refreshRate);
+    mgr.voterTouchEffective_ = true;
+    mgr.changeGeneratorRateValid_.store(false);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    EXPECT_EQ(mgr.currRefreshRate_.load(), refreshRate);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: MarkVoteChangeRsFrameRateChangedNoTouchIsolated
+ * @tc.desc: Test MarkVoteChange when only RS frame rate is changed without touch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouchIsolated, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    energyPolicy.SetRsFrameRateControlEnabled(true);
+    mgr.voterTouchEffective_ = false;
+    mgr.isAmbientStatus_ = LightFactorStatus::LOW_LEVEL;
+    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(mgr.rsFrameRateLinker_, nullptr);
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
+    VoteInfo resultVoteInfo = mgr.ProcessRefreshRateVote();
+    FrameRateRange finalRange = {
+        resultVoteInfo.max,
+        resultVoteInfo.max,
+        resultVoteInfo.max
+    };
+    uint32_t refreshRate = mgr.CalcRefreshRate(mgr.curScreenId_.load(), finalRange);
+    refreshRate = mgr.dimmingManager_.CalcDimmingRefreshRate(refreshRate);
+    mgr.currRefreshRate_.store(refreshRate);
+    mgr.softVSyncManager_.rsFrameRate_ = OLED_60_HZ;
+    ASSERT_TRUE(mgr.softVSyncManager_.CheckRsFrameRateChange(finalRange, refreshRate));
+    mgr.lastVoteInfo_ = resultVoteInfo;
+    mgr.isAmbientStatus_ = LightFactorStatus::LOW_LEVEL;
     mgr.changeGeneratorRateValid_.store(false);
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.currRefreshRate_.load(), refreshRate);
