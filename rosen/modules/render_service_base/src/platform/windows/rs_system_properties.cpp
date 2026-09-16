@@ -794,11 +794,6 @@ bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
     return false;
 }
 
-bool RSSystemProperties::IsSelectivePrepareOptEnabled()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     return {};
