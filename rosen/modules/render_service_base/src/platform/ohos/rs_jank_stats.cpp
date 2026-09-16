@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#define HISYSEVENT_PERIOD 5
+#define HISYSEVENT_THRESHOLD 2100
+#endif
+
 #include "platform/ohos/rs_jank_stats.h"
 
 #include <algorithm>
