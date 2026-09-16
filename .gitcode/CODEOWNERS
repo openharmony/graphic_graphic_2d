@@ -21,6 +21,12 @@ interfaces/kits/napi/graphic/drawing/ @wanyanglan
 rosen/modules/render_service_client/core/transaction/rs_interfaces.h @liuchao-huawei
 rosen/modules/render_service_client/core/transaction/rs_interfaces.cpp @liuchao-huawei
 
+[pipeline]
+rosen/modules/render_service/ @lipeng123s
+rosen/modules/render_service/core/ @lipeng123s
+rosen/modules/render_service/core/pipeline/ @lipeng123s
+rosen/test/render_service/ @lipeng123s
+
 [display-effect]
 rosen/modules/render_service_client/core/ui/ @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/ui/rs_ui_context_manager.cpp @white-dragon-tiger
@@ -212,13 +218,9 @@ rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.h @l
 [pipeline]
 graphic_test/test/rs_framework/uni_render/ @lipeng123s
 graphic_test/test/rs_perform_feature/ @lipeng123s
-rosen/modules/render_service/ @lipeng123s
-rosen/modules/render_service/core/ @lipeng123s
-rosen/modules/render_service/core/pipeline/ @lipeng123s
 rosen/modules/render_service/core/pipeline/render_thread/ @lipeng123s
 rosen/modules/render_service/core/system/ @lipeng123s
 rosen/modules/render_service_client/test/systemtest/ @lipeng123s
-rosen/test/render_service/ @lipeng123s
 rosen/test/render_service/render_service/fuzztest/ @lipeng123s
 rosen/test/render_service/render_service/systemtest/ @lipeng123s
 rosen/test/render_service/render_service/unittest/ @lipeng123s
