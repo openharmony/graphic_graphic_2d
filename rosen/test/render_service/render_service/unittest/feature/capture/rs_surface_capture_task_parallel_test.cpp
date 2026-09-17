@@ -904,8 +904,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks008, TestSize.Leve
 
     mainThread->CheckWindowCapTasks();
 
-    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
-    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
     mainThread->pendingWindowCapTasks_.clear();
     mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
     mainThread->context_->nodeMap.renderNodeMap_[pid].clear();

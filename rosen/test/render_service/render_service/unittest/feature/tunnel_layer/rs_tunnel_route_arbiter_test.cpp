@@ -599,6 +599,34 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 }
 
 /**
+ * @tc.name: IsSnapshotPendingThisFrame_WindowCapTask_Pending
+ * @tc.desc: When a windowCap task is pending, IsSnapshotPendingThisFrame becomes true
+ *           and ComputeGlobalForbiddenCause reports SCREENSHOT_ACTIVE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    IsSnapshotPendingThisFrame_WindowCapTask_Pending, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ClearUiCaptureTasks(*mainThread);
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    ASSERT_FALSE(mainThread->IsSnapshotPendingThisFrame());
+
+    std::function<void()> task = []() {};
+    mainThread->pendingWindowCapTasks_.emplace_back(1, task, 0, 0, false);
+    ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
+
+    const char* cause = RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread);
+    ASSERT_NE(cause, nullptr);
+    EXPECT_STREQ(cause, "SCREENSHOT_ACTIVE");
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+}
+
+/**
  * @tc.name: ComputeGlobalForbiddenCause_ReturnsVirtualScreenActive_ForNonMirrorVirtualScreen
  * @tc.desc: A non-mirror virtual screen is a global normal-route trigger.
  * @tc.type: FUNC

@@ -7036,6 +7036,7 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask001, TestSize.Level1)
     ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
     auto& item = mainThread->pendingWindowCapTasks_[0];
     ASSERT_EQ(std::get<0>(item), nodeId);
+    EXPECT_EQ(std::get<3>(item), mainThread->vsyncId_);
     mainThread->pendingWindowCapTasks_.clear();
 }
 
@@ -7058,6 +7059,32 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask002, TestSize.Level1)
     mainThread->AddWindowCapTask(nodeId, task);
 
     ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: AddWindowCapTask003
+ * @tc.desc: Test AddWindowCapTask records vsyncId_ as startVsyncId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddWindowCapTask003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    uint64_t savedVsyncId = mainThread->vsyncId_;
+    constexpr uint64_t testVsyncId = 100;
+    mainThread->vsyncId_ = testVsyncId;
+    NodeId nodeId = 1;
+    std::function<void()> task = []() {};
+
+    mainThread->AddWindowCapTask(nodeId, task);
+
+    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    EXPECT_EQ(std::get<3>(mainThread->pendingWindowCapTasks_[0]), testVsyncId);
+    mainThread->vsyncId_ = savedVsyncId;
     mainThread->pendingWindowCapTasks_.clear();
 }
 
@@ -7306,7 +7333,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
 
 /**
  * @tc.name: CheckWindowCapTasks008
- * @tc.desc: Test CheckWindowCapTasks when node is in FOREGROUND state and stays in pending
+ * @tc.desc: Test CheckWindowCapTasks when node is in FOREGROUND state, proceeds to cache check
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -7336,11 +7363,86 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
 
     mainThread->CheckWindowCapTasks();
 
-    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
-    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
     mainThread->pendingWindowCapTasks_.clear();
     mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
     mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks009
+ * @tc.desc: Test IsSnapshotPendingThisFrame with pendingWindowCapTasks_ and windowCapTasks_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckWindowCapTasks009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    ASSERT_FALSE(mainThread->IsSnapshotPendingThisFrame());
+
+    NodeId nodeId = 1;
+    std::function<void()> task = []() {};
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, 0, 0, false);
+    ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_.emplace(nodeId, task);
+    ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+}
+
+/**
+ * @tc.name: UniRender_WindowCapPendingBlocksDirectComposition
+ * @tc.desc: Test pendingWindowCapTasks_ blocks willGoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UniRender_WindowCapPendingBlocksDirectComposition, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+
+    auto savedDoDirect = mainThread->doDirectComposition_;
+    auto savedIsDirty = mainThread->isDirty_.load();
+    auto savedIsAccessibility = mainThread->isAccessibilityConfigChanged_;
+    auto savedIsCached = mainThread->isCachedSurfaceUpdated_;
+    auto savedRenderParams = std::move(mainThread->renderThreadParams_);
+    auto savedHardwareBufferUpdatedScreens = mainThread->hardwareBufferUpdatedScreens_;
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto rootNode = rsContext->GetGlobalRootRenderNode();
+    rootNode->InitRenderParams();
+
+    mainThread->doDirectComposition_ = true;
+    mainThread->isDirty_ = false;
+    mainThread->isAccessibilityConfigChanged_ = false;
+    mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    std::function<void()> task = []() {};
+    mainThread->pendingWindowCapTasks_.emplace_back(1, task, 0, 0, false);
+    mainThread->UniRender(rootNode);
+    EXPECT_FALSE(mainThread->doDirectComposition_);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->doDirectComposition_ = savedDoDirect;
+    mainThread->isDirty_.store(savedIsDirty);
+    mainThread->isAccessibilityConfigChanged_ = savedIsAccessibility;
+    mainThread->isCachedSurfaceUpdated_ = savedIsCached;
+    mainThread->hardwareBufferUpdatedScreens_ = savedHardwareBufferUpdatedScreens;
+    mainThread->renderThreadParams_ = std::move(savedRenderParams);
 }
 
 /**
