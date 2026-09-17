@@ -48,10 +48,19 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
     RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
 
     bool ret = false;
+    // register before reclaiming, so the record in bufferReclaimNumsSet_ is always cleaned up on destruction
+    if (!buffer->RegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
+        // without the callback this record is never removed, and the records left behind would eventually
+        // make CheckBufferReclaim fail for every buffer
+        RS_LOGE("DoBufferReclaim: register destructor callback failed");
+        bufferReclaimNumsSet_.erase(buffer->GetBufferId());
+        return false;
+    }
     if (buffer->TryReclaim() == GSERROR_OK) {
-        buffer->RegisterBufferDestructorCallback(&RSBufferReclaim::BufferDestructorCallback);
         ret = true;
     } else {
+        // reclaim failed, drop the callback to keep it consistent with bufferReclaimNumsSet_
+        buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback);
         bufferReclaimNumsSet_.erase(buffer->GetBufferId());
     }
     return ret;
@@ -70,7 +79,11 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
     RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
     bool ret = false;
     if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
-        buffer->UnRegisterBufferDestructorCallback();
+        if (!buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
+            // DoBufferReclaim only keeps the record after a successful registration, so reaching here means
+            // the callback was registered; a false here is unexpected and only kept as a defensive warning.
+            RS_LOGW("DoBufferResume: destructor callback is not registered");
+        }
         ret = true;
     } else {
         bufferReclaimNumsSet_.insert(buffer->GetBufferId());

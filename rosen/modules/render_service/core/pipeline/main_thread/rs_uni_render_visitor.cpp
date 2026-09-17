@@ -2660,7 +2660,8 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
-        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && node.IsRosenWeb()) {
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() &&
+            (node.IsRosenWeb() || node.GetDelegateMode())) {
             node.GetRSSurfaceHandler()->TryResumeLastBuffer();
         }
     }
