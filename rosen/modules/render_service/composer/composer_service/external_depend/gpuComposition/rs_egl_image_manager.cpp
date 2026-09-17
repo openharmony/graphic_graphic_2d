@@ -258,8 +258,13 @@ GLuint RSEglImageManager::CreateEglImageCacheFromBuffer(const sptr<OHOS::Surface
     {
         std::lock_guard<std::mutex> lock(opMutex_);
         imageCacheSeqs_[bufferId] = std::move(imageCache);
+        if (!isUniRender_) {
+            cacheQueue_.push(bufferId);
+        }
+        RS_TRACE_NAME_FMT("create EglImage: cacheQueueSize=%zu, isUniRender=%d, imageCacheSeqsSize=%zu, "
+            "bufferId=%" PRIu64 ", bufferSeqNum=%u",
+            cacheQueue_.size(), isUniRender_, imageCacheSeqs_.size(), bufferId, buffer->GetSeqNum());
     }
-    cacheQueue_.push(bufferId);
     return textureId;
 }
 
@@ -279,6 +284,8 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
         std::lock_guard<std::mutex> lock(opMutex_);
         isImageCacheNotFound = imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr;
         if (!isImageCacheNotFound) {
+            RS_TRACE_NAME_FMT("find cache EglImage, bufferId=%" PRIu64 ", (bufferSeqNum=%u)",
+                bufferId, buffer->GetSeqNum());
             const auto& imageCache = imageCacheSeqs_[bufferId];
             return imageCache->GetTextureId();
         }
@@ -289,14 +296,32 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
 
 void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
-    while (cacheQueue_.size() > MAX_CACHE_SIZE) {
-        const uint64_t id = cacheQueue_.front();
-        if (isForUniRedraw) {
-            UnMapEglImageFromSurfaceBufferForUniRedraw(id);
-        } else {
-            UnMapImageFromSurfaceBuffer(id);
+    uint64_t id = 0;
+    size_t cacheQueueSize = 0;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        cacheQueueSize = cacheQueue_.size();
+    }
+    while (cacheQueueSize > MAX_CACHE_SIZE) {
+        std::unique_ptr<EglImageResource> resource = nullptr;
+        pid_t threadIndex = 0;
+        {
+            std::lock_guard<std::mutex> lock(opMutex_);
+            if (cacheQueue_.empty()) {
+                break;
+            }
+            id = cacheQueue_.front();
+            cacheQueue_.pop();
+            if (isForUniRedraw) {
+                UnMapEglImageFromSurfaceBufferForUniRedrawLock(id);
+            } else {
+                resource = FindUnMapImageBySeqNumLocked(id, threadIndex);
+            }
+            cacheQueueSize = cacheQueue_.size();
         }
-        cacheQueue_.pop();
+        if (resource) {
+            DispatchUnMapImageTaskByThreadIndex(id, threadIndex, std::move(resource));
+        }
     }
 }
 
@@ -306,30 +331,54 @@ void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
     pid_t threadIndex = 0;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
-        auto iter = imageCacheSeqs_.find(seqNum);
-        if (iter == imageCacheSeqs_.end() || !iter->second) {
-            return;
-        }
-        threadIndex = iter->second->GetThreadIndex();
-        resource = std::move(iter->second);
-        imageCacheSeqs_.erase(iter);
+        resource = FindUnMapImageBySeqNumLocked(seqNum, threadIndex);
     }
+    if (resource) {
+        DispatchUnMapImageTaskByThreadIndex(seqNum, threadIndex, std::move(resource));
+    }
+}
+
+std::unique_ptr<EglImageResource> RSEglImageManager::FindUnMapImageBySeqNumLocked(uint64_t bufferId, pid_t& threadIndex)
+{
+    std::unique_ptr<EglImageResource> resource;
+    auto iter = imageCacheSeqs_.find(bufferId);
+    if (iter == imageCacheSeqs_.end() || !iter->second) {
+        return nullptr;
+    }
+    threadIndex = iter->second->GetThreadIndex();
+    resource = std::move(iter->second);
+    imageCacheSeqs_.erase(iter);
+    RS_TRACE_NAME_FMT("FindUnMapImageBySeqNumLocked: cacheQueueSize=%zu, isUniRender=%d, "
+        "imageCacheSeqsSize=%zu, bufferId=%" PRIu64 "",
+        cacheQueue_.size(), isUniRender_, imageCacheSeqs_.size(), bufferId);
+    return resource;
+}
+
+void RSEglImageManager::DispatchUnMapImageTaskByThreadIndex(uint64_t bufferId,
+    pid_t threadIndex, std::unique_ptr<EglImageResource> resource)
+{
     auto resourceHolder = std::make_shared<std::unique_ptr<EglImageResource>>(std::move(resource));
-    auto func = [resourceHolder = std::move(resourceHolder), seqNum]() mutable {
+    auto func = [resourceHolder = std::move(resourceHolder), bufferId]() mutable {
+        RS_TRACE_NAME_FMT("UnmapEglImage bufferId: %" PRIu64 "", bufferId);
         resourceHolder->reset();
-        RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", seqNum);
-        RS_LOGD_IF(DEBUG_COMPOSER, "RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", seqNum);
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", bufferId);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
 }
 
-void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqNum)
+void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t bufferId)
 {
     std::lock_guard<std::mutex> lock(opMutex_);
-    if (imageCacheSeqs_.count(seqNum) == 0) {
+    UnMapEglImageFromSurfaceBufferForUniRedrawLock(bufferId);
+}
+
+void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedrawLock(uint64_t bufferId)
+{
+    if (imageCacheSeqs_.count(bufferId) == 0) {
         return;
     }
-    (void)imageCacheSeqs_.erase(seqNum);
+    RS_TRACE_NAME_FMT("UnmapEglImageForUniRedraw bufferId: %" PRIu64 "", bufferId);
+    (void)imageCacheSeqs_.erase(bufferId);
     RS_LOGD_IF(DEBUG_COMPOSER, "RSEglImageManager::UnMapEglImageFromSurfaceBufferForRedraw");
 }
 
