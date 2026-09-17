@@ -146,6 +146,12 @@
 | Quick Reject 产生、同步、清理或重建 | 先读 `dirty-region.md`；消费结果改变时再读 `occlusion-culling.md` |
 | visible dirty 求交、cross、Offscreen 或 Surface 误裁剪 | `occlusion-culling.md`、`dirty-region.md` |
 | damage、Buffer Age 或历史脏区 | `dirty-region.md`；不必默认读取遮挡文档 |
+| 离屏脏区裁剪优化（HDR/ScRGB/旋转/SLR 交叉） | `dirty-region.md`、`hdr.md` |
+| 模糊×圆角组合、效果 API 离屏接口升级 | `rs-ui-effect.md`、`napi-cj-ani-taihe.md` |
+| 公开属性组合场景规格（合成方式×buffer 格式） | `napi-cj-ani-taihe.md` |
+| 插帧方案泛化性扩展、异常分支退出 | `frame-stability-module.md` |
+| GPU 内存查杀拦截、Pid 0 特殊值防呆 | `buffer-reclaim.md` |
+| 截屏录屏与内存查杀交叉影响 | `capture.md`、`buffer-reclaim.md` |
 
 ## 知识文档沉淀规则
 
