@@ -94,12 +94,14 @@ void RSModifiersDrawThread::PostSyncTask(const std::function<void()>& task)
 }
 
 void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,
-    std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
+    std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData>& transactionData,
     std::atomic<uint32_t>& transactionDataIndex)
 {
-    std::vector<RSTransactionConfig> transactionConfigList;
-    canvasModifiersDrawAgent->SwapTransactionConfigList(transactionConfigList);
-    modifiersDraw_->ConvertTransaction(transactionData, transactionConfigList);
+    if (canvasModifiersDrawAgent != nullptr) {
+        std::vector<RSTransactionConfig> transactionConfigList;
+        canvasModifiersDrawAgent->SwapTransactionConfigList(transactionConfigList);
+        modifiersDraw_->ConvertTransaction(transactionData, transactionConfigList);
+    }
     renderPiplineClient->CommitTransaction(transactionData);
     transactionDataIndex.store(transactionData->GetIndex(), std::memory_order_relaxed);
 }

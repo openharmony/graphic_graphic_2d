@@ -78,8 +78,10 @@ HWTEST_F(RSModifiersDrawThreadTest, CommitTransaction_Basic001, TestSize.Level1)
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
     std::atomic<uint32_t> transactionDataIndex = 0;
-    thread->CommitTransaction(
-        canvasModifiersDrawAgent, renderPipelineClient, std::move(transactionData), transactionDataIndex);
+    thread->CommitTransaction(canvasModifiersDrawAgent, renderPipelineClient, transactionData, transactionDataIndex);
+    EXPECT_EQ(transactionDataIndex.load(), 0);
+    thread->CommitTransaction(nullptr, renderPipelineClient, transactionData, transactionDataIndex);
+    EXPECT_EQ(transactionDataIndex.load(), 0);
 }
 
 HWTEST_F(RSModifiersDrawThreadTest, ScheduleTask_Basic001, TestSize.Level1)

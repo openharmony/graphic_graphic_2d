@@ -79,8 +79,8 @@ private:
     }
 
     void CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,
-        std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
-        std::atomic<uint32_t>& transactionDataIndex);
+        std::shared_ptr<RSRenderPipelineClient> renderPiplineClient,
+        std::unique_ptr<RSTransactionData>& transactionData, std::atomic<uint32_t>& transactionDataIndex);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
