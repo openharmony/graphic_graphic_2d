@@ -448,3 +448,23 @@ rosen/modules/render_service_client/core/modifier_ng/appearance/rs_spatial_effec
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_spatial_effect_modifier.cpp @chuandalijie
 rosen/modules/render_service_client/core/ui/rs_depth_node.h @chuandalijie
 rosen/modules/render_service_client/core/ui/rs_depth_node.cpp @chuandalijie
+
+[animation_test]
+rosen/test/render_service/render_service_client/unittest/animation/ @wang-luyu4
+rosen/test/render_service/render_service_base/unittest/animation/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationbase_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationcurve_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationfraction_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationfractionstandard_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationinterpolator_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationkeyframe_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationmarshalling_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationpath_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationratedecider_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationratedeciderstandard_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationspring_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsanimationtransition_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsrenderanimation_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsrenderinteractiveimplictanimator_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/fuzztest/rsrenderpropertyanimation_fuzzer/ @wang-luyu4
+rosen/test/render_service/render_service_base/unittest/command/rs_animation_command_test.cpp @wang-luyu4
