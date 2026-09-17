@@ -27,6 +27,7 @@ void LayerSkipContext::SyncFrom(const RSDynamicLayerSkipController& srcControlle
     virtualScreenLayerInvalid_ = srcController.virtualScreenLayerInvalid_;
     relevantSurfaceNodeIds_.clear();
     virtualRelevantSurfaceNodeIds_.clear();
+    rootLeashPersistId_ = INVALID_LEASH_PERSISTENTID;
     std::for_each(
         srcController.targetSelfDrawingSurface_.begin(), srcController.targetSelfDrawingSurface_.end(),
         [this](const auto& surface) {
@@ -39,6 +40,10 @@ void LayerSkipContext::SyncFrom(const RSDynamicLayerSkipController& srcControlle
         [this](const auto& surface) {
             if (auto surfacePtr = surface.lock()) {
                 virtualRelevantSurfaceNodeIds_.push_back(surfacePtr->GetId());
+                auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    surfacePtr->GetFirstLevelNode());
+                rootLeashPersistId_ =
+                    firstLevelNode != nullptr ? firstLevelNode->GetLeashPersistentId() : INVALID_LEASH_PERSISTENTID;
             }
         });
 }
@@ -283,7 +288,7 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
     if (!isValidTargetApp) {
         targetSelfDrawingSurface_.clear();
     }
-    if (!isVirtualValidTargetApp) {
+    if (!isVirtualValidTargetApp || virtualTargetSelfDrawingSurface_.size() > 1) {
         virtualTargetSelfDrawingSurface_.clear();
     }
 }
