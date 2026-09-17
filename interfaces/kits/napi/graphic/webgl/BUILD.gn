@@ -44,7 +44,6 @@ ohos_source_set("webgl_src") {
     "ipc:ipc_single",
     "opengles:libGLES",
     "node:node_header_notice",
-    
   ]
 
   if (rs_enable_gpu) {
