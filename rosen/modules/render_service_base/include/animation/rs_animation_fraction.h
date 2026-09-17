@@ -42,14 +42,18 @@ public:
     /**
      * @brief Normalize the animation time percentage into a fraction
      * @param time Vsync time
-     * @return tuple<fraction, isInStartDelay, isFinished, isRepeatFinished>
+     * @return tuple<fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished>
      */
-    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime, bool isCustom);
+    std::tuple<float, bool, bool, bool, bool> GetAnimationFraction(
+        int64_t time, int64_t& minLeftDelayTime, bool isCustom);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void FlipDirection();
+    void SetGroupReverseCycle(bool isReverse) { groupReverseCycle_ = isReverse; }
+    bool GetGroupReverseCycle() const { return groupReverseCycle_; }
+    ForwardDirection GetEffectiveDirection() const;
     void SetLastFrameTime(int64_t lastFrameTime);
     void SetAnimationId(AnimationId animationId)
     {
@@ -69,6 +73,11 @@ public:
     int64_t GetRunningTime() const { return runningTime_; }
 
     bool UpdateGroupWaitingTime(int64_t deltaTime, bool isCustom);
+
+    void SetGroupAutoReverse(bool autoReverse) { groupAutoReverse_ = autoReverse; }
+    bool GetGroupAutoReverse() const { return groupAutoReverse_; }
+    void SetGroupRepeatCount(int repeatCount) { groupRepeatCount_ = repeatCount; }
+    int GetGroupRepeatCount() const { return groupRepeatCount_; }
 
 private:
     bool IsInRepeat() const;
@@ -92,6 +101,13 @@ private:
     bool isRepeatCallbackEnable_ {false};
     // Time accumulated during GROUP_WAITING state, used for autoReverse delay(Unit in ns)
     int64_t groupWaitingTime_ { 0 };
+    // Whether the group animator is currently in a reverse cycle (autoReverse).
+    // Used together with direction_ to compute effective direction (XOR logic).
+    bool groupReverseCycle_ { false };
+    // Group animator's autoReverse setting, used to determine final position
+    bool groupAutoReverse_ { false };
+    // Group animator's repeatCount, used to determine final position
+    int groupRepeatCount_ { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

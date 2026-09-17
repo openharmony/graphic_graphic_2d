@@ -382,7 +382,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     double frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0 / NS_TO_S;
 
     // convert time to fraction
-    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished] =
         animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom);
     currentFraction_ = fraction;
     if (isInStartDelay) {

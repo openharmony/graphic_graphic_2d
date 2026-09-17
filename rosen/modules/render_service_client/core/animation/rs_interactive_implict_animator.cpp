@@ -274,10 +274,6 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         auto animation = item.lock();
         auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
-            // For group animators, multiply group speed with child animation speed
-            if (isGroupAnimator_) {
-                animation->SetSpeed(timingProtocol_.GetSpeed() * animation->GetSpeed());
-            }
             animation->InteractiveContinue();
             if (!animation->IsUiAnimation()) {
                 renderAnimations.emplace_back(nodeId, animation->GetId());
@@ -557,6 +553,7 @@ void RSInteractiveImplictAnimator::CallFinishCallback()
     fractionNodeId_ = 0;
 
     if (isGroupAnimator_) {
+        state_ = RSInteractiveAnimationState::INACTIVE;
         if (auto rsUIContext = rsUIContext_.lock()) {
             rsUIContext->RemoveInteractiveImplictAnimator(id_);
         }

@@ -102,6 +102,13 @@ void RSAnimationFraction::FlipDirection()
     direction_ = (direction_ == ForwardDirection::NORMAL) ? ForwardDirection::REVERSE : ForwardDirection::NORMAL;
 }
 
+ForwardDirection RSAnimationFraction::GetEffectiveDirection() const
+{
+    // XOR logic: groupReverseCycle_ flips the effective direction
+    return groupReverseCycle_ ?
+        (direction_ == ForwardDirection::NORMAL ? ForwardDirection::REVERSE : ForwardDirection::NORMAL) : direction_;
+}
+
 void RSAnimationFraction::SetLastFrameTime(int64_t lastFrameTime)
 {
     lastFrameTime_ = lastFrameTime;
@@ -115,7 +122,7 @@ int64_t RSAnimationFraction::GetLastFrameTime() const
 bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs, bool isCustom)
 {
     const float animationScale = isCustom ? 1.0f : GetAnimationScale();
-    if (direction_ == ForwardDirection::NORMAL) {
+    if (GetEffectiveDirection() == ForwardDirection::NORMAL) {
         if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
         } else {
@@ -143,7 +150,7 @@ bool RSAnimationFraction::UpdateGroupWaitingTime(int64_t deltaTime, bool isCusto
     int64_t deltaWithSpeed = ROSEN_EQ(animationScale, 0.0f) ? static_cast<int64_t>(deltaTime * MAX_SPEED)
         : static_cast<int64_t>(deltaTime * speed_ / animationScale);
 
-    if (direction_ == ForwardDirection::NORMAL) {
+    if (GetEffectiveDirection() == ForwardDirection::NORMAL) {
         // Prevent overflow: check if addition would exceed INT64_MAX
         if (deltaWithSpeed > 0 && groupWaitingTime_ > INT64_MAX - deltaWithSpeed) {
             ROSEN_LOGW(
@@ -189,7 +196,7 @@ int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, 
     return static_cast<int64_t>(ret);
 }
 
-std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
+std::tuple<float, bool, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     int64_t time, int64_t& minLeftDelayTime, bool isCustom)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
@@ -197,6 +204,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     int64_t deltaTime = time - lastFrameTime_;
     bool isInStartDelay = false;
     bool isRepeatFinished = false;
+    bool isActualRepeatFinished = false;
     bool isFinished = true;
 
     // When the UI animation and spring animation are inherited, time will be passed the default value of -1 for
@@ -211,19 +219,19 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
         minLeftDelayTime = 0;
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
     if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
         if (IsFinished(isCustom)) {
             minLeftDelayTime = 0;
-            return { GetStartFraction(), isInStartDelay, true, isRepeatFinished };
+            return { GetStartFraction(), isInStartDelay, true, isRepeatFinished, isActualRepeatFinished };
         }
         isInStartDelay = true;
         if (minLeftDelayTime > 0) {
             minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs, isCustom), minLeftDelayTime);
         }
-        return { GetStartFraction(), isInStartDelay, false, isRepeatFinished };
+        return { GetStartFraction(), isInStartDelay, false, isRepeatFinished, isActualRepeatFinished };
     }
     minLeftDelayTime = 0;
 
@@ -231,7 +239,8 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     int64_t realPlayTime = runningTime_ - startDelayNs - (currentRepeatCount_ * durationNs);
 
     // 3. Update the number of cycles and the corresponding animation fraction.
-    if (direction_ == ForwardDirection::NORMAL) {
+    int prevRepeatCount = currentRepeatCount_;
+    if (GetEffectiveDirection() == ForwardDirection::NORMAL) {
         currentRepeatCount_ += realPlayTime / durationNs;
     } else {
         while (currentRepeatCount_ > 0 && realPlayTime < 0) {
@@ -239,6 +248,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
             realPlayTime += durationNs;
         }
     }
+    isActualRepeatFinished = (currentRepeatCount_ > prevRepeatCount);
 
     playTime_ = realPlayTime % durationNs;
     if (IsInRepeat()) {
@@ -251,12 +261,12 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_, isActualRepeatFinished };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
-    return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
+    return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished };
 }
 
 bool RSAnimationFraction::IsInRepeat() const
@@ -269,7 +279,7 @@ bool RSAnimationFraction::IsInRepeat() const
 
 bool RSAnimationFraction::IsFinished(bool isCustom) const
 {
-    if (direction_ == ForwardDirection::NORMAL) {
+    if (GetEffectiveDirection() == ForwardDirection::NORMAL) {
         if (repeatCount_ == INFINITE) {
             // When the animation scale is zero, the infinitely looping animation is considered to be finished
             const float animationScale = isCustom ? 1.0f : GetAnimationScale();
@@ -298,6 +308,10 @@ float RSAnimationFraction::GetEndFraction() const
 {
     float endFraction = 1.0f;
     if ((autoReverse_ && repeatCount_ % REVERSE_COUNT == 0) || direction_ == ForwardDirection::REVERSE) {
+        endFraction = 0.0f;
+    }
+    // Consider group animator's autoReverse + even repeatCount (matches client-side InvertStagingValue)
+    if (groupAutoReverse_ && groupRepeatCount_ % REVERSE_COUNT == 0) {
         endFraction = 0.0f;
     }
     endFraction = isForward_ ? endFraction : 1.0 - endFraction;
