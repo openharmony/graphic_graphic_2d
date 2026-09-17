@@ -1142,7 +1142,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest004, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
     subThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-    // uifirst disabled, but we have task in waitting state, still use uifirst cache
+    // uifirst disabled, but we have task in waiting state, still use uifirst cache
     ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
 
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
@@ -1179,7 +1179,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest005, TestSize.Level1)
     surfaceParams->SetUifirstStartingWindowId(0);
     surfaceParams->SetWindowInfo(false, true, false);
     uniParams->isUIFirstDebugEnable_ = true;
-    // irrevertible matrix
+    // non-invertible matrix
     surfaceParams->matrix_.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
     // invertible matrix
@@ -1526,7 +1526,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCurDirtyRegionWithMatrixTest, TestSize.Level1)
     Drawing::RectF latestDirtyRect;
     Drawing::RectF absDrawRect;
 
-    // irrevertible matrix
+    // non-invertible matrix
     matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     ASSERT_FALSE(subCache.GetCurDirtyRegionWithMatrix(matrix, latestDirtyRect, absDrawRect));
     // invertible matrix
@@ -1857,7 +1857,7 @@ HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest003, TestSize.Level1)
     surfaceParams->SetPartialSynced(false);
     resultRects.clear();
 
-    // Test 2: normal cauclate opaque region
+    // Test 2: normal calculate opaque region
     cachedOpaqueRegion = Occlusion::Region(Occlusion::Rect { 150, 150, 500, 500 });
     subCache.cacheCompletedSurfaceInfo_.opaqueRegion = cachedOpaqueRegion;
     subCache.cacheCompletedSurfaceInfo_.absDrawRect = RectI(100, 100, 600, 600);

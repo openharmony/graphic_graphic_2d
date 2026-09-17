@@ -1922,7 +1922,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    // when system do animation assigh focus window not on top to subthread
+    // when system do animation assign focus window not on top to subthread
     bool focus = RSUifirstManager::Instance().IsFocusedNode(node) &&
     !(RSUifirstManager::Instance().IsInSystemWindowAnimate() &&
     !RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));

@@ -369,7 +369,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->Save();
     // Get uifirst scaling parameter and apply scaling to canvas if enabled
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    // Apply uifrst scale ratio to canvas when IsUifirstScale is enabled
+    // Apply uifirst scale ratio to canvas when IsUifirstScale is enabled
     if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);

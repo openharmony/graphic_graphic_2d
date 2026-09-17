@@ -907,7 +907,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
 {
     // 1. RecentTaskScene
-    // 2. surfaceNode1 not has animation, has scale, children is surfaceNdoe2
+    // 2. surfaceNode1 not has animation, has scale, children is surfaceNode2
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();

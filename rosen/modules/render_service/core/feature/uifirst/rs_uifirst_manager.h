@@ -459,11 +459,11 @@ public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
     {
         isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
-        isCurFirsLevelNodeId_ = curNodeId == curFirstLevelNodeId;
+        isCurFirstLevelNodeId_ = curNodeId == curFirstLevelNodeId;
         if (isCurUifirstRootNodeId_) {
             curUifirstRootNodeId_ = curUifirstRootNodeId;
         }
-        if (isCurFirsLevelNodeId_) {
+        if (isCurFirstLevelNodeId_) {
             curFirstLevelNodeId_ = curFirstLevelNodeId;
         }
     }
@@ -471,7 +471,7 @@ public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId)
     {
         isCurUifirstRootNodeId_ = true;
-        isCurFirsLevelNodeId_ = true;
+        isCurFirstLevelNodeId_ = true;
         curUifirstRootNodeId_ = curUifirstRootNodeId;
         curFirstLevelNodeId_ = curFirstLevelNodeId;
     }
@@ -481,7 +481,7 @@ public:
         if (isCurUifirstRootNodeId_) {
             curUifirstRootNodeId_ = INVALID_NODEID;
         }
-        if (isCurFirsLevelNodeId_) {
+        if (isCurFirstLevelNodeId_) {
             curFirstLevelNodeId_ = INVALID_NODEID;
         }
     }
@@ -506,7 +506,7 @@ private:
     static inline thread_local NodeId curFirstLevelNodeId_ = INVALID_NODEID;
 
     bool isCurUifirstRootNodeId_ = false;
-    bool isCurFirsLevelNodeId_ = false;
+    bool isCurFirstLevelNodeId_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H
