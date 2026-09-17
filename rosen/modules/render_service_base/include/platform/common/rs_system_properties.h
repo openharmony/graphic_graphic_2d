@@ -208,7 +208,6 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetDoDirectCompositionEnabled();
     static bool GetDumpRsTreeDetailEnabled();
-    static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetDrawMirrorCacheImageEnabled();
     static bool GetPixelmapDfxEnabled();

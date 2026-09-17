@@ -64,6 +64,34 @@ HWTEST_F(HwcParamTest, IsDisableHwcOnExpandScreen001, Function | SmallTest | Lev
 }
 
 /**
+ * @tc.name: SetEnableHwcOnWiredMirror001
+ * @tc.desc: Verify the SetEnableHwcOnWiredMirror function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetEnableHwcOnWiredMirror001, Function | SmallTest | Level1)
+{
+    HWCParam::SetEnableHwcOnWiredMirror(true);
+    ASSERT_TRUE(HWCParam::IsEnableHwcOnWiredMirror());
+    HWCParam::SetEnableHwcOnWiredMirror(false);
+    ASSERT_FALSE(HWCParam::IsEnableHwcOnWiredMirror());
+}
+
+/**
+ * @tc.name: IsEnableHwcOnWiredMirror001
+ * @tc.desc: Verify the IsEnableHwcOnWiredMirror function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, IsEnableHwcOnWiredMirror001, Function | SmallTest | Level1)
+{
+    HWCParam::SetEnableHwcOnWiredMirror(true);
+    ASSERT_TRUE(HWCParam::IsEnableHwcOnWiredMirror());
+    HWCParam::SetEnableHwcOnWiredMirror(false);
+    ASSERT_FALSE(HWCParam::IsEnableHwcOnWiredMirror());
+}
+
+/**
  * @tc.name: SetSolidColorLayerForApp001
  * @tc.desc: Verify the SetSolidColorLayerForApp function
  * @tc.type: FUNC

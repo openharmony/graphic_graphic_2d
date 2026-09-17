@@ -37,6 +37,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "hwc_param.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -2152,6 +2153,108 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled002, TestSize.Level1)
     mainThread->context_->globalRootRenderNode_ = node1;
     mainThread->CheckIfHardwareForcedDisabled();
     mainThread->context_->globalRootRenderNode_ = rootNode;
+}
+
+/**
+ * @tc.name: CheckIfHardwareForcedDisabled003
+ * @tc.desc: Multi-display wired projection disables HWC when wired-mirror is off
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNodeBackup = mainThread->context_->globalRootRenderNode_;
+    auto hwcDisabledBackup = mainThread->isHardwareForcedDisabled_;
+    auto hasProtectedLayerBackup = mainThread->hasProtectedLayer_;
+
+    mainThread->hasProtectedLayer_ = false;
+    mainThread->isHardwareForcedDisabled_ = false;
+    HWCParam::SetEnableHwcOnWiredMirror(false);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNodeA = std::make_shared<RSScreenRenderNode>(7101, 0, rsContext->weak_from_this());
+    auto screenNodeB = std::make_shared<RSScreenRenderNode>(7102, 0, rsContext->weak_from_this());
+    screenNodeA->AddChild(std::make_shared<RSRenderNode>(7103, true));
+    screenNodeB->AddChild(std::make_shared<RSRenderNode>(7104, true));
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(screenNodeA);
+    nodeMap.RegisterRenderNode(screenNodeB);
+    ASSERT_TRUE(mainThread->IsMultiDisplay());
+
+    auto root = std::make_shared<RSRenderNode>(7100, true);
+    mainThread->context_->globalRootRenderNode_ = root;
+    auto mirrorSource = std::make_shared<RSScreenRenderNode>(7105, 0, rsContext->weak_from_this());
+    auto wiredScreen = std::make_shared<RSScreenRenderNode>(7106, 0, rsContext->weak_from_this());
+    wiredScreen->mirrorSource_ = mirrorSource;
+    wiredScreen->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    std::vector<std::shared_ptr<RSRenderNode>> fullChildren;
+    fullChildren.push_back(wiredScreen);
+    mainThread->context_->globalRootRenderNode_->fullChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(fullChildren);
+
+    mainThread->CheckIfHardwareForcedDisabled();
+    EXPECT_TRUE(mainThread->isHardwareForcedDisabled_);
+
+    nodeMap.UnregisterRenderNode(screenNodeA->GetId());
+    nodeMap.UnregisterRenderNode(screenNodeB->GetId());
+    mainThread->context_->globalRootRenderNode_ = rootNodeBackup;
+    mainThread->isHardwareForcedDisabled_ = hwcDisabledBackup;
+    mainThread->hasProtectedLayer_ = hasProtectedLayerBackup;
+    HWCParam::SetEnableHwcOnWiredMirror(false);
+}
+
+/**
+ * @tc.name: CheckIfHardwareForcedDisabled004
+ * @tc.desc: Multi-display wired projection keeps HWC enabled when wired-mirror is on
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNodeBackup = mainThread->context_->globalRootRenderNode_;
+    auto hwcDisabledBackup = mainThread->isHardwareForcedDisabled_;
+    auto hasProtectedLayerBackup = mainThread->hasProtectedLayer_;
+
+    mainThread->hasProtectedLayer_ = false;
+    mainThread->isHardwareForcedDisabled_ = false;
+    HWCParam::SetEnableHwcOnWiredMirror(true);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNodeA = std::make_shared<RSScreenRenderNode>(7201, 0, rsContext->weak_from_this());
+    auto screenNodeB = std::make_shared<RSScreenRenderNode>(7202, 0, rsContext->weak_from_this());
+    screenNodeA->AddChild(std::make_shared<RSRenderNode>(7203, true));
+    screenNodeB->AddChild(std::make_shared<RSRenderNode>(7204, true));
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(screenNodeA);
+    nodeMap.RegisterRenderNode(screenNodeB);
+    ASSERT_TRUE(mainThread->IsMultiDisplay());
+
+    auto root = std::make_shared<RSRenderNode>(7200, true);
+    mainThread->context_->globalRootRenderNode_ = root;
+    auto mirrorSource = std::make_shared<RSScreenRenderNode>(7205, 0, rsContext->weak_from_this());
+    auto wiredScreen = std::make_shared<RSScreenRenderNode>(7206, 0, rsContext->weak_from_this());
+    wiredScreen->mirrorSource_ = mirrorSource;
+    wiredScreen->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    std::vector<std::shared_ptr<RSRenderNode>> fullChildren;
+    fullChildren.push_back(wiredScreen);
+    mainThread->context_->globalRootRenderNode_->fullChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(fullChildren);
+
+    mainThread->CheckIfHardwareForcedDisabled();
+    EXPECT_FALSE(mainThread->isHardwareForcedDisabled_);
+
+    nodeMap.UnregisterRenderNode(screenNodeA->GetId());
+    nodeMap.UnregisterRenderNode(screenNodeB->GetId());
+    mainThread->context_->globalRootRenderNode_ = rootNodeBackup;
+    mainThread->isHardwareForcedDisabled_ = hwcDisabledBackup;
+    mainThread->hasProtectedLayer_ = hasProtectedLayerBackup;
+    HWCParam::SetEnableHwcOnWiredMirror(false);
 }
 
 /**
