@@ -224,6 +224,10 @@ void RSDrawFrame::PostAndWait()
 
 void RSDrawFrame::ClearDrawableResource()
 {
+    if (!DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource()) {
+        return;
+    }
+
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
