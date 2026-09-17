@@ -508,17 +508,23 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
     }
     grContext_->initGpuMemoryLimit(callback, size);
 }
-    
+
+void SkiaGPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+{
+    // Skia Not Implement InitGpuMemoryInfoStatProc
+    LOGD("SkiaGPUContext::InitGpuMemoryInfoStatProc, not implement");
+}
+
 void SkiaGPUContext::SetAbnormalPid(pid_t pid)
 {
     // Skia Not Implement SetAbnormalPid
     LOGD("SkiaGPUContext::SetAbnormalPid, not implement");
 }
 
-void SkiaGPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+void SkiaGPUContext::RemoveAbnormalPid(pid_t pid)
 {
-    // Skia Not Implement InitGpuMemoryInfoStatProc
-    LOGD("SkiaGPUContext::InitGpuMemoryInfoStatProc, not implement");
+    // Skia Not Implement RemoveAbnormalPid
+    LOGD("SkiaGPUContext::RemoveAbnormalPid, not implement");
 }
 
 #ifdef RS_ENABLE_VK
