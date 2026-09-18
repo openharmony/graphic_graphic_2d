@@ -88,7 +88,7 @@ uint32_t HgmDimmingManager::CalcDimmingRefreshRate(uint32_t voteRefreshRate)
         return voteRefreshRate;
     }
     int32_t currStatus = currRefreshRate_ < voteRefreshRate ? DimmingStatus::DIMMING_UP : DimmingStatus::DIMMING_DOWN;
-    uint32_t index = std::distance(refreshRateVec_.begin(), iter);
+    int32_t index = std::distance(refreshRateVec_.begin(), iter);
     if (dimmingStatus_ == DimmingStatus::NOT_DIMMING || dimmingStatus_ != currStatus || currTime >= dimmingEndTime_) {
         dimmingStatus_ = currStatus;
         dimmingEndTime_ = currTime + std::chrono::milliseconds(dimmingTimeoutMs);

@@ -40,7 +40,7 @@ public:
     void SetRefreshRateVec(std::vector<uint32_t> vec);
     void SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConfigData>& configData);
     void RegisterDimmingEventCallback(DimmingEventCallback callback);
-    uint32_t CalcDimmingRefreshRate(uint32_t voteFps);
+    uint32_t CalcDimmingRefreshRate(uint32_t voteRefreshRate);
 
 private:
     int32_t lightFactorStatus_ = 0;
