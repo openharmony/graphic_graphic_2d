@@ -355,6 +355,96 @@ HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_006, TestSize.Level2)
     EXPECT_FALSE(transfer.Apply(nullptr));
 }
 
+/**
+ * @tc.name: OnHwcEventTransfer_012
+ * @tc.desc: input Unmarshalling with valid deviceId but missing eventId fails
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_012, TestSize.Level2)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint32(1u)); // deviceId only
+    int32_t errCode = 0;
+    auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
+    EXPECT_EQ(input, nullptr);
+    EXPECT_EQ(errCode, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: OnHwcEventTransfer_013
+ * @tc.desc: input Unmarshalling with valid deviceId and eventId but no eventData vector written
+ *           succeeds with empty eventData (ReadInt32Vector returns 0-length vector at parcel end)
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_013, TestSize.Level2)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint32(1u));
+    ASSERT_TRUE(parcel.WriteUint32(2u));
+    int32_t errCode = 0;
+    auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
+    EXPECT_NE(input, nullptr);
+    EXPECT_EQ(errCode, 0);
+}
+
+/**
+ * @tc.name: OnHwcEventTransfer_014
+ * @tc.desc: input Unmarshalling accepts data at HWC_EVENT_DATA_SIZE_MAX(100) boundary
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_014, TestSize.Level2)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint32(1u)); // deviceId
+    ASSERT_TRUE(parcel.WriteUint32(2u)); // deviceId
+    std::vector<int32_t> exact(100, 1); // exactly HWC_EVENT_DATA_SIZE_MAX
+    ASSERT_TRUE(parcel.WriteInt32Vector(exact));
+    int32_t errCode = 0;
+    auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
+    ASSERT_NE(input, nullptr);
+    EXPECT_EQ(errCode, 0);
+    EXPECT_EQ(input->GetEventData().size(), 100u);
+}
+
+/**
+ * @tc.name: OnHwcEventTransfer_015
+ * @tc.desc: input Unmarshalling with empty eventData vector succeeds
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_015, TestSize.Level2)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint32(1u));
+    ASSERT_TRUE(parcel.WriteUint32(2u));
+    ASSERT_TRUE(parcel.WriteInt32Vector()); //empty vector
+    int32_t errCode = 0;
+    auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
+    ASSERT_NE(input, nullptr);
+    EXPECT_EQ(errCode, 0);
+    EXPECT_EQ(input->GetEventData().size(), 0u);
+}
+
+/**
+ * @tc.name: OnHwcEventTransfer_016
+ * @tc.desc: input Unmarshalling with valid deviceId and eventId but no eventData vector written
+ *           succeeds with empty eventData (ReadInt32Vector returns 0-length vector at parcel end)
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_016, TestSize.Level2)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint32(1u));
+    ASSERT_TRUE(parcel.WriteUint32(2u));
+    int32_t errCode = 0;
+    auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
+    EXPECT_NE(input, nullptr);
+}
+
 // ============================ UnRegisterSelfDrawing ============================
 
 /**

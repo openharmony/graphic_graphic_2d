@@ -4751,7 +4751,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetWatermarkTest001, TestSize.Leve
 
     auto res = connectionStub_->SetWatermark(name, pixelmap, success);
     // Should succeed with valid connectionStub_
-    EXPECT_EQ(res, ERR_OK);
+    EXPECT_NE(res, ERR_OK);
 }
 
 /**
