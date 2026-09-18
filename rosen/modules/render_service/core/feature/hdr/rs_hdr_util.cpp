@@ -29,6 +29,7 @@
 #include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "aihdr_enhancer.h"
+#include "common_state.h"
 #include "render/rs_colorspace_convert.h"
 #include "render/rs_effect_luminance_manager.h"
 #endif
@@ -97,6 +98,10 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         return false;
     }
     auto& rsLuminance = RSLuminanceControl::Get();
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    Media::VideoProcessingEngine::VpeCommonState::UpdateBundleHdrStatus(surfaceNode.GetBundleName(),
+        static_cast<uint32_t>(surfaceNode.GetVideoHdrStatus()));
+#endif
     if (surfaceNode.GetVideoHdrStatus() == HdrStatus::NO_HDR) {
         surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));

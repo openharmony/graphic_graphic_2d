@@ -15,7 +15,7 @@
 #include "render/rs_hdr_ui_brightness_filter.h"
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "algorithm_video.h"
+#include "common_state.h"
 #endif
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -76,10 +76,12 @@ void RSHDRUIBrightnessFilter::DrawImageRect(Drawing::Canvas& canvas, const std::
     float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(rscanvas.GetScreenId(), 0);
     float hdrUIBrightnessRatio = GetHDRUIBrightness();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float vpeMaxHeadroom = 1.0f;
-    if (Media::VideoProcessingEngine::VpeVideo::GetMaxHeadroom(vpeMaxHeadroom) ==
+    float vpeMaxHeadroom = hdrUIBrightnessRatio;
+    BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(rscanvas.GetScreenId());
+    Media::VideoProcessingEngine::BrightnessInfo vpeInfo{info.currentHeadroom, info.maxHeadroom, info.sdrNits};
+    if (Media::VideoProcessingEngine::VpeCommonState::GetMaxHeadroom(vpeInfo, rscanvas.GetPid(), vpeMaxHeadroom) ==
         Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
-        ROSEN_LOGD("vpeMaxHeadroom=%{public}.4f", vpeMaxHeadroom);
+ 
         hdrUIBrightnessRatio = std::clamp(hdrUIBrightnessRatio, DEFAULT_HDR_UI_BRIGHTNESS, vpeMaxHeadroom);
     }
 #endif
