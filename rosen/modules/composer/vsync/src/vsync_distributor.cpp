@@ -55,6 +55,8 @@ constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 constexpr int64_t MAX_SIZE_OF_DIGIT_NUM_FOR_PID = 8;
 constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
 constexpr int32_t MAX_PID = 65536;
+constexpr int32_t ONE_SECOND = 1000000000;
+constexpr int64_t JITTER_TOLERANCE_NS = 1000000;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -603,6 +605,21 @@ void VSyncDistributor::DisableVSync()
 void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
     uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
+    {
+        std::lock_guard<std::mutex> locker(thermalLimitMtx_);
+        if (thermalRateLimit_ > 0 && period > 0) {
+            uint32_t nowRefreshRate = static_cast<uint32_t>(ONE_SECOND / period);
+            uint32_t beats = (nowRefreshRate + thermalRateLimit_ - 1) / thermalRateLimit_;
+            int64_t minInterval = static_cast<int64_t>(beats) * period;
+            if (lastThermalTrigTime_ > 0 && ((now - lastThermalTrigTime_) < (minInterval - JITTER_TOLERANCE_NS))) {
+                VLOGD("OnVSyncTrigger, Thermal Limit rate %{public}u, now rate %{public}u",
+                    thermalRateLimit_, nowRefreshRate);
+                return;
+            }
+            lastThermalTrigTime_ = now;
+        }
+    }
+
     std::vector<sptr<VSyncConnection>> conns;
     uint32_t generatorRefreshRate;
     int64_t vsyncCount;
@@ -645,6 +662,13 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         generatorRefreshRate = generatorRefreshRate_;
     }
     ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, false);
+}
+
+void VSyncDistributor::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    std::lock_guard<std::mutex> locker(thermalLimitMtx_);
+    thermalRateLimit_ = frameRate;
+    VLOGI("SetThermalRateLimit, limit framerate %{public}u success", thermalRateLimit_);
 }
 
 void VSyncDistributor::TriggerNext(sptr<VSyncConnection> con)
