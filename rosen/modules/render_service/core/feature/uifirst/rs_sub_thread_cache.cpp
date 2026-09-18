@@ -258,7 +258,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     // Use user's gravity
     canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
-    // Apply inverse uifirst scale to resotre canvas to original size before drawing
+    // Apply inverse uifirst scale to restore canvas to original size before drawing
     // Since cache surface was scaled up during uifirst scaling, we need to apply
     // inverse scale to draw the correct original size
     if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
@@ -352,7 +352,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     }
     // Get uifirst scaling parameter and apply scaling to cache size if enabled
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    // Apply uifirst scale ratio to cache widht/height when IsUifirstScale is enabled
+    // Apply uifirst scale ratio to cache width/height when IsUifirstScale is enabled
     if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);

@@ -43,7 +43,7 @@ void RsSubThreadTest::SetUpTestCase()
 }
 void RsSubThreadTest::TearDownTestCase()
 {
-    sleep(25); // wait 25s ensure asnyc task is excuted.
+    sleep(25); // wait 25s ensure async task is executed.
 }
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
