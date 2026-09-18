@@ -114,10 +114,12 @@ public:
     virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
 
     virtual void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) = 0;
-    
-    virtual void SetAbnormalPid(pid_t pid) = 0;
 
     virtual void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback) = 0;
+
+    virtual void SetAbnormalPid(pid_t pid) = 0;
+
+    virtual void RemoveAbnormalPid(pid_t pid) = 0;
 
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;
