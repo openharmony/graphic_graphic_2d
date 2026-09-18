@@ -91,6 +91,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_THERMAL_FRAME_RATE_LIMIT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE),
@@ -968,6 +969,16 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             SyncFrameRateRange(id, {min, max, preferred, type, static_cast<ComponentScene>(componentScene)},
                 animatorExpectedFrameRate);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_THERMAL_FRAME_RATE_LIMIT): {
+            uint32_t frameRate{0};
+            if (!data.ReadUint32(frameRate)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_THERMAL_FRAME_RATE_LIMIT Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetThermalFrameRateLimit(frameRate);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {
