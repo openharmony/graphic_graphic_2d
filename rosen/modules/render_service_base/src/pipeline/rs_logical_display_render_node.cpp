@@ -118,6 +118,7 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     logicalDisplayRenderParam->compositeType_ = compositeType_;
     logicalDisplayRenderParam->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     logicalDisplayRenderParam->hasCaptureWindow_ = hasCaptureWindow_;
+    logicalDisplayRenderParam->SetHasDstAlphaBlendModeNode(HasDstAlphaBlendModeNode());
     auto screenNode = GetParent().lock();
     auto screenDrawable = screenNode ? screenNode->GetRenderDrawable() : nullptr;
     logicalDisplayRenderParam->SetAncestorScreenDrawable(screenDrawable);
@@ -501,13 +502,9 @@ void RSLogicalDisplayRenderNode::RemoveBlendModeNode(NodeId id)
     }
 }
 
-int RSLogicalDisplayRenderNode::GetDstAlphaBlendModeNodeCount() const
+bool RSLogicalDisplayRenderNode::HasDstAlphaBlendModeNode() const
 {
-    auto count = 0;
-    for (const auto& node : blendModeNodeMap_) {
-        count += node.second;
-    }
-    return count;
+    return !blendModeNodeMap_.empty();
 }
 
 bool RSLogicalDisplayRenderNode::CheckAncestorChildBlendMode(

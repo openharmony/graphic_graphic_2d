@@ -592,15 +592,9 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
     return false;
 }
 
-bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
+bool RSHdrUtil::NeedBackToFP16(bool hasDstAlphaBlendModeNode, RSScreenRenderParams* screenParams)
 {
     if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
-        return true;
-    }
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
-    if (!displayNode) {
-        RS_LOGE("RSHdrUtil::NeedBackToFP16 displayNode is nullptr");
         return true;
     }
     bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
@@ -609,8 +603,7 @@ bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
         hasHwcHdr || colorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
         return true;
     }
-    int dstAlphaCount = displayNode->GetDstAlphaBlendModeNodeCount();
-    return dstAlphaCount > 0;
+    return hasDstAlphaBlendModeNode;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

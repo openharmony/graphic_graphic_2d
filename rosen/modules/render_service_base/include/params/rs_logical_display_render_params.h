@@ -47,6 +47,20 @@ public:
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
+    void SetHasDstAlphaBlendModeNode(bool hasDstAlphaBlendModeNode)
+    {
+        if (hasDstAlphaBlendModeNode_ == hasDstAlphaBlendModeNode) {
+            return;
+        }
+        hasDstAlphaBlendModeNode_ = hasDstAlphaBlendModeNode;
+        needSync_ = true;
+    }
+
+    bool GetHasDstAlphaBlendModeNode() const
+    {
+        return hasDstAlphaBlendModeNode_;
+    }
+
     bool IsMirrorDisplay() const;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable() override;
     bool GetVirtualScreenMuteStatus() const;
@@ -158,6 +172,7 @@ private:
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     bool isRotationChanged_ = false;
+    bool hasDstAlphaBlendModeNode_ = false;
 
     DisplayMode displayMode_ = DisplayMode::INVALID;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;

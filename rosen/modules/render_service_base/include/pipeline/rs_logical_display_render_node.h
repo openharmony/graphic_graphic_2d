@@ -134,7 +134,7 @@ public:
 
     void IncreaseBlendModeNode(NodeId id);
     void RemoveBlendModeNode(NodeId id);
-    int GetDstAlphaBlendModeNodeCount() const;
+    bool HasDstAlphaBlendModeNode() const;
 
     bool CheckAncestorChildBlendMode(int blendMode, int currentBlendMode,
         bool IsEmptyBlendMode, bool IsParentBlendMode);
