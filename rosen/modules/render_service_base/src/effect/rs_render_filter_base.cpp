@@ -70,6 +70,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderHaloBloomFilter>();
         }
     },
+    {RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS, [] {
+            return std::make_shared<RSNGRenderMapColorByBrightnessFilter>();
+        }
+    },
     {RSNGEffectType::DIRECTION_LIGHT, [] {
             return std::make_shared<RSNGRenderDirectionLightFilter>();
         }

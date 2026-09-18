@@ -30,6 +30,7 @@ public:
     static bool Invert();
     static bool Brightness(float bright);
     static bool Grayscale();
+    static bool SetMapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
     static bool CreateSDF(int spreadFactor, bool generateDerivs = true);
     static bool SetColorMatrix(std::vector<float> cjcolorMatrix, uint32_t& code);
     static std::shared_ptr<OHOS::Media::PixelMap> GetEffectPixelMap(bool forceCPU = false);

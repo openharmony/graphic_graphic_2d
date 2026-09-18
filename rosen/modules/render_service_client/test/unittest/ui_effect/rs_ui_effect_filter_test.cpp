@@ -26,6 +26,7 @@
 #endif
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_halo_bloom_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_para.h"
 #include "filter/include/filter_spin_blur_para.h"
@@ -1178,5 +1179,29 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHaloBloomParaStoresNewArguments, TestSi
     EXPECT_FLOAT_EQ(haloBloomPara->GetBloomFactor(), bloomFactor);
     EXPECT_FLOAT_EQ(haloBloomPara->GetGlowExposure(), glowExposure);
 }
+
+/**
+ * @tc.name: RSUIEffectMapColorByBrightnessParaStoresNewArguments
+ * @tc.desc: Verify MapColorByBrightnessPara stores colors and positions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectMapColorByBrightnessParaStoresNewArguments, TestSize.Level1)
+{
+    auto mapColorPara = std::make_shared<MapColorByBrightnessPara>();
+    const std::vector<Vector4f> colors = {
+        Vector4f(0.1f, 0.2f, 0.3f, 1.0f),
+        Vector4f(0.5f, 0.6f, 0.7f, 1.0f),
+    };
+    const std::vector<float> positions = { 0.0f, 1.0f };
+
+    EXPECT_EQ(mapColorPara->GetParaType(), FilterPara::ParaType::MAP_COLOR_BY_BRIGHTNESS);
+
+    mapColorPara->SetColors(colors);
+    mapColorPara->SetPositions(positions);
+
+    EXPECT_EQ(mapColorPara->GetColors(), colors);
+    EXPECT_EQ(mapColorPara->GetPositions(), positions);
+}
+
 } // namespace Rosen
 } // namespace OHOS

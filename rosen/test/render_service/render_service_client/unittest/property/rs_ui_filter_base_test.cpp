@@ -18,6 +18,7 @@
 #include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
 #include "ui_effect/filter/include/filter_motion_blur_para.h"
+#include "ui_effect/filter/include/filter_map_color_by_brightness_para.h"
 #include "ui_effect/effect/include/distortion_collapse_effect_para.h"
 
 using namespace testing;
@@ -558,6 +559,46 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionWithDisableFlag, TestSize.Level1)
     auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(distortionPara);
     EXPECT_EQ(filter, nullptr);
     EXPECT_EQ(shape, nullptr);
+}
+
+/**
+ * @tc.name: MapColorByBrightnessCreateFilter
+ * @tc.desc: Verify RSNGFilterBase::Create converts MapColorByBrightnessPara to a valid filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MapColorByBrightnessCreateFilter, TestSize.Level1)
+{
+    auto para = std::make_shared<MapColorByBrightnessPara>();
+    const std::vector<Vector4f> colors = {
+        Vector4f(0.1f, 0.2f, 0.3f, 1.0f),
+        Vector4f(0.5f, 0.6f, 0.7f, 1.0f),
+    };
+    const std::vector<float> positions = {0.0f, 1.0f};
+    para->SetColors(colors);
+    para->SetPositions(positions);
+
+    auto filter = RSNGFilterBase::Create(para);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+
+    auto filterByType = RSNGFilterBase::Create(RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+    ASSERT_NE(filterByType, nullptr);
+    EXPECT_EQ(filterByType->GetType(), RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+}
+
+/**
+ * @tc.name: MapColorByBrightnessCreateNullPara
+ * @tc.desc: Verify RSNGFilterBase::Create returns nullptr for null para
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MapColorByBrightnessCreateNullPara, TestSize.Level1)
+{
+    auto filter = RSNGFilterBase::Create(nullptr);
+    EXPECT_EQ(filter, nullptr);
+
+    auto basePara = std::make_shared<FilterPara>();
+    auto filterFromBase = RSNGFilterBase::Create(basePara);
+    EXPECT_EQ(filterFromBase, nullptr);
 }
 
 } // namespace OHOS::Rosen

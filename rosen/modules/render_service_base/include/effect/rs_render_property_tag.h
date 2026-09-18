@@ -159,6 +159,7 @@ enum class RSNGEffectType : int16_t {
     SPIN_BLUR,
     HALO_BLOOM,
     WARPED_RING_MASK,
+    MAP_COLOR_BY_BRIGHTNESS,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

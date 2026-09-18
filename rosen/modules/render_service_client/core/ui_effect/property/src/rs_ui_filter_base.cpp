@@ -35,6 +35,7 @@
 #include "ui_effect/filter/include/filter_halo_bloom_para.h"
 #include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_magnifier_para.h"
+#include "ui_effect/filter/include/filter_map_color_by_brightness_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_motion_blur_para.h"
 #include "ui_effect/filter/include/filter_spin_blur_para.h"
@@ -89,6 +90,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::HALO_BLOOM, [] {
             return std::make_shared<RSNGHaloBloomFilter>();
+        }
+    },
+    {RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS, [] {
+            return std::make_shared<RSNGMapColorByBrightnessFilter>();
         }
     },
     {RSNGEffectType::DIRECTION_LIGHT, [] {
@@ -291,6 +296,20 @@ std::shared_ptr<RSNGFilterBase> ConvertHaloBloomFilterPara(std::shared_ptr<Filte
     haloBloomFilter->Setter<HaloBloomBloomFactorTag>(haloBloomFilterPara->GetBloomFactor());
     haloBloomFilter->Setter<HaloBloomGlowExposureTag>(haloBloomFilterPara->GetGlowExposure());
     return haloBloomFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertMapColorByBrightnessPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS);
+    bool isInvalid = (filter == nullptr || filterPara == nullptr);
+    if (isInvalid) {
+        return nullptr;
+    }
+    auto mapColorByBrightnessFilter = std::static_pointer_cast<RSNGMapColorByBrightnessFilter>(filter);
+    auto mapColorByBrightnessPara = std::static_pointer_cast<MapColorByBrightnessPara>(filterPara);
+    mapColorByBrightnessFilter->Setter<MapColorByBrightnessColorsTag>(mapColorByBrightnessPara->GetColors());
+    mapColorByBrightnessFilter->Setter<MapColorByBrightnessPositionsTag>(mapColorByBrightnessPara->GetPositions());
+    return mapColorByBrightnessFilter;
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
@@ -520,6 +539,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
     { FilterPara::ParaType::SPIN_BLUR, ConvertSpinBlurFilterPara },
     { FilterPara::ParaType::HALO_BLOOM, ConvertHaloBloomFilterPara },
+    { FilterPara::ParaType::MAP_COLOR_BY_BRIGHTNESS, ConvertMapColorByBrightnessPara },
     { FilterPara::ParaType::DIRECTION_LIGHT, ConvertDirectionLightFilterPara },
     { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },

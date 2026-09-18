@@ -241,6 +241,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
         DECLARE_NAPI_FUNCTION("frostedGlassBlur", SetFrostedGlassBlur),
         DECLARE_NAPI_FUNCTION("motionBlur", SetMotionBlur),
+        DECLARE_NAPI_FUNCTION("mapColorByBrightness", SetMapColorByBrightness),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
@@ -1811,6 +1812,84 @@ napi_value FilterNapi::SetMotionBlur(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi::SetMotionBlur napi_unwrap fail"));
+
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+bool FilterNapi::GetMapColorByBrightnessArray(napi_env env, napi_value* argValue,
+    std::shared_ptr<MapColorByBrightnessPara>& para, uint32_t arraySize)
+{
+    std::vector<Vector4f> colors;
+    std::vector<float> positions;
+    colors.reserve(arraySize);
+    positions.reserve(arraySize);
+
+    for (uint32_t i = 0; i < arraySize; i++) {
+        napi_value jsColor = nullptr;
+        napi_value jsPos = nullptr;
+        if (napi_get_element(env, argValue[NUM_0], i, &jsColor) != napi_ok ||
+            napi_get_element(env, argValue[NUM_1], i, &jsPos) != napi_ok) {
+            FILTER_LOG_E("GetMapColorByBrightnessArray get args fail");
+            return false;
+        }
+        Vector4f color = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+        if (!ParseJsRGBAColor(env, jsColor, color)) {
+            FILTER_LOG_E("GetMapColorByBrightnessArray parse color fail");
+            return false;
+        }
+        for (uint32_t j = 0; j < NUM_4; j++) {
+            color[j] = color[j] > 1.0f ? 1.0f : color[j];
+        }
+        colors.push_back(color);
+
+        float position = GetSpecialValue(env, jsPos);
+        position = std::clamp(position, 0.0f, 1.0f);
+        positions.push_back(position);
+    }
+
+    para->SetColors(colors);
+    para->SetPositions(positions);
+    return true;
+}
+
+napi_value FilterNapi::SetMapColorByBrightness(napi_env env, napi_callback_info info)
+{
+    constexpr size_t requireArgc = NUM_2;
+    size_t argCount = requireArgc;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argv[requireArgc] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness parsing input fail"));
+
+    uint32_t colorArraySize = 0;
+    uint32_t posArraySize = 0;
+    if (!IsArrayForNapiValue(env, argv[NUM_0], colorArraySize) ||
+        !IsArrayForNapiValue(env, argv[NUM_1], posArraySize)) {
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness get args fail, not array");
+        return nullptr;
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness napi_unwrap fail"));
+
+    if (colorArraySize < NUM_1 || posArraySize != colorArraySize) {
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness param Error");
+        return thisVar;
+    }
+
+    constexpr uint32_t maxColorCount = 5;
+    uint32_t effectiveColorCount = std::min(colorArraySize, maxColorCount);
+    auto para = std::make_shared<MapColorByBrightnessPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness para is nullptr"));
+    UIEFFECT_NAPI_CHECK_RET_D(
+        GetMapColorByBrightnessArray(env, argv, para, effectiveColorCount), thisVar,
+        FILTER_LOG_E("FilterNapi SetMapColorByBrightness parsing array fail"));
 
     filterObj->AddPara(para);
     return thisVar;
