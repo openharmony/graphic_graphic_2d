@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEXT_NDK_TEXT_LINE_ENTRY_H
-#define TEXT_NDK_TEXT_LINE_ENTRY_H
+#ifndef TEXT_LINE_ENTRY_H
+#define TEXT_LINE_ENTRY_H
 
 #include <memory>
 
@@ -31,4 +31,4 @@ struct TextLineEntry {
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // TEXT_NDK_TEXT_LINE_ENTRY_H
+#endif // TEXT_LINE_ENTRY_H

@@ -176,7 +176,7 @@ OH_Drawing_Array* OH_Drawing_TextLineGetGlyphRuns(OH_Drawing_TextLine* line)
         return nullptr;
     }
 
-    Run** runsArr = new Run*[runs.size()];
+    Run** runsArr = new Run* [runs.size()];
     for (size_t i = 0; i < runs.size(); ++i) {
         runsArr[i] = runs[i].release();
     }
