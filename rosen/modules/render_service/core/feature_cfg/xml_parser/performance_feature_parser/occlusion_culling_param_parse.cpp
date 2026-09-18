@@ -58,6 +58,18 @@ int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(xmlNode &node)
         OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(parseFeatireSwitchResult);
         RS_LOGI("OcclusionCullingParamParse parse IntraAppControlsLevelOcclusionCullingEnable %{public}d",
             OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable());
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "DynamicLayerSkip") {
+        auto val = ExtractPropertyValue("value", node);
+        bool isEnabled = ParseFeatureSwitch(val);
+        OcclusionCullingParam::SetDynamicLayerSkipEnable(isEnabled);
+        RS_LOGI("OcclusionCullingParamParse parse DynamicLayerSkip %{public}d",
+            OcclusionCullingParam::IsDynamicLayerSkipEnable());
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "VirtualSelfDrawOpt") {
+        auto val = ExtractPropertyValue("value", node);
+        bool isEnabled = ParseFeatureSwitch(val);
+        OcclusionCullingParam::SetVirtualSelfDrawOptEnable(isEnabled);
+        RS_LOGI("OcclusionCullingParamParse parse VirtualSelfDrawOpt %{public}d",
+            OcclusionCullingParam::IsVirtualSelfDrawOptEnable());
     }
     return PARSE_EXEC_SUCCESS;
 }
