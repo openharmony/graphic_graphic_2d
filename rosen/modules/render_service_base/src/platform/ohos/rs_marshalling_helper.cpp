@@ -42,9 +42,11 @@
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
+#include "animation/rs_render_atlas_info_animation.h"
 #include "animation/rs_render_transition.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
+#include "common/rs_atlas_info.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "effect/rs_render_filter_base.h"
@@ -2418,6 +2420,25 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
            Unmarshalling(parcel, val.radius_[3]);
 }
 
+// AtlasInfo
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AtlasInfo& val)
+{
+    return Marshalling(parcel, val.mode) && Marshalling(parcel, val.rows) &&
+           Marshalling(parcel, val.cols) && Marshalling(parcel, val.frameWidth) &&
+           Marshalling(parcel, val.frameHeight) && Marshalling(parcel, val.padding) &&
+           Marshalling(parcel, val.totalFrame) && Marshalling(parcel, val.pixelMap) &&
+           Marshalling(parcel, val.frameIndex);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AtlasInfo& val)
+{
+    return Unmarshalling(parcel, val.mode) && Unmarshalling(parcel, val.rows) &&
+           Unmarshalling(parcel, val.cols) && Unmarshalling(parcel, val.frameWidth) &&
+           Unmarshalling(parcel, val.frameHeight) && Unmarshalling(parcel, val.padding) &&
+           Unmarshalling(parcel, val.totalFrame) && Unmarshalling(parcel, val.pixelMap) &&
+           Unmarshalling(parcel, val.frameIndex);
+}
+
 // Drawing::DrawCmdList
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
     int32_t recordCmdDepth)
@@ -3351,6 +3372,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
         return val != nullptr;                                                                  \
     }
 
+MARSHALLING_AND_UNMARSHALLING(RSRenderAtlasInfoAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderParticleAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderInterpolatingSpringAnimation)
@@ -3440,7 +3462,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, DepthCameraPara)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, DepthLightPara)
+    EXPLICIT_INSTANTIATION(TEMPLATE, DepthLightPara)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
@@ -3461,7 +3484,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 

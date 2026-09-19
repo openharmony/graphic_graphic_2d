@@ -365,3 +365,26 @@ DECLARE_SHADER(SpatialGlassEffect, SPATIAL_GLASS_EFFECT,
     ADD_PROPERTY_TAG(SpatialGlassEffect, DepthImage),
     ADD_PROPERTY_TAG(SpatialGlassEffect, EnableSDFCache)
 );
+
+DECLARE_SHADER(GlassEffect, GLASS_EFFECT,
+    ADD_PROPERTY_TAG(GlassEffect, SphereCenter),
+    ADD_PROPERTY_TAG(GlassEffect, SphereRadius),
+    ADD_PROPERTY_TAG(GlassEffect, AverageBgColor),
+    ADD_PROPERTY_TAG(GlassEffect, Opacity),
+    ADD_PROPERTY_TAG(GlassEffect, ShapeScale),
+    ADD_PROPERTY_TAG(GlassEffect, ShadowOffset),
+    ADD_PROPERTY_TAG(GlassEffect, ShadowRadius),
+    ADD_PROPERTY_TAG(GlassEffect, ShadowEdgeSoftness),
+    ADD_PROPERTY_TAG(GlassEffect, ShadowOpacity),
+    ADD_PROPERTY_TAG(GlassEffect, CausticOffset),
+    ADD_PROPERTY_TAG(GlassEffect, CausticRadius),
+    ADD_PROPERTY_TAG(GlassEffect, CausticEdgeSoftness),
+    ADD_PROPERTY_TAG(GlassEffect, CausticOpacity),
+    ADD_PROPERTY_TAG(GlassEffect, ContentTintColor),
+    ADD_PROPERTY_TAG(GlassEffect, ContentScale),
+    ADD_PROPERTY_TAG(GlassEffect, ContentSaturation),
+    ADD_PROPERTY_TAG(GlassEffect, ContentDispersion),
+    ADD_PROPERTY_TAG(GlassEffect, ShapeMask),
+    ADD_PROPERTY_TAG(GlassEffect, ContentMask),
+    ADD_PROPERTY_TAG(GlassEffect, ReflectionImage)
+);

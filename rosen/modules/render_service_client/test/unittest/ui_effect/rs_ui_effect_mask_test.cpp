@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "mask/include/atlas_frame_mask_para.h"
 #include "mask/include/binocular_mask_para.h"
 #include "mask/include/fractal_glass_mask_para.h"
 #include "mask/include/image_mask_para.h"
@@ -690,5 +691,72 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectWarpedRingMaskParaStoresNewArguments, Tes
     EXPECT_FLOAT_EQ(storedRingParam.widthVariation, ringParam.widthVariation);
     EXPECT_FLOAT_EQ(storedRingParam.rotate3DProgress, ringParam.rotate3DProgress);
 }
+/**
+ * @tc.name: RSUIEffectMaskRegisterAtlasFrameMaskCallback
+ * @tc.desc: Verify ATLAS_FRAME_MASK callback is registered
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskRegisterAtlasFrameMaskCallback, TestSize.Level1)
+{
+    auto& singleton = MaskUnmarshallingSingleton::GetInstance();
+    auto cb = singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::ATLAS_FRAME_MASK));
+    EXPECT_NE(nullptr, cb);
+}
+
+/**
+ * @tc.name: RSUIEffectAtlasFrameMaskParaTest
+ * @tc.desc: Verify AtlasFrameMaskPara marshalling round trip via base class
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectAtlasFrameMaskParaTest, TestSize.Level1)
+{
+    auto atlasFrameMaskPara = std::make_shared<AtlasFrameMaskPara>();
+    auto pixelMap = CreatePixelMap(64, 64);
+    ASSERT_NE(nullptr, pixelMap);
+
+    AtlasInfo atlasInfo;
+    atlasInfo.mode = 1;
+    atlasInfo.rows = 4;
+    atlasInfo.cols = 4;
+    atlasInfo.frameWidth = 360.0f;
+    atlasInfo.frameHeight = 360.0f;
+    atlasInfo.padding = 2.0f;
+    atlasInfo.totalFrame = 16;
+    atlasInfo.frameIndex = 8.0f;
+    atlasInfo.pixelMap = pixelMap;
+    atlasFrameMaskPara->SetAtlasInfo(atlasInfo);
+
+    EXPECT_EQ(atlasFrameMaskPara->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
+
+    Parcel parcel;
+    EXPECT_EQ(true, atlasFrameMaskPara->Marshalling(parcel));
+    std::shared_ptr<MaskPara> val = nullptr;
+    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
+    ASSERT_NE(nullptr, val);
+    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
+
+    auto clonePara = atlasFrameMaskPara->Clone();
+    EXPECT_NE(nullptr, clonePara);
+    EXPECT_EQ(clonePara->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
+}
+
+/**
+ * @tc.name: RSUIEffectAtlasFrameMaskParaOnUnmarshallingBadType
+ * @tc.desc: Verify AtlasFrameMaskPara OnUnmarshalling fails on wrong type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectAtlasFrameMaskParaOnUnmarshallingBadType, TestSize.Level1)
+{
+    Parcel parcelTest;
+    parcelTest.WriteUint16(666);
+    std::shared_ptr<MaskPara> valTest = nullptr;
+    EXPECT_EQ(false, AtlasFrameMaskPara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_EQ(nullptr, valTest);
+
+    Parcel emptyParcel;
+    EXPECT_EQ(false, AtlasFrameMaskPara::OnUnmarshalling(emptyParcel, valTest));
+    EXPECT_EQ(nullptr, valTest);
+}
+
 } // namespace Rosen
 } // namespace OHOS

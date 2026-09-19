@@ -90,6 +90,7 @@ class EmitterConfig;
 class ParticleVelocity;
 class RenderParticleColorParaType;
 class ParticleRenderParams;
+class RSRenderAtlasInfoAnimation;
 class RSRenderCurveAnimation;
 class RSRenderParticleAnimation;
 class RSRenderInterpolatingSpringAnimation;
@@ -113,6 +114,7 @@ struct PixelMapInfo;
 class RSRenderParticleVector;
 struct DepthCameraPara;
 struct DepthLightPara;
+struct AtlasInfo;
 #ifndef ROSEN_CROSS_PLATFORM
 struct SurfaceRegionConfig;
 #endif
@@ -318,6 +320,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
     DECLARE_FUNCTION_OVERLOAD(DepthCameraPara)
     DECLARE_FUNCTION_OVERLOAD(DepthLightPara)
+    DECLARE_FUNCTION_OVERLOAD(AtlasInfo)
     DECLARE_FUNCTION_OVERLOAD(RSSurfaceRenderNodeConfig)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
@@ -332,6 +335,7 @@ public:
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val); \
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val);
 
+    DECLARE_ANIMATION_OVERLOAD(RSRenderAtlasInfoAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderCurveAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderParticleAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderInterpolatingSpringAnimation)

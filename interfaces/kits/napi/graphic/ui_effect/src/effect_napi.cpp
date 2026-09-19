@@ -19,6 +19,10 @@
 #include "ui_effect_napi_utils.h"
 
 #include "mask_napi.h"
+#include "pixel_map.h"
+#ifdef IMAGE_NAPI_ENABLE
+#include "pixel_map_napi.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -129,6 +133,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("liquidMaterial", CreateHarmoniumEffect),
         DECLARE_NAPI_FUNCTION("frostedGlass", CreateFrostedGlassEffect),
         DECLARE_NAPI_FUNCTION("distortionCollapse", CreateDistortionCollapseEffect),
+        DECLARE_NAPI_FUNCTION("glassMarbleEffect", CreateGlassEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
@@ -676,19 +681,6 @@ napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info
     return nativeObj;
 }
 
-static bool CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName)
-{
-    napi_valuetype type = UIEffectNapiUtils::GetType(env, argv);
-    if (type == napi_null || type == napi_undefined) {
-        std::string msg =
-            std::string("EffectNapi CreateHdrDarkenBlender failed, ") + paramName + " is null or undefined";
-        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender %{public}s is null or undefined", paramName);
-        napi_throw(env, CreateJsError(env, ERR_INVALID_PARAM, msg));
-        return false;
-    }
-    return true;
-}
-
 napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info info)
 {
     size_t realArgc = NUM_2;
@@ -700,10 +692,10 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && (realArgc == NUM_1 || realArgc == NUM_2), nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parsing input fail"));
 
-    if (!CheckNullOrUndefined(env, argv[NUM_0], "hdrBrightnessRatio")) {
+    if (!UIEffectNapiUtils::CheckNullOrUndefined(env, argv[NUM_0], "hdrBrightnessRatio")) {
         return nullptr;
     }
-    if (realArgc == NUM_2 && !CheckNullOrUndefined(env, argv[NUM_1], "grayscaleFactor")) {
+    if (realArgc == NUM_2 && !UIEffectNapiUtils::CheckNullOrUndefined(env, argv[NUM_1], "grayscaleFactor")) {
         return nullptr;
     }
 
@@ -1371,6 +1363,284 @@ napi_value EffectNapi::CreateDistortionCollapseEffect(napi_env env, napi_callbac
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect napi_unwrap fail"));
 
+    visualEffectObj->AddPara(para);
+    return thisVar;
+}
+
+namespace {
+bool ParseGlassPixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef IMAGE_NAPI_ENABLE
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, argv, &res);
+    Media::PixelMapNapi* tempPixelMap = nullptr;
+    if (res == napi_object) {
+        if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
+            return false;
+        }
+        if (tempPixelMap == nullptr) {
+            return false;
+        }
+        pixelMap = tempPixelMap->GetPixelNapiInner();
+        return pixelMap != nullptr;
+    }
+    napi_value constructor = nullptr;
+    napi_value global = nullptr;
+    napi_get_global(env, &global);
+    napi_get_named_property(env, global, "PixelMap", &constructor);
+    bool isInstance = false;
+    napi_status ret = napi_instanceof(env, argv, constructor, &isInstance);
+    if (ret == napi_ok && isInstance) {
+        pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
+        return pixelMap != nullptr;
+    }
+#else
+    UIEFFECT_LOG_E("ImageNapi disabled, parse pixel map failed");
+#endif
+    return false;
+}
+
+bool ParseGlassFloat(napi_env env, napi_value jsObject, const std::string& name, float& data)
+{
+    double val = 0.0;
+    if (!ParseJsDoubleValue(env, jsObject, name, val)) {
+        return false;
+    }
+    data = static_cast<float>(val);
+    return true;
+}
+} // namespace
+
+bool EffectNapi::FillGlassMaterial(napi_env env, napi_value materialObj,
+    std::shared_ptr<GlassEffectPara>& para)
+{
+    if (materialObj == nullptr) {
+        return false;
+    }
+    napi_value bgColorObj = ParseJsValue(env, materialObj, "averageBgColor");
+    UIEFFECT_NAPI_CHECK_RET_D(bgColorObj != nullptr, false,
+        UIEFFECT_LOG_E("FillGlassMaterial: averageBgColor property not found"));
+    Vector4f bgColor;
+    if (!ParseJsRGBAColor(env, bgColorObj, bgColor)) {
+        UIEFFECT_LOG_E("FillGlassMaterial: averageBgColor parse fail");
+        return false;
+    }
+    para->SetAverageBgColor(bgColor);
+
+    float floatVal = 0.0f;
+    if (!ParseGlassFloat(env, materialObj, "opacity", floatVal)) {
+        return false;
+    }
+    para->SetOpacity(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "shapeScale", floatVal)) {
+        return false;
+    }
+    para->SetShapeScale(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "shadowOffset", floatVal)) {
+        return false;
+    }
+    para->SetShadowOffset(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "shadowRadius", floatVal)) {
+        return false;
+    }
+    para->SetShadowRadius(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "shadowEdgeSoftness", floatVal)) {
+        return false;
+    }
+    para->SetShadowEdgeSoftness(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "shadowOpacity", floatVal)) {
+        return false;
+    }
+    para->SetShadowOpacity(floatVal);
+    return true;
+}
+
+bool EffectNapi::FillGlassMaterialExtra(napi_env env, napi_value materialObj,
+    std::shared_ptr<GlassEffectPara>& para)
+{
+    float floatVal = 0.0f;
+    if (!ParseGlassFloat(env, materialObj, "causticOffset", floatVal)) {
+        return false;
+    }
+    para->SetCausticOffset(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "causticRadius", floatVal)) {
+        return false;
+    }
+    para->SetCausticRadius(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "causticEdgeSoftness", floatVal)) {
+        return false;
+    }
+    para->SetCausticEdgeSoftness(floatVal);
+    if (!ParseGlassFloat(env, materialObj, "causticOpacity", floatVal)) {
+        return false;
+    }
+    para->SetCausticOpacity(floatVal);
+
+    napi_value reflectionValue = ParseJsValue(env, materialObj, "reflectionMap");
+    if (reflectionValue != nullptr) {
+        std::shared_ptr<Media::PixelMap> pixelMap;
+        if (ParseGlassPixelMap(env, reflectionValue, pixelMap)) {
+            para->SetReflectionImage(pixelMap);
+        }
+    }
+    return true;
+}
+
+bool EffectNapi::FillSphereParam(napi_env env, napi_value sphereObj,
+    std::shared_ptr<GlassEffectPara>& para)
+{
+    if (sphereObj == nullptr) {
+        return false;
+    }
+    napi_value centerValue = ParseJsValue(env, sphereObj, "center");
+    UIEFFECT_NAPI_CHECK_RET_D(centerValue != nullptr, false,
+        UIEFFECT_LOG_E("FillSphereParam: center parse fail"));
+    Vector2f center;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, centerValue, center), false,
+        UIEFFECT_LOG_E("FillSphereParam: center point parse fail"));
+    para->SetSphereCenter(center);
+
+    float radius = 0.0f;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseGlassFloat(env, sphereObj, "radius", radius), false,
+        UIEFFECT_LOG_E("FillSphereParam: radius parse fail"));
+    para->SetSphereRadius(radius);
+    return true;
+}
+
+bool EffectNapi::FillGlassContent(napi_env env, napi_value contentObj,
+    std::shared_ptr<GlassEffectPara>& para)
+{
+    if (contentObj == nullptr) {
+        return true;
+    }
+    napi_valuetype contentType = UIEffectNapiUtils::GetType(env, contentObj);
+    if (contentType == napi_null || contentType == napi_undefined) {
+        return true;
+    }
+    // Extract contentMask from the content param object
+    napi_value maskValue = ParseJsValue(env, contentObj, "contentMask");
+    if (maskValue != nullptr) {
+        Mask* contentMask = nullptr;
+        napi_status maskStatus = napi_unwrap(env, maskValue, reinterpret_cast<void**>(&contentMask));
+        if (maskStatus == napi_ok && contentMask != nullptr) {
+            para->SetContentMask(contentMask->GetMaskPara());
+        }
+    }
+    napi_value tintColorObj = ParseJsValue(env, contentObj, "contentTintColor");
+    UIEFFECT_NAPI_CHECK_RET_D(tintColorObj != nullptr, false,
+        UIEFFECT_LOG_E("FillGlassContent: contentTintColor property not found"));
+    Vector4f tintColor;
+    if (!ParseJsRGBAColor(env, tintColorObj, tintColor)) {
+        UIEFFECT_LOG_E("FillGlassContent: contentTintColor parse fail");
+        return false;
+    }
+    para->SetContentTintColor(tintColor);
+
+    float floatVal = 0.0f;
+    if (!ParseGlassFloat(env, contentObj, "contentScale", floatVal)) {
+        return false;
+    }
+    para->SetContentScale(floatVal);
+    if (!ParseGlassFloat(env, contentObj, "contentSaturation", floatVal)) {
+        return false;
+    }
+    para->SetContentSaturation(floatVal);
+    if (!ParseGlassFloat(env, contentObj, "contentDispersion", floatVal)) {
+        return false;
+    }
+    para->SetContentDispersion(floatVal);
+    return true;
+}
+
+bool EffectNapi::BuildGlassEffectPara(napi_env env, napi_value* argv,
+    std::shared_ptr<GlassEffectPara>& outPara)
+{
+    UIEFFECT_NAPI_CHECK_RET_D(outPara != nullptr, false,
+        UIEFFECT_LOG_E("BuildGlassEffectPara: para nullptr"));
+    // argv[0] = material (required)
+    UIEFFECT_NAPI_CHECK_RET_D(FillGlassMaterial(env, argv[NUM_0], outPara), false,
+        UIEFFECT_LOG_E("BuildGlassEffectPara: FillGlassMaterial fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(FillGlassMaterialExtra(env, argv[NUM_0], outPara), false,
+        UIEFFECT_LOG_E("BuildGlassEffectPara: FillGlassMaterialExtra fail"));
+    return true;
+}
+
+napi_value EffectNapi::CreateGlassEffect(napi_env env, napi_callback_info info)
+{
+    // Signature: glassMarbleEffect(material, marbleShell, content?)
+    // argv[0] = material (required, GlassMarbleMaterialParam)
+    //           Fields (parsed in FillGlassMaterial / FillGlassMaterialExtra):
+    //             averageBgColor   : Vector4f (RGBA)  — required
+    //             opacity          : float            — required
+    //             shapeScale       : float            — required
+    //             shadowOffset     : float            — required
+    //             shadowRadius     : float            — required
+    //             shadowEdgeSoftness: float           — required
+    //             shadowOpacity    : float            — required
+    //             causticOffset    : float            — required (extra)
+    //             causticRadius    : float            — required (extra)
+    //             causticEdgeSoftness: float          — required (extra)
+    //             causticOpacity   : float            — required (extra)
+    //             reflectionMap    : PixelMap         — optional (extra)
+    // argv[1] = marbleShell (required, GlassMarbleSphereParam | Mask)
+    //           - Mask takes precedence: try napi_unwrap first, then FillSphereParam
+    // argv[2] = content (optional, GlassMarbleContentParam)
+    //           Fields (parsed in FillGlassContent):
+    //             contentMask      : Mask             — optional
+    //             contentTintColor : Vector4f (RGBA)  — required
+    //             contentScale      : float            — required
+    //             contentSaturation : float            — required
+    //             contentDispersion : float            — required
+    constexpr size_t maxArgc = NUM_3;
+    size_t realArgc = maxArgc;
+    napi_status status;
+    napi_value argv[maxArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && (realArgc >= NUM_2 && realArgc <= maxArgc), nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateGlassEffect parsing input fail"));
+
+    if (!UIEffectNapiUtils::CheckNullOrUndefined(env, argv[NUM_0], "material")) {
+        return nullptr;
+    }
+    if (!UIEffectNapiUtils::CheckNullOrUndefined(env, argv[NUM_1], "marbleShell")) {
+        return nullptr;
+    }
+
+    auto para = std::make_shared<GlassEffectPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(BuildGlassEffectPara(env, argv, para), nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateGlassEffect build para fail"));
+
+    // argv[1] = marbleShell (required, GlassMarbleSphereParam | Mask)
+    UIEFFECT_NAPI_CHECK_RET_D(argv[NUM_1] != nullptr, nullptr,
+        UIEFFECT_LOG_E("CreateGlassEffect: marbleShell must be provided"));
+    napi_valuetype maskType = napi_undefined;
+    napi_typeof(env, argv[NUM_1], &maskType);
+    UIEFFECT_NAPI_CHECK_RET_D(maskType == napi_object, nullptr,
+        UIEFFECT_LOG_E("CreateGlassEffect: marbleShell must be an object"));
+    {
+        // Try Mask first (shapeMask takes precedence)
+        Mask* shapeMask = nullptr;
+        status = napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&shapeMask));
+        if (status == napi_ok && shapeMask != nullptr) {
+            para->SetShapeMask(shapeMask->GetMaskPara());
+        } else {
+            // Not a Mask, try GlassMarbleSphereParam
+            UIEFFECT_NAPI_CHECK_RET_D(FillSphereParam(env, argv[NUM_1], para), nullptr,
+                UIEFFECT_LOG_E("CreateGlassEffect FillSphereParam fail"));
+        }
+    }
+
+    // argv[2] = content (optional, includes contentMask + tint/scale/saturation/dispersion)
+    if (realArgc >= NUM_3) {
+        UIEFFECT_NAPI_CHECK_RET_D(FillGlassContent(env, argv[NUM_2], para), nullptr,
+            UIEFFECT_LOG_E("CreateGlassEffect FillGlassContent fail"));
+    }
+
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("CreateGlassEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
     return thisVar;
 }

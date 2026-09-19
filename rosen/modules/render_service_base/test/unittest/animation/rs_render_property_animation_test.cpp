@@ -62,7 +62,6 @@ void RSRenderPropertyAnimationTest::TearDown() {}
  */
 HWTEST_F(RSRenderPropertyAnimationTest, Marshalling001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest Marshalling001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
@@ -75,7 +74,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, Marshalling001, TestSize.Level1)
     renderPropertyAnimation->Attach(renderNode.get());
     renderPropertyAnimation->Start();
     EXPECT_TRUE(renderPropertyAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest Marshalling001 end";
 }
 
 /**
@@ -85,7 +83,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, Marshalling001, TestSize.Level1)
  */
 HWTEST_F(RSRenderPropertyAnimationTest, SetPropertyValue001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest SetPropertyValue001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
@@ -98,7 +95,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, SetPropertyValue001, TestSize.Level1)
     renderPropertyAnimation->Attach(renderNode.get());
     renderPropertyAnimation->Start();
     EXPECT_TRUE(renderPropertyAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest SetPropertyValue001 end";
 }
 
 /**
@@ -108,7 +104,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, SetPropertyValue001, TestSize.Level1)
  */
 HWTEST_F(RSRenderPropertyAnimationTest, GetPropertyValue001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetPropertyValue001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
@@ -132,7 +127,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetPropertyValue001, TestSize.Level1)
     EXPECT_EQ(propertyValue, nullptr);
     propertyValue += property;
     EXPECT_EQ(propertyValue, nullptr);
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetPropertyValue001 end";
 }
 
 /**
@@ -142,7 +136,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetPropertyValue001, TestSize.Level1)
  */
 HWTEST_F(RSRenderPropertyAnimationTest, GetAnimationValue001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetAnimationValue001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
@@ -155,7 +148,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetAnimationValue001, TestSize.Level1)
     animationValue = nullptr;
     newAnimationValue = renderPropertyAnimation->GetAnimationValue(animationValue);
     EXPECT_EQ(newAnimationValue, nullptr);
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetAnimationValue001 end";
 }
 
 /**
@@ -165,7 +157,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetAnimationValue001, TestSize.Level1)
  */
 HWTEST_F(RSRenderPropertyAnimationTest, ProcessAnimateVelocityUnderAngleRotation001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest ProcessAnimateVelocityUnderAngleRotation001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
@@ -189,7 +180,6 @@ HWTEST_F(RSRenderPropertyAnimationTest, ProcessAnimateVelocityUnderAngleRotation
     renderPropertyAnimation2->ProcessAnimateVelocityUnderAngleRotation(frameInterval2);
     renderPropertyAnimation2->Start();
     EXPECT_TRUE(renderPropertyAnimation2->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest ProcessAnimateVelocityUnderAngleRotation001 end";
 }
 
 /**
@@ -242,12 +232,10 @@ HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_DumpAnimationI
  */
 HWTEST_F(RSRenderPropertyAnimationTest, GetType001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetType001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property);
     EXPECT_EQ(renderPropertyAnimation->GetType(), RSRenderAnimationType::PROPERTY_ANIMATION);
-    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetType001 end";
 }
 
 } // namespace Rosen

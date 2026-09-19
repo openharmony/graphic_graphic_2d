@@ -4821,6 +4821,11 @@ bool RSProperties::HasSpatialGlassEffect() const
     return hasSpatialGlassEffect_;
 }
 
+bool RSProperties::HasGlassEffect() const
+{
+    return hasGlassEffect_;
+}
+
 void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 {
     GetEffect().needDrawBehindWindow_ = needDrawBehindWindow;
@@ -5923,6 +5928,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(", HasHarmonium[true]");
     }
 
+    // HasGlassEffect
+    if (HasGlassEffect()) {
+        dumpInfo.append(", HasGlassEffect[true]");
+    }
+
     // Gray Scale
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -6482,9 +6492,13 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     SetDirty();
     contentDirty_ = true;
     hasHarmonium_ = false;
+    hasGlassEffect_ = false;
     const auto& bgNGRenderShader_ = GetBackgroundNGShader();
     if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
         hasHarmonium_ = true;
+    }
+    if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::GLASS_EFFECT)) {
+        hasGlassEffect_ = true;
     }
     if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
         filterNeedUpdate_ = true;

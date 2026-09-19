@@ -155,6 +155,7 @@ public:
     static bool IsSystemApp();
     static bool IsFormRenderServiceCall();
     static bool CheckPermission(const std::string& permission);
+    static bool CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName);
 private:
     static std::string GetBundleName();
 };
