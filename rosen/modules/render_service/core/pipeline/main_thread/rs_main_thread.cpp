@@ -2896,8 +2896,10 @@ bool RSMainThread::IsSnapshotPendingThisFrame() const
 void RSMainThread::AddWindowCapTask(NodeId id, std::function<void()> task)
 {
     uint64_t startTime = context_->GetSyncCaptureHelper().GetCurrentSteadyTimeMs();
-    RS_TRACE_NAME_FMT("RSMainThread::AddWindowCapTask id: %" PRIu64 ", startTime: %" PRIu64 "ms", id, startTime);
-    pendingWindowCapTasks_.emplace_back(id, task, startTime, 0, false);
+    uint64_t startVsyncId = vsyncId_;
+    pendingWindowCapTasks_.emplace_back(id, task, startTime, startVsyncId, false);
+    RS_TRACE_NAME_FMT("RSMainThread::AddWindowCapTask id: %" PRIu64
+        ", startTime: %" PRIu64 "ms, startVsyncId: %" PRIu64, id, startTime, startVsyncId);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     const auto& nodeMap = context_->GetNodeMap();
     auto node = nodeMap.GetRenderNode(id);
@@ -2958,17 +2960,6 @@ void RSMainThread::CheckWindowCapTasks()
             windowCapTasks_.emplace(nodeId, windowCapTask);
             continue;
         }
-        if (!isBackground) {
-            // inject vsyncId and true flag when window is in background, or keep it in pending list otherwise
-            if (nodeState == RSSurfaceNodeAbilityState::BACKGROUND) {
-                isBackground = true;
-                startVsyncId = RSUniRenderThread::Instance().GetVsyncId();
-            } else {
-                remainWindowCapTasks.emplace_back(nodeId, windowCapTask, startTime, startVsyncId, isBackground);
-                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks keep in pending list");
-                continue;
-            }
-        }
         auto rawDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
             std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(rawDrawable);
@@ -2997,13 +2988,19 @@ void RSMainThread::CheckWindowCapTasks()
             }
             if ((hasUifirstCachedTexture && isUifirstVsyncLatest) || !isInSubthreadProcessing) {
                 // condition qualified, process allowed
-                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, normal case");
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, normal case: "
+                    "cacheFresh[%d], notInSubthread[%d], duration[%" PRIu64 "ms]",
+                    hasUifirstCachedTexture && isUifirstVsyncLatest, !isInSubthreadProcessing, duration);
                 windowCapTasks_.emplace(nodeId, windowCapTask);
                 continue;
             } else {
                 // keep in loop
                 remainWindowCapTasks.emplace_back(nodeId, windowCapTask, startTime, startVsyncId, isBackground);
-                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, loop again");
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, loop again: "
+                    "noCache[%d], vsyncStale[%d], inSubthread[%d], duration[%" PRIu64 "ms]",
+                    !hasUifirstCachedTexture,
+                    hasUifirstCachedTexture && !isUifirstVsyncLatest,
+                    isInSubthreadProcessing, duration);
                 continue;
             }
         } else {
@@ -3074,7 +3071,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
     bool hasPendingCaptureTasks = !pendingNonSystemUiCaptureTasks_.empty() || !nonSystemUiCaptureTasks_.empty() ||
         !pendingSystemUiCaptureTasks_.empty() || !systemUiCaptureTasks_.empty() ||
-        !pendingSyncWindowCaptureTasks_.empty() || !syncWindowCaptureTasks_.empty();
+        !pendingSyncWindowCaptureTasks_.empty() || !syncWindowCaptureTasks_.empty() ||
+        !pendingWindowCapTasks_.empty() || !windowCapTasks_.empty();
     bool willGoDirectComposition = doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_ &&
                                    !isCachedSurfaceUpdated_ && pointerSkip && !hasPendingCaptureTasks;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: needGoDirectComposition:[%d], isDirty:[%d], "
