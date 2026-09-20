@@ -653,6 +653,208 @@ void NativeDrawingFontTest020(const uint8_t* data, size_t size)
     }
 }
 
+void NativeDrawingFontTest021(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    OH_Drawing_TypefaceFallbackInfo* typefaceFallbackInfo = nullptr;
+    uint32_t infosCount = 0;
+
+    OH_Drawing_FontTextToGlyphsWithFallback(nullptr, str, strlen(str), TEXT_ENCODING_UTF8,
+        &typefaceFallbackInfo, &infosCount);
+    OH_Drawing_FontTextToGlyphsWithFallback(font, nullptr, strlen(str), TEXT_ENCODING_UTF8,
+        &typefaceFallbackInfo, &infosCount);
+    OH_Drawing_FontTextToGlyphsWithFallback(font, str, 0, TEXT_ENCODING_UTF8,
+        &typefaceFallbackInfo, &infosCount);
+    OH_Drawing_FontTextToGlyphsWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8,
+        nullptr, &infosCount);
+    OH_Drawing_FontTextToGlyphsWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8,
+        &typefaceFallbackInfo, nullptr);
+    OH_Drawing_FontTextToGlyphsWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(TEXTENCODING_SIZE + 1), &typefaceFallbackInfo, &infosCount);
+    OH_Drawing_FontTypefaceFallbackInfoDestroy(nullptr, infosCount);
+    OH_Drawing_FontTypefaceFallbackInfoDestroy(typefaceFallbackInfo, 0);
+
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest022(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    uint32_t encoding = GetObject<uint32_t>() % TEXTENCODING_SIZE;
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    OH_Drawing_TypefaceFallbackInfo* typefaceFallbackInfo = nullptr;
+    uint32_t infosCount = 0;
+
+    OH_Drawing_FontTextToGlyphsWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(encoding), &typefaceFallbackInfo, &infosCount);
+    OH_Drawing_FontTypefaceFallbackInfoDestroy(typefaceFallbackInfo, infosCount);
+
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest023(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    float textWidth = 0.f;
+
+    OH_Drawing_FontMeasureTextWithFallback(nullptr, str, strlen(str), TEXT_ENCODING_UTF8, rect, &textWidth);
+    OH_Drawing_FontMeasureTextWithFallback(font, nullptr, strlen(str), TEXT_ENCODING_UTF8, rect, &textWidth);
+    OH_Drawing_FontMeasureTextWithFallback(font, str, 0, TEXT_ENCODING_UTF8, rect, &textWidth);
+    OH_Drawing_FontMeasureTextWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8, rect, nullptr);
+    OH_Drawing_FontMeasureTextWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(TEXTENCODING_SIZE + 1), rect, &textWidth);
+    OH_Drawing_FontMeasureTextWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8, rect, &textWidth);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest024(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    uint32_t encoding = GetObject<uint32_t>() % TEXTENCODING_SIZE;
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    float textWidth = 0.f;
+
+    OH_Drawing_FontMeasureTextWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(encoding), rect, &textWidth);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest025(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    float textWidth = 0.f;
+
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(nullptr, str, strlen(str), TEXT_ENCODING_UTF8,
+        nullptr, nullptr, nullptr, &textWidth);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, nullptr, strlen(str), TEXT_ENCODING_UTF8,
+        nullptr, nullptr, nullptr, &textWidth);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, 0, TEXT_ENCODING_UTF8,
+        nullptr, nullptr, nullptr, &textWidth);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8,
+        nullptr, nullptr, nullptr, nullptr);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, strlen(str), TEXT_ENCODING_UTF8,
+        brush, pen, nullptr, &textWidth);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(TEXTENCODING_SIZE + 1), nullptr, nullptr, nullptr, &textWidth);
+
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest026(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    uint32_t encoding = GetObject<uint32_t>() % TEXTENCODING_SIZE;
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    float textWidth = 0.f;
+
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(encoding), brush, nullptr, rect, &textWidth);
+    OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(font, str, strlen(str),
+        static_cast<OH_Drawing_TextEncoding>(encoding), nullptr, pen, rect, &textWidth);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -686,5 +888,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingFontTest018(data, size);
     OHOS::Rosen::Drawing::NativeDrawingFontTest019(data, size);
     OHOS::Rosen::Drawing::NativeDrawingFontTest020(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest021(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest022(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest023(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest024(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest025(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest026(data, size);
     return 0;
 }
