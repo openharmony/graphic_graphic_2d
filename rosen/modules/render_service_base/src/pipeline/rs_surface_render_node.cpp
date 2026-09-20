@@ -3340,6 +3340,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
+#ifdef ROSEN_OHOS
     {
         auto context = GetContext().lock();
         if (context) {
@@ -3349,6 +3350,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
                 displayNode ? displayNode->HasDstAlphaBlendModeNode() : false);
         }
     }
+#endif
     surfaceParams->specialLayerManager_ = specialLayerManager_;
     surfaceParams->animateState_ = animateState_;
     surfaceParams->isRotating_ = isRotating_;
