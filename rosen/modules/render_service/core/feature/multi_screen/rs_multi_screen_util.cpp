@@ -569,9 +569,12 @@ void RSMultiScreenUtil::DrawVirtualMirrorDisplay(
     // if specialLayer is visible and no CacheImg
     bool needProcessSpecialLayer = mirrorSourceDisplayParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
         specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER;
+    bool needProcessSecLayer = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(
+        drawable.enableVisibleRect_, *screenParams, params, *mirrorSourceDisplayParams);
 
     std::bitset<RebuildReason::MAX_VALUE> rebuildReasonFlag;
     rebuildReasonFlag.set(RebuildReason::PROCESS_SPECIAL_LAYER, needProcessSpecialLayer);
+    rebuildReasonFlag.set(RebuildReason::DRAW_SEC_MASK, needProcessSecLayer);
     rebuildReasonFlag.set(RebuildReason::MIRROR_SCREEN_HDR_PRESENT, screenParams->GetHDRPresent());
     rebuildReasonFlag.set(RebuildReason::MIRROR_SOURCE_HDR_PRESENT, mirrorSourceScreenParams->GetHDRPresent());
     rebuildReasonFlag.set(RebuildReason::CACHE_IMAGE_NULL, cacheImage == nullptr);
