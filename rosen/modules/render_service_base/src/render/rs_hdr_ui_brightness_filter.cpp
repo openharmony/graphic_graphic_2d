@@ -81,7 +81,7 @@ void RSHDRUIBrightnessFilter::DrawImageRect(Drawing::Canvas& canvas, const std::
     Media::VideoProcessingEngine::BrightnessInfo vpeInfo{info.currentHeadroom, info.maxHeadroom, info.sdrNits};
     if (Media::VideoProcessingEngine::VpeCommonState::GetMaxHeadroom(vpeInfo, rscanvas.GetPid(), vpeMaxHeadroom) ==
         Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
- 
+        ROSEN_LOGD("vpeMaxHeadroom=%{public}.4f", vpeMaxHeadroom);
         hdrUIBrightnessRatio = std::clamp(hdrUIBrightnessRatio, DEFAULT_HDR_UI_BRIGHTNESS, vpeMaxHeadroom);
     }
 #endif
