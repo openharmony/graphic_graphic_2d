@@ -62,29 +62,29 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
     std::shared_ptr<DrawableV2::RSBinarizationDrawable> binarizationDrawable =
         std::make_shared<DrawableV2::RSBinarizationDrawable>();
     EXPECT_NE(binarizationDrawable, nullptr);
-    renderNodeTest1.renderProperties_.GetEffect().aiInvert_ = std::nullopt;
+    renderNodeTest1.renderProperties_.GetEffectProperties().GetFilterEffect().aiInvert_ = std::nullopt;
     EXPECT_EQ(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
-    renderNodeTest1.renderProperties_.GetEffect().aiInvert_ = aiInvertTest;
+    renderNodeTest1.renderProperties_.GetEffectProperties().GetFilterEffect().aiInvert_ = aiInvertTest;
     EXPECT_NE(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
 
     RSRenderNode renderNodeTest2(0);
     std::shared_ptr<DrawableV2::RSColorFilterDrawable> colorFilterDrawable =
         std::make_shared<DrawableV2::RSColorFilterDrawable>();
     EXPECT_NE(colorFilterDrawable, nullptr);
-    renderNodeTest2.renderProperties_.GetEffect().colorFilter_ = nullptr;
+    renderNodeTest2.renderProperties_.GetEffectProperties().GetFilterEffect().colorFilter_ = nullptr;
     EXPECT_EQ(colorFilterDrawable->OnGenerate(renderNodeTest2), nullptr);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = std::make_shared<Drawing::ColorFilter>();
     EXPECT_NE(colorFilter, nullptr);
-    renderNodeTest2.renderProperties_.GetEffect().colorFilter_ = colorFilter;
+    renderNodeTest2.renderProperties_.GetEffectProperties().GetFilterEffect().colorFilter_ = colorFilter;
     EXPECT_NE(colorFilterDrawable->OnGenerate(renderNodeTest2), nullptr);
 
     RSRenderNode renderNodeTest3(0);
     std::shared_ptr<DrawableV2::RSLightUpEffectDrawable> lightUpEffectDrawable =
         std::make_shared<DrawableV2::RSLightUpEffectDrawable>();
     EXPECT_NE(lightUpEffectDrawable, nullptr);
-    renderNodeTest3.renderProperties_.GetEffect().lightUpEffectDegree_ = -1.0f;
+    renderNodeTest3.renderProperties_.GetEffectProperties().GetFilterEffect().lightUpEffectDegree_ = -1.0f;
     EXPECT_EQ(lightUpEffectDrawable->OnGenerate(renderNodeTest3), nullptr);
-    renderNodeTest3.renderProperties_.GetEffect().lightUpEffectDegree_ = 0.1f;
+    renderNodeTest3.renderProperties_.GetEffectProperties().GetFilterEffect().lightUpEffectDegree_ = 0.1f;
     EXPECT_NE(lightUpEffectDrawable->OnGenerate(renderNodeTest3), nullptr);
 }
 
@@ -102,9 +102,9 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     EXPECT_NE(dynamicDimDrawable, nullptr);
     float dynamicDimDegreeTest1 = -1.0f;
     float dynamicDimDegreeTest2 = 0.1f;
-    renderNodeTest4.renderProperties_.GetEffect().dynamicDimDegree_ = dynamicDimDegreeTest1;
+    renderNodeTest4.renderProperties_.GetEffectProperties().GetFilterEffect().dynamicDimDegree_ = dynamicDimDegreeTest1;
     EXPECT_EQ(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
-    renderNodeTest4.renderProperties_.GetEffect().dynamicDimDegree_ = dynamicDimDegreeTest2;
+    renderNodeTest4.renderProperties_.GetEffectProperties().GetFilterEffect().dynamicDimDegree_ = dynamicDimDegreeTest2;
     EXPECT_NE(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
 
     RSRenderNode renderNodeTest5(0);
@@ -222,7 +222,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest005, TestSiz
     std::shared_ptr<DrawableV2::RSParticleDrawable> particleDrawable =
         std::make_shared<DrawableV2::RSParticleDrawable>();
     EXPECT_NE(particleDrawable, nullptr);
-    renderNodeTest13.renderProperties_.GetEffect().particles_.renderParticleVector_.clear();
+    renderNodeTest13.renderProperties_.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.clear();
     EXPECT_EQ(particleDrawable->OnGenerate(renderNodeTest13), nullptr);
 
     std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();

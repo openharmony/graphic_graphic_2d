@@ -140,7 +140,8 @@ HWTEST_F(RSEffectUtilsTest, AccumulateFilterRenderContext003, TestSize.Level1)
 HWTEST_F(RSEffectUtilsTest, UpdateFilterCacheWithBelowDirtyAndPendingPurge001, TestSize.Level2)
 {
     auto node = std::make_shared<RSCanvasRenderNode>(id, context);
-    node->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
 
     RSDirtyRegionManager dirtyManager;
     dirtyManager.MergeDirtyRect(RectI(0, 0, 100, 100));

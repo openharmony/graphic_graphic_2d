@@ -312,7 +312,7 @@ HWTEST_F(RenderEffectRenderNodeTest, MarkClearFilterCacheIfEffectChildrenChanged
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
     auto& bgProperties = rsEffectRenderNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;

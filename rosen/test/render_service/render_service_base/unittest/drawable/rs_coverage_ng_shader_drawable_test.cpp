@@ -49,19 +49,19 @@ void RSPropertyDrawableCoverageNGShaderTest::TearDown() {}
 HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnGenerateAndOnUpdateTest001, TestSize.Level1)
 {
     RSRenderNode renderNodeTest12(0);
-    renderNodeTest12.renderProperties_.GetEffect().illuminatedPtr_ = nullptr;
+    renderNodeTest12.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = nullptr;
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     EXPECT_EQ(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminated, nullptr);
-    renderNodeTest12.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
-    renderNodeTest12.renderProperties_.GetEffect().illuminatedPtr_->illuminatedType_ =
+    renderNodeTest12.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest12.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ =
         IlluminatedType::NORMAL_BORDER_CONTENT;
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
-    renderNodeTest12.renderProperties_.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
+    renderNodeTest12.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_->lightSourcesAndPosMap_
+        .emplace(0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
 }
 
@@ -76,8 +76,8 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest001, TestSize.Level1)
     RSProperties propertiesTest1;
     std::shared_ptr<RSIlluminated> illuminatedPtrTest1 = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminatedPtrTest1, nullptr);
-    propertiesTest1.GetEffect().illuminatedPtr_ = illuminatedPtrTest1;
-    propertiesTest1.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
+    propertiesTest1.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminatedPtrTest1;
+    propertiesTest1.GetEffectProperties().GetShaderEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest1 =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -89,7 +89,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest001, TestSize.Level1)
     illuminatedPtrTest2->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest2->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
-    propertiesTest2.GetEffect().illuminatedPtr_ = illuminatedPtrTest2;
+    propertiesTest2.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminatedPtrTest2;
 
     propertiesTest2.boundsGeo_->absRect_ = RectI(0, 1, 2, 3);
 
@@ -131,7 +131,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest002, TestSize.Level1)
     illuminatedPtrTest1->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest1->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
-    propertiesTest1.GetEffect().illuminatedPtr_ = illuminatedPtrTest1;
+    propertiesTest1.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminatedPtrTest1;
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest1 =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest1, nullptr);
@@ -142,7 +142,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest002, TestSize.Level1)
     illuminatedPtrTest2->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest2->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
-    propertiesTest2.GetEffect().illuminatedPtr_ = illuminatedPtrTest2;
+    propertiesTest2.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminatedPtrTest2;
     std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
     EXPECT_NE(boundsGeo, nullptr);
     boundsGeo->absRect_ = RectI(0, 1, 2, 3);
@@ -174,7 +174,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest003, TestSize.Level1)
     illuminatedPtrTest1->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest1->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
-    propertiesTest1.GetEffect().illuminatedPtr_ = illuminatedPtrTest1;
+    propertiesTest1.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminatedPtrTest1;
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest1 =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest1, nullptr);
@@ -814,14 +814,14 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, RSCoverageNGShaderDrawableOnUpd
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
-    EXPECT_NE(renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_, nullptr);
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_->illuminatedType_ =
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
+    EXPECT_NE(renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ =
         IlluminatedType::NORMAL_BORDER_CONTENT;
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
 
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_->lightSourcesAndPosMap_
+        .emplace(0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
 
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
@@ -843,7 +843,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateTest001, TestSize.Level
     EXPECT_NE(pointLightDrawableTest, nullptr);
     
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
@@ -864,7 +864,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateTest002, TestSize.Level
     EXPECT_NE(pointLightDrawableTest, nullptr);
     
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::CONTENT;
     auto lightSource = std::make_shared<RSLightSource>();
     lightSource->SetLightIntensity(2.0f);
@@ -934,7 +934,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateWithCoverageShaderAndIl
     illuminated->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     illuminated->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
     
     EXPECT_TRUE(pointLightDrawableTest->OnUpdate(renderNodeTest));
 }
@@ -949,7 +949,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnGenerateTest001, TestSize.Lev
     RSRenderNode renderNodeTest(0);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     illuminated->illuminatedType_ = IlluminatedType::NONE;
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -966,7 +966,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnGenerateTest002, TestSize.Lev
     RSRenderNode renderNodeTest(0);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     illuminated->illuminatedType_ = IlluminatedType::INVALID;
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -981,7 +981,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnGenerateTest002, TestSize.Lev
 HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateTest003, TestSize.Level1)
 {
     RSRenderNode renderNodeTest(0);
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = nullptr;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = nullptr;
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -999,7 +999,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateTest004, TestSize.Level
     RSRenderNode renderNodeTest(0);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     illuminated->illuminatedType_ = IlluminatedType::NONE;
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -1017,7 +1017,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateTest005, TestSize.Level
     RSRenderNode renderNodeTest(0);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     illuminated->illuminatedType_ = IlluminatedType::INVALID;
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
 
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
@@ -1497,7 +1497,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateSDFShapeTest001, TestSi
     renderNodeTest.GetMutableRenderProperties().SetSDFShape(rrectShape);
 
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
@@ -1519,7 +1519,7 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateSDFShapeTest002, TestSi
     EXPECT_NE(drawable, nullptr);
 
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
-    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    renderNodeTest.renderProperties_.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
         0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));

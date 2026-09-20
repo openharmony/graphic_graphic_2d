@@ -908,7 +908,7 @@ HWTEST_F(RSSpatialEffectManagerTest, CleanExpiredNodes_WithLostSpatialEffectProp
     auto depthNode = std::make_shared<RSDepthRenderNode>(3700, context_);
     auto effectNode = std::make_shared<RSRenderNode>(3701);
     depthNode->AddChild(effectNode);
-    effectNode->renderProperties_.GetEffect().spatialEffectVariantPara_.reset();
+    effectNode->renderProperties_.GetEffectProperties().GetDepthEffect().spatialEffectVariantPara_.reset();
     instance->RegisterSpatialEffect(effectNode);
     EXPECT_EQ(instance->depthSpatialEffectNodeMap_.size(), 1);
 

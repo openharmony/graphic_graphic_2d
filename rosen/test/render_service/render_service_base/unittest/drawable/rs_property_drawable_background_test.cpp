@@ -72,12 +72,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     ASSERT_EQ(drawable, nullptr);
     node.GetMutableRenderProperties().SetShadowIsFilled(true);
     node.GetMutableRenderProperties().SetShadowDisableSDFBlur(true);
-    node.GetMutableRenderProperties().GetEffect().shadow_->radius_ = 1.0f;
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().shadow_->radius_ = 1.0f;
     ASSERT_TRUE(node.GetRenderProperties().IsShadowValid());
-    node.GetMutableRenderProperties().GetEffect().shadow_->SetMask(true);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().shadow_->SetMask(true);
     std::shared_ptr<RSDrawable> drawableTwo = DrawableV2::RSShadowDrawable::OnGenerate(node);
-    node.GetMutableRenderProperties().GetEffect().shadow_->SetMask(false);
-    node.GetMutableRenderProperties().GetEffect().shadow_->SetElevation(1.0f);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().shadow_->SetMask(false);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().shadow_->SetElevation(1.0f);
     ASSERT_TRUE(node.GetRenderProperties().GetShadowElevation() > 0.f);
     std::shared_ptr<RSDrawable> drawableThree = DrawableV2::RSShadowDrawable::OnGenerate(node);
     std::shared_ptr<DrawableV2::RSShadowDrawable> rsShadowDrawable =
@@ -88,7 +88,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     rsShadowDrawable->needSync_ = true;
     rsShadowDrawable->OnSync();
     ASSERT_FALSE(rsShadowDrawable->needSync_);
-    node.GetMutableRenderProperties().GetEffect().shadow_->SetElevation(0);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().shadow_->SetElevation(0);
     std::shared_ptr<RSDrawable> drawableFour = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_NE(drawableFour, nullptr);
 }
@@ -216,15 +216,15 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_EQ(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->svgPicture_ = std::make_shared<Drawing::Picture>();
-    node.GetMutableRenderProperties().GetEffect().mask_.reset();
+    node.GetMutableRenderProperties().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::GRADIENT;
-    node.GetMutableRenderProperties().GetEffect().mask_.reset();
+    node.GetMutableRenderProperties().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PATH;
-    node.GetMutableRenderProperties().GetEffect().mask_.reset();
+    node.GetMutableRenderProperties().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PIXEL_MAP;
@@ -234,7 +234,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     auto pixelMap = Media::PixelMap::Create(opts);
     auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
     mask->SetPixelMap(shpPixelMap);
-    node.GetMutableRenderProperties().GetEffect().mask_.reset();
+    node.GetMutableRenderProperties().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
 }
@@ -1041,7 +1041,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnGenerate001, Te
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    node.GetMutableRenderProperties().GetEffect().materialFilter_ = nullptr;
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = nullptr;
     auto drawable = DrawableV2::RSMaterialFilterDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
 }
@@ -1057,7 +1057,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnGenerate002, Te
     RSRenderNode node(id);
     std::shared_ptr<RSFilter> filter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = filter;
     auto drawable = DrawableV2::RSMaterialFilterDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
 }
@@ -1086,7 +1086,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate002, Test
     RSRenderNode node(id);
     std::shared_ptr<RSFilter> filter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = filter;
     auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     ASSERT_TRUE(drawable->OnUpdate(node));
 }
@@ -1388,7 +1388,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate003, Test
     RSRenderNode node(id);
     std::shared_ptr<RSFilter> filter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = filter;
     Drawing::Path drawingPath;
     drawingPath.AddRect(0, 0, 100, 100);
     auto clipBounds = RSPath::CreateRSPath(drawingPath);
