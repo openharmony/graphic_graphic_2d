@@ -286,9 +286,9 @@ private:
     // End of DVSync
     
     // set thermal frame rate limit
-    uint32_t thermalFrameRateLimit_ = 0;
-    int64_t lastThermalTriggerTime_ = 0;
-    std::mutex thermalFrameRateLimitMtx_;
+    uint32_t thermalRateLimit_ = 0;
+    int64_t lastThermalTrigTime_ = 0;
+    std::mutex thermalLimitMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS
