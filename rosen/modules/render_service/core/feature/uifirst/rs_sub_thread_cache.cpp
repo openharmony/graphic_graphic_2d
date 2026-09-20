@@ -951,13 +951,6 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
     int totalNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
     int totalSurfaces = GetTotalProcessedSurfaceCount();
     RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d", totalSurfaces, totalNodes);
-    if (totalSurfaces <= 0 || totalNodes <= 0) {
-        RS_LOGI("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
-            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
-    } else {
-        RS_LOGD("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
-            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
-    }
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     // uifirst dirty dfx
     UifirstDirtyRegionDfx(*rscanvas, uifirstSurfaceDrawRects);
