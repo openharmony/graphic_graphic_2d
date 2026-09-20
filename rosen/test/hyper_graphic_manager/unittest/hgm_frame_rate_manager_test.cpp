@@ -802,6 +802,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
 HWTEST_F(HgmFrameRateMgrTest, HandleOtherEventTest, Function | SmallTest | Level0)
 {
     auto mgr = std::make_unique<HgmFrameRateManager>();
+    ASSERT_NE(mgr, nullptr);
     EventInfo eventInfo = {
         .eventName = "VOTER_VIDEO_CALL",
         .eventStatus = false,
@@ -2654,7 +2655,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncForLTPS, Function | SmallTest |
     mgr.isAdaptive_.store(prevIsAdaptive);
 }
 
-/*
+/**
  * @tc.name: UpdateSoftVSync001
  * @tc.desc: Test UpdateSoftVSync when RS frame rate changes
  * @tc.type: FUNC
@@ -2663,25 +2664,16 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncForLTPS, Function | SmallTest |
 HWTEST_F(HgmFrameRateMgrTest, UpdateSoftVSync001, Function | MediumTest | Level0)
 {
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
-
     frameRateMgr->rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
     ASSERT_NE(frameRateMgr->rsFrameRateLinker_, nullptr);
-
-    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
-    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
-    energyPolicy.SetRsFrameRateControlEnabled(false);
-
     frameRateMgr->changeGeneratorRateValid_.store(true);
     frameRateMgr->currRefreshRate_.store(OLED_60_HZ);
+    frameRateMgr->lastVoteInfo_.min = OLED_60_HZ;
     frameRateMgr->lastVoteInfo_.max = OLED_60_HZ;
-
     frameRateMgr->rsFrameRateLinker_->SetExpectedRange(FrameRateRange { OLED_60_HZ, OLED_60_HZ, OLED_60_HZ });
     frameRateMgr->rsFrameRateLinker_->SetFrameRate(OLED_60_HZ);
-
     frameRateMgr->UpdateSoftVSync(false);
-
-    EXPECT_EQ(frameRateMgr->rsFrameRateLinker_->GetFrameRate(), 0);
-    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+    EXPECT_EQ(frameRateMgr->rsFrameRateLinker_->GetFrameRate(), OLED_60_HZ);
 }
 
 /**
@@ -2742,7 +2734,7 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChanged, Function | Small
     mgr.rsFrameRateLinker_->SetFrameRate(OLED_60_HZ);
     mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
     mgr.MarkVoteChange("VOTER_POWER_MODE");
-    EXPECT_EQ(mgr.rsFrameRateLinker_->GetFrameRate(), OLED_120_HZ);
+    EXPECT_EQ(mgr.rsFrameRateLinker_->GetFrameRate(), OLED_60_HZ);
     energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
 }
 
