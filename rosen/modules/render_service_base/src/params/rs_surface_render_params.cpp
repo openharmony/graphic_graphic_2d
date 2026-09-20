@@ -777,7 +777,11 @@ bool RSSurfaceRenderParams::GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) 
     if (screenNode == nullptr) {
         return false;
     }
-    screenInfo = screenNode->GetScreenProperty().GetScreenInfo();
+    const auto& screenProperty = screenNode->GetScreenProperty();
+    if (ROSEN_LE(screenProperty.GetRogWidthRatio(), 0.f) || ROSEN_LE(screenProperty.GetRogHeightRatio(), 0.f)) {
+        return false;
+    }
+    screenInfo = screenProperty.GetScreenInfo();
     return screenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU;
 }
 

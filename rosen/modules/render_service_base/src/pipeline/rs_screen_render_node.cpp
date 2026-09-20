@@ -176,6 +176,10 @@ void RSScreenRenderNode::OnSync()
 void RSScreenRenderNode::ScaleSyncDirtyManagerForRogIfNeed(
     const std::shared_ptr<RSDirtyRegionManager>& syncDirtyManager) const
 {
+    if (syncDirtyManager == nullptr) {
+        RS_LOGW("%{public}s dirty manager is nullptr", __func__);
+        return;
+    }
     const auto& screenProperty = GetScreenProperty();
     if (screenProperty.GetSamplingMode() != ScreenSamplingMode::DEVICE_GPU) {
         return;
