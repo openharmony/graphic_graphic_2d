@@ -1007,8 +1007,10 @@ napi_value FilterNapi::SetSpinBlur(napi_env env, napi_callback_info info)
     float angle = GetSpecialValue(env, argValue[NUM_1]);
     para->SetAngle(angle);
 
-    constexpr uint32_t maxSamples = 128u;
-    int32_t samples = static_cast<int32_t>(std::min(GetSpecialIntValue(env, argValue[NUM_2]), maxSamples));
+    int32_t samples = 0;
+    if (napi_get_value_int32(env, argValue[NUM_2], &samples) != napi_ok) {
+        samples = 0;
+    }
     para->SetSamples(samples);
 
     Filter* filterObj = nullptr;
