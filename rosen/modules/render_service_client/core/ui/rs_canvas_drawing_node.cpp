@@ -411,9 +411,6 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             }
             auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
             RSRenderThread::Instance().PostSyncTask(getBitmapTask);
-            if (!bitmap.IsValid()) {
-                return false;
-            }
         }
     }
     if (drawCmdList == nullptr) {
