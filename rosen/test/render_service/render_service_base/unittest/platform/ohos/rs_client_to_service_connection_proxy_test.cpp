@@ -512,6 +512,32 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenRefreshRate, TestSize.Le
 }
 
 /**
+ * @tc.name: SetThermalFrameRateLimit Test
+ * @tc.desc: SetThermalFrameRateLimit Test (30fps limit)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetThermalFrameRateLimit, TestSize.Level0)
+{
+    uint32_t frameRate = 30;
+    proxy->SetThermalFrameRateLimit(frameRate);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+ 
+/**
+ * @tc.name: SetThermalFrameRateLimitClear Test
+ * @tc.desc: SetThermalFrameRateLimit Test (clear limit with 0)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetThermalFrameRateLimitClear, TestSize.Level0)
+{
+    uint32_t frameRate = 0;
+    proxy->SetThermalFrameRateLimit(frameRate);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: SetRefreshRateMode Test
  * @tc.desc: SetRefreshRateMode Test
  * @tc.type:FUNC
