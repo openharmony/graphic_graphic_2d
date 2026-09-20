@@ -71,6 +71,8 @@ public:
     FilterDirtyRegionInfoList& GetFilterDirtyRegionInfoList(bool syncToRT);
     void OnSync(RSFilterDirtyCollector& target) const;
     void Clear();
+    // only intersectRegion_ and filterDirty_ are scaled
+    void ScaleSyncedFilterRegions(float scaleX, float scaleY);
     void AddPureCleanFilterDirtyRegion(const Occlusion::Region& region)
     {
         pureCleanFilterDirtyRegion_.OrSelf(region);

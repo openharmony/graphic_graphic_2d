@@ -1596,4 +1596,38 @@ HWTEST_F(RSDirtyRegionManagerTest, Scale002, TestSize.Level2)
     ASSERT_FALSE(advancedDirtyRegion.empty());
     ASSERT_EQ(advancedDirtyRegion[0], expectedRect);
 }
+
+/**
+ * @tc.name: ScaleSyncedFilterRegions
+ * @tc.desc: test Scale scales current frame dirty region and the filter regions synced to render
+ *           thread, so that render thread consumes them in one coordinate space
+ * @tc.type: FUNC
+ * @tc.require: issue26347
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ScaleSyncedFilterRegions, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.SetCurrentFrameDirtyRect(DEFAULT_RECT);
+    Occlusion::Region filterRegion { Occlusion::Rect(DEFAULT_RECT) };
+    FilterDirtyRegionInfo filterInfo = {
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion,
+    };
+    dirtyManager.GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
+
+    constexpr float scale = 2.f;
+    constexpr int32_t scaleInt = 2;
+    const RectI scaledRect = {0, 0, DEFAULT_RECT.width_ * scaleInt, DEFAULT_RECT.height_ * scaleInt};
+    dirtyManager.Scale(scale, scale);
+    ASSERT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), scaledRect);
+    auto& filterList = dirtyManager.GetFilterCollector().GetFilterDirtyRegionInfoList(true);
+    ASSERT_EQ(filterList.size(), 1);
+    ASSERT_EQ(filterList.front().intersectRegion_.GetBound().ToRectI(), scaledRect);
+    ASSERT_EQ(filterList.front().filterDirty_.GetBound().ToRectI(), scaledRect);
+
+    // invalid scale keeps both dirty region and filter regions unchanged
+    dirtyManager.Scale(0.f, scale);
+    ASSERT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), scaledRect);
+    ASSERT_EQ(filterList.front().filterDirty_.GetBound().ToRectI(), scaledRect);
+}
 } // namespace OHOS::Rosen

@@ -494,21 +494,31 @@ void RSLogicalDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(std::shared_p
     dirtyManager->UpdateDirty(useAlignedDirtyRegion);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::MapDamageRegionRects(const std::vector<RectI>& damageRegionRects,
-    const ScreenInfo& mainScreenInfo, Occlusion::Region& mappedDamageRegion, Drawing::Matrix canvasMatrix) const
+void RSLogicalDisplayRenderNodeDrawable::ScaleMatrixByInverseRogRatio(Drawing::Matrix& canvasMatrix,
+    const ScreenInfo& mainScreenInfo) const
 {
-    if (mainScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) {
-        float rogWidthRatio = mainScreenInfo.GetRogWidthRatio();
-        float rogHeightRatio = mainScreenInfo.GetRogHeightRatio();
-        if (ROSEN_GNE(rogWidthRatio, 0.f) && ROSEN_GNE(rogHeightRatio, 0.f)) {
-            canvasMatrix.PreScale(1.0f / rogWidthRatio, 1.0f / rogHeightRatio);
-        } else {
-            RS_LOGW("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip virtual dirty scale",
-                __func__, rogWidthRatio, rogHeightRatio);
-        }
+    if (mainScreenInfo.samplingMode != ScreenSamplingMode::DEVICE_GPU) {
+        return;
     }
+    float rogWidthRatio = mainScreenInfo.GetRogWidthRatio();
+    float rogHeightRatio = mainScreenInfo.GetRogHeightRatio();
+    if (ROSEN_GNE(rogWidthRatio, 0.f) && ROSEN_GNE(rogHeightRatio, 0.f)) {
+        canvasMatrix.PreScale(1.0f / rogWidthRatio, 1.0f / rogHeightRatio);
+    } else {
+        RS_LOGE("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip scale",
+            __func__, rogWidthRatio, rogHeightRatio);
+    }
+}
+
+void RSLogicalDisplayRenderNodeDrawable::MapDamageRegionRects(const std::vector<RectI>& damageRegionRects,
+    const ScreenInfo& mainScreenInfo, Occlusion::Region& mappedDamageRegion, const Drawing::Matrix& canvasMatrix) const
+{
+    // Damage rects of the mirrored screen are in physical resolution, while canvasMatrix maps
+    // render resolution to the virtual canvas, so the rog scale is undone to align both spaces.
+    Drawing::Matrix matrixInverseRogRatio = canvasMatrix;
+    ScaleMatrixByInverseRogRatio(matrixInverseRogRatio, mainScreenInfo);
     for (auto& rect : damageRegionRects) {
-        RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), canvasMatrix);
+        RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), matrixInverseRogRatio);
         mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(mappedRect)));
     }
 }
@@ -598,8 +608,12 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
 
     if (!virtualProcesser->GetDrawVirtualMirrorCopy()) {
-        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, true);
+        // Filter regions of the mirrored screen are synced in physical resolution, so the canvas
+        // matrix is aligned to that space as well, same as the damage rects mapped above.
+        Drawing::Matrix matrixInverseRogRatio = canvasMatrix;
+        ScaleMatrixByInverseRogRatio(matrixInverseRogRatio, mainScreenInfo);
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(mappedDamageRegion, mappedDamageRegion,
+            *mirroredDrawable, matrixInverseRogRatio, true);
     }
     auto mappedDamageRegionRects = mappedDamageRegion.GetRegionRectIs();
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
