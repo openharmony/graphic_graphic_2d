@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include <algorithm>
 #include <parameter.h>
 #include <parameters.h>
 #include <sstream>
@@ -605,14 +606,21 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
 
 int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList)
 {
-    std::unordered_set<NodeType> screenTypeBlackList(typeBlackList.begin(), typeBlackList.end());
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
+    // Only CURSOR_NODE is allowed in the type blacklist, other node types are dropped.
+    constexpr NodeType CURSOR_NODE_TYPE = static_cast<NodeType>(RSSurfaceNodeType::CURSOR_NODE);
+    if (std::find(typeBlackList.cbegin(), typeBlackList.cend(), CURSOR_NODE_TYPE) == typeBlackList.cend()) {
+        virtualScreen->SetTypeBlackList({});
+        RS_LOGI("%{public}s: no CURSOR_NODE in %{public}zu types, clear typeblacklist for id %{public}" PRIu64,
+            __func__, typeBlackList.size(), id);
+        return SUCCESS;
+    }
     RS_LOGI("%{public}s: Record typeblacklist for id %{public}" PRIu64, __func__, id);
-    virtualScreen->SetTypeBlackList(screenTypeBlackList);
+    virtualScreen->SetTypeBlackList({CURSOR_NODE_TYPE});
     return SUCCESS;
 }
 

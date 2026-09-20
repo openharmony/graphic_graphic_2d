@@ -307,7 +307,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenTypeBlackList(ScreenId id, std::v
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t repCode;
+    int32_t repCode = SUCCESS;
     clientToService->SetVirtualScreenTypeBlackList(id, typeBlackListVector, repCode);
     return repCode;
 }
@@ -319,7 +319,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, const std:
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
-    int32_t repCode;
+    int32_t repCode = SUCCESS;
     clientToService->AddVirtualScreenBlackList(id, blackList, repCode);
     return repCode;
 }
@@ -331,7 +331,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, const s
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
-    int32_t repCode;
+    int32_t repCode = SUCCESS;
     clientToService->RemoveVirtualScreenBlackList(id, blackList, repCode);
     return repCode;
 }
@@ -343,7 +343,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenWhiteList(ScreenId id, const std:
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
-    int32_t repCode;
+    int32_t repCode = SUCCESS;
     clientToService->AddVirtualScreenWhiteList(id, whiteList, repCode);
     return repCode;
 }
@@ -355,7 +355,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenWhiteList(ScreenId id, const s
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
-    int32_t repCode;
+    int32_t repCode = SUCCESS;
     clientToService->RemoveVirtualScreenWhiteList(id, whiteList, repCode);
     return repCode;
 }

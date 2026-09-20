@@ -46,11 +46,14 @@ int main(int argc, char* argv[])
 
             "3. SetTypeBlackList\n"
             "   a) Description: Set the typeBlacklist of a virtual screen.\n"
+            "                   Only CURSOR_NODE(12) takes effect, other node types are dropped.\n"
             "   b) Parameter list: -s The id of the virtual screen whose typeBlackList is to be modified\n"
             "                      -t The list of node types for the typeBlackList.\n"
-            "   c) Example:\n"
-            "      --- Set type blacklist [APP_WINDOW_NODE(1), CURSOR_NODE(12)] for screen 1:\n"
-            "      hdc shell ./data/screen_special_layer_demo SetTypeBlackList -s 1 -t 1 12\n\n"
+            "   c) Examples:\n"
+            "      --- Set type blacklist [CURSOR_NODE(12)] for screen 1:\n"
+            "      hdc shell ./data/screen_special_layer_demo SetTypeBlackList -s 1 -t 12\n"
+            "      --- Clear type blacklist for screen 1:\n"
+            "      hdc shell ./data/screen_special_layer_demo SetTypeBlackList -s 1 -t\n\n"
 
             "4. EnableGlobalBlackList\n"
             "   a) Description: Set whether to enable the global blacklist for a virtual screen.\n"
@@ -61,6 +64,7 @@ int main(int argc, char* argv[])
     }
 
     std::string func = std::string(argv[1]);
+    ScreenSpecialLayerDemoUtils::SwitchToFoundationUid();
     if (func == "PrintPersistId") {
         ScreenSpecialLayerDemoUtils::PrintPersistId();
     } else if (func == "EnableGlobalBlackList") {

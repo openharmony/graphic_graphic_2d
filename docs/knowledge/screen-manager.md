@@ -314,6 +314,7 @@ else
 
 3. 类型黑名单（typeBlackList）
    └─ 按节点类型（uint8_t）过滤，仅影响特定虚拟屏
+   └─ RSScreenManager::SetVirtualScreenTypeBlackList 仅保留 CURSOR_NODE，其它类型静默丢弃（RS_LOGW），返回码契约不变
 
 4. 白名单（whiteList）
    └─ 明确允许在特定虚拟屏上渲染的节点，按 NodeId

@@ -1030,10 +1030,11 @@ int32_t RSRenderPipelineAgent::SetGlobalBlackList(const std::vector<NodeId>& bla
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::SetGlobalBlackList(
             std::unordered_set<NodeId>(blackList.begin(), blackList.end()));
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -1050,9 +1051,10 @@ int32_t RSRenderPipelineAgent::AddGlobalBlackList(const std::vector<NodeId>& bla
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::AddGlobalBlackList(blackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -1069,9 +1071,10 @@ int32_t RSRenderPipelineAgent::RemoveGlobalBlackList(const std::vector<NodeId>& 
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::RemoveGlobalBlackList(blackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -2571,9 +2574,10 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return;
     }
-    auto task = [globalBlackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [globalBlackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
 }

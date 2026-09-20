@@ -56,6 +56,7 @@ const std::map<std::string, ModifyListFunc> MODIFY_LIST_FUNC_MAP {
 
 class ScreenSpecialLayerDemoUtils {
 public:
+    static bool SwitchToFoundationUid();
     static void PrintPersistId();
     static std::map<std::string, std::string> GetAllPersistId();
     static std::string DumpRsTree();
