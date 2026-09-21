@@ -62,15 +62,33 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData;
     uint32_t controllerRate1 = 30;
-    controller->ChangeGeneratorRate(controllerRate1, appChangeData);
+    controller->ChangeGeneratorRate(controllerRate1, appChangeData, rsChangeData);
     uint32_t controllerRate2 = 60;
-    controller->ChangeGeneratorRate(controllerRate2, appChangeData);
+    controller->ChangeGeneratorRate(controllerRate2, appChangeData, rsChangeData);
     uint32_t controllerRate3 = 90;
-    controller->ChangeGeneratorRate(controllerRate3, appChangeData);
+    controller->ChangeGeneratorRate(controllerRate3, appChangeData, rsChangeData);
     uint32_t controllerRate4 = 120;
     controller->currentRate_ = controllerRate4;
-    controller->ChangeGeneratorRate(controllerRate4, appChangeData);
+    controller->ChangeGeneratorRate(controllerRate4, appChangeData, rsChangeData);
+}
+
+/**
+ * @tc.name: ChangeGeneratorRate001
+ * @tc.desc: Test ChangeGeneratorRate with empty app data and non-empty RS data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate001, TestSize.Level0)
+{
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appData = {};
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsData = {{1, 60}};
+ 
+    controller->ChangeGeneratorRate(60, appData, rsData, 0, false);
+ 
+    EXPECT_TRUE(appData.empty());
+    EXPECT_FALSE(rsData.empty());
 }
 
 /*
@@ -83,7 +101,8 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
-    controller->ChangeGeneratorRate(30, appChangeData);
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData;
+    controller->ChangeGeneratorRate(30, appChangeData, rsChangeData);
     EXPECT_EQ(controller->GetCurrentOffset(), 0);
 
     auto& hgm = HgmCore::Instance();
@@ -112,12 +131,13 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
-    controller->ChangeGeneratorRate(60, appChangeData);
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData;
+    controller->ChangeGeneratorRate(60, appChangeData, rsChangeData);
     EXPECT_EQ(controller->GetCurrentRate(), 30);
-    controller->ChangeGeneratorRate(60, appChangeData, 0, true);
-    controller->ChangeGeneratorRate(60, appChangeData, 0, false);
+    controller->ChangeGeneratorRate(60, appChangeData, rsChangeData, 0, true);
+    controller->ChangeGeneratorRate(60, appChangeData, rsChangeData, 0, false);
     controller->vsyncGenerator_ = nullptr;
-    EXPECT_EQ(controller->ChangeGeneratorRate(60, appChangeData), 0);
+    EXPECT_EQ(controller->ChangeGeneratorRate(60, appChangeData, rsChangeData), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -105,17 +105,19 @@ namespace OHOS {
         vsyncGenerator->UpdatePeriodLocked(period);
         vsyncGenerator->JudgeRefreshRateLocked(period2);
         vsyncGenerator->SetExpectNextVsyncTimeInternal(now);
-        Rosen::VSyncGenerator::ListenerRefreshRateData listenerRefreshRateData = {
-            .cb = vsyncController,
-            .refreshRates = {pair1}
+        std::vector<Rosen::VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {
+            {
+                .cb = vsyncController,
+                .refreshRates = {pair1}
+            }
         };
         Rosen::VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffsetData = {
             .cb = vsyncController,
             .phaseByPulseNum = phase
         };
-        vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRateData, listenerPhaseOffsetData,
+        vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRates, listenerPhaseOffsetData,
             generatorRefreshRate, rsVsyncCount, expectNextVsyncTime);
-        vsyncGenerator->UpdateChangeRefreshRatesLocked(listenerRefreshRateData);
+        vsyncGenerator->UpdateChangeRefreshRatesLocked(listenerRefreshRates);
         vsyncGenerator->GetVSyncMode();
         vsyncGenerator->GetVSyncMaxRefreshRate();
         vsyncGenerator->SetReferenceTimeOffset(offsetByPulseNum);

@@ -356,25 +356,43 @@ bool VSyncGenerator::ChangeListenerOffsetInternal()
 
 bool VSyncGenerator::ChangeListenerRefreshRatesInternal()
 {
-    if (changingRefreshRates_.cb == nullptr) {
+    if (changingRefreshRates_.empty()) {
         return true;
     }
-    auto it = listenersRecord_.begin();
-    for (; it < listenersRecord_.end(); it++) {
-        if (it->callback_ == changingRefreshRates_.cb) {
+    uint32_t rsRefreshRate = 0;
+    for (const auto& listenerRate : changingRefreshRates_) {
+        auto it = std::find_if(listenersRecord_.begin(), listenersRecord_.end(),
+            [&listenerRate](const auto& listener) {
+                return listener.callback_ == listenerRate.cb;
+            });
+        if (it != listenersRecord_.end() &&
+            it->isRS_ &&
+            !listenerRate.refreshRates.empty()) {
+            rsRefreshRate = listenerRate.refreshRates[0].second;
             break;
         }
     }
-    if (it == listenersRecord_.end()) {
-        return false;
+    for (auto& listenerRate : changingRefreshRates_) {
+        if (listenerRate.cb == nullptr) {
+            continue;
+        }
+        auto it = listenersRecord_.begin();
+        for (; it != listenersRecord_.end(); ++it) {
+            if (it->callback_ == listenerRate.cb) {
+                break;
+            }
+        }
+        if (it == listenersRecord_.end()) {
+            return false;
+        }
+        if (!it->isRS_ && rsRefreshRate != 0) {
+            for (auto& refreshRate : listenerRate.refreshRates) {
+                refreshRate.second = refreshRate.second == 0 ? rsRefreshRate : refreshRate.second;
+            }
+        }
+        it->callback_->OnConnsRefreshRateChanged(listenerRate.refreshRates);
     }
-    if (it->callback_ != nullptr) {
-        it->callback_->OnConnsRefreshRateChanged(changingRefreshRates_.refreshRates);
-    }
-    // reset
-    changingRefreshRates_.cb = nullptr;
-    changingRefreshRates_.refreshRates.clear();
-    changingRefreshRates_ = {};
+    changingRefreshRates_.clear();
     return true;
 }
 
@@ -925,21 +943,22 @@ VsyncError VSyncGenerator::SetExpectNextVsyncTimeInternal(int64_t expectNextVsyn
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
-                                                           const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                                           uint32_t generatorRefreshRate,
-                                                           int64_t &rsVsyncCount,
-                                                           int64_t expectNextVsyncTime)
+VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(
+    const std::vector<ListenerRefreshRateData>& listenerRefreshRates,
+    const ListenerPhaseOffsetData &listenerPhaseOffset,
+    uint32_t generatorRefreshRate,
+    int64_t &rsVsyncCount,
+    int64_t expectNextVsyncTime)
 {
     if (rsVSyncDistributor_ != nullptr) {
         rsVsyncCount = rsVSyncDistributor_->GetVsyncCount();
     }
     RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, expectNextVsyncTime:%" PRId64,
         generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, expectNextVsyncTime);
-    for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
-        uint64_t linkerId = rateVec.first;
-        uint32_t refreshrate = rateVec.second;
-        RS_TRACE_NAME_FMT("linkerId:%" PRIu64 ", refreshrate:%u", linkerId, refreshrate);
+    for (const auto& listenerRate : listenerRefreshRates) {
+        for (const auto& rateVec : listenerRate.refreshRates) {
+            RS_TRACE_NAME_FMT("linkerId:%" PRIu64 ", refreshrate:%u", rateVec.first, rateVec.second);
+        }
     }
     VsyncError ret = VSYNC_ERROR_OK;
     {
@@ -963,7 +982,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
             return VSYNC_ERROR_NOT_SUPPORT;
         }
 
-        if (changingRefreshRates_.cb == nullptr) {
+        if (changingRefreshRates_.empty()) {
             changingRefreshRates_ = listenerRefreshRates;
         } else {
             UpdateChangeRefreshRatesLocked(listenerRefreshRates);
@@ -1001,20 +1020,37 @@ void VSyncGenerator::ChangeVSyncTE(uint32_t generatorRefreshRate)
     }
 }
 
-void VSyncGenerator::UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates)
+void VSyncGenerator::UpdateChangeRefreshRatesLocked(
+    const std::vector<ListenerRefreshRateData>& listenerRefreshRates)
 {
-    for (auto refreshRate : listenerRefreshRates.refreshRates) {
-        bool found = false;
-        for (auto it = changingRefreshRates_.refreshRates.begin();
-             it != changingRefreshRates_.refreshRates.end(); it++) {
-            if ((*it).first == refreshRate.first) { // first is linkerId
-                (*it).second = refreshRate.second; // second is refreshRate
-                found = true;
+    for (const auto& listenerRefreshRate : listenerRefreshRates) {
+        if (listenerRefreshRate.cb == nullptr) {
+            continue;
+        }
+
+        auto changingListenerIter = changingRefreshRates_.begin();
+        for (; changingListenerIter != changingRefreshRates_.end(); ++changingListenerIter) {
+            if (changingListenerIter->cb == listenerRefreshRate.cb) {
                 break;
             }
         }
-        if (!found) {
-            changingRefreshRates_.refreshRates.push_back(refreshRate);
+
+        if (changingListenerIter == changingRefreshRates_.end()) {
+            changingRefreshRates_.push_back(listenerRefreshRate);
+            continue;
+        }
+
+        for (const auto& refreshRate : listenerRefreshRate.refreshRates) {
+            auto it = std::find_if(changingListenerIter->refreshRates.begin(),
+                changingListenerIter->refreshRates.end(),
+                [&refreshRate](const auto& rate) {
+                    return rate.first == refreshRate.first;
+                });
+            if (it != changingListenerIter->refreshRates.end()) {
+                it->second = refreshRate.second;
+            } else {
+                changingListenerIter->refreshRates.push_back(refreshRate);
+            }
         }
     }
 }

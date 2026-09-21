@@ -206,7 +206,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest002, Function | Medi
     vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
     ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
@@ -232,7 +232,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest003, Function | Medi
     vsyncGenerator_->SetPendingMode(8333333, 1000000000); // 8333333ns, 1000000000ns
     ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 60; // 60hz
     int64_t rsVsyncCount = 0;
@@ -264,7 +264,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest004, Function | Medi
     vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -296,7 +296,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest005, Function | Medi
     vsyncGenerator_->SetPendingMode(8333333, 1000000000); // 8333333ns, 1000000000ns
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -328,7 +328,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest006, Function | Medi
     vsyncGenerator_->SetPendingMode(11111111, 1000000000); // 11111111ns, 1000000000ns
     int64_t refreshRate = 90; // 90hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -360,7 +360,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest007, Function | Medi
     vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
     int64_t refreshRate = 60; // 60hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -392,7 +392,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest008, Function | Medi
     vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
     int64_t refreshRate = 30; // 30hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -424,7 +424,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest009, Function | Medi
     vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
     int64_t refreshRate = 30; // 30hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -458,7 +458,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest010, Function | Medi
     vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
     int64_t refreshRate = 30; // 30hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -494,7 +494,7 @@ HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest011, Function | Medi
     vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
     int64_t refreshRate = 30; // 30hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -534,7 +534,7 @@ HWTEST_F(VSyncGeneratorTest, PeriodCheckLockedTest, Function | MediumTest| Level
         vsyncGenerator_->SetPendingMode(testPeriod, 1000000000); // 1000000000ns
         int64_t refreshRate = 120; // 120hz
         int64_t rsVsyncCount = 0;
-        VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+        std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
         VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
         ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
             listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -574,7 +574,7 @@ HWTEST_F(VSyncGeneratorTest, NowLessThanReferenceTimeTest, Function | MediumTest
     ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
@@ -608,10 +608,10 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest001, Function | 
     std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
     refreshRates.push_back({0, 60});
     refreshRates.push_back({1, 120});
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates,
-    };
+    }};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
         .cb = rsController,
         .phaseByPulseNum = 3,
@@ -651,10 +651,10 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
     std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
     refreshRates.push_back({0, 60});
     refreshRates.push_back({1, 120});
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {{
         .cb = appController,
         .refreshRates = refreshRates,
-    };
+    }};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
         .cb = rsController,
         .phaseByPulseNum = 3,
@@ -679,7 +679,7 @@ HWTEST_F(VSyncGeneratorTest, ChangeVSyncTETest, Function | MediumTest | Level0)
     // Test ChangeVSyncTE for LTPO 144hz config error, skip and not support
     VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 144; // 144hz
     int64_t rsVsyncCount = 0;
@@ -1057,7 +1057,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest001, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
@@ -1079,7 +1079,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest002, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t rsVsyncCount = 0;
@@ -1103,7 +1103,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest003, Function | MediumTest| 
     VsyncError ret = vsyncGenerator_->UpdateMode(period, 0, referenceTime);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     int64_t refreshRate = 120; // 120hz
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t rsVsyncCount = 0;
     ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
@@ -1136,7 +1136,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest004, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
@@ -1159,7 +1159,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest005, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
@@ -1182,7 +1182,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest006, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
@@ -1205,7 +1205,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest007, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
@@ -1228,7 +1228,7 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest008, Function | MediumTest| 
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     vsyncGenerator_->UpdateMode(period, 0, referenceTime);
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
@@ -1570,6 +1570,148 @@ HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs002, Function | MediumTest
     int64_t timestamp = 0;
     int64_t lastVsyncTime = SystemTime();
     ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime), false);
+}
+
+/*
+ * @tc.name: ChangeListenerRefreshRatesInternal001
+ * @tc.desc: Test ChangeListenerRefreshRatesInternal with RS and APP refresh rates
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeListenerRefreshRatesInternal001, Function | MediumTest | Level0)
+{
+    auto impl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    impl->listenersRecord_.clear();
+    impl->changingRefreshRates_.clear();
+    sptr<VSyncGeneratorTestCallback> appCallback = new VSyncGeneratorTestCallback();
+    sptr<VSyncGeneratorTestCallback> rsCallback = new VSyncGeneratorTestCallback();
+    impl->listenersRecord_ = {
+        {0, nullptr, 0, true},
+        {0, appCallback, 0, false},
+        {0, rsCallback, 0, true}
+    };
+    impl->changingRefreshRates_ = {
+        {nullptr, {}},
+        {appCallback, {{1, 0}, {2, 30}}},
+        {rsCallback, {{0, 60}}}
+    };
+    ASSERT_TRUE(impl->ChangeListenerRefreshRatesInternal());
+    ASSERT_TRUE(impl->changingRefreshRates_.empty());
+}
+ 
+/*
+ * @tc.name: ChangeListenerRefreshRatesInternal002
+ * @tc.desc: Test ChangeListenerRefreshRatesInternal when listener is not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeListenerRefreshRatesInternal002, Function | MediumTest | Level0)
+{
+    auto impl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    impl->listenersRecord_.clear();
+    impl->changingRefreshRates_.clear();
+    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback();
+    impl->changingRefreshRates_ = {
+        {callback, {{1, 30}}}
+    };
+    ASSERT_FALSE(impl->ChangeListenerRefreshRatesInternal());
+}
+ 
+/*
+ * @tc.name: ChangeListenerRefreshRatesInternal003
+ * @tc.desc: Test ChangeListenerRefreshRatesInternal when RS refresh rate is zero
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeListenerRefreshRatesInternal003, Function | MediumTest | Level0)
+{
+    auto impl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    impl->listenersRecord_.clear();
+    impl->changingRefreshRates_.clear();
+    sptr<VSyncGeneratorTestCallback> appCallback = new VSyncGeneratorTestCallback();
+    sptr<VSyncGeneratorTestCallback> rsCallback = new VSyncGeneratorTestCallback();
+    impl->listenersRecord_ = {
+        {0, appCallback, 0, false},
+        {0, rsCallback, 0, true}
+    };
+    impl->changingRefreshRates_ = {
+        {appCallback, {{1, 0}}},
+        {rsCallback, {{0, 0}}}
+    };
+    ASSERT_TRUE(impl->ChangeListenerRefreshRatesInternal());
+    ASSERT_TRUE(impl->changingRefreshRates_.empty());
+}
+ 
+/*
+ * @tc.name: UpdateChangeRefreshRatesLocked001
+ * @tc.desc: Test UpdateChangeRefreshRatesLocked with null callback and new listener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, UpdateChangeRefreshRatesLocked001, Function | MediumTest | Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->changingRefreshRates_.clear();
+    sptr<VSyncGenerator::Callback> callback = new VSyncGeneratorTestCallback();
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {
+        { nullptr, {{1, 30}} },
+        { callback, {{2, 60}} }
+    };
+    vsyncGeneratorImpl->UpdateChangeRefreshRatesLocked(listenerRefreshRates);
+    ASSERT_EQ(vsyncGeneratorImpl->changingRefreshRates_.size(), 1);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].cb, callback);
+    ASSERT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates.size(), 1);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[0].first, 2);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[0].second, 60);
+}
+ 
+/*
+ * @tc.name: UpdateChangeRefreshRatesLocked002
+ * @tc.desc: Test UpdateChangeRefreshRatesLocked with existing listener and new linker id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, UpdateChangeRefreshRatesLocked002, Function | MediumTest | Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->changingRefreshRates_.clear();
+    sptr<VSyncGenerator::Callback> callback = new VSyncGeneratorTestCallback();
+    vsyncGeneratorImpl->changingRefreshRates_.push_back({ callback, {{1, 30}} });
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {
+        { callback, {{2, 60}} }
+    };
+    vsyncGeneratorImpl->UpdateChangeRefreshRatesLocked(listenerRefreshRates);
+    ASSERT_EQ(vsyncGeneratorImpl->changingRefreshRates_.size(), 1);
+    ASSERT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates.size(), 2);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[0].first, 1);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[0].second, 30);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[1].first, 2);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[0].refreshRates[1].second, 60);
+}
+ 
+/*
+ * @tc.name: UpdateChangeRefreshRatesLocked003
+ * @tc.desc: Test UpdateChangeRefreshRatesLocked with different callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, UpdateChangeRefreshRatesLocked003, Function | MediumTest | Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->changingRefreshRates_.clear();
+ 
+    sptr<VSyncGenerator::Callback> callback1 = new VSyncGeneratorTestCallback();
+    sptr<VSyncGenerator::Callback> callback2 = new VSyncGeneratorTestCallback();
+ 
+    vsyncGeneratorImpl->changingRefreshRates_.push_back({ callback1, {{1, 30}} });
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates = {
+        { callback2, {{2, 60}} }
+    };
+ 
+    vsyncGeneratorImpl->UpdateChangeRefreshRatesLocked(listenerRefreshRates);
+ 
+    ASSERT_EQ(vsyncGeneratorImpl->changingRefreshRates_.size(), 2);
+    EXPECT_EQ(vsyncGeneratorImpl->changingRefreshRates_[1].cb, callback2);
 }
 } // namespace
 } // namespace Rosen

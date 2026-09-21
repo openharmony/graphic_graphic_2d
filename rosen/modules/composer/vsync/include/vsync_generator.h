@@ -65,7 +65,7 @@ public:
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
     virtual bool IsEnable() = 0;
-    virtual VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
+    virtual VsyncError ChangeGeneratorRefreshRateModel(const std::vector<ListenerRefreshRateData>& listenerRefreshRates,
                                                        const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                        uint32_t generatorRefreshRate,
                                                        int64_t &rsVsyncCount,
@@ -127,7 +127,7 @@ public:
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;
-    VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
+    VsyncError ChangeGeneratorRefreshRateModel(const std::vector<ListenerRefreshRateData>& listenerRefreshRates,
                                                const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                uint32_t generatorRefreshRate,
                                                int64_t &rsVsyncCount,
@@ -203,7 +203,7 @@ private:
     void SubScribeSystemAbility();
 #endif
     void PeriodCheckLocked(int64_t hardwareVsyncInterval);
-    void UpdateChangeRefreshRatesLocked(const ListenerRefreshRateData &listenerRefreshRates);
+    void UpdateChangeRefreshRatesLocked(const std::vector<ListenerRefreshRateData>& listenerRefreshRates);
     void ChangeVSyncTE(uint32_t generatorRefreshRate);
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
@@ -236,7 +236,7 @@ private:
     uint32_t currRefreshRate_ = 0; // by Hz
     int32_t referenceTimeOffsetPulseNum_ = 0;
     int32_t defaultReferenceTimeOffsetPulseNum_ = 0;
-    ListenerRefreshRateData changingRefreshRates_ = {};
+    std::vector<ListenerRefreshRateData> changingRefreshRates_;
     ListenerPhaseOffsetData changingPhaseOffset_ = {};
     uint32_t changingGeneratorRefreshRate_ = 0;
     bool needChangeRefreshRates_ = false;

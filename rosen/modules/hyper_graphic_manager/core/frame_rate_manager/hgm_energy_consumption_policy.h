@@ -41,6 +41,9 @@ public:
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    // RS frame rate control
+    void SetRsFrameRateControlEnabled(bool enabled);
+    bool GetRsFrameRateControlEnabled() const;
     // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
@@ -66,6 +69,7 @@ private:
     std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     std::atomic<bool> isAnimationEnergyAssuranceEnable_ = false;
     std::atomic<bool> isAnimationEnergyConsumptionAssuranceMode_ = false;
+    std::atomic<bool> rsFrameRateControlEnabled_ = false;
     bool isTouchIdle_ = false;
     int64_t rsAnimationTouchIdleTime_ = 1000;
     std::atomic<uint64_t> firstAnimationTimestamp_ = 0;
