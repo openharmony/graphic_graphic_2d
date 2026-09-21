@@ -133,6 +133,32 @@ HWTEST_F(RSDepthRenderNodeDrawableTest, OnDrawWithValidParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawWithDepthImageAndSurfaceDrawable
+ * @tc.desc: Test OnDraw with depth image and surface drawable
+ * @tc.type: FUNC
+ * @tc.require: issueICWNX9
+ */
+HWTEST_F(RSDepthRenderNodeDrawableTest, OnDrawWithDepthImageAndSurfaceDrawable, TestSize.Level1)
+{
+    ASSERT_NE(depthDrawable_, nullptr);
+    ASSERT_NE(depthDrawable_->renderParams_, nullptr);
+
+    auto depthParams = static_cast<RSDepthRenderParams*>(depthDrawable_->renderParams_.get());
+    ASSERT_NE(depthParams, nullptr);
+
+    // Create a surface drawable
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID + 1);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+
+    std::shared_ptr<RSRenderNodeDrawableAdapter> surfaceDrawableBase = surfaceDrawable;
+    depthParams->depthSrcSurfaceDrawable_ = std::weak_ptr<RSRenderNodeDrawableAdapter>(surfaceDrawableBase);
+    depthParams->depthImage_ = std::make_shared<Drawing::Image>();
+
+    EXPECT_NO_FATAL_FAILURE(depthDrawable_->OnDraw(*canvas_));
+}
+
+/**
  * @tc.name: OnDrawWithNullRenderEngine
  * @tc.desc: Test OnDraw when render engine is nullptr
  * @tc.type: FUNC

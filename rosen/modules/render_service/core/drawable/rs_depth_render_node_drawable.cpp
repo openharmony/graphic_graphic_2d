@@ -44,12 +44,13 @@ void RSDepthRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    params->SetUseSurfaceDepth(false);
     // The background matrix and DC's matrix are consistent
     params->SetBackgroundMatrix(paintFilterCanvas->GetTotalMatrix());
 
     auto drawableAdaptor = params->GetDepthSrcSurfaceDrawable().lock();
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawableAdaptor);
-    if (surfaceDrawable) {
+    if (surfaceDrawable && !params->GetDepthImage()) {
         uint32_t threadId = paintFilterCanvas->GetParallelThreadId();
         auto bufferDrawParams = RSUniRenderUtil::CreateBufferDrawParam(*surfaceDrawable, false, threadId);
 
@@ -70,6 +71,7 @@ void RSDepthRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(*paintFilterCanvas, bufferDrawParams, videoInfo);
         if (surfaceNodeImage) {
             params->SetDepthImage(surfaceNodeImage);
+            params->SetUseSurfaceDepth(true);
         } else {
             RS_LOGE("RSDepthRenderNodeDrawable::OnDraw depth surface image is nullptr");
         }

@@ -29,6 +29,9 @@ public:
     void SetDepthImage(const std::shared_ptr<Drawing::Image>& depthImage);
     std::shared_ptr<Drawing::Image> GetDepthImage() const;
 
+    void SetUseSurfaceDepth(bool useSurfaceDepth);
+    bool GetUseSurfaceDepth() const;
+
     void ResetDepthSrcSurfaceDrawable();
     void SetDepthSrcSurfaceDrawable(
         const std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter> depthSrcSurfaceDrawable);
@@ -48,6 +51,7 @@ public:
 
 private:
     std::shared_ptr<Drawing::Image> depthImage_ = nullptr;
+    bool useSurfaceDepth_ = false;
     std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter> depthSrcSurfaceDrawable_;
     std::optional<DepthCameraPara> depthCameraPara_;
     std::optional<DepthLightPara> depthLightPara_;
