@@ -2299,7 +2299,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.
 
 /**
  * @tc.name: SendRenderProcessData_InvalidTypeId
- * @tc.desc: SEND_RENDER_PROCESS_DATA with unregistered typeId returns ERR_INVALID_DATA
+ * @tc.desc: SEND_TRANSFER with unregistered typeId returns ERR_INVALID_DATA
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2311,14 +2311,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_InvalidTypeI
     option.SetFlags(MessageOption::TF_SYNC);
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UNREGISTERED_TYPE_ID))); // unregistered typeId
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
  * @tc.name: SendRenderProcessData_SendTransferFail
- * @tc.desc: SEND_RENDER_PROCESS_DATA with valid payload but failing SendTransfer passes the error through
+ * @tc.desc: SEND_TRANSFER with valid payload but failing SendTransfer passes the error through
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2338,7 +2338,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SendTransfer
         RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
     ASSERT_TRUE(data.WriteBool(true)); // SetShowRefreshRateEnabledInput payload
     ASSERT_TRUE(data.WriteInt32(1));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = nullAgentStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
 }
@@ -2362,14 +2362,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SyncReplyWri
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)));
     ASSERT_TRUE(data.WriteInt32(42)); // UnRegisterSelfDrawingNodeRectChangeCallbackInput payload
     SetLeftSize(reply, 0); // exhaust the reply parcel
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_REPLY);
 }
 
 /**
  * @tc.name: SendRenderProcessData_MissingTypeId
- * @tc.desc: SEND_RENDER_PROCESS_DATA with no typeId returns ERR_INVALID_DATA
+ * @tc.desc: SEND_TRANSFER with no typeId returns ERR_INVALID_DATA
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2381,14 +2381,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_MissingTypeI
     option.SetFlags(MessageOption::TF_SYNC);
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     // no typeId written
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
  * @tc.name: SendRenderProcessData_SetShowRefreshRateValid
- * @tc.desc: SEND_RENDER_PROCESS_DATA with valid SET_SHOW_REFRESH_RATE_ENABLED payload
+ * @tc.desc: SEND_TRANSFER with valid SET_SHOW_REFRESH_RATE_ENABLED payload
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2403,14 +2403,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetShowRefre
         RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
     ASSERT_TRUE(data.WriteBool(true));   // SetShowRefreshRateEnabledInput payload
     ASSERT_TRUE(data.WriteInt32(1));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**
  * @tc.name: SendRenderProcessData_MalformedPayload
- * @tc.desc: SEND_RENDER_PROCESS_DATA with valid typeId but malformed payload returns per-field errCode
+ * @tc.desc: SEND_TRANSFER with valid typeId but malformed payload returns per-field errCode
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2424,14 +2424,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_MalformedPay
     ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)));
     // no payload fields -> Unmarshalling fails -> errCode ERR_INVALID_DATA
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA); // D4 per-field code
 }
 
 /**
  * @tc.name: SendRenderProcessData_SetBehindValid
- * @tc.desc: SEND_RENDER_PROCESS_DATA with valid SET_BEHIND_WINDOW_FILTER_ENABLED payload
+ * @tc.desc: SEND_TRANSFER with valid SET_BEHIND_WINDOW_FILTER_ENABLED payload
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2445,7 +2445,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetBehindVal
     ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED)));
     ASSERT_TRUE(data.WriteBool(true));
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
@@ -2466,7 +2466,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SelfDrawingO
     ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)));
     ASSERT_TRUE(data.WriteUint32(2)); // count=2 > LIVE_MAX_ENTRIES(1) cap
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
@@ -2488,7 +2488,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SendRenderProcessData_SetWatermark
     ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK)));
     // No payload - feature-flag check at the stub fires before CreateTransferByTypeId
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     // GetSurfaceNodeWatermarkEnabled caches its value in a function-local static on the first call,
     // so the property cannot be flipped mid-run; assert the deterministic outcome for whichever
     // direction the runtime feature state is in (both gate directions are covered this way).

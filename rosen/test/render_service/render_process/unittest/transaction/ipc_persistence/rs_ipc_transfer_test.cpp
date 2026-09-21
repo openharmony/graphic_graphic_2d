@@ -420,7 +420,7 @@ HWTEST_F(RSIpcTransferTest, OnHwcEventTransfer_015, TestSize.Level2)
     MessageParcel parcel;
     ASSERT_TRUE(parcel.WriteUint32(1u));
     ASSERT_TRUE(parcel.WriteUint32(2u));
-    ASSERT_TRUE(parcel.WriteInt32Vector()); //empty vector
+    ASSERT_TRUE(parcel.WriteInt32Vector({})); //empty vector
     int32_t errCode = 0;
     auto input = OnHwcEventInput::Unmarshalling(parcel, errCode);
     ASSERT_NE(input, nullptr);

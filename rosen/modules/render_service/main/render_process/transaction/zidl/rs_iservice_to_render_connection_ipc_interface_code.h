@@ -93,7 +93,7 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     SET_APS_CONFIG_PARAMS = 0x00F016,
     NOTIFY_WINDOW_MODE_TYPE_EVENT = 0x00F017,
     AUTHORIZE_UIEXTENSION_PID = 0x00F018,
-    SEND_RENDER_PROCESS_DATA = 0x00F100,
+    SEND_TRANSFER = 0x00F100,
 };
 
 } // namespace Rosen
