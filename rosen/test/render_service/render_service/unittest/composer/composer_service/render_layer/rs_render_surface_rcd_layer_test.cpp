@@ -17,10 +17,91 @@
 #include <gtest/gtest.h>
 #include "rs_render_surface_rcd_layer.h"
 #include "rs_render_layer_cmd.h"
+#include "rs_layer_cmd_type.h"
 
 using namespace OHOS::Rosen;
 using namespace testing::ext;
 using namespace OHOS;
+
+namespace {
+class MockInvalidLayerCmd : public RSRenderLayerCmd {
+public:
+    MockInvalidLayerCmd() : RSRenderLayerCmd(std::make_shared<RSRenderLayerCmdProperty<bool>>()) {}
+
+    std::shared_ptr<RSRenderLayerPropertyBase> GetRSRenderLayerProperty() const override
+    {
+        return rsRenderLayerProperty_;
+    }
+
+    bool Marshalling(OHOS::MessageParcel& parcel) override
+    {
+        return true;
+    }
+
+    RSLayerCmdType GetRSRenderLayerCmdType() const override
+    {
+        return RSLayerCmdType::INVALID;
+    }
+};
+}
+
+/**
+ * Function: UpdateRSLayerCmd_Zorder_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RCD layer and Zorder command
+ *                  2. call UpdateRSLayerCmd
+ *                  3. expect GetZorder equals set value
+ *                  cover branch: command != nullptr (line 46 false), rsRenderLayer != nullptr (line 54 false),
+ *                               it != cmdHandlers_.end() (line 58 true)
+ */
+HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_Zorder_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(9);
+    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetZorder(), 9u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_NullCommand_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RCD layer
+ *                  2. call UpdateRSLayerCmd with nullptr
+ *                  3. expect no crash
+ *                  cover branch: command == nullptr (line 46 true) -> return
+ */
+HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_NullCommand_NoCrash, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    std::shared_ptr<RSRenderLayerCmd> nullCmd = nullptr;
+    layer->UpdateRSLayerCmd(nullCmd);
+    EXPECT_EQ(layer->GetZorder(), 0u);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_InvalidType_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RCD layer and a command with INVALID type
+ *                  2. call UpdateRSLayerCmd
+ *                  3. expect no crash and no property change
+ *                  cover branch: command != nullptr (line 46 false), rsRenderLayer != nullptr (line 54 false),
+ *                               it == cmdHandlers_.end() (line 58 false) -> else branch
+ */
+HWTEST(RSRenderSurfaceRCDLayerTest, UpdateRSLayerCmd_InvalidType_NoCrash, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    layer->SetZorder(5);
+    auto cmd = std::make_shared<MockInvalidLayerCmd>();
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetZorder(), 5u);
+}
 
 /**
  * Function: IsScreenRCDLayer_True
