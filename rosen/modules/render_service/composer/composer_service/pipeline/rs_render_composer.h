@@ -167,6 +167,8 @@ private:
         GraphicColorGamut& colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    // guards cross-thread read/write of hdiOutput_ (composer thread writes, binder/ffrt threads read)
+    std::mutex hdiOutputMutex_;
     std::shared_ptr<HdiOutput> hdiOutput_;
     int32_t threadTid_ = -1;
     ScreenId screenId_ = INVALID_SCREEN_ID;
