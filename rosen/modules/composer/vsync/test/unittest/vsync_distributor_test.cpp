@@ -2321,7 +2321,7 @@ HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest003, Function | Mediu
     constexpr int64_t NOW_TIME_NS = 1000000000;
     vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
     // simulate a trigger that updates lastThermalTrigTime_
-    vsyncDistributor->lastThermalTriggerTime = NOW_TIME_NS;
+    vsyncDistributor->lastThermalTrigTime_ = NOW_TIME_NS;
     EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, NOW_TIME_NS);
  
     // re-set limit should reset lastThermalTrigTime_ to 0
