@@ -2735,5 +2735,6 @@ bool RSClientToServiceConnection::ProfilerIsSecureScreen()
     return false;
 #endif
 }
+
 } // namespace Rosen
 } // namespace OHOS
