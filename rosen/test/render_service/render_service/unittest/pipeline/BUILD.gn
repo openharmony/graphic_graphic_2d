@@ -2044,8 +2044,19 @@ ohos_unittest("RSSurfacePermissionTest") {
 config("rs_test_common_public_config") {
   defines = rs_common_define
   defines += gpu_defines
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
   if (rs_enable_gpu) {
     defines += [ "RS_ENABLE_GPU" ]
+  }
+  if (accessibility_enable) {
+    defines += accessibility_defines
+  }
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan &&
+    graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
   }
 
   include_dirs = [
