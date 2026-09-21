@@ -2407,6 +2407,41 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale002, TestSize.Lev
 }
 
 /**
+ * @tc.name: UpdateSlrScale003
+ * @tc.desc: Test UpdateSlrScale when rotation is changed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale003, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto param = system::GetParameter("rosen.SLRScale.enabled", "");
+    const int32_t width = DEFAULT_CANVAS_SIZE * 2;
+    const int32_t height = DEFAULT_CANVAS_SIZE * 2;
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>({width, height, 1});
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
+    system::SetParameter("rosen.SLRScale.enabled", "1");
+    // rotation changed and scaleManager is nullptr
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, true);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
+    // rotation changed and scaleManager is not nullptr
+    displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
+        width, height, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, true);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
+    // rotation not changed, scaleManager is created
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, false);
+    ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
+    // sampling off, scaleManager is reset
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({false, 0.f, 0.f, 1.f});
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, false);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
+    system::SetParameter("rosen.SLRScale.enabled", param);
+}
+
+/**
  * @tc.name: ScaleCanvasIfNeeded
  * @tc.desc: Test ScaleCanvasIfNeeded
  * @tc.type: FUNC
@@ -2713,6 +2748,163 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest010, 
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
     system::SetParameter("rosen.EDRCanvasReplace.enabled", param);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest014
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size uses fixed size when sampling is on, rotation is not
+ *           changed, composite type is UNI_RENDER_COMPOSITE and display is not mirror.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest014, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    constexpr int32_t fixedWidth = 80;
+    constexpr int32_t fixedHeight = 120;
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = static_cast<float>(fixedWidth);
+    displayParams->fixedHeight_ = static_cast<float>(fixedHeight);
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), fixedWidth);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), fixedHeight);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest015
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is off, even if other
+ *           wired screen conditions are met.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest015, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ false, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest016
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on but rotation is
+ *           changed, even if other wired screen conditions are met.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest016, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(true);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest017
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on and rotation is not
+ *           changed, but composite type is not UNI_RENDER_COMPOSITE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest017, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::HARDWARE_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest018
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on and rotation is not
+ *           changed, but display is mirror display.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest018, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::MIRROR;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
 }
 
 /**
