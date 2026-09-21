@@ -622,13 +622,17 @@ void HgmFrameRateManager::DVSyncTaskProcessor(int64_t delayTime, uint64_t target
     int64_t controllerRate)
 {
     bool needUpdate = isNeedUpdateAppOffset_;
-    RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, rsChangeData, needUpdate]() {
-        if (controller_) {
-            vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
-                controllerRate, appChangeData, rsChangeData, targetTime, needUpdate);
-        }
-        CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
-    };
+    RSTaskMessage::RSTask task =
+        [this, targetTime, controllerRate,
+            appChangeData = std::move(appChangeData),
+            rsChangeData = std::move(rsChangeData),
+            needUpdate]() {
+            if (controller_) {
+                vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
+                    controllerRate, appChangeData, rsChangeData, targetTime, needUpdate);
+            }
+            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
+        };
     HgmTaskHandleThread::Instance().PostTask(task, delayTime);
 }
 
