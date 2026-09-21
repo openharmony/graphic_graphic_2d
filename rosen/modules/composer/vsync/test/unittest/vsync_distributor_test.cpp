@@ -2280,14 +2280,14 @@ HWTEST_F(VSyncDistributorTest, ForceRsDVsyncTest001, Function | MediumTest| Leve
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. set thermal frame rate limit and verify thermalFrameRateLimit_ updated
+* CaseDescription: 1. set thermal frame rate limit and verify thermalRateLimit_ updated
 */
 HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest001, Function | MediumTest| Level3)
 {
     constexpr uint32_t THERMAL_LIMIT_30 = 30;
     vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
-    EXPECT_EQ(vsyncDistributor->thermalFrameRateLimit_, THERMAL_LIMIT_30);
-    EXPECT_EQ(vsyncDistributor->lastThermalTriggerTime_, 0);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
 }
  
 /*
@@ -2295,17 +2295,17 @@ HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest001, Function | Mediu
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. clear thermal limit and verify thermalFrameRateLimit_ reset to 0
+* CaseDescription: 1. clear thermal limit and verify thermalRateLimit_ reset to 0
 */
 HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest002, Function | MediumTest| Level3)
 {
     constexpr uint32_t THERMAL_LIMIT_30 = 30;
     vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
-    EXPECT_EQ(vsyncDistributor->thermalFrameRateLimit_, THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, THERMAL_LIMIT_30);
  
     vsyncDistributor->SetThermalFrameRateLimit(0);
-    EXPECT_EQ(vsyncDistributor->thermalFrameRateLimit_, 0u);
-    EXPECT_EQ(vsyncDistributor->lastThermalTriggerTime_, 0);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, 0u);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
 }
  
 /*
@@ -2313,20 +2313,20 @@ HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest002, Function | Mediu
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. verify lastThermalTriggerTime_ reset to 0 when setting new limit
+* CaseDescription: 1. verify lastThermalTrigTime_ reset to 0 when setting new limit
 */
 HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest003, Function | MediumTest| Level3)
 {
     constexpr uint32_t THERMAL_LIMIT_30 = 30;
     constexpr int64_t NOW_TIME_NS = 1000000000;
     vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
-    // simulate a trigger that updates lastThermalTriggerTime_
+    // simulate a trigger that updates lastThermalTrigTime_
     vsyncDistributor->lastThermalTriggerTime = NOW_TIME_NS;
-    EXPECT_EQ(vsyncDistributor->lastThermalTriggerTime_, NOW_TIME_NS);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, NOW_TIME_NS);
  
-    // re-set limit should reset lastThermalTriggerTime_ to 0
+    // re-set limit should reset lastThermalTrigTime_ to 0
     vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
-    EXPECT_EQ(vsyncDistributor->lastThermalTriggerTime_, 0);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
     vsyncDistributor->SetThermalFrameRateLimit(0);
 }
  
@@ -2335,7 +2335,7 @@ HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest003, Function | Mediu
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. first trigger passes when thermal limit 30fps set (lastThermalTriggerTime_ == 0)
+* CaseDescription: 1. first trigger passes when thermal limit 30fps set (lastThermalTrigTime_ == 0)
 */
 HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest001, Function | MediumTest| Level3)
 {
@@ -2350,7 +2350,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest001, Function | Med
  
     int64_t countBefore = vsyncDistributor->GetVsyncCount();
     EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS), true);
-    // first trigger: lastThermalTriggerTime_ == 0, should pass
+    // first trigger: lastThermalTrigTime_ == 0, should pass
     vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS, 8333333, 120, VSYNC_MODE_LTPS, 360);
     int64_t countAfter = vsyncDistributor->GetVsyncCount();
     EXPECT_EQ(countAfter, countBefore + 1);
