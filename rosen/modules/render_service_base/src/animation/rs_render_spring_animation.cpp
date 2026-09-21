@@ -392,13 +392,27 @@ bool RSRenderSpringAnimation::IsConvergeCloseToTarget() const
         ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get endThreshold", __func__);
         return false;
     }
-    auto currentValue = springValueEstimator_->GetAnimationProperty();
-    if (!currentValue || !endValue_) {
-        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get current animation value or endValue", __func__);
+    if (!endValue_) {
+        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get endValue", __func__);
         return false;
     }
-    // Determine whether it is sufficiently close to the endValue_, and each dimension must meet the requirement.
-    return currentValue->IsAbsNearEqual(endValue_, endThreshold_);
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        auto currentValue = springValueEstimator_->GetAnimationProperty();
+        if (!currentValue) {
+            ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get current animation value", __func__);
+            return false;
+        }
+        // Determine whether it is sufficiently close to the endValue_, and each dimension must meet the requirement.
+        return currentValue->IsAbsNearEqual(endValue_, endThreshold_);
+    }
+    auto frameThreshold = springValueEstimator_->GetFrameThreshold(prevMappedTime_);
+    if (!frameThreshold) {
+        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get frame threshold", __func__);
+        return false;
+    }
+    // amplitude envelope (frameThreshold) is compared against zero to decide convergence.
+    auto zeroValue = endValue_ - endValue_;
+    return frameThreshold->IsAbsNearEqual(zeroValue, endThreshold_);
 }
 
 bool RSRenderSpringAnimation::IsConvergeEnd() const
@@ -430,7 +444,8 @@ void RSRenderSpringAnimation::CheckStartConverge()
 
         auto originInitialOffset = springValueEstimator_->GetInitialOffset();
         endThreshold_ = originInitialOffset * std::min(minimumAmplitudeRatio_, SPRING_TRAIL_END_THRESHOLD);
-        auto originLastFrameThreshold = springValueEstimator_->GetLastFrameThreshold();
+        auto duration = GetDuration() * MILLISECOND_TO_SECOND;
+        auto originLastFrameThreshold = springValueEstimator_->GetFrameThreshold(duration);
         endThreshold_->TakeAbsMaxFrom(originLastFrameThreshold);
     }
 }

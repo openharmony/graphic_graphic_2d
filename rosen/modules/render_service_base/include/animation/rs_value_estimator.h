@@ -399,7 +399,7 @@ public:
     {
         return nullptr;
     }
-    virtual std::shared_ptr<RSRenderPropertyBase> GetLastFrameThreshold() const
+    virtual std::shared_ptr<RSRenderPropertyBase> GetFrameThreshold(float time) const
     {
         return nullptr;
     }
@@ -551,12 +551,12 @@ public:
         return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->initialOffset_);
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetLastFrameThreshold() const override
+    std::shared_ptr<RSRenderPropertyBase> GetFrameThreshold(float time) const override
     {
         if (!springModel_) {
             return nullptr;
         }
-        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->GetFrameThreshold(duration_));
+        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->GetFrameThreshold(time));
     }
 
     std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const override
