@@ -1908,6 +1908,16 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
     screenId_ = screenId;
 }
 
+int32_t RSPaintFilterCanvas::GetPid() const
+{
+    return pid_;
+}
+ 
+void RSPaintFilterCanvas::SetPid(int32_t pid)
+{
+    pid_ = pid;
+}
+
 bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 {
     return hdrProperties_.isHDREnabledVirtualScreen;
