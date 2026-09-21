@@ -2735,14 +2735,5 @@ bool RSClientToServiceConnection::ProfilerIsSecureScreen()
     return false;
 #endif
 }
-
-void RSClientToServiceConnection::SetThermalFrameRateLimit(uint32_t frameRate)
-{
-    if (vsyncManagerAgent_ == nullptr) {
-        RS_LOGD("%{public}s vsyncManagerAgent is nullptr", __func__);
-        return;
-    }
-    vsyncManagerAgent_->SetThermalFrameRateLimit(frameRate);
-}
 } // namespace Rosen
 } // namespace OHOS
