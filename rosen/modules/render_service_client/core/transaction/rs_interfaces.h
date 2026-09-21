@@ -445,12 +445,6 @@ public:
      */
     bool TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode, bool useBeginNodeSize,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
-
-    /**
-     * @brief Set thermal frame rate limit
-     * @param frameRate frame rate.
-     */
-    void SetThermalFrameRateLimit(uint32_t frameRate);
  
     /**
      * @brief Get component snapshot Within the given node range.
