@@ -445,7 +445,7 @@ public:
      */
     bool TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode, bool useBeginNodeSize,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
- 
+
     /**
      * @brief Get component snapshot Within the given node range.
      * @param beginNode Indicates first child of snapshot.
