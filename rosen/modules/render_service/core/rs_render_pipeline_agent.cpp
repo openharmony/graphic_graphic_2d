@@ -1736,33 +1736,30 @@ ErrCode RSRenderPipelineAgent::GetTotalAppMemSize(float& cpuMemSize, float& gpuM
 ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (pipeline != nullptr) {
-        const auto& nodeMap = pipeline->GetMainThread()->GetContext().GetNodeMap();
-        std::vector<pid_t> pids;
-        nodeMap.TraverseSurfaceNodes([&pids](const std::shared_ptr<RSSurfaceRenderNode>& node) {
-            auto pid = ExtractPid(node->GetId());
-            if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-                pids.emplace_back(pid);
-            }
-        });
-
-        bool enable = RSUniRenderJudgement::IsUniRender();
-        if (pipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
-            pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
-            return ERR_INVALID_VALUE;
-        }
-
-        auto context =
-            pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        if (enable) {
-            pipeline->PostUniRenderThreadSyncTask(
-                [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
-            return ERR_OK;
-        } else {
-            return ERR_INVALID_VALUE;
-        }
+    if (pipeline == nullptr) {
+        return ERR_INVALID_VALUE;
     }
-    return ERR_INVALID_VALUE;
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
+    std::vector<pid_t> pids;
+    for (const auto& [pid, info] : snapshotMap) {
+        pids.emplace_back(pid);
+    }
+
+    bool enable = RSUniRenderJudgement::IsUniRender();
+    if (pipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
+        pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+
+    auto context = pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    if (enable) {
+        pipeline->PostUniRenderThreadSyncTask(
+            [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
+        return ERR_OK;
+    } else {
+        return ERR_INVALID_VALUE;
+    }
 }
 
 void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
