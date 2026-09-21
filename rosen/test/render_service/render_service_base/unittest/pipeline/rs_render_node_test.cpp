@@ -848,7 +848,7 @@ HWTEST_F(RSRenderNodeTest, UpdateVisibleEffectChildTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
-    childNode->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    childNode->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     childNode->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     EXPECT_TRUE(childNode->GetRenderProperties().GetUseEffect());
     node->UpdateVisibleEffectChild(*childNode);
@@ -1448,7 +1448,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionNullManagerMarksOpinc
     ASSERT_NE(parent, nullptr);
     ASSERT_NE(child, nullptr);
     child->SetParent(parent);
-    child->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    child->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
 
     std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
     EXPECT_FALSE(child->GetOpincCache().IsMaterialNode());
@@ -1476,7 +1477,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionNoLayerCacheMarksOpin
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_EQ(node->TryGetLayerPartRenderCachePtr(), nullptr);
 
-    node->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
     EXPECT_FALSE(node->GetOpincCache().IsMaterialNode());
 
     EXPECT_FALSE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
@@ -1551,7 +1553,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionMaterialFilterPropaga
     ASSERT_NE(dirtyManager, nullptr);
 
     child->absDrawRect_ = RectI(6, 7, 8, 9);
-    child->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    child->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
+        std::make_shared<RSFilter>();
 
     EXPECT_FALSE(child->GetOpincCache().IsMaterialNode());
     EXPECT_FALSE(parent->GetOpincCache().IsMaterialNode());
@@ -1824,12 +1827,12 @@ HWTEST_F(RSRenderNodeTest, ValidateLightResourcesTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto& properties = node->GetMutableRenderProperties();
-    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    properties.GetEffect().lightSourcePtr_->intensity_ = floatData[1];
-    EXPECT_TRUE(properties.GetEffect().lightSourcePtr_->IsLightSourceValid());
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
-    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->IsIlluminatedValid());
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->intensity_ = floatData[1];
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->IsLightSourceValid());
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->IsIlluminatedValid());
     node->ValidateLightResources();
 }
 
@@ -1951,9 +1954,7 @@ HWTEST_F(RSRenderNodeTest, HasBlurFilterTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     EXPECT_FALSE(node.HasBlurFilter());
-    node.renderProperties_.effect_ = std::make_unique<RSProperties::CommonEffectParams>();
-
-    node.renderProperties_.effect_->materialFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
     node.renderProperties_.filter_ = std::make_shared<RSFilter>();
@@ -3516,7 +3517,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RSShadow rsShadow;
     std::optional<RSShadow> shadow(rsShadow);
     shadow->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
-    renderNodeTest->renderProperties_.GetEffect().shadow_ = shadow;
+    renderNodeTest->renderProperties_.GetEffectProperties().GetFilterEffect().shadow_ = shadow;
     renderNodeTest->UpdateDrawableVecV2();
     EXPECT_GE(renderNodeTest->dirtySlots_.size(), 2);
 }
@@ -3573,7 +3574,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     Drawing::RectI rectI;
     region = rectI;
     nodeTest->UpdateEffectRegion(region, false);
-    nodeTest->renderProperties_.GetEffect().useEffect_ = true;
+    nodeTest->renderProperties_.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     nodeTest->UpdateEffectRegion(region, true);
     nodeTest->renderProperties_.hasHarmonium_ = true;
     nodeTest->UpdateEffectRegion(region, true);
@@ -3737,7 +3738,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
     // material filter
     RSRenderNode materialNode(id, context);
     auto& materialProperties = materialNode.GetMutableRenderProperties();
-    materialProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    materialProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     materialNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(materialNode.IsBackgroundInAppOrNodeSelfDirty());
 }
@@ -3790,7 +3791,7 @@ HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Leve
     node.MarkForceClearFilterCacheWithInvisible();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     node.MarkForceClearFilterCacheWithInvisible();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
@@ -4161,7 +4162,8 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
     auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
         = backgroundColorDrawable;
-    renderNode->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    renderNode->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
     renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
