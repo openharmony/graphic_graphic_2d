@@ -238,6 +238,9 @@ rosen/test/render_service/render_service/systemtest/ @lipeng123s
 rosen/test/render_service/render_service/unittest/ @lipeng123s
 rosen/test/render_service/render_service/unittest/pipeline/ @lipeng123s
 rosen/test/render_service/render_service/unittest/system/ @lipeng123s
+rosen/test/render_service/render_service/unittest/composer @conan13234
+rosen/test/render_service/render_service/systemtest/composer @conan13234
+rosen/test/render_service/render_service/fuzztest/composer @conan13234
 
 [render_thread]
 rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @lipeng123s
