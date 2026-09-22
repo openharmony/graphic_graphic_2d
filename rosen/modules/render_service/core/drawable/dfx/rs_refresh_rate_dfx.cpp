@@ -57,10 +57,11 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     float scaleFactorX = 1.0f;
     float scaleFactorY = 1.0f;
     GetRefreshRateScaleFactor(screenParams, scaleFactorX, scaleFactorY);
+    float scaleFactor = std::min(scaleFactorX, scaleFactorY);
 
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(static_cast<int32_t>(100 * scaleFactorX)); // 100:Scalar of setting font size
+    font.SetSize(static_cast<int32_t>(100 * scaleFactor)); // 100:Scalar of setting font size
     font.SetTypeface(tf);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
 
