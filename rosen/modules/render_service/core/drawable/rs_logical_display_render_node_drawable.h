@@ -87,8 +87,9 @@ private:
     std::vector<RectI> CalculateVirtualDirty(std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
         RSScreenRenderNodeDrawable& curScreenDrawable, RSLogicalDisplayRenderParams& params,
         Drawing::Matrix canvasMatrix);
+    void ScaleMatrixByInverseRogRatio(Drawing::Matrix& canvasMatrix, const ScreenInfo& mainScreenInfo) const;
     void MapDamageRegionRects(const std::vector<RectI>& damageRegionRects, const ScreenInfo& mainScreenInfo,
-        Occlusion::Region& mappedDamageRegion, Drawing::Matrix canvasMatrix) const;
+        Occlusion::Region& mappedDamageRegion, const Drawing::Matrix& canvasMatrix) const;
     void UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
         int32_t bufferage, bool useAlignedDirtyRegion = false);
     std::shared_ptr<Drawing::ShaderEffect> MakeBrightnessAdjustmentShader(const std::shared_ptr<Drawing::Image>& image,

@@ -381,6 +381,7 @@ void RSDirtyRegionManager::Scale(float scaleX, float scaleY)
     for (auto& rect : currentFrameAdvancedDirtyRegion_) {
         rect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
     }
+    filterCollector_.ScaleSyncedFilterRegions(scaleX, scaleY);
 }
 
 void RSDirtyRegionManager::MergeSurfaceRect()
