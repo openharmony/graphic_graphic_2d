@@ -81,8 +81,6 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
 void RSRefreshRateDfx::GetRefreshRateScaleFactor(
     RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const
 {
-    scaleFactorX = 1.0f;
-    scaleFactorY = 1.0f;
     if (screenParams) {
         const auto& screenProperty = screenParams->GetScreenProperty();
         uint32_t phyWidth = screenProperty.GetPhyWidth();
@@ -93,8 +91,8 @@ void RSRefreshRateDfx::GetRefreshRateScaleFactor(
         if (phyHeight > 0) {
             scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
         }
+        RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
     }
-    RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
 }
 
 bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
