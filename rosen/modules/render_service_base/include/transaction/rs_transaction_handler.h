@@ -132,7 +132,7 @@ private:
     uint64_t token_ = 0;
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_ = nullptr;
 
-    bool needSync_ { false };
+    std::atomic<bool> needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     CommitTransactionCallback commitTransactionCallback_ = nullptr;
