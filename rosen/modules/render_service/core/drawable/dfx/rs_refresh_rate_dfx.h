@@ -33,9 +33,9 @@ public:
     void OnDraw(RSPaintFilterCanvas& canvas);
 
 private:
+    void GetRefreshRateScaleFactor(RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const;
     bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
         ScreenRotation rotation, float translateWidth, float translateHeight);
-    void GetRefreshRateScaleFactor(RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const;
     
     const DrawableV2::RSLogicalDisplayRenderNodeDrawable& logicalDisplayDrawable_;
     const std::unique_ptr<RSRenderParams>& logicalDisplayParams_;
