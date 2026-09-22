@@ -161,6 +161,7 @@ void RSScreenManager::ProcessPendingConnections()
         }
         if (backLightLevel != INVALID_BACKLIGHT_VALUE) {
             screen->SetScreenBacklight(RsScreenBrightnessData(id, backLightLevel));
+            callbackMgr_->NotifyScreenRefresh(id);
         }
     }
 }
