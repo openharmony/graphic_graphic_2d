@@ -128,6 +128,7 @@ ohos_shared_library("native_effect_ndk") {
   if (platform == "ohos") {
     deps += [ "$effect_root/effect_ndk:effect_ndk_source_ohos" ]
     symlink_target_name = [ "libnative_effect.so" ]
+    version_script = "libnative_effect_ndk.map"
     innerapi_tags = [ "ndk" ]
   }
   part_name = "graphic_2d"
