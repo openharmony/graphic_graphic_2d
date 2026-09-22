@@ -718,7 +718,7 @@ HWTEST_F(CacheDataTest, DeSerializeKeyOrValueExceedsMaxTest, TestSize.Level1)
  * @tc.desc: Cover DeSerialize branch where alignedSize > size - byteOffset
  * @tc.type: FUNC
  */
-HWTEST_F(CacheDataTest, DeSerializeKeyOrValueExceedsMaxTest, TestSize.Level1)
+HWTEST_F(CacheDataTest, DeSerializeInsufficientAlignedSpaceTest, TestSize.Level1)
 {
     std::string testFileDir = "testCachedata";
     std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(64, 64, 128, testFileDir);
