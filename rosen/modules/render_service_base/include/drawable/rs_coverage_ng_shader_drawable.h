@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_COVERAGE_NG_SHADER_DRAWABLE_H
 #include "common/rs_rect.h"
 #include "common/rs_vector4.h"
-#include "drawable/rs_property_drawable.h"
+#include "drawable/rs_shader_drawable.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 
@@ -29,18 +29,21 @@ namespace DrawableV2 {
 namespace {
 constexpr int MAX_LIGHT_SOURCES = 12;
 }
-class RSCoverageNGShaderDrawable : public RSDrawable {
+class RSCoverageNGShaderDrawable : public RSShaderDrawable {
 public:
     RSCoverageNGShaderDrawable() = default;
     ~RSCoverageNGShaderDrawable() override = default;
     void OnSync() override;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    // Hybrid update: the shader branch delegates to the base template, the light branch stages
+    // the illuminated state when no coverage shader is set.
     bool OnUpdate(const RSRenderNode& node) override;
+    // Hybrid draw: the shader mode reuses the base OnDraw, the light mode falls back to
+    // DrawLight when no coverage shader container has been published.
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-    bool GetEnableEDR() const override
-    {
-        return stagingEnableEDREffect_;
-    }
+protected:
+    std::shared_ptr<RSNGRenderShaderBase> GetShader(const RSProperties& properties) const override;
+    void DfxOnDraw() const override;
 
 private:
     std::vector<std::pair<RSLightSource, Vector4f>> lightSourcesAndPosVec_;
@@ -49,29 +52,25 @@ private:
     IlluminatedType stagingIlluminatedType_ = IlluminatedType::INVALID;
     float borderWidth_ = 0.0f;
     float stagingBorderWidth_ = 0.0f;
-    NodeId screenNodeId_ = INVALID_NODEID;
-    NodeId stagingScreenNodeId_ = INVALID_NODEID;
-    NodeId nodeId_ = INVALID_NODEID;
-    NodeId stagingNodeId_ = INVALID_NODEID;
     RRect stagingRRect_ = {};
-    bool enableEDREffect_ = false;
-    bool stagingEnableEDREffect_ = false;
     std::shared_ptr<Drawing::ShaderEffect> stagingSDFShaderEffect_;
     std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
     Drawing::Rect sdfDrawRect_;
     Drawing::Rect stagingSdfDrawRect_;
-   
+
     Drawing::RoundRect borderRRect_ = {};
     Drawing::RoundRect contentRRect_ = {};
-    
-    bool needSync_ = false;
+
     float displayHeadroom_ = 0.0f;
-    
-    // CoverageShader Drawable
-    std::shared_ptr<RSNGRenderShaderBase> stagingCoverageShader_;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
-    RectF drawRect_;
-    RectF stagingDrawRect_;
+
+    // Stage the illuminated (point light) state: light sources, type, border width, rrect,
+    // SDF shader effect and the EDR pair. Returns false when the illuminated state is invalid.
+    bool StageLightProperties(const RSRenderNode& node, const RSProperties& properties);
+
+    // Publish the staged illuminated (point light) state to RT members (sorted light sources,
+    // type, border rrects, SDF shader effect and the EDR pair with headroom) and reset needSync_
+    // when served; with no sync request the light sources are cleared and nothing is published.
+    void SyncLightProperties();
 
     void DrawLight(Drawing::Canvas* canvas) const;
     void ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,

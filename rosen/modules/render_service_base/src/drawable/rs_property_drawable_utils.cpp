@@ -1659,43 +1659,6 @@ void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool is
     canvas->DrawBackground(brush);
 }
 
-void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
-    const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
-    const std::string& shapeTag)
-{
-    if (UNLIKELY(canvas == nullptr)) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM canvas is null");
-        return;
-    }
-    if (rect == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM rect is null");
-        return;
-    }
-    if (!filterGEContainer) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
-        return;
-    }
-    auto visualEffect = filterGEContainer->GetGEVisualEffect(filterTag);
-    if (!visualEffect) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM visualEffect null");
-        return;
-    }
-    auto geShape = visualEffect->GetGEShaderShape(shapeTag);
-    auto sdfColorVisualEffect =
-        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_SHADER_SDF_COLOR, Drawing::DrawingPaintType::BRUSH);
-    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_SHAPE, geShape);
-    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    int16_t rgb = isDark ? 55 : 210; // RGB values of the color filter to be replaced in the DRM scenario
-    Drawing::Color color(rgb, rgb, rgb, alpha);
-    Vector4f geColor(color.GetRedF(), color.GetGreenF(), color.GetBlueF(), color.GetAlphaF());
-    sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_COLOR, geColor);
-
-    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    geContainer->AddToChainedFilter(sdfColorVisualEffect);
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    geRender->DrawShaderEffect(*canvas, *geContainer, *rect);
-}
-
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::DrawDepthOcclusion(Drawing::Canvas* canvas,
     const std::shared_ptr<Drawing::Image>& snapshot, const std::shared_ptr<Drawing::Image>& depthMap,
     const Vector4f& depthPlane, const Vector2f& nearFar, float occlusionWeight, const Drawing::Matrix& invMatrix)
@@ -2116,37 +2079,6 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
-}
-
-std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::CreateDefaultRRectShape(const RRect& sdfRRect,
-    NodeId nodeId)
-{
-    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
-        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    if (sdfRRectShape == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::CreateDefaultRRectShape, SDF_RRECT_SHAPE is null, node %{public}" PRIu64,
-            nodeId);
-        return nullptr;
-    }
-    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    return sdfRRectShape;
-}
-
-void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properties,
-    const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId)
-{
-    if (!shader) {
-        return;
-    }
-    auto sdfShape = GetResolvedSDFShape(properties);
-    if (sdfShape) {
-        RSNGRenderShaderHelper::SetSDFShape(shader, sdfShape);
-    } else {
-        auto sdfRRect = properties.GetRRectForSDF();
-        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, rrect %{public}s, node %{public}" PRIu64,
-            sdfRRect.ToString().c_str(), nodeId);
-        RSNGRenderShaderHelper::SetSDFShape(shader, CreateDefaultRRectShape(sdfRRect, nodeId));
-    }
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::GetResolvedSDFShape(const RSProperties& properties)

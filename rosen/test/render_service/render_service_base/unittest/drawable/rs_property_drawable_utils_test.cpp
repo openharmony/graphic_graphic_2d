@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "draw/surface.h"
@@ -644,17 +645,20 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
     bool isDark = true;
     Drawing::Rect rect(0, 0, 0, 0);
 
-    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, nullptr, isDark, nullptr, "Tag1", "Tag2");
-    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(&canvas, nullptr, isDark, nullptr, "Tag1", "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
     EXPECT_TRUE(isDark);
     auto filterGEContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto geVisualEffect = std::make_shared<Drawing::GEVisualEffect>("test");
     filterGEContainer->AddToChainedFilter(geVisualEffect);
-    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "Tag1", "Tag2");
-    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "Tag1",
+        "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test",
+        "Tag2");
     EXPECT_TRUE(isDark);
     isDark = false;
-    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test", "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, filterGEContainer, "test",
+        "Tag2");
     EXPECT_FALSE(isDark);
 }
 
@@ -666,11 +670,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMNullCanvasTest, testing::ext::TestSize.Level1)
 {
-    auto utils = std::make_shared<RSPropertyDrawableUtils>();
     Drawing::Rect rect(0, 0, 0, 0);
     bool isDark = true;
 
-    utils->DrawColorUsingSDFWithDRM(nullptr, &rect, isDark, nullptr, "Tag1", "Tag2");
+    DrawableV2::RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(nullptr, &rect, isDark, nullptr, "Tag1", "Tag2");
     EXPECT_TRUE(isDark);
 }
 
@@ -1355,7 +1358,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect001, testing::ext::Te
     RSProperties properties;
     NodeId nodeId = 1;
     std::shared_ptr<RSNGRenderShaderBase> shader = nullptr;
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     EXPECT_EQ(shader, nullptr);
 }
 /**
@@ -1369,7 +1372,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect002, testing::ext::Te
     RSProperties properties;
     NodeId nodeId = 1;
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_NE(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
 }
@@ -1388,7 +1391,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect003, testing::ext::Te
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
     EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
@@ -1409,7 +1412,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect004, testing::ext::Te
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
     EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
@@ -1434,7 +1437,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect005, testing::ext::Te
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
     EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
@@ -1462,7 +1465,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect006, testing::ext::Te
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
     EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
@@ -2466,7 +2469,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect011, testing::ext::Te
     properties.SetSDFShape(rrectShape);
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     ASSERT_NE(shader, nullptr);
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
     auto resultShape = effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_;
     EXPECT_NE(resultShape, nullptr);

@@ -32,7 +32,6 @@
 namespace OHOS::Rosen {
 class RSProperties;
 class RSFilter;
-class RSNGRenderShaderBase;
 namespace Drawing {
 class GEShader;
 class RuntimeEffect;
@@ -118,23 +117,6 @@ private:
         return true;
     }
 #endif
-};
-
-class RSBackgroundNGShaderDrawable : public RSDrawable {
-public:
-    RSBackgroundNGShaderDrawable() = default;
-    ~RSBackgroundNGShaderDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-private:
-    bool needSync_ = false;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
-    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
-    float cornerRadius_ = 0.f;
-    float stagingCornerRadius_ = 0.f;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {

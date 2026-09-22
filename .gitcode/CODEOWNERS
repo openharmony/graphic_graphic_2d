@@ -76,8 +76,6 @@ rosen/modules/render_service_client/core/modifier_ng/appearance/rs_alpha_modifie
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_alpha_modifier.h @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_border_modifier.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_border_modifier.h @xiaojianfeng_jeffery
-rosen/modules/render_service_client/core/modifier_ng/appearance/rs_coverage_ng_shader_modifier.cpp @hanamaru
-rosen/modules/render_service_client/core/modifier_ng/appearance/rs_coverage_ng_shader_modifier.h @hanamaru
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_hdr_brightness_modifier.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_hdr_brightness_modifier.h @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/modifier_ng/appearance/rs_mask_modifier.cpp @xiaojianfeng_jeffery
@@ -97,14 +95,12 @@ rosen/modules/render_service_client/core/modifier_ng/foreground/rs_foreground_sh
 rosen/modules/render_service_client/core/modifier_ng/foreground/rs_foreground_shader_modifier.h @hanamaru
 
 rosen/modules/render_service_base/include/modifier/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/modifier/rs_animatable_arithmetic.h @hanamaru
 
 rosen/modules/render_service_base/include/modifier_ng/ @xiaojianfeng_jeffery
 
 rosen/modules/render_service_base/include/modifier_ng/appearance/ @hanamaru
 rosen/modules/render_service_base/include/modifier_ng/appearance/rs_alpha_render_modifier.h @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/modifier_ng/appearance/rs_border_render_modifier.h @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/modifier_ng/appearance/rs_coverage_ng_shader_render_modifier.h @hanamaru
 rosen/modules/render_service_base/include/modifier_ng/appearance/rs_hdr_brightness_render_modifier.h @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/modifier_ng/appearance/rs_mask_render_modifier.h @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/modifier_ng/appearance/rs_outline_render_modifier.h @xiaojianfeng_jeffery
@@ -120,7 +116,6 @@ rosen/modules/render_service_base/src/modifier_ng/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/modifier_ng/appearance/ @hanamaru
 rosen/modules/render_service_base/src/modifier_ng/appearance/rs_alpha_render_modifier.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/modifier_ng/appearance/rs_border_render_modifier.cpp @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/modifier_ng/appearance/rs_coverage_ng_shader_render_modifier.cpp @hanamaru
 rosen/modules/render_service_base/src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/modifier_ng/appearance/rs_mask_render_modifier.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/modifier_ng/appearance/rs_outline_render_modifier.cpp @xiaojianfeng_jeffery
@@ -144,15 +139,15 @@ rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @h
 rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 rosen/modules/render_service_base/include/drawable/rs_coverage_ng_shader_drawable.h @hanamaru
 rosen/modules/render_service_base/src/drawable/rs_coverage_ng_shader_drawable.cpp @hanamaru
-rosen/modules/render_service_base/include/drawable/rs_overlay_ng_shader_drawable.h @hanamaru
-rosen/modules/render_service_base/src/drawable/rs_overlay_ng_shader_drawable.cpp @hanamaru
+rosen/modules/render_service_base/include/drawable/rs_shader_drawable.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_shader_drawable.cpp @hanamaru
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru
 rosen/modules/render_service_base/include/effect/ @hanamaru
 rosen/modules/render_service_base/src/effect/ @hanamaru
-rosen/modules/render_service_base/include/render/ @lyt1024
-rosen/modules/render_service_base/src/render/ @lyt1024
+rosen/modules/render_service_base/include/render/ @hanamaru
+rosen/modules/render_service_base/src/render/ @hanamaru
 
 rosen/modules/render_service_base/src/render/rs_image_base.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/render/rs_image_cache.cpp @xiaojianfeng_jeffery

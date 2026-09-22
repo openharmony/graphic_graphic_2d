@@ -166,31 +166,6 @@ public:
 private:
 };
 
-class RSForegroundShaderDrawable : public RSDrawable {
-public:
-    RSForegroundShaderDrawable() = default;
-    ~RSForegroundShaderDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    void PostUpdate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-
-    bool GetEnableEDR() const override
-    {
-        return enableEDREffect_;
-    }
-
-private:
-    NodeId screenNodeId_ = INVALID_NODEID;
-
-    bool needSync_ = false;
-    bool enableEDREffect_ = false;
-    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
-};
-
 // ============================================================================
 // Border & Outline
 class RSBorderDrawable : public RSPropertyDrawable {
