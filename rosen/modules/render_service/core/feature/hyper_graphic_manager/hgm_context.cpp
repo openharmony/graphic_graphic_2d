@@ -222,6 +222,25 @@ void HgmContext::RemoveScreenFromHgm(ScreenId screenId)
     });
 }
 
+void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+{
+    if (type != ScreenPropertyType::RENDER_RESOLUTION) {
+        return;
+    }
+    uint32_t width = 0;
+    uint32_t height = 0;
+    auto screenManager = hgmCore_.GetScreenManager();
+    if (screenManager == nullptr) {
+        HGM_LOGW("screenManager is null, ScreenId: %{public}" PRIu64, id);
+        return;
+    }
+    if (screenManager->GetRogScreenResolution(id, width, height) != static_cast<int32_t>(StatusCode::SUCCESS)) {
+        HGM_LOGW("get rog screen resolution failed, ScreenId: %{public}" PRIu64, id);
+        return;
+    }
+    UpdateScreenRenderResolution(id, width, height);
+}
+
 void HgmContext::UpdateScreenRenderResolution(ScreenId screenId, uint32_t width, uint32_t height)
 {
     HGM_LOGI("screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", screenId, width, height);

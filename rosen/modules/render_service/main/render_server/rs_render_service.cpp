@@ -484,14 +484,8 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
         renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
 
-    if (type == ScreenPropertyType::RENDER_RESOLUTION) {
-        uint32_t width = 0;
-        uint32_t height = 0;
-        if (renderService_.screenManager_->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
-            if (const auto hgmContext = renderService_.GetHgmContext()) {
-                hgmContext->UpdateScreenRenderResolution(id, width, height);
-            }
-        }
+    if (const auto hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->OnScreenPropertyChanged(id, type, property);
     }
 }
 
