@@ -155,7 +155,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     bool dvsyncTimeUpdate, uint64_t dvsyncTime)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (!implicitRemoteTransactionDataStack_.empty() && needSync_.load(std::memory_order_acquire)) {
+    if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
@@ -251,12 +251,12 @@ void RSTransactionHandler::FlushImplicitTransactionFromRT(uint64_t timestamp)
 
 void RSTransactionHandler::StartSyncTransaction()
 {
-    needSync_.store(true, std::memory_order_relaxed);
+    needSync_ = true;
 }
 
 void RSTransactionHandler::CloseSyncTransaction()
 {
-    needSync_.store(false, std::memory_order_relaxed);
+    needSync_ = false;
 }
 
 void RSTransactionHandler::Begin(uint64_t syncId)
@@ -280,7 +280,7 @@ void RSTransactionHandler::Begin(uint64_t syncId)
         implicitRemoteTransactionDataStack_.size());
     implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    if (needSync_.load(std::memory_order_acquire) && syncId > 0) {
+    if (needSync_ && syncId > 0) {
         implicitCommonTransactionDataStack_.top()->MarkNeedSync();
         implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
     }
