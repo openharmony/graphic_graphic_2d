@@ -2966,5 +2966,18 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouchIsolated, F
     EXPECT_EQ(mgr.currRefreshRate_.load(), refreshRate);
     energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
 }
+
+/**
+ * @tc.name: HandleScreenRenderResolutionChangedTest001
+ * @tc.desc: Test HgmFrameRateManager::HandleScreenRenderResolutionChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenRenderResolutionChangedTest001, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager frameRateMgr;
+    frameRateMgr.HandleScreenRenderResolutionChanged();
+    EXPECT_NE(frameRateMgr.GetLastVoteInfo().max, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

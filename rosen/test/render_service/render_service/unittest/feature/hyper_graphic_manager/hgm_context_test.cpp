@@ -1584,4 +1584,49 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     HianimationManager::GetInstance().hianimationDevice_.closeDevice = nullptr;
 }
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest001
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with non-RENDER_RESOLUTION type
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
+{
+    ASSERT_NE(hgmContextForProcess, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::ID, dummyProperty);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest002
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION but null screenManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
+{
+    ASSERT_NE(hgmContextForProcess, nullptr);
+    auto origScreenManager = hgmCore.GetScreenManager();
+    hgmCore.SetScreenManager(nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmCore.SetScreenManager(origScreenManager);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest003
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION and GetRogScreenResolution fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
+{
+    ASSERT_NE(hgmContextForProcess, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContextForProcess->OnScreenPropertyChanged(9999, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen

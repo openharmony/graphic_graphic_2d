@@ -1102,5 +1102,105 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRateNotEnabled, Function | Sma
     EXPECT_EQ(result, -1);
     hgmCore.mPolicyConfigData_ = mPolicyConfigData;
 }
+
+/**
+ * @tc.name: HgmScreenUpdateRenderResolutionTest001
+ * @tc.desc: Test HgmScreen::UpdateRenderResolution with invalid params (zero width/height/phyWidth/phyHeight)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Function | SmallTest | Level0)
+{
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
+    EXPECT_FALSE(screen->UpdateRenderResolution(0, 1080));
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 0));
+    screen->phyWidth_ = 0;
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
+    screen->phyWidth_ = 685;
+    screen->phyHeight_ = 0;
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
+    screen->phyHeight_ = 1218;
+}
+
+/**
+ * @tc.name: HgmScreenUpdateRenderResolutionTest002
+ * @tc.desc: Test HgmScreen::UpdateRenderResolution with same resolution (no change)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest002, Function | SmallTest | Level0)
+{
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
+}
+
+/**
+ * @tc.name: HgmScreenUpdateRenderResolutionTest003
+ * @tc.desc: Test HgmScreen::UpdateRenderResolution with valid different resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Function | SmallTest | Level0)
+{
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
+    float oldPpi = screen->GetPpi();
+    float oldXDpi = screen->GetXDpi();
+    float oldYDpi = screen->GetYDpi();
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_NE(screen->GetYDpi(), oldYDpi);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest001
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with non-existent screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Function | SmallTest | Level0)
+{
+    auto& instance = HgmCore::Instance();
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(9999, 720, 1080), HGM_ERROR);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest002
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with existing screen and same resolution (no change)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Function | SmallTest | Level0)
+{
+    auto& instance = HgmCore::Instance();
+    ScreenId screenId = 20;
+    bool isSelfOwnedScreen = false;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    sptr<HgmScreen> screen = instance.GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+    uint32_t curWidth = static_cast<uint32_t>(screenSize.width);
+    uint32_t curHeight = static_cast<uint32_t>(screenSize.height);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, curWidth, curHeight), HGM_ERROR);
+    instance.RemoveScreen(screenId);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest003
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with existing screen and new resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Function | SmallTest | Level0)
+{
+    auto& instance = HgmCore::Instance();
+    ScreenId screenId = 21;
+    bool isSelfOwnedScreen = false;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 1440, 2160), EXEC_SUCCESS);
+    instance.RemoveScreen(screenId);
+}
 } // namespace Rosen
 } // namespace OHOS
