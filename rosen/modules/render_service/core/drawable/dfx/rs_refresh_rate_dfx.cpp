@@ -54,10 +54,10 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
         info += " " + std::to_string(realtimeRefreshRate);
     }
 
-    float scaleFactorX = 1.0f;
-    float scaleFactorY = 1.0f;
-    GetRefreshRateScaleFactor(screenParams, scaleFactorX, scaleFactorY);
-    float scaleFactor = std::min(scaleFactorX, scaleFactorY);
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    GetRefreshRateScaleFactor(screenParams, scaleX, scaleY);
+    float scaleFactor = std::min(scaleX, scaleY);
 
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
@@ -75,24 +75,24 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
-    canvas.DrawTextBlob(textBlob.get(), 100.f * scaleFactorX, 200.f * scaleFactorY);
+    canvas.DrawTextBlob(textBlob.get(), 100.f * scaleX, 200.f * scaleY);
     canvas.DetachBrush();
 }
 
 void RSRefreshRateDfx::GetRefreshRateScaleFactor(
-    RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const
+    RSScreenRenderParams* screenParams, float& scaleX, float& scaleY) const
 {
     if (screenParams) {
-        if(const auto& screenProperty = screenParams->GetScreenProperty(); screenProperty.IsRogResolution()) {
+        if (const auto& screenProperty = screenParams->GetScreenProperty(); screenProperty.IsRogResolution()) {
             uint32_t phyWidth = screenProperty.GetPhyWidth();
             uint32_t phyHeight = screenProperty.GetPhyHeight();
             if (phyWidth > 0) {
-                scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+                scaleX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
             }
             if (phyHeight > 0) {
-                scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
+                scaleY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
             }
-            RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
+            RS_LOGD("%{public}s scaleX: %{public}f scaleY: %{public}f", __func__, scaleX, scaleY);
         }
     }
 }

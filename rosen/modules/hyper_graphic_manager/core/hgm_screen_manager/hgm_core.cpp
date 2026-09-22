@@ -513,7 +513,7 @@ int32_t HgmCore::UpdateScreenRenderResolution(ScreenId id, uint32_t width, uint3
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("failed to find screen: " PUBU64, id);
-        return HGM_ERROR;
+        return HGM_NO_SCREEN;
     }
 
     if (!screen->UpdateRenderResolution(width, height)) {
