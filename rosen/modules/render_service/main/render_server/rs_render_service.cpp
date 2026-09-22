@@ -485,14 +485,12 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
 
     if (type == ScreenPropertyType::RENDER_RESOLUTION) {
-        auto resProperty = static_cast<ScreenProperty<std::pair<uint32_t, uint32_t>>*>(property.GetRefPtr());
-        if (resProperty != nullptr) {
-            const auto& [width, height] = resProperty->Get();
+        uint32_t width = 0;
+        uint32_t height = 0;
+        if (renderService_.screenManager_->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
             if (const auto hgmContext = renderService_.GetHgmContext()) {
                 hgmContext->UpdateScreenRenderResolution(id, width, height);
             }
-        } else {
-            RS_LOGW("%{public}s: render resolution null ScreenId: %{public}" PRIu64, __func__, id);
         }
     }
 }

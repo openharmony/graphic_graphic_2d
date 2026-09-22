@@ -82,16 +82,17 @@ void RSRefreshRateDfx::GetRefreshRateScaleFactor(
     RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const
 {
     if (screenParams) {
-        const auto& screenProperty = screenParams->GetScreenProperty();
-        uint32_t phyWidth = screenProperty.GetPhyWidth();
-        uint32_t phyHeight = screenProperty.GetPhyHeight();
-        if (phyWidth > 0) {
-            scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+        if(const auto& screenProperty = screenParams->GetScreenProperty(); screenProperty.IsRogResolution()) {
+            uint32_t phyWidth = screenProperty.GetPhyWidth();
+            uint32_t phyHeight = screenProperty.GetPhyHeight();
+            if (phyWidth > 0) {
+                scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+            }
+            if (phyHeight > 0) {
+                scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
+            }
+            RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
         }
-        if (phyHeight > 0) {
-            scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
-        }
-        RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
     }
 }
 
