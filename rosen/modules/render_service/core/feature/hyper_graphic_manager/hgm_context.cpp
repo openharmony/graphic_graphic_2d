@@ -227,8 +227,7 @@ void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, c
     if (type == ScreenPropertyType::RENDER_RESOLUTION) {
         uint32_t width = 0;
         uint32_t height = 0;
-        auto screenManager = hgmCore_.GetScreenManager();
-        if (screenManager != nullptr &&
+        if (auto screenManager = hgmCore_.GetScreenManager(); screenManager != nullptr &&
             screenManager->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
             HGM_LOGD("screenId: %{public}" PRIu64 " width: %{public}u height: %{public}u", id, width, height);
             HgmTaskHandleThread::Instance().PostTask([this, id, width, height] {
