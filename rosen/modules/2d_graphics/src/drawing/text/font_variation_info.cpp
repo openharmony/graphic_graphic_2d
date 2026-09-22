@@ -67,7 +67,7 @@ bool FontVariationInfo::LoadFromTypeface(const std::shared_ptr<Typeface>& typefa
         return false;
     }
     if (!IsVariableFont()) {
-        LOGE("Drawing_Text [LoadFromTypeface] not variable font!");
+        LOGD("Drawing_Text [LoadFromTypeface] not variable font!");
         return false;
     }
     ExtractAxisInfo(languages);
