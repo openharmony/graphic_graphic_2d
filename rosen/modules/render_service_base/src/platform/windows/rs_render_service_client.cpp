@@ -194,6 +194,10 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 {
 }
 
+void RSRenderServiceClient::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+}
+
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
 }

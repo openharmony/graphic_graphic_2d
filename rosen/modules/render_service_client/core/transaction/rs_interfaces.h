@@ -669,6 +669,12 @@ public:
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
 
     /**
+     * @brief Set thermal frame rate limit
+     * @param frameRate frame rate.
+     */
+    void SetThermalFrameRateLimit(uint32_t frameRate);
+
+    /**
      * @brief Get screen current refresh rate.
      * @param id id of screen.
      * @return if success, return rate != 0, else return 0.

@@ -606,6 +606,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_THERMAL_FRAME_RATE_LIMIT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_THERMAL_FRAME_RATE_LIMIT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BACKGROUND_REBUILD_ENABLED):
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VSYNC_CONNECTION):

@@ -656,6 +656,17 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
     return clientToService->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
+void RSRenderServiceClient::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
+        return;
+    }
+ 
+    clientToService->SetThermalFrameRateLimit(frameRate);
+}
+
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
