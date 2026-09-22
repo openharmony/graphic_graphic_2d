@@ -56,18 +56,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
 
     float scaleFactorX = 1.0f;
     float scaleFactorY = 1.0f;
-    if (screenParams) {
-        const auto& screenProperty = screenParams->GetScreenProperty();
-        uint32_t phyWidth = screenProperty.GetPhyWidth();
-        uint32_t phyHeight = screenProperty.GetPhyHeight();
-        if (phyWidth > 0) {
-            scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
-        }
-        if (phyHeight > 0) {
-            scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
-        }
-    }
-    RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
+    GetRefreshRateScaleFactor(screenParams, scaleFactorX, scaleFactorY);
 
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
@@ -87,6 +76,25 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas.DrawTextBlob(textBlob.get(), 100.f * scaleFactorX, 200.f * scaleFactorY);
     canvas.DetachBrush();
+}
+
+void RSRefreshRateDfx::GetRefreshRateScaleFactor(
+    RSScreenRenderParams* screenParams, float& scaleFactorX, float& scaleFactorY) const
+{
+    scaleFactorX = 1.0f;
+    scaleFactorY = 1.0f;
+    if (screenParams) {
+        const auto& screenProperty = screenParams->GetScreenProperty();
+        uint32_t phyWidth = screenProperty.GetPhyWidth();
+        uint32_t phyHeight = screenProperty.GetPhyHeight();
+        if (phyWidth > 0) {
+            scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+        }
+        if (phyHeight > 0) {
+            scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
+        }
+    }
+    RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
 }
 
 bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
