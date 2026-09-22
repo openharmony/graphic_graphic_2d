@@ -224,31 +224,22 @@ void HgmContext::RemoveScreenFromHgm(ScreenId screenId)
 
 void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
-    if (type != ScreenPropertyType::RENDER_RESOLUTION) {
-        return;
+    if (type == ScreenPropertyType::RENDER_RESOLUTION) {
+        uint32_t width = 0;
+        uint32_t height = 0;
+        auto screenManager = hgmCore_.GetScreenManager();
+        if (screenManager != nullptr &&
+            screenManager->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
+            HGM_LOGI("screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", id, width, height);
+            HgmTaskHandleThread::Instance().PostTask([this, id, width, height] {
+                HGM_LOGI("update screen render resolution, screenId: %{public}" PRIu64, id);
+                RS_TRACE_NAME_FMT("%s id: %" PRIu64 " width: %u height: %u", __func__, id, width, height);
+                hgmCore_.UpdateScreenRenderResolution(id, width, height);
+            });
+        } else {
+            HGM_LOGW("get rog screen resolution failed, ScreenId: %{public}" PRIu64, id);
+        }
     }
-    uint32_t width = 0;
-    uint32_t height = 0;
-    auto screenManager = hgmCore_.GetScreenManager();
-    if (screenManager == nullptr) {
-        HGM_LOGW("screenManager is null, ScreenId: %{public}" PRIu64, id);
-        return;
-    }
-    if (screenManager->GetRogScreenResolution(id, width, height) != static_cast<int32_t>(StatusCode::SUCCESS)) {
-        HGM_LOGW("get rog screen resolution failed, ScreenId: %{public}" PRIu64, id);
-        return;
-    }
-    UpdateScreenRenderResolution(id, width, height);
-}
-
-void HgmContext::UpdateScreenRenderResolution(ScreenId screenId, uint32_t width, uint32_t height)
-{
-    HGM_LOGI("screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", screenId, width, height);
-    HgmTaskHandleThread::Instance().PostTask([this, screenId, width, height] {
-        HGM_LOGI("update screen render resolution, screenId: %{public}" PRIu64, screenId);
-        RS_TRACE_NAME_FMT("%s id: %" PRIu64 " width: %u height: %u", __func__, screenId, width, height);
-        hgmCore_.UpdateScreenRenderResolution(screenId, width, height);
-    });
 }
 
 void HgmContext::CleanAllWhenServiceConnectionDie(pid_t remotePid)
