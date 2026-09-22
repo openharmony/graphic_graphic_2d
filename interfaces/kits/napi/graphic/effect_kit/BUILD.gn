@@ -109,6 +109,7 @@ if (is_arkui_x) {
 } else {
   ohos_shared_library("effectkit") {
     branch_protector_ret = "pac_ret"
+    version_script = "libeffectkit.map"
 
     configs = [ ":graphic_napi_effect_kit_config" ]
 
