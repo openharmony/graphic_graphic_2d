@@ -53,9 +53,25 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if (showRealtimeRefreshRate || RSSystemParameters::GetShowRefreshRateEnabled()) {
         info += " " + std::to_string(realtimeRefreshRate);
     }
+
+    float scaleFactorX = 1.0f;
+    float scaleFactorY = 1.0f;
+    if (screenParams) {
+        const auto& screenProperty = screenParams->GetScreenProperty();
+        uint32_t phyWidth = screenProperty.GetPhyWidth();
+        uint32_t phyHeight = screenProperty.GetPhyHeight();
+        if (phyWidth > 0) {
+            scaleFactorX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+        }
+        if (phyHeight > 0) {
+            scaleFactorY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
+        }
+    }
+    RS_LOGD("%{public}s scaleFactorX: %{public}f scaleFactorY: %{public}f", __func__, scaleFactorX, scaleFactorY);
+
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(100); // 100:Scalar of setting font size
+    font.SetSize(static_cast<int32_t>(100 * scaleFactorX)); // 100:Scalar of setting font size
     font.SetTypeface(tf);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
 
@@ -69,7 +85,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
-    canvas.DrawTextBlob(textBlob.get(), 100.f, 200.f);
+    canvas.DrawTextBlob(textBlob.get(), 100.f * scaleFactorX, 200.f * scaleFactorY);
     canvas.DetachBrush();
 }
 

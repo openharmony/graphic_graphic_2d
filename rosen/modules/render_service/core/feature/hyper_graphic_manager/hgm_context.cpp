@@ -222,6 +222,16 @@ void HgmContext::RemoveScreenFromHgm(ScreenId screenId)
     });
 }
 
+void HgmContext::UpdateScreenRenderResolution(ScreenId screenId, uint32_t width, uint32_t height)
+{
+    HGM_LOGI("screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", screenId, width, height);
+    HgmTaskHandleThread::Instance().PostTask([this, screenId, width, height] {
+        HGM_LOGI("update screen render resolution, screenId: %{public}" PRIu64, screenId);
+        RS_TRACE_NAME_FMT("%s id: %" PRIu64 " width: %u height: %u", __func__, screenId, width, height);
+        hgmCore_.UpdateScreenRenderResolution(screenId, width, height);
+    });
+}
+
 void HgmContext::CleanAllWhenServiceConnectionDie(pid_t remotePid)
 {
     renderServiceHandler_->PostSyncTask([this, remotePid] {

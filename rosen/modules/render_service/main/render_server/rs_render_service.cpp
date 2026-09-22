@@ -483,6 +483,18 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
     renderService_.vsyncManager_->OnScreenPropertyChanged(id, type, property,
         renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
+
+    if (type == ScreenPropertyType::RENDER_RESOLUTION) {
+        auto resProperty = static_cast<ScreenProperty<std::pair<uint32_t, uint32_t>>*>(property.GetRefPtr());
+        if (resProperty != nullptr) {
+            const auto& [width, height] = resProperty->Get();
+            if (const auto hgmContext = renderService_.GetHgmContext()) {
+                hgmContext->UpdateScreenRenderResolution(id, width, height);
+            }
+        } else {
+            RS_LOGW("%{public}s: render resolution null ScreenId: %{public}" PRIu64, __func__, id);
+        }
+    }
 }
 
 void RSRenderService::ScreenManagerListener::OnScreenRefresh(ScreenId id)

@@ -199,6 +199,8 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void HandleScreenRenderResolutionChanged();
+
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
