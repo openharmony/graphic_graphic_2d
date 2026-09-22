@@ -374,6 +374,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     EndCheck(timer);
     if (isDisconnected_ && unExecuteTaskNum_ == 0) {
         RS_TRACE_NAME_FMT("Clear output, screenId : %" PRIu64, screenId_);
+        std::lock_guard<std::mutex> lock(hdiOutputMutex_);
         ClearFrameBuffersInner();
         rsRenderComposerContext_ = nullptr;
         hdiOutput_ = nullptr;
@@ -690,6 +691,7 @@ void RSRenderComposer::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer)
             return;
         }
     }
+    std::lock_guard<std::mutex> lock(hdiOutputMutex_);
     if (hdiOutput_ == nullptr) {
         RS_LOGE("hdiOutput_ is NULL");
         return;
@@ -1245,7 +1247,10 @@ void RSRenderComposer::ReInit(const std::shared_ptr<HdiOutput>& output,
     if (hdiOutput_ != nullptr && hdiOutput_ != output) {
         hdiOutput_->ClearLayerCreatedCallback();
     }
-    hdiOutput_ = output;
+    {
+        std::lock_guard<std::mutex> lock(hdiOutputMutex_);
+        hdiOutput_ = output;
+    }
     GraphicIRect damageRect {
         0, 0, static_cast<int32_t>(property->GetWidth()), static_cast<int32_t>(property->GetHeight())
     };
@@ -1276,6 +1281,7 @@ void RSRenderComposer::OnScreenDisconnected()
     ClearLayerCreatedCallbackFromOutput();
     if (unExecuteTaskNum_ == 0) {
         RS_TRACE_NAME_FMT("%s Clear output, screenId : %" PRIu64, __func__, screenId_);
+        std::lock_guard<std::mutex> lock(hdiOutputMutex_);
         ClearFrameBuffersInner();
         rsRenderComposerContext_ = nullptr;
         hdiOutput_ = nullptr;
@@ -1492,6 +1498,7 @@ void RSRenderComposer::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
 int32_t RSRenderComposer::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
 {
+    std::lock_guard<std::mutex> lock(hdiOutputMutex_);
     if (hdiOutput_ == nullptr) {
         RS_LOGE("%{public}s output is nullptr, screenId:%{public}" PRIu64, __func__, screenId_);
         return GRAPHIC_DISPLAY_FAILURE;
