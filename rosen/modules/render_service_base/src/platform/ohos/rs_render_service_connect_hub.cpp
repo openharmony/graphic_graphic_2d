@@ -249,15 +249,22 @@ void RSRenderServiceConnectHub::SeedTransactionDataIndexInner(const uint64_t tok
     std::scoped_lock lock(mutex_, renderPipelineClientMutex_);
     auto iter = connRenderProcesses_.find(tokenMaskId);
     if (iter == connRenderProcesses_.end()) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s tokenMaskId is not found in "
+            "connRenderProcesses_", __func__);
         return;
     }
     auto clientToRenderConnection = iter->second.clientToRenderConnection;
-    if (!clientToRenderConnection) {
+    if (clientToRenderConnection == nullptr || renderConn_ == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s clientToRenderConnection:%{public}d or "
+            "renderConn_:%{public}d is nullptr", __func__, clientToRenderConnection != nullptr,
+            renderConn_ != nullptr);
         return;
     }
     auto target = static_cast<RSClientToRenderConnectionProxy*>(clientToRenderConnection.GetRefPtr());
     auto source = static_cast<RSClientToRenderConnectionProxy*>(renderConn_.GetRefPtr());
-    if (source == nullptr) {
+    if (target == nullptr || source == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s proxy is nullptr, target:%{public}d, "
+            "source:%{public}d", __func__, target != nullptr, source != nullptr);
         return;
     }
     uint32_t sourceIndex = source->GetTransactionDataIndex();
