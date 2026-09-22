@@ -184,8 +184,8 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test the deserialization function
      */
-    uint8_t *tempBuffer = new uint8_t[sizeof(size_t)]();
-    int retDeserialized = cacheData->DeSerialize(tempBuffer, sizeof(size_t));
+    uint8_t *tempBuffer = new uint8_t[2 * sizeof(size_t)]();
+    int retDeserialized = cacheData->DeSerialize(tempBuffer, 2 * sizeof(size_t));
     EXPECT_NE(retDeserialized, -EINVAL);
     delete[] tempBuffer;
 #endif
@@ -361,8 +361,8 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
     std::string testFileDir = "testCachedata";
     std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
-    uint8_t *tempBuffer = new uint8_t[sizeof(size_t)]();
-    int retDeserialized1 = cacheData->DeSerialize(tempBuffer, sizeof(size_t));
+    uint8_t *tempBuffer = new uint8_t[2 * sizeof(size_t)]();
+    int retDeserialized1 = cacheData->DeSerialize(tempBuffer, 2 * sizeof(size_t));
     EXPECT_NE(retDeserialized1, -EINVAL);
     delete[] tempBuffer;
 }
