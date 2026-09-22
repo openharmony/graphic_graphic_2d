@@ -84,6 +84,59 @@ public:
         const Font& font, TextEncoding encoding = TextEncoding::UTF8);
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+
+    /**
+     * @brief            Make text blobs from text with font fallback support. When the current
+     *                   font does not support certain characters, it automatically finds fallback
+     *                   fonts from system. One text blob is created per run of consecutive
+     *                   codepoints that share the same typeface, ordered by text position.
+     *                   All blobs share the coordinate system of the whole string: glyph positions
+     *                   already include the advance of preceding runs, so callers should draw
+     *                   every blob at the same origin. Codepoints without any fallback are kept
+     *                   as glyph 0 of the original font.
+     *                   For GLYPH_ID encoding, fallback is not supported and the result is a
+     *                   single blob created by MakeFromText.
+     * @param text       Character storage encoded with encoding.
+     * @param byteLength Length of character storage in bytes.
+     * @param font       Font used for glyph probing, shaping and measuring.
+     * @param encoding   Text encoding.
+     * @return           Text blobs ordered by text position; empty when text is empty or
+     *                   cannot be decoded.
+     */
+    static std::vector<std::shared_ptr<TextBlob>> MakeFromTextWithFallback(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+
+    /**
+     * @brief            Make text blobs from positioned text with font fallback support, with
+     *                   the same fallback and run-splitting strategy as MakeFromTextWithFallback.
+     *                   Each glyph keeps the caller-supplied position of its codepoint, so all
+     *                   blobs are drawn at the same origin.
+     *                   For GLYPH_ID encoding, fallback is not supported and the result is a
+     *                   single blob created by MakeFromPosText.
+     * @param text       Character storage encoded with encoding.
+     * @param byteLength Length of character storage in bytes.
+     * @param pos        One position per codepoint; must contain at least as many entries as
+     *                   the number of codepoints in text.
+     * @param font       Font used for glyph probing and shaping.
+     * @param encoding   Text encoding.
+     * @return           Text blobs ordered by text position; empty when text is empty or
+     *                   cannot be decoded.
+     */
+    static std::vector<std::shared_ptr<TextBlob>> MakeFromPosTextWithFallback(const void* text, size_t byteLength,
+        const Point pos[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+
+    /**
+     * @brief            Make text blobs from positioned text with font fallback support, with
+     *                   the same fallback and run-splitting strategy as MakeFromTextWithFallback.
+     * @param str        Character storage encoded with encoding.
+     * @param font       Font used for glyph probing, shaping and measuring.
+     * @param encoding   Text encoding.
+     * @return           Text blobs ordered by text position; empty when text is empty or
+     *                   cannot be decoded.
+     */
+    static std::vector<std::shared_ptr<TextBlob>> MakeFromStringWithFallback(const char* str,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+
     int GetIntercepts(const float bounds[], float intervals[], const Paint* paint);
 
     /**

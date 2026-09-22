@@ -22,6 +22,7 @@
 
 #include "impl_interface/font_impl.h"
 #include "text/font_metrics.h"
+#include "text/font_mgr.h"
 #include "text/font_types.h"
 #include "text/typeface.h"
 #include "utils/rect.h"
@@ -237,6 +238,30 @@ public:
         uint16_t glyphs[], int maxGlyphCount) const;
 
     /**
+     * @brief               Converts text into glyph indices with font fallback support. When the
+     *                      current font does not support certain characters, it automatically finds
+     *                      fallback fonts from system. Consecutive codepoints that share the same
+     *                      typeface are merged into one FontFallbackInfo run, ordered by text
+     *                      position; the glyph ids of all runs add up to the codepoint count.
+     *                      Codepoints without any fallback are reported as a run with typeface ==
+     *                      nullptr and glyph id 0, so callers keep their own font for them.
+     *                      For GLYPH_ID encoding there are no characters to fall back on; the
+     *                      glyph ids are reported as a single run of the current font. When the
+     *                      fallback infrastructure is unavailable, a best-effort single run of the
+     *                      current font is returned.
+     *                      MeasureTextWithFallback and TextBlob::MakeFromTextWithFallback /
+     *                      MakeFromPosTextWithFallback resolve their runs through this function;
+     *                      changing the run semantics above changes their behaviour as well.
+     * @param text          Character storage encoded with encoding.
+     * @param byteLength    Length of character storage in bytes.
+     * @param encoding      Text encoding.
+     * @return              FontFallbackInfo runs ordered by text position; empty when text is
+     *                      empty or cannot be decoded.
+     */
+    std::vector<FontFallbackInfo> TextToGlyphsWithFallback(const void* text, size_t byteLength,
+        TextEncoding encoding) const;
+
+    /**
      * @brief             Measure the width of text.
      * @param text        Character storage encoded with TextEncoding
      * @param byteLength  Length of character storage in bytes
@@ -245,6 +270,27 @@ public:
      * @return            The width of text.
      */
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr) const;
+
+    /**
+     * @brief             Measures the width of text with font fallback support. The width is the
+     *                    sum of the advance of every fallback run, each measured with its resolved
+     *                    typeface, so it matches the layout produced by
+     *                    TextBlob::MakeFromTextWithFallback for the same font and text.
+     *                    Codepoints without any fallback contribute the glyph 0 advance of the
+     *                    current font. When bounds is not nullptr, it receives the union of the
+     *                    per-run bounds in the coordinate system of the whole string: each run's
+     *                    bounds are offset by the advance of the preceding runs, matching the
+     *                    glyph positions produced by TextBlob::MakeFromTextWithFallback.
+     *                    For GLYPH_ID encoding, fallback is not supported and MeasureText is
+     *                    called directly.
+     * @param text        Character storage encoded with encoding
+     * @param byteLength  Length of character storage in bytes
+     * @param encoding    Text encoding.
+     * @param bounds      Union bounding box of all runs relative to (0, 0), may be nullptr.
+     * @return            The width of text; 0 when text is empty or cannot be decoded.
+     */
+    scalar MeasureTextWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+        Rect* bounds = nullptr) const;
 
     /**
      * @brief             Measures the width of text with brush or pen, brush and pen are both not nullptr.
@@ -258,6 +304,27 @@ public:
      */
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds, const Brush* brush,
         const Pen* pen) const;
+
+    /**
+     * @brief             Measures the width of text with font fallback support, using the same
+     *                    runs and layout as the overload above. When bounds is not nullptr, it
+     *                    receives the union of the per-run bounds in the coordinate system of
+     *                    the whole string: each run's bounds are offset by the advance of the
+     *                    preceding runs, matching the glyph positions produced by
+     *                    TextBlob::MakeFromTextWithFallback. The brush or pen, when provided,
+     *                    participates in the bounds computation of each run; at most one of them
+     *                    may be non-null. For GLYPH_ID encoding, fallback is not supported and
+     *                    MeasureText is called directly.
+     * @param text        Character storage encoded with encoding
+     * @param byteLength  Length of character storage in bytes
+     * @param encoding    Text encoding.
+     * @param bounds      Union bounding box of all runs relative to (0, 0), may be nullptr.
+     * @param brush       Brush applied to the bounds computation, may be nullptr.
+     * @param pen         Pen applied to the bounds computation, may be nullptr.
+     * @return            The width of text; 0 when text is empty or cannot be decoded.
+     */
+    scalar MeasureTextWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+        Rect* bounds, const Brush* brush, const Pen* pen) const;
 
     /**
      * @brief           Retrieves the positions for each glyph, beginning at the specified origin,
