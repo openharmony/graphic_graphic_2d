@@ -53,6 +53,7 @@ enum RebuildReason : size_t {
     VIRTUAL_SCREEN_MUTE,        // Virtual screen is muted
     SCREEN_OFF,                 // Screen is off
     COLOR_FILTER_MODE,          // Color filter mode is enabled
+    DRAW_SEC_MASK,               // Security mask is required
 
     // Add new reasons above this line
     MAX_VALUE
