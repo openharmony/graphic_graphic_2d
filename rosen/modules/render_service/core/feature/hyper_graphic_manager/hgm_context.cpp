@@ -232,12 +232,12 @@ void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, c
             screenManager->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
             HGM_LOGI("screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", id, width, height);
             HgmTaskHandleThread::Instance().PostTask([this, id, width, height] {
-                HGM_LOGI("update screen render resolution, screenId: %{public}" PRIu64, id);
+                HGM_LOGI("update screen render resolution, screenId:%{public}" PRIu64, id);
                 RS_TRACE_NAME_FMT("%s id: %" PRIu64 " width: %u height: %u", __func__, id, width, height);
                 hgmCore_.UpdateScreenRenderResolution(id, width, height);
             });
         } else {
-            HGM_LOGW("get rog screen resolution failed, ScreenId: %{public}" PRIu64, id);
+            HGM_LOGW("get rog screen resolution failed, screenId:%{public}" PRIu64, id);
         }
     }
 }

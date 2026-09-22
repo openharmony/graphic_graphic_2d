@@ -42,7 +42,7 @@ HgmScreen::HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize)
     renderWidth_ = screenSize.width;
     renderHeight_ = screenSize.height;
     HGM_LOGI("id: %{public}" PRIu64 " ppi: %{public}f xDpi: %{public}f yDpi: %{public}f, "
-        "renderW : %{public}u renderH: %{public}u phyW : %{public}d, phyH: %{public}d",
+        "renderW: %{public}u renderH: %{public}u phyW: %{public}d, phyH: %{public}d",
         id_, ppi_, xDpi_, yDpi_, renderWidth_, renderHeight_, phyWidth_, phyHeight_);
 }
 
@@ -193,7 +193,7 @@ int32_t HgmScreen::GetModeIdViaResolutionAndRate(int32_t width, int32_t height, 
 bool HgmScreen::UpdateRenderResolution(uint32_t width, uint32_t height)
 {
     if (width == 0 || height == 0 || phyWidth_ == 0 || phyHeight_ == 0) {
-        HGM_LOGW("fail, id: %{public}" PRIu64 " renderW : %{public}u renderH: %{public}u", id_, width, height);
+        HGM_LOGW("fail, id: %{public}" PRIu64 " renderW: %{public}u renderH: %{public}u", id_, width, height);
         return false;
     }
     if (width == renderWidth_ && height == renderHeight_) {
@@ -216,7 +216,7 @@ bool HgmScreen::UpdateRenderResolution(uint32_t width, uint32_t height)
     }
 
     HGM_LOGI("id: %{public}" PRIu64 " ppi: %{public}f xDpi: %{public}f yDpi: %{public}f, "
-        "renderW : %{public}u renderH: %{public}u phyW : %{public}d, phyH: %{public}d",
+        "renderW: %{public}u renderH: %{public}u phyW: %{public}d, phyH: %{public}d",
         id_, ppi_, xDpi_, yDpi_, renderWidth_, renderHeight_, phyWidth_, phyHeight_);
     return true;
 }
