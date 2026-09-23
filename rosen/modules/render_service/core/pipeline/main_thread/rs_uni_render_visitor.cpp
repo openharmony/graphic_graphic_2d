@@ -2925,7 +2925,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isSnapshotRoationHdr = curScreenNode_->GetDisplayHdrStatus() != HdrStatus::NO_HDR &&
             RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
         // disable hwc for current node when either (1) snapshot rotation with hdr content or (2) unirender hdr surface
-        // but RGBA1010108Enabled, except current node is forced to use hwc composition
+        // but RGBA1010108Enabled, except current node is forced to use hwc
         bool isDisableHwcForHdrSurface = (isSnapshotRoationHdr ||
             (hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled())) &&
             hdrForceHwcNodes.find(hwcNodePtr->GetId()) == hdrForceHwcNodes.end();
