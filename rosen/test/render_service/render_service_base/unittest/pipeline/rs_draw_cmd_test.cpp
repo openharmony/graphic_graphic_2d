@@ -1312,15 +1312,37 @@ HWTEST_F(RSDrawCmdTest, ImageInfoReservedInitialValueTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeFromTextureForVKBranchTest001
- * @tc.desc: test MipmapMode != NONE && !imageInfoReserved_ → ReserveImageInfo called, flag set to true
+ * @tc.name: MakeFromTextureForVKNoVulkanTest
+ * @tc.desc: test MakeFromTextureForVK returns false when Vulkan is not available,
+ *           imageInfoReserved_ stays false (if-block unreachable without GPU)
  * @tc.type:FUNC
  * @tc.require:issueIBZ6NM
  */
-HWTEST_F(RSDrawCmdTest, MakeFromTextureForVKBranchTest001, TestSize.Level1)
+HWTEST_F(RSDrawCmdTest, MakeFromTextureForVKNoVulkanTest, TestSize.Level1)
 {
-    constexpr NodeId nodeId = 10010;
-    constexpr NodeId firstLevelNodeId = 20010;
+    RSExtendImageObject extendImageObject;
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    Drawing::Canvas canvas(1, 1);
+    Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+
+    bool result = extendImageObject.MakeFromTextureForVK(canvas, nullptr, sampling, Drawing::ALPHATYPE_PREMUL);
+    EXPECT_FALSE(result);
+    EXPECT_FALSE(extendImageObject.imageInfoReserved_);
+}
+
+/**
+ * @tc.name: ImageInfoReservedLifecycleTest
+ * @tc.desc: test full imageInfoReserved_ lifecycle: ReserveImageInfo → flag=true →
+ *           PurgeMipmapMem → flag=false → ReserveImageInfo again (new entry added).
+ *           MakeFromTextureForVK's if-block calls ReserveImageInfo + sets flag;
+ *           this test exercises those real functions in sequence.
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, ImageInfoReservedLifecycleTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 10020;
+    constexpr NodeId firstLevelNodeId = 20020;
     auto context = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
     auto drawable = std::make_shared<TestVKDrawableAdapter>(surfaceNode);
@@ -1330,113 +1352,32 @@ HWTEST_F(RSDrawCmdTest, MakeFromTextureForVKBranchTest001, TestSize.Level1)
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
 
     RSImageCache& imageCache = RSImageCache::Instance();
-    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
+    imageCache.rsImageInfoMap.clear();
 
     RSExtendImageObject extendImageObject;
     extendImageObject.rsImage_ = std::make_shared<RSImage>();
     extendImageObject.SetNodeId(nodeId);
     ASSERT_FALSE(extendImageObject.imageInfoReserved_);
 
-    Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    ASSERT_NE(sampling.GetMipmapMode(), Drawing::MipmapMode::NONE);
-
-    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !extendImageObject.imageInfoReserved_) {
-        RSImageCache::Instance().ReserveImageInfo(extendImageObject.rsImage_,
-            extendImageObject.GetNodeId(), extendImageObject.weak_from_this());
-        extendImageObject.imageInfoReserved_ = true;
-    }
+    imageCache.ReserveImageInfo(extendImageObject.rsImage_, extendImageObject.GetNodeId(),
+        extendImageObject.weak_from_this());
+    extendImageObject.imageInfoReserved_ = true;
 
     EXPECT_TRUE(extendImageObject.imageInfoReserved_);
-    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore + 1);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
+    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
 
-    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
-    imageCache.rsImageInfoMap.clear();
-}
-
-/**
- * @tc.name: MakeFromTextureForVKBranchTest002
- * @tc.desc: test MipmapMode != NONE && imageInfoReserved_ → skip, no duplicate ReserveImageInfo
- * @tc.type:FUNC
- * @tc.require:issueIBZ6NM
- */
-HWTEST_F(RSDrawCmdTest, MakeFromTextureForVKBranchTest002, TestSize.Level1)
-{
-    constexpr NodeId nodeId = 10011;
-    constexpr NodeId firstLevelNodeId = 20011;
-    auto context = std::make_shared<RSContext>();
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
-    auto drawable = std::make_shared<TestVKDrawableAdapter>(surfaceNode);
-    ASSERT_NE(drawable, nullptr);
-    ASSERT_NE(drawable->GetRenderParams(), nullptr);
-    drawable->GetRenderParams()->SetFirstLevelNode(firstLevelNodeId);
-    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
-
-    RSImageCache& imageCache = RSImageCache::Instance();
-    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
-    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
-    Drawing::AdaptiveImageInfo imageInfo;
-    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
-    extendImageObject->SetNodeId(nodeId);
-
-    // First call: flag false → reserve
-    imageCache.ReserveImageInfo(extendImageObject->rsImage_, nodeId, extendImageObject->weak_from_this());
-    extendImageObject->imageInfoReserved_ = true;
-    ASSERT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
-    size_t vecSizeAfterFirst = imageCache.rsImageInfoMap[firstLevelNodeId].size();
-
-    // Second call: flag true → skip (no duplicate)
-    Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !extendImageObject->imageInfoReserved_) {
-        RSImageCache::Instance().ReserveImageInfo(extendImageObject->rsImage_,
-            extendImageObject->GetNodeId(), extendImageObject->weak_from_this());
-        extendImageObject->imageInfoReserved_ = true;
-    }
-
-    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), vecSizeAfterFirst);
-
-    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
-    imageCache.rsImageInfoMap.clear();
-}
-
-/**
- * @tc.name: MakeFromTextureForVKBranchTest003
- * @tc.desc: test MipmapMode == NONE → skip, no ReserveImageInfo regardless of flag
- * @tc.type:FUNC
- * @tc.require:issueIBZ6NM
- */
-HWTEST_F(RSDrawCmdTest, MakeFromTextureForVKBranchTest003, TestSize.Level1)
-{
-    constexpr NodeId nodeId = 10012;
-    constexpr NodeId firstLevelNodeId = 20012;
-    auto context = std::make_shared<RSContext>();
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
-    auto drawable = std::make_shared<TestVKDrawableAdapter>(surfaceNode);
-    ASSERT_NE(drawable, nullptr);
-    ASSERT_NE(drawable->GetRenderParams(), nullptr);
-    drawable->GetRenderParams()->SetFirstLevelNode(firstLevelNodeId);
-    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
-
-    RSImageCache& imageCache = RSImageCache::Instance();
-    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-
-    RSExtendImageObject extendImageObject;
-    extendImageObject.rsImage_ = std::make_shared<RSImage>();
-    extendImageObject.SetNodeId(nodeId);
-    ASSERT_FALSE(extendImageObject.imageInfoReserved_);
-
-    Drawing::SamplingOptions samplingNone;
-    ASSERT_EQ(samplingNone.GetMipmapMode(), Drawing::MipmapMode::NONE);
-
-    if (samplingNone.GetMipmapMode() != Drawing::MipmapMode::NONE && !extendImageObject.imageInfoReserved_) {
-        RSImageCache::Instance().ReserveImageInfo(extendImageObject.rsImage_,
-            extendImageObject.GetNodeId(), extendImageObject.weak_from_this());
-        extendImageObject.imageInfoReserved_ = true;
-    }
-
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    ASSERT_EQ(extendImageObject.image_.use_count(), 1);
+    extendImageObject.PurgeMipmapMem();
+    EXPECT_EQ(extendImageObject.image_, nullptr);
     EXPECT_FALSE(extendImageObject.imageInfoReserved_);
-    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
-    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 0u);
+
+    imageCache.ReserveImageInfo(extendImageObject.rsImage_, extendImageObject.GetNodeId(),
+        extendImageObject.weak_from_this());
+    extendImageObject.imageInfoReserved_ = true;
+    EXPECT_TRUE(extendImageObject.imageInfoReserved_);
+    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 2u);
 
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
     imageCache.rsImageInfoMap.clear();
