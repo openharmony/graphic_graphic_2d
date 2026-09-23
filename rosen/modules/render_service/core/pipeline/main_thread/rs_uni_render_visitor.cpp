@@ -2922,7 +2922,12 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
         bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
         auto hdrForceHwcNodes = curScreenNode_->GetHdrForceHwcNodes();
-        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() &&
+        bool isSnapshotRoationHdr = curScreenNode_->GetDisplayHdrStatus() != HdrStatus::NO_HDR &&
+            RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
+        // disable hwc for current node when either (1) snapshot rotation with hdr content or (2) unirender hdr surface
+        // but RGBA1010108Enabled, except current node is forced to use hwc composition
+        bool isDisableHwcForHdrSurface = (isSnapshotRoationHdr ||
+            (hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled())) &&
             hdrForceHwcNodes.find(hwcNodePtr->GetId()) == hdrForceHwcNodes.end();
         bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
         if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&
