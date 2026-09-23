@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef SPTEXT_STRING_UTIL_H
-#define SPTEXT_STRING_UTIL_H
+#ifndef TEXT_LINE_ENTRY_H
+#define TEXT_LINE_ENTRY_H
 
-#include <string>
+#include <memory>
 
-#ifdef _WIN32
-#define STRING_UTIL_API __attribute__((dllexport))
-#else
-#define STRING_UTIL_API __attribute__((visibility("default")))
-#endif
+#include "rosen_text/text_line_base.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace SPText {
-
-class STRING_UTIL_API Utf16Utils {
-public:
-    static bool IsUTF16LowSurrogate(uint16_t ch);
-    static bool IsUTF16HighSurrogate(uint16_t ch);
-    static void HandleIncompleteSurrogatePairs(std::u16string& str);
+// Keeps a text line alive as long as its OH_Drawing_TextLine handle exists.
+// LineObject::line (array_mgr.h) stores a raw pointer to this entry so that
+// array_mgr.h stays free of rosen_text dependencies.
+struct TextLineEntry {
+    std::shared_ptr<TextLineBase> line;
 };
-
-} // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
-#endif // SPTEXT_STRING_UTIL_H
+
+#endif // TEXT_LINE_ENTRY_H

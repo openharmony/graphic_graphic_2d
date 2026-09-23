@@ -25,6 +25,8 @@ ohos_source_set("text_ndk") {
     }
   }
 
+  configs = [ "$rosen_text_root:rosen_text_config" ]
+
   include_dirs = [
     "$rosen_root/modules/render_service_base/include",
     "$rosen_root/modules/render_service_base/src",
@@ -37,10 +39,6 @@ ohos_source_set("text_ndk") {
     "$rosen_text_root/service/texgine/src",
     "$rosen_text_root/service/global_config",
     "$rosen_text_root/adapter/skia",
-  ]
-  deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics",
-    "$rosen_text_root:rosen_text",
   ]
   sources = [
     "drawing_font_manager/drawing_font_collection.cpp",
@@ -60,17 +58,26 @@ ohos_source_set("text_ndk") {
   ]
 
   if (is_arkui_x) {
+    # arkui-x ships exactly two shared libraries; engine symbols live in
+    # libarkui_android and are resolved at runtime through its DT_NEEDED edge.
+    # Never link rosen_text/2d_graphics here: merging their sources would
+    # duplicate engine state (typeface registry, font collections) across DSOs.
+    configs += [ "$rosen_root/modules/2d_graphics:export_config" ]
     sources -= [
       "drawing_font_manager/drawing_text_font_descriptor.cpp",
       "drawing_font_manager/drawing_text_font_descriptor_attributes.cpp",
     ]
-    sources += [
-      "drawing_font_manager/drawing_text_font_descriptor_arkuix.cpp",
-    ]
-    deps += [
+    sources +=
+        [ "drawing_font_manager/drawing_text_font_descriptor_arkuix.cpp" ]
+    deps = [
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/icu/icu4c:static_icuuc",
       "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    deps = [
+      "$rosen_root/modules/2d_graphics:2d_graphics",
+      "$rosen_text_root:rosen_text",
     ]
   }
 
@@ -78,10 +85,8 @@ ohos_source_set("text_ndk") {
     include_dirs +=
         [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
   }
+
   external_deps = [ "bounds_checking_function:libsec_shared" ]
-
-  configs = [ "$rosen_text_root:rosen_text_config" ]
-
   if (platform_is_ohos) {
     if (text_histogram_enable) {
       external_deps += [ "api_metrics:histogrammanager" ]
