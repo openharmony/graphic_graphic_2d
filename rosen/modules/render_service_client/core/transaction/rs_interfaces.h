@@ -123,7 +123,8 @@ public:
     /**
      * @brief Use nodeType to Set blackList for mirror screen.
      * @param id Screen id.
-     * @param typeBlackListVector Vector of NodeType.
+     * @param typeBlackListVector Vector of NodeType. Only RSSurfaceNodeType::CURSOR_NODE takes effect,
+     * other node types are filtered out silently.
      * @return 0 means success, others failed.
      */
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);

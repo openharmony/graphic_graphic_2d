@@ -191,7 +191,7 @@ ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER,
         SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER,
         SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,

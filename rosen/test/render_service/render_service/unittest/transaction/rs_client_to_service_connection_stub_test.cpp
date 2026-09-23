@@ -3308,6 +3308,15 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
 HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteListTest001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
+    // ADD_VIRTUAL_SCREEN_WHITELIST is restricted to foundation calling, mock the caller uid
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    ASSERT_EQ(OHOS::IPCSkeleton::GetCallingUid(), FOUNDATION_UID);
+
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
@@ -3325,6 +3334,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteListTest001, 
     data2.WriteUInt64Vector(whiteList);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
+
+    // remove the invoker
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete invoker;
 }
 
 /**
@@ -3447,6 +3460,15 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetPhysicalScreenResolutionTest001
 HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
+    // REMOVE_VIRTUAL_SCREEN_WHITELIST is restricted to foundation calling, mock the caller uid
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    ASSERT_EQ(OHOS::IPCSkeleton::GetCallingUid(), FOUNDATION_UID);
+
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
@@ -3464,6 +3486,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenWhiteList001, T
     data2.WriteUInt64Vector(whiteList);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
+
+    // remove the invoker
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete invoker;
 }
 
 /**
@@ -3938,6 +3964,156 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenTypeBlackListTest0
     int32_t repCode;
     auto res = connection->SetVirtualScreenTypeBlackList(screenId, typeBlackListVector, repCode);
     ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: SetVirtualScreenTypeBlackListRepCodeSuccessTest001
+ * @tc.desc: Test SET_VIRTUAL_SCREEN_TYPE_BLACKLIST repCode SUCCESS branch in OnRemoteRequest
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenTypeBlackListRepCodeSuccessTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
+
+    // case 1: empty typeBlackList on the registered screen, repCode is SUCCESS
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data1.WriteUint64(screenId_);
+    std::vector<NodeType> emptyTypeBlackList;
+    data1.WriteUInt8Vector(emptyTypeBlackList);
+    auto res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    // case 2: typeBlackList with CURSOR_NODE on the registered screen, repCode is SUCCESS
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(screenId_);
+    std::vector<NodeType> typeBlackList { static_cast<NodeType>(RSSurfaceNodeType::CURSOR_NODE) };
+    data2.WriteUInt8Vector(typeBlackList);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    // clear the type blacklist to restore the screen state
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    int32_t repCode = StatusCode::SUCCESS;
+    connection->SetVirtualScreenTypeBlackList(screenId_, emptyTypeBlackList, repCode);
+    EXPECT_EQ(repCode, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackListRepCodeSuccessTest001
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_BLACKLIST repCode SUCCESS branch in OnRemoteRequest
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenBlackListRepCodeSuccessTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST);
+
+    // the registered screen exists, AddBlackList returns SUCCESS
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    std::vector<NodeId> blackList { 1 };
+    data.WriteUInt64Vector(blackList);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    // remove the added node to restore the screen state
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    int32_t repCode = StatusCode::SUCCESS;
+    connection->RemoveVirtualScreenBlackList(screenId_, blackList, repCode);
+    EXPECT_EQ(repCode, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackListRepCodeSuccessTest001
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_BLACKLIST repCode SUCCESS branch in OnRemoteRequest
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenBlackListRepCodeSuccessTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+
+    // prepare: add one node into the blacklist of the registered screen
+    std::vector<NodeId> blackList { 1 };
+    int32_t repCode = StatusCode::SUCCESS;
+    connection->AddVirtualScreenBlackList(screenId_, blackList, repCode);
+    ASSERT_EQ(repCode, StatusCode::SUCCESS);
+
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST);
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    data.WriteUInt64Vector(blackList);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: AddRemoveVirtualScreenWhiteListRepCodeSuccessTest001
+ * @tc.desc: Test ADD/REMOVE_VIRTUAL_SCREEN_WHITELIST repCode SUCCESS branch in OnRemoteRequest
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AddRemoveVirtualScreenWhiteListRepCodeSuccessTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // whitelist interfaces are restricted to foundation calling, mock the caller uid
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+    ASSERT_EQ(OHOS::IPCSkeleton::GetCallingUid(), FOUNDATION_UID);
+
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ScreenId virtualScreenId = connection->CreateVirtualScreen("ut_whitelist", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<NodeId> whiteList { 1 };
+
+    MessageParcel addData;
+    addData.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    addData.WriteUint64(virtualScreenId);
+    addData.WriteUInt64Vector(whiteList);
+    uint32_t addCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
+    auto res = connectionStub_->OnRemoteRequest(addCode, addData, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    MessageParcel removeData;
+    removeData.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    removeData.WriteUint64(virtualScreenId);
+    removeData.WriteUInt64Vector(whiteList);
+    uint32_t removeCode =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
+    res = connectionStub_->OnRemoteRequest(removeCode, removeData, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+
+    connection->CleanVirtualScreens();
+    // remove the invoker
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = nullptr;
+    delete invoker;
 }
 
 /**

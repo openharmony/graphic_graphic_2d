@@ -589,11 +589,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t repCode;
+            int32_t repCode = StatusCode::SUCCESS;
             SetVirtualScreenTypeBlackList(id, typeBlackListVector, repCode);
-            if (!reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST Write repCode failed!");
-                ret = ERR_INVALID_REPLY;
+            if (repCode != StatusCode::SUCCESS) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST fail, "\
+                    "repCode:%{public}d", repCode);
             }
             break;
         }
@@ -606,11 +606,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t repCode;
+            int32_t repCode = StatusCode::SUCCESS;
             AddVirtualScreenBlackList(id, blackList, repCode);
-            if (!reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
-                ret = ERR_INVALID_REPLY;
+            if (repCode != StatusCode::SUCCESS) {
+                RS_LOGW("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST fail, "\
+                    "repCode:%{public}d", repCode);
             }
             break;
         }
@@ -623,11 +623,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t repCode;
+            int32_t repCode = StatusCode::SUCCESS;
             RemoveVirtualScreenBlackList(id, blackList, repCode);
-            if (!reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
-                ret = ERR_INVALID_REPLY;
+            if (repCode != StatusCode::SUCCESS) {
+                RS_LOGW("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST fail, "\
+                    "repCode:%{public}d", repCode);
             }
             break;
         }
@@ -640,11 +640,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t repCode;
+            int32_t repCode = StatusCode::SUCCESS;
             AddVirtualScreenWhiteList(id, whiteList, repCode);
-            if (!reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
-                ret = ERR_INVALID_REPLY;
+            if (repCode != StatusCode::SUCCESS) {
+                RS_LOGW("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST fail, "\
+                    "repCode:%{public}d", repCode);
             }
             break;
         }
@@ -657,11 +657,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t repCode;
+            int32_t repCode = StatusCode::SUCCESS;
             RemoveVirtualScreenWhiteList(id, whiteList, repCode);
-            if (!reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
-                ret = ERR_INVALID_REPLY;
+            if (repCode != StatusCode::SUCCESS) {
+                RS_LOGW("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST fail, "\
+                    "repCode:%{public}d", repCode);
             }
             break;
         }

@@ -159,6 +159,17 @@ void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
         funcName.c_str(), type, screenId, out.str().c_str());
 }
 
+void RSSpecialLayerUtils::DumpGlobalBlackList(const std::string& funcName)
+{
+    const auto& globalBlackList = ScreenSpecialLayerInfo::GetGlobalBlackList();
+    std::ostringstream out;
+    for (const auto nodeId : globalBlackList) {
+        out << nodeId << " ";
+    }
+    RS_LOGI("%{public}s : global blacklist size[%{public}zu] list[%{public}s]", funcName.c_str(),
+        globalBlackList.size(), out.str().c_str());
+}
+
 bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
     RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam)
 {
