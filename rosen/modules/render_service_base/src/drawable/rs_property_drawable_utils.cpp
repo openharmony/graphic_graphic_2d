@@ -1672,10 +1672,6 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
         return;
     }
     auto geShape = visualEffect->GetGEShaderShape(shapeTag);
-    if (!geShape) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM geShape null");
-        return;
-    }
     auto sdfColorVisualEffect =
         std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_SHADER_SDF_COLOR, Drawing::DrawingPaintType::BRUSH);
     sdfColorVisualEffect->SetParam(Drawing::GE_SHADER_SDF_COLOR_SHAPE, geShape);
