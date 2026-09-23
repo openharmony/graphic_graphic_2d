@@ -89,7 +89,11 @@ std::shared_ptr<RSTypeface> VariationFontCache::RegisterVariationTypeface(
     if (typeface == nullptr || !fontArgs.has_value()) {
         return typeface;
     }
-    
+
+    // Non-variable font short-circuit: when the font has no fvar axes
+    // (GetVariationDesignPosition returns 0), variation cloning is a no-op.
+    // Return the original typeface directly to skip the expensive
+    // GenerateFontVariationAxisInfo (new hb_face) + MakeClone (font re-parse).
     if (typeface->GetVariationDesignPosition(nullptr, 0) == 0) {
         return typeface;
     }
