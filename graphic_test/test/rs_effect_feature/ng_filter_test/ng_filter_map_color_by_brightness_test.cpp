@@ -15,7 +15,6 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "ui_effect/filter/include/filter_map_color_by_brightness_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 
 using namespace testing;
@@ -53,7 +52,7 @@ const std::vector<MapColorByBrightnessParams> normalParams = {
 
 const std::vector<MapColorByBrightnessParams> boundaryPositionParams = {
     {{{0.96f, 0.7f, 0.74f, 1.0f}}, {0.0f}},
-    {{{0.96f, 0.7f, 0.74f, 1.0f}}, {1.0f}},
+    {{{0.0f, 0.0f, 0.0f, 0.0f}, {0.6f, 0.7f, 0.95f, 1.0f}}, {0.0f, 1.0f}},
     {{{0.96f, 0.7f, 0.74f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}}, {0.0f, 1.0f}},
     {{{0.96f, 0.7f, 0.74f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}}, {-0.5f, 1.5f}},
     {{{0.5f, 0.5f, 0.5f, 1.0f}, {0.8f, 0.8f, 0.8f, 1.0f}, {0.2f, 0.2f, 0.2f, 1.0f}},
@@ -64,9 +63,9 @@ const std::vector<MapColorByBrightnessParams> boundaryPositionParams = {
 const std::vector<MapColorByBrightnessParams> abnormalParams = {
     {{}, {}},
     {{{0.96f, 0.7f, 0.74f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}, {0.53f, 0.9f, 0.59f, 1.0f}},
-     {0.2f, 0.8f}},
-    {{{-0.5f, -0.5f, -0.5f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}}, {0.2f, 0.8f}},
-    {{{2.0f, 2.0f, 2.0f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}}, {0.2f, 0.8f}},
+     {0.2f}},
+    {{}, {0.2f, 0.8f}},
+    {{{2.0f, 2.0f, 2.0f, 1.0f}, {0.88f, 0.97f, 0.58f, 1.0f}}, {0.8f}},
     {{{0.0f, 0.0f, 0.0f, 0.0f}}, {0.5f}},
     {{{1.0f, 1.0f, 1.0f, 1.0f}}, {0.5f}}
 };

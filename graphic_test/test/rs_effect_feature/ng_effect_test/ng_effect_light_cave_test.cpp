@@ -15,7 +15,6 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "ui/rs_effect_node.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
@@ -60,7 +59,7 @@ const std::vector<LightCaveEffectParams> normalParams = {
         .colorA = {0.8f, 0.2f, 0.2f, 1.0f},
         .colorB = {0.2f, 0.8f, 0.2f, 1.0f},
         .colorC = {0.2f, 0.2f, 0.8f, 1.0f},
-        .position = {0.2f, 0.2f},
+        .position = {0.3f, 0.3f},
         .radiusXY = {0.25f, 0.25f},
         .progress = 0.6f
     },
@@ -68,16 +67,16 @@ const std::vector<LightCaveEffectParams> normalParams = {
         .colorA = {0.9f, 0.3f, 0.3f, 1.0f},
         .colorB = {0.3f, 0.9f, 0.3f, 1.0f},
         .colorC = {0.3f, 0.3f, 0.9f, 1.0f},
-        .position = {0.8f, 0.8f},
+        .position = {0.5f, 0.8f},
         .radiusXY = {0.35f, 0.35f},
         .progress = 0.7f
     },
     {
-        .colorA = {1.0f, 0.5f, 0.0f, 1.0f},
-        .colorB = {0.0f, 1.0f, 0.5f, 1.0f},
-        .colorC = {0.5f, 0.0f, 1.0f, 1.0f},
-        .position = {0.5f, 0.5f},
-        .radiusXY = {0.1f, 0.1f},
+        .colorA = {0.97f, 0.57f, 0.42f, 1.0f},
+        .colorB = {0.81f, 0.31f, 0.7f, 1.0f},
+        .colorC = {0.032f, 0.89, 0.89f, 1.0f},
+        .position = {0.5f, 0.91f},
+        .radiusXY = {0.475f, 0.278f},
         .progress = 0.4f
     },
     {
@@ -111,7 +110,7 @@ const std::vector<LightCaveEffectParams> boundaryParams = {
         .colorA = {0.5f, 0.5f, 0.5f, 0.5f},
         .colorB = {0.5f, 0.5f, 0.5f, 0.5f},
         .colorC = {0.5f, 0.5f, 0.5f, 0.5f},
-        .position = {0.5f, 0.5f},
+        .position = {0.5f, 0.9f},
         .radiusXY = {0.5f, 0.5f},
         .progress = 0.5f
     },
@@ -127,16 +126,16 @@ const std::vector<LightCaveEffectParams> boundaryParams = {
         .colorA = {0.99f, 0.01f, 0.5f, 0.99f},
         .colorB = {0.01f, 0.99f, 0.5f, 0.99f},
         .colorC = {0.5f, 0.5f, 0.99f, 0.99f},
-        .position = {0.99f, 0.01f},
-        .radiusXY = {0.99f, 0.01f},
+        .position = {0.5f, 0.5f},
+        .radiusXY = {0.5f, 0.2f},
         .progress = 0.99f
     },
     {
         .colorA = {0.1f, 0.9f, 0.5f, 0.1f},
         .colorB = {0.9f, 0.1f, 0.5f, 0.1f},
         .colorC = {0.5f, 0.5f, 0.1f, 0.1f},
-        .position = {0.1f, 0.9f},
-        .radiusXY = {0.1f, 0.9f},
+        .position = {0.5f, 0.9f},
+        .radiusXY = {0.2f, 0.79f},
         .progress = 0.1f
     }
 };
@@ -154,8 +153,8 @@ const std::vector<LightCaveEffectParams> abnormalParams = {
         .colorA = {2.0f, 2.0f, 2.0f, 1.0f},
         .colorB = {2.0f, 2.0f, 2.0f, 1.0f},
         .colorC = {2.0f, 2.0f, 2.0f, 1.0f},
-        .position = {2.0f, 2.0f},
-        .radiusXY = {2.0f, 2.0f},
+        .position = {0.5f, 0.9f},
+        .radiusXY = {0.476f, 0.278f},
         .progress = 2.0f
     },
     {
@@ -175,12 +174,12 @@ const std::vector<LightCaveEffectParams> abnormalParams = {
         .progress = -999.0f
     },
     {
-        .colorA = {0.0f, 0.0f, 0.0f, 0.0f},
-        .colorB = {0.0f, 0.0f, 0.0f, 0.0f},
-        .colorC = {0.0f, 0.0f, 0.0f, 0.0f},
-        .position = {0.0f, 0.0f},
-        .radiusXY = {0.0f, 0.0f},
-        .progress = 0.0f
+        .colorA = {0.5f, -0.5f, 1.5f, 0.5f},
+        .colorB = {-0.5f, 0.5f, 1.5f, 0.5f},
+        .colorC = {0.5f, 0.5f, -0.5f, 0.5f},
+        .position = {-0.5f, 1.5f},
+        .radiusXY = {0.5f, -0.5f},
+        .progress = 1.5f
     },
     {
         .colorA = {1.0f, 1.0f, 1.0f, 0.0f},
@@ -191,6 +190,19 @@ const std::vector<LightCaveEffectParams> abnormalParams = {
         .progress = 1.0f
     }
 };
+
+static void SetLightCaveParams(const std::shared_ptr<RSNGLightCave>& shader, const LightCaveEffectParams& params)
+{
+    if (!shader) {
+        return;
+    }
+    shader->Setter<LightCaveColorATag>(params.colorA);
+    shader->Setter<LightCaveColorBTag>(params.colorB);
+    shader->Setter<LightCaveColorCTag>(params.colorC);
+    shader->Setter<LightCavePositionTag>(params.position);
+    shader->Setter<LightCaveRadiusXYTag>(params.radiusXY);
+    shader->Setter<LightCaveProgressTag>(params.progress);
+}
 }
 
 class NGEffectLightCaveTest : public RSGraphicTest {
@@ -198,19 +210,6 @@ public:
     void BeforeEach() override
     {
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
-
-    void SetLightCaveParams(const std::shared_ptr<RSNGLightCave>& shader, const LightCaveEffectParams& params)
-    {
-        if (!shader) {
-            return;
-        }
-        shader->Setter<LightCaveColorATag>(params.colorA);
-        shader->Setter<LightCaveColorBTag>(params.colorB);
-        shader->Setter<LightCaveColorCTag>(params.colorC);
-        shader->Setter<LightCavePositionTag>(params.position);
-        shader->Setter<LightCaveRadiusXYTag>(params.radiusXY);
-        shader->Setter<LightCaveProgressTag>(params.progress);
     }
 };
 
@@ -229,7 +228,7 @@ GRAPHIC_TEST(NGEffectLightCaveTest, EFFECT_TEST, Set_Normal_Background_Test)
         auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
-        node->SetBackgroundColor(0xff000000);
+        node->SetBackgroundColor(0xff3282F6);
         node->SetBackgroundNGShader(shader);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
@@ -251,7 +250,7 @@ GRAPHIC_TEST(NGEffectLightCaveTest, EFFECT_TEST, Set_Boundary_Background_Test)
         auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
-        node->SetBackgroundColor(0xff000000);
+        node->SetBackgroundColor(0xff3282F6);
         node->SetBackgroundNGShader(shader);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
@@ -273,7 +272,7 @@ GRAPHIC_TEST(NGEffectLightCaveTest, EFFECT_TEST, Set_Abnormal_Background_Test)
         auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
-        node->SetBackgroundColor(0xff000000);
+        node->SetBackgroundColor(0xff3282F6);
         node->SetBackgroundNGShader(shader);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
