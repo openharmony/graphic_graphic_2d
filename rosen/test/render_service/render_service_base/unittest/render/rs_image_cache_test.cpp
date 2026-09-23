@@ -18,6 +18,9 @@
 #include "gtest/gtest.h"
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "render/rs_image_cache.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -25,6 +28,18 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class TestImageCacheDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit TestImageCacheDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {
+        renderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeId_);
+    }
+    void Draw(Drawing::Canvas& canvas) {}
+};
+} // namespace
+
 class RSImageCacheTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1067,23 +1082,73 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
 
 /**
  * @tc.name: ReserveImageInfoInvalidNodeIdTest
- * @tc.desc: Verify ReserveImageInfo does not add entry when nodeId is INVALID_NODEID
+ * @tc.desc: Verify ReserveImageInfo returns early when surfaceNodeId is INVALID_NODEID
+ *           (drawable registered, node not on tree → firstLevelNodeId defaults to INVALID_NODEID)
  * @tc.type: FUNC
  * @tc.require: issue#IBZ6NM
  */
 HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
+    constexpr NodeId nodeId = 10001;
+    auto context = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
+    auto drawable = std::make_shared<TestImageCacheDrawableAdapter>(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_NE(drawable->GetRenderParams(), nullptr);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
+
+    auto retrieved = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+    ASSERT_NE(retrieved, nullptr);
+    EXPECT_EQ(retrieved->GetRenderParams()->GetFirstLevelNodeId(), INVALID_NODEID);
+
     std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
     Drawing::AdaptiveImageInfo imageInfo;
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    imageCache.ReserveImageInfo(rsImage, INVALID_NODEID, extendImageObject->weak_from_this());
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
 
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
+    imageCache.rsImageInfoMap.clear();
+}
+
+/**
+ * @tc.name: ReserveImageInfoValidNodeIdTest
+ * @tc.desc: Verify ReserveImageInfo adds entry when surfaceNodeId is valid
+ *           (drawable registered, firstLevelNodeId set to valid value)
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReserveImageInfoValidNodeIdTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    constexpr NodeId nodeId = 10002;
+    constexpr NodeId firstLevelNodeId = 20002;
+    auto context = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
+    auto drawable = std::make_shared<TestImageCacheDrawableAdapter>(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_NE(drawable->GetRenderParams(), nullptr);
+    drawable->GetRenderParams()->SetFirstLevelNode(firstLevelNodeId);
+    EXPECT_EQ(drawable->GetRenderParams()->GetFirstLevelNodeId(), firstLevelNodeId);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
+
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+
+    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore + 1);
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
+    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
     imageCache.rsImageInfoMap.clear();
 }
 
