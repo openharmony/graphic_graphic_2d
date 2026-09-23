@@ -2976,8 +2976,13 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouchIsolated, F
 HWTEST_F(HgmFrameRateMgrTest, HandleScreenRenderResolutionChangedTest001, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
+    bool callbackCalled = false;
+    frameRateMgr.hgmConfigUpdateCallback_ =
+        [&callbackCalled](std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t) {
+            callbackCalled = true;
+        };
     frameRateMgr.HandleScreenRenderResolutionChanged();
-    EXPECT_NE(frameRateMgr.GetLastVoteInfo().max, 0);
+    EXPECT_TRUE(callbackCalled);
 }
 } // namespace Rosen
 } // namespace OHOS
