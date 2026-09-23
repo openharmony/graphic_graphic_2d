@@ -1601,7 +1601,6 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
     screen->isRogResolution_ = true;
     hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
     screen->isRogResolution_ = false;
-    SUCCEED();
 }
 
 /**
@@ -1618,7 +1617,6 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
     sptr<ScreenPropertyBase> dummyProperty = nullptr;
     hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
     hgmCore.SetScreenManager(origScreenManager);
-    SUCCEED();
 }
 
 /**
@@ -1635,6 +1633,5 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
     auto screen = screenManagerForProcess->GetScreen(1);
     ASSERT_NE(screen, nullptr);
     hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
-    SUCCEED();
 }
 } // namespace OHOS::Rosen
