@@ -1064,6 +1064,43 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
     imageCache.RemoveImageMemForWindow(surfaceNodeId);
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 }
+
+/**
+ * @tc.name: ReserveImageInfoInvalidNodeIdTest
+ * @tc.desc: Verify ReserveImageInfo does not add entry when nodeId is INVALID_NODEID
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+
+    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
+    imageCache.ReserveImageInfo(rsImage, INVALID_NODEID, extendImageObject->weak_from_this());
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
+
+    imageCache.rsImageInfoMap.clear();
+}
+
+/**
+ * @tc.name: RemoveImageMemForWindowInvalidNodeIdTest
+ * @tc.desc: Verify RemoveImageMemForWindow handles INVALID_NODEID safely
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowInvalidNodeIdTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
+
+    imageCache.RemoveImageMemForWindow(INVALID_NODEID);
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
+}
 #endif
 
 /**

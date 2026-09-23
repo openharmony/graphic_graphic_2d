@@ -390,6 +390,9 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
             return;
         }
         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
+        if (surfaceNodeId == INVALID_NODEID) {
+            return;
+        }
         std::weak_ptr<RSImage> rsImage_weak = rsImage;
         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
     }

@@ -113,6 +113,7 @@ private:
 #ifdef RS_ENABLE_VK
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+    bool imageInfoReserved_ = false;
 #endif
 #endif
     std::shared_ptr<Drawing::Image> image_;
