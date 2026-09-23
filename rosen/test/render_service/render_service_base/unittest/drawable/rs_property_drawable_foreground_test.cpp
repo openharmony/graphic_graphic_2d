@@ -1330,6 +1330,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableCalcDepthPlane
     auto depthNode = std::make_shared<RSDepthRenderNode>(1);
     auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
     const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    depthParams->depthImage_ = std::make_shared<Drawing::Image>();
     Vector4f result = drawable->CalcDepthPlane(*depthParams, para, dstPoints, drawRect);
 
     Vector4f expect(0.f, 0.f, 1.f, -1.f);
@@ -1360,6 +1361,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableCalcDepthPlane
     auto depthNode = std::make_shared<RSDepthRenderNode>(1);
     auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
     const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    depthParams->depthImage_ = std::make_shared<Drawing::Image>();
     Vector4f result = drawable->CalcDepthPlane(*depthParams, para, dstPoints, drawRect);
 
     Vector4f expect(0.f, 0.f, 1.f, -1.f);
