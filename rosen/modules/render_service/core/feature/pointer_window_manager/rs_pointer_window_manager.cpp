@@ -156,6 +156,9 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
             if (!surfaceHandler) {
                 continue;
             }
+            if (hardCursorNode->GetScreenId() != screenNodeId) {
+                continue;
+            }
             auto params = static_cast<RSSurfaceRenderParams *>(hardCursorNode->GetStagingRenderParams().get());
             if (!params) {
                 continue;

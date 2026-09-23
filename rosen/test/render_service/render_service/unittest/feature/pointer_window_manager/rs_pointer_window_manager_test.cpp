@@ -248,6 +248,37 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect009, TestSize
 }
 
 /**
+ * @tc.name: HardCursorCreateLayerForDirect010
+ * @tc.desc: Test HardCursorCreateLayerForDirect when hardCursorNode GetScreenId equals screenNodeId
+ * @tc.type: FUNC
+ * @tc.require: issue26363
+ */
+HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect010, TestSize.Level1)
+{
+    auto processor = std::make_shared<RSUniRenderProcessor>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, DEFAULT_SCREEN_ID, rsContext->weak_from_this());
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
+    surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(1);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    surfaceNode->isHardCursor_ = true;
+    surfaceNode->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(surfaceNode->GetScreenId(), DEFAULT_SCREEN_ID);
+
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.hardCursorNodeMap_.clear();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
+    ASSERT_NE(rsPointerWindowManager.GetHardCursorNode().size(), 0);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor, DEFAULT_SCREEN_ID);
+    EXPECT_EQ(rsPointerWindowManager.hardCursorCommitResultMap_.count(DEFAULT_SCREEN_ID), 1u);
+    EXPECT_EQ(rsPointerWindowManager.hardCursorCommitResultMap_[DEFAULT_SCREEN_ID], false);
+    rsPointerWindowManager.hardCursorCommitResultMap_.clear();
+}
+
+/**
  * @tc.name: SetIsPointerEnableHwcTest
  * @tc.desc: Test SetIsPointerEnableHwc and GetIsPointerEnableHwc
  * @tc.type: FUNC
