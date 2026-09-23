@@ -89,6 +89,10 @@ std::shared_ptr<RSTypeface> VariationFontCache::RegisterVariationTypeface(
     if (typeface == nullptr || !fontArgs.has_value()) {
         return typeface;
     }
+    
+    if (typeface->GetVariationDesignPosition(nullptr, 0) == 0) {
+        return typeface;
+    }
 
     uint32_t needNotifyCacheId = 0;
     std::shared_ptr<RSTypeface> variationTypeface = nullptr;
