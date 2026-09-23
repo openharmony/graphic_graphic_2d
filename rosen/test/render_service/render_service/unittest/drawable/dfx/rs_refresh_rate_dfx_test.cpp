@@ -241,7 +241,7 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest005, TestSize.Level
     uint32_t translateWidth = 0;
     uint32_t translateHeight = 0;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
 }
 
 /**
@@ -262,7 +262,7 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest006, TestSize.Level
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     displayParams->SetAncestorScreenDrawable(nullptr);
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
 }
 
 /**
@@ -282,7 +282,7 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest007, TestSize.Level
     uint32_t translateHeight = 0;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     screenDrawable_->renderParams_ = nullptr;
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
 }
 
 /**

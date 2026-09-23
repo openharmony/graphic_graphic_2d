@@ -511,7 +511,7 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
 int32_t HgmCore::UpdateScreenRenderResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto screen = GetScreen(id);
-    if (!screen) {
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         HGM_LOGW("failed to find screen: " PUBU64, id);
         return HGM_NO_SCREEN;
     }

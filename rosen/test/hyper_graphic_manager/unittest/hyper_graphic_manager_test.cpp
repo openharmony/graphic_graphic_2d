@@ -1158,14 +1158,19 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Functi
 
 /**
  * @tc.name: HgmCoreUpdateScreenRenderResolutionTest001
- * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with non-existent screen
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with non-existent screen and non-self-owned screen
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Function | SmallTest | Level0)
 {
     auto& instance = HgmCore::Instance();
-    EXPECT_EQ(instance.UpdateScreenRenderResolution(9999, 720, 1080), HGM_ERROR);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(9999, 720, 1080), HGM_NO_SCREEN);
+    ScreenId screenId = 20;
+    bool isSelfOwnedScreen = false;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 720, 1080), HGM_NO_SCREEN);
+    instance.RemoveScreen(screenId);
 }
 
 /**
@@ -1178,7 +1183,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Fu
 {
     auto& instance = HgmCore::Instance();
     ScreenId screenId = 20;
-    bool isSelfOwnedScreen = false;
+    bool isSelfOwnedScreen = true;
     instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
     sptr<HgmScreen> screen = instance.GetScreen(screenId);
     ASSERT_NE(screen, nullptr);
@@ -1198,7 +1203,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Fu
 {
     auto& instance = HgmCore::Instance();
     ScreenId screenId = 21;
-    bool isSelfOwnedScreen = false;
+    bool isSelfOwnedScreen = true;
     instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
     EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 1440, 2160), EXEC_SUCCESS);
     auto origFrameRateMgr = instance.hgmFrameRateMgr_;
