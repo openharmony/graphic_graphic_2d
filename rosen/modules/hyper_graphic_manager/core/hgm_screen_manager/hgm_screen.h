@@ -120,6 +120,8 @@ public:
     int32_t SetRefreshRateRange(uint32_t minRate, uint32_t maxRate);
     int32_t AddScreenModeInfo(int32_t width, int32_t height, uint32_t rate, int32_t modeId);
 
+    bool UpdateRenderResolution(uint32_t width, uint32_t height);
+
 private:
     class ScreenProfile {
     public:
@@ -170,6 +172,8 @@ private:
     int32_t height_ = 0;
     int32_t phyWidth_ = 0;
     int32_t phyHeight_ = 0;
+    uint32_t renderWidth_ = 0;
+    uint32_t renderHeight_ = 0;
     float ppi_ = 0;
     float xDpi_ = 0;
     float yDpi_ = 0;

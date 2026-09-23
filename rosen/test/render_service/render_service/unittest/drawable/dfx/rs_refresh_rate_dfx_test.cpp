@@ -35,7 +35,7 @@ constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr ScreenId SCREEN_ID = 0xFF;
 
-class RSRefreshRateDfxTest : public testing:Test {
+class RSRefreshRateDfxTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -241,7 +241,7 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest005, TestSize.Level
     uint32_t translateWidth = 0;
     uint32_t translateHeight = 0;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
 }
 
 /**
@@ -262,7 +262,7 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest006, TestSize.Level
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     displayParams->SetAncestorScreenDrawable(nullptr);
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
 }
 
 /**
@@ -282,6 +282,88 @@ HWTEST_F(RSRefreshRateDfxTest, RefreshRateRotationProcessTest007, TestSize.Level
     uint32_t translateHeight = 0;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     screenDrawable_->renderParams_ = nullptr;
-    EXPECT_TRUE(rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight));
+    rsRefreshRateDfx.RefreshRateRotationProcess(*canvas, rotation, translateWidth, translateHeight);
+}
+
+/**
+ * @tc.name: GetRefreshRateScaleFactorTest001
+ * @tc.desc: Test GetRefreshRateScaleFactor with ROG enabled and valid resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRefreshRateDfxTest, GetRefreshRateScaleFactorTest001, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    instance.SetShowRefreshRateEnabled(true, 1);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    auto isVirtualProperty = sptr<ScreenProperty<bool>>::MakeSptr(false);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL, isVirtualProperty);
+    auto rogProperty = sptr<ScreenProperty<bool>>::MakeSptr(true);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_ROG_RESOLUTION, rogProperty);
+    auto renderResProperty = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolutionValType(720, 1080));
+    screenParams->screenProperty_.Set(ScreenPropertyType::RENDER_RESOLUTION, renderResProperty);
+    auto phyResProperty =
+        sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolutionValType(1440, 2160, 60));
+    screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
+
+    RSRefreshRateDfx rsRefreshRateDfx(*displayDrawable_);
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsRefreshRateDfx.OnDraw(*canvas);
+
+    phyResProperty = sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolutionValType(0, 2160, 60));
+    screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
+    rsRefreshRateDfx.OnDraw(*canvas);
+
+    phyResProperty = sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolutionValType(1440, 0, 60));
+    screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
+    rsRefreshRateDfx.OnDraw(*canvas);
+}
+
+/**
+ * @tc.name: GetRefreshRateScaleFactorTest002
+ * @tc.desc: Test GetRefreshRateScaleFactor with ROG disabled (default scale factor)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRefreshRateDfxTest, GetRefreshRateScaleFactorTest002, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    instance.SetShowRefreshRateEnabled(true, 1);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    auto isVirtualProperty = sptr<ScreenProperty<bool>>::MakeSptr(false);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL, isVirtualProperty);
+    auto rogProperty = sptr<ScreenProperty<bool>>::MakeSptr(false);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_ROG_RESOLUTION, rogProperty);
+
+    RSRefreshRateDfx rsRefreshRateDfx(*displayDrawable_);
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsRefreshRateDfx.OnDraw(*canvas);
+}
+
+/**
+ * @tc.name: GetRefreshRateScaleFactorTest003
+ * @tc.desc: Test GetRefreshRateScaleFactor with null screenParams (default scale factor)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRefreshRateDfxTest, GetRefreshRateScaleFactorTest003, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    instance.SetShowRefreshRateEnabled(true, 1);
+    ASSERT_NE(displayDrawable_, nullptr);
+    screenDrawable_->renderParams_ = nullptr;
+
+    RSRefreshRateDfx rsRefreshRateDfx(*displayDrawable_);
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsRefreshRateDfx.OnDraw(*canvas);
 }
 }

@@ -98,6 +98,7 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     ppi_ = configData->GetPpi();
     xDpi_ = configData->GetXDpi();
     yDpi_ = configData->GetYDpi();
+    ROSEN_LOGD("%{public}s ppi %{public}f xDpi %{public}f yDpi %{public}f", __func__, ppi_, xDpi_, yDpi_);
     for (const auto& item : data) {
         if (item.animType.empty() || item.animName.empty()) {
             continue;

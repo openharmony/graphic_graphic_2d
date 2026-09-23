@@ -1720,6 +1720,12 @@ void HgmFrameRateManager::SetHgmConfigUpdateCallback(
     SyncHgmConfigUpdateCallback();
 }
 
+void HgmFrameRateManager::HandleScreenRenderResolutionChanged()
+{
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback(multiAppStrategy_.GetSceneBoardPid());
+    SyncHgmConfigUpdateCallback();
+}
+
 void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
 {
     auto data = std::make_shared<RPHgmConfigData>();

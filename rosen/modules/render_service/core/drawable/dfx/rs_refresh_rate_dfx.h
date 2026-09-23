@@ -33,6 +33,7 @@ public:
     void OnDraw(RSPaintFilterCanvas& canvas);
 
 private:
+    void GetRefreshRateScaleFactor(RSScreenRenderParams* screenParams, float& scaleX, float& scaleY) const;
     bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
         ScreenRotation rotation, float translateWidth, float translateHeight);
     

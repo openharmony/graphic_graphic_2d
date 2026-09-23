@@ -119,6 +119,7 @@ public:
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen,
         const std::vector<RSScreenModeInfo>& supportedModes = {});
     int32_t RemoveScreen(ScreenId id);
+    int32_t UpdateScreenRenderResolution(ScreenId id, uint32_t width, uint32_t height);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     sptr<HgmScreen> GetActiveScreen() const;

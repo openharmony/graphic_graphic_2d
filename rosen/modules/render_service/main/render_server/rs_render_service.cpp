@@ -483,6 +483,10 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
     renderService_.vsyncManager_->OnScreenPropertyChanged(id, type, property,
         renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
+
+    if (const auto hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->OnScreenPropertyChanged(id, type, property);
+    }
 }
 
 void RSRenderService::ScreenManagerListener::OnScreenRefresh(ScreenId id)

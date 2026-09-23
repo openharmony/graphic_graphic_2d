@@ -38,6 +38,12 @@ HgmScreen::HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize)
     if (screenSize.phyHeight != 0) {
         yDpi_ = screenSize.height / (screenSize.phyHeight / INCH_2_MM);
     }
+
+    renderWidth_ = screenSize.width;
+    renderHeight_ = screenSize.height;
+    HGM_LOGI("id: %{public}" PRIu64 " ppi: %{public}f xDpi: %{public}f yDpi: %{public}f, "
+        "renderW: %{public}u renderH: %{public}u phyW: %{public}d, phyH: %{public}d",
+        id_, ppi_, xDpi_, yDpi_, renderWidth_, renderHeight_, phyWidth_, phyHeight_);
 }
 
 HgmScreen::~HgmScreen() {}
@@ -182,5 +188,36 @@ int32_t HgmScreen::GetModeIdViaResolutionAndRate(int32_t width, int32_t height, 
     HGM_LOGW("HgmScreen NO mode is found for w : %{public}d, h : %{public}d, rate : %{public}u",
         width, height, rate);
     return HGM_ERROR;
+}
+
+bool HgmScreen::UpdateRenderResolution(uint32_t width, uint32_t height)
+{
+    if (width == 0 || height == 0 || phyWidth_ == 0 || phyHeight_ == 0) {
+        HGM_LOGW("fail, id: %{public}" PRIu64 " renderW: %{public}u renderH: %{public}u", id_, width, height);
+        return false;
+    }
+    if (width == renderWidth_ && height == renderHeight_) {
+        HGM_LOGI("no change, id: %{public}" PRIu64, id_);
+        return false;
+    }
+    renderWidth_ = width;
+    renderHeight_ = height;
+
+    auto screenLength = sqrt(pow(renderWidth_, 2) + pow(renderHeight_, 2));
+    auto phyScreenLength = sqrt(pow(phyWidth_, 2) + pow(phyHeight_, 2));
+    if (phyScreenLength != 0) {
+        ppi_ = screenLength / (phyScreenLength / INCH_2_MM);
+    }
+    if (phyWidth_ != 0) {
+        xDpi_ = renderWidth_ / (phyWidth_ / INCH_2_MM);
+    }
+    if (phyHeight_ != 0) {
+        yDpi_ = renderHeight_ / (phyHeight_ / INCH_2_MM);
+    }
+
+    HGM_LOGI("id: %{public}" PRIu64 " ppi: %{public}f xDpi: %{public}f yDpi: %{public}f, "
+        "renderW: %{public}u renderH: %{public}u phyW: %{public}d, phyH: %{public}d",
+        id_, ppi_, xDpi_, yDpi_, renderWidth_, renderHeight_, phyWidth_, phyHeight_);
+    return true;
 }
 } // namespace OHOS::Rosen
