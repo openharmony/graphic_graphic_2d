@@ -322,6 +322,9 @@ HWTEST_F(RSRefreshRateDfxTest, GetRefreshRateScaleFactorTest001, TestSize.Level1
     screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
     rsRefreshRateDfx.OnDraw(*canvas);
 }
+
+/**
+ * @tc.name: GetRefreshRateScaleFactorTest002
  * @tc.desc: Test GetRefreshRateScaleFactor with ROG disabled (default scale factor)
  * @tc.type: FUNC
  * @tc.require:
