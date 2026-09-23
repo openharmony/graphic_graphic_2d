@@ -2563,6 +2563,9 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
+    for (const auto& offTreeHwcRegion : node.TakeOffTreeHwcRegions()) {
+        curScreenDirtyManager_->MergeHwcDirtyRect(offTreeHwcRegion.second, offTreeHwcRegion.first);
+    }
     auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
     auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {

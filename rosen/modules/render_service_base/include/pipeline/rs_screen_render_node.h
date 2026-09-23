@@ -523,6 +523,19 @@ public:
         childHwcNodes_.clear();
     }
 
+    void AddOffTreeHwcRegion(RSSurfaceNodeType nodeType, const RectI& rect)
+    {
+        if (rect.IsEmpty()) {
+            return;
+        }
+        offTreeHwcRegions_.emplace_back(nodeType, rect);
+    }
+
+    std::vector<std::pair<RSSurfaceNodeType, RectI>> TakeOffTreeHwcRegions()
+    {
+        return std::exchange(offTreeHwcRegions_, {});
+    }
+
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
     {
         targetSurfaceRenderNodeId_ = nodeId;
@@ -639,6 +652,7 @@ private:
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
+    std::vector<std::pair<RSSurfaceNodeType, RectI>> offTreeHwcRegions_;
     std::vector<std::string> windowsName_;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;

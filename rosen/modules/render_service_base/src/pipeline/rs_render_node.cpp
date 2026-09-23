@@ -1157,10 +1157,11 @@ void RSRenderNode::ResetParent()
 {
     if (auto parentNode = parent_.lock()) {
         parentNode->hasRemovedChild_ = true;
-        auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-        if (geoPtr != nullptr) {
-            parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
-                geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
+        if (!RecordHardCursorOffTreeRegion()) {
+            if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+                parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
+                    geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
+            }
         }
         ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE) ||
             GetNeedUseCmdlistDrawRegion())
@@ -1172,6 +1173,26 @@ void RSRenderNode::ResetParent()
     ShowSetIsOnetheTreeCntIfNeed(__func__, GetId(), GetNodeName());
     parent_.reset();
     OnResetParent();
+}
+
+bool RSRenderNode::RecordHardCursorOffTreeRegion()
+{
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr || !surfaceNode->GetHardCursorStatus()) {
+        return false;
+    }
+    auto ancestor = surfaceNode->GetAncestorScreenNode().lock();
+    if (ancestor == nullptr) {
+        return false;
+    }
+    auto screenNode = ancestor->ReinterpretCastTo<RSScreenRenderNode>();
+    if (screenNode == nullptr) {
+        return false;
+    }
+    // Record only HWC dirty region for hard cursor off tree, so that removing the hard cursor does
+    // not join its rect into the parent's removedChildrenRect_ and trigger a global dirty region.
+    screenNode->AddOffTreeHwcRegion(surfaceNode->GetSurfaceNodeType(), surfaceNode->GetOldDirty());
+    return true;
 }
 
 void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
