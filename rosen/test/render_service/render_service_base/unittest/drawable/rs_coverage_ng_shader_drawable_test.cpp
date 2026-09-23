@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "effect/rs_render_shader_base.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "ge_visual_effect_container.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "effect/rs_render_shape_base.h"
@@ -1526,5 +1527,27 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateSDFShapeTest002, TestSi
 
     EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
     EXPECT_EQ(drawable->stagingSDFShaderEffect_, nullptr);
+}
+
+/**
+ * @tc.name: ShaderBranchEDRTest001
+ * @tc.desc: Coverage shader branch should report EDR when the shader chain carries an HDR effect.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, ShaderBranchEDRTest001, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto shader = std::make_shared<RSNGRenderRoundedRectFlowlight>();
+    ASSERT_NE(shader, nullptr);
+    Vector4f color{0.5f, 1.5f, 0.5f, 1.0f};
+    shader->Setter<RoundedRectFlowlightColorRenderTag>(color);
+    EXPECT_TRUE(RSEffectLuminanceManager::GetInstance().GetEnableHdrEffect(shader));
+    renderNodeTest.renderProperties_.SetCoverageNGShader(shader);
+
+    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
+        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
+    EXPECT_TRUE(drawable->GetEnableEDR());
 }
 } // namespace OHOS::Rosen

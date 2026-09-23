@@ -218,55 +218,6 @@ bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawable::Ptr RSForegroundShaderDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSForegroundShaderDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-void RSForegroundShaderDrawable::PostUpdate(const RSRenderNode& node)
-{
-    enableEDREffect_ = RSNGRenderShaderHelper::CheckEnableEDR(stagingShader_);
-    if (enableEDREffect_) {
-        screenNodeId_ = node.GetScreenNodeId();
-    }
-}
-
-bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    const auto& shader = properties.GetForegroundShader();
-    if (!shader) {
-        return false;
-    }
-    needSync_ = true;
-    stagingShader_ = shader;
-    PostUpdate(node);
-    return true;
-}
-
-void RSForegroundShaderDrawable::OnSync()
-{
-    if (needSync_ && stagingShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        needSync_ = false;
-    }
-}
-
-void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
-        return;
-    }
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
-}
-
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSCompositingFilterDrawable>(); ret->OnUpdate(node)) {

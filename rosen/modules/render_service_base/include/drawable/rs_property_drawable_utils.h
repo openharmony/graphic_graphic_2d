@@ -148,9 +148,6 @@ public:
     static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
     static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
-    static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
-        const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
-        const std::string& shapeTag);
 
     static std::shared_ptr<Drawing::Image> DrawDepthOcclusion(Drawing::Canvas* canvas,
         const std::shared_ptr<Drawing::Image>& snapshot, const std::shared_ptr<Drawing::Image>& depthMap,
@@ -167,10 +164,7 @@ public:
         const Drawing::Rect& rect, RoundingStrategyType roundingStrategy);
     static void ApplySDFShapeToFilter(const RSProperties& properties,
         const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId);
-    static void ApplySDFShapeToEffect(const RSProperties& properties,
-        const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId);
     static std::shared_ptr<RSNGRenderShapeBase> GetResolvedSDFShape(const RSProperties& properties);
-    static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
     static void ApplySDFShapeToMagnifier(const RSProperties& properties,
         const std::shared_ptr<RSNGRenderFilterBase>& shader, NodeId nodeId);
 

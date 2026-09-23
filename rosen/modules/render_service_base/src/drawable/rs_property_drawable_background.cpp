@@ -21,6 +21,7 @@
 #ifdef ROSEN_OHOS
 #include "common/rs_common_tools.h"
 #endif
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -348,66 +349,6 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
     return true;
-}
-
-RSDrawable::Ptr RSBackgroundNGShaderDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSBackgroundNGShaderDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    const auto& shader = properties.GetBackgroundNGShader();
-    if (!shader) {
-        return false;
-    }
-    needSync_ = true;
-    stagingShader_ = shader;
-    stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;
-    return true;
-}
-
-void RSBackgroundNGShaderDrawable::OnSync()
-{
-    if (needSync_ && stagingShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        needSync_ = false;
-    }
-    cornerRadius_ = stagingCornerRadius_;
-}
-
-void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect *rect) const
-{
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
-        return;
-    }
-    auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
-    if (effectData != nullptr) {
-        RSTagTracker tag(canvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FROSTEDGLASS_EFFECT);
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-            RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(),
-                visualEffectContainer_, Drawing::GE_SHADER_FROSTED_GLASS_EFFECT,
-                Drawing::GE_SHADER_FROSTED_GLASS_EFFECT_SHAPE);
-            return;
-        }
-        visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
-            effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
-        visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
-    } else {
-        visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
-    }
-    visualEffectContainer_->UpdateCornerRadius(cornerRadius_);
-    visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
 }
 
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
@@ -1048,7 +989,7 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         canvas->ClipPath(*clipPath_, Drawing::ClipOp::INTERSECT, true);
     }
     if (renderIntersectWithDRM_) {
-        RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
+        RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
             filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
         return;
     }

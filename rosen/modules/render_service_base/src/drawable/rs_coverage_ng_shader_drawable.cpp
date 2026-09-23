@@ -478,41 +478,37 @@ RSDrawable::Ptr RSCoverageNGShaderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
-void RSCoverageNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-#ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
-#endif
-    if (visualEffectContainer_ != nullptr && rect != nullptr) {
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-
-        // Pass the original bounds of the component to the GEVisualEffectContainer
-        visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect,
-            rect->GetWidth(), rect->GetHeight());
-        geRender->DrawShaderEffect(*canvas, *(visualEffectContainer_),
-            drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
-    } else {
-        DrawLight(canvas);
-    }
-}
-
 bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    const auto& illuminatedPtr = properties.GetIlluminated();
-    const auto& coverageShader = properties.GetCoverageNGShader();
-    if (coverageShader) {
-        needSync_ = true;
-        stagingCoverageShader_ = coverageShader;
-        RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, coverageShader, node.GetId());
-
-        // Need to expand drawing rect to draw effects outside of the component
-        auto bounds = node.GetRenderProperties().GetBoundsRect();
-        stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(coverageShader, bounds);
-        return true;
+    if (properties.GetCoverageNGShader()) {
+        return RSShaderDrawable::OnUpdate(node);
     }
+    return StageLightProperties(node, properties);
+}
 
+void RSCoverageNGShaderDrawable::OnSync()
+{
+    RSShaderDrawable::OnSync();
+    SyncLightProperties();
+}
+
+void RSCoverageNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+{
+    if (visualEffectContainer_ != nullptr && rect != nullptr) {
+        RSShaderDrawable::OnDraw(canvas, rect);
+        return;
+    }
+    DrawLight(canvas);
+}
+
+bool RSCoverageNGShaderDrawable::StageLightProperties(const RSRenderNode& node, const RSProperties& properties)
+{
+    // The light mode means the coverage shader has been removed: drop the stale staged shader,
+    // otherwise the base OnSync would rebuild the container from it and swallow the light
+    // request (the base resets needSync_ after serving).
+    stagingShader_ = nullptr;
+    const auto& illuminatedPtr = properties.GetIlluminated();
     if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
@@ -549,13 +545,19 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSCoverageNGShaderDrawable::OnSync()
+std::shared_ptr<RSNGRenderShaderBase> RSCoverageNGShaderDrawable::GetShader(const RSProperties& properties) const
+{
+    return properties.GetCoverageNGShader();
+}
+
+void RSCoverageNGShaderDrawable::SyncLightProperties()
 {
     if (!needSync_) {
         lightSourcesAndPosVec_.clear();
         return;
     }
     lightSourcesAndPosVec_ = std::move(stagingLightSourcesAndPosVec_);
+    visualEffectContainer_ = nullptr;
     if (lightSourcesAndPosVec_.size() > MAX_LIGHT_SOURCES) {
         std::sort(lightSourcesAndPosVec_.begin(), lightSourcesAndPosVec_.end(), [](const auto& x, const auto& y) {
             return x.second.x_ * x.second.x_ + x.second.y_ * x.second.y_ <
@@ -578,16 +580,14 @@ void RSCoverageNGShaderDrawable::OnSync()
     if (enableEDREffect_) {
         displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
     }
-
-    // coverage Shader
-    if (needSync_ && stagingCoverageShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingCoverageShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        drawRect_ = stagingDrawRect_;
-    }
     needSync_ = false;
+}
+
+void RSCoverageNGShaderDrawable::DfxOnDraw() const
+{
+    RS_OPTIONAL_TRACE_FMT("RSCoverageNGShaderDrawable, nodeId:%{public}" PRIu64
+                          ", drawRect:%{public}s, cornerRadius:%{public}f",
+        nodeId_, drawRect_.ToString().c_str(), cornerRadius_);
 }
 
 float RSCoverageNGShaderDrawable::GetBrightnessMapping(float headroom, float input)
@@ -859,6 +859,11 @@ void RSCoverageNGShaderDrawable::ProcessSingleLightSourcesData(std::array<float,
 
 void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 {
+#ifdef RS_ENABLE_GPU
+    // Tag GPU resources generated in the point light path, null GPU context is safe here.
+    RSTagTracker tagTracker(
+        canvas ? canvas->GetGPUContext() : nullptr, RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
+#endif
     if (lightSourcesAndPosVec_.empty()) {
         return;
     }
