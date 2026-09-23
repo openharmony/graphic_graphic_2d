@@ -1109,7 +1109,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRateNotEnabled, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Function | SmallTest | Level1)
 {
     ScreenSize screenSize = { 720, 1080, 685, 1218 };
     sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
@@ -1129,7 +1129,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest002, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest002, Function | SmallTest | Level1)
 {
     ScreenSize screenSize = { 720, 1080, 685, 1218 };
     sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
@@ -1142,7 +1142,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest002, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Function | SmallTest | Level1)
 {
     ScreenSize screenSize = { 720, 1080, 685, 1218 };
     sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
@@ -1162,7 +1162,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Function | SmallTest | Level1)
 {
     auto& instance = HgmCore::Instance();
     EXPECT_EQ(instance.UpdateScreenRenderResolution(9999, 720, 1080), HGM_NO_SCREEN);
@@ -1179,7 +1179,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Fu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Function | SmallTest | Level1)
 {
     auto& instance = HgmCore::Instance();
     ScreenId screenId = 20;
@@ -1200,7 +1200,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Fu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Function | SmallTest | Level0)
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Function | SmallTest | Level1)
 {
     auto& instance = HgmCore::Instance();
     ScreenId screenId = 21;
