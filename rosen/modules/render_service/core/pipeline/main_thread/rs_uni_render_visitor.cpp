@@ -95,7 +95,6 @@
 
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_offline_processor.h"
