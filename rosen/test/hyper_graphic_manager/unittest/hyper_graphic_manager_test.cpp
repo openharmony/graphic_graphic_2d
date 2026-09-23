@@ -1187,6 +1187,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Fu
     instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
     sptr<HgmScreen> screen = instance.GetScreen(screenId);
     ASSERT_NE(screen, nullptr);
+    screen->isSelfOwnedScreenFlag_.store(true);
     uint32_t curWidth = static_cast<uint32_t>(screenSize.width);
     uint32_t curHeight = static_cast<uint32_t>(screenSize.height);
     EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, curWidth, curHeight), HGM_ERROR);
@@ -1205,6 +1206,9 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Fu
     ScreenId screenId = 21;
     bool isSelfOwnedScreen = true;
     instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    sptr<HgmScreen> screen = instance.GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+    screen->isSelfOwnedScreenFlag_.store(true);
     EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 1440, 2160), EXEC_SUCCESS);
     auto origFrameRateMgr = instance.hgmFrameRateMgr_;
     instance.hgmFrameRateMgr_ = nullptr;
