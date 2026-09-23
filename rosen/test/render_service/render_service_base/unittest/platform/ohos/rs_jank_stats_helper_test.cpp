@@ -45,7 +45,7 @@ HWTEST_F(RSJankStatsHelperTest, JankStatsStartTest, TestSize.Level1)
 {
     auto& rsJankStats = RSJankStatsRenderFrameHelper::GetInstance();
     rsJankStats.JankStatsStart();
-    EXPECT_FALSE(rsJankStats.rtSkipJankAnimatorFrame_.load());
+    EXPECT_TRUE(rsJankStats.rtSkipJankAnimatorFrameMap_.empty());
 }
 
 /**
@@ -99,10 +99,80 @@ HWTEST_F(RSJankStatsHelperTest, JankStatsEndTest, TestSize.Level1)
 HWTEST_F(RSJankStatsHelperTest, SetSkipJankAnimatorFrameTest, TestSize.Level1)
 {
     auto& rsJankStats = RSJankStatsRenderFrameHelper::GetInstance();
-    rsJankStats.SetSkipJankAnimatorFrame(false);
-    EXPECT_FALSE(rsJankStats.rtSkipJankAnimatorFrame_.load());
-    rsJankStats.SetSkipJankAnimatorFrame(true);
-    EXPECT_TRUE(rsJankStats.rtSkipJankAnimatorFrame_.load());
+    rsJankStats.JankStatsStart();
+    rsJankStats.SetSkipJankAnimatorFrame(INVALID_SCREEN_ID, false);
+    EXPECT_EQ(rsJankStats.rtSkipJankAnimatorFrameMap_.count(INVALID_SCREEN_ID), 1);
+    EXPECT_FALSE(rsJankStats.rtSkipJankAnimatorFrameMap_.at(INVALID_SCREEN_ID));
+    rsJankStats.SetSkipJankAnimatorFrame(INVALID_SCREEN_ID, true);
+    EXPECT_TRUE(rsJankStats.rtSkipJankAnimatorFrameMap_.at(INVALID_SCREEN_ID));
+}
+
+/**
+ * @tc.name: JankStatsEndAllScreensSkipTest
+ * @tc.desc: test JankStatsEnd when all physical screens skip jank animator frame
+ * @tc.type: FUNC
+ * @tc.require: issue#IC58TN
+ */
+HWTEST_F(RSJankStatsHelperTest, JankStatsEndAllScreensSkipTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStatsRenderFrameHelper::GetInstance();
+    rsJankStats.JankStatsStart();
+    constexpr ScreenId screenId1 = 0;
+    constexpr ScreenId screenId2 = 1;
+    rsJankStats.SetSkipJankAnimatorFrame(screenId1, true);
+    rsJankStats.SetSkipJankAnimatorFrame(screenId2, true);
+    EXPECT_EQ(rsJankStats.rtSkipJankAnimatorFrameMap_.size(), 2);
+    EXPECT_TRUE(rsJankStats.IsAllScreensSkipJankAnimatorFrame());
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsUniRenderAndOnVsync(true);
+    int accumulatedBufferCount = 0;
+    rsJankStats.JankStatsAfterSync(params, accumulatedBufferCount);
+    rsJankStats.JankStatsEnd(STANDARD_REFRESH_RATE);
+    EXPECT_FALSE(rsJankStats.rtDiscardJankFrames_.load());
+}
+
+/**
+ * @tc.name: JankStatsEndPartialScreensSkipTest
+ * @tc.desc: test JankStatsEnd when not all physical screens skip jank animator frame
+ * @tc.type: FUNC
+ * @tc.require: issue#IC58TN
+ */
+HWTEST_F(RSJankStatsHelperTest, JankStatsEndPartialScreensSkipTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStatsRenderFrameHelper::GetInstance();
+    rsJankStats.JankStatsStart();
+    constexpr ScreenId screenId1 = 0;
+    constexpr ScreenId screenId2 = 1;
+    rsJankStats.SetSkipJankAnimatorFrame(screenId1, true);
+    rsJankStats.SetSkipJankAnimatorFrame(screenId2, false);
+    EXPECT_EQ(rsJankStats.rtSkipJankAnimatorFrameMap_.size(), 2);
+    EXPECT_FALSE(rsJankStats.IsAllScreensSkipJankAnimatorFrame());
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsUniRenderAndOnVsync(true);
+    int accumulatedBufferCount = 0;
+    rsJankStats.JankStatsAfterSync(params, accumulatedBufferCount);
+    rsJankStats.JankStatsEnd(STANDARD_REFRESH_RATE);
+    EXPECT_FALSE(rsJankStats.rtDiscardJankFrames_.load());
+}
+
+/**
+ * @tc.name: JankStatsEndEmptyMapSkipTest
+ * @tc.desc: test JankStatsEnd when skip map is empty
+ * @tc.type: FUNC
+ * @tc.require: issue#IC58TN
+ */
+HWTEST_F(RSJankStatsHelperTest, JankStatsEndEmptyMapSkipTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStatsRenderFrameHelper::GetInstance();
+    rsJankStats.JankStatsStart();
+    EXPECT_TRUE(rsJankStats.rtSkipJankAnimatorFrameMap_.empty());
+    EXPECT_FALSE(rsJankStats.IsAllScreensSkipJankAnimatorFrame());
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsUniRenderAndOnVsync(true);
+    int accumulatedBufferCount = 0;
+    rsJankStats.JankStatsAfterSync(params, accumulatedBufferCount);
+    rsJankStats.JankStatsEnd(STANDARD_REFRESH_RATE);
+    EXPECT_FALSE(rsJankStats.rtDiscardJankFrames_.load());
 }
 
 /**

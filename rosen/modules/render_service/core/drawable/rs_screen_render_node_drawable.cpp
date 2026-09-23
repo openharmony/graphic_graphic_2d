@@ -358,7 +358,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     RS_TRACE_NAME("ScreenNode skip");
     GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX(RSBaseRenderUtil::GetLastSendingPid());
 #ifdef OHOS_PLATFORM
-    RSJankStatsRenderFrameHelper::GetInstance().SetSkipJankAnimatorFrame(true);
+    RSJankStatsRenderFrameHelper::GetInstance().SetSkipJankAnimatorFrame(params.GetScreenId(), true);
 #endif
     bool hasHardCursor = RSPointerWindowManager::Instance().GetHardCursorDrawable(GetId()) != nullptr;
     bool hardCursorNeedCommit = RSPointerWindowManager::Instance().GetHardCursorNeedCommit(GetId());
@@ -828,6 +828,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     params->GetLayerSkipContext().Reset();
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
+#ifdef OHOS_PLATFORM
+    RSJankStatsRenderFrameHelper::GetInstance().SetSkipJankAnimatorFrame(params->GetScreenId(), false);
+#endif
 
     const auto& screenProperty = params->GetScreenProperty();
     auto screenInfo = screenProperty.GetScreenInfo();
