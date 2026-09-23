@@ -653,20 +653,14 @@ static void ParseDoubleArrayFromJsProperty(napi_env env, napi_value argValue, co
 void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
-    SetBoolValueFromJSWithExplicit(env, argValue, "trailingSpaceOptimized",
-        pographyStyle.isTrailingSpaceOptimized, pographyStyle.isTrailingSpaceOptimizedExplicit);
-    SetBoolValueFromJSWithExplicit(env, argValue, "autoSpace",
-        pographyStyle.enableAutoSpace, pographyStyle.enableAutoSpaceExplicit);
-    SetBoolValueFromJSWithExplicit(env, argValue, "compressHeadPunctuation",
-        pographyStyle.compressHeadPunctuation, pographyStyle.compressHeadPunctuationExplicit);
+    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
+    SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
+    SetBoolValueFromJS(env, argValue, "compressHeadPunctuation", pographyStyle.compressHeadPunctuation);
     SetEnumValueFromJS(env, argValue, "verticalAlign", pographyStyle.verticalAlignment);
     SetDoubleValueFromJS(env, argValue, "lineSpacing", pographyStyle.lineSpacing);
-    SetBoolValueFromJSWithExplicit(env, argValue, "includeFontPadding",
-        pographyStyle.includeFontPadding, pographyStyle.includeFontPaddingExplicit);
-    SetBoolValueFromJSWithExplicit(env, argValue, "fallbackLineSpacing",
-        pographyStyle.fallbackLineSpacing, pographyStyle.fallbackLineSpacingExplicit);
-    SetBoolValueFromJSWithExplicit(env, argValue, "orphanCharOptimization",
-        pographyStyle.orphanCharOptimization, pographyStyle.orphanCharOptimizationExplicit);
+    SetBoolValueFromJS(env, argValue, "includeFontPadding", pographyStyle.includeFontPadding);
+    SetBoolValueFromJS(env, argValue, "fallbackLineSpacing", pographyStyle.fallbackLineSpacing);
+    SetBoolValueFromJS(env, argValue, "orphanCharOptimization", pographyStyle.orphanCharOptimization);
     SetDoubleValueFromJS(env, argValue, "firstLineHeadIndent", pographyStyle.firstLineIndent);
     ParseDoubleArrayFromJsProperty(env, argValue, "tailIndents", pographyStyle.tailIndents);
     ParseDoubleArrayFromJsProperty(env, argValue, "headIndents", pographyStyle.headIndents);

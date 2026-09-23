@@ -68,7 +68,6 @@ private:
 #ifdef ENABLE_OHOS_ENHANCE
     bool IsMetaDataExistInModule(const std::string& metaData, const AppExecFwk::BundleInfo& bundleInfo);
     bool GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo);
-    void InitOptimizationSwitches(const AppExecFwk::BundleInfo& bundleInfo);
 #endif
 };
 } // namespace SPText

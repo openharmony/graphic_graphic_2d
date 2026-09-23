@@ -424,21 +424,6 @@ inline void SetBoolValueFromJS(napi_env env, napi_value argValue, const std::str
     ConvertFromJsValue(env, tempValue, cValue);
 }
 
-inline void SetBoolValueFromJSWithExplicit(napi_env env, napi_value argValue,
-    const std::string str, bool& cValue, bool& cExplicit)
-{
-    bool hasProperty = false;
-    if (napi_has_named_property(env, argValue, str.c_str(), &hasProperty) != napi_ok || !hasProperty) {
-        return;
-    }
-    napi_value tempValue = nullptr;
-    if (napi_get_named_property(env, argValue, str.c_str(), &tempValue) != napi_ok) {
-        return;
-    }
-    ConvertFromJsValue(env, tempValue, cValue);
-    cExplicit = true;
-}
-
 inline napi_value GetPositionWithAffinityAndConvertToJsValue(napi_env env,
     IndexAndAffinity* positionWithAffinity)
 {

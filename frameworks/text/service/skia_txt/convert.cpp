@@ -121,12 +121,6 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.includeFontPadding = style.includeFontPadding;
     paragraphStyle.fallbackLineSpacing = style.fallbackLineSpacing;
     paragraphStyle.orphanCharOptimization = style.orphanCharOptimization;
-    paragraphStyle.isTrailingSpaceOptimizedExplicit = style.isTrailingSpaceOptimizedExplicit;
-    paragraphStyle.enableAutoSpaceExplicit = style.enableAutoSpaceExplicit;
-    paragraphStyle.compressHeadPunctuationExplicit = style.compressHeadPunctuationExplicit;
-    paragraphStyle.includeFontPaddingExplicit = style.includeFontPaddingExplicit;
-    paragraphStyle.fallbackLineSpacingExplicit = style.fallbackLineSpacingExplicit;
-    paragraphStyle.orphanCharOptimizationExplicit = style.orphanCharOptimizationExplicit;
     paragraphStyle.useLocaleForTextBreak = style.useLocaleForTextBreak ||
         TextConfig::IsLocaleTextBreakEnabled();
     ConvertStrutStyle(style, paragraphStyle);
@@ -403,12 +397,6 @@ void ConvertParagraphFields(const SPText::ParagraphStyle& style, TypographyStyle
     typoStyle.includeFontPadding = style.includeFontPadding;
     typoStyle.fallbackLineSpacing = style.fallbackLineSpacing;
     typoStyle.orphanCharOptimization = style.orphanCharOptimization;
-    typoStyle.isTrailingSpaceOptimizedExplicit = style.isTrailingSpaceOptimizedExplicit;
-    typoStyle.enableAutoSpaceExplicit = style.enableAutoSpaceExplicit;
-    typoStyle.compressHeadPunctuationExplicit = style.compressHeadPunctuationExplicit;
-    typoStyle.includeFontPaddingExplicit = style.includeFontPaddingExplicit;
-    typoStyle.fallbackLineSpacingExplicit = style.fallbackLineSpacingExplicit;
-    typoStyle.orphanCharOptimizationExplicit = style.orphanCharOptimizationExplicit;
     typoStyle.firstLineIndent = style.firstLineIndent;
     typoStyle.tailIndents = style.tailIndents;
     typoStyle.headIndents = style.headIndents;

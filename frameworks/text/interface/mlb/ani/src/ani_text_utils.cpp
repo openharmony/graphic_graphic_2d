@@ -342,23 +342,6 @@ ani_status AniTextUtils::ReadOptionalBoolField(
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalBoolFieldWithExplicit(
-    ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value, bool& explicit)
-{
-    ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
-    if (result == ANI_OK && ref != nullptr) {
-        ani_boolean aniBool;
-        result = env->Object_CallMethod_Boolean(
-            reinterpret_cast<ani_object>(ref), AniGlobalMethod::GetInstance().booleanGet, &aniBool);
-        if (result == ANI_OK) {
-            value = static_cast<bool>(aniBool);
-            explicit = true;
-        }
-    }
-    return result;
-}
-
 ani_status AniTextUtils::GetPropertyByCache_String(
     ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::string& value)
 {
