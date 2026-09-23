@@ -204,6 +204,10 @@
 #include "rs_parallel_manager.h"
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "common_state.h"
+#endif
+
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
 #include "xcollie/process_kill_reason.h"
@@ -930,6 +934,10 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();
             monitor.UnRegisterRectChangeCallback(pid);
     }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    Media::VideoProcessingEngine::VpeCommonState::RemoveCachedPid(pid);
+#endif
 }
 
 bool RSMainThread::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
