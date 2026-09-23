@@ -1153,6 +1153,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Functi
     EXPECT_NE(screen->GetPpi(), oldPpi);
     EXPECT_NE(screen->GetXDpi(), oldXDpi);
     EXPECT_NE(screen->GetYDpi(), oldYDpi);
+    EXPECT_FALSE(screen->UpdateRenderResolution(1440, 2160));
 }
 
 /**
@@ -1200,6 +1201,10 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Fu
     bool isSelfOwnedScreen = false;
     instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
     EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 1440, 2160), EXEC_SUCCESS);
+    auto origFrameRateMgr = instance.hgmFrameRateMgr_;
+    instance.hgmFrameRateMgr_ = nullptr;
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 720, 1080), EXEC_SUCCESS);
+    instance.hgmFrameRateMgr_ = origFrameRateMgr;
     instance.RemoveScreen(screenId);
 }
 } // namespace Rosen

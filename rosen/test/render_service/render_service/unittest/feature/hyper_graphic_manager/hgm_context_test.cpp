@@ -1587,7 +1587,7 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize
 
 /**
  * @tc.name: OnScreenPropertyChangedTest001
- * @tc.desc: Test HgmContext::OnScreenPropertyChanged with non-RENDER_RESOLUTION type
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with non-RENDER_RESOLUTION type and success path
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1596,7 +1596,12 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
     ASSERT_NE(hgmContextForProcess, nullptr);
     sptr<ScreenPropertyBase> dummyProperty = nullptr;
     hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::ID, dummyProperty);
-    EXPECT_TRUE(true);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    screen->isRogResolution_ = true;
+    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    screen->isRogResolution_ = false;
+    SUCCEED();
 }
 
 /**
@@ -1613,7 +1618,7 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
     sptr<ScreenPropertyBase> dummyProperty = nullptr;
     hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
     hgmCore.SetScreenManager(origScreenManager);
-    EXPECT_TRUE(true);
+    SUCCEED();
 }
 
 /**
@@ -1627,6 +1632,9 @@ HWTEST_F(HgmContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
     ASSERT_NE(hgmContextForProcess, nullptr);
     sptr<ScreenPropertyBase> dummyProperty = nullptr;
     hgmContextForProcess->OnScreenPropertyChanged(9999, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
-    EXPECT_TRUE(true);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    SUCCEED();
 }
 } // namespace OHOS::Rosen

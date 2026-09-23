@@ -313,10 +313,15 @@ HWTEST_F(RSRefreshRateDfxTest, GetRefreshRateScaleFactorTest001, TestSize.Level1
     auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     rsRefreshRateDfx.OnDraw(*canvas);
-}
 
-/**
- * @tc.name: GetRefreshRateScaleFactorTest002
+    phyResProperty = sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolutionValType(0, 2160, 60));
+    screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
+    rsRefreshRateDfx.OnDraw(*canvas);
+
+    phyResProperty = sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(phyResolutionValType(1440, 0, 60));
+    screenParams->screenProperty_.Set(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE, phyResProperty);
+    rsRefreshRateDfx.OnDraw(*canvas);
+}
  * @tc.desc: Test GetRefreshRateScaleFactor with ROG disabled (default scale factor)
  * @tc.type: FUNC
  * @tc.require:
