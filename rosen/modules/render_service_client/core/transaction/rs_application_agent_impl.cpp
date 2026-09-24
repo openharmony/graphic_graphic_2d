@@ -36,11 +36,9 @@ RSApplicationAgentImpl::~RSApplicationAgentImpl()
 RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 {
 #ifdef OHOS_PLATFORM
+    std::lock_guard<std::mutex> lock(mutex_);
     if (gRSApplicationAgentImplInstance == nullptr) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (gRSApplicationAgentImplInstance == nullptr) {
-            gRSApplicationAgentImplInstance = new RSApplicationAgentImpl();
-        }
+        gRSApplicationAgentImplInstance = new RSApplicationAgentImpl();
     }
     return gRSApplicationAgentImplInstance.GetRefPtr();
 #else
