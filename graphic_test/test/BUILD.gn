@@ -240,7 +240,9 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_sound_wave_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_heat_distortion_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_blur_bubbles_rise_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_map_color_by_brightness_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_effect_light_cave_test.cpp",
 ]
 rs_framework_sources = [
   "rs_framework/uni_render_ui/surface_test.cpp",
