@@ -146,18 +146,19 @@ HWTEST_F(RSDepthRenderParamsTest, SetAndGetDepthImage001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAndGetUseSurfaceDepth001
- * @tc.desc: Verify SetUseSurfaceDepth & GetUseSurfaceDepth
+ * @tc.name: SetAndGetSurfaceDepthImage001
+ * @tc.desc: Verify SetSurfaceDepthImage & GetSurfaceDepthImage
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSDepthRenderParamsTest, SetAndGetUseSurfaceDepth001, TestSize.Level1)
+HWTEST_F(RSDepthRenderParamsTest, SetAndGetSurfaceDepthImage001, TestSize.Level1)
 {
     constexpr NodeId testNodeId = 114;
     RSDepthRenderParams params(testNodeId);
 
-    params.SetUseSurfaceDepth(true);
-    EXPECT_TRUE(params.GetUseSurfaceDepth());
+    auto image = std::make_shared<Drawing::Image>();
+    params.SetSurfaceDepthImage(image);
+    EXPECT_EQ(params.GetSurfaceDepthImage(), image);
 }
 
 /**

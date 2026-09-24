@@ -734,7 +734,7 @@ Vector4f RSSpatialEffectDrawable::CalcDepthPlane(const RSDepthRenderParams& para
     const SpatialEffectVariantPara& variantPara, const std::optional<std::vector<Drawing::Point>>& dstPoints,
     const Drawing::RectI drawRect)
 {
-    bool isSurfaceCase = params.GetUseSurfaceDepth();
+    bool isSurfaceCase = !params.GetDepthImage();
     const auto& cameraPara = params.GetDepthCameraPara();
     Vector2f nearFar = cameraPara.has_value() ?
         Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
@@ -868,7 +868,8 @@ std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CreateOcclusionImage(co
     Vector2f nearFar = cameraPara.has_value() ?
         Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
         Vector2f(0.1f, 100.f);
-    const auto& depthImage = depthParam.GetDepthImage();
+    const auto& depthImage = depthParam.GetDepthImage() ? depthParam.GetDepthImage() :
+        depthParam.GetSurfaceDepthImage();
     if (depthImage == nullptr) {
         RS_LOGE("RSSpatialEffectDrawable::CreateOcclusionImage depth image is nullptr");
         return nullptr;
@@ -878,7 +879,7 @@ std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CreateOcclusionImage(co
     CalcDepthMapMatrix(depthMapMatrix, drawRect, depthParam);
     auto depthPlane = CalcDepthPlane(depthParam, spatialEffectPara_.value(), spatialEffectDstPoints_, drawRect);
     Vector2f normalizedNearFar = {0.0, 0.0};
-    bool isSurfaceCase = depthParam.GetUseSurfaceDepth();
+    bool isSurfaceCase = !depthParam.GetDepthImage();
     normalizedNearFar.x_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.x_, nearFar) : nearFar.x_;
     normalizedNearFar.y_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.y_, nearFar) : nearFar.y_;
     auto occlusionImage = RSPropertyDrawableUtils::DrawDepthOcclusion(canvas, backgroundImage, depthImage,
