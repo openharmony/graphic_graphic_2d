@@ -1068,6 +1068,7 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
     auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
     auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
     auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    auto translateX = matrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = matrix.Get(Drawing::Matrix::TRANS_Y);
     if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
         if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
@@ -1083,8 +1084,10 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         // skew and/or non 90 degrees rotation
         return true;
     }
-    if (ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
-        RS_LOGE("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
+    if (ROSEN_EQ(std::abs(translateX - std::floor(translateX)), HALF_PIXEL_OFFSET) ||
+        ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
+        RS_LOGI("RSBaseRenderEngine::NeedBilinearInterpolation translateX=%{public}.2f, translateY=%{public}.2f",
+            translateX, translateY);
         return true;
     }
     return false;
