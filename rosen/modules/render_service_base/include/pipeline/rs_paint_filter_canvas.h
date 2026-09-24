@@ -401,6 +401,8 @@ public:
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
         float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
+        // Snapshot timestamp if this cache depends on a snapshot, 0 otherwise.
+        int64_t timestamp_ = 0;
 
         std::shared_ptr<Drawing::Image> GetProviderDataChecked();
     };

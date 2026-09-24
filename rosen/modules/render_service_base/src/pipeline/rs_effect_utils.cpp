@@ -15,6 +15,8 @@
 
 #include "pipeline/rs_effect_utils.h"
 
+#include "render/rs_filter_cache_manager.h"
+
 namespace OHOS {
 namespace Rosen {
 bool RSEffectUtils::AccumulateFilterRenderContext(RSRenderNode& node, const RSRenderNode& rootNode,
@@ -81,6 +83,13 @@ void RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode&
             Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
         node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
     }
+}
+
+void RSEffectUtils::Sync(int64_t vsyncStartTime)
+{
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    RSFilterCacheManager::SetFrameTimestamp(vsyncStartTime);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

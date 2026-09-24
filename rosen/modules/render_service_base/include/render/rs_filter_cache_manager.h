@@ -175,11 +175,13 @@ private:
     void UpdateFlags(FilterCacheType type, bool cacheValid);
     void ClearFilterCache();
 
-    void PrintDebugInfo(NodeId nodeID);
-
     void ReplaceCachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect,
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
+        int64_t timestamp, std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
         std::shared_ptr<IGECacheProvider> cacheProvider = nullptr);
+
+    // Current frame's vsync start time; used to tag newly generated snapshots.
+    static int64_t frameTimestamp_;
+    static int64_t GetFrameTimestamp() { return frameTimestamp_; }
 
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
@@ -241,8 +243,6 @@ private:
     // last offscreenNodeId_ value
     NodeId lastOffscreenNodeId_ = INVALID_NODEID;
 
-    bool lastStagingFilterInteractWithDirty_ = false;
-
     bool takeNewSnapshot_ = false;
     std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
     bool isHpaeCachedFilteredSnapshot_ = false;
@@ -252,6 +252,8 @@ private:
     bool debugEnabled_ = false;
 
 public:
+    // Called once per frame during sync (RSDrawFrame::Sync) to set the current vsync start time.
+    static void SetFrameTimestamp(int64_t timestamp) { frameTimestamp_ = timestamp; }
     static bool isCCMFilterCacheEnable_;
     static bool isCCMEffectMergeEnable_;
 };

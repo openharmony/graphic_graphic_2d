@@ -140,13 +140,13 @@ HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
     rsFilterCacheManager->cachedSnapshot_->cachedImage_ = image;
     rsFilterCacheManager->cachedSnapshot_->cachedRect_ = cachedRectSize;
     ss1 += "Snapshot found in cache. Generating filtered image using cached data."
-        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300, timestamp: 0";
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss1);
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = image;
     rsFilterCacheManager->cachedFilteredSnapshot_->cachedRect_ = cachedRectSize;
     ss2 += "Filtered image found in cache. Reusing cached result."
-        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300, timestamp: 0";
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss2);
 }
 
@@ -1422,25 +1422,6 @@ HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionEmptyDrawnRegi
 }
 
 /**
- * @tc.name: PrintDebugInfo001
- * @tc.desc: test results of PrintDebugInfo
- * @tc.type: FUNC
- * @tc.require: issue20057
- */
-HWTEST_F(RSFilterCacheManagerTest, PrintDebugInfo001, TestSize.Level1)
-{
-    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
-    rsFilterCacheManager->PrintDebugInfo(0);
-    rsFilterCacheManager->MarkDebugEnabled();
-    EXPECT_TRUE(rsFilterCacheManager->debugEnabled_);
-    rsFilterCacheManager->lastStagingFilterInteractWithDirty_ = false;
-    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
-    rsFilterCacheManager->PrintDebugInfo(0);
-    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
-    rsFilterCacheManager->PrintDebugInfo(0);
-}
-
-/**
  * @tc.name: ReplaceCachedEffectDataTest001
  * @tc.desc: test ReplaceCachedEffectData with valid cache data
  * @tc.type: FUNC
@@ -1463,11 +1444,14 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectDataTest001, TestSize.Leve
     Drawing::RectI testRect(0, 0, 200, 300);
 
     // Test replacing null cache with valid data
-    rsFilterCacheManager->ReplaceCachedEffectData(testImage, testRect, rsFilterCacheManager->cachedSnapshot_);
+    constexpr uint64_t testTimestamp = 12345;
+    rsFilterCacheManager->ReplaceCachedEffectData(
+        testImage, testRect, testTimestamp, rsFilterCacheManager->cachedSnapshot_);
 
     ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedImage_, testImage);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedRect_, testRect);
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->timestamp_, testTimestamp);
 }
 
 /**
@@ -1502,11 +1486,14 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectDataTest002, TestSize.Leve
     Drawing::RectI rect2(50, 50, 250, 250);
 
     // Replace existing cache
-    rsFilterCacheManager->ReplaceCachedEffectData(replaceImage, rect2, rsFilterCacheManager->cachedSnapshot_);
+    constexpr uint64_t testTimestamp = 67890;
+    rsFilterCacheManager->ReplaceCachedEffectData(
+        replaceImage, rect2, testTimestamp, rsFilterCacheManager->cachedSnapshot_);
 
     ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedImage_, replaceImage);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedRect_, rect2);
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->timestamp_, testTimestamp);
 }
 
 /**
@@ -1531,12 +1518,14 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectDataTest003, TestSize.Leve
     Drawing::RectI testRect(10, 10, 160, 160);
 
     // Test replacing filtered cache
+    constexpr uint64_t testTimestamp = 11111;
     rsFilterCacheManager->ReplaceCachedEffectData(
-        filteredImage, testRect, rsFilterCacheManager->cachedFilteredSnapshot_);
+        filteredImage, testRect, testTimestamp, rsFilterCacheManager->cachedFilteredSnapshot_);
 
     ASSERT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
     EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_, filteredImage);
     EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_->cachedRect_, testRect);
+    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_->timestamp_, testTimestamp);
 }
 
 /**
@@ -1564,9 +1553,11 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectDataTest004, TestSize.Leve
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> nullTargetCache = nullptr;
 
     // Test with null target cache (should handle gracefully)
-    rsFilterCacheManager->ReplaceCachedEffectData(nullTestImage, testRect, nullTargetCache);
+    constexpr uint64_t testTimestamp = 22222;
+    rsFilterCacheManager->ReplaceCachedEffectData(nullTestImage, testRect, testTimestamp, nullTargetCache);
 
     EXPECT_NE(nullTargetCache, nullptr);
+    EXPECT_EQ(nullTargetCache->timestamp_, testTimestamp);
 }
 
 /**
@@ -1727,11 +1718,40 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectDataTest005, TestSize.Leve
     Drawing::RectI rect2(0, 0, 200, 200);
 
     // Replace should preserve the provider
-    rsFilterCacheManager->ReplaceCachedEffectData(providerTestImage, rect2, rsFilterCacheManager->cachedSnapshot_);
+    constexpr uint64_t testTimestamp = 33333;
+    rsFilterCacheManager->ReplaceCachedEffectData(
+        providerTestImage, rect2, testTimestamp, rsFilterCacheManager->cachedSnapshot_);
 
     ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedImage_, providerTestImage);
     EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->cachedRect_, rect2);
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_->timestamp_, testTimestamp);
+}
+
+/**
+ * @tc.name: GetFrameTimestampTest001
+ * @tc.desc: test GetFrameTimestamp returns 0 after SetFrameTimestamp(0)
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetFrameTimestampTest001, TestSize.Level1)
+{
+    RSFilterCacheManager::SetFrameTimestamp(0);
+    EXPECT_EQ(RSFilterCacheManager::GetFrameTimestamp(), 0);
+}
+
+/**
+ * @tc.name: GetFrameTimestampTest002
+ * @tc.desc: test GetFrameTimestamp returns the value set by SetFrameTimestamp
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetFrameTimestampTest002, TestSize.Level1)
+{
+    constexpr int64_t testTimestamp = 987654321;
+    RSFilterCacheManager::SetFrameTimestamp(testTimestamp);
+    EXPECT_EQ(RSFilterCacheManager::GetFrameTimestamp(), testTimestamp);
+    RSFilterCacheManager::SetFrameTimestamp(0);
 }
 
 /**
