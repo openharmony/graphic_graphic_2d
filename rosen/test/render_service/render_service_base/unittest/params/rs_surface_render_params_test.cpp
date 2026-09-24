@@ -959,4 +959,42 @@ HWTEST_F(RSSurfaceRenderParamsTest, ClipAndScaleDirtyManager003, TestSize.Level2
     params.ClipAndScaleDirtyManager(nullptr);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap001
+ * @tc.desc: Test SetUifirstDisabledByAnimationOverlap with needSync behavior
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstDisabledByAnimationOverlap001, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_FALSE(params.GetUifirstDisabledByAnimationOverlap());
+    params.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(params.GetUifirstDisabledByAnimationOverlap());
+    EXPECT_TRUE(params.needSync_);
+    params.needSync_ = false;
+    params.SetUifirstDisabledByAnimationOverlap(true); // same value -> early return
+    EXPECT_FALSE(params.needSync_);
+    params.SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(params.GetUifirstDisabledByAnimationOverlap());
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlapOnSync001
+ * @tc.desc: Test OnSync copies uifirstDisabledByAnimationOverlap from staging to target
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstDisabledByAnimationOverlapOnSync001, TestSize.Level1)
+{
+    RSSurfaceRenderParams source(DEFAULT_NODEID);
+    source.SetUifirstDisabledByAnimationOverlap(true);
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSSurfaceRenderParams>(DEFAULT_NODEID);
+    ASSERT_NE(target, nullptr);
+    EXPECT_FALSE(static_cast<RSSurfaceRenderParams*>(target.get())->GetUifirstDisabledByAnimationOverlap());
+    source.OnSync(target);
+    EXPECT_TRUE(static_cast<RSSurfaceRenderParams*>(target.get())->GetUifirstDisabledByAnimationOverlap());
+}
 } // namespace OHOS::Rosen

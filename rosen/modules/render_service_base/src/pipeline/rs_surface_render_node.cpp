@@ -3526,6 +3526,21 @@ NodeId RSSurfaceRenderNode::GetUifirstStartingWindowId() const
 #endif
 }
 
+void RSSurfaceRenderNode::SetUifirstDisabledByAnimationOverlap(bool disabled)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetUifirstDisabledByAnimationOverlap(disabled);
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::GetUifirstDisabledByAnimationOverlap() const
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    return stagingSurfaceParams ? stagingSurfaceParams->GetUifirstDisabledByAnimationOverlap() : false;
+}
+
 void RSSurfaceRenderNode::SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
 {
 #ifdef RS_ENABLE_GPU

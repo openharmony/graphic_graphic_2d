@@ -398,4 +398,55 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow004, TestSize.Level1)
     // Reset capture params
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, false));
 }
+
+/**
+ * @tc.name: DealWithCachedWindowCrosNodeNoClearCacheTest
+ * @tc.desc: Test DealWithCachedWindow cross node no need to clear cache branch
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindowCrosNodeNoClearCacheTest, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 30;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    drawWindowCache.image_ = bmp.MakeImage();
+    ASSERT_TRUE(drawWindowCache.HasCache());
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isCrossNode_ = true;
+    RSRenderThreadParams uniParams;
+
+    // cross node mirror screen -> no need to clear cache
+    uniParams.SetIsMirrorScreen(true);
+    uniParams.hasDisplayHdrOn_ = false;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(false);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable.get(), canvas, *surfaceParams, uniParams));
+    ASSERT_TRUE(drawWindowCache.HasCache());
+
+    // cross node first visit -> no need to clear cache
+    uniParams.SetIsMirrorScreen(false);
+    uniParams.hasDisplayHdrOn_ = false;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(true);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable.get(), canvas, *surfaceParams, uniParams));
+    ASSERT_TRUE(drawWindowCache.HasCache());
+
+    // cross node hdr on -> no need to clear cache
+    uniParams.SetIsMirrorScreen(false);
+    uniParams.hasDisplayHdrOn_ = true;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(false);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable.get(), canvas, *surfaceParams, uniParams));
+    ASSERT_TRUE(drawWindowCache.HasCache());
+}
 }

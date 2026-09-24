@@ -340,6 +340,7 @@ private:
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
 
     bool IsToSubByAppAnimation() const;
+    bool IsAnimationOverlapRecordScene() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
     bool CheckHasTransAndFilter(const RSSurfaceRenderNode& node);

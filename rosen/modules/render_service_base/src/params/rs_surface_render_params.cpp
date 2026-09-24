@@ -763,6 +763,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->glassFree3D_ = glassFree3D_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
+    targetSurfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap =
+        uifirstParams_.uifirstDisabledByAnimationOverlap;
     targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
     targetSurfaceParams->delegateDstRect_ = delegateDstRect_;
     targetSurfaceParams->delegateSrcRect_ = delegateSrcRect_;
@@ -954,6 +956,20 @@ void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
 bool RSSurfaceRenderParams::IsPartialSynced() const
 {
     return uifirstParams_.isPartialSynced;
+}
+
+void RSSurfaceRenderParams::SetUifirstDisabledByAnimationOverlap(bool disabled)
+{
+    if (uifirstParams_.uifirstDisabledByAnimationOverlap == disabled) {
+        return;
+    }
+    uifirstParams_.uifirstDisabledByAnimationOverlap = disabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetUifirstDisabledByAnimationOverlap() const
+{
+    return uifirstParams_.uifirstDisabledByAnimationOverlap;
 }
 
 void RSSurfaceRenderParams::SetCompositionType(CompositionType type)

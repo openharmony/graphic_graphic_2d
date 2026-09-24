@@ -47,6 +47,7 @@ struct RSUIFirstRenderParams {
     bool parentEnabled = false;
     bool leashAllEnabled = false;
     bool isPartialSynced = false;
+    bool uifirstDisabledByAnimationOverlap = false;
 };
 
 /*

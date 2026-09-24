@@ -853,6 +853,193 @@ HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsAnimationOverlapRecordScene001
+ * @tc.desc: Test IsAnimationOverlapRecordScene with record scenes and other scenes
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSUifirstManagerTest, IsAnimationOverlapRecordScene001, TestSize.Level1)
+{
+    uifirstManager_.currentFrameEvent_.clear();
+    EXPECT_FALSE(uifirstManager_.IsAnimationOverlapRecordScene());
+
+    RSUifirstManager::EventInfo eventInfo;
+    eventInfo.sceneId = "ABILITY_OR_PAGE_SWITCH";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_FALSE(uifirstManager_.IsAnimationOverlapRecordScene());
+
+    const std::vector<std::string> recordScenes = {
+        "START_APP_ANI_FORM",
+        "LAUNCHER_APP_LAUNCH_FROM_ICON",
+        "LAUNCHER_APP_LAUNCH_FROM_DOCK",
+        "LAUNCHER_APP_SWIPE_TO_HOME",
+        "LAUNCHER_APP_BACK_TO_HOME",
+    };
+    for (auto& scene : recordScenes) {
+        eventInfo.sceneId = scene;
+        uifirstManager_.currentFrameEvent_ = { eventInfo };
+        EXPECT_TRUE(uifirstManager_.IsAnimationOverlapRecordScene());
+    }
+
+    // mixed events, one of them is in record scenes
+    RSUifirstManager::EventInfo otherEvent;
+    otherEvent.sceneId = "WINDOW_TITLE_BAR_MINIMIZED";
+    eventInfo.sceneId = "LAUNCHER_APP_LAUNCH_FROM_DOCK";
+    uifirstManager_.currentFrameEvent_ = { otherEvent, eventInfo };
+    EXPECT_TRUE(uifirstManager_.IsAnimationOverlapRecordScene());
+
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
+ * @tc.name: IsLeashWindowCacheAnimationOverlap001
+ * @tc.desc: Test IsLeashWindowCache marks node when uifirst is disabled by animation overlap
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSUifirstManagerTest, IsLeashWindowCacheAnimationOverlap001, TestSize.Level1)
+{
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    uifirstManager_.rotationChanged_ = false;
+    uifirstManager_.isRecentTaskScene_ = false;
+    uifirstManager_.entryViewNodeId_ = OHOS::Rosen::INVALID_NODEID;
+    uifirstManager_.negativeScreenNodeId_ = OHOS::Rosen::INVALID_NODEID;
+    uifirstManager_.currentFrameEvent_.clear();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
+    auto childNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode, nullptr);
+    childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode->AddChild(childNode);
+    surfaceNode->GenerateFullChildrenList();
+
+    // 1. no animation overlap, leash window cache works and mark keeps false
+    EXPECT_TRUE(RSUifirstManager::IsLeashWindowCache(*surfaceNode, true));
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // 2. overlap + window animation + scene not in record scenes, not marked
+    RSUifirstManager::EventInfo event;
+    event.sceneId = "ABILITY_OR_PAGE_SWITCH";
+    event.disableNodes.emplace(surfaceNode->GetId());
+    uifirstManager_.currentFrameEvent_ = { event };
+    EXPECT_FALSE(RSUifirstManager::IsLeashWindowCache(*surfaceNode, true));
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // 3. overlap + window animation + scene in record scenes, mark node
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(false);
+    event.sceneId = "LAUNCHER_APP_SWIPE_TO_HOME";
+    uifirstManager_.currentFrameEvent_ = { event };
+    EXPECT_FALSE(RSUifirstManager::IsLeashWindowCache(*surfaceNode, true));
+    EXPECT_TRUE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // 4. overlap + no window animation + scene in record scenes, not marked
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(RSUifirstManager::IsLeashWindowCache(*surfaceNode, false));
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
+ * @tc.name: UpdateUifirstNodesAnimationOverlapReset001
+ * @tc.desc: Test UpdateUifirstNodes resets animation overlap mark when window has no animation
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesAnimationOverlapReset001, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // uifirst off isolates the reset branch, which runs before ForceUpdateUifirstNodes
+    bool isUiFirstOnBackup = uifirstManager_.isUiFirstOn_;
+    uifirstManager_.isUiFirstOn_ = false;
+    // 1. window still has animation, mark keeps true
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
+    EXPECT_TRUE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+    // 2. whole window has no animation, mark is reset
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, false);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+    // 3. mark already false, stays false
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, false);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+    uifirstManager_.isUiFirstOn_ = isUiFirstOnBackup;
+}
+
+/**
+ * @tc.name: UifirstDisabledByAnimationOverlapSync001
+ * @tc.desc: Test set/get of uifirstDisabledByAnimationOverlap and sync from main thread to RT
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSUifirstManagerTest, UifirstDisabledByAnimationOverlapSync001, TestSize.Level1)
+{
+    // node level set/get
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // params level set/get and needSync
+    RSSurfaceRenderParams stagingParams(surfaceNode->GetId());
+    EXPECT_FALSE(stagingParams.GetUifirstDisabledByAnimationOverlap());
+    stagingParams.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(stagingParams.GetUifirstDisabledByAnimationOverlap());
+    EXPECT_TRUE(stagingParams.NeedSync());
+    stagingParams.SetNeedSync(false);
+    stagingParams.SetUifirstDisabledByAnimationOverlap(true); // same value, no needSync
+    EXPECT_FALSE(stagingParams.NeedSync());
+    stagingParams.SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_TRUE(stagingParams.NeedSync());
+
+    // params OnSync copies the flag to render thread params
+    std::unique_ptr<RSRenderParams> targetParams = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    auto* targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(targetParams.get());
+    stagingParams.OnSync(targetParams);
+    EXPECT_FALSE(targetSurfaceParams->GetUifirstDisabledByAnimationOverlap());
+    stagingParams.SetUifirstDisabledByAnimationOverlap(true);
+    stagingParams.OnSync(targetParams);
+    EXPECT_TRUE(targetSurfaceParams->GetUifirstDisabledByAnimationOverlap());
+    EXPECT_FALSE(stagingParams.NeedSync());
+
+    // node OnSync syncs staging params to drawable render params
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(true);
+    surfaceNode->OnSync();
+    auto drawable = surfaceNode->GetRenderDrawable();
+    ASSERT_NE(drawable, nullptr);
+    auto renderParams = static_cast<const RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    EXPECT_TRUE(renderParams->GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
+ * @tc.name: UifirstDisabledByAnimationOverlapNullParams001
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap when staging render params is null
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSUifirstManagerTest, UifirstDisabledByAnimationOverlapNullParams001, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+
+    // staging params is null: setter skips silently and getter falls back to false
+    surfaceNode->stagingRenderParams_ = nullptr;
+    surfaceNode->SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_FALSE(surfaceNode->GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
  * @tc.name: UpdateUifirstNodes
  * @tc.desc: Test UpdateUifirstNodes, with deviceType is Phone
  * @tc.type: FUNC
