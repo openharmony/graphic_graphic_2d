@@ -232,11 +232,16 @@ if (is_arkui_x) {
       "USE_ACE_SKIA",
       "USE_M133_SKIA",
     ]
-    configs = [ ":export_config" ]
+    configs = [
+      ":export_config",
+      "$drawing_root:export_config",
+    ]
 
-    public_deps = [ "$drawing_root:2d_graphics" ]
+    # arkui-x: include-only, same as text_ndk — engine symbols (2d_graphics /
+    # rosen_text) live in libarkui_android.so and are resolved at runtime
+    # through its DT_NEEDED edge. Linking their sources here would duplicate
+    # engine state (typeface registry, font collections) across DSOs.
     deps = [
-      "$rosen_text_root:rosen_text",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/skia:skia_$platform",
     ]

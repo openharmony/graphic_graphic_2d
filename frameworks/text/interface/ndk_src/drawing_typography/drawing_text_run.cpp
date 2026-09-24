@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
+#include "drawing_text_run.h"
+
 #include <string>
+
 #include "array_mgr.h"
 #include "drawing_rect.h"
-#include "drawing_text_run.h"
-#include "skia_txt/run_impl.h"
+#include "rosen_text/run.h"
 
 using namespace OHOS::Rosen;
-typedef AdapterTxt::RunImpl RunImpl;
 
 uint32_t OH_Drawing_GetRunGlyphCount(OH_Drawing_Run* run)
 {
     if (run == nullptr) {
         return 0;
     }
-    return reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetGlyphCount();
+    return reinterpret_cast<OHOS::Rosen::Run*>(run)->GetGlyphCount();
 }
 
 void OH_Drawing_GetRunStringRange(OH_Drawing_Run* run, uint64_t* location, uint64_t* length)
@@ -40,7 +41,7 @@ void OH_Drawing_GetRunStringRange(OH_Drawing_Run* run, uint64_t* location, uint6
         *length = 0;
         return;
     }
-    reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetStringRange(location, length);
+    reinterpret_cast<OHOS::Rosen::Run*>(run)->GetStringRange(location, length);
 }
 
 OH_Drawing_Array* OH_Drawing_GetRunStringIndices(OH_Drawing_Run* run, int64_t start, int64_t length)
@@ -48,19 +49,12 @@ OH_Drawing_Array* OH_Drawing_GetRunStringIndices(OH_Drawing_Run* run, int64_t st
     if (run == nullptr || start < 0 || length < 0) {
         return nullptr;
     }
-    auto stringIndices = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetStringIndices(start, length);
+    auto stringIndices = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetStringIndices(start, length);
     if (stringIndices.size() == 0) {
         return nullptr;
     }
-    ObjectArray* array = new (std::nothrow) ObjectArray;
-    if (array == nullptr) {
-        return nullptr;
-    }
-    uint64_t* stringIndicesArr = new (std::nothrow) uint64_t[stringIndices.size()];
-    if (stringIndicesArr == nullptr) {
-        delete array;
-        return nullptr;
-    }
+    ObjectArray* array = new ObjectArray;
+    uint64_t* stringIndicesArr = new uint64_t[stringIndices.size()];
     for (size_t i = 0; i < stringIndices.size(); ++i) {
         stringIndicesArr[i] = stringIndices[i];
     }
@@ -102,7 +96,7 @@ float OH_Drawing_GetRunTypographicBounds(OH_Drawing_Run* run, float* ascent, flo
         *leading = 0;
         return 0.0;
     }
-    return reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetTypographicBounds(ascent, descent, leading);
+    return reinterpret_cast<OHOS::Rosen::Run*>(run)->GetTypographicBounds(ascent, descent, leading);
 }
 
 OH_Drawing_Rect* OH_Drawing_GetRunImageBounds(OH_Drawing_Run* run)
@@ -110,7 +104,7 @@ OH_Drawing_Rect* OH_Drawing_GetRunImageBounds(OH_Drawing_Run* run)
     if (run == nullptr) {
         return nullptr;
     }
-    auto skRect = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetImageBounds();
+    auto skRect = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetImageBounds();
     return OH_Drawing_RectCreate(skRect.GetLeft(), skRect.GetTop(), skRect.GetRight(), skRect.GetBottom());
 }
 
@@ -126,19 +120,12 @@ OH_Drawing_Array* OH_Drawing_GetRunGlyphs(OH_Drawing_Run* run, int64_t start, in
     if (run == nullptr || start < 0 || length < 0) {
         return nullptr;
     }
-    auto glyphs = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetGlyphs(start, length);
+    auto glyphs = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetGlyphs(start, length);
     if (glyphs.size() == 0) {
         return nullptr;
     }
-    ObjectArray* array = new (std::nothrow) ObjectArray;
-    if (array == nullptr) {
-        return nullptr;
-    }
-    uint16_t* glyphsArr = new (std::nothrow) uint16_t[glyphs.size()];
-    if (glyphsArr == nullptr) {
-        delete array;
-        return nullptr;
-    }
+    ObjectArray* array = new ObjectArray;
+    uint16_t* glyphsArr = new uint16_t[glyphs.size()];
     for (size_t i = 0; i < glyphs.size() ; ++i) {
         glyphsArr[i] = glyphs[i];
     }
@@ -176,19 +163,12 @@ OH_Drawing_Array* OH_Drawing_GetRunPositions(OH_Drawing_Run* run, int64_t start,
         return nullptr;
     }
 
-    auto positions = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetPositions(start, length);
+    auto positions = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetPositions(start, length);
     if (positions.size() == 0) {
         return nullptr;
     }
-    Drawing::Point* positionsArr = new (std::nothrow) Drawing::Point[positions.size()];
-    if (positionsArr == nullptr) {
-        return nullptr;
-    }
-    ObjectArray* array = new (std::nothrow) ObjectArray;
-    if (array == nullptr) {
-        delete[] positionsArr;
-        return nullptr;
-    }
+    Drawing::Point* positionsArr = new Drawing::Point[positions.size()];
+    ObjectArray* array = new ObjectArray;
     for (size_t i = 0; i < positions.size(); ++i) {
         positionsArr[i] = positions[i];
     }
@@ -227,7 +207,7 @@ OH_Drawing_Font* OH_Drawing_GetRunFont(OH_Drawing_Run* run)
         return nullptr;
     }
 
-    Drawing::Font* font = new Drawing::Font(reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetFont());
+    Drawing::Font* font = new Drawing::Font(reinterpret_cast<OHOS::Rosen::Run*>(run)->GetFont());
     return reinterpret_cast<OH_Drawing_Font*>(font);
 }
 
@@ -237,7 +217,7 @@ OH_Drawing_TextDirection OH_Drawing_GetRunTextDirection(OH_Drawing_Run* run)
         return TEXT_DIRECTION_LTR;
     }
 
-    auto textDirection = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetTextDirection();
+    auto textDirection = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetTextDirection();
     if (textDirection == TextDirection::RTL) {
         return TEXT_DIRECTION_RTL;
     } else {
@@ -251,19 +231,12 @@ OH_Drawing_Array* OH_Drawing_GetRunGlyphAdvances(OH_Drawing_Run* run, uint32_t s
         return nullptr;
     }
 
-    auto advances = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetAdvances(start, length);
+    auto advances = reinterpret_cast<OHOS::Rosen::Run*>(run)->GetAdvances(start, length);
     if (advances.size() == 0) {
         return nullptr;
     }
-    Drawing::Point* advancesArr = new (std::nothrow) Drawing::Point[advances.size()];
-    if (advancesArr == nullptr) {
-        return nullptr;
-    }
-    ObjectArray* array = new (std::nothrow) ObjectArray;
-    if (array == nullptr) {
-        delete[] advancesArr;
-        return nullptr;
-    }
+    Drawing::Point* advancesArr = new Drawing::Point[advances.size()];
+    ObjectArray* array = new ObjectArray;
     for (size_t i = 0; i < advances.size(); ++i) {
         advancesArr[i] = advances[i];
     }
@@ -301,5 +274,5 @@ void OH_Drawing_RunPaint(OH_Drawing_Canvas* canvas, OH_Drawing_Run* run, double 
     if (canvas == nullptr || run == nullptr) {
         return;
     }
-    reinterpret_cast<AdapterTxt::RunImpl*>(run)->Paint(reinterpret_cast<Drawing::Canvas*>(canvas), x, y);
+    reinterpret_cast<OHOS::Rosen::Run*>(run)->Paint(reinterpret_cast<Drawing::Canvas*>(canvas), x, y);
 }
