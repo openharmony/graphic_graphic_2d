@@ -355,6 +355,9 @@ public:
     void SetPartialSynced(bool isPartialSynced);
     bool IsPartialSynced() const;
 
+    void SetUifirstDisabledByAnimationOverlap(bool disabled);
+    bool GetUifirstDisabledByAnimationOverlap() const;
+
     inline void UpdateLastCacheSize()
     {
         uifirstParams_.lastCacheSize = GetCacheSize();

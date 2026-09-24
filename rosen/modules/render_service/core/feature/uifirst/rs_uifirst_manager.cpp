@@ -63,6 +63,14 @@ namespace {
         "WEB_LIST_FLING",
         "SCROLLER_ANIMATION",
     };
+    // uifirst-disabled-by-animation-overlap is recorded on node only in these scenes
+    const std::vector<std::string_view> ANIMATION_OVERLAP_RECORD_SCENES = {
+        "START_APP_ANI_FORM",
+        "LAUNCHER_APP_LAUNCH_FROM_ICON",
+        "LAUNCHER_APP_LAUNCH_FROM_DOCK",
+        "LAUNCHER_APP_SWIPE_TO_HOME",
+        "LAUNCHER_APP_BACK_TO_HOME",
+    };
 
     inline int64_t GetCurSysTime()
     {
@@ -1851,11 +1859,17 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (node.IsChildDestoryRebuild()) ||
-        (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
-        (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
+        (RSUifirstManager::Instance().NodeIsInCardWhiteList(node))) {
         return false;
     }
     if (!node.IsLeashWindow()) {
+        return false;
+    }
+    if (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node)) {
+        if (animation && RSUifirstManager::Instance().IsAnimationOverlapRecordScene()) {
+            RS_TRACE_NAME("animation overlap, disable uifirst.");
+            node.SetUifirstDisabledByAnimationOverlap(true);
+        }
         return false;
     }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1960,6 +1974,17 @@ bool RSUifirstManager::IsLayerPartRenderDisableAnimation() const
 {
     for (auto& it : currentFrameEvent_) {
         if (LAYER_PART_RENDER_DISABLE_ANIMATION.find(it.sceneId) != LAYER_PART_RENDER_DISABLE_ANIMATION.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUifirstManager::IsAnimationOverlapRecordScene() const
+{
+    for (auto& it : currentFrameEvent_) {
+        if (std::find(ANIMATION_OVERLAP_RECORD_SCENES.begin(), ANIMATION_OVERLAP_RECORD_SCENES.end(), it.sceneId) !=
+            ANIMATION_OVERLAP_RECORD_SCENES.end()) {
             return true;
         }
     }
@@ -2105,6 +2130,10 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, isCardUiFirstOn_,
         node.uifirstState_.isForceMarked, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED),
         node.GetUIFirstSwitch(), curUifirstWindowNums_, uifirstWindowsNumThreshold_);
+
+    if (!ancestorNodeHasAnimation && node.GetUifirstDisabledByAnimationOverlap()) {
+        node.SetUifirstDisabledByAnimationOverlap(false);
+    }
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }

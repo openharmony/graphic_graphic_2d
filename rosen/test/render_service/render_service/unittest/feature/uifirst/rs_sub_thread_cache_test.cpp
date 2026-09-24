@@ -2576,4 +2576,147 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawOpincTest002, TestSize.Level1)
     DrawableV2::RSOpincDrawCache opincDrawCache;
     EXPECT_EQ(opincDrawCache.GetOpincCacheMaxHeight(), 0);
 }
+
+/**
+ * @tc.name: UpdateUifirstDirtyManagerNullParamsTest
+ * @tc.desc: Test UpdateUifirstDirtyManager when surface params is null
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerNullParamsTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    subCache.isDirtyRecordCompleted_ = true;
+    surfaceDrawable_->renderParams_ = nullptr;
+    subCache.UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    EXPECT_FALSE(subCache.isDirtyRecordCompleted_);
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+}
+
+/**
+ * @tc.name: UpdateUifirstDirtyManagerNestedDrawableTest
+ * @tc.desc: Test UpdateUifirstDirtyManager nested drawable traversal
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerNestedDrawableTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+
+    NodeId childId = 101;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->allSubSurfaceNodeIds_.insert(childId);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    auto childDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
+    ASSERT_NE(childDrawable, nullptr);
+
+    subCache.UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    EXPECT_TRUE(subCache.isDirtyRecordCompleted_);
+
+    childDrawable->GetRsSubThreadCache().syncUifirstDirtyManager_ = nullptr;
+    subCache.UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    EXPECT_FALSE(subCache.isDirtyRecordCompleted_);
+
+    surfaceParams->allSubSurfaceNodeIds_.clear();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+}
+
+/**
+ * @tc.name: UpdateAllSurfaceUifirstDirtyEnableStateNullDrawableTest
+ * @tc.desc: Test UpdateAllSurfaceUifirstDirtyEnableState when surface drawable is null
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateAllSurfaceUifirstDirtyEnableStateNullDrawableTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    subCache.SetUifirstDirtyEnableFlag(true);
+    subCache.UpdateAllSurfaceUifirstDirtyEnableState(nullptr, false);
+    EXPECT_TRUE(subCache.GetUifirstDirtyEnableFlag());
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+}
+
+/**
+ * @tc.name: UpdateAllSurfaceUifirstDirtyEnableStateNestedDrawableTest
+ * @tc.desc: Test UpdateAllSurfaceUifirstDirtyEnableState nested drawable traversal
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateAllSurfaceUifirstDirtyEnableStateNestedDrawableTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+
+    NodeId childId = 102;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetUifirstRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->allSubSurfaceNodeIds_.insert(childId);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    auto childDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
+    ASSERT_NE(childDrawable, nullptr);
+
+    subCache.UpdateAllSurfaceUifirstDirtyEnableState(surfaceDrawable_.get(), true);
+    EXPECT_TRUE(subCache.GetUifirstDirtyEnableFlag());
+    EXPECT_TRUE(childDrawable->GetRsSubThreadCache().GetUifirstDirtyEnableFlag());
+
+    surfaceParams->allSubSurfaceNodeIds_.clear();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionNestedDrawableTest
+ * @tc.desc: Test MergeUifirstAllSurfaceDirtyRegion nested drawable traversal
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionNestedDrawableTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    surfaceParams->SetWindowInfo(false, true, false);
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
+    NodeId childId = 103;
+    surfaceParams->allSubSurfaceNodeIds_.insert(childId);
+    surfaceDrawable_->uifirstRenderParams_ = std::move(surfaceParams);
+    subCache.isDirtyRecordCompleted_ = true;
+
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    auto childDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
+    ASSERT_NE(childDrawable, nullptr);
+
+    Drawing::RectI dirtyRect = {};
+    bool dirtyEnableFlag = subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect);
+    EXPECT_TRUE(dirtyEnableFlag);
+
+    childDrawable->GetRsSubThreadCache().syncUifirstDirtyManager_ = nullptr;
+    dirtyEnableFlag = subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect);
+    EXPECT_FALSE(dirtyEnableFlag);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+}
 } // namespace OHOS::Rosen

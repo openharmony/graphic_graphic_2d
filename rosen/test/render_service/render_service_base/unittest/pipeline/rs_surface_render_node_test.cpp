@@ -3725,6 +3725,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap001
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with staging render params
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap002
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with null stagingRenderParams_ without crash
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap002, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
  * @tc.name: GetVideoDimType_001
  * @tc.desc: Test GetVideoDimType returns default VIDEO_DIM_TYPE_2D
  * @tc.type: FUNC
