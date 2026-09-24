@@ -632,6 +632,165 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
+class RSImageBaseCacheAccessor : public RSImageBase {
+public:
+    static void DecreaseCacheRefCountForTest(uint64_t uniqueId, bool useSkImage,
+        std::shared_ptr<Media::PixelMap> pixelMap)
+    {
+        RSImageBase::DecreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
+    }
+};
+
+static void WriteImagePrefix(Parcel& parcel, uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    RSMarshallingHelper::Marshalling(parcel, uniqueId);
+    RSMarshallingHelper::Marshalling(parcel, static_cast<int32_t>(0));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<int32_t>(0));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint64_t>(0));
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    RSMarshallingHelper::Marshalling(parcel, std::shared_ptr<Drawing::Image>());
+    RSMarshallingHelper::Marshalling(parcel, pixelMap);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount001
+ * @tc.desc: Verify DecreaseCacheRefCount releases drawing image cache when useSkImage is true
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount001, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x1111;
+    auto img = std::make_shared<Drawing::Image>();
+    RSImageCache::Instance().CacheDrawingImage(uniqueId, img);
+    RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(uniqueId);
+    EXPECT_NE(RSImageCache::Instance().GetDrawingImageCache(uniqueId), nullptr);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, true, nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount002
+ * @tc.desc: Verify DecreaseCacheRefCount releases pixelmap cache when pixelmap is not editable
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount002, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x2222;
+    auto pixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, pixelMap);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount003
+ * @tc.desc: Verify DecreaseCacheRefCount releases editable pixelmap cache for cacheable DMA pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount003, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x3333;
+    auto pixelMap = CreatePixelMap(4, 4);
+    pixelMap->SetEditable(true);
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, pixelMap);
+    EXPECT_EQ(RSImageCache::Instance().GetEditablePixelMapCache(uniqueId), nullptr);
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount004
+ * @tc.desc: Verify DecreaseCacheRefCount does nothing when no branch matches
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount004, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x4444;
+    auto pixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, nullptr);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback001
+ * @tc.desc: Verify failed compress data unmarshalling rolls back newly cached pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback001, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x5555;
+    auto pixelMap = CreatePixelMap(4, 4);
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, pixelMap);
+    constexpr uint32_t oversizedCompressSize = 4096;
+    parcel.WriteUint32(oversizedCompressSize);
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback002
+ * @tc.desc: Verify failed image properties unmarshalling rolls back newly cached pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback002, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x6666;
+    auto pixelMap = CreatePixelMap(4, 4);
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, pixelMap);
+    parcel.WriteUint32(UINT32_MAX); // null compress data, image properties missing
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback003
+ * @tc.desc: Verify rollback keeps cache entry alive when another holder exists
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback003, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x7777;
+    auto cachedPixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, cachedPixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, nullptr);
+    constexpr uint32_t oversizedCompressSize = 4096;
+    parcel.WriteUint32(oversizedCompressSize);
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: IsEDRSurfaceTest001

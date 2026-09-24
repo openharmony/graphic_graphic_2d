@@ -2369,9 +2369,14 @@ bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
         ROSEN_LOGE("RSMarshallingHelper::SkipPixelMap ReadInt32 failed");
         return false;
     }
-    if (size != -1) {
-        parcel.SkipBytes(size);
+    if (size == -1) {
+        return true;
     }
+    if (size < 0) {
+        ROSEN_LOGE("RSMarshallingHelper::SkipPixelMap invalid size %{public}d", size);
+        return false;
+    }
+    parcel.SkipBytes(static_cast<size_t>(size));
     return true;
 }
 

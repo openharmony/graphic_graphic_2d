@@ -967,9 +967,11 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     if (!UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSkImage, img, pixelMap, imagepixelAddr)) {
         return nullptr;
     }
+    IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
     std::shared_ptr<Drawing::Data> compressData;
     bool skipData = img != nullptr || !useSkImage;
     if (!UnmarshallingCompressData(parcel, skipData, compressData)) {
+        DecreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
         return nullptr;
     }
     int fitNum;
@@ -983,6 +985,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int orientationFit;
     if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale,
         hasFitMatrix, fitMatrix, dynamicRangeMode, degree, orientationFit)) {
+        DecreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -1001,7 +1004,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         rsImage->SetFitMatrix(fitMatrix);
     }
     rsImage->SetOrientationFit(orientationFit);
-    ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
+    ProcessImageAfterCreation(rsImage, uniqueId);
     return rsImage;
 }
 
@@ -1073,12 +1076,10 @@ bool RSImage::UnmarshalImageProperties(
     return true;
 }
 
-void RSImage::ProcessImageAfterCreation(
-    RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage, const std::shared_ptr<Media::PixelMap>& pixelMap)
+void RSImage::ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId)
 {
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
-    RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
 }
 #endif
 } // namespace Rosen
