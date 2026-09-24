@@ -64,6 +64,9 @@ void OHDrawingConvert2(const uint8_t* data, size_t size)
     textStyle.symbol.SetVisualMode(VisualMode(fdp.ConsumeIntegral<int>() % DATA_MAX_ENUM_SIZE2));
     textStyle.fontFeatures.SetFeature("tag", fdp.ConsumeIntegral<int>());
     textStyle.fontVariations.SetAxisValue("tag", fdp.ConsumeFloatingPoint<float>());
+    textStyle.backgroundRect = { alpha, fdp.ConsumeFloatingPoint<double>(), fdp.ConsumeFloatingPoint<double>(),
+        fdp.ConsumeFloatingPoint<double>(), fdp.ConsumeFloatingPoint<double>(), red,
+        fdp.ConsumeFloatingPoint<double>() };
     textStyle.backgroundBrush = Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
     textStyle.foregroundBrush = Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
     textStyle.backgroundPen = Drawing::Pen(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
@@ -75,6 +78,8 @@ void OHDrawingConvert2(const uint8_t* data, size_t size)
     sptextStyle.fontFeatures.SetFeature("tag", fdp.ConsumeFloatingPoint<float>());
     sptextStyle.fontVariations.SetAxisValue("tag", fdp.ConsumeIntegral<int>());
     sptextStyle.isSymbolGlyph = fdp.ConsumeBool();
+    sptextStyle.backgroundRect = { gree, fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(), blue, fdp.ConsumeFloatingPoint<float>() };
     sptextStyle.background =
         SPText::PaintRecord(Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue)), Drawing::Pen());
     sptextStyle.foreground =

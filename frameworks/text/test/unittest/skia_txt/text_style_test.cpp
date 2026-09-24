@@ -480,4 +480,35 @@ HWTEST_F(TextStyleTest, TextStyleTest016, TestSize.Level0)
     ASSERT_NE(skParagraph, nullptr);
     EXPECT_EQ(skParagraph->fRuns.size(), 1); // Expect 1 run for same font edging
 }
+
+/*
+ * @tc.name: TextStyleTest017
+ * @tc.desc: test for change backgroundRect borderColor and borderWidth
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest017, TestSize.Level0)
+{
+    SPText::RectStyle backgroundRect = { 0, 1.0f, 0.0f, 0.0f, 0.0f };
+    textStyle_->backgroundRect = backgroundRect;
+
+    // default border values keep equality when border fields are identical
+    SPText::RectStyle sameBorder = backgroundRect;
+    EXPECT_EQ(textStyle_->backgroundRect, sameBorder);
+
+    // different borderColor breaks equality
+    SPText::RectStyle otherBorderColor = backgroundRect;
+    otherBorderColor.borderColor = 0xFFFF0000;
+    EXPECT_NE(textStyle_->backgroundRect, otherBorderColor);
+
+    // different borderWidth breaks equality
+    SPText::RectStyle otherBorderWidth = backgroundRect;
+    otherBorderWidth.borderWidth = 2.0f;
+    EXPECT_NE(textStyle_->backgroundRect, otherBorderWidth);
+
+    // full assignment round trip with border fields
+    SPText::RectStyle borderRect = { 0xFF0000FF, 4.0f, 4.0f, 4.0f, 4.0f, 0xFFFF0000, 2.0f };
+    EXPECT_NE(textStyle_->backgroundRect, borderRect);
+    textStyle_->backgroundRect = borderRect;
+    EXPECT_EQ(textStyle_->backgroundRect, borderRect);
+}
 } // namespace txt

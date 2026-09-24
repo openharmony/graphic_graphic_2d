@@ -14,6 +14,7 @@
  */
 
 #include <cinttypes>
+#include <cmath>
 #include <cstdint>
 
 #include "application_context.h"
@@ -804,6 +805,15 @@ void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
     SetDoubleValueFromJS(env, tempValue, "rightTopRadius", rectStyle.rightTopRadius);
     SetDoubleValueFromJS(env, tempValue, "rightBottomRadius", rectStyle.rightBottomRadius);
     SetDoubleValueFromJS(env, tempValue, "leftBottomRadius", rectStyle.leftBottomRadius);
+    Drawing::Color borderColor;
+    if (SetColorFromJS(env, tempValue, "borderColor", borderColor)) {
+        rectStyle.borderColor = borderColor.CastToColorQuad();
+    }
+    double borderWidth = 0.0;
+    SetDoubleValueFromJS(env, tempValue, "borderWidth", borderWidth);
+    if (std::isfinite(borderWidth) && borderWidth > 0.0) {
+        rectStyle.borderWidth = borderWidth;
+    }
 }
 
 napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& lineMetrics)
@@ -946,6 +956,8 @@ napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle)
         napi_set_named_property(env, objValue, "rightTopRadius", CreateJsNumber(env, rectStyle.rightTopRadius));
         napi_set_named_property(env, objValue, "rightBottomRadius", CreateJsNumber(env, rectStyle.rightBottomRadius));
         napi_set_named_property(env, objValue, "leftBottomRadius", CreateJsNumber(env, rectStyle.leftBottomRadius));
+        napi_set_named_property(env, objValue, "borderColor", CreateJsNumber(env, (uint32_t)rectStyle.borderColor));
+        napi_set_named_property(env, objValue, "borderWidth", CreateJsNumber(env, rectStyle.borderWidth));
     }
     return objValue;
 }

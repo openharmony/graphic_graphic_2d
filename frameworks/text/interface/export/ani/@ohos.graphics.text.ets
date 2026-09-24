@@ -760,6 +760,8 @@ export default namespace text {
     rightTopRadius: double;
     rightBottomRadius: double;
     leftBottomRadius: double;
+    borderColor?: common2D.Color;
+    borderWidth?: double;
   }
 
   class RectStyleInternal implements RectStyle {
@@ -768,18 +770,24 @@ export default namespace text {
     rightTopRadius: double;
     rightBottomRadius: double;
     leftBottomRadius: double;
+    borderColor?: common2D.Color;
+    borderWidth?: double;
     constructor(
       color: common2D.Color,
       leftTopRadius: double,
       rightTopRadius: double,
       rightBottomRadius: double,
       leftBottomRadius: double,
+      borderColor?: common2D.Color,
+      borderWidth?: double,
     ) {
       this.color = color;
       this.leftTopRadius = leftTopRadius;
       this.rightTopRadius = rightTopRadius;
       this.rightBottomRadius = rightBottomRadius;
       this.leftBottomRadius = leftBottomRadius;
+      this.borderColor = borderColor;
+      this.borderWidth = borderWidth;
     }
   }
 
