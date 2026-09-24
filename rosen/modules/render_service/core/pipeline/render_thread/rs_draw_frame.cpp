@@ -33,6 +33,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
@@ -420,6 +421,8 @@ void RSDrawFrame::Sync()
     pendingSyncNodes.clear();
     HveFilter::GetHveFilter().Sync();
 
+    RSEffectUtils::Sync(stagingRenderThreadParams_ ?
+        stagingRenderThreadParams_->GetOnVsyncStartTime() : 0);
     virtualExpandThreadParams_ = std::make_unique<RSRenderThreadParams>(*stagingRenderThreadParams_);
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().SyncOneFramePeriod();

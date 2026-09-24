@@ -47,6 +47,11 @@ public:
     // 2. Updates pending purge filter dirty rect for cache management
     static void UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
+
+    // Called once per frame during sync phase (RSDrawFrame::Sync).
+    // Sets the current vsync start time for RSFilterCacheManager to tag
+    // newly generated cache data.
+    static void Sync(int64_t vsyncStartTime);
 };
 } // namespace Rosen
 } // namespace OHOS

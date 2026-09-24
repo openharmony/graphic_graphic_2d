@@ -1805,7 +1805,8 @@ std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
     std::string ss;
     ss += " cachedRect: " + cachedRect_.ToString() +
         ", CacheImageWidth: " + std::to_string(cachedImage_->GetWidth()) +
-        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight());
+        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight()) +
+        ", timestamp: " + std::to_string(timestamp_);
     return ss;
 }
 
