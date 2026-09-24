@@ -84,12 +84,6 @@ void RSDirtyRegionManager::MergeHwcDirtyRect(const RectI& rect, RSSurfaceNodeTyp
             typeHwcDirtyRegion_.find(nodeType) == typeHwcDirtyRegion_.end() ?
             rect : typeHwcDirtyRegion_[nodeType].JoinRect(rect);
     }
-    Occlusion::Region tempRegion = Occlusion::Region(Occlusion::Rect(rect));
-    for (auto& r : advancedDirtyRegion_) {
-        Occlusion::Region region = Occlusion::Region(Occlusion::Rect(r));
-        tempRegion.OrSelf(region);
-    }
-    advancedDirtyRegion_ = tempRegion.GetRegionRectIs();
 }
 
 bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
@@ -195,21 +189,21 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->activeSurfaceRect_ = activeSurfaceRect_;
     ptr->surfaceRect_ = surfaceRect_;
     ptr->dirtyRegion_ = dirtyRegion_;
-    ptr->advancedDirtyRegion_ = advancedDirtyRegion_;
+    ptr->advancedDirtyRegion_ = std::move(advancedDirtyRegion_);
     ptr->advancedDirtyRegionType_ = advancedDirtyRegionType_;
     ptr->hwcDirtyRegion_ = hwcDirtyRegion_;
-    ptr->typeHwcDirtyRegion_ = typeHwcDirtyRegion_;
+    ptr->typeHwcDirtyRegion_ = std::move(typeHwcDirtyRegion_);
     ptr->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
     ptr->uifirstFrameDirtyRegion_ = uifirstFrameDirtyRegion_;
-    ptr->currentFrameAdvancedDirtyRegion_ = currentFrameAdvancedDirtyRegion_;
+    ptr->currentFrameAdvancedDirtyRegion_ = std::move(currentFrameAdvancedDirtyRegion_);
     ptr->maxNumOfDirtyRects_ = maxNumOfDirtyRects_;
     ptr->dirtyRegionForQuickReject_ = {};
     ptr->debugRect_ = debugRect_;
     filterCollector_.OnSync(ptr->filterCollector_);
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
-        ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
-        ptr->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
-        ptr->mergedDirtyRegions_ = mergedDirtyRegions_;
+        ptr->dirtySurfaceNodeInfo_ = std::move(dirtySurfaceNodeInfo_);
+        ptr->dirtyCanvasNodeInfo_ = std::move(dirtyCanvasNodeInfo_);
+        ptr->mergedDirtyRegions_ = std::move(mergedDirtyRegions_);
     }
     // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
     Clear();

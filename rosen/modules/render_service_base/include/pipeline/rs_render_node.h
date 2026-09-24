@@ -1440,6 +1440,7 @@ private:
 
     void SetParent(WeakPtr parent);
     void ResetParent();
+    bool RecordHardCursorOffTreeRegion();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     virtual void OnResetParent() {}
 
