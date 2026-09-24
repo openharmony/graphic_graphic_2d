@@ -3428,5 +3428,39 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyNegativeIndentsTest001,
     typography->Layout(200);
 }
 
+/*
+ * @tc.name: OH_Drawing_HyphenRunGetTextPathsSigill001
+ * @tc.desc: Minimal reproducer: "AB<U+00AD>CD" laid out at width -1, then
+ *           GetTextPathsByIndex(0, SIZE_MAX). Before the fix the process dies
+ *           with SIGILL inside clusterIndex(EMPTY_INDEX); after the fix the
+ *           call returns the glyph paths including the hyphen.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_HyphenRunGetTextPathsSigill001, TestSize.Level0)
+{
+     // 1. Build: default styles, text = A B <U+00AD> C D (soft hyphen at offset 2).
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.ellipsis = u"";
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 14;
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(u"AB\u{00AD}CD");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // 2. Layout at a negative width: one cluster per line; line 3 ends with
+    //    U+00AD -> TextLine::setBreakWithHyphen(true) creates the hyphen run.
+    typography->Layout(-1);
+    // 3. Trigger: walk all lines through the glyph-path path. Before the fix
+    //    this traps (SIGILL) on the hyphen line.
+    auto textPaths = typography->GetTextPathsByIndex(0, SIZE_MAX);
+    GTEST_LOG_(INFO) << "GetTextPathsByIndex returned " << textPaths.size() << " paths";
+    SUCCEED();
+}
+
 } // namespace Rosen
 } // namespace OHOS
