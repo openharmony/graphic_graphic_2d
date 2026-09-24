@@ -95,6 +95,21 @@ inline constexpr napi_type_tag MASK_NAPI_TYPE_TAG = {
     .upper = 0x9f12af0784a90fc9
 };
 
+inline constexpr napi_type_tag VISUAL_EFFECT_TYPE_TAG = {
+    .lower = 0x1c80317fa3b1799d,
+    .upper = 0xbdd640fb06671ad1
+};
+
+inline constexpr napi_type_tag FILTER_TYPE_TAG = {
+    .lower = 0x3eb13b9046685257,
+    .upper = 0x23b8c1e9392456de
+};
+
+inline constexpr napi_type_tag BLENDER_TYPE_TAG = {
+    .lower = 0x1a3d1fa7bc8960a9,
+    .upper = 0xbd9c66b3ad3c2d6d
+};
+
 constexpr uint32_t NUM_0 = 0;
 constexpr uint32_t NUM_1 = 1;
 constexpr uint32_t NUM_2 = 2;
