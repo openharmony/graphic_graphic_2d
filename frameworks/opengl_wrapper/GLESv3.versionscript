@@ -15,6 +15,7 @@
     global:
         _fini;
         _init;
+        _ZZ9GetEglApi*;
         TexStorage*;
         gl*;
     local:
