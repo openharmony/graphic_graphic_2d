@@ -203,8 +203,8 @@ bool HgmScreen::UpdateRenderResolution(uint32_t width, uint32_t height)
     renderWidth_ = width;
     renderHeight_ = height;
 
-    auto screenLength = sqrt(pow(renderWidth_, 2) + pow(renderHeight_, 2));
-    auto phyScreenLength = sqrt(pow(phyWidth_, 2) + pow(phyHeight_, 2));
+    auto screenLength = std::sqrt(std::pow(renderWidth_, 2) + std::pow(renderHeight_, 2));
+    auto phyScreenLength = std::sqrt(std::pow(phyWidth_, 2) + std::pow(phyHeight_, 2));
     if (phyScreenLength > 0) {
         ppi_ = screenLength / (phyScreenLength / INCH_2_MM);
     }
