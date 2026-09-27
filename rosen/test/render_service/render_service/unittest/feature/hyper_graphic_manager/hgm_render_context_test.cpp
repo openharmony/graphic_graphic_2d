@@ -25,6 +25,7 @@
 #include "render_server/rs_render_service.h"
 #include "render_server/rs_render_service_agent.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_to_service_connection.h"
 
@@ -469,7 +470,7 @@ HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
     auto screen = screenManagerForProcess->GetScreen(1);
     ASSERT_NE(screen, nullptr);
     screen->isRogResolution_ = true;
-    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
     screen->isRogResolution_ = false;
     hgmCore.SetScreenManager(origScreenManager);
 }
@@ -485,6 +486,7 @@ HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
     auto origScreenManager = hgmCore.GetScreenManager();
     hgmCore.SetScreenManager(nullptr);
     sptr<ScreenPropertyBase> dummyProperty = nullptr;
