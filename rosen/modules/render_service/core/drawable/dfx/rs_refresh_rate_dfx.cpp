@@ -75,7 +75,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
-    canvas.DrawTextBlob(textBlob.get(), 100.f * scaleX, 200.f * scaleY);
+    canvas.DrawTextBlob(textBlob.get(), 100.f, 200.f);
     canvas.DetachBrush();
 }
 
