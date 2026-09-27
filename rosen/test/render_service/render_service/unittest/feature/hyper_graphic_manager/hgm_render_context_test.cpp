@@ -446,4 +446,74 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     g_customTestXmlPath.clear();
     std::remove(testXmlPath3.c_str());
 }
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest001
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with non-RENDER_RESOLUTION type and success path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto origScreenManager = hgmCore.GetScreenManager();
+    auto screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
+    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
+    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
+
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::ID, dummyProperty);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    screen->isRogResolution_ = true;
+    hgmContextForProcess->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    screen->isRogResolution_ = false;
+    hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest002
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION but null screenManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    auto origScreenManager = hgmCore.GetScreenManager();
+    hgmCore.SetScreenManager(nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest003
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION and GetRogScreenResolution fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto origScreenManager = hgmCore.GetScreenManager();
+    auto screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
+    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
+    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
+
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(9999, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmCore.SetScreenManager(origScreenManager);
+}
 } // namespace OHOS::Rosen
