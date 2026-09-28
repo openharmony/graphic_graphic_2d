@@ -5957,5 +5957,54 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
     EXPECT_EQ(n3->stagingDrawCmdList_.size(), n4->stagingDrawCmdList_.size());
 }
 #endif
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild001
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns false when no animation manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    EXPECT_FALSE(node->HasInfiniteGroupAnimationChild());
+}
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild002
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns false for non-group-child animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    EXPECT_FALSE(node->HasInfiniteGroupAnimationChild());
+}
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild003
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns true for infinite group child
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    // Mark as group child with infinite repeat
+    animation->isGroupAnimationChild_ = true;
+    animation->SetGroupRepeatCount(-1);
+    EXPECT_TRUE(node->HasInfiniteGroupAnimationChild());
+}
+
 } // namespace Rosen
 } // namespace OHOS

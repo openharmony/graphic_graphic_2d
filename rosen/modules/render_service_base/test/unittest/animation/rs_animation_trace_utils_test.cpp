@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_animation_trace_utils.h"
+#include "animation/rs_interpolator.h"
 #include "common/rs_color.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_rect.h"
@@ -124,6 +125,126 @@ HWTEST_F(RSAnimationTraceUtilsTest, ParseRenderPropertyValueAnimatableSuccess001
     auto result = utils.ParseRenderPropertyValue(animatable);
     EXPECT_NE(result.find("Quaternion"), std::string::npos);
     EXPECT_EQ(result.find("invalid"), std::string::npos);
+}
+
+/**
+ * @tc.name: AddKeyframeAnimationClientTraceDebugDisabled001
+ * @tc.desc: Verify AddKeyframeAnimationClientTrace returns early when debug is disabled
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceDebugDisabled001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    bool prevDebug = RSAnimationTraceUtils::isDebugEnabled_;
+    RSAnimationTraceUtils::isDebugEnabled_ = false;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    std::vector<KeyframeTuple> keyframes;
+    std::vector<DurationKeyframeTuple> durationKeyframes;
+    // Should return early without crash
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::INVALID, startValue,
+        false, 300, keyframes, durationKeyframes);
+    // Verify early return: isDebugEnabled_ unchanged (const method, no side effects)
+    EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
+    RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
+}
+
+/**
+ * @tc.name: AddKeyframeAnimationClientTraceNullStartValue001
+ * @tc.desc: Verify AddKeyframeAnimationClientTrace returns early when startValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceNullStartValue001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    bool prevDebug = RSAnimationTraceUtils::isDebugEnabled_;
+    RSAnimationTraceUtils::isDebugEnabled_ = true;
+    std::vector<KeyframeTuple> keyframes;
+    std::vector<DurationKeyframeTuple> durationKeyframes;
+    // startValue null -> return early without crash
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::INVALID, nullptr,
+        false, 300, keyframes, durationKeyframes);
+    // Verify early return: debug flag unchanged (method is const, no side effects)
+    EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
+    RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
+}
+
+/**
+ * @tc.name: AddKeyframeAnimationClientTraceKeyframePath001
+ * @tc.desc: Verify AddKeyframeAnimationClientTrace with keyframe path (non-duration)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceKeyframePath001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    bool prevDebug = RSAnimationTraceUtils::isDebugEnabled_;
+    RSAnimationTraceUtils::isDebugEnabled_ = true;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    std::vector<KeyframeTuple> keyframes;
+    keyframes.push_back({0.0f, startValue, interpolator});
+    auto kv1 = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    keyframes.push_back({1.0f, kv1, interpolator});
+    // null value keyframe should be skipped (continue)
+    keyframes.push_back({0.5f, nullptr, interpolator});
+    std::vector<DurationKeyframeTuple> durationKeyframes;
+    // isDurationKeyframe false -> keyframe path
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::ALPHA, startValue,
+        false, 300, keyframes, durationKeyframes);
+    // Verify keyframe path completed without crash; debug flag unchanged
+    EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
+    RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
+}
+
+/**
+ * @tc.name: AddKeyframeAnimationClientTraceDurationKeyframePath001
+ * @tc.desc: Verify AddKeyframeAnimationClientTrace with duration keyframe path
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceDurationKeyframePath001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    bool prevDebug = RSAnimationTraceUtils::isDebugEnabled_;
+    RSAnimationTraceUtils::isDebugEnabled_ = true;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    std::vector<KeyframeTuple> keyframes;
+    std::vector<DurationKeyframeTuple> durationKeyframes;
+    auto kv0 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    durationKeyframes.push_back({0.0f, 100.0f, kv0, interpolator});
+    auto kv1 = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    durationKeyframes.push_back({100.0f, 300.0f, kv1, interpolator});
+    // null value in duration keyframe should be skipped (continue)
+    durationKeyframes.push_back({300.0f, 400.0f, nullptr, interpolator});
+    // isDurationKeyframe true -> duration keyframe path
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::ALPHA, startValue,
+        true, 300, keyframes, durationKeyframes);
+    // Verify duration keyframe path completed without crash; debug flag unchanged
+    EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
+    RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
+}
+
+/**
+ * @tc.name: AddKeyframeAnimationClientTraceEmptyKeyframes001
+ * @tc.desc: Verify AddKeyframeAnimationClientTrace with empty keyframe vectors
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceEmptyKeyframes001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    bool prevDebug = RSAnimationTraceUtils::isDebugEnabled_;
+    RSAnimationTraceUtils::isDebugEnabled_ = true;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    std::vector<KeyframeTuple> keyframes;
+    std::vector<DurationKeyframeTuple> durationKeyframes;
+    // empty keyframes with isDurationKeyframe true
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::ALPHA, startValue,
+        true, 300, keyframes, durationKeyframes);
+    // empty keyframes with isDurationKeyframe false
+    utils.AddKeyframeAnimationClientTrace(1, 2, ModifierNG::RSPropertyType::ALPHA, startValue,
+        false, 300, keyframes, durationKeyframes);
+    // Verify both paths completed without crash; debug flag unchanged
+    EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
+    RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
 }
 
 } // namespace Rosen

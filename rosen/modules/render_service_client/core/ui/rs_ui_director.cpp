@@ -451,8 +451,14 @@ void RSUIDirector::ReleaseRenderNode()
         return;
     }
     const auto& map = rsUIContext_->GetNodeMap();
-    map.TraversalNodes([](const std::shared_ptr<RSBaseNode>& baseNode) {
+    const auto groupAnimNodeIds = rsUIContext_->GetGroupAnimationNodeIds();
+    map.TraversalNodes([&groupAnimNodeIds](const std::shared_ptr<RSBaseNode>& baseNode) {
         if (baseNode == nullptr) {
+            return;
+        }
+        if (groupAnimNodeIds.count(baseNode->GetId()) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release groupAnim node id:%llu", baseNode->GetId());
             return;
         }
         auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();

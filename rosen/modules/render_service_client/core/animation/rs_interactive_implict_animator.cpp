@@ -26,6 +26,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int NUMBER_FOR_HALF = 2;
+}
 enum class StartAnimationErrorCode : int32_t {
     SUCCESS = 0,
     INVALID_STATUS,
@@ -377,7 +380,7 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
 
 void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPosition position)
 {
-    RS_TRACE_FUNC();
+    RS_TRACE_NAME_FMT("FinishAnimation position[%d]", static_cast<int>(position));
     if (state_ != RSInteractiveAnimationState::RUNNING && state_ != RSInteractiveAnimationState::PAUSED) {
         ROSEN_LOGE("FinishAnimation failed, state_ is error");
         return;
@@ -390,13 +393,14 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
         return;
     }
     if (position == RSInteractiveAnimationPosition::START || position == RSInteractiveAnimationPosition::END) {
+        auto clientPosition = GetClientFinishPosition(position);
         for (auto& [item, nodeId] : animations_) {
             auto animation = item.lock();
             auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
             if (target == nullptr || animation == nullptr) {
                 continue;
             }
-            animation->InteractiveFinish(position);
+            animation->InteractiveFinish(clientPosition);
         }
         std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorFinish>(id_, position);
         AddCommand(command, IsUniRenderEnabled());
@@ -544,6 +548,18 @@ float RSInteractiveImplictAnimator::GetFraction()
 void RSInteractiveImplictAnimator::SetFinishCallBack(const std::function<void()>& finishCallback)
 {
     finishCallback_ = finishCallback;
+}
+
+RSInteractiveAnimationPosition RSInteractiveImplictAnimator::GetClientFinishPosition(
+    RSInteractiveAnimationPosition position) const
+{
+    // For group autoReverse + even repeatCount, group ends at start position.
+    // Client-side staging value should be startValue_, matching server's GetGroupEndFraction.
+    if (position == RSInteractiveAnimationPosition::END && isGroupAnimator_ && timingProtocol_.GetAutoReverse() &&
+        timingProtocol_.GetRepeatCount() % NUMBER_FOR_HALF == 0) {
+        return RSInteractiveAnimationPosition::START;
+    }
+    return position;
 }
 
 void RSInteractiveImplictAnimator::CallFinishCallback()

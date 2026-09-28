@@ -108,6 +108,7 @@ public:
 
     void SetGroupReverseCycle(bool isReverse) { animationFraction_.SetGroupReverseCycle(isReverse); }
     bool GetGroupReverseCycle() const { return animationFraction_.GetGroupReverseCycle(); }
+    float GetGroupEndFraction() const { return animationFraction_.GetGroupEndFraction(); }
 
     void SetGroupAutoReverse(bool autoReverse) { animationFraction_.SetGroupAutoReverse(autoReverse); }
     bool GetGroupAutoReverse() const { return animationFraction_.GetGroupAutoReverse(); }
@@ -121,6 +122,7 @@ public:
     void SetGroupAnimator(const std::shared_ptr<RSRenderTimeDrivenGroupAnimator>& groupAnimator)
     {
         isGroupAnimationChild_ = true;
+        animationFraction_.SetGroupAnimationChild(true);
         groupAnimator_ = groupAnimator;
     }
 
@@ -169,6 +171,8 @@ protected:
     void SetFractionInner(float fraction);
 
     virtual void OnSetFraction(float fraction) {}
+
+    virtual void OnRestart() {}
 
     virtual void UpdateFractionAfterContinue() {}
 
