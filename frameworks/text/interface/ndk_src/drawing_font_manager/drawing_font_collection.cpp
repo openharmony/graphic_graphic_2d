@@ -83,18 +83,18 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    if (OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection)) {
-        ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
+    auto sharedFontCollection = OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection);
+    if (sharedFontCollection) {
+        sharedFontCollection->ClearCaches();
         return;
     }
 
     // 7.0-Release adaptation: ObjectMgr::WithObject (weekly_20260907 baseline)
-    // is absent here; keep the export-layer type from the PR with the
-    // HasObject check available on this branch.
+    // is absent here; the HasObject check plus an export-layer call keeps
+    // the same semantics with the APIs available on this branch.
     if (ObjectMgr::GetInstance().HasObject(fontCollection)) {
         ConvertToFontCollection<OHOS::Rosen::FontCollection>(fontCollection)->ClearCaches();
     }
-    return;
 }
 
 OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)
