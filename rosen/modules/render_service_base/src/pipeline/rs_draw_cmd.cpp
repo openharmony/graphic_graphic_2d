@@ -532,9 +532,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !imageInfoReserved_) {
-        if (RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this())) {
-            imageInfoReserved_ = true;
-        }
+        RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this());
     }
 #endif
     return true;

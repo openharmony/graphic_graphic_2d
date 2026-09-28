@@ -1051,12 +1051,14 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 
     NodeId id = 1;
-    EXPECT_FALSE(imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this()));
+    imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
 
     EXPECT_NE(rsImage, nullptr);
-    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this()));
+    imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
 }
 
 /**
@@ -1108,9 +1110,10 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this()));
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
+    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
 
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
     imageCache.rsImageInfoMap.clear();
@@ -1118,7 +1121,8 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
 
 /**
  * @tc.name: ReserveImageInfoDrawableNullTest
- * @tc.desc: Verify ReserveImageInfo returns false when drawable is not registered (GetDrawableById returns nullptr)
+ * @tc.desc: Verify ReserveImageInfo does not add entry when drawable is not registered
+ *           (GetDrawableById returns nullptr), imageInfoReserved_ stays false
  * @tc.type: FUNC
  * @tc.require: issue#IBZ6NM
  */
@@ -1134,8 +1138,9 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoDrawableNullTest, TestSize.Level1)
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, unregisteredNodeId, extendImageObject->weak_from_this()));
+    imageCache.ReserveImageInfo(rsImage, unregisteredNodeId, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
+    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
 
     imageCache.rsImageInfoMap.clear();
 }
@@ -1167,10 +1172,11 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoValidNodeIdTest, TestSize.Level1)
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    EXPECT_TRUE(imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this()));
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore + 1);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
     EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
+    EXPECT_TRUE(extendImageObject->IsImageInfoReserved());
 
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
     imageCache.rsImageInfoMap.clear();

@@ -72,7 +72,7 @@ public:
     void ReleaseUniqueIdList();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RemoveImageMemForWindow(NodeId surfaceNodeId);
-    bool ReserveImageInfo(std::shared_ptr<RSImage> rsImage, NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd);
+    void ReserveImageInfo(std::shared_ptr<RSImage> rsImage, NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd);
 #endif
 private:
     RSImageCache(const RSImageCache&) = delete;

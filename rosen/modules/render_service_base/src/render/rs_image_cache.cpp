@@ -378,26 +378,27 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-bool RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
+void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
 {
     if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
-        return false;
+        return;
     }
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
-            return false;
+            return;
         }
         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
         if (surfaceNodeId == INVALID_NODEID) {
-            return false;
+            return;
         }
         std::weak_ptr<RSImage> rsImage_weak = rsImage;
         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
-        return true;
+        if (auto drawCmdPtr = drawCmd.lock()) {
+            drawCmdPtr->SetImageInfoReserved(true);
+        }
     }
-    return false;
 }
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
