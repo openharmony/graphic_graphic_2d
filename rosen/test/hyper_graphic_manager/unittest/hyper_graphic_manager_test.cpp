@@ -1105,7 +1105,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRateNotEnabled, Function | Sma
 
 /**
  * @tc.name: HgmScreenUpdateRenderResolutionTest001
- * @tc.desc: Test HgmScreen::UpdateRenderResolution with invalid params (zero width/height/phyWidth/phyHeight)
+ * @tc.desc: Test HgmScreen::UpdateRenderResolution
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1113,47 +1113,58 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Functi
 {
     ScreenSize screenSize = { 720, 1080, 685, 1218 };
     sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
-    EXPECT_FALSE(screen->UpdateRenderResolution(0, 1080));
-    EXPECT_FALSE(screen->UpdateRenderResolution(720, 0));
-    screen->phyWidth_ = 0;
-    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
-    screen->phyWidth_ = 685;
-    screen->phyHeight_ = 0;
-    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
-    screen->phyHeight_ = 1218;
-}
-
-/**
- * @tc.name: HgmScreenUpdateRenderResolutionTest002
- * @tc.desc: Test HgmScreen::UpdateRenderResolution with same resolution (no change)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest002, Function | SmallTest | Level1)
-{
-    ScreenSize screenSize = { 720, 1080, 685, 1218 };
-    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
-    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
-}
-
-/**
- * @tc.name: HgmScreenUpdateRenderResolutionTest003
- * @tc.desc: Test HgmScreen::UpdateRenderResolution with valid different resolution
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest003, Function | SmallTest | Level1)
-{
-    ScreenSize screenSize = { 720, 1080, 685, 1218 };
-    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
     float oldPpi = screen->GetPpi();
     float oldXDpi = screen->GetXDpi();
     float oldYDpi = screen->GetYDpi();
-    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_FALSE(screen->UpdateRenderResolution(0, 1080));
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 0));
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(685, 1080));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(685, 1218));
     EXPECT_NE(screen->GetPpi(), oldPpi);
     EXPECT_NE(screen->GetXDpi(), oldXDpi);
     EXPECT_NE(screen->GetYDpi(), oldYDpi);
-    EXPECT_FALSE(screen->UpdateRenderResolution(1440, 2160));
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_NE(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 685;
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyHeight_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyHeight_ = 1218;
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 0;
+    screen->phyHeight_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
 }
 
 /**

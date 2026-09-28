@@ -61,7 +61,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
 
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(static_cast<int32_t>(100 * scaleFactor)); // 100:Scalar of setting font size
+    font.SetSize(static_cast<int32_t>(100 * scaleFactor)); // 100: Scalar of setting font size
     font.SetTypeface(tf);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
 
@@ -125,7 +125,6 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
             - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
 
-    // 2: if ret is odd, width and height should be swapped
     if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
         std::swap(translateWidth, translateHeight);
     }
