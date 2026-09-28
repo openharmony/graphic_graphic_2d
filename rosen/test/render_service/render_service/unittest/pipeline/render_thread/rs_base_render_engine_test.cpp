@@ -785,6 +785,39 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation002, TestSize.Leve
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
 }
 
+/**
+ * @tc.name: NeedBilinearInterpolation003
+ * @tc.desc: Test NeedBilinearInterpolation when matrix has half pixel translate X offset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation003, TestSize.Level1)
+{
+    BufferDrawParam params;
+    params.useBilinearInterpolation = true;
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    Drawing::Matrix matrix;
+    matrix.Reset();
+    // translateX has half pixel offset, short-circuit before translateY check
+    matrix.Set(Drawing::Matrix::TRANS_X, 0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_X, 1.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_X, -0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    // both translateX and translateY have half pixel offset
+    matrix.Set(Drawing::Matrix::TRANS_X, 0.5f);
+    matrix.Set(Drawing::Matrix::TRANS_Y, 0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    // translateX has no half pixel offset, result decided by translateY
+    matrix.Set(Drawing::Matrix::TRANS_X, 2.0f);
+    matrix.Set(Drawing::Matrix::TRANS_Y, 2.0f);
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: ColorSpaceConvertorTest001
