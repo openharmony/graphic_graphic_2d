@@ -24,6 +24,16 @@ namespace OHOS::Rosen {
 namespace {
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 2000;
+
+// Circle light cases keep the growing 200/400/600/800 node sizes; the sizes sum to exactly
+// SCREEN_HEIGHT, so a straight column would leave no room for gaps. This staggered cascade
+// keeps every node and gap 50px apart without overlap on the 1200x2000 screen.
+const std::vector<Vector4f> circleLightNodeBounds = {
+    Vector4f(50.0f, 50.0f, 200.0f, 200.0f),
+    Vector4f(300.0f, 50.0f, 400.0f, 400.0f),
+    Vector4f(50.0f, 500.0f, 600.0f, 600.0f),
+    Vector4f(350.0f, 1150.0f, 800.0f, 800.0f)
+};
 }  // namespace
 
 class NGFilterSoundWaveTest : public RSGraphicTest {
@@ -294,6 +304,105 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_TotalA
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
         soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(alphaValues[i]);
+        backgroundNode->SetForegroundNGFilter(soundWaveFilter);
+        GetRootNode()->AddChild(backgroundNode);
+        RegisterNode(backgroundNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_CircleRadius_Test)
+{
+    auto soundWavePtr = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(soundWavePtr);
+
+    // Set CircleRadius tag
+    soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.125f);
+
+    // RS zero defaults hide the circle light (black colors, zero intensity) and circle mode
+    // has no legacy fallback, so seed a fixed visible baseline for this case.
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.86f, 0.22f, 0.47f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f(0.31f, 0.78f, 0.54f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f(0.93f, 0.63f, 0.18f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.13f);
+    soundWaveFilter->Setter<SoundWaveLightIntensityTag>(1.0f);
+
+    int row = 4;
+
+    // 0.0 is the sentinel falling back to the legacy layout; other values enable the circle light mode.
+    const std::vector<float> radiusValues = {0.0f, 0.125f, 0.25f, 0.4f};
+
+    for (int i = 0; i < row; i++) {
+        auto backgroundNode = SetUpNodeBgImage(BG_PATH, circleLightNodeBounds[i]);
+        soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(radiusValues[i]);
+        backgroundNode->SetForegroundNGFilter(soundWaveFilter);
+        GetRootNode()->AddChild(backgroundNode);
+        RegisterNode(backgroundNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_CircleCenter_Test)
+{
+    auto soundWavePtr = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(soundWavePtr);
+
+    // CircleCenter only takes effect in circle light mode, so pair it with a non-zero radius.
+    soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
+
+    // RS zero defaults hide the circle light (black colors, zero intensity) and circle mode
+    // has no legacy fallback, so seed a fixed visible baseline for this case.
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.27f, 0.41f, 0.89f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f(0.72f, 0.88f, 0.24f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f(0.58f, 0.16f, 0.76f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.41f);
+    soundWaveFilter->Setter<SoundWaveLightIntensityTag>(1.0f);
+
+    // Set CircleCenter tag
+    soundWaveFilter->Setter<SoundWaveCircleCenterTag>(Vector2f(0.0f, 0.0f));
+
+    int row = 4;
+
+    // Vertical positions from low to high; 0.1 and above widens the horizontal gradient in the shader.
+    const std::vector<Vector2f> centerValues = {
+        Vector2f(0.0f, -0.1f),
+        Vector2f(0.0f, 0.1f),
+        Vector2f(0.0f, 0.25f),
+        Vector2f(0.0f, 0.5f)
+    };
+
+    for (int i = 0; i < row; i++) {
+        auto backgroundNode = SetUpNodeBgImage(BG_PATH, circleLightNodeBounds[i]);
+        soundWaveFilter->Setter<SoundWaveCircleCenterTag>(centerValues[i]);
+        backgroundNode->SetForegroundNGFilter(soundWaveFilter);
+        GetRootNode()->AddChild(backgroundNode);
+        RegisterNode(backgroundNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LightIntensity_Test)
+{
+    auto soundWavePtr = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(soundWavePtr);
+
+    // LightIntensity is forced back to 1.0 in the legacy mode, so pair it with a non-zero radius.
+    soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
+
+    // RS zero defaults hide the circle light (black colors, zero intensity) and circle mode
+    // has no legacy fallback, so seed a fixed visible baseline for this case.
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.95f, 0.87f, 0.35f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f(0.12f, 0.65f, 0.83f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f(0.67f, 0.35f, 0.28f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.67f);
+
+    // Set LightIntensity tag
+    soundWaveFilter->Setter<SoundWaveLightIntensityTag>(0.4f);
+
+    int row = 4;
+
+    const std::vector<float> lightIntensityValues = {0.0f, 0.5f, 1.0f, 5.0f};
+
+    for (int i = 0; i < row; i++) {
+        auto backgroundNode = SetUpNodeBgImage(BG_PATH, circleLightNodeBounds[i]);
+        soundWaveFilter->Setter<SoundWaveLightIntensityTag>(lightIntensityValues[i]);
         backgroundNode->SetForegroundNGFilter(soundWaveFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);
