@@ -88,6 +88,8 @@ public:
         SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
     void PurgeMipmapMem();
+    bool IsImageInfoReserved() const;
+    void SetImageInfoReserved(bool reserved);
 #endif
     void SetNodeId(NodeId id) override;
     NodeId GetNodeId() const override;

@@ -1051,11 +1051,11 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 
     NodeId id = 1;
-    imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this());
+    EXPECT_FALSE(imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this()));
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 
     EXPECT_NE(rsImage, nullptr);
-    imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
+    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this()));
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 }
 
@@ -1108,11 +1108,35 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
+    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this()));
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
 
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
+    imageCache.rsImageInfoMap.clear();
+}
+
+/**
+ * @tc.name: ReserveImageInfoDrawableNullTest
+ * @tc.desc: Verify ReserveImageInfo returns false when drawable is not registered (GetDrawableById returns nullptr)
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReserveImageInfoDrawableNullTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    constexpr NodeId unregisteredNodeId = 99999;
+    EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(unregisteredNodeId), nullptr);
+
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+
+    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
+    EXPECT_FALSE(imageCache.ReserveImageInfo(rsImage, unregisteredNodeId, extendImageObject->weak_from_this()));
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
+
     imageCache.rsImageInfoMap.clear();
 }
 
@@ -1143,7 +1167,7 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoValidNodeIdTest, TestSize.Level1)
     auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
 
     size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
-    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
+    EXPECT_TRUE(imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this()));
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore + 1);
     EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
     EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
