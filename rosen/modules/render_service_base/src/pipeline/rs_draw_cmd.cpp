@@ -544,7 +544,6 @@ void RSExtendImageObject::PurgeMipmapMem()
         if (image_ && image_.use_count() == 1) {
             image_ = nullptr;
         }
-        imageInfoReserved_ = false;
         drawingImageMutex_.unlock();
     }
 }

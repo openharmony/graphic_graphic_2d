@@ -1217,7 +1217,7 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
 
 /**
  * @tc.name: PurgeMipmapMemTest003
- * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ when image is purged
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ (only RemoveImageMemForWindow resets it)
  * @tc.type:FUNC
  * @tc.require:issueIBZ6NM
  */
@@ -1230,12 +1230,12 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest003, TestSize.Level1)
     ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
     extendImageObject.PurgeMipmapMem();
     ASSERT_EQ(extendImageObject.image_, nullptr);
-    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
 }
 
 /**
  * @tc.name: PurgeMipmapMemTest004
- * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ even when image use_count > 1
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image use_count > 1
  * @tc.type:FUNC
  * @tc.require:issueIBZ6NM
  */
@@ -1248,7 +1248,7 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest004, TestSize.Level1)
     ASSERT_EQ(extendImageObject.image_.use_count(), 2);
     extendImageObject.PurgeMipmapMem();
     ASSERT_NE(extendImageObject.image_, nullptr);
-    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
 }
 
 /**
@@ -1270,7 +1270,7 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest005, TestSize.Level1)
 
 /**
  * @tc.name: PurgeMipmapMemTest006
- * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ even when image_ is nullptr
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image_ is nullptr
  * @tc.type:FUNC
  * @tc.require:issueIBZ6NM
  */
@@ -1281,7 +1281,7 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest006, TestSize.Level1)
     extendImageObject.SetImageInfoReserved(true);
     extendImageObject.PurgeMipmapMem();
     ASSERT_EQ(extendImageObject.image_, nullptr);
-    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
 }
 
 /**
