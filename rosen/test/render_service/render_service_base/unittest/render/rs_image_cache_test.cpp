@@ -1083,6 +1083,54 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReserveRemoveReReserveLifecycleTest
+ * @tc.desc: Verify full lifecycle: reserve → flag=true & map has entry,
+ *           remove → flag=false & map empty, re-reserve → flag=true & map has new entry
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReserveRemoveReReserveLifecycleTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    constexpr NodeId nodeId = 10003;
+    constexpr NodeId firstLevelNodeId = 20003;
+    auto context = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
+    auto drawable = std::make_shared<TestImageCacheDrawableAdapter>(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_NE(drawable->GetRenderParams(), nullptr);
+    drawable->GetRenderParams()->SetFirstLevelNode(firstLevelNodeId);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
+
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+
+    imageCache.rsImageInfoMap.clear();
+
+    // 1. Reserve → flag=true, map has 1 entry
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
+    EXPECT_TRUE(extendImageObject->IsImageInfoReserved());
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
+    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
+
+    // 2. Remove → flag=false, map empty
+    imageCache.RemoveImageMemForWindow(firstLevelNodeId);
+    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 0u);
+
+    // 3. Re-reserve → flag=true, map has new entry (not duplicate)
+    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
+    EXPECT_TRUE(extendImageObject->IsImageInfoReserved());
+    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
+    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
+    imageCache.rsImageInfoMap.clear();
+}
+
+/**
  * @tc.name: ReserveImageInfoInvalidNodeIdTest
  * @tc.desc: Verify ReserveImageInfo returns early when surfaceNodeId is INVALID_NODEID
  *           (drawable registered, node not on tree → firstLevelNodeId defaults to INVALID_NODEID)

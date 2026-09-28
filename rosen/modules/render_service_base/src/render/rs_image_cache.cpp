@@ -417,6 +417,7 @@ void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
         }
         if (auto imgOP_ptr = imageOp.lock()) {
             imgOP_ptr->PurgeMipmapMem();
+            imgOP_ptr->SetImageInfoReserved(false);
         }
     }
     rsImageInfoMap.erase(surfaceNodeId);

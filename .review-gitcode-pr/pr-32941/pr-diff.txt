@@ -1,0 +1,355 @@
+﻿diff --git a/rosen/modules/render_service_base/include/pipeline/rs_draw_cmd.h b/rosen/modules/render_service_base/include/pipeline/rs_draw_cmd.h
+status: undefined | +3 -0
+---
+@@ -88,6 +88,8 @@ public:
+         SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
+         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+     void PurgeMipmapMem();
++    bool IsImageInfoReserved() const;
++    void SetImageInfoReserved(bool reserved);
+ #endif
+     void SetNodeId(NodeId id) override;
+     NodeId GetNodeId() const override;
+@@ -113,6 +115,7 @@ private:
+ #ifdef RS_ENABLE_VK
+     mutable Drawing::BackendTexture backendTexture_ = {};
+     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
++    bool imageInfoReserved_ = false;
+ #endif
+ #endif
+     std::shared_ptr<Drawing::Image> image_;
+
+
+diff --git a/rosen/modules/render_service_base/src/pipeline/rs_draw_cmd.cpp b/rosen/modules/render_service_base/src/pipeline/rs_draw_cmd.cpp
+status: undefined | +12 -1
+---
+@@ -531,7 +531,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
+         return false;
+     }
+ #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+-    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
++    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !imageInfoReserved_) {
+         RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this());
+     }
+ #endif
+@@ -544,9 +544,20 @@ void RSExtendImageObject::PurgeMipmapMem()
+         if (image_ && image_.use_count() == 1) {
+             image_ = nullptr;
+         }
++        imageInfoReserved_ = false;
+         drawingImageMutex_.unlock();
+     }
+ }
++
++bool RSExtendImageObject::IsImageInfoReserved() const
++{
++    return imageInfoReserved_;
++}
++
++void RSExtendImageObject::SetImageInfoReserved(bool reserved)
++{
++    imageInfoReserved_ = reserved;
++}
+ #endif
+ 
+ void RSExtendImageObject::FlushImageCache()
+
+
+diff --git a/rosen/modules/render_service_base/src/render/rs_image_cache.cpp b/rosen/modules/render_service_base/src/render/rs_image_cache.cpp
+status: undefined | +6 -0
+---
+@@ -390,8 +390,14 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
+             return;
+         }
+         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
++        if (surfaceNodeId == INVALID_NODEID) {
++            return;
++        }
+         std::weak_ptr<RSImage> rsImage_weak = rsImage;
+         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
++        if (auto drawCmdPtr = drawCmd.lock()) {
++            drawCmdPtr->SetImageInfoReserved(true);
++        }
+     }
+ }
+ 
+
+
+diff --git a/rosen/test/render_service/render_service_base/unittest/pipeline/rs_draw_cmd_test.cpp b/rosen/test/render_service/render_service_base/unittest/pipeline/rs_draw_cmd_test.cpp
+status: undefined | +97 -0
+---
+@@ -1214,6 +1214,103 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
+         ASSERT_EQ(extendImageObject.image_.use_count(), 2);
+     }
+ }
++
++/**
++ * @tc.name: PurgeMipmapMemTest003
++ * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ when image is purged
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest003, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    extendImageObject.image_ = std::make_shared<Drawing::Image>();
++    extendImageObject.SetImageInfoReserved(true);
++    ASSERT_EQ(extendImageObject.image_.use_count(), 1);
++    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
++    extendImageObject.PurgeMipmapMem();
++    ASSERT_EQ(extendImageObject.image_, nullptr);
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++}
++
++/**
++ * @tc.name: PurgeMipmapMemTest004
++ * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ even when image use_count > 1
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest004, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    extendImageObject.image_ = std::make_shared<Drawing::Image>();
++    extendImageObject.SetImageInfoReserved(true);
++    auto imageHolder = extendImageObject.image_;
++    ASSERT_EQ(extendImageObject.image_.use_count(), 2);
++    extendImageObject.PurgeMipmapMem();
++    ASSERT_NE(extendImageObject.image_, nullptr);
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++}
++
++/**
++ * @tc.name: PurgeMipmapMemTest005
++ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when lock is held by others
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest005, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    extendImageObject.image_ = std::make_shared<Drawing::Image>();
++    extendImageObject.SetImageInfoReserved(true);
++    std::unique_lock<std::mutex> lock(extendImageObject.drawingImageMutex_);
++    extendImageObject.PurgeMipmapMem();
++    ASSERT_NE(extendImageObject.image_, nullptr);
++    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
++}
++
++/**
++ * @tc.name: PurgeMipmapMemTest006
++ * @tc.desc: test PurgeMipmapMem resets imageInfoReserved_ even when image_ is nullptr
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest006, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    extendImageObject.image_ = nullptr;
++    extendImageObject.SetImageInfoReserved(true);
++    extendImageObject.PurgeMipmapMem();
++    ASSERT_EQ(extendImageObject.image_, nullptr);
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++}
++
++/**
++ * @tc.name: ImageInfoReservedInitialValueTest
++ * @tc.desc: test imageInfoReserved_ defaults to false via IsImageInfoReserved
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, ImageInfoReservedInitialValueTest, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++}
++
++/**
++ * @tc.name: ImageInfoReservedGetterSetterTest
++ * @tc.desc: test IsImageInfoReserved/SetImageInfoReserved round-trip
++ * @tc.type:FUNC
++ * @tc.require:issueIBZ6NM
++ */
++HWTEST_F(RSDrawCmdTest, ImageInfoReservedGetterSetterTest, TestSize.Level1)
++{
++    RSExtendImageObject extendImageObject;
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++    extendImageObject.SetImageInfoReserved(true);
++    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
++    extendImageObject.SetImageInfoReserved(false);
++    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
++}
+ #endif
+ 
+ /**
+
+
+diff --git a/rosen/test/render_service/render_service_base/unittest/render/rs_image_cache_test.cpp b/rosen/test/render_service/render_service_base/unittest/render/rs_image_cache_test.cpp
+status: undefined | +132 -0
+---
+@@ -18,6 +18,9 @@
+ #include "gtest/gtest.h"
+ 
+ #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
++#include "params/rs_surface_render_params.h"
++#include "pipeline/rs_context.h"
++#include "pipeline/rs_surface_render_node.h"
+ #include "render/rs_image_cache.h"
+ #include "transaction/rs_marshalling_helper.h"
+ 
+@@ -25,6 +28,18 @@ using namespace testing;
+ using namespace testing::ext;
+ 
+ namespace OHOS::Rosen {
++namespace {
++class TestImageCacheDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
++public:
++    explicit TestImageCacheDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
++        : RSRenderNodeDrawableAdapter(std::move(node))
++    {
++        renderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeId_);
++    }
++    void Draw(Drawing::Canvas& canvas) {}
++};
++} // namespace
++
+ class RSImageCacheTest : public testing::Test {
+ public:
+     static void SetUpTestCase();
+@@ -1038,10 +1053,12 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
+     NodeId id = 1;
+     imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this());
+     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
++    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
+ 
+     EXPECT_NE(rsImage, nullptr);
+     imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
+     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
++    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
+ }
+ 
+ /**
+@@ -1064,6 +1081,121 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
+     imageCache.RemoveImageMemForWindow(surfaceNodeId);
+     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+ }
++
++/**
++ * @tc.name: ReserveImageInfoInvalidNodeIdTest
++ * @tc.desc: Verify ReserveImageInfo returns early when surfaceNodeId is INVALID_NODEID
++ *           (drawable registered, node not on tree 鈫?firstLevelNodeId defaults to INVALID_NODEID)
++ * @tc.type: FUNC
++ * @tc.require: issue#IBZ6NM
++ */
++HWTEST_F(RSImageCacheTest, ReserveImageInfoInvalidNodeIdTest, TestSize.Level1)
++{
++    RSImageCache& imageCache = RSImageCache::Instance();
++    constexpr NodeId nodeId = 10001;
++    auto context = std::make_shared<RSContext>();
++    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
++    auto drawable = std::make_shared<TestImageCacheDrawableAdapter>(surfaceNode);
++    ASSERT_NE(drawable, nullptr);
++    ASSERT_NE(drawable->GetRenderParams(), nullptr);
++    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
++
++    auto retrieved = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
++    ASSERT_NE(retrieved, nullptr);
++    EXPECT_EQ(retrieved->GetRenderParams()->GetFirstLevelNodeId(), INVALID_NODEID);
++
++    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
++    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
++    Drawing::AdaptiveImageInfo imageInfo;
++    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
++
++    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
++    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
++    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
++    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
++    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
++
++    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
++    imageCache.rsImageInfoMap.clear();
++}
++
++/**
++ * @tc.name: ReserveImageInfoDrawableNullTest
++ * @tc.desc: Verify ReserveImageInfo does not add entry when drawable is not registered
++ *           (GetDrawableById returns nullptr), imageInfoReserved_ stays false
++ * @tc.type: FUNC
++ * @tc.require: issue#IBZ6NM
++ */
++HWTEST_F(RSImageCacheTest, ReserveImageInfoDrawableNullTest, TestSize.Level1)
++{
++    RSImageCache& imageCache = RSImageCache::Instance();
++    constexpr NodeId unregisteredNodeId = 99999;
++    EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(unregisteredNodeId), nullptr);
++
++    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
++    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
++    Drawing::AdaptiveImageInfo imageInfo;
++    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
++
++    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
++    imageCache.ReserveImageInfo(rsImage, unregisteredNodeId, extendImageObject->weak_from_this());
++    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore);
++    EXPECT_FALSE(extendImageObject->IsImageInfoReserved());
++
++    imageCache.rsImageInfoMap.clear();
++}
++
++/**
++ * @tc.name: ReserveImageInfoValidNodeIdTest
++ * @tc.desc: Verify ReserveImageInfo adds entry when surfaceNodeId is valid
++ *           (drawable registered, firstLevelNodeId set to valid value)
++ * @tc.type: FUNC
++ * @tc.require: issue#IBZ6NM
++ */
++HWTEST_F(RSImageCacheTest, ReserveImageInfoValidNodeIdTest, TestSize.Level1)
++{
++    RSImageCache& imageCache = RSImageCache::Instance();
++    constexpr NodeId nodeId = 10002;
++    constexpr NodeId firstLevelNodeId = 20002;
++    auto context = std::make_shared<RSContext>();
++    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
++    auto drawable = std::make_shared<TestImageCacheDrawableAdapter>(surfaceNode);
++    ASSERT_NE(drawable, nullptr);
++    ASSERT_NE(drawable->GetRenderParams(), nullptr);
++    drawable->GetRenderParams()->SetFirstLevelNode(firstLevelNodeId);
++    EXPECT_EQ(drawable->GetRenderParams()->GetFirstLevelNodeId(), firstLevelNodeId);
++    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(nodeId, drawable);
++
++    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
++    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
++    Drawing::AdaptiveImageInfo imageInfo;
++    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
++
++    size_t mapSizeBefore = imageCache.rsImageInfoMap.size();
++    imageCache.ReserveImageInfo(rsImage, nodeId, extendImageObject->weak_from_this());
++    EXPECT_EQ(imageCache.rsImageInfoMap.size(), mapSizeBefore + 1);
++    EXPECT_EQ(imageCache.rsImageInfoMap.count(firstLevelNodeId), 1u);
++    EXPECT_EQ(imageCache.rsImageInfoMap[firstLevelNodeId].size(), 1u);
++    EXPECT_TRUE(extendImageObject->IsImageInfoReserved());
++
++    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.erase(nodeId);
++    imageCache.rsImageInfoMap.clear();
++}
++
++/**
++ * @tc.name: RemoveImageMemForWindowInvalidNodeIdTest
++ * @tc.desc: Verify RemoveImageMemForWindow handles INVALID_NODEID safely
++ * @tc.type: FUNC
++ * @tc.require: issue#IBZ6NM
++ */
++HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowInvalidNodeIdTest, TestSize.Level1)
++{
++    RSImageCache& imageCache = RSImageCache::Instance();
++    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
++
++    imageCache.RemoveImageMemForWindow(INVALID_NODEID);
++    EXPECT_EQ(imageCache.rsImageInfoMap.count(INVALID_NODEID), 0u);
++}
+ #endif
+ 
+ /**
+
+
