@@ -16,6 +16,8 @@
 #define RS_BUFFER_RECLAIM_H
 
 #ifndef ROSEN_CROSS_PLATFORM
+#include <condition_variable>
+#include <map>
 #include <mutex>
 #include <set>
 #include "common/rs_common_def.h"
@@ -23,6 +25,13 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class ReclaimState : uint8_t {
+    PENDING = 0,
+    RECLAIMING = 1,
+    RECLAIMED = 2,
+    RECLAIMING_RESUME = 3,
+}
+
 class RSB_EXPORT RSBufferReclaim {
 public:
     static RSBufferReclaim& GetInstance();
@@ -39,10 +48,15 @@ public:
 
 private:
     static void BufferDestructorCallback(uint64_t bufferId);
-    mutable std::mutex mutex_;
-    std::set<uint64_t> bufferReclaimNumsSet_;
+    void ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer);
+    bool TryResumeBuffer(sptr<SurfaceBuffer> buffer, uint64_t bufferId);
+
     std::mutex uiCaptureNodeMapMutex_;
     std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
+    mutable std::mutex resumeMutex_;
+    std::condition_variable resumeCv_;
+    mutable std::mutex bufferReclaimMapMutex_;
+    std::map<uint64_t, ReclaimState> bufferReclaimMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

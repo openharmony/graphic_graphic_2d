@@ -272,20 +272,7 @@ bool RSSurfaceHandler::ReclaimLastBufferProcess()
     sptr<SurfaceBuffer> buffer = buffer_.buffer;
     bool ret = false;
     if ((lastBufferId_ != 0) && (buffer != nullptr) && (buffer->GetBufferId() == lastBufferId_)) {
-        auto startTime = std::chrono::steady_clock::now();
-        {
-            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryReclaim-begin: bufId: %" PRIu64 ""
-                ", bufSeqNum: %u, w: %d, h: %d, fmt: %d, hasReclaim: %d", buffer->GetBufferId(), buffer->GetSeqNum(),
-                buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(), buffer->IsReclaimed());
-            ret = RSBufferReclaim::GetInstance().DoBufferReclaim(buffer);
-            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryReclaim-end, ret: %d", ret);
-        }
-        auto endTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-        RS_LOGI("[LastBufferReclaim]TryReclaim: bufId: %{public}" PRIu64 ""
-            ", bufSeqNum: %{public}u, w: %{public}d, h: %{public}d, fmt: %{public}d, cost %{public}" PRIu64 " ms",
-            buffer->GetBufferId(), buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(),
-            static_cast<uint64_t>(duration.count()));
+        ret = RSBufferReclaim::GetInstance().DoBufferReclaim(buffer);
         lastBufferReclaimNum_ = 0;
         lastBufferId_ = 0;
     }
@@ -297,20 +284,7 @@ void RSSurfaceHandler::TryResumeLastBuffer()
     std::lock_guard<std::mutex> lock(mutex_);
     sptr<SurfaceBuffer> buffer = buffer_.buffer;
     if (buffer && buffer->IsReclaimed()) {
-        auto startTime = std::chrono::steady_clock::now();
-        {
-            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryResumeLastBuffer-begin: bufId: %" PRIu64 ""
-                ", bufSeqNum: %u, w: %d, h: %d, fmt: %d", buffer->GetBufferId(),
-                buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat());
-            bool ret = RSBufferReclaim::GetInstance().DoBufferResume(buffer);
-            RS_TRACE_NAME_FMT("[LastBufferReclaim]TryResumeLastBuffer-end, ret: %d", ret);
-        }
-        auto endTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-        RS_LOGI("[LastBufferReclaim]TryResumeLastBuffer: bufId: %{public}" PRIu64 ""
-            ", bufSeqNum: %{public}u, w: %{public}d, h: %{public}d, fmt: %{public}d, cost %{public}" PRIu64 " ms",
-            buffer->GetBufferId(), buffer->GetSeqNum(), buffer->GetWidth(), buffer->GetHeight(), buffer->GetFormat(),
-            static_cast<uint64_t>(duration.count()));
+        (void)RSBufferReclaim::GetInstance().DoBufferResume(buffer);
     }
 }
 #endif

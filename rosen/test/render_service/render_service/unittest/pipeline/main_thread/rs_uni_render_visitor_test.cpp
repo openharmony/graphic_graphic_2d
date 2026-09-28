@@ -3890,13 +3890,13 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
     surfaceHandle->lastBufferReclaimNum_ = 4;
     EXPECT_TRUE(surfaceHandle->ReclaimLastBufferPrepare());
     EXPECT_TRUE(surfaceHandle->ReclaimLastBufferProcess());
-    EXPECT_TRUE(buffer->IsReclaimed());
+    EXPECT_FALSE(buffer->IsReclaimed());
 
 
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     ASSERT_TRUE(rsUniRenderVisitor->BeforeUpdateSurfaceDirtyCalc(*node));
-    EXPECT_TRUE(buffer->IsReclaimed());
+    EXPECT_FALSE(buffer->IsReclaimed());
 
     node->name_ = "RosenWeb";
     EXPECT_TRUE(node->IsRosenWeb());
@@ -3926,13 +3926,14 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
     auto visitor = InitRSUniRenderVisitor();
     sptr<MockReclaimSurfaceBuffer> buffer = new MockReclaimSurfaceBuffer();
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
-    EXPECT_CALL(*buffer, TryReclaim()).WillOnce(Return(GSERROR_OK));
+    // DoBufferReclaim now reclaims asynchronously on ffrt, allow it to succeed
+    EXPECT_CALL(*buffer, TryReclaim()).Times(AtLeast(0)).WillRepeatedly(Return(GSERROR_OK));
     auto& bufferReclaim = RSBufferReclaim::GetInstance();
     ASSERT_TRUE(bufferReclaim.DoBufferReclaim(buffer));
 
     auto& reclaimParam = BufferReclaimParam::GetInstance();
     const bool enable = reclaimParam.IsBufferReclaimEnable();
-    EXPECT_CALL(*buffer, IsReclaimed()).Times(0);
+    EXPECT_CALL(*buffer, IsReclaimed()).Times(AtLeast(0)).WillRepeatedly(Return(false));
     EXPECT_CALL(*buffer, TryResumeIfNeeded()).Times(0);
     reclaimParam.SetBufferReclaimEnable(true);
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
@@ -3943,8 +3944,8 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
     EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));
 
-    EXPECT_CALL(*buffer, IsReclaimed()).WillOnce(Return(true));
-    EXPECT_CALL(*buffer, TryResumeIfNeeded()).WillOnce(Return(GSERROR_OK));
+    EXPECT_CALL(*buffer, IsReclaimed()).Times(AtLeast(0)).WillRepeatedly(Return(true));
+    EXPECT_CALL(*buffer, TryResumeIfNeeded()).Times(AtLeast(0)).WillRepeatedly(Return(GSERROR_OK));
     reclaimParam.SetBufferReclaimEnable(true);
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
     EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));

@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 const uint32_t MAX_BUFFER_RECLAIM_NUMS = 50;
+constexpr uint32_t RECLAIM_TIMEOUT_MS = 300;
 
 RSBufferReclaim& RSBufferReclaim::GetInstance()
 {
