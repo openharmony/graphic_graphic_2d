@@ -17,6 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 text_unittest("rosen_text_interface_test") {
   sources = [
+    "ref_count_holder_test.cpp",
     "run_get_text_style_test.cpp",
     "typography_thread_test.cpp",
   ]
