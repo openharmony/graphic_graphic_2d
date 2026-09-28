@@ -24,29 +24,14 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
 
-#include "params/rs_surface_render_params.h"
-#include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-namespace {
-class TestVKDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
-public:
-    explicit TestVKDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
-        : RSRenderNodeDrawableAdapter(std::move(node))
-    {
-        renderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeId_);
-    }
-    void Draw(Drawing::Canvas& canvas) {}
-};
-} // namespace
-
 class RSDrawCmdTest : public testing::Test {
 public:
     static void SetUpTestCase();
