@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "common/rs_atlas_info.h"
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"

@@ -351,5 +351,17 @@ bool UIEffectNapiUtils::IsFormRenderServiceCall()
     return bundleName == frsBundleName;
 }
 
+bool UIEffectNapiUtils::CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName)
+{
+    napi_valuetype type = UIEffectNapiUtils::GetType(env, argv);
+    if (type == napi_null || type == napi_undefined) {
+        std::string msg = std::string("param ") + paramName + " is null or undefined";
+        UTIL_LOG_E("UIEffectNapiUtils %{public}s is null or undefined", paramName);
+        napi_throw(env, UIEffect::CreateJsError(env, UIEffect::ERR_INVALID_PARAM, msg));
+        return false;
+    }
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

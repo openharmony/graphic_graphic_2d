@@ -135,6 +135,8 @@ public:
             case RSNGEffectType::FRACTAL_GLASS_MASK: return "FractalGlassMask";
             case RSNGEffectType::BINOCULAR_MASK: return "BinocularMask";
             case RSNGEffectType::SWEEP_REFRACTION_MASK: return "SweepRefractionMask";
+            case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
+            case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             default: return "UNKNOWN";
         }
     }
@@ -195,6 +197,9 @@ private:
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<RSPath> value);
 
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const AtlasInfo& value);
+
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, float value);
@@ -228,6 +233,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSPath> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const AtlasInfo& value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

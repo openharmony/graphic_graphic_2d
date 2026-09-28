@@ -32,6 +32,7 @@ enum class OpincUnsupportType : uint8_t {
     CHILD_HAS_FILTER,
     CHILD_HAS_EFFECT,
     HAS_HARMONIUM,
+    HAS_GLASS_EFFECT,
 };
 constexpr int64_t COLOR_CHANNEL = 4;
 constexpr int64_t SCREEN_RATIO = 2;

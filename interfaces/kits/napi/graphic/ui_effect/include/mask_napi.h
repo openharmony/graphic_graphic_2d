@@ -26,6 +26,7 @@
 #include "mask/include/wave_disturbance_mask_para.h"
 #include "mask/include/fractal_glass_mask_para.h"
 #include "mask/include/binocular_mask_para.h"
+#include "mask/include/atlas_frame_mask_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -64,6 +65,7 @@ private:
     static napi_value CreateFractalGlassMask(napi_env env, napi_callback_info info);
     static napi_value CreateBinocularMask(napi_env env, napi_callback_info info);
     static napi_value CreateSweepRefractionMask(napi_env env, napi_callback_info info);
+    static napi_value CreateAtlasFrameMask(napi_env env, napi_callback_info info);
 
     static void RegisterMaskParaUnmarshallingCallback();
 };

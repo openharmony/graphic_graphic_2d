@@ -27,6 +27,9 @@ copy_taihe_idl("copy_uieffect_taihe") {
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.taihe",
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.uiEffect.taihe",
   ]
+  deps = [
+    "//foundation/graphic/graphic_2d/interfaces/kits/taihe/drawing:copy_drawing_taihe",
+  ]
   external_deps = [ "image_framework:copy_image_taihe" ]
 }
 
@@ -38,6 +41,8 @@ ohos_taihe("run_uiEffect_taihe") {
     "$taihe_generated_file_path/src/ohos.graphics.uiEffect.abi.c",
     "$taihe_generated_file_path/src/ohos.graphics.uiEffect.uiEffect.ani.cpp",
     "$taihe_generated_file_path/src/ohos.graphics.uiEffect.uiEffect.abi.c",
+    "$taihe_generated_file_path/src/ohos.graphics.drawing.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.graphics.drawing.abi.c",
   ]
 }
 
@@ -99,7 +104,10 @@ taihe_shared_library("uieffect_taihe_native") {
 
 generate_static_abc("uiEffect_taihe_abc") {
   base_url = "$taihe_generated_file_path"
-  files = [ "$taihe_generated_file_path/@ohos.graphics.uiEffect.ets" ]
+  files = [
+    "$taihe_generated_file_path/@ohos.graphics.uiEffect.ets",
+    "$taihe_generated_file_path/@ohos.graphics.drawing.ets",
+  ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/uiEffect_taihe_abc.abc"
   dependencies = [ ":run_uiEffect_taihe" ]

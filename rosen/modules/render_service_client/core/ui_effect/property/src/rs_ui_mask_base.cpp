@@ -28,6 +28,7 @@
 #include "ui_effect/mask/include/fractal_glass_mask_para.h"
 #include "ui_effect/mask/include/binocular_mask_para.h"
 #include "ui_effect/mask/include/sweep_refraction_mask_para.h"
+#include "ui_effect/mask/include/atlas_frame_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -92,6 +93,10 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     },
     {RSNGEffectType::SWEEP_REFRACTION_MASK, [] {
             return std::make_shared<RSNGSweepRefractionMask>();
+        }
+    },
+    {RSNGEffectType::ATLAS_FRAME_MASK, [] {
+            return std::make_shared<RSNGAtlasFrameMask>();
         }
     },
 };
@@ -276,6 +281,19 @@ std::shared_ptr<RSNGMaskBase> ConvertSweepRefractionMaskPara(std::shared_ptr<Mas
     return sweepRefractionMask;
 }
 
+std::shared_ptr<RSNGMaskBase> ConvertAtlasFrameMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::ATLAS_FRAME_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto atlasFrameMask = std::static_pointer_cast<RSNGAtlasFrameMask>(mask);
+    auto atlasFrameMaskPara = std::static_pointer_cast<AtlasFrameMaskPara>(maskPara);
+    const auto& atlasInfo = atlasFrameMaskPara->GetAtlasInfo();
+    atlasFrameMask->Setter<AtlasFrameMaskAtlasInfoTag>(atlasInfo);
+    return atlasFrameMask;
+}
+
 }
 
 thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
@@ -290,6 +308,7 @@ thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::FRACTAL_GLASS_MASK, ConvertFractalGlassMaskPara },
     { MaskPara::Type::BINOCULAR_MASK, ConvertBinocularMaskPara },
     { MaskPara::Type::SWEEP_REFRACTION_MASK, ConvertSweepRefractionMaskPara },
+    { MaskPara::Type::ATLAS_FRAME_MASK, ConvertAtlasFrameMaskPara },
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

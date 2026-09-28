@@ -16,6 +16,7 @@
 #include "animation/rs_implicit_animator.h"
 
 #include "animation/rs_animation.h"
+#include "animation/rs_atlas_info_animation.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_trace_utils.h"
@@ -668,7 +669,13 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
     switch (params->GetType()) {
         case ImplicitAnimationParamType::CURVE: {
             auto curveImplicitParam = static_cast<RSImplicitCurveAnimationParam*>(params.get());
-            animation = curveImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
+            if (property->GetPropertyType() == RSPropertyType::ATLAS_INFO) {
+                animation = std::make_shared<RSAtlasInfoAnimation>(
+                    rsUIContext_.lock(), property, startValue, endValue);
+                curveImplicitParam->ApplyTimingProtocol(animation);
+            } else {
+                animation = curveImplicitParam->CreateAnimation(rsUIContext_.lock(), property, startValue, endValue);
+            }
             break;
         }
         case ImplicitAnimationParamType::KEYFRAME: {

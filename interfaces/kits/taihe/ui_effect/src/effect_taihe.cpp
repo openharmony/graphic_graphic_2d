@@ -20,10 +20,12 @@
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
 #include "effect/include/color_gradient_effect_para.h"
+#include "effect/include/glass_effect_para.h"
 #include "effect/include/harmonium_effect_para.h"
 #include "effect/include/visual_effect.h"
 #include "ohos.graphics.uiEffect.uiEffect.BrightnessBlender.proj.1.hpp"
 #include "ohos.graphics.uiEffect.uiEffect.VisualEffect.proj.1.hpp"
+#include "pixel_map_taihe.h"
 #include "ui_effect_taihe_utils.h"
 
 using namespace ANI::UIEffect;
@@ -97,6 +99,88 @@ VisualEffect VisualEffectImpl::BorderLight(uintptr_t lightPosition, uintptr_t li
     para->SetLightColor(lightColorRes);
     para->SetLightIntensity(static_cast<float>(lightIntensity));
     para->SetLightWidth(static_cast<float>(borderWidth));
+
+    nativeVisualEffect_->AddPara(para);
+    return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+}
+
+VisualEffect VisualEffectImpl::GlassMarbleEffect(
+    ::ohos::graphics::uiEffect::uiEffect::GlassMarbleMaterialParam const& material,
+    ::ohos::graphics::uiEffect::uiEffect::GlassMarbleShell const& marbleShell,
+    optional_view<::ohos::graphics::uiEffect::uiEffect::GlassMarbleContentParam> content)
+{
+    if (!IsVisualEffectValid()) {
+        UIEFFECT_LOG_E("VisualEffectImpl::glassMarbleEffect failed, visual effect is invalid");
+        return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+    }
+
+    auto para = std::make_shared<OHOS::Rosen::GlassEffectPara>();
+
+    // Parse material params
+    OHOS::Rosen::Vector4f bgColor(static_cast<float>(material.averageBgColor.red),
+        static_cast<float>(material.averageBgColor.green),
+        static_cast<float>(material.averageBgColor.blue),
+        static_cast<float>(material.averageBgColor.alpha));
+    para->SetAverageBgColor(bgColor);
+    para->SetOpacity(static_cast<float>(material.opacity));
+    para->SetShapeScale(static_cast<float>(material.shapeScale));
+    para->SetShadowOffset(static_cast<float>(material.shadowOffset));
+    para->SetShadowRadius(static_cast<float>(material.shadowRadius));
+    para->SetShadowEdgeSoftness(static_cast<float>(material.shadowEdgeSoftness));
+    para->SetShadowOpacity(static_cast<float>(material.shadowOpacity));
+    para->SetCausticOffset(static_cast<float>(material.causticOffset));
+    para->SetCausticRadius(static_cast<float>(material.causticRadius));
+    para->SetCausticEdgeSoftness(static_cast<float>(material.causticEdgeSoftness));
+    para->SetCausticOpacity(static_cast<float>(material.causticOpacity));
+
+    // Parse reflectionMap (optional PixelMap)
+    if (material.reflectionMap.has_value()) {
+        Image::PixelMapImpl* pixelMapImpl =
+            reinterpret_cast<Image::PixelMapImpl*>(material.reflectionMap.value()->GetImplPtr());
+        if (pixelMapImpl != nullptr && pixelMapImpl->GetNativePtr() != nullptr) {
+            para->SetReflectionImage(pixelMapImpl->GetNativePtr());
+        }
+    }
+
+    // Parse marbleShell (union: Mask | GlassMarbleSphereParam)
+    {
+        auto& maskVal = marbleShell;
+        if (maskVal.holds_mask()) {
+            // Mask branch (e.g. atlas frame mask)
+            Mask maskHolder = maskVal.get_mask_ref();
+            MaskImpl* maskImpl = reinterpret_cast<MaskImpl*>(maskHolder->GetImplPtr());
+            if (maskImpl && maskImpl->GetNativePtr()) {
+                para->SetShapeMask(maskImpl->GetNativePtr()->GetMaskPara());
+            }
+        } else if (maskVal.holds_sphereParam()) {
+            // SphereParam branch (simple sphere shape)
+            auto& sphereParam = maskVal.get_sphereParam_ref();
+            auto& centerTuple = sphereParam.center;
+            OHOS::Rosen::Vector2f center(centerTuple.x, centerTuple.y);
+            para->SetSphereCenter(center);
+            para->SetSphereRadius(static_cast<float>(sphereParam.radius));
+        }
+    }
+
+    // Parse content (optional GlassMarbleContentParam)
+    if (content.has_value()) {
+        const auto& contentVal = content.value();
+        if (contentVal.contentMask.has_value()) {
+            MaskImpl* contentMaskImpl =
+                reinterpret_cast<MaskImpl*>(contentVal.contentMask.value()->GetImplPtr());
+            if (contentMaskImpl && contentMaskImpl->GetNativePtr()) {
+                para->SetContentMask(contentMaskImpl->GetNativePtr()->GetMaskPara());
+            }
+        }
+        OHOS::Rosen::Vector4f tintColor(static_cast<float>(contentVal.contentTintColor.red),
+            static_cast<float>(contentVal.contentTintColor.green),
+            static_cast<float>(contentVal.contentTintColor.blue),
+            static_cast<float>(contentVal.contentTintColor.alpha));
+        para->SetContentTintColor(tintColor);
+        para->SetContentScale(static_cast<float>(contentVal.contentScale));
+        para->SetContentSaturation(static_cast<float>(contentVal.contentSaturation));
+        para->SetContentDispersion(static_cast<float>(contentVal.contentDispersion));
+    }
 
     nativeVisualEffect_->AddPara(para);
     return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);

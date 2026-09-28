@@ -286,6 +286,7 @@ private:
         const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b);
     friend class RSTransition;
     friend class RSSpringAnimation;
+    friend class RSAtlasInfoAnimation;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class ModifierNG::RSModifier;

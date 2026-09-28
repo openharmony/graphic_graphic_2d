@@ -106,6 +106,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_particle_ripple_field.cpp",
     "src/animation/rs_particle_velocity_field.cpp",
     "src/animation/rs_render_animation.cpp",
+    "src/animation/rs_render_atlas_info_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interactive_implict_animator.cpp",
     "src/animation/rs_render_interactive_implict_animator_map.cpp",

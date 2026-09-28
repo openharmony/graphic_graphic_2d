@@ -295,6 +295,32 @@ Mask CreateSweepRefractionMask(
     mask->SetMaskPara(sweepRefractionMaskPara);
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
+
+Mask CreateAtlasFrameMask(
+    ::ohos::graphics::drawing::AtlasImage const& atlasImage)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto atlasFrameMaskPara = std::make_shared<OHOS::Rosen::AtlasFrameMaskPara>();
+
+    OHOS::Rosen::AtlasInfo rosenAtlasInfo;
+    rosenAtlasInfo.mode = atlasImage.mode;
+    rosenAtlasInfo.rows = atlasImage.rows;
+    rosenAtlasInfo.cols = atlasImage.cols;
+    rosenAtlasInfo.frameWidth = atlasImage.frameWidth;
+    rosenAtlasInfo.frameHeight = atlasImage.frameHeight;
+    rosenAtlasInfo.padding = atlasImage.padding;
+    rosenAtlasInfo.frameIndex = atlasImage.frameIndex;
+    rosenAtlasInfo.totalFrame = atlasImage.totalFrame;
+    Image::PixelMapImpl* pixelMapImpl =
+        reinterpret_cast<Image::PixelMapImpl*>(atlasImage.atlasImage->GetImplPtr());
+    if (pixelMapImpl != nullptr && pixelMapImpl->GetNativePtr() != nullptr) {
+        rosenAtlasInfo.pixelMap = pixelMapImpl->GetNativePtr();
+    }
+
+    atlasFrameMaskPara->SetAtlasInfo(rosenAtlasInfo);
+    mask->SetMaskPara(atlasFrameMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
 } // namespace ANI::UIEffect
 
 // NOLINTBEGIN
@@ -308,4 +334,5 @@ TH_EXPORT_CPP_API_CreateUseEffectMask(CreateUseEffectMask);
 TH_EXPORT_CPP_API_CreateBinocularMask(CreateBinocularMask);
 TH_EXPORT_CPP_API_CreateFractalGlassMask(CreateFractalGlassMask);
 TH_EXPORT_CPP_API_CreateSweepRefractionMask(CreateSweepRefractionMask);
+TH_EXPORT_CPP_API_CreateAtlasFrameMask(CreateAtlasFrameMask);
 // NOLINTEND

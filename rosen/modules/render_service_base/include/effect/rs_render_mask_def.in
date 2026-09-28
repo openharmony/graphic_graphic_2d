@@ -141,3 +141,7 @@ DECLARE_MASK(SweepRefractionMask, SWEEP_REFRACTION_MASK,
     ADD_PROPERTY_TAG(SweepRefractionMask, SweepCenterX),
     ADD_PROPERTY_TAG(SweepRefractionMask, SweepCenterY)
 );
+
+DECLARE_MASK(AtlasFrameMask, ATLAS_FRAME_MASK,
+    ADD_PROPERTY_TAG(AtlasFrameMask, AtlasInfo)
+);

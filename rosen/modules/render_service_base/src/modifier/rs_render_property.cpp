@@ -25,6 +25,7 @@
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
+#include "common/rs_atlas_info.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -1156,6 +1157,80 @@ bool RSRenderAnimatableProperty<RRect>::IsReachProgress(const std::shared_ptr<RS
     const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
 {
     return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+// ===== AtlasInfo specializations =====
+
+template<>
+void RSRenderProperty<AtlasInfo>::Dump(std::string& out) const
+{
+    out += "AtlasInfo[frame=" + std::to_string(static_cast<int>(stagingValue_.frameIndex)) +
+            " rows=" + std::to_string(stagingValue_.rows) +
+            " cols=" + std::to_string(stagingValue_.cols) + "]";
+}
+
+template<>
+float RSRenderAnimatableProperty<AtlasInfo>::ToFloat() const
+{
+    return stagingValue_.frameIndex;
+}
+
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
+{
+    auto other = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(value);
+    if (!other) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<AtlasInfo>::%{public}s: the value is nullptr", __func__);
+        return true;
+    }
+    return std::abs(stagingValue_.frameIndex - other->Get().frameIndex) < zeroThreshold;
+}
+
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target,
+    const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(target);
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<AtlasInfo>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(threshold);
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<AtlasInfo>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return std::abs(stagingValue_.frameIndex - targetAnimatableProperty->Get().frameIndex) <
+        thresholdAnimatableProperty->Get().frameIndex;
+}
+
+template<>
+void RSRenderAnimatableProperty<AtlasInfo>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(target);
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<AtlasInfo>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    if (std::abs(targetAnimatableProperty->Get().frameIndex) > std::abs(stagingValue_.frameIndex)) {
+        stagingValue_.frameIndex = targetAnimatableProperty->Get().frameIndex;
+    }
+}
+
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    auto startProp = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(start);
+    auto endProp = std::static_pointer_cast<const RSRenderAnimatableProperty<AtlasInfo>>(end);
+    if (!startProp || !endProp) {
+        return false;
+    }
+    float targetFrame = startProp->Get().frameIndex +
+        (endProp->Get().frameIndex - startProp->Get().frameIndex) * threshold;
+    return std::abs(stagingValue_.frameIndex - targetFrame) < 0.01f;
 }
 
 template<>

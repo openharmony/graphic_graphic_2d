@@ -76,7 +76,8 @@ bool MaskPara::IsWhitelistPara(uint16_t type)
         static_cast<uint16_t>(Type::IMAGE_MASK),
         static_cast<uint16_t>(Type::FRACTAL_GLASS_MASK),
         static_cast<uint16_t>(Type::BINOCULAR_MASK),
-        static_cast<uint16_t>(Type::SWEEP_REFRACTION_MASK)
+        static_cast<uint16_t>(Type::SWEEP_REFRACTION_MASK),
+        static_cast<uint16_t>(Type::ATLAS_FRAME_MASK)
     };
 
     auto find = whitelist.find(type);
