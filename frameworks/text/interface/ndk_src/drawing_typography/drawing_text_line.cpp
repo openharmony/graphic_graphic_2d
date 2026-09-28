@@ -20,15 +20,25 @@
 
 #include "array_mgr.h"
 #include "drawing_rect.h"
-#include "skia_txt/run_impl.h"
-#include "skia_txt/text_line_base.h"
-#include "skia/txt/paragraph.h"
+#include "rosen_text/run.h"
+#include "rosen_text/text_line_base.h"
+#include "rosen_text/typography.h"
+#include "text_line_entry.h"
+
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
 
-typedef OHOS::Rosen::AdapterTxt::TextLineBaseImpl LineImpl;
-typedef OHOS::Rosen::AdapterTxt::RunImpl RunImpl;
+namespace {
+TextLineBase* GetTextLineImpl(OH_Drawing_TextLine* line)
+{
+    if (line == nullptr) {
+        return nullptr;
+    }
+    auto lineEntry = static_cast<TextLineEntry*>(reinterpret_cast<LineObject*>(line)->line);
+    return (lineEntry == nullptr) ? nullptr : lineEntry->line.get();
+}
+} // namespace
 
 OH_Drawing_Array* OH_Drawing_TypographyGetTextLines(OH_Drawing_Typography* typography)
 {
@@ -37,48 +47,19 @@ OH_Drawing_Array* OH_Drawing_TypographyGetTextLines(OH_Drawing_Typography* typog
         return nullptr;
     }
 
-    auto paragraph = reinterpret_cast<Typography*>(typography)->GetParagraph();
-    if (paragraph == nullptr) {
-        TEXT_LOGE("Failed to get paragraph");
-        return nullptr;
-    }
-
-    auto textLines = reinterpret_cast<SPText::Paragraph*>(paragraph)->GetTextLines();
+    auto textLines = reinterpret_cast<Typography*>(typography)->GetTextLines();
     if (textLines.size() == 0) {
         TEXT_LOGE("Failed to get text lines");
         return nullptr;
     }
 
-    LineObject* lineObjectArr = new (std::nothrow) LineObject[textLines.size()];
-    if (lineObjectArr == nullptr) {
-        TEXT_LOGE("Failed to create line object");
-        return nullptr;
-    }
+    LineObject* lineObjectArr = new LineObject[textLines.size()];
     for (size_t i = 0; i < textLines.size(); ++i) {
-        auto textLine = new (std::nothrow) LineImpl(std::move(textLines[i]));
-        if (textLine == nullptr) {
-            TEXT_LOGE("Failed to create line impl");
-            for (size_t j = 0; j < i; ++j) {
-                delete reinterpret_cast<LineImpl*>(lineObjectArr[j].line);
-                lineObjectArr[j].line = nullptr;
-            }
-            delete[] lineObjectArr;
-            return nullptr;
-        }
-
-        lineObjectArr[i].line = reinterpret_cast<void*>(textLine);
+        lineObjectArr[i].line = new TextLineEntry { std::move(textLines[i]) };
         lineObjectArr[i].isArray = true;
     }
 
-    ObjectArray* array = new (std::nothrow) ObjectArray();
-    if (array == nullptr) {
-        TEXT_LOGE("Failed to create array");
-        for (size_t i = 0; i < textLines.size(); ++i) {
-            delete reinterpret_cast<LineImpl*>(lineObjectArr[i].line);
-        }
-        delete[] lineObjectArr;
-        return nullptr;
-    }
+    ObjectArray* array = new ObjectArray();
     array->addr = lineObjectArr;
     array->num = textLines.size();
     array->type = TEXT_LINE;
@@ -98,7 +79,7 @@ void OH_Drawing_DestroyTextLines(OH_Drawing_Array* lines)
         LineObject* lineObjectArr = reinterpret_cast<LineObject*>(arrayLines->addr);
         if (lineObjectArr != nullptr) {
             for (size_t i = 0; i < arrayLines->num; ++i) {
-                delete reinterpret_cast<LineImpl*>(lineObjectArr[i].line);
+                delete static_cast<TextLineEntry*>(lineObjectArr[i].line);
                 lineObjectArr[i].line = nullptr;
             }
             delete[] lineObjectArr;
@@ -119,7 +100,7 @@ void OH_Drawing_DestroyTextLine(OH_Drawing_TextLine* line)
 
     LineObject* lineObject = reinterpret_cast<LineObject*>(line);
     if (!lineObject->isArray) {
-        delete reinterpret_cast<LineImpl*>(lineObject->line);
+        delete static_cast<TextLineEntry*>(lineObject->line);
         lineObject->line = nullptr;
         delete lineObject;
     }
@@ -149,7 +130,7 @@ double OH_Drawing_TextLineGetGlyphCount(OH_Drawing_TextLine* line)
         return 0.0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0.0;
@@ -165,7 +146,7 @@ void OH_Drawing_TextLineGetTextRange(OH_Drawing_TextLine* line, size_t* start, s
         return;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return;
@@ -183,39 +164,24 @@ OH_Drawing_Array* OH_Drawing_TextLineGetGlyphRuns(OH_Drawing_TextLine* line)
         return nullptr;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return nullptr;
     }
 
-    auto spTextLines = lineImpl->GetSpTextLineBase();
-    if (spTextLines == nullptr) {
-        TEXT_LOGE("Failed to get sp text line");
-        return nullptr;
-    }
-
-    auto runs = reinterpret_cast<SPText::TextLineBase*>(spTextLines)->GetGlyphRuns();
+    auto runs = lineImpl->GetGlyphRuns();
     if (runs.size() == 0) {
         TEXT_LOGE("Failed to get glyph runs");
         return nullptr;
     }
 
-    RunImpl* runsArr = new (std::nothrow) RunImpl[runs.size()];
-    if (runsArr == nullptr) {
-        TEXT_LOGE("Failed to create run impl");
-        return nullptr;
-    }
+    Run** runsArr = new Run* [runs.size()];
     for (size_t i = 0; i < runs.size(); ++i) {
-        runsArr[i].SetSpRunBase(runs[i]);
+        runsArr[i] = runs[i].release();
     }
 
-    ObjectArray* array = new (std::nothrow) ObjectArray();
-    if (array == nullptr) {
-        TEXT_LOGE("Failed to create array");
-        delete[] runsArr;
-        return nullptr;
-    }
+    ObjectArray* array = new ObjectArray();
     array->addr = runsArr;
     array->num = runs.size();
     array->type = TEXT_RUN;
@@ -232,8 +198,11 @@ void OH_Drawing_DestroyRuns(OH_Drawing_Array* runs)
 
     auto arrayRuns = reinterpret_cast<ObjectArray*>(runs);
     if (arrayRuns != nullptr && arrayRuns->type == TEXT_RUN && arrayRuns->num > 0) {
-        RunImpl* runsArr = reinterpret_cast<RunImpl*>(arrayRuns->addr);
+        Run** runsArr = reinterpret_cast<Run**>(arrayRuns->addr);
         if (runsArr != nullptr) {
+            for (size_t i = 0; i < arrayRuns->num; ++i) {
+                delete runsArr[i];
+            }
             delete[] runsArr;
             arrayRuns->addr = nullptr;
         }
@@ -251,10 +220,9 @@ OH_Drawing_Run* OH_Drawing_GetRunByIndex(OH_Drawing_Array* runs, size_t index)
     }
 
     auto arrayRuns = reinterpret_cast<ObjectArray*>(runs);
-    if (arrayRuns != nullptr &&  arrayRuns->addr != nullptr &&
-        arrayRuns->type == TEXT_RUN && index < arrayRuns->num) {
-        RunImpl* run = reinterpret_cast<RunImpl*>(arrayRuns->addr);
-        return reinterpret_cast<OH_Drawing_Run*>(&run[index]);
+    if (arrayRuns != nullptr && arrayRuns->addr != nullptr && arrayRuns->type == TEXT_RUN && index < arrayRuns->num) {
+        Run** run = reinterpret_cast<Run**>(arrayRuns->addr);
+        return reinterpret_cast<OH_Drawing_Run*>(run[index]);
     }
 
     return nullptr;
@@ -267,7 +235,7 @@ void OH_Drawing_TextLinePaint(OH_Drawing_TextLine* line, OH_Drawing_Canvas* canv
         return;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return;
@@ -284,40 +252,21 @@ OH_Drawing_TextLine* OH_Drawing_TextLineCreateTruncatedLine(OH_Drawing_TextLine*
         return nullptr;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return nullptr;
     }
 
-    auto spTextLines = lineImpl->GetSpTextLineBase();
-    if (spTextLines == nullptr) {
-        TEXT_LOGE("Failed to get sp text line");
-        return nullptr;
-    }
-
     std::string ellipsisStr(ellipsis);
-    auto truncatedTextLine = reinterpret_cast<SPText::TextLineBase*>(spTextLines)->CreateTruncatedLine(
-        width, static_cast<OHOS::Rosen::SPText::EllipsisModal>(mode), ellipsisStr);
+    auto truncatedTextLine = lineImpl->CreateTruncatedLine(width, static_cast<EllipsisModal>(mode), ellipsisStr);
     if (truncatedTextLine == nullptr) {
         TEXT_LOGE("Failed to create truncated line");
         return nullptr;
     }
 
-    auto truncatedLine = new (std::nothrow) LineImpl(std::move(truncatedTextLine));
-    if (truncatedLine == nullptr) {
-        TEXT_LOGE("Failed to create line impl");
-        return nullptr;
-    }
-
-    LineObject* lineObject = new (std::nothrow) LineObject();
-    if (lineObject == nullptr) {
-        TEXT_LOGE("Failed to create array");
-        delete truncatedLine;
-        return nullptr;
-    }
-
-    lineObject->line = reinterpret_cast<void*>(truncatedLine);
+    LineObject* lineObject = new LineObject();
+    lineObject->line = new TextLineEntry { std::move(truncatedTextLine) };
     lineObject->isArray = false;
 
     return reinterpret_cast<OH_Drawing_TextLine*>(lineObject);
@@ -331,7 +280,7 @@ double OH_Drawing_TextLineGetTypographicBounds(OH_Drawing_TextLine* line, double
         return 0.0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0.0;
@@ -347,7 +296,7 @@ OH_Drawing_Rect* OH_Drawing_TextLineGetImageBounds(OH_Drawing_TextLine* line)
         return nullptr;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return nullptr;
@@ -364,7 +313,7 @@ double OH_Drawing_TextLineGetTrailingSpaceWidth(OH_Drawing_TextLine* line)
         return 0.0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0.0;
@@ -380,7 +329,7 @@ int32_t OH_Drawing_TextLineGetStringIndexForPosition(OH_Drawing_TextLine* line, 
         return 0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0;
@@ -396,7 +345,7 @@ double OH_Drawing_TextLineGetOffsetForStringIndex(OH_Drawing_TextLine* line, int
         return 0.0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0.0;
@@ -412,7 +361,7 @@ void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, Drawing
         return;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return;
@@ -446,7 +395,7 @@ double OH_Drawing_TextLineGetAlignmentOffset(OH_Drawing_TextLine* line, double a
         return 0.0;
     }
 
-    auto lineImpl = reinterpret_cast<LineImpl*>(reinterpret_cast<LineObject*>(line)->line);
+    auto lineImpl = GetTextLineImpl(line);
     if (lineImpl == nullptr) {
         TEXT_LOGE("Failed to get line");
         return 0.0;

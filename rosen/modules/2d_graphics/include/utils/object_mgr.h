@@ -33,7 +33,7 @@ class FontCollection;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class ObjectMgr {
+class DRAWING_API ObjectMgr {
 public:
     ObjectMgr(const ObjectMgr&) = delete;
     ObjectMgr& operator=(const ObjectMgr&) = delete;
@@ -50,7 +50,7 @@ private:
     std::shared_mutex mutex_;
 };
 
-class TypefaceMgr {
+class DRAWING_API TypefaceMgr {
 public:
     TypefaceMgr(const TypefaceMgr&) = delete;
     TypefaceMgr& operator=(const TypefaceMgr&) = delete;
