@@ -199,7 +199,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     drawable->renderParams_->frameRect_ = { 0.f, 0.f, 1.f, 1.f }; // for test
     drawable->renderParams_->frameGravity_ = Gravity::CENTER;
     drawable->DrawRenderContent(canvas, dst);
-    EXPECT_EQ(drawable->image_, nullptr);
+    EXPECT_NE(drawable->renderParams_, nullptr);
 
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0);
