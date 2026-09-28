@@ -1,5 +1,0 @@
-﻿? rosen/modules/render_service_base/include/pipeline/rs_draw_cmd.h
-? rosen/modules/render_service_base/src/pipeline/rs_draw_cmd.cpp
-? rosen/modules/render_service_base/src/render/rs_image_cache.cpp
-? rosen/test/render_service/render_service_base/unittest/pipeline/rs_draw_cmd_test.cpp
-? rosen/test/render_service/render_service_base/unittest/render/rs_image_cache_test.cpp
