@@ -190,10 +190,10 @@ void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
     std::condition_variable reclaimCv;
     std::mutex reclaimMtx;
 
-    const int32_t timeout1 = 200;
     ON_CALL(*buffer, TryReclaim())
         .WillByDefault(Invoke([&reclaimMtx, &reclaimCv, &reclaimDone]() {
             std::unique_lock<std::mutex> lk(reclaimMtx);
+            const int32_t timeout1 = 200;
             reclaimCv.wait_for(lk, std::chrono::milliseconds(timeout1),
                 [&reclaimDone]() { return reclaimDone.load(); });
             return GSERROR_OK;
@@ -238,10 +238,10 @@ void RSBufferReclaimTest::TestDoBufferResumeReclaimingTimeout()
 
 void RSBufferReclaimTest::TestDoBufferResumeAlreadyReclaimingResumeTimeout()
 {
-    const uint64_t bufferId = 5042;
+    uint64_t bufferId = 5042;
     auto& reclaim = GetReclaim();
     auto buffer = CreateMockSurfaceBuffer(bufferId);
-    uint64_t bufferId = buffer->GetBufferId();
+    bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
     ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
@@ -395,7 +395,7 @@ HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtCancelledByRemoveTest001, TestS
     uint64_t bufferId = 5010;
     auto& reclaim = GetReclaim();
     auto buffer = CreateMockSurfaceBuffer(bufferId);
-    uint64_t bufferId = buffer->GetBufferId();
+    bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
         ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
@@ -428,7 +428,7 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
     // 2. PENDING — cancel and return true
     {
         auto buffer = CreateMockSurfaceBuffer(++bufferId);
-        uint64_t bufferId = buffer->GetBufferId();
+        bufferId = buffer->GetBufferId();
         {
             std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
             reclaim.bufferReclaimMap_[bufferId] = ReclaimState::PENDING;
@@ -441,7 +441,7 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
     // 3. RECLAIMED + TryResumeIfNeeded fail — false, entry stays
     {
         auto buffer = CreateMockSurfaceBuffer(++bufferId);
-        uint64_t bufferId = buffer->GetBufferId();
+        bufferId = buffer->GetBufferId();
         ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
         ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
         ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
@@ -480,7 +480,7 @@ HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
     uint64_t bufferId = 5030;
     auto& reclaim = GetReclaim();
     auto buffer = CreateMockSurfaceBuffer(bufferId);
-    uint64_t bufferId = buffer->GetBufferId();
+    bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
 
