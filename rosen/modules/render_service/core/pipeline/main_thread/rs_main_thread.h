@@ -478,6 +478,7 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
+    void ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);

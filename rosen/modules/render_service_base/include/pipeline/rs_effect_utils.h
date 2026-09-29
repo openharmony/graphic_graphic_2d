@@ -19,6 +19,7 @@
 #include "effect/rs_render_effect_common_def.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "property/rs_properties.h"
 
 namespace OHOS {
 
@@ -47,6 +48,9 @@ public:
     // 2. Updates pending purge filter dirty rect for cache management
     static void UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
+
+    // true: has filter that only depends on background
+    static bool HasBackgroundDependentFilter(const RSProperties& properties);
 };
 } // namespace Rosen
 } // namespace OHOS

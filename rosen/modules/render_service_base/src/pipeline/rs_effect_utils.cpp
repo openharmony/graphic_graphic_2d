@@ -82,5 +82,10 @@ void RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode&
         node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
     }
 }
+
+bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
+{
+    return properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow() || properties.GetMaterialFilter();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -724,6 +724,7 @@ public:
     void UpdateFilterCacheWithBackgroundDirty();
     virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty,
         RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER);
+
     virtual void UpdateFilterCacheWithSelfDirty();
     void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, RSDrawableSlot slot);
     bool IsBackgroundInAppOrNodeSelfDirty() const
@@ -1199,7 +1200,10 @@ protected:
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
-
+    void CheckRegionInsideForFilterCache(
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable);
+    void CheckRegionChangeForFilterCache(
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable, bool isForeground);
     bool InvokeFilterDrawable(RSDrawableSlot slot,
         std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
 

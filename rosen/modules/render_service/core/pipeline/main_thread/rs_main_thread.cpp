@@ -447,6 +447,27 @@ void RSMainThread::MarkNodeDirty(uint64_t nodeId)
             RSMainThread::Instance()->SetDirtyFlag();
             RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
             node->SetDirty(true);
+            node->UpdateFilterCacheWithBelowDirty(
+                Occlusion::Rect(node->GetAbsDrawRect()), RSDrawableSlot::MATERIAL_FILTER);
+            if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
+                RSMainThread::Instance()->RequestNextVSync();
+            }
+        }
+    });
+}
+
+void RSMainThread::ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId)
+{
+    RSMainThread::Instance()->PostTask([nodeId]() {
+        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto node = nodeMap.GetRenderNode(nodeId);
+        if (node) {
+            RS_LOGD_IF(DEBUG_PIPELINE, "MarkNodeDirty success: %{public}" PRIu64, nodeId);
+            RSMainThread::Instance()->SetDirtyFlag();
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
+            node->SetDirty(true);
+            node->UpdateFilterCacheWithBelowDirty(
+                Occlusion::Rect(node->GetAbsDrawRect()), RSDrawableSlot::MATERIAL_FILTER);
             if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
                 RSMainThread::Instance()->RequestNextVSync();
             }
@@ -704,7 +725,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
 #endif
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(
-        std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
+        std::bind(&RSMainThread::ColorPickerNoticedNodeDirtyCallback, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNotifyClientCallback(
         std::bind(&RSMainThread::SendColorPickerCallback, this, std::placeholders::_1, std::placeholders::_2));
     rsVsyncManagerAgent_ = rsVsyncManagerAgent;
