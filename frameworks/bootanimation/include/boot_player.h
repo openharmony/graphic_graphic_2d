@@ -26,6 +26,7 @@
 
 namespace OHOS {
 static const int64_t MAX_WAIT_MEDIA_CREATE_TIME = 5000; // 5S
+static const int64_t MAX_WAIT_MEDIA_CREATE_TIME_WEARABLE = 10000; // 10S, watches need longer wait for media service
 #ifdef PLAYER_FRAMEWORK_ENABLE
 static const int CONTENT_TYPE_UNKNOWN = 0;
 static const int STREAM_USAGE_ENFORCED_TONE = 15;
@@ -78,9 +79,13 @@ public:
             LOGE("samgr is nullptr");
             return;
         }
+        int64_t maxWaitTime = (GetDeviceType() == DEVICE_TYPE_WEARABLE)
+            ? MAX_WAIT_MEDIA_CREATE_TIME_WEARABLE
+            : MAX_WAIT_MEDIA_CREATE_TIME;
+        LOGI("CheckAndCreateMedia maxWaitTime: %{public}lld ms", static_cast<long long>(maxWaitTime));
         int64_t startTime = GetSystemCurrentTime();
         int64_t endTime = startTime;
-        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+        while ((endTime - startTime) < maxWaitTime
             && samgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID) == nullptr) {
             usleep(SLEEP_TIME_US_10);
             endTime = GetSystemCurrentTime();
@@ -93,7 +98,7 @@ public:
 
         startTime = GetSystemCurrentTime();
         endTime = startTime;
-        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+        while ((endTime - startTime) < maxWaitTime
             && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
             usleep(SLEEP_TIME_US);
             endTime = GetSystemCurrentTime();
