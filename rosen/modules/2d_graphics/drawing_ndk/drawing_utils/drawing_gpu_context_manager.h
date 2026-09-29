@@ -47,6 +47,8 @@ private:
 
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::unordered_map<void*, std::shared_ptr<Drawing::GPUContext>> gpuContext_;
+    std::unordered_map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
+    std::mutex mapMutex_;
     std::mutex mutex_;
 };
 } // namespace Rosen

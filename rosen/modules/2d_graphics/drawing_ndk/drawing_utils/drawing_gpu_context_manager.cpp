@@ -42,11 +42,31 @@ DrawingGpuContextManager& DrawingGpuContextManager::GetInstance()
 
 std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingContext()
 {
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
 #ifdef RS_ENABLE_GPU
-    renderContext_->Init();
-    return renderContext_->GetSharedDrGPUContext();
+    if (Drawing::SystemProperties::IsUseGl()) {
+        renderContext_->Init();
+        gpuContext = renderContext_->GetSharedDrGPUContext();
+    }
+#ifdef RS_ENABLE_VK
+    if (Drawing::SystemProperties::IsUseVulkan()) {
+        int tid = gettid();
+        {
+            std::lock_guard<std::mutex> lock(mapMutex_);
+            auto it = drawingContextMap_.find(tid);
+            if (it != drawingContextMap_.end()) {
+                return it->second;
+            }
+        }
+        gpuContext = renderContext_->CreateDrawingGPUContext();
+        {
+            std::lock_guard<std::mutex> lock(mapMutex_);
+            drawingContextMap_[tid] = gpuContext;
+        }
+    }
 #endif
-    return nullptr;
+#endif
+    return gpuContext;
 }
 
 void DrawingGpuContextManager::Insert(void* key, std::shared_ptr<Drawing::GPUContext> gpuContext)
