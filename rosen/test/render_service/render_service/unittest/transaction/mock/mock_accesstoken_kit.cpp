@@ -24,6 +24,22 @@ namespace {
 std::string g_processName = "foundation";
 int g_accessTokenKitRet = 0;
 bool g_isMockGetTokenTypeFlagRet = true;
+int g_getTokenTypeFlagCallCount = 0;
+int g_skipFirstNCalls = 0;
+}
+
+void MockAccessTokenKit::MockTokenType(bool isNative)
+{
+    g_isMockGetTokenTypeFlagRet = isNative;
+    g_getTokenTypeFlagCallCount = 0;
+    g_skipFirstNCalls = 0;
+}
+
+void MockAccessTokenKit::MockTokenTypeWithSkip(bool isNative, int skipFirstN)
+{
+    g_isMockGetTokenTypeFlagRet = isNative;
+    g_getTokenTypeFlagCallCount = 0;
+    g_skipFirstNCalls = skipFirstN;
 }
 
 void MockAccessTokenKit::MockProcessName(const std::string &processName)
@@ -34,11 +50,6 @@ void MockAccessTokenKit::MockProcessName(const std::string &processName)
 void MockAccessTokenKit::MockAccessTokenKitRet(int accessTokenKitRet)
 {
     g_accessTokenKitRet = accessTokenKitRet;
-}
-
-void MockAccessTokenKit::MockTokenType(bool isNative)
-{
-    g_isMockGetTokenTypeFlagRet = isNative;
 }
 } // namespace OHOS::Rosen
 
@@ -51,6 +62,10 @@ int AccessTokenKit::GetNativeTokenInfo(uint32_t tokenId, NativeTokenInfo&  nativ
 
 ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(AccessTokenID tokenId)
 {
+    Rosen::g_getTokenTypeFlagCallCount++;
+    if (Rosen::g_getTokenTypeFlagCallCount <= Rosen::g_skipFirstNCalls) {
+        return Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    }
     if (Rosen::g_isMockGetTokenTypeFlagRet) {
         return Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
     }

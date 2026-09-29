@@ -26,7 +26,6 @@
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_command.h"
-#include "rs_profiler_file.h"
 #include "rs_profiler_json.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
@@ -111,7 +110,7 @@ void RSProfiler::Invoke(const std::vector<std::string>& line)
 
     const auto delegate = COMMANDS.find(line[0]);
     if (delegate == COMMANDS.end()) {
-        Respond("Command has not been found: " + line[0]);
+        SendMessage("Command has not been found: %s", line[0].data());
         return;
     }
 
@@ -121,7 +120,7 @@ void RSProfiler::Invoke(const std::vector<std::string>& line)
 
 void RSProfiler::RecordCompression(const ArgList& args)
 {
-    int type = args.Int64(0);
+    auto type = args.Int32();
     if (type < 0 || type > static_cast<int>(TextureRecordType::NO_COMPRESSION)) {
         type = static_cast<int>(TextureRecordType::NO_COMPRESSION);
     }
@@ -263,32 +262,32 @@ void RSProfiler::SaveComponentSkp(const ArgList& args)
 void RSProfiler::SetSystemParameter(const ArgList& args)
 {
     if (!SystemParameter::Set(args.String(0), args.String(1))) {
-        Respond("There is no such a system parameter");
+        SendMessage("There is no such a system parameter");
     }
 }
 
 void RSProfiler::GetSystemParameter(const ArgList& args)
 {
     const auto parameter = SystemParameter::Find(args.String());
-    Respond(parameter ? parameter->ToString() : "There is no such a system parameter");
+    SendMessage("%s", parameter ? parameter->ToString().data() : "There is no such a system parameter");
 }
 
 void RSProfiler::DumpSystemParameters(const ArgList& args)
 {
-    Respond(SystemParameter::Dump());
+    SendMessage("%s", SystemParameter::Dump().data());
 }
 
 void RSProfiler::DumpNodeModifiers(const ArgList& args)
 {
     if (const auto node = GetRenderNode(args.Node())) {
-        Respond("Modifiers=" + DumpModifiers(*node));
+        SendMessage("Modifiers=%s", DumpModifiers(*node).data());
     }
 }
 
 void RSProfiler::DumpNodeProperties(const ArgList& args)
 {
     if (const auto node = GetRenderNode(args.Node())) {
-        Respond("RenderProperties=" + DumpRenderProperties(*node));
+        SendMessage("RenderProperties=%s", DumpRenderProperties(*node).data());
     }
 }
 
@@ -296,9 +295,9 @@ void RSProfiler::PlaybackSetSpeed(const ArgList& args)
 {
     const auto speed = args.Fp64();
     if (BaseSetPlaybackSpeed(speed)) {
-        Respond("Playback speed: " + std::to_string(speed));
+        SendMessage("Playback speed: %f", speed);
     } else {
-        Respond("Playback speed: change rejected");
+        SendMessage("Playback speed: change rejected");
     }
 }
 
@@ -318,13 +317,13 @@ void RSProfiler::RenderNodeKeepDrawCmd(const ArgList& args)
 void RSProfiler::ClearCaches(const ArgList& args)
 {
     if (!IsNoneMode()) {
-        Respond("Error: can't clear caches during record or replay");
+        SendMessage("Error: can't clear caches during record or replay");
         return;
     }
     FilterMockNode(*context_);
     RSTypefaceCache::Instance().ReplayClear();
     Utils::FileDelete(RSFile::GetDefaultPath());
-    Respond("OK");
+    SendMessage("OK");
     AwakeRenderServiceThread();
 }
 
@@ -332,12 +331,12 @@ void RSProfiler::ClearFilter(const ArgList& args)
 {
     const auto node = GetRenderNode(args.Node());
     if (!node) {
-        Respond("error: node not found");
+        SendMessage("error: node not found");
         return;
     }
 
     node->GetMutableRenderProperties().backgroundFilter_ = nullptr;
-    Respond("OK");
+    SendMessage("OK");
     AwakeRenderServiceThread();
 }
 
@@ -346,7 +345,7 @@ void RSProfiler::KillNode(const ArgList& args)
     if (const auto node = GetRenderNode(args.Node())) {
         node->RemoveFromTree(false);
         AwakeRenderServiceThread();
-        Respond("OK");
+        SendMessage("OK");
     }
 }
 
@@ -357,19 +356,19 @@ void RSProfiler::AttachChild(const ArgList& args)
     if (parent && child) {
         parent->AddChild(child);
         AwakeRenderServiceThread();
-        Respond("OK");
+        SendMessage("OK");
     }
 }
 
 void RSProfiler::GetDeviceInfo(const ArgList& args)
 {
-    Respond(RSTelemetry::GetDeviceInfoString());
+    SendMessage("%s", RSTelemetry::GetDeviceInfoString().data());
 }
 
 void RSProfiler::GetDeviceFrequency(const ArgList& args)
 {
-    Respond(RSTelemetry::GetDeviceFrequencyString());
-    Respond(RSTelemetry::GetCpuAffinityString());
+    SendMessage("%s", RSTelemetry::GetDeviceFrequencyString().data());
+    SendMessage("%s", RSTelemetry::GetCpuAffinityString().data());
 }
 
 void RSProfiler::PrintNodeCache(const ArgList& args)
@@ -377,7 +376,7 @@ void RSProfiler::PrintNodeCache(const ArgList& args)
     NodeId nodeId = args.Uint64();
     auto node = GetRenderNode(nodeId);
     if (node == nullptr) {
-        Respond("node not found");
+        SendMessage("node not found");
         return;
     }
     PrintNodeCacheLo(node);
@@ -401,12 +400,12 @@ void RSProfiler::SocketShutdown(const ArgList& args)
 
 void RSProfiler::Version(const ArgList& args)
 {
-    Respond("Version: " + std::to_string(RSFILE_VERSION_LATEST));
+    SendMessage("Version: %d", RSFILE_VERSION_LATEST);
 }
 
 void RSProfiler::FileVersion(const ArgList& args)
 {
-    Respond("File version: " + std::to_string(RSFILE_VERSION_LATEST));
+    SendMessage("File version: %d", RSFILE_VERSION_LATEST);
 }
 
 void RSProfiler::RecordSendBinary(const ArgList& args)
@@ -423,7 +422,7 @@ void RSProfiler::RecordSendBinary(const ArgList& args)
 void RSProfiler::PlaybackPauseClear(const ArgList& args)
 {
     TimePauseClear();
-    Respond("OK");
+    SendMessage("OK");
 }
 
 void RSProfiler::PlaybackResume(const ArgList& args)
@@ -434,7 +433,7 @@ void RSProfiler::PlaybackResume(const ArgList& args)
 
     TimePauseResume(Utils::Now());
     ResetAnimationStamp();
-    Respond("OK");
+    SendMessage("OK");
 }
 
 std::string RSProfiler::RsMetricGetList()
@@ -445,8 +444,7 @@ std::string RSProfiler::RsMetricGetList()
 
 void RSProfiler::RecordMetrics(const ArgList& args)
 {
-    std::string response = RsMetricGetList();
-    Respond("METRICS: " + response);
+    SendMessage("METRICS: %s", RsMetricGetList().data());
 }
 
 

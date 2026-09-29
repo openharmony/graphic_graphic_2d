@@ -25,6 +25,7 @@ public:
     static void MockProcessName(const std::string &processName);
     static void MockAccessTokenKitRet(int accessTokenKitRet);
     static void MockTokenType(bool isNative);
+    static void MockTokenTypeWithSkip(bool isNative, int skipFirstN);
 };
 
 } // namespace OHOS::Rosen
