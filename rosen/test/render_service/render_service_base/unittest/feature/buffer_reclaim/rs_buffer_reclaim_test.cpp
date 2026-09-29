@@ -33,6 +33,8 @@ namespace OHOS::Rosen {
 constexpr uint32_t ADD_SAME_NODE_NUMS = 5;
 constexpr uint64_t TEST_BUFFER_ID_BASE = 10000;
 constexpr uint32_t MAX_RECLAIM_NUMS = 50;
+constexpr int32_t RECLAIM_TIMEOUT1 = 1000;
+constexpr int32_t RECLAIM_TIMEOUT2 = 50;
 
 class MockSurfaceBuffer : public SurfaceBufferImpl {
 public:
@@ -181,16 +183,18 @@ void RSBufferReclaimTest::TestReclaimBufferOnFfrtEntryErasedDuringReclaim(uint64
 
 void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
 {
+    const uint64_t bufferId = 5040;
     auto& reclaim = GetReclaim();
-    auto buffer = CreateMockSurfaceBuffer(5040);
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
     std::atomic<bool> reclaimDone(false);
     std::condition_variable reclaimCv;
     std::mutex reclaimMtx;
 
+    const int32_t timeout1 = 200;
     ON_CALL(*buffer, TryReclaim())
         .WillByDefault(Invoke([&reclaimMtx, &reclaimCv, &reclaimDone]() {
             std::unique_lock<std::mutex> lk(reclaimMtx);
-            reclaimCv.wait_for(lk, std::chrono::milliseconds(200),
+            reclaimCv.wait_for(lk, std::chrono::milliseconds(timeout1),
                 [&reclaimDone]() { return reclaimDone.load(); });
             return GSERROR_OK;
         }));
@@ -200,11 +204,11 @@ void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
     ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
 
     EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
     auto resumeFuture = std::async(std::launch::async, [&reclaim, &buffer]() {
         return reclaim.DoBufferResume(buffer);
     });
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
     reclaimDone.store(true);
     reclaimCv.notify_all();
     ffrt::wait();
@@ -213,11 +217,12 @@ void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
 
 void RSBufferReclaimTest::TestDoBufferResumeReclaimingTimeout()
 {
+    const uint64_t bufferId = 5041;
     auto& reclaim = GetReclaim();
-    auto buffer = CreateMockSurfaceBuffer(5041);
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
     ON_CALL(*buffer, TryReclaim())
         .WillByDefault(Invoke([]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT1));
             return GSERROR_OK;
         }));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
@@ -226,15 +231,16 @@ void RSBufferReclaimTest::TestDoBufferResumeReclaimingTimeout()
     ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
 
     EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
     EXPECT_FALSE(reclaim.DoBufferResume(buffer));
     ffrt::wait();
 }
 
 void RSBufferReclaimTest::TestDoBufferResumeAlreadyReclaimingResumeTimeout()
 {
+    const uint64_t bufferId = 5042;
     auto& reclaim = GetReclaim();
-    auto buffer = CreateMockSurfaceBuffer(5042);
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
     uint64_t bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
@@ -363,18 +369,19 @@ HWTEST_F(RSBufferReclaimTest, DoBufferReclaimMaxCapacityTest001, TestSize.Level2
  */
 HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtStateAndFailTest001, TestSize.Level2)
 {
+    uint64_t bufferId = 5001;
     // 1. state not PENDING (RECLAIMING) — should erase and return
-    TestReclaimBufferOnFfrtWrongState(5001, ReclaimState::RECLAIMING);
+    TestReclaimBufferOnFfrtWrongState(bufferId, ReclaimState::RECLAIMING);
     // 2. state not PENDING (RECLAIMED) — should erase and return
-    TestReclaimBufferOnFfrtWrongState(5002, ReclaimState::RECLAIMED);
+    TestReclaimBufferOnFfrtWrongState(++bufferId, ReclaimState::RECLAIMED);
     // 3. RegisterBufferDestructorCallbackFunc fails — entry erased
-    TestReclaimBufferOnFfrtRegisterFail(5003);
+    TestReclaimBufferOnFfrtRegisterFail(++bufferId);
     // 4. TryReclaim fails — entry erased, UnRegister called
-    TestReclaimBufferOnFfrtTryReclaimFail(5004);
+    TestReclaimBufferOnFfrtTryReclaimFail(++bufferId);
     // 5. TryReclaim succeeds but entry erased during execution (L66 false)
-    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(5005, GSERROR_OK);
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(++bufferId, GSERROR_OK);
     // 6. TryReclaim fails and entry erased during execution (L76 false)
-    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(5006, GSERROR_API_FAILED);
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(++bufferId, GSERROR_API_FAILED);
 }
 
 /**
@@ -385,8 +392,9 @@ HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtStateAndFailTest001, TestSize.L
  */
 HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtCancelledByRemoveTest001, TestSize.Level2)
 {
+    uint64_t bufferId = 5010;
     auto& reclaim = GetReclaim();
-    auto buffer = CreateMockSurfaceBuffer(5010);
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
     uint64_t bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
@@ -408,17 +416,18 @@ HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtCancelledByRemoveTest001, TestS
  */
 HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
 {
+    uint64_t bufferId = 5020;
     auto& reclaim = GetReclaim();
 
     // 1. not in map — false
     {
-        auto buffer = CreateMockSurfaceBuffer(5020);
+        auto buffer = CreateMockSurfaceBuffer(bufferId);
         EXPECT_FALSE(reclaim.DoBufferResume(buffer));
     }
 
     // 2. PENDING — cancel and return true
     {
-        auto buffer = CreateMockSurfaceBuffer(5021);
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
         uint64_t bufferId = buffer->GetBufferId();
         {
             std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
@@ -431,7 +440,7 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
 
     // 3. RECLAIMED + TryResumeIfNeeded fail — false, entry stays
     {
-        auto buffer = CreateMockSurfaceBuffer(5022);
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
         uint64_t bufferId = buffer->GetBufferId();
         ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
         ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
@@ -447,7 +456,7 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
 
     // 4. RECLAIMED + UnRegister fail — resume still succeeds (just warns)
     {
-        auto buffer = CreateMockSurfaceBuffer(5023);
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
         ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
         ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
         ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
@@ -468,8 +477,9 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
  */
 HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
 {
+    uint64_t bufferId = 5030;
     auto& reclaim = GetReclaim();
-    auto buffer = CreateMockSurfaceBuffer(5030);
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
     uint64_t bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
@@ -510,7 +520,7 @@ HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
     }
 
     // RECLAIMED + fail
-    auto buffer2 = CreateMockSurfaceBuffer(5031);
+    auto buffer2 = CreateMockSurfaceBuffer(++bufferId);
     uint64_t bufferId2 = buffer2->GetBufferId();
     ON_CALL(*buffer2, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_API_FAILED));
     {
