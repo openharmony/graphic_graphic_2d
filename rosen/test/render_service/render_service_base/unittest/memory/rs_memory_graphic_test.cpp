@@ -115,4 +115,36 @@ HWTEST_F(RSMemoryGraphicTest, GetGpuMemorySizeTest, testing::ext::TestSize.Level
     ret = memoryGraphic.GetTotalMemorySize();
     ASSERT_EQ(ret, 2.0);
 }
+
+/**
+ * @tc.name: GetRenderPidTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryGraphicTest, GetRenderPidTest, testing::ext::TestSize.Level1)
+{
+    MemoryGraphic memoryGraphic;
+    memoryGraphic.SetRenderPid(100);
+    auto ret = memoryGraphic.GetRenderPid();
+    ASSERT_EQ(ret, 100);
+}
+
+/**
+ * @tc.name: MarshallingWithRenderPidTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryGraphicTest, MarshallingWithRenderPidTest, testing::ext::TestSize.Level1)
+{
+    MemoryGraphic memoryGraphic;
+    memoryGraphic.SetRenderPid(200);
+    Parcel parcel;
+    ASSERT_TRUE(memoryGraphic.Marshalling(parcel));
+
+    auto mem = memoryGraphic.Unmarshalling(parcel);
+    ASSERT_NE(mem, nullptr);
+    EXPECT_EQ(mem->GetRenderPid(), 200);
+}
 } // namespace OHOS::Rosen

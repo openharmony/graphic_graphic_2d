@@ -31,6 +31,7 @@ public:
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const;
 
     int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer);
 

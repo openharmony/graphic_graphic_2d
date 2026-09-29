@@ -175,6 +175,11 @@ public:
         return { serviceToRenderConnection_ };
     }
 
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override
+    {
+        return serviceToRenderConnection_;
+    }
+
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
     {
         return connectToRenderConnection_;
@@ -7474,6 +7479,42 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_SuccessMult
 
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetMemoryGraphicsByRenderPid001
+ * @tc.desc: Test GetMemoryGraphicsByRenderPid IPC handler with valid renderPid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMemoryGraphicsByRenderPid001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel dataParcel;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInt32(getpid());
+    int32_t ret = connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetMemoryGraphicsByRenderPid002
+ * @tc.desc: Test GetMemoryGraphicsByRenderPid IPC handler withot interface token
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMemoryGraphicsByRenderPid002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel dataParcel;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID);
+    int32_t ret = connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_STATE);
 }
 } // namespace OHOS::Rosen
 #endif

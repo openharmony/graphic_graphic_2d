@@ -53,6 +53,11 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return {};
 }
 
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
     uint32_t rowCount, uint32_t colCount)
 {

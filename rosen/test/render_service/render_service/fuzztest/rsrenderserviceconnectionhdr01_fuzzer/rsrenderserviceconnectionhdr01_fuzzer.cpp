@@ -66,6 +66,7 @@ public:
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override { return nullptr; }
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override { return {}; }
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override { return nullptr; }
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
     {
         return nullptr;
