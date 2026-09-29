@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 /**
  * @brief A generic reference-counted holder that wraps an exclusively owned object
- *        so it can be shared across module boundaries (e.g. NDK CAPI and ArkUI)
+ *        so it can be shared across module boundaries (e.g. C API and ArkUI)
  *        where only one stable raw pointer with manual AddRef/Release is available.
  *
  *        Header-only on purpose: it keeps no process-wide static state, so every
