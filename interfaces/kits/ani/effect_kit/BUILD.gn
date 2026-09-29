@@ -120,6 +120,7 @@ generate_static_abc("effectKit") {
 generate_static_abc("effectKit_entry") {
   base_url = "./ets"
   files = [ "./ets/effectKit_entry.ets" ]
+  in_puts = [ "./ets/@ohos.effectKit.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit_entry.abc"
 }
@@ -130,4 +131,20 @@ ohos_prebuilt_etc("effectKit_etc") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
   deps = [ ":effectKit" ]
+}
+
+ohos_prebuilt_etc("effectKit_entry_etc") {
+  source = "$target_out_dir/effectKit_entry.abc"
+  module_install_dir = "framework"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  deps = [ ":effectKit_entry" ]
+}
+
+group("ani_effect_kit") {
+  deps = [
+    ":effectKit_ani",
+    ":effectKit_etc",
+    ":effectKit_entry_etc",
+  ]
 }
