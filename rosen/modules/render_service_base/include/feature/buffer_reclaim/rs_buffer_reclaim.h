@@ -19,7 +19,6 @@
 #include <condition_variable>
 #include <map>
 #include <mutex>
-#include <set>
 #include "common/rs_common_def.h"
 #include "surface_buffer.h"
 
@@ -30,7 +29,7 @@ enum class ReclaimState : uint8_t {
     RECLAIMING = 1,
     RECLAIMED = 2,
     RECLAIMING_RESUME = 3,
-}
+};
 
 class RSB_EXPORT RSBufferReclaim {
 public:
