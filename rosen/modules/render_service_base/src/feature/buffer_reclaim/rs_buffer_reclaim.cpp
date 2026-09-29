@@ -15,8 +15,10 @@
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
-#include "rs_trace.h"
+#include "ffrt.h"
+#include "ffrt_inner.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,79 +36,161 @@ void RSBufferReclaim::BufferDestructorCallback(uint64_t bufferId)
     RSBufferReclaim::GetInstance().RemoveBufferReclaim(bufferId);
 }
 
-bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
+void RSBufferReclaim::ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = bufferReclaimNumsSet_.find(buffer->GetBufferId());
-    if (iter != bufferReclaimNumsSet_.end()) {
-        return false;
+    const auto bufferId = buffer->GetBufferId();
+    RS_TRACE_NAME_FMT("TryBufferReclaim bufId: %" PRIu64 ", seq: %u, hasReclaimed: %d",
+        bufferId, buffer->GetSeqNum(), buffer->IsReclaimed());
+    {
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        auto iter = bufferReclaimMap_.find(bufferId);
+        if (iter == bufferReclaimMap_.end() || iter->second != ReclaimState::PENDING) {
+            bufferReclaimMap_.erase(bufferId);
+            return;
+        }
+        bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING;
+        if (!buffer->RegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
+            RS_LOGE("DoBufferReclaim register destructor callback failed");
+            bufferReclaimMap_.erase(bufferId);
+            return;
+        }
     }
-    if (bufferReclaimNumsSet_.size() >= MAX_BUFFER_RECLAIM_NUMS) {
-        return false;
-    }
-    bufferReclaimNumsSet_.insert(buffer->GetBufferId());
-    RS_TRACE_NAME_FMT("DoBufferReclaim: bufferReclaimNumsSet_=%zu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
-
-    bool ret = false;
-    // register before reclaiming, so the record in bufferReclaimNumsSet_ is always cleaned up on destruction
-    if (!buffer->RegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
-        // without the callback this record is never removed, and the records left behind would eventually
-        // make CheckBufferReclaim fail for every buffer
-        RS_LOGE("DoBufferReclaim: register destructor callback failed");
-        bufferReclaimNumsSet_.erase(buffer->GetBufferId());
-        return false;
-    }
+    RS_LOGI("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu,"
+        "hasReclaimed:%{public}d",
+        bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed());
+    RS_TRACE_NAME_FMT("DoBufferReclaim");
+    bool needNotify = false;
     if (buffer->TryReclaim() == GSERROR_OK) {
-        ret = true;
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        auto iter = bufferReclaimMap_.find(bufferId);
+        if (iter != bufferReclaimMap_.end()) {
+            if (iter->second == ReclaimState::RECLAIMING_RESUME) {
+                needNotify = true;
+            }
+            iter->second = ReclaimState::RECLAIMED;
+        }
     } else {
-        // reclaim failed, drop the callback to keep it consistent with bufferReclaimNumsSet_
         buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback);
-        bufferReclaimNumsSet_.erase(buffer->GetBufferId());
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        auto iter = bufferReclaimMap_.find(bufferId);
+        if (iter != bufferReclaimMap_.end()) {
+            bufferReclaimMap_.erase(iter);
+        }
     }
-    return ret;
+    if (needNotify) {
+        resumeCv_.notify_one();
+    }
+    RS_TRACE_NAME_FMT("DoBufferReclaim done bufferReclaimMap_: %zu, hasReclaimed: %d",
+        bufferReclaimMap_.size(), buffer->IsReclaimed());
+    RS_LOGI("DoBufferReclaim done bufId: %{public}" PRIu64 ", bufferReclaimMap_: %{public}zu,"
+        "hasReclaimed: %{public}d", bufferId, bufferReclaimMap_.size(), buffer->IsReclaimed());
 }
 
+bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
+{
+    if (!buffer) {
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        if (bufferReclaimMap_.size() >= MAX_BUFFER_RECLAIM_NUMS) {
+            return false;
+        }
+        auto iter = bufferReclaimMap_.find(buffer->GetBufferId());
+        if (iter != bufferReclaimMap_.end()) {
+            return false;
+        }
+        bufferReclaimMap_[buffer->GetBufferId()] = ReclaimState::PENDING;
+    }
+    RS_TRACE_NAME_FMT("DoBufferReclaim(post to ffrt) bufId: %" PRIu64 ", seq: %u, bufferReclaimMap_: %zu",
+        buffer->GetBufferId(), buffer->GetSeqNum(), bufferReclaimMap_.size());
+    ffrt::submit([buffer = std::move(buffer)]() {
+        RSBufferReclaim::GetInstance().ReclaimBufferOnFfrt(buffer);
+    });
+    return true;
+}
+
+bool RSBufferReclaim::TryResumeBuffer(sptr<SurfaceBuffer> buffer, uint64_t bufferId)
+{
+    {
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        auto iter = bufferReclaimMap_.find(bufferId);
+        if (iter == bufferReclaimMap_.end() || iter->second != ReclaimState::RECLAIMED) {
+            return false;
+        }
+    }
+    RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu", bufferReclaimMap_.size());
+    RS_LOGI("%{public}s bufId: %{public}" PRIu64 ", seq: %{public}u, bufferReclaimMap_: %{public}zu,"
+        "hasReclaimed: %{public}d",
+        __func__, bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed());
+    if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
+        RS_LOGD("%{public}s done bufId: %{public}" PRIu64 ", seq: %{public}u, hasReclaimed: %{public}d",
+            __func__, bufferId, buffer->GetSeqNum(), buffer->IsReclaimed());
+        if (!buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
+            RS_LOGW("DoBufferResume: destructor callback is not registered");
+        }
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        bufferReclaimMap_.erase(bufferId);
+        return true;
+    }
+    return false;
+}
 
 bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = bufferReclaimNumsSet_.find(buffer->GetBufferId());
-    if (iter == bufferReclaimNumsSet_.end()) {
+    if (!buffer) {
         return false;
     }
-    bufferReclaimNumsSet_.erase(iter);
-    RS_TRACE_NAME_FMT("DoBufferResume: bufferReclaimNumsSet_=%zu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
-    bool ret = false;
-    if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
-        if (!buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
-            // DoBufferReclaim only keeps the record after a successful registration, so reaching here means
-            // the callback was registered; a false here is unexpected and only kept as a defensive warning.
-            RS_LOGW("DoBufferResume: destructor callback is not registered");
+    const auto bufferId = buffer->GetBufferId();
+    bool needWaitingForReclaimDone = false;
+    {
+        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+        auto iter = bufferReclaimMap_.find(bufferId);
+        if (iter == bufferReclaimMap_.end()) {
+            return false;
         }
-        ret = true;
-    } else {
-        bufferReclaimNumsSet_.insert(buffer->GetBufferId());
+        if (iter->second == ReclaimState::PENDING) {
+            bufferReclaimMap_.erase(iter);
+            RS_LOGI("%{public}s PENDING cancel bufId=%{public}" PRIu64, __func__, bufferId);
+            return true;
+        }
+        if (iter->second == ReclaimState::RECLAIMING || iter->second == ReclaimState::RECLAIMING_RESUME) {
+            iter->second = ReclaimState::RECLAIMING_RESUME;
+            needWaitingForReclaimDone = true;
+            RS_LOGI("%{public}s RECLAIMING deferred bufId=%{public}" PRIu64, __func__, bufferId);
+        }
     }
-    return ret;
+    if (needWaitingForReclaimDone) {
+        RS_TRACE_NAME_FMT("DoBufferResume waiting bufId:%" PRIu64 ", seq:%u, hasReclaimed:%d, bufferReclaimMap_:%zu",
+            bufferId, buffer->GetSeqNum(), buffer->IsReclaimed(), bufferReclaimMap_.size());
+        std::unique_lock<std::mutex> lock(resumeMutex_);
+        if (!resumeCv_.wait_for(
+            lock, std::chrono::milliseconds(RECLAIM_TIMEOUT_MS), [bufferId, this]() {
+            std::lock_guard<std::mutex> mapLock(bufferReclaimMapMutex_);
+            auto it = bufferReclaimMap_.find(bufferId);
+            return it == bufferReclaimMap_.end() || it->second == ReclaimState::RECLAIMED;
+        })) {
+            RS_LOGE("%{public}s wait for reclaim timeout", __func__);
+            return false;
+        }
+    }
+    return TryResumeBuffer(buffer, bufferId);
 }
 
 bool RSBufferReclaim::CheckBufferReclaim()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    RS_TRACE_NAME_FMT("CheckBufferReclaim: bufferReclaimNumsSet_=%zu", bufferReclaimNumsSet_.size());
-    RS_LOGI("CheckBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
-    return bufferReclaimNumsSet_.size() < MAX_BUFFER_RECLAIM_NUMS;
+    std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+    RS_TRACE_NAME_FMT("CheckBufferReclaim: bufferReclaimMap_=%zu", bufferReclaimMap_.size());
+    RS_LOGI("CheckBufferReclaim: bufferReclaimMap_=%{public}zu", bufferReclaimMap_.size());
+    return bufferReclaimMap_.size() < MAX_BUFFER_RECLAIM_NUMS;
 }
-
 
 void RSBufferReclaim::RemoveBufferReclaim(uint64_t bufferId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    bufferReclaimNumsSet_.erase(bufferId);
-    RS_TRACE_NAME_FMT("RemoveBufferReclaim: bufferReclaimNumsSet_=%zu", bufferReclaimNumsSet_.size());
-    RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+    std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+    bufferReclaimMap_.erase(bufferId);
+    RS_TRACE_NAME_FMT("RemoveBufferReclaim: bufferReclaimMap_=%zu", bufferReclaimMap_.size());
+    RS_LOGI("RemoveBufferReclaim: bufferReclaimMap_=%{public}zu", bufferReclaimMap_.size());
 }
 
 void RSBufferReclaim::AddUICaptureNode(NodeId nodeId)
