@@ -19,6 +19,7 @@
 #include <limits>
 #include <optional>
 #include <stack>
+#include <sys/types.h>
 #include <vector>
 
 #include "common/rs_color.h"
@@ -465,8 +466,8 @@ public:
     void SetOnMultipleScreen(bool multipleScreen);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
-    int32_t GetPid() const;
-    void SetPid(int32_t pid);
+    ::pid_t GetPid() const;
+    void SetPid(::pid_t pid);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
     float GetHDRBrightness() const;
@@ -617,7 +618,7 @@ private:
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
     ScreenId screenId_ = INVALID_SCREEN_ID;
-    int32_t pid_ = -1;
+    ::pid_t pid_ = -1;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     HDRProperties hdrProperties_;
     Drawing::Surface* surface_ = nullptr;
