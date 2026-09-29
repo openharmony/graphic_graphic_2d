@@ -333,9 +333,12 @@ public:
             if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
                 bInFraction = true;
                 animationValue = keyframeValue;
+                if (isAdditive && property_ != nullptr) {
+                    animationValue = property_->Get() + (keyframeValue - lastValue_);
+                }
                 preKeyframeValue = keyframeValue;
                 lastValue_ = keyframeValue;
-                continue;
+                break;
             }
             // Check normal interval
             if ((fraction >= startFraction) && (fraction <= endFraction)) {

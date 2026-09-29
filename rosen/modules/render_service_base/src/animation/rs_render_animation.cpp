@@ -302,6 +302,7 @@ void RSRenderAnimation::Restart()
     }
     animationFraction_.ResetFraction();
     OnSetFraction(0.0f);
+    fractionChangeInfo_ = { false, 0.0f };
     state_ = AnimationState::RUNNING;
 }
 
