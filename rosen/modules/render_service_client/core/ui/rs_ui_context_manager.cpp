@@ -199,5 +199,14 @@ void RSUIContextManager::StartCloseSyncTransactionFallbackTask(bool isOpen, cons
     }
 }
 
+void RSUIContextManager::PostUITask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
+{
+    handler_->PostTask(task, name, delayTime);
+}
+
+void RSUIContextManager::RemoveUITask(const std::string& name)
+{
+    handler_->RemoveTask(name);
+}
 } // namespace Rosen
 } // namespace OHOS
