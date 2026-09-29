@@ -286,18 +286,20 @@ OH_Drawing_ErrorCode OH_Drawing_RectDestroyArray(OH_Drawing_Array* rectArray);
 OH_Drawing_ErrorCode OH_Drawing_RectContains(OH_Drawing_Rect* rect, OH_Drawing_Rect* other, bool* isContains);
 
 /**
- * @brief Add the specified values to the left and top boundaried of an <b>OH_Drawing_Rect</b> object.
+ * @brief Adds a specified value to the bounds of a rectangle.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
- * @param left Indicates the value added to the left boundary of an <b>OH_Drawing_Rect</b> object.
- * @param top Indicates the value added to the top boundary of an <b>OH_Drawing_Rect</b> object.
- * @param right Indicates the value added to the right boundary of an <b>OH_Drawing_Rect</b> object.
- * @param bottom Indicates the value added to the bottom boundary of an <b>OH_Drawing_Rect</b> object.
- * @return Returns the error code.
- *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if rectArray or rect is nullptr,
- *                 or index is valid.
+ * @param rect Pointer to the {@link OH_Drawing_Rect} object.
+ * @param left Value to be added to the left bound of the rectangle (X coordinate of the upper left corner of the
+ * rectangle).
+ * @param top Value to be added to the top bound of the rectangle (Y coordinate of the upper left corner of the
+ * rectangle).
+ * @param right Value to be added to the right bound of the rectangle (X coordinate of the lower right corner of the
+ * rectangle).
+ * @param bottom Value to be added to the bottom bound of the rectangle (Y coordinate of the lower right corner of the
+ * rectangle).
+ * @return Returns one of the following result codes:
+ * **OH_DRAWING_SUCCESS** if the operation is successful.
+ * **OH_DRAWING_ERROR_INCORRECT_PARAMETER** if the **rect** parameter is empty.
  * @since 22
  * @version 1.0
  */
