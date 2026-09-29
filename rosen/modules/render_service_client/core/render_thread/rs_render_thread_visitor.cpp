@@ -162,7 +162,14 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
+    if (curDirtyManager_ == nullptr) {
+        return;
+    }
+    // When a node transitions from visible to invisible (e.g. alpha changed to 0),
+    // we must still call Update() to generate a dirty region covering the node's
+    // previous bounds. Otherwise the old content remains in the surface buffer
+    // and only gets partially erased where other dirty nodes overlap.
+    if (!node.ShouldPaint() && !node.IsLastVisible()) {
         return;
     }
     bool dirtyFlag = dirtyFlag_;
@@ -215,7 +222,12 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
 #ifndef CROSS_PLATFORM
-    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
+    if (curDirtyManager_ == nullptr) {
+        return;
+    }
+    // Same as PrepareCanvasRenderNode: allow visible→invisible transitions to
+    // proceed so that Update() can generate the dirty region for old content.
+    if (!node.ShouldPaint() && !node.IsLastVisible()) {
         return;
     }
     auto effectRegion = effectRegion_;

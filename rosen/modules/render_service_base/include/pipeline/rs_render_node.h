@@ -567,6 +567,14 @@ public:
         return shouldPaint_;
     }
 
+    // Whether the node was visible (ShouldPaint() == true) in the last frame.
+    // Used to detect visible→invisible transitions so that the dirty region can
+    // still be generated to clear the previous content from the surface buffer.
+    inline bool IsLastVisible() const
+    {
+        return isLastVisible_;
+    }
+
     inline RectI GetInnerAbsDrawRect() const noexcept
     {
         return innerAbsDrawRect_;
