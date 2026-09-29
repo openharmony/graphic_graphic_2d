@@ -78,6 +78,13 @@ public:
 private:
     sptr<MockSurfaceBuffer> CreateMockSurfaceBuffer(uint64_t bufferId = 0);
     void ClearReclaimMap();
+    void TestReclaimBufferOnFfrtWrongState(uint64_t bufferId, ReclaimState state);
+    void TestReclaimBufferOnFfrtRegisterFail(uint64_t bufferId);
+    void TestReclaimBufferOnFfrtTryReclaimFail(uint64_t bufferId);
+    void TestReclaimBufferOnFfrtEntryErasedDuringReclaim(uint64_t bufferId, GSError reclaimResult);
+    void TestDoBufferResumeReclaimingResumeSuccess();
+    void TestDoBufferResumeReclaimingTimeout();
+    void TestDoBufferResumeAlreadyReclaimingResumeTimeout();
     static uint64_t nextBufferId_;
 };
 
@@ -99,6 +106,146 @@ sptr<MockSurfaceBuffer> RSBufferReclaimTest::CreateMockSurfaceBuffer(uint64_t bu
     buffer->SetBufferId(bufferId);
     buffer->SetSeqNum(static_cast<uint32_t>(bufferId));
     return buffer;
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtWrongState(uint64_t bufferId, ReclaimState state)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = state;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtRegisterFail(uint64_t bufferId)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = ReclaimState::PENDING;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(false));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtTryReclaimFail(uint64_t bufferId)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = ReclaimState::PENDING;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_API_FAILED));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtEntryErasedDuringReclaim(uint64_t bufferId, GSError reclaimResult)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([&reclaim, id, reclaimResult]() {
+            reclaim.RemoveBufferReclaim(id);
+            return reclaimResult;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    ffrt::wait();
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(5040);
+    std::atomic<bool> reclaimDone(false);
+    std::condition_variable reclaimCv;
+    std::mutex reclaimMtx;
+
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([&reclaimMtx, &reclaimCv, &reclaimDone]() {
+            std::unique_lock<std::mutex> lk(reclaimMtx);
+            reclaimCv.wait_for(lk, std::chrono::milliseconds(200),
+                [&reclaimDone]() { return reclaimDone.load(); });
+            return GSERROR_OK;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    auto resumeFuture = std::async(std::launch::async, [&reclaim, &buffer]() {
+        return reclaim.DoBufferResume(buffer);
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    reclaimDone.store(true);
+    reclaimCv.notify_all();
+    ffrt::wait();
+    EXPECT_TRUE(resumeFuture.get());
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeReclaimingTimeout()
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(5041);
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            return GSERROR_OK;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_FALSE(reclaim.DoBufferResume(buffer));
+    ffrt::wait();
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeAlreadyReclaimingResumeTimeout()
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(5042);
+    uint64_t bufferId = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING_RESUME;
+    }
+    EXPECT_FALSE(reclaim.DoBufferResume(buffer));
 }
 
 void RSBufferReclaimTest::SetUp()
@@ -216,108 +363,18 @@ HWTEST_F(RSBufferReclaimTest, DoBufferReclaimMaxCapacityTest001, TestSize.Level2
  */
 HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtStateAndFailTest001, TestSize.Level2)
 {
-    auto& reclaim = GetReclaim();
-
     // 1. state not PENDING (RECLAIMING) — should erase and return
-    {
-        auto buffer = CreateMockSurfaceBuffer(5001);
-        uint64_t bufferId = buffer->GetBufferId();
-        {
-            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_)
-                        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING;
-        }
-        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        reclaim.ReclaimBufferOnFfrt(buffer);
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
-
+    TestReclaimBufferOnFfrtWrongState(5001, ReclaimState::RECLAIMING);
     // 2. state not PENDING (RECLAIMED) — should erase and return
-    {
-        auto buffer = CreateMockSurfaceBuffer(5002);
-        uint64_t bufferId = buffer->GetBufferId();
-        {
-            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-            reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMED;
-        }
-        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        reclaim.ReclaimBufferOnFfrt(buffer);
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
-
+    TestReclaimBufferOnFfrtWrongState(5002, ReclaimState::RECLAIMED);
     // 3. RegisterBufferDestructorCallbackFunc fails — entry erased
-    {
-        auto buffer = CreateMockSurfaceBuffer(5003);
-        uint64_t bufferId = buffer->GetBufferId();
-        {
-            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-            reclaim.bufferReclaimMap_[bufferId] = ReclaimState::PENDING;
-        }
-        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(false));
-        reclaim.ReclaimBufferOnFfrt(buffer);
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
-
+    TestReclaimBufferOnFfrtRegisterFail(5003);
     // 4. TryReclaim fails — entry erased, UnRegister called
-    {
-        auto buffer = CreateMockSurfaceBuffer(5004);
-        uint64_t bufferId = buffer->GetBufferId();
-        {
-            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-            reclaim.bufferReclaimMap_[bufferId] = ReclaimState::PENDING;
-        }
-        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_API_FAILED));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        reclaim.ReclaimBufferOnFfrt(buffer);
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
-
+    TestReclaimBufferOnFfrtTryReclaimFail(5004);
     // 5. TryReclaim succeeds but entry erased during execution (L66 false)
-    {
-        auto buffer = CreateMockSurfaceBuffer(5005);
-        uint64_t bufferId = buffer->GetBufferId();
-        ON_CALL(*buffer, TryReclaim())
-            .WillByDefault(Invoke([&reclaim, bufferId]() {
-                reclaim.RemoveBufferReclaim(bufferId);
-                return GSERROR_OK;
-            }));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-        ffrt::wait();
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
-
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(5005, GSERROR_OK);
     // 6. TryReclaim fails and entry erased during execution (L76 false)
-    {
-        auto buffer = CreateMockSurfaceBuffer(5006);
-        uint64_t bufferId = buffer->GetBufferId();
-        ON_CALL(*buffer, TryReclaim())
-            .WillByDefault(Invoke([&reclaim, bufferId]() {
-                reclaim.RemoveBufferReclaim(bufferId);
-                return GSERROR_API_FAILED;
-            }));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-        ffrt::wait();
-        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
-    }
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(5006, GSERROR_API_FAILED);
 }
 
 /**
@@ -333,7 +390,7 @@ HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtCancelledByRemoveTest001, TestS
     uint64_t bufferId = buffer->GetBufferId();
     ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
     ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
 
     EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
     reclaim.RemoveBufferReclaim(bufferId);
@@ -407,7 +464,7 @@ HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
  * @tc.desc: test TryResumeBuffer directly: not-in-map, PENDING, RECLAIMING,
  *           RECLAIMING_RESUME, RECLAIMED+success, RECLAIMED+fail
  * @tc.type: FUNC
- * @tc.require: issue#913
+ * @tc.require: issue#26422
  */
 HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
 {
@@ -471,77 +528,16 @@ HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
  * @tc.name:  DoBufferResumeReclaimingResumeTest001
  * @tc.desc: test DoBufferResume RECLAIMING_RESUME: success path and timeout path
  * @tc.type: FUNC
- * @tc.require: issue#913
+ * @tc.require: issue#26422
  */
 HWTEST_F(RSBufferReclaimTest, DoBufferResumeReclaimingResumeTest001, TestSize.Level2)
 {
-    auto& reclaim = GetReclaim();
-
     // 1. RECLAIMING → RECLAIMING_RESUME → reclaim done → resume succeeds
-    {
-        auto buffer = CreateMockSurfaceBuffer(5040);
-        std::atomic<bool> reclaimDone(false);
-        std::condition_variable reclaimCv;
-        std::mutex reclaimMtx;
-
-        ON_CALL(*buffer, TryReclaim())
-            .WillByDefault(Invoke([&]() {
-                std::unique_lock<std::mutex> lk(reclaimMtx);
-                reclaimCv.wait_for(lk, std::chrono::milliseconds(200),
-                    [&]() { return reclaimDone.load(); });
-                return GSERROR_OK;
-            }));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
-
-        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        auto resumeFuture = std::async(std::launch::async, [&]() {
-            return reclaim.DoBufferResume(buffer);
-        });
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        reclaimDone.store(true);
-        reclaimCv.notify_all();
-        ffrt::wait();
-        EXPECT_TRUE(resumeFuture.get());
-    }
-
+    TestDoBufferResumeReclaimingResumeSuccess();
     // 2. RECLAIMING → timeout (TryReclaim hangs beyond RECLAIM_TIMEOUT_MS)
-    {
-        auto buffer = CreateMockSurfaceBuffer(5041);
-        ON_CALL(*buffer, TryReclaim())
-            .WillByDefault(Invoke([&]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                return GSERROR_OK;
-            }));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
-
-        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        EXPECT_FALSE(reclaim.DoBufferResume(buffer));
-        ffrt::wait();
-    }
-
+    TestDoBufferResumeReclaimingTimeout();
     // 3. already RECLAIMING_RESUME (no ffrt running) → timeout
-    {
-        auto buffer = CreateMockSurfaceBuffer(5042);
-        uint64_t bufferId = buffer->GetBufferId();
-        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
-        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
-        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
-        ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
-        {
-            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
-            reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING_RESUME;
-        }
-        EXPECT_FALSE(reclaim.DoBufferResume(buffer));
-    }
+    TestDoBufferResumeAlreadyReclaimingResumeTimeout();
 }
 
 /**
