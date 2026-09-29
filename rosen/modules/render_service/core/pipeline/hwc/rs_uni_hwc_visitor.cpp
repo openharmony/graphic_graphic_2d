@@ -40,6 +40,8 @@ constexpr size_t MAX_NUM_SOLID_LAYER = 2;
 constexpr int MIN_OVERLAP = 2;
 constexpr float EPSILON_SCALE = 0.00001f;
 constexpr float NIT_COMPARE_THRESHOLD = 0.001f;
+// define default queue size for composer auto switch
+constexpr uint32_t DEFAULT_QUEUE_SIZE = 4;
 
 // IsSolidLayerEnable : effective in all scenarios
 // GetIsWhiteListForSolidColorLayerFlag : applicable to a single app
@@ -588,6 +590,27 @@ void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRen
     }
 }
 
+void RSUniHwcVisitor::UpdateHwcNodeEnableByFrameTimeInterval(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+{
+    auto handler = hwcNode->GetRSSurfaceHandler();
+    if (handler == nullptr) {
+        return;
+    }
+    const auto surfaceConsumer = handler->GetConsumer();
+    if (surfaceConsumer != nullptr) {
+        if (surfaceConsumer->GetQueueSize() >= DEFAULT_QUEUE_SIZE
+            && RSUniRenderUtil::GetFrameTimeInterval() >= RSUniRenderUtil::GetAutoSwitchInterval()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
+                    "disabled by accumulate buffer frame time intervals:" PRId32, hwcNode->GetName().c_str(),
+                    hwcNode->GetId(), RSUniRenderUtil::GetFrameTimeInterval());
+                hwcNode->SetHardwareForcedDisabledState(true);
+                RS_LOGD_IF(DEBUG_PIPELINE,
+                           "hwc disabled by accumulate buffer frame time intervals:%{public}d, queuesize:%{public}d",
+                           RSUniRenderUtil::GetFrameTimeInterval(), surfaceConsumer->GetQueueSize());
+            }
+    }
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
     UpdateHwcNodeEnableByFilterIntersection();
@@ -634,6 +657,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         UpdateHwcNodeEnableByForceDisableHdr(hwcNodePtr);
         if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
             ancoNodes.push_back(hwcNodePtr);
+            if (RSUniRenderUtil::GetComposerAutoSwitch()) {
+                UpdateHwcNodeEnableByFrameTimeInterval(hwcNodePtr);
+            }
         }
         CollectHdrForceHwcNodes(hwcNodePtr, hdrForceHwcNodes);
     }

@@ -47,6 +47,7 @@ public:
     void UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
+    void UpdateHwcNodeEnableByFrameTimeInterval(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
