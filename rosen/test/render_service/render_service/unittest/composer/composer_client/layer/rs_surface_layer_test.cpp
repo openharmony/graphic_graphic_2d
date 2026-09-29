@@ -954,5 +954,72 @@ HWTEST_F(RSSurfaceLayerTest, SetOriginalBufferOwnerCount_NullptrIgnored, Functio
     lyr->SetOriginalBufferOwnerCount(nullptr);
     EXPECT_EQ(lyr->GetOriginalBufferOwnerCount(), nullptr);
 }
+
+/**
+ * @tc.name: HasBufferOwnerCountById_ReturnsTrue_WhenBufferIdExists
+ * @tc.desc: Verify HasBufferOwnerCountById returns true when bufferId is in the map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, HasBufferOwnerCountById_ReturnsTrue_WhenBufferIdExists, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+
+    auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc->bufferId_ = 100u;
+    lyr->SetBufferOwnerCount(boc, true);
+
+    EXPECT_TRUE(lyr->HasBufferOwnerCountById(100u));
+}
+
+/**
+ * @tc.name: HasBufferOwnerCountById_ReturnsFalse_WhenBufferIdNotExists
+ * @tc.desc: Verify HasBufferOwnerCountById returns false when bufferId is not in the map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, HasBufferOwnerCountById_ReturnsFalse_WhenBufferIdNotExists, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+
+    auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc->bufferId_ = 100u;
+    lyr->SetBufferOwnerCount(boc, true);
+
+    EXPECT_FALSE(lyr->HasBufferOwnerCountById(999u));
+}
+
+/**
+ * @tc.name: HasBufferOwnerCountById_ReturnsFalse_WhenMapEmpty
+ * @tc.desc: Verify HasBufferOwnerCountById returns false when the map is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, HasBufferOwnerCountById_ReturnsFalse_WhenMapEmpty, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+
+    EXPECT_FALSE(lyr->HasBufferOwnerCountById(1u));
+}
+
+/**
+ * @tc.name: HasBufferOwnerCountById_ReturnsFalse_AfterPop
+ * @tc.desc: Verify HasBufferOwnerCountById returns false after PopBufferOwnerCountById removes the entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, HasBufferOwnerCountById_ReturnsFalse_AfterPop, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+
+    auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    boc->bufferId_ = 50u;
+    lyr->SetBufferOwnerCount(boc, true);
+    EXPECT_TRUE(lyr->HasBufferOwnerCountById(50u));
+
+    auto popped = lyr->PopBufferOwnerCountById(50u);
+    ASSERT_NE(popped, nullptr);
+    EXPECT_FALSE(lyr->HasBufferOwnerCountById(50u));
+}
 } // namespace Rosen
 } // namespace OHOS
