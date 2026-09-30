@@ -628,7 +628,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, id);
             if (!accessible && (ExtractPid(id) != callingPid)) {
                 RS_LOGW("The SetBufferClearListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -654,7 +653,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, id);
             if (!accessible && (ExtractPid(id) != callingPid)) {
                 RS_LOGW("The SetBufferAvailableListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -686,7 +684,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, id);
             if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -724,7 +721,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, id);
             if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1383,7 +1379,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Illegal pid, "
                     "nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId, callingPid);
@@ -1714,7 +1709,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             sptr<Surface> surface = CreateCanvasDrawingNodeSurface(nodeId);
             if (surface == nullptr) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE "
@@ -1737,7 +1731,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             ReleaseCanvasDrawingNodeSurface(nodeId);
             break;
         }

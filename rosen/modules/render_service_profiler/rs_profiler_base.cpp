@@ -802,7 +802,7 @@ bool RSProfiler::MarshalRenderModifier(const ModifierNG::RSRenderModifier& modif
     for (size_t i = 0; i < count; i++) {
         const auto binders = (offsets[i] < size) ? reinterpret_cast<flat_binder_object*>(blob + offsets[i]) : nullptr;
         flat_binder_object binder {};
-        if (Utils::Move(&binder, sizeof(binder), binders, size - offsets[i]) && (binder.hdr.type == BINDER_TYPE_FD) &&
+        if (Utils::Move(&binder, sizeof(binder), binders, sizeof(binder)) && (binder.hdr.type == BINDER_TYPE_FD) &&
             (binder.handle > 0)) {
             ::close(static_cast<int32_t>(binder.handle));
         }

@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <numeric>
 #include <system_error>
+#include <unistd.h>
 
 #include "rs_profiler_archive.h"
 #include "rs_profiler_cache.h"
@@ -186,6 +187,26 @@ void LoadAnimationTimestamps(std::unordered_map<AnimationId, std::vector<int64_t
         }
     }
 }
+
+pid_t GetMainThreadId(RSMainThread* mainThread)
+{
+    pid_t tid = 0;
+    if (mainThread) {
+        mainThread->PostSyncTask([&tid]() { tid = gettid(); });
+    }
+    return tid;
+}
+
+template<class Thread>
+void PostTask(Thread& thread, pid_t tid, std::function<void()>&& task, bool wait)
+{
+    if (task && wait) {
+        tid == gettid() ? task() : (void)thread.PostSyncTask(std::move(task));
+    } else if (task) {
+        thread.PostTask(std::move(task));
+    }
+}
+
 } // namespace
 
 std::shared_ptr<RSRenderPipeline> RSProfiler::renderPipeline_;
@@ -231,14 +252,9 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
 {
     auto& jobGlobal = GetMarshallingJob();
 
-    std::unique_lock<std::mutex> lockJob(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
-
+    std::unique_lock<std::mutex> guard(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
     auto job = jobGlobal;
-    if (!job) {
-        return;
-    }
-
-    if (nodeId && !job->IsUnfinished(nodeId)) {
+    if (!job || (nodeId && !job->IsUnfinished(nodeId))) {
         return;
     }
 
@@ -250,27 +266,21 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
         }
     }
 
-    auto node = GetRenderNode(nodeId);
+    const auto node = GetRenderNode(nodeId);
     if (!node) {
-        job->MarkFinished(nodeId, "");
+        job->MarkFinished(nodeId, {});
         return;
     }
 
-    std::stringstream ssData;
-    auto fileVersion = RSFILE_VERSION_LATEST;
+    guard.unlock();
+    std::stringstream data;
+    MarshalNode(*node, data, RSFILE_VERSION_LATEST, skipDrawCmdModifiers, true);
+    guard.lock();
 
-    SetThreadSubMode(SubMode::WRITE_EMUL);
-    DisableThreadSharedMemory();
-    MarshalNode(*node, ssData, fileVersion, skipDrawCmdModifiers, true);
-    EnableThreadSharedMemory();
-    SetThreadSubMode(SubMode::NONE);
-
-    job->MarkFinished(nodeId, ssData.str());
-
+    job->MarkFinished(nodeId, data.str());
     if (!job->GetUnfinishedCount()) {
         g_recordFile.SetHeaderFailedNodeCount(job->offsetNodeCount, job->failedNodeCount);
-        std::string& data = job->GetNodeData();
-        g_recordFile.InsertHeaderData(job->offsetNodes, data);
+        g_recordFile.InsertHeaderData(job->offsetNodes, job->GetNodeData());
         jobGlobal = nullptr;
     }
 }
@@ -442,16 +452,14 @@ void RSProfiler::Init(const std::shared_ptr<RSRenderPipeline>& renderPipeline,
     serviceToRenderConnection_ = serviceToRenderConnection;
     trace3dApi_ = Trace3DCoreInitRS();
 
-    mainThreadTaskRunner_ = [](std::function<void()>&& task, bool wait) {
-        if (task && mainThread_) {
-            wait ? (void)mainThread_->PostSyncTask(std::move(task)) : mainThread_->PostTask(std::move(task));
+    mainThreadTaskRunner_ = [tid = GetMainThreadId(mainThread_)](std::function<void()>&& task, bool wait) {
+        if (mainThread_) {
+            PostTask(*mainThread_, tid, std::move(task), wait);
         }
     };
 
     renderThreadTaskRunner_ = [](std::function<void()>&& task, bool wait) {
-        if (task) {
-            wait ? RSUniRenderThread::Instance().PostSyncTask(task) : RSUniRenderThread::Instance().PostTask(task);
-        }
+        PostTask(RSUniRenderThread::Instance(), RSUniRenderThread::Instance().GetTid(), std::move(task), wait);
     };
 
     messageSender_ = Network::SendMessage;
@@ -527,11 +535,12 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     return g_recordParcelNumber;
 }
 
-static bool IsAshmemParcel(const MessageParcel& parcel, uint32_t code)
+static bool IsAshmemParcel(uint32_t code, const MessageParcel& parcel)
 {
     if (code == static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION)) {
-        uint32_t flag = 0;
-        return Utils::Move(&flag, sizeof(flag), parcel.GetRawData(), parcel.GetReadableBytes()) && flag;
+        int32_t flag = 0;
+        return parcel.GetReadableBytes() > sizeof(flag) &&
+               Utils::Move(&flag, sizeof(flag), reinterpret_cast<const void*>(parcel.GetData()), sizeof(flag)) && flag;
     }
     return false;
 }
@@ -544,7 +553,7 @@ uint64_t RSProfiler::ProcessRemoteRequest(pid_t pid, uint32_t code, MessageParce
     }
 
     if (IsRecording()) {
-        return !IsAshmemParcel(parcel, code) ? WriteRemoteRequest(pid, code, parcel, option) : 0;
+        return !IsAshmemParcel(code, parcel) ? WriteRemoteRequest(pid, code, parcel, option) : 0;
     }
 
     g_recordParcelNumber = 0;
@@ -1219,6 +1228,9 @@ static bool ReadFocusAppInfo(std::stringstream& stream, FocusAppInfo& info)
         !stream.read(reinterpret_cast<char*>(&info.focusNodeId), sizeof(info.focusNodeId))) {
         return false;
     }
+
+    info.pid = Utils::GetMockPid(info.pid);
+    info.focusNodeId = Utils::PatchNodeId(info.focusNodeId);
 
     size_t size = 0u;
     if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > maxSize)) {
