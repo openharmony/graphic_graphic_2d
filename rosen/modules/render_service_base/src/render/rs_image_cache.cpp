@@ -390,8 +390,14 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
             return;
         }
         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
+        if (surfaceNodeId == INVALID_NODEID) {
+            return;
+        }
         std::weak_ptr<RSImage> rsImage_weak = rsImage;
         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
+        if (auto drawCmdPtr = drawCmd.lock()) {
+            drawCmdPtr->SetImageInfoReserved(true);
+        }
     }
 }
 
@@ -411,6 +417,7 @@ void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
         }
         if (auto imgOP_ptr = imageOp.lock()) {
             imgOP_ptr->PurgeMipmapMem();
+            imgOP_ptr->SetImageInfoReserved(false);
         }
     }
     rsImageInfoMap.erase(surfaceNodeId);
