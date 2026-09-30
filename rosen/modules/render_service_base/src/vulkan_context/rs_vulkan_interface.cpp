@@ -131,6 +131,10 @@ RsVulkanInterface::RsVulkanInterface(bool isProtected, bool isHtsEnable, RenderE
 
 RsVulkanInterface::~RsVulkanInterface()
 {
+    if (protectedMemoryFeatures_) {
+        delete protectedMemoryFeatures_;
+        protectedMemoryFeatures_ = nullptr;
+    }
     CloseLibraryHandle();
 }
 
