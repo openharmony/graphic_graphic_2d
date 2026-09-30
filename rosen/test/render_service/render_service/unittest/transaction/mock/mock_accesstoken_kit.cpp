@@ -15,8 +15,6 @@
 
 #include "mock_accesstoken_kit.h"
 
-#include <atomic>
-
 #include "accesstoken_kit.h"
 #include "tokenid_kit.h"
 
@@ -26,8 +24,8 @@ namespace {
 std::string g_processName = "foundation";
 int g_accessTokenKitRet = 0;
 bool g_isMockGetTokenTypeFlagRet = true;
-std::atomic<int> g_getTokenTypeFlagCallCount{0};
-std::atomic<int> g_skipFirstNCalls{0};
+int g_getTokenTypeFlagCallCount = 0;
+int g_skipFirstNCalls = 0;
 }
 
 void MockAccessTokenKit::MockTokenType(bool isNative)
@@ -64,8 +62,8 @@ int AccessTokenKit::GetNativeTokenInfo(uint32_t tokenId, NativeTokenInfo&  nativ
 
 ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(AccessTokenID tokenId)
 {
-    const int callCount = ++Rosen::g_getTokenTypeFlagCallCount;
-    if (callCount <= Rosen::g_skipFirstNCalls) {
+    Rosen::g_getTokenTypeFlagCallCount++;
+    if (Rosen::g_getTokenTypeFlagCallCount <= Rosen::g_skipFirstNCalls) {
         return Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
     }
     if (Rosen::g_isMockGetTokenTypeFlagRet) {

@@ -800,8 +800,7 @@ bool RSProfiler::MarshalRenderModifier(const ModifierNG::RSRenderModifier& modif
     constexpr size_t maxCount = 10000u;
     const auto count = offsets ? std::min(parcel.GetOffsetsSize(), maxCount) : 0u;
     for (size_t i = 0; i < count; i++) {
-        const auto binders = (offsets[i] < size && size - offsets[i] >= sizeof(flat_binder_object)) ?
-            reinterpret_cast<flat_binder_object*>(blob + offsets[i]) : nullptr;
+        const auto binders = (offsets[i] < size) ? reinterpret_cast<flat_binder_object*>(blob + offsets[i]) : nullptr;
         flat_binder_object binder {};
         if (Utils::Move(&binder, sizeof(binder), binders, sizeof(binder)) && (binder.hdr.type == BINDER_TYPE_FD) &&
             (binder.handle > 0)) {

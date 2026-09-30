@@ -247,7 +247,6 @@ public:
 private:
     std::string nodeData;
     std::unordered_set<NodeId> unfinishedNodeList;
-    std::unordered_set<NodeId> inflightNodeList;
 
 public:
     explicit ProfilerMarshallingJob(std::function<void(NodeId, bool)>&& tick) : marshallingTick(std::move(tick)) {}
@@ -256,20 +255,9 @@ public:
         unfinishedNodeList.insert(nodeId);
     }
 
-    bool ClaimNode(NodeId nodeId)
-    {
-        if (unfinishedNodeList.count(nodeId) == 0) {
-            return false;
-        }
-        unfinishedNodeList.erase(nodeId);
-        inflightNodeList.insert(nodeId);
-        return true;
-    }
-
     void MarkFinished(NodeId nodeId, std::string data)
     {
         unfinishedNodeList.erase(nodeId);
-        inflightNodeList.erase(nodeId);
         nodeData += data;
         constexpr size_t ffmSizeLimit = 100 * 1024 * 1024;
         if (nodeData.size() > ffmSizeLimit) {
@@ -279,14 +267,14 @@ public:
         }
     }
 
+    bool IsUnfinished(NodeId nodeId)
+    {
+        return unfinishedNodeList.count(nodeId);
+    }
+
     size_t GetUnfinishedCount()
     {
         return unfinishedNodeList.size();
-    }
-
-    bool HasPendingNodes()
-    {
-        return !unfinishedNodeList.empty() || !inflightNodeList.empty();
     }
 
     NodeId GetNextUnfinished()
