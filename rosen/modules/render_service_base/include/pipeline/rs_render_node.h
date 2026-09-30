@@ -678,6 +678,7 @@ public:
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
+    bool HasInfiniteGroupAnimationChild() const;
     bool GetCurFrameHasAnimation() const
     {
         return curFrameHasAnimation_;

@@ -1082,5 +1082,79 @@ HWTEST_F(RSAnimationSupplementTest, DumpAnimation02, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSAnimationSupplementTest DumpAnimation02 end";
 }
+/**
+ * @tc.name: PathAnimationOnCallFinishCallbackIdempotent001
+ * @tc.desc: Verify OnCallFinishCallback is idempotent (only removes path animation once)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationSupplementTest, PathAnimationOnCallFinishCallbackIdempotent001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackIdempotent001 start";
+    Vector4f data(1.f, 1.f, 1.f, 1.f);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
+    Vector2f startData(0.f, 1.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(startData);
+    Vector2f endData(5.f, 6.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
+    auto animation =
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
+    // Simulate OnStart having added path animation (pathAnimationRemoved_ = false)
+    property->AddPathAnimation();
+    animation->pathAnimationRemoved_ = false;
+    EXPECT_EQ(property->runningPathNum_, 1);
+    // First call: should remove path animation and set pathAnimationRemoved_ = true
+    animation->OnCallFinishCallback();
+    EXPECT_EQ(property->runningPathNum_, 0);
+    EXPECT_TRUE(animation->pathAnimationRemoved_);
+    // Second call: should be idempotent (skip, runningPathNum_ unchanged)
+    animation->OnCallFinishCallback();
+    EXPECT_EQ(property->runningPathNum_, 0);
+    EXPECT_TRUE(animation->pathAnimationRemoved_);
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackIdempotent001 end";
+}
+
+/**
+ * @tc.name: PathAnimationOnCallFinishCallbackNullProperty001
+ * @tc.desc: Verify OnCallFinishCallback skips when property_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationSupplementTest, PathAnimationOnCallFinishCallbackNullProperty001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackNullProperty001 start";
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
+    std::shared_ptr<RSPath> path = std::make_shared<RSPath>();
+    auto animation = std::make_shared<RSPathAnimationMock>(rsUIContext, property, path);
+    // property_ is null -> skip, no crash
+    animation->pathAnimationRemoved_ = false;
+    animation->OnCallFinishCallback();
+    // pathAnimationRemoved_ should still be false (skipped, not set to true)
+    EXPECT_FALSE(animation->pathAnimationRemoved_);
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackNullProperty001 end";
+}
+
+/**
+ * @tc.name: PathAnimationOnCallFinishCallbackDefaultRemoved001
+ * @tc.desc: Verify OnCallFinishCallback skips when pathAnimationRemoved_ is true (default)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationSupplementTest, PathAnimationOnCallFinishCallbackDefaultRemoved001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackDefaultRemoved001 start";
+    Vector4f data(1.f, 1.f, 1.f, 1.f);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
+    Vector2f startData(0.f, 1.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(startData);
+    Vector2f endData(5.f, 6.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
+    auto animation =
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
+    // pathAnimationRemoved_ default true -> skip RemovePathAnimation
+    EXPECT_TRUE(animation->pathAnimationRemoved_);
+    animation->OnCallFinishCallback();
+    EXPECT_EQ(property->runningPathNum_, 0); // unchanged
+    EXPECT_TRUE(animation->pathAnimationRemoved_); // still true
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest PathAnimationOnCallFinishCallbackDefaultRemoved001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

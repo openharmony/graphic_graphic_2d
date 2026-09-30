@@ -1065,5 +1065,179 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, AddAnimation004, TestSize.Level1)
     animator->AddAnimation([&callbackCalled]() { callbackCalled = true; });
     EXPECT_TRUE(callbackCalled);
 }
+/**
+ * @tc.name: GetClientFinishPositionEndGroupAutoReverseEven001
+ * @tc.desc: Verify GetClientFinishPosition returns START for END+group+autoReverse+even count
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionEndGroupAutoReverseEven001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest GetClientFinishPositionEndGroupAutoReverseEven001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(2); // even
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    auto result = animator.lock()->GetClientFinishPosition(RSInteractiveAnimationPosition::END);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::START);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest GetClientFinishPositionEndGroupAutoReverseEven001 end";
+}
+
+/**
+ * @tc.name: GetClientFinishPositionEndGroupAutoReverseOdd001
+ * @tc.desc: Verify GetClientFinishPosition returns END for END+group+autoReverse+odd count
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionEndGroupAutoReverseOdd001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest GetClientFinishPositionEndGroupAutoReverseOdd001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(3); // odd
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    auto result = animator.lock()->GetClientFinishPosition(RSInteractiveAnimationPosition::END);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::END);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest GetClientFinishPositionEndGroupAutoReverseOdd001 end";
+}
+
+/**
+ * @tc.name: GetClientFinishPositionEndGroupNoAutoReverse001
+ * @tc.desc: Verify GetClientFinishPosition returns END for END+group+no autoReverse
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionEndGroupNoAutoReverse001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(false); // no autoReverse
+    timingProtocol.SetRepeatCount(2);
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    auto result = animator.lock()->GetClientFinishPosition(RSInteractiveAnimationPosition::END);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::END);
+}
+
+/**
+ * @tc.name: GetClientFinishPositionEndNonGroup001
+ * @tc.desc: Verify GetClientFinishPosition returns END for END+non-group animator
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionEndNonGroup001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(2);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator);
+    EXPECT_FALSE(animator->isGroupAnimator_);
+    auto result = animator->GetClientFinishPosition(RSInteractiveAnimationPosition::END);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::END);
+}
+
+/**
+ * @tc.name: GetClientFinishPositionStart001
+ * @tc.desc: Verify GetClientFinishPosition returns START for START position
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionStart001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(2);
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    // START position -> always returns START regardless of group settings
+    auto result = animator.lock()->GetClientFinishPosition(RSInteractiveAnimationPosition::START);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::START);
+}
+
+/**
+ * @tc.name: GetClientFinishPositionEndGroupZeroRepeatCount001
+ * @tc.desc: Verify GetClientFinishPosition with zero repeatCount (0 % 2 == 0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetClientFinishPositionEndGroupZeroRepeatCount001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetAutoReverse(true);
+    timingProtocol.SetRepeatCount(2); // valid value to pass ValidateTimingProtocol
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    // Bypass validation: directly set repeatCount to 0 to test the 0 % 2 == 0 branch
+    animator.lock()->timingProtocol_.SetRepeatCount(0);
+    auto result = animator.lock()->GetClientFinishPosition(RSInteractiveAnimationPosition::END);
+    EXPECT_EQ(result, RSInteractiveAnimationPosition::START);
+}
+
+/**
+ * @tc.name: GetGroupAnimationNodeIds001
+ * @tc.desc: Verify GetGroupAnimationNodeIds returns empty when no animators exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetGroupAnimationNodeIds001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    auto nodeIds = rsUIContext->GetGroupAnimationNodeIds();
+    EXPECT_TRUE(nodeIds.empty());
+}
+
+/**
+ * @tc.name: GetGroupAnimationNodeIds002
+ * @tc.desc: Verify GetGroupAnimationNodeIds skips finite-loop group animators
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetGroupAnimationNodeIds002, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(2); // finite
+    RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    // Finite repeat -> should be skipped
+    auto nodeIds = rsUIContext->GetGroupAnimationNodeIds();
+    EXPECT_TRUE(nodeIds.empty());
+}
+
+/**
+ * @tc.name: GetGroupAnimationNodeIds003
+ * @tc.desc: Verify GetGroupAnimationNodeIds collects node IDs from infinite group animators
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetGroupAnimationNodeIds003, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1); // infinite
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto animator = RSInteractiveImplictAnimator::CreateGroup(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator.lock());
+    // Directly populate animations_ with a nodeId entry (private member access)
+    animator.lock()->animations_.emplace_back(std::weak_ptr<RSAnimation>(), canvasNode->GetId());
+    auto nodeIds = rsUIContext->GetGroupAnimationNodeIds();
+    EXPECT_FALSE(nodeIds.empty());
+    EXPECT_GT(nodeIds.count(canvasNode->GetId()), static_cast<size_t>(0));
+}
+
 } // namespace Rosen
 } // namespace OHOS

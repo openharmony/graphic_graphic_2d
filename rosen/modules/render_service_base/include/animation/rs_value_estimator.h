@@ -80,6 +80,8 @@ public:
 
     virtual void RebuildValue(float interpolatedFraction) {}
 
+    virtual void ResetLastValue(bool isAdditive) {}
+
     virtual void UpdateAnimationValue(const float fraction, const bool isAdditive) = 0;
 
     virtual RSValueEstimatorType GetEstimatorType() const
@@ -156,6 +158,26 @@ public:
         return EstimateFractionByCoarseToFine(interpolator, targetFraction, coarseSamples, refineSamples);
     }
 
+    void RebuildValue(float interpolatedFraction) override
+    {
+        lastValue_ = RSValueEstimator::Estimate(interpolatedFraction, startValue_, endValue_);
+        if (property_ == nullptr) {
+            return;
+        }
+        T baseValue = property_->Get() - static_cast<T>(endValue_ - startValue_);
+        auto interpolationValue = RSValueEstimator::Estimate(interpolatedFraction, baseValue, property_->Get());
+        property_->Set(interpolationValue);
+    }
+
+    void ResetLastValue(bool isAdditive) override
+    {
+        if (isAdditive && property_ != nullptr) {
+            property_->Set(property_->Get() + (startValue_ - lastValue_));
+        }
+        lastValue_ = startValue_;
+    }
+
+private:
     float EstimateFractionByCoarseToFine(const std::shared_ptr<RSInterpolator>& interpolator,
         float targetFraction, int coarseSamples, int refineSamples)
     {
@@ -188,18 +210,6 @@ public:
         return FRACTION_MIN;
     }
 
-    void RebuildValue(float interpolatedFraction) override
-    {
-        lastValue_ = RSValueEstimator::Estimate(interpolatedFraction, startValue_, endValue_);
-        if (property_ == nullptr) {
-            return;
-        }
-        T baseValue = property_->Get() - static_cast<T>(endValue_ - startValue_);
-        auto interpolationValue = RSValueEstimator::Estimate(interpolatedFraction, baseValue, property_->Get());
-        property_->Set(interpolationValue);
-    }
-
-private:
     T startValue_ {};
     T endValue_ {};
     T lastValue_ {};
@@ -244,7 +254,8 @@ public:
             auto keyframeValue = keyframeProp ?
                 keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
-                keyframes_.push_back({ std::get<0>(keyframe), keyframeValue->Get(), std::get<2>(keyframe) });
+                keyframes_.push_back(
+                    { std::get<0>(keyframe), keyframeValue->Get(), std::get<keyframeInterpolatorIndex>(keyframe) });
             }
         }
     }
@@ -261,12 +272,12 @@ public:
             lastValue_ = animatableLastValue->Get();
         }
         for (const auto& keyframe : keyframes) {
-            auto& keyframeProp = std::get<2>(keyframe);
+            auto& keyframeProp = std::get<durationKeyframeValueIndex>(keyframe);
             auto keyframeValue = keyframeProp ?
                 keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
-                durationKeyframes_.push_back(
-                    { std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(), std::get<3>(keyframe) });
+                durationKeyframes_.push_back({ std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(),
+                    std::get<durationKeyframeInterpolatorIndex>(keyframe) });
             }
         }
     }
@@ -293,9 +304,12 @@ public:
             // the index of tuple
             float keyframeFraction = std::get<0>(keyframe);
             auto keyframeValue = std::get<1>(keyframe);
-            auto keyframeInterpolator = std::get<2>(keyframe);
+            auto keyframeInterpolator = std::get<keyframeInterpolatorIndex>(keyframe);
             if (fraction <= keyframeFraction) {
                 if (ROSEN_EQ(keyframeFraction, preKeyframeFraction)) {
+                    continue;
+                }
+                if (keyframeInterpolator == nullptr) {
                     continue;
                 }
 
@@ -318,14 +332,14 @@ public:
 
     T GetDurationKeyframeAnimationValue(const float fraction, const bool isAdditive)
     {
-        auto preKeyframeValue = std::get<2>(durationKeyframes_.front());
+        auto preKeyframeValue = std::get<durationKeyframeValueIndex>(durationKeyframes_.front());
         auto animationValue = preKeyframeValue;
         bool bInFraction = false;
         for (const auto& keyframe : durationKeyframes_) {
             float startFraction = std::get<0>(keyframe);
             float endFraction = std::get<1>(keyframe);
-            auto keyframeValue = std::get<2>(keyframe);
-            auto keyframeInterpolator = std::get<3>(keyframe);
+            auto keyframeValue = std::get<durationKeyframeValueIndex>(keyframe);
+            auto keyframeInterpolator = std::get<durationKeyframeInterpolatorIndex>(keyframe);
             if (fraction < startFraction) {
                 break;
             }
@@ -339,6 +353,9 @@ public:
             }
             // Check normal interval
             if ((fraction >= startFraction) && (fraction <= endFraction)) {
+                if (keyframeInterpolator == nullptr) {
+                    continue;
+                }
                 bInFraction = true;
                 float intervalFraction = (fraction - startFraction) / (endFraction - startFraction);
                 auto interpolationValue = RSValueEstimator::Estimate(
@@ -360,7 +377,27 @@ public:
         return animationValue;
     }
 
+    void ResetLastValue(bool isAdditive) override
+    {
+        T firstValue = lastValue_;
+        if (!durationKeyframes_.empty()) {
+            firstValue = std::get<durationKeyframeValueIndex>(durationKeyframes_.front());
+        } else if (!keyframes_.empty()) {
+            firstValue = std::get<1>(keyframes_.front());
+        }
+        if (isAdditive && property_ != nullptr) {
+            property_->Set(property_->Get() + (firstValue - lastValue_));
+        }
+        lastValue_ = firstValue;
+    }
+
 private:
+    // KeyframeTuple: <fraction, value, interpolator>
+    static constexpr size_t keyframeInterpolatorIndex = 2;
+    // DurationKeyframeTuple: <startFraction, endFraction, value, interpolator>
+    static constexpr size_t durationKeyframeValueIndex = 2;
+    static constexpr size_t durationKeyframeInterpolatorIndex = 3;
+
     std::vector<std::tuple<float, T, std::shared_ptr<RSInterpolator>>> keyframes_;
     std::vector<std::tuple<float, float, T, std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     T lastValue_ {};

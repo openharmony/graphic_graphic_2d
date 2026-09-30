@@ -19,6 +19,7 @@
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1780,6 +1781,279 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_FinishA
     animator->FinishAnimator(RSInteractiveAnimationPosition::END);
 
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_FinishAnimator005 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_ResetChildAnimations006
+ * @tc.desc: Verify ResetChildAnimations autoReverse + reverse cycle: only SetGroupReverseCycle, no Restart
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetChildAnimations006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ResetChildAnimations006 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(2);
+    timingProtocol.SetAutoReverse(true);
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    animator->cachedAnimations_.emplace_back(renderCurveAnimation);
+    animator->animationFraction_.currentRepeatCount_ = 1;
+    // currentIsReverseCycle_ = true -> forward→reverse: needRestart = false
+    animator->animationFraction_.currentIsReverseCycle_ = true;
+    renderCurveAnimation->SetNeedUpdateStartTime(false);
+
+    EXPECT_FALSE(renderCurveAnimation->GetGroupReverseCycle());
+    animator->ResetChildAnimations();
+    // SetGroupReverseCycle toggled
+    EXPECT_TRUE(renderCurveAnimation->GetGroupReverseCycle());
+    // Restart NOT called -> needUpdateStartTime unchanged
+    EXPECT_FALSE(renderCurveAnimation->GetNeedUpdateStartTime());
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ResetChildAnimations006 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_ResetChildAnimations007
+ * @tc.desc: Verify ResetChildAnimations autoReverse + forward cycle: SetGroupReverseCycle + Restart
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_ResetChildAnimations007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ResetChildAnimations007 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(2);
+    timingProtocol.SetAutoReverse(true);
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    animator->cachedAnimations_.emplace_back(renderCurveAnimation);
+    animator->animationFraction_.currentRepeatCount_ = 1;
+    // currentIsReverseCycle_ = false -> reverse→forward: needRestart = true
+    animator->animationFraction_.currentIsReverseCycle_ = false;
+    renderCurveAnimation->SetNeedUpdateStartTime(false);
+
+    EXPECT_FALSE(renderCurveAnimation->GetGroupReverseCycle());
+    animator->ResetChildAnimations();
+    // SetGroupReverseCycle toggled
+    EXPECT_TRUE(renderCurveAnimation->GetGroupReverseCycle());
+    // Restart called -> needUpdateStartTime set true
+    EXPECT_TRUE(renderCurveAnimation->GetNeedUpdateStartTime());
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ResetChildAnimations007 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground001
+ * @tc.desc: Verify IsBackground returns false when repeatCount is not -1 (finite)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground001 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(2); // finite -> not background
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    EXPECT_FALSE(animator->IsBackground());
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground001 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground002
+ * @tc.desc: Verify IsBackground returns false when context is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground002 start";
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1); // infinite
+
+    auto animator =
+        std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, std::weak_ptr<RSContext>(), timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    EXPECT_FALSE(animator->IsBackground());
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground002 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground003
+ * @tc.desc: Verify IsBackground returns false when cachedAnimations_ is empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground003 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1); // infinite
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // cachedAnimations_ is empty -> no nodes to check -> false
+    EXPECT_FALSE(animator->IsBackground());
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest IsBackground003 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground004
+ * @tc.desc: Verify IsBackground skips null animation in cachedAnimations_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground004, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Push null weak_ptr -> animation == nullptr -> continue -> false
+    animator->cachedAnimations_.emplace_back(std::weak_ptr<RSRenderAnimation>());
+    EXPECT_FALSE(animator->IsBackground());
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground005
+ * @tc.desc: Verify IsBackground skips when node not found in context node map
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground005, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Animation with targetId not registered in context -> node == nullptr -> continue -> false
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animation->targetId_ = NODE_ID; // not registered in context
+    animator->cachedAnimations_.emplace_back(animation);
+    EXPECT_FALSE(animator->IsBackground());
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground006
+ * @tc.desc: Verify IsBackground returns false when instanceRoot is null (canvas node, no surface)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground006, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Register canvas node (not surface) -> GetInstanceRootNode() returns null -> false
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animation->targetId_ = NODE_ID;
+    animator->cachedAnimations_.emplace_back(animation);
+    EXPECT_FALSE(animator->IsBackground());
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_IsBackground007
+ * @tc.desc: Verify IsBackground returns true when surface node ability state is BACKGROUND
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_IsBackground007, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Register surface node with BACKGROUND ability state
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(NODE_ID, context);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    surfaceNode->instanceRootNodeId_ = NODE_ID; // GetInstanceRootNode uses this field directly
+    // Directly insert into renderNodeMap_ (RegisterRenderNode puts surface nodes in surfaceNodeMap_
+    // which GetRenderNode does not search)
+    context->GetMutableNodeMap().renderNodeMap_[0][NODE_ID] = surfaceNode;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animation->targetId_ = NODE_ID;
+    animator->cachedAnimations_.emplace_back(animation);
+    EXPECT_TRUE(animator->IsBackground());
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_OnAnimateBackgroundEarlyReturn001
+ * @tc.desc: Verify OnAnimate returns early when IsBackground() is true
+ * @tc.type:FUNC
+ */
+HWTEST_F(
+    RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_OnAnimateBackgroundEarlyReturn001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Set up background condition
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(NODE_ID, context);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    surfaceNode->instanceRootNodeId_ = NODE_ID;
+    context->GetMutableNodeMap().renderNodeMap_[0][NODE_ID] = surfaceNode;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animation->targetId_ = NODE_ID;
+    animator->cachedAnimations_.emplace_back(animation);
+    ASSERT_TRUE(animator->IsBackground());
+    // Set state to RUNNING so OnAnimate doesn't early-return on state check
+    animator->state_ = GroupAnimatorState::RUNNING;
+    animator->needUpdateStartTime_ = false;
+    int64_t minLeftDelayTime = 0;
+    animator->OnAnimate(1000, minLeftDelayTime);
+    // IsBackground early return sets needUpdateStartTime_ = true
+    EXPECT_TRUE(animator->needUpdateStartTime_);
 }
 
 } // namespace Rosen

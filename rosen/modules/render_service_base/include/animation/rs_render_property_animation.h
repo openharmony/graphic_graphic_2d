@@ -68,6 +68,8 @@ protected:
 
     void OnRemoveOnCompletion() override;
 
+    void OnRestart() override;
+
     void RecordLastAnimateValue() override;
 
     void UpdateAnimateVelocity(double frameInterval) override;

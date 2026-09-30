@@ -518,6 +518,10 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
             if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
                 return false;
             }
+            if (pair.second->HasInfiniteGroupAnimationChild()) {
+                RS_TRACE_NAME_FMT("DestroyTokenNode skip infiniteGroupChild nodeId:%llu", pair.second->GetId());
+                return false;
+            }
             pair.second->ReleaseNodeInRender();
 
             if (surfaceNode && (!surfaceNode->IsSelfDrawingType() || surfaceNode->GetIsTextureExportNode())) {

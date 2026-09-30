@@ -269,6 +269,24 @@ void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId 
     interactiveImplictAnimators_.erase(id);
 }
 
+std::set<NodeId> RSUIContext::GetGroupAnimationNodeIds()
+{
+    std::set<NodeId> nodeIds;
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    for (const auto& [_, animator] : interactiveImplictAnimators_) {
+        if (!animator || !animator->IsGroupAnimator()) {
+            continue;
+        }
+        if (animator->GetRepeatCount() != -1) {
+            continue;
+        }
+        for (const auto& [__, nodeId] : animator->GetAnimations()) {
+            nodeIds.insert(nodeId);
+        }
+    }
+    return nodeIds;
+}
+
 void RSUIContext::SetRebuildState(RebuildState state)
 {
     std::lock_guard<std::mutex> lock(rebuildStateMutex_);

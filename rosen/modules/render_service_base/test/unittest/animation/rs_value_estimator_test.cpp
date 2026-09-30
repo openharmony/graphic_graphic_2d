@@ -1110,5 +1110,212 @@ HWTEST_F(RSValueEstimatorTest, GetEstimatorType001, TestSize.Level1)
     EXPECT_EQ(keyframeEstimator->GetEstimatorType(), RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
 }
 
+/**
+ * @tc.name: ResetLastValueCurveAdditive001
+ * @tc.desc: Verify RSCurveValueEstimator ResetLastValue adjusts property when additive
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueCurveAdditive001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueCurveAdditive001 start";
+    constexpr float PROPERTY_INIT = 5.0f;
+    constexpr float START_VAL = 2.0f;
+    constexpr float END_VAL = 8.0f;
+    constexpr float LAST_VAL = 8.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(PROPERTY_INIT);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(START_VAL);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(END_VAL);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(LAST_VAL);
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    // isAdditive true + property non-null -> property += (startValue_ - lastValue_)
+    estimator->ResetLastValue(true);
+    constexpr float expectedProp = PROPERTY_INIT + (START_VAL - LAST_VAL);
+    EXPECT_FLOAT_EQ(property->Get(), expectedProp);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, START_VAL);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueCurveAdditive001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueCurveNonAdditive001
+ * @tc.desc: Verify RSCurveValueEstimator ResetLastValue skips property adjust when non-additive
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueCurveNonAdditive001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueCurveNonAdditive001 start";
+    constexpr float PROPERTY_INIT = 5.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(PROPERTY_INIT);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    // isAdditive false -> skip property adjust, but lastValue_ = startValue_
+    estimator->ResetLastValue(false);
+    EXPECT_FLOAT_EQ(property->Get(), PROPERTY_INIT); // unchanged
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 2.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueCurveNonAdditive001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueCurveNullProperty001
+ * @tc.desc: Verify RSCurveValueEstimator ResetLastValue with null property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueCurveNullProperty001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    // property_ is null by default -> skip property adjust
+    estimator->ResetLastValue(true);
+    EXPECT_EQ(estimator->property_, nullptr);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 0.0f); // startValue_ default
+}
+
+/**
+ * @tc.name: ResetLastValueKeyframeDurationKeyframes001
+ * @tc.desc: Verify RSKeyframeValueEstimator ResetLastValue uses durationKeyframes first value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueKeyframeDurationKeyframes001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeDurationKeyframes001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 8.0f;
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    // push duration keyframe with value 3.0f
+    estimator->durationKeyframes_.push_back({0.0f, 100.0f, 3.0f, interpolator});
+    // isAdditive true -> property += (firstValue - lastValue_) = 10 + (3 - 8) = 5
+    estimator->ResetLastValue(true);
+    EXPECT_FLOAT_EQ(property->Get(), 5.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 3.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeDurationKeyframes001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueKeyframeKeyframes001
+ * @tc.desc: Verify RSKeyframeValueEstimator ResetLastValue uses keyframes first value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueKeyframeKeyframes001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeKeyframes001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 8.0f;
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    // durationKeyframes_ empty, keyframes_ non-empty
+    estimator->keyframes_.push_back({0.0f, 4.0f, interpolator});
+    // isAdditive true -> property += (4 - 8) = 6
+    estimator->ResetLastValue(true);
+    EXPECT_FLOAT_EQ(property->Get(), 6.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 4.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeKeyframes001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueKeyframeEmpty001
+ * @tc.desc: Verify RSKeyframeValueEstimator ResetLastValue with empty keyframes
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueKeyframeEmpty001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeEmpty001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 7.0f;
+    // both empty -> firstValue = lastValue_ = 7.0f
+    estimator->ResetLastValue(true);
+    EXPECT_FLOAT_EQ(property->Get(), 10.0f); // 10 + (7 - 7) = 10
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 7.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeEmpty001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueKeyframeNonAdditive001
+ * @tc.desc: Verify RSKeyframeValueEstimator ResetLastValue skips adjust when non-additive
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueKeyframeNonAdditive001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeNonAdditive001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 8.0f;
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    estimator->durationKeyframes_.push_back({0.0f, 100.0f, 3.0f, interpolator});
+    // isAdditive false -> skip property adjust
+    estimator->ResetLastValue(false);
+    EXPECT_FLOAT_EQ(property->Get(), 10.0f); // unchanged
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 3.0f); // still set to firstValue
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest ResetLastValueKeyframeNonAdditive001 end";
+}
+
+/**
+ * @tc.name: ResetLastValueKeyframeNullProperty001
+ * @tc.desc: Verify RSKeyframeValueEstimator ResetLastValue with null property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, ResetLastValueKeyframeNullProperty001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    estimator->property_ = nullptr;
+    estimator->lastValue_ = 8.0f;
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    estimator->durationKeyframes_.push_back({0.0f, 100.0f, 3.0f, interpolator});
+    // isAdditive true but property_ null -> skip adjust
+    estimator->ResetLastValue(true);
+    EXPECT_EQ(estimator->property_, nullptr);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 3.0f);
+}
+
+/**
+ * @tc.name: KeyframeNullInterpolatorInKeyframes001
+ * @tc.desc: Verify GetAnimationValue skips keyframe with null interpolator in keyframes_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, KeyframeNullInterpolatorInKeyframes001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest KeyframeNullInterpolatorInKeyframes001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 0.0f;
+    // keyframe with null interpolator at fraction 1.0 -> should continue (skip)
+    estimator->keyframes_.push_back({0.0f, 0.0f, nullptr});
+    estimator->keyframes_.push_back({1.0f, 5.0f, nullptr});
+    // fraction 0.5 <= 1.0, but interpolator null -> continue, returns preKeyframeValue (0.0f)
+    auto result = estimator->GetAnimationValue(0.5f, false);
+    EXPECT_FLOAT_EQ(result, 0.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest KeyframeNullInterpolatorInKeyframes001 end";
+}
+
+/**
+ * @tc.name: KeyframeNullInterpolatorInDurationKeyframes001
+ * @tc.desc: Verify GetDurationKeyframeAnimationValue skips null interpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, KeyframeNullInterpolatorInDurationKeyframes001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest KeyframeNullInterpolatorInDurationKeyframes001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->lastValue_ = 0.0f;
+    // duration keyframe with null interpolator
+    estimator->durationKeyframes_.push_back({0.0f, 100.0f, 0.0f, nullptr});
+    estimator->durationKeyframes_.push_back({100.0f, 200.0f, 5.0f, nullptr});
+    // fraction 50 falls in [0, 100], but interpolator null -> continue (skip)
+    auto result = estimator->GetAnimationValue(50.0f, false);
+    // bInFraction stays false -> returns preKeyframeValue (front value = 0.0f)
+    EXPECT_FLOAT_EQ(result, 0.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest KeyframeNullInterpolatorInDurationKeyframes001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

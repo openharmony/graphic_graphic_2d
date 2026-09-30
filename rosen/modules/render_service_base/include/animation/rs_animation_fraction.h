@@ -49,6 +49,7 @@ public:
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
+    float GetGroupEndFraction() const;
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void FlipDirection();
     void SetGroupReverseCycle(bool isReverse) { groupReverseCycle_ = isReverse; }
@@ -78,6 +79,7 @@ public:
     bool GetGroupAutoReverse() const { return groupAutoReverse_; }
     void SetGroupRepeatCount(int repeatCount) { groupRepeatCount_ = repeatCount; }
     int GetGroupRepeatCount() const { return groupRepeatCount_; }
+    void SetGroupAnimationChild(bool isChild) { isGroupAnimationChild_ = isChild; }
 
 private:
     bool IsInRepeat() const;
@@ -108,6 +110,7 @@ private:
     bool groupAutoReverse_ { false };
     // Group animator's repeatCount, used to determine final position
     int groupRepeatCount_ { 0 };
+    bool isGroupAnimationChild_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

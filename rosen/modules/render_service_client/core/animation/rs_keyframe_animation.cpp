@@ -15,6 +15,7 @@
 
 #include "animation/rs_keyframe_animation.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "command/rs_animation_command.h"
 #include "modifier/rs_property.h"
@@ -184,6 +185,11 @@ std::shared_ptr<RSRenderKeyframeAnimation> RSKeyframeAnimation::CreateRenderAnim
         for (const auto& [fraction, value, curve] : keyframes_) {
             animation->AddKeyframe(fraction, value->GetRenderProperty(), curve.GetInterpolator(GetDuration()));
         }
+    }
+    if (auto target = GetTarget().lock()) {
+        RSAnimationTraceUtils::GetInstance().AddKeyframeAnimationClientTrace(target->GetId(), GetId(),
+            GetPropertyType(), originValue_->GetRenderProperty(), animation->isDurationKeyframe_, GetDuration(),
+            animation->keyframes_, animation->durationKeyframes_);
     }
     return animation;
 }

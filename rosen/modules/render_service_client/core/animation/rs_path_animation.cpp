@@ -147,6 +147,7 @@ void RSPathAnimation::OnStart()
     }
     if (isNeedPath_ && property_ != nullptr) {
         property_->AddPathAnimation();
+        pathAnimationRemoved_ = false;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
@@ -288,8 +289,12 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
 
 void RSPathAnimation::OnCallFinishCallback()
 {
-    if (property_ != nullptr) {
+    // Idempotent: paired with the AddPathAnimation in OnStart. Multiple finish paths
+    // (InteractiveFinish synchronous + async RSNode::AnimationCallback FINISHED) may both call this;
+    // only the first decrements runningPathNum_.
+    if (property_ != nullptr && !pathAnimationRemoved_) {
         property_->RemovePathAnimation();
+        pathAnimationRemoved_ = true;
     }
 }
 

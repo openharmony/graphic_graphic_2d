@@ -88,7 +88,13 @@ public:
 
     InteractiveImplictAnimatorId GetId() const { return id_; }
 
+    bool IsGroupAnimator() const { return isGroupAnimator_; }
+    int GetRepeatCount() const { return timingProtocol_.GetRepeatCount(); }
+    const std::vector<std::pair<std::weak_ptr<RSAnimation>, NodeId>>& GetAnimations() const { return animations_; }
+
     void SetFinishCallBack(const std::function<void()>& finishCallback);
+
+    RSInteractiveAnimationPosition GetClientFinishPosition(RSInteractiveAnimationPosition position) const;
 
 protected:
     RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
