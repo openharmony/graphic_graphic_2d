@@ -254,7 +254,7 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
 
     std::unique_lock<std::mutex> guard(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
     auto job = jobGlobal;
-    if (!job || (nodeId && !job->IsUnfinished(nodeId))) {
+    if (!job) {
         return;
     }
 
@@ -264,6 +264,12 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
             // ERROR: no next NodeId
             return;
         }
+    }
+
+    // Claim the node under the mutex: moves it to inflight, so a concurrent tick from another
+    // thread cannot marshal the same node twice while the lock is released for serialization
+    if (!job->ClaimNode(nodeId)) {
+        return;
     }
 
     const auto node = GetRenderNode(nodeId);
@@ -278,7 +284,7 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
     guard.lock();
 
     job->MarkFinished(nodeId, data.str());
-    if (!job->GetUnfinishedCount()) {
+    if (!job->HasPendingNodes()) {
         g_recordFile.SetHeaderFailedNodeCount(job->offsetNodeCount, job->failedNodeCount);
         g_recordFile.InsertHeaderData(job->offsetNodes, job->GetNodeData());
         jobGlobal = nullptr;
@@ -954,8 +960,9 @@ void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
     }
 
     constexpr float nanoToMs = 1000'000.0f;
-    SendMessage("CALC_PERF_NODE_RESULT: %s->%lu %lu inMS=%f tries=%d", g_calcPerfNodeExcludeDown ? "U" : "UD",
-        g_calcPerfNode, avgValue, static_cast<float>(avgValue) / nanoToMs, g_effectiveNodeTimeCount);
+    SendMessage("CALC_PERF_NODE_RESULT: %s->%" PRIu64 " %" PRIu64 " inMS=%f tries=%d",
+        g_calcPerfNodeExcludeDown ? "U" : "UD", g_calcPerfNode, avgValue,
+        static_cast<float>(avgValue) / nanoToMs, g_effectiveNodeTimeCount);
     g_calcPerfNode = 0;
 
     AwakeRenderServiceThread();
@@ -999,7 +1006,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
                 Utils::ExtractPid(node->GetId()) != Utils::ExtractPid(parentPtr->GetId()) &&
                 Utils::ExtractPid(node->GetId()) == pid && node->GetSortedChildren()->size() > 0) {
                 rootNode = node;
-                SendMessage("Root node found: %lu", rootNode->GetId());
+                SendMessage("Root node found: %" PRIu64, rootNode->GetId());
             }
         });
     }
@@ -1599,7 +1606,7 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
     for (const auto& [_, subMap] : map.renderNodeMap_) {
         for (const auto& [_, node] : subMap) {
             if (node && node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-                SendMessage("CANVAS_DRAWING_NODE: %lu", node->GetId());
+                SendMessage("CANVAS_DRAWING_NODE: %" PRIu64, node->GetId());
             }
         }
     }
@@ -1698,7 +1705,7 @@ void RSProfiler::KillPid(const ArgList& args)
     const pid_t pid = args.Pid();
     if (const auto node = GetRenderNode(Utils::GetRootNodeId(static_cast<uint64_t>(pid)))) {
         const auto parent = node->GetParent().lock();
-        SendMessage("parentPid=%d parentNode=%lu", GetPid(parent), GetNodeId(parent));
+        SendMessage("parentPid=%d parentNode=%" PRIu64, GetPid(parent), GetNodeId(parent));
         context_->GetMutableNodeMap().FilterNodeByPid(pid, true);
         AwakeRenderServiceThread();
     }
@@ -1739,14 +1746,14 @@ void RSProfiler::PrintNodeCacheLo(const std::shared_ptr<RSRenderNode>& node)
 void RSProfiler::TestSaveFrame(const ArgList& args)
 {
     g_testDataFrame = FirstFrameMarshalling(RSFILE_VERSION_LATEST);
-    SendMessage("Test: Saved frame size: %lu", g_testDataFrame.size());
+    SendMessage("Test: Saved frame size: %zu", g_testDataFrame.size());
 }
 
 void RSProfiler::TestLoadFrame(const ArgList& args)
 {
     const auto error = FirstFrameUnmarshalling(g_testDataFrame, RSFILE_VERSION_LATEST);
     if (error.empty()) {
-        SendMessage("Test: Loaded frame size: %lu", g_testDataFrame.size());
+        SendMessage("Test: Loaded frame size: %zu", g_testDataFrame.size());
     } else {
         SendMessage("Test: Load failed: %s", error.data());
     }
