@@ -501,7 +501,7 @@ ohos_unittest("RSBufferReclaimTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
-    "ffrt::libffrt",
+    "ffrt:libffrt",
     "googletest:gmock_main",
     "graphic_surface:surface",
     "hilog:libhilog",
