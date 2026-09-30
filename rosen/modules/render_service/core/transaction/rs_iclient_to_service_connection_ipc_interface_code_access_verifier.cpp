@@ -23,6 +23,8 @@ std::vector<std::pair<RSIClientToServiceConnectionInterfaceCodeAccessVerifier::C
     RSIClientToServiceConnectionInterfaceCodeAccessVerifier::permissionRSIRenderServiceConnectionInterfaceMappings_ {
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS,
             PermissionType::GET_RUNNING_INFO },
+        { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS_BY_RENDER_PID,
+            PermissionType::GET_RUNNING_INFO },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
             PermissionType::UPDATE_CONFIGURATION },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::CREATE_VIRTUAL_SCREEN,

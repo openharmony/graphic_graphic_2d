@@ -906,6 +906,12 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
 {
     return renderServiceClient_->GetMemoryGraphics();
 }
+
+std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    return renderServiceClient_->GetMemoryGraphicsByRenderPid(renderPid);
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {

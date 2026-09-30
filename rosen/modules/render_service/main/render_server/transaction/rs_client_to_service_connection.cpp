@@ -1209,6 +1209,30 @@ ErrCode RSClientToServiceConnection::GetMemoryGraphics(std::vector<MemoryGraphic
     return ERR_OK;
 }
 
+std::vector<MemoryGraphic> RSClientToServiceConnection::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    std::vector<MemoryGraphic> memoryGraphics;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("GetMemoryGraphicsByRenderPid renderProcessManagerAgent_ is nullptr");
+        return memoryGraphics;
+    }
+    auto  conn = renderProcessManagerAgent_->GetServiceToRenderConnByPid(renderPid);
+    if (conn == nullptr) {
+        RS_LOGE("GetMemoryGraphicsByRenderPid no conn for pid %{public}d", renderPid);
+        return memoryGraphics;
+    }
+    std::vector<MemoryGraphic> mems;
+    if (conn->GetMemoryGraphics(mems) != ERR_OK) {
+        RS_LOGE("GetMemoryGraphicsByRenderPid GetMemoryGraphics failed pid %{public}d", renderPid);
+        return memoryGraphics;
+    }
+    for (auto& mem : mems) {
+        mem.SetRenderPid(renderPid);
+        memoryGraphics.emplace_back(std::move(mem));
+    }
+    return memoryGraphics;
+}
+
 std::vector<RSScreenModeInfo> RSClientToServiceConnection::GetScreenSupportedModes(ScreenId id)
 {
     if (!screenManagerAgent_) {

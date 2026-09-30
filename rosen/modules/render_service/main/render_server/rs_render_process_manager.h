@@ -52,6 +52,7 @@ public:
 
     virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const = 0;
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;
+    virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const = 0;
     virtual sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const = 0;
 
     virtual std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const { return nullptr; }
