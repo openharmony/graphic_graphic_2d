@@ -77,6 +77,8 @@ taihe_shared_library("window_animation_manager_taihe") {
     "-g3",
   ]
 
+  version_script = "libwindow_animation_manager_taihe.map"
+
   external_deps = [
     "ability_runtime:ability_manager",
     "ability_runtime:runtime",

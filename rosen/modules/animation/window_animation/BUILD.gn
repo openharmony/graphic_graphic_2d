@@ -45,6 +45,8 @@ ohos_shared_library("window_animation") {
     "ipc:ipc_core",
   ]
 
+  version_script = "libwindow_animation.map"
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
