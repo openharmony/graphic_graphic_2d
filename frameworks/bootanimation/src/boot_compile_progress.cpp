@@ -306,7 +306,7 @@ void BootCompileProgress::DrawCompileProgress()
     canvas->AttachBrush(whiteBrush);
 
     auto textWidth = font.MeasureText(info, strlen(info), Rosen::Drawing::TextEncoding::UTF8, nullptr);
-    float scalarX = frameWidth_ / NUMBER_TWO - textWidth / NUMBER_TWO;
+    float scalarX = (static_cast<float>(frameWidth_) - textWidth) / NUMBER_TWO;
     float scalarY = TEXT_BLOB_OFFSET + textBound->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
     canvas->DetachBrush();
