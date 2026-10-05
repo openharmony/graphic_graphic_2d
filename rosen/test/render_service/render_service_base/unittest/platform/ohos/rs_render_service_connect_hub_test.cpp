@@ -404,13 +404,13 @@ HWTEST_F(RSRenderServiceConnectHubTest, OnRemoteDiedTest004, TestSize.Level1)
 HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionTokenNullRenderPrecess, TestSize.Level1)
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
-    constexpr uint64_t TEST_MASK_ID = 99999;
+    constexpr uint64_t takeMaskId = 99999;
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<IRemoteObject> remote = nullptr;
     sptr<RSIConnectToRenderProcess> nullProcess = nullptr;
     sptr<RSIClientToRenderConnection> nullConn = nullptr;
-    connHub->AddRenderProcessConnectionToken(TEST_MASK_ID, token, remote, nullProcess, nullConn);
-    EXPECT_EQ(connHub->connRenderProcesses_.count(TEST_MASK_ID), 0u);
+    connHub->AddRenderProcessConnectionToken(takeMaskId, token, remote, nullProcess, nullConn);
+    EXPECT_EQ(connHub->connRenderProcesses_.count(takeMaskId), 0u);
 }
 
 /**
@@ -433,8 +433,8 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest002, TestSiz
 {
     auto saved = RSRenderServiceConnectHub::instance_;
     RSRenderServiceConnectHub::instance_ = nullptr;
-    constexpr uint64_t TEST_MASK_ID = 66600;
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    constexpr uint64_t takeMaskId = 66600;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     RSRenderServiceConnectHub::instance_ = saved;
     SUCCEED();
 }
@@ -449,8 +449,8 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest003, TestSiz
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     auto savedMap = connHub->connRenderProcesses_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66601;
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    constexpr uint64_t takeMaskId = 66601;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     connHub->connRenderProcesses_ = savedMap;
     SUCCEED();
 }
@@ -466,12 +466,12 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest004, TestSiz
     auto savedMap = connHub->connRenderProcesses_;
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66602;
+    constexpr uint64_t takeMaskId = 66602;
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
-    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
     SUCCEED();
@@ -488,13 +488,13 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest005, TestSiz
     auto savedMap = connHub->connRenderProcesses_;
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66603;
+    constexpr uint64_t takeMaskId = 66603;
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
     info.clientToRenderConnection = new RSClientToRenderConnectionProxy(nullptr);
-    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = nullptr;
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
     SUCCEED();
@@ -511,14 +511,14 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest006, TestSiz
     auto savedMap = connHub->connRenderProcesses_;
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66604;
+    constexpr uint64_t takeMaskId = 66604;
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
     info.clientToRenderConnection = target;
-    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     EXPECT_EQ(target->GetTransactionDataIndex(), 0u);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
@@ -535,17 +535,17 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSiz
     auto savedMap = connHub->connRenderProcesses_;
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66605;
-    constexpr uint32_t SOURCE_INDEX = 7;
+    constexpr uint64_t takeMaskId = 66605;
+    constexpr uint32_t sourceIndex= 7;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
     info.clientToRenderConnection = target;
-    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = source;
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     EXPECT_EQ(target->GetTransactionDataIndex(), SOURCE_INDEX);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
@@ -562,9 +562,9 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSiz
     auto savedMap = connHub->connRenderProcesses_;
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
-    constexpr uint64_t TEST_MASK_ID = 66606;
-    constexpr uint32_t SOURCE_INDEX = 9;
-    constexpr uint32_t TARGET_INDEX = 3;
+    constexpr uint64_t takeMaskId = 66606;
+    constexpr uint32_t sourceIndex= 9;
+    constexpr uint32_t targetIndex= 3;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
@@ -572,9 +572,9 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSiz
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
     info.clientToRenderConnection = target;
-    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = source;
-    RSRenderServiceConnectHub::SeedTransactionDataIndex(TEST_MASK_ID);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
     EXPECT_EQ(target->GetTransactionDataIndex(), TARGET_INDEX);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
