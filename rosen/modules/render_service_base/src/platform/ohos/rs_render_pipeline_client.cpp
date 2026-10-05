@@ -85,6 +85,7 @@ void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const std::function<
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     // Lazy re-resolution: clients constructed before the render process was registered keep
     // INVALID_TOKEN_MASK_ID cached in tokenMaskId_. Route them to the render process once it is
     // the only connection (normal apps), so their transaction index stream stays continuous on
