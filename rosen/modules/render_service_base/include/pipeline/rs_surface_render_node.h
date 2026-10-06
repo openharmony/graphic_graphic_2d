@@ -180,6 +180,16 @@ public:
         return GetName().find("RosenWeb") != std::string::npos;
     }
 
+    bool IsDelegateChild() const
+    {
+        return GetName() == "delegate_child";
+    }
+
+    bool IsBufferReclaimNode()
+    {
+        return IsRosenWeb() || (GetDelegateMode() && IsDelegateChild());
+    }
+
     bool IsSubHighPriorityType() const
     {
         return GetName().find("hipreview") != std::string::npos;
