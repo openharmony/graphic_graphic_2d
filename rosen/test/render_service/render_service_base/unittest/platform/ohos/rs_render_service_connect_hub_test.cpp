@@ -538,7 +538,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSiz
     constexpr uint64_t takeMaskId = 66605;
     constexpr uint32_t sourceIndex = 7;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
-    ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
@@ -546,7 +546,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSiz
     connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = source;
     RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
-    EXPECT_EQ(target->GetTransactionDataIndex(), SOURCE_INDEX);
+    EXPECT_EQ(target->GetTransactionDataIndex(), sourceIndex);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
 }
@@ -566,16 +566,16 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSiz
     constexpr uint32_t sourceIndex = 9;
     constexpr uint32_t targetIndex = 3;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
-    ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
-    ASSERT_TRUE(target->SeedTransactionDataIndex(TARGET_INDEX));
+    ASSERT_TRUE(target->SeedTransactionDataIndex(targetIndex));
     RenderProcessInfo info;
     info.token = new IRemoteStub<RSIConnectionToken>();
     info.clientToRenderConnection = target;
     connHub->connRenderProcesses_[takeMaskId] = info;
     connHub->renderConn_ = source;
     RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
-    EXPECT_EQ(target->GetTransactionDataIndex(), TARGET_INDEX);
+    EXPECT_EQ(target->GetTransactionDataIndex(), targetIndex);
     connHub->renderConn_ = savedRenderConn;
     connHub->connRenderProcesses_ = savedMap;
 }
