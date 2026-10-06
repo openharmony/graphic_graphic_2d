@@ -536,7 +536,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSiz
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
     constexpr uint64_t takeMaskId = 66605;
-    constexpr uint32_t sourceIndex= 7;
+    constexpr uint32_t sourceIndex = 7;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
@@ -563,8 +563,8 @@ HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSiz
     auto savedRenderConn = connHub->renderConn_;
     connHub->connRenderProcesses_.clear();
     constexpr uint64_t takeMaskId = 66606;
-    constexpr uint32_t sourceIndex= 9;
-    constexpr uint32_t targetIndex= 3;
+    constexpr uint32_t sourceIndex = 9;
+    constexpr uint32_t targetIndex = 3;
     auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
     ASSERT_TRUE(source->SeedTransactionDataIndex(SOURCE_INDEX));
     auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));

@@ -891,11 +891,11 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed002, TestS
 {
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
     auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
-    constexpr uint32_t OWN_INDEX = 3;
-    constexpr uint32_t OTHER_INDEX = 9;
-    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(OWN_INDEX));
-    ASSERT_FALSE(mockProxy->SeedTransactionDataIndex(OTHER_INDEX));
-    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), OWN_INDEX);
+    constexpr uint32_t ownIndex = 3;
+    constexpr uint32_t otherIndex = 9;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(ownIndex));
+    ASSERT_FALSE(mockProxy->SeedTransactionDataIndex(otherIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), ownIndex);
 }
 } // namespace Rosen
 } // namespace OHOS
