@@ -877,9 +877,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed001, TestS
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
     auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
     ASSERT_EQ(mockProxy->GetTransactionDataIndex(), 0u);
-    constexpr uint32_t SEEDED_INDEX = 7;
-    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(SEEDED_INDEX));
-    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), SEEDED_INDEX);
+    constexpr uint32_t seededIndex = 7;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(seededIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), seededIndex);
 }
 
 /**
