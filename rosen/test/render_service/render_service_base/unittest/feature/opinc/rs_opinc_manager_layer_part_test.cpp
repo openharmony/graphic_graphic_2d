@@ -215,6 +215,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNormalP
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     auto dirtyManager = node->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
@@ -313,6 +314,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionUsesNod
     auto node = CreateCanvasNode(SECOND_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     auto dirtyManager = node->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
@@ -364,6 +366,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInterse
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
     WarmUpLayerPartUnchangeState(node->GetLayerPartRenderCache());
 
@@ -418,6 +421,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionGeoNull
     ASSERT_NE(node, nullptr);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     node->GetMutableRenderProperties().boundsGeo_ = nullptr;
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(dirtyManager, nullptr);
@@ -444,6 +448,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInvertF
     auto node = CreateCanvasNode(SECOND_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     auto& geo = node->GetMutableRenderProperties().boundsGeo_;
     ASSERT_NE(geo, nullptr);
     geo->absMatrix_->Set(Drawing::Matrix::SCALE_X, 0.0f);
@@ -474,6 +479,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionOutside
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
     WarmUpLayerPartUnchangeState(node->GetLayerPartRenderCache());
 
@@ -504,6 +510,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInsideN
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
     WarmUpLayerPartUnchangeState(node->GetLayerPartRenderCache());
 
@@ -608,6 +615,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInterse
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
     node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
     WarmUpLayerPartUnchangeState(node->GetLayerPartRenderCache());
 
@@ -669,6 +677,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
     context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
     context.dirtyManager->SetHasUifirstChild(true);
 
@@ -695,6 +704,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
     context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
@@ -720,6 +730,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
     context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
@@ -888,6 +899,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
     context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     context.node->GetMutableRenderProperties().boundsGeo_ = nullptr;
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
@@ -911,6 +923,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
     context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
+    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
     context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
