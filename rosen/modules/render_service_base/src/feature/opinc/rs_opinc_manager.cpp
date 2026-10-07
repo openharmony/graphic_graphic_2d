@@ -31,7 +31,8 @@ namespace {
 static bool IsTransparentNode(const RSRenderNode& node)
 {
     const auto& properties = node.GetRenderProperties();
-    return properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA || properties.GetAlpha() < 1;
+    return node.GetGlobalAlpha() < 1 || properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA ||
+        properties.GetAlpha() < 1;
 }
 
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
