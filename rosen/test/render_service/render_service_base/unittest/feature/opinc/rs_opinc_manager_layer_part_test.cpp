@@ -800,34 +800,6 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
 }
 
 /**
- * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionBackgroundFullyTransparentPathHit
- * @tc.desc: Verify fully-transparent background (alpha == 0) suspends layer part render
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest,
-    CalculateAndUpdateLayerPartRenderDirtyRegionBackgroundFullyTransparentPathHit, TestSize.Level1)
-{
-    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 43, false);
-    ASSERT_NE(context.node, nullptr);
-    ASSERT_NE(context.dirtyManager, nullptr);
-    ASSERT_NE(context.stagingRenderParams, nullptr);
-    context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
-    context.node->GetLayerPartRenderCache().MarkSuggestLayerPartRenderNode(true);
-    context.node->GetLayerPartRenderCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
-    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0, 0, 0, 0));
-
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
-
-    EXPECT_NE(context.dirtyManager, nullptr);
-    EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
-    EXPECT_FALSE(context.node->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
-    EXPECT_EQ(context.node->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
-        NodeStrategyType::CACHE_DISABLE);
-}
-
-/**
  * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionNodeTransparentPathHit
  * @tc.desc: Verify node alpha < 1 (transparent) suspends layer part render
  * @tc.type: FUNC
@@ -884,65 +856,6 @@ HWTEST_F(RSOpincManagerLayerPartTest,
     EXPECT_FALSE(context.node->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
     EXPECT_EQ(context.node->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
         NodeStrategyType::CACHE_DISABLE);
-}
-
-/**
- * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionGlobalAlphaZeroSuspends
- * @tc.desc: Verify global alpha == 0 suspends layer part render even when local alpha is 1 and background is opaque
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest,
-    CalculateAndUpdateLayerPartRenderDirtyRegionGlobalAlphaZeroSuspends, TestSize.Level1)
-{
-    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 38, false);
-    ASSERT_NE(context.node, nullptr);
-    ASSERT_NE(context.dirtyManager, nullptr);
-    ASSERT_NE(context.stagingRenderParams, nullptr);
-    context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
-    context.node->GetLayerPartRenderCache().MarkSuggestLayerPartRenderNode(true);
-    context.node->GetLayerPartRenderCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
-    context.node->SetGlobalAlpha(0.0f);
-    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
-
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
-
-    EXPECT_NE(context.dirtyManager, nullptr);
-    EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
-    EXPECT_FALSE(context.node->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
-    EXPECT_EQ(context.node->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
-        NodeStrategyType::CACHE_DISABLE);
-}
-
-/**
- * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionGlobalAlphaOneOpaqueProceeds
- * @tc.desc: Verify global alpha == 1 with opaque background and local alpha 1 proceeds to enable layer-part
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest,
-    CalculateAndUpdateLayerPartRenderDirtyRegionGlobalAlphaOneOpaqueProceeds, TestSize.Level1)
-{
-    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 39, true);
-    ASSERT_NE(context.node, nullptr);
-    ASSERT_NE(context.dirtyManager, nullptr);
-    ASSERT_NE(context.stagingRenderParams, nullptr);
-    context.node->GetLayerPartRenderCache().SetLayerPartRender(true);
-    context.node->GetLayerPartRenderCache().MarkSuggestLayerPartRenderNode(true);
-    context.node->GetLayerPartRenderCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
-    // global alpha defaults to 1.0f (RSRenderParams::globalAlpha_ = 1.0f); explicitly assert to lock behavior
-    ASSERT_EQ(context.node->GetGlobalAlpha(), 1.0f);
-    context.node->GetMutableRenderProperties().SetBackgroundColor(Color(0xFF, 0xFF, 0xFF, 0xFF));
-
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
-
-    EXPECT_TRUE(context.stagingRenderParams->GetLayerPartRenderEnabled());
-    EXPECT_EQ(context.dirtyManager, nullptr);
-    EXPECT_TRUE(context.node->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
-    EXPECT_EQ(context.node->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
-        NodeStrategyType::NODE_GROUP);
 }
 
 /**

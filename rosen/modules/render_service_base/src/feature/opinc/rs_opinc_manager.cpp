@@ -25,14 +25,14 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
 [[maybe_unused]] constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
-constexpr int32_t MAX_ALPHA = 255;
+constexpr int16_t MAX_ALPHA = 255;
 
 namespace {
 static bool IsTransparentNode(const RSRenderNode& node)
 {
     const auto& properties = node.GetRenderProperties();
-    return node.GetGlobalAlpha() < 1 || properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA ||
-        properties.GetAlpha() < 1;
+    return ROSEN_NE(node.GetGlobalAlpha(), 1.0f) ||
+        properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA || ROSEN_NE(properties.GetAlpha(), 1.0f);
 }
 
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
