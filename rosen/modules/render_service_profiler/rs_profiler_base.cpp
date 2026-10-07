@@ -47,6 +47,7 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -100,6 +101,26 @@ static std::atomic<uint64_t> g_counterParseTransactionDataEnd = 0;
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
+}
+
+static void FlushRenderNodeGarbageCollector()
+{
+    // NOTE:
+    //  Drawables must be flushed too. Otherwise, the black screen appears after several consecutive fast-forwards:
+    //
+    //  while (!collector.IsDrawableBucketQueueEmpty()) {
+    //      collector.ReleaseDrawableBucket()
+    //  }
+    //
+    //  Instead a drawable is deleted instantly via RS_PROFILER_ON_GARBAGE_COLLECT to prevent from being freed via
+    //  RSRenderNodeAllocator::AddDrawableToAllocator
+
+    constexpr uint32_t attempts = 1000;
+    
+    auto& collector = RSRenderNodeGC::Instance();
+    for (uint32_t i = 0; i < attempts && !collector.IsBucketQueueEmpty(); i++) {
+        collector.ReleaseNodeBucket();
+    }
 }
 
 static std::vector<RSRenderNode::SharedPtr> GetChildren(const RSRenderNode& node)
@@ -549,44 +570,11 @@ Vector4f RSProfiler::GetScreenRect(const RSContext& context)
     return { rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() };
 }
 
-void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
+void RSProfiler::OnGarbageCollect(DrawableV2::RSRenderNodeDrawableAdapter*& drawable)
 {
-    auto& map = context.GetMutableNodeMap();
-
-    auto canBeRemoved = [](NodeId node, pid_t pid) -> bool {
-        return (ExtractPid(node) == pid) && (Utils::ExtractNodeId(node) != 1);
-    };
-
-    // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    auto iter = map.renderNodeMap_.find(pid);
-    if (iter != map.renderNodeMap_.end()) {
-        auto& subMap = iter->second;
-        EraseIf(subMap, [](const auto& pair) -> bool {
-            if (Utils::ExtractNodeId(pair.first) == 1) {
-                return false;
-            }
-            // remove node from tree
-            pair.second->RemoveFromTree(false);
-            return true;
-        });
-        if (subMap.empty()) {
-            map.renderNodeMap_.erase(pid);
-        }
-    }
-
-    EraseIf(
-        map.surfaceNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
-
-    EraseIf(map.residentSurfaceNodeMap_,
-        [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
-
-    EraseIf(
-        map.screenNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
-
-    if (auto fallbackNode = map.GetAnimationFallbackNode()) {
-        if (auto animationManager = fallbackNode->GetAnimationManager()) {
-            animationManager->FilterAnimationByPid(pid);
-        }
+    if (IsEnabled() && drawable && Utils::IsNodeIdPatched(drawable->GetId())) {
+        delete drawable;
+        drawable = nullptr;
     }
 }
 
@@ -607,6 +595,8 @@ void RSProfiler::FilterMockNode(RSContext& context)
     for (auto pid : pidSet) {
         nodeMap.FilterNodeByPid(pid, true);
     }
+
+    FlushRenderNodeGarbageCollector();
 
     if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid

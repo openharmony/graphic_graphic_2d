@@ -45,7 +45,6 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
-#include "pipeline/rs_render_node_gc.h"
 #include "render/rs_typeface_cache.h"
 #include "surface_capture_param.h"
 #include "graphic_feature_param_manager.h"
@@ -178,6 +177,7 @@ Trace3DCoreParamValue CreateAndUpdateTraceParam(const std::vector<std::string>& 
 
 void LoadAnimationTimestamps(std::unordered_map<AnimationId, std::vector<int64_t>>& map)
 {
+    map.clear();
     for (const auto& [id, time] : g_playbackFile.GetAnimeStartTimes()) {
         const auto mockId = Utils::PatchNodeId(id);
         if (map.count(mockId)) {
@@ -326,12 +326,12 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
 bool RSProfiler::IsPowerOffScreen()
 {
     if (!context_) {
-        HRPE("RSProfiler::IsPowerOffScreen context is nullptr");
+        HRPE("IsPowerOffScreen context is nullptr");
         return false;
     }
     const auto& nodeMap = context_->GetNodeMap();
     if (nodeMap.screenNodeMap_.empty()) {
-        HRPI("RSProfiler::IsPowerOffScreen has no screenRenderNode");
+        HRPI("IsPowerOffScreen has no screenRenderNode");
         return false;
     }
     bool hasScreenPowerOn = false;
@@ -1255,7 +1255,7 @@ static bool ReadFocusAppInfo(std::stringstream& stream, FocusAppInfo& info)
 std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     if (!mainThread_ || !context_) {
-        return "FirstFrameUnmarshalling: Invalid mainThread or context";
+        return "FirstFrameUnmarshalling: Invalid main thread or context";
     }
 
     std::stringstream stream(data);
@@ -1400,9 +1400,6 @@ void RSProfiler::HiddenSpaceTurnOn()
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    if (!context_) {
-        return;
-    }
     for (const auto& [display, children] : displayChildren_) {
         display->ClearChildren();
         for (const auto& child : children) {
@@ -1410,10 +1407,6 @@ void RSProfiler::HiddenSpaceTurnOff()
         }
     }
     displayChildren_.clear();
-
-    FilterMockNode(*context_);
-    RSTypefaceCache::Instance().ReplayClear();
-
     AwakeRenderServiceThread();
 }
 
@@ -1875,8 +1868,14 @@ void RSProfiler::RecordStart(const ArgList& args)
     if (!mainThread_ || !context_) {
         return;
     }
+    
+    if (g_recordFile.IsOpen()) {
+        SendMessage("Record: Already started");
+        return;
+    }
+
     if (!IsNoneMode() || IsHiddenSpaceEnabled()) {
-        SendMessage("Record: Cannot start during playback or saving");
+        SendMessage("Record: Cannot start. Other operation is in progress");
         return;
     }
 
@@ -2043,16 +2042,16 @@ void RSProfiler::PlaybackSetImmediate(const ArgList& args)
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
     if (!mainThread_ || !context_) {
-        SendMessage("Playback: Invalid main thread or context");
+        SendMessage("Playback: Cannot initialize. Invalid main thread or context");
         return;
     }
 
     if (!IsNoneMode()) {
-        SendMessage("Playback: Cannot initialize during record or saving");
+        SendMessage("Playback: Cannot initialize. Other operation is in progress");
         return;
     }
 
-    if (g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
+    if (g_playbackFile.IsOpen()) {
         SendMessage("Playback: Already initialized");
         return;
     }
@@ -2064,10 +2063,6 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         SendMessage("Playback: File must be under /data directory");
         path = RSFile::GetDefaultPath();
     }
-
-    RSTypefaceCache::Instance().ReplayClear();
-    ImageCache::Reset();
-    AnimeGetStartTimes().clear();
 
     std::string error;
     if (!g_playbackFile.Open(path, error)) {
@@ -2109,12 +2104,12 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         return;
     }
 
-    if (!IsNoneMode()) {
-        SendMessage("Playback: Cannot start during record or saving");
+    if (!g_playbackFile.IsOpen()) {
+        SendMessage("Playback: Cannot start. File is not open");
         return;
     }
 
-    if (!g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
+    if (IsHiddenSpaceEnabled()) {
         SendMessage("Playback: Already started");
         return;
     }
@@ -2139,19 +2134,14 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_replayLastPauseTimeReported = 0;
     SetMode(Mode::READ);
 
-    std::thread thread([]() {
+    std::thread([]() {
         constexpr int fps = 120;
-        double advanceTime = 1.0 / fps;
-        const auto timeoutLimit = Utils::ToNanoseconds(1.0) / (2 * fps);
-        double eofTime = g_playbackFile.GetEOFTime();
+        constexpr double advanceTime = 1.0 / fps;
+        const auto timeoutLimit = static_cast<int64_t>(Utils::ToNanoseconds(1.0) / (2 * fps));
+        const auto endTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
-            int64_t nextPacketTimeNano =
-                static_cast<int64_t>(Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime)));
-            // timeout - sleep time to next packet
-            int64_t timeout = nextPacketTimeNano - PlaybackDeltaTimeNano();
-            if (timeout < 0) {
-                timeout = 0;
-            }
+            const auto time = PlaybackUpdate(PlaybackDeltaTime(), endTime, advanceTime);
+            auto timeout = std::min(static_cast<int64_t>(Utils::ToNanoseconds(time)) - PlaybackDeltaTimeNano(), 0L);
             timeout = timeout - (timeout % timeoutLimit) + timeoutLimit;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
@@ -2167,8 +2157,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         TimePauseClear();
         g_playbackShouldBeTerminated = false;
         SendMessage("Playback: Thread terminated");
-    });
-    thread.detach();
+    }).detach();
 
     SendMessage("Playback start"); // RESERVED!
 }
@@ -2184,21 +2173,21 @@ void RSProfiler::PlaybackStop(const ArgList& args)
         SendMessage("Playback: Already stopped");
         return;
     }
+
     SetMode(Mode::NONE);
     if (!IsHiddenSpaceEnabled()) {
         g_playbackFile.Close(); // PlaybackPrepareFirstFrame only was called
     }
+
     g_playbackShouldBeTerminated = true;
+    g_replayLastPauseTimeReported = 0;
+
     HiddenSpaceTurnOff();
     FilterMockNode(*context_);
-    constexpr int maxCountForSecurity = 1000;
-    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
-        RSRenderNodeGC::Instance().ReleaseNodeBucket();
-    }
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
-    g_replayLastPauseTimeReported = 0;
     PurgeMockConnections();
+
     SendMessage("Playback stop"); // RESERVED!
 }
 
@@ -2611,13 +2600,8 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
 
 void RSProfiler::TestClearSubTree(const ArgList& args)
 {
-    if (!context_) {
-        return;
-    }
-    FilterMockNode(*context_);
-    constexpr int maxCountForSecurity = 1000;
-    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
-        RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    if (context_) {
+        FilterMockNode(*context_);
     }
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();

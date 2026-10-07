@@ -51,6 +51,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_RENDER_BEGIN() RSProfiler::OnRenderBegin()
 #define RS_PROFILER_ON_RENDER_END() RSProfiler::OnRenderEnd()
 #define RS_PROFILER_ON_PROCESS_COMMAND() RSProfiler::OnProcessCommand()
+#define RS_PROFILER_ON_GARBAGE_COLLECT(garbage) RSProfiler::OnGarbageCollect(garbage)
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid) RSProfiler::OnCreateConnection(pid)
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, parcel, reply, option) \
     RSProfiler::OnRemoteRequest(connection, code, parcel, reply, option)
@@ -112,8 +113,6 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage) \
     RSProfiler::LogShaderCall(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() RSProfiler::IsRecordingMode()
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
-    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
@@ -127,6 +126,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_RENDER_BEGIN()
 #define RS_PROFILER_ON_RENDER_END()
 #define RS_PROFILER_ON_PROCESS_COMMAND()
+#define RS_PROFILER_ON_GARBAGE_COLLECT(garbage)
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid)
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) 0
 #define RS_PROFILER_GET_CALLING_PID(connection) GetCallingPid()
@@ -184,7 +184,6 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ADD_MESA_BLUR_METRICS(area)
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() false
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
@@ -526,6 +525,8 @@ public:
         return static_cast<T>(PatchPlainPid(parcel, static_cast<pid_t>(pid)));
     }
 
+    RSB_EXPORT static void OnGarbageCollect(DrawableV2::RSRenderNodeDrawableAdapter*& drawable);
+
     RSB_EXPORT static void TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber);
     RSB_EXPORT static void TransactionUnmarshallingEnd(const Parcel& parcel, uint32_t parcelNumber);
 
@@ -701,7 +702,6 @@ private:
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
     // RSRenderNodeMap
-    RSB_EXPORT static void FilterForPlayback(RSContext& context, pid_t pid);
     RSB_EXPORT static void FilterMockNode(RSContext& context);
 
     RSB_EXPORT static std::vector<RSRenderNode::SharedPtr> GetRenderNodes(const RSContext& context);
