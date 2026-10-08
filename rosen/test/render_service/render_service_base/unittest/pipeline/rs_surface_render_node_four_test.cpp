@@ -812,5 +812,49 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, IsUIBufferAvailableTest001, TestSize.Level
     defNode->isNotifyUIBufferAvailable_ = false;
     EXPECT_FALSE(defNode->IsUIBufferAvailable());
 }
+
+/**
+ * @tc.name: IsBufferReclaimNodeTest001
+ * @tc.desc: Cover all branches of IsBufferReclaimNode (IsRosenWeb || (GetDelegateMode && IsDelegateChild)):
+ *           IsRosenWeb true; delegate mode && delegate child true; delegate mode only false; neither false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, IsBufferReclaimNodeTest001, TestSize.Level1)
+{
+    // Branch 1: IsRosenWeb() true short-circuits the OR to true (right operand not evaluated).
+    RSSurfaceRenderNodeConfig webCfg = { .id = 1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto webNode = std::make_shared<RSSurfaceRenderNode>(webCfg);
+    webNode->name_ = "RosenWebSurface";
+    ASSERT_TRUE(webNode->IsRosenWeb());
+    EXPECT_TRUE(webNode->IsBufferReclaimNode());
+
+    // Branch 2: IsRosenWeb() false, GetDelegateMode() true, IsDelegateChild() true -> true.
+    RSSurfaceRenderNodeConfig delegateChildCfg = { .id = 2, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto delegateChildNode = std::make_shared<RSSurfaceRenderNode>(delegateChildCfg);
+    delegateChildNode->name_ = "delegate_child";
+    delegateChildNode->SetDelegateMode(true);
+    ASSERT_FALSE(delegateChildNode->IsRosenWeb());
+    ASSERT_TRUE(delegateChildNode->GetDelegateMode());
+    ASSERT_TRUE(delegateChildNode->IsDelegateChild());
+    EXPECT_TRUE(delegateChildNode->IsBufferReclaimNode());
+
+    // Branch 3: IsRosenWeb() false, GetDelegateMode() true, IsDelegateChild() false -> false.
+    RSSurfaceRenderNodeConfig delegateOnlyCfg = { .id = 3, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto delegateOnlyNode = std::make_shared<RSSurfaceRenderNode>(delegateOnlyCfg);
+    delegateOnlyNode->name_ = "OrdinarySurface";
+    delegateOnlyNode->SetDelegateMode(true);
+    ASSERT_FALSE(delegateOnlyNode->IsRosenWeb());
+    ASSERT_TRUE(delegateOnlyNode->GetDelegateMode());
+    ASSERT_FALSE(delegateOnlyNode->IsDelegateChild());
+    EXPECT_FALSE(delegateOnlyNode->IsBufferReclaimNode());
+
+    // Branch 4: IsRosenWeb() false, GetDelegateMode() false -> false (IsDelegateChild short-circuited).
+    RSSurfaceRenderNodeConfig plainCfg = { .id = 4, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto plainNode = std::make_shared<RSSurfaceRenderNode>(plainCfg);
+    plainNode->name_ = "OrdinarySurface";
+    ASSERT_FALSE(plainNode->IsRosenWeb());
+    ASSERT_FALSE(plainNode->GetDelegateMode());
+    EXPECT_FALSE(plainNode->IsBufferReclaimNode());
+}
 } // namespace Rosen
 } // namespace OHOS

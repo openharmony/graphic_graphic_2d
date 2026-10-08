@@ -2078,8 +2078,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
 void RSMainThread::PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode> &surfaceNode,
     std::shared_ptr<RSSurfaceHandler> surfaceHandler)
 {
-    if (!BufferReclaimParam::GetInstance().IsBufferReclaimEnable() ||
-        (!surfaceNode->IsRosenWeb() && !surfaceNode->GetDelegateMode())) {
+    if (!BufferReclaimParam::GetInstance().IsBufferReclaimEnable() || !surfaceNode->IsBufferReclaimNode()) {
         return;
     }
 

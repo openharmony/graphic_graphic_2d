@@ -6968,7 +6968,7 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
 
 /**
  * @tc.name: PostTryReclaimLastBuffer005
- * @tc.desc: 验证非 RosenWeb 节点的 delegate 回收分支及功能开关
+ * @tc.desc: 验证非 RosenWeb 的 delegate_child 节点的 delegate 回收分支及功能开关
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -6979,7 +6979,7 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer005, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceNode->name_ = "OrdinarySurface";
+    surfaceNode->name_ = "delegate_child";
     surfaceNode->isOnTheTree_ = false;
     surfaceHandler->SetLastBufferId(1);
     ASSERT_FALSE(surfaceNode->IsRosenWeb());

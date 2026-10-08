@@ -3910,7 +3910,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
 
 /**
  * @tc.name: BeforeUpdateSurfaceDirtyCalcDelegateBufferResume
- * @tc.desc: 验证非 RosenWeb 节点仅在 delegate 模式及回收开关均开启时恢复 buffer
+ * @tc.desc: 验证非 RosenWeb 的 delegate_child 节点仅在 delegate 模式及回收开关均开启时恢复 buffer
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3918,7 +3918,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
 {
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
-    node->name_ = "OrdinarySurface";
+    node->name_ = "delegate_child";
     ASSERT_FALSE(node->IsRosenWeb());
     ASSERT_FALSE(node->GetDelegateMode());
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
