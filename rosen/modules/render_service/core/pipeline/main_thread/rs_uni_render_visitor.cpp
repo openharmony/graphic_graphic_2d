@@ -4848,7 +4848,7 @@ void RSUniRenderVisitor::PrepareColorPickers()
     const auto& surfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
     const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
     const bool rebuildEnabled =
-        RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled();
+        RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::RebuildDebugEnabled();
 
     const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
     for (auto nodeId : colorPickerNodeIds) {
