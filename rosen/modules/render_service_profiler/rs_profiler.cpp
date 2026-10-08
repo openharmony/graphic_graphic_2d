@@ -2141,7 +2141,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         const auto endTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
             const auto time = PlaybackUpdate(PlaybackDeltaTime(), endTime, advanceTime);
-            auto timeout = std::min(static_cast<int64_t>(Utils::ToNanoseconds(time)) - PlaybackDeltaTimeNano(), 0L);
+            auto timeout = std::max(static_cast<int64_t>(Utils::ToNanoseconds(time)) - PlaybackDeltaTimeNano(),
+                static_cast<int64_t>(0));
             timeout = timeout - (timeout % timeoutLimit) + timeoutLimit;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
