@@ -23,12 +23,26 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_node.h"
 #include "common/rs_vector2.h"
+#include "command/rs_node_showing_command.h"
+#include "animation/rs_render_animation.h"
+#include "modifier/rs_property.h"
+#include "modifier/rs_render_property.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+// RSRenderAnimation is abstract (RebuildPropertyValue is pure virtual); this mock makes it
+// constructable in UT to populate uiAnimation_ and exercise the IsUiAnimation path.
+class RSRenderAnimationMock : public RSRenderAnimation {
+public:
+    RSRenderAnimationMock() : RSRenderAnimation() {}
+    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
+    ~RSRenderAnimationMock() override = default;
+    void RebuildPropertyValue(float fraction) override {}
+};
+
 class RSInteractiveImplictAnimatorTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1237,6 +1251,331 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, GetGroupAnimationNodeIds003, TestSize
     auto nodeIds = rsUIContext->GetGroupAnimationNodeIds();
     EXPECT_FALSE(nodeIds.empty());
     EXPECT_GT(nodeIds.count(canvasNode->GetId()), static_cast<size_t>(0));
+}
+
+/**
+ * @tc.name: FinishOnCurrentNullContext001
+ * @tc.desc: Verify FinishOnCurrent returns early when rsUIContext is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, FinishOnCurrentNullContext001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNullContext001 start";
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+    animator->state_ = RSInteractiveAnimationState::RUNNING;
+    animator->FinishOnCurrent();
+    // rsUIContext is null -> early return, state and animations_ untouched
+    EXPECT_EQ(animator->state_, RSInteractiveAnimationState::RUNNING);
+    EXPECT_TRUE(animator->animations_.empty());
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNullContext001 end";
+}
+
+/**
+ * @tc.name: FinishOnCurrentNullAnimationOrNode001
+ * @tc.desc: Verify FinishOnCurrent skips entries whose animation or node is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, FinishOnCurrentNullAnimationOrNode001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNullAnimationOrNode001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+    animator->state_ = RSInteractiveAnimationState::RUNNING;
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+
+    // valid animation but nodeId absent from nodeMap -> node is null (A1)
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
+    animator->animations_.emplace_back(animation, 999999);
+    // expired weak_ptr with a valid nodeId -> node non-null but animation null (A2)
+    std::weak_ptr<RSAnimation> expired;
+    animator->animations_.emplace_back(expired, nodeId);
+
+    animator->FinishOnCurrent();
+    // both entries skipped -> propertiesMap empty -> early return, animations_ untouched
+    EXPECT_EQ(animator->animations_.size(), 2u);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNullAnimationOrNode001 end";
+}
+
+/**
+ * @tc.name: FinishOnCurrentNoPropertyAnimation001
+ * @tc.desc: Verify FinishOnCurrent skips animations whose property has no running
+ *           property animation on the node, leaving propertiesMap empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, FinishOnCurrentNoPropertyAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNoPropertyAnimation001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+    animator->state_ = RSInteractiveAnimationState::RUNNING;
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
+    animator->animations_.emplace_back(animation, nodeId);
+
+    // RSDummyAnimation.GetPropertyId() returns 0; node has no property-0 animation
+    EXPECT_FALSE(node->HasPropertyAnimation(animation->GetPropertyId()));
+
+    animator->FinishOnCurrent();
+    // skipped (no property animation) -> propertiesMap empty -> early return
+    EXPECT_EQ(animator->animations_.size(), 1u);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNoPropertyAnimation001 end";
+}
+
+/**
+ * @tc.name: FinishOnCurrentNonEmptyMap001
+ * @tc.desc: Verify FinishOnCurrent proceeds past the empty-map check (propertiesMap
+ *           non-empty) to create and execute the sync task when animations are collected,
+ *           covering the task-failure early-return path (sync task is a no-op without a
+ *           render service connection)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, FinishOnCurrentNonEmptyMap001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNonEmptyMap001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+    animator->state_ = RSInteractiveAnimationState::RUNNING;
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    // mark property 0 as animating so CollectCancelableAnimations does not skip -> non-empty
+    // propertiesMap -> FinishOnCurrent proceeds past the empty-map check to the sync task
+    node->animatingPropertyNum_[0] = 1;
+
+    auto animation1 = std::make_shared<RSDummyAnimation>(rsUIContext);
+    auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext);
+    animator->animations_.emplace_back(animation1, nodeId);
+    animator->animations_.emplace_back(animation2, nodeId);
+
+    // precondition: property owned -> entries collected -> propertiesMap non-empty (427 false)
+    EXPECT_TRUE(node->HasPropertyAnimation(animation1->GetPropertyId()));
+
+    animator->FinishOnCurrent();
+    // sync task is a no-op without a render service connection -> !IsSuccess() -> early
+    // return; state and animations_ must stay intact
+    EXPECT_EQ(animator->state_, RSInteractiveAnimationState::RUNNING);
+    EXPECT_EQ(animator->animations_.size(), 2u);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest FinishOnCurrentNonEmptyMap001 end";
+}
+
+/**
+ * @tc.name: CollectCancelableAnimationsMultipleSameProperty001
+ * @tc.desc: Verify CollectCancelableAnimations collects every animationId when several
+ *           animations share the same (nodeId, propertyId): std::map::emplace is a no-op
+ *           for an existing key, so the second id must be appended, not dropped
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, CollectCancelableAnimationsMultipleSameProperty001,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " CollectCancelableAnimationsMultipleSameProperty001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    // RSDummyAnimation.GetPropertyId() returns 0; mark property 0 as animating so the
+    // entries are not skipped and reach the emplace/append collection.
+    node->animatingPropertyNum_[0] = 1;
+
+    auto animation1 = std::make_shared<RSDummyAnimation>(rsUIContext);
+    auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext);
+    animator->animations_.emplace_back(animation1, nodeId);
+    animator->animations_.emplace_back(animation2, nodeId);
+
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    animator->CollectCancelableAnimations(rsUIContext, propertiesMap);
+
+    // both animations share (nodeId, propertyId 0): one map entry, two animation ids
+    ASSERT_EQ(propertiesMap.size(), 1u);
+    const auto& [key, value] = *propertiesMap.begin();
+    EXPECT_EQ(key.first, nodeId);
+    EXPECT_EQ(key.second, animation1->GetPropertyId());
+    EXPECT_EQ(value.second.size(), 2u);
+    EXPECT_EQ(value.second[0], animation1->GetId());
+    EXPECT_EQ(value.second[1], animation2->GetId());
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " CollectCancelableAnimationsMultipleSameProperty001 end";
+}
+
+/**
+ * @tc.name: CollectCancelableAnimationsSkipsUiAnimation001
+ * @tc.desc: Verify CollectCancelableAnimations skips UI animations (IsUiAnimation true)
+ *           even when the node owns the property, so they are not added to propertiesMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, CollectCancelableAnimationsSkipsUiAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " CollectCancelableAnimationsSkipsUiAnimation001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    // mark property 0 as animating so !HasPropertyAnimation is false; the skip must come
+    // from IsUiAnimation being true (not from a missing property animation)
+    node->animatingPropertyNum_[0] = 1;
+
+    auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
+    animator->animations_.emplace_back(animation, nodeId);
+
+    // precondition: property owned (B1 false) but animation is UI (B2 true)
+    EXPECT_TRUE(node->HasPropertyAnimation(animation->GetPropertyId()));
+    EXPECT_TRUE(animation->IsUiAnimation());
+
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    animator->CollectCancelableAnimations(rsUIContext, propertiesMap);
+    // UI animation is skipped -> nothing collected
+    EXPECT_TRUE(propertiesMap.empty());
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " CollectCancelableAnimationsSkipsUiAnimation001 end";
+}
+
+/**
+ * @tc.name: ApplyShowingPropertyValuesSkipsMissingNodeAndProperty001
+ * @tc.desc: Verify ApplyShowingPropertyValues skips entries whose node is absent from the
+ *           context (node null) and entries whose propertyId is unknown to the node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, ApplyShowingPropertyValuesSkipsMissingNodeAndProperty001,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " ApplyShowingPropertyValuesSkipsMissingNodeAndProperty001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    PropertyId unknownPropId = 9999;
+    NodeId absentNodeId = 8888;
+
+    // precondition: absent node not in context, and the node lacks unknownPropId
+    EXPECT_TRUE(rsUIContext->GetNodeMap().GetNode<RSNode>(absentNodeId) == nullptr);
+    EXPECT_FALSE(node->HasPropertyAnimation(unknownPropId));
+
+    using MapValue = std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap map;
+    map.emplace(std::make_pair(absentNodeId, unknownPropId), MapValue(nullptr, {}));
+    map.emplace(std::make_pair(nodeId, unknownPropId), MapValue(nullptr, {}));
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(map));
+
+    // rsUIContext valid (D-true); both entries skipped (E node null, F2 property null)
+    animator->ApplyShowingPropertyValues(rsUIContext, *task);
+    // skipped entries must not mutate node state
+    EXPECT_FALSE(node->HasPropertyAnimation(unknownPropId));
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest"
+        << " ApplyShowingPropertyValuesSkipsMissingNodeAndProperty001 end";
+}
+
+/**
+ * @tc.name: ApplyShowingPropertyValuesNullContext001
+ * @tc.desc: Verify ApplyShowingPropertyValues falls back to RSNodeMap::Instance() and skips
+ *           safely when rsUIContext is null (no node found in the global map)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, ApplyShowingPropertyValuesNullContext001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest ApplyShowingPropertyValuesNullContext001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+
+    NodeId absentNodeId = 8888;
+    using MapValue = std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap map;
+    map.emplace(std::make_pair(absentNodeId, PropertyId(0)), MapValue(nullptr, {}));
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(map));
+
+    // null rsUIContext -> RSNodeMap::Instance() fallback (D-false); node absent -> skipped
+    animator->ApplyShowingPropertyValues(nullptr, *task);
+    EXPECT_EQ(animator->state_, RSInteractiveAnimationState::INACTIVE);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest ApplyShowingPropertyValuesNullContext001 end";
+}
+
+/**
+ * @tc.name: ApplyShowingPropertyValuesAppliesValue001
+ * @tc.desc: Verify ApplyShowingPropertyValues applies a non-null showing value via
+ *           SetValueFromRender (G-true) and skips a null value (G-false) when the node
+ *           owns the property (F-found)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, ApplyShowingPropertyValuesAppliesValue001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest ApplyShowingPropertyValuesAppliesValue001 start";
+    auto rsUIContext = CreateRSUIContext();
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    timingProtocol.SetDuration(1000);
+    auto animator = RSInteractiveImplictAnimator::Create(rsUIContext, timingProtocol, timingCurve);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
+    NodeId nodeId = node->GetId();
+    PropertyId propId = 100;
+    // register a concrete property so GetPropertyById finds it (F-found)
+    // RSAnimatableProperty (not RSProperty) overrides SetValueFromRender; RSProperty uses
+    // the base no-op, so the animatable subclass is required to observe the applied value.
+    auto clientProp = std::make_shared<RSAnimatableProperty<float>>();
+    node->properties_[propId] = clientProp;
+    ASSERT_TRUE(node->GetPropertyById(propId) != nullptr);
+
+    using MapValue = std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>;
+
+    // G-true: non-null showing value -> SetValueFromRender applies it
+    auto renderProp = std::make_shared<RSRenderAnimatableProperty<float>>(42.0f);
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap map1;
+    map1.emplace(std::make_pair(nodeId, propId), MapValue(renderProp, {}));
+    auto task1 = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(map1));
+    animator->ApplyShowingPropertyValues(rsUIContext, *task1);
+    EXPECT_FLOAT_EQ(clientProp->stagingValue_, 42.0f);
+
+    // G-false: null showing value -> skip, staging value untouched
+    clientProp->stagingValue_ = 7.0f;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap map2;
+    map2.emplace(std::make_pair(nodeId, propId), MapValue(nullptr, {}));
+    auto task2 = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(map2));
+    animator->ApplyShowingPropertyValues(rsUIContext, *task2);
+    EXPECT_FLOAT_EQ(clientProp->stagingValue_, 7.0f);
+    GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest ApplyShowingPropertyValuesAppliesValue001 end";
 }
 
 } // namespace Rosen
