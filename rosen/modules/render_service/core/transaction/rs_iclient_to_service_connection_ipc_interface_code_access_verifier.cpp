@@ -400,6 +400,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS_BY_RENDER_PID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHICS_BY_RENDER_PID");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
             break;
