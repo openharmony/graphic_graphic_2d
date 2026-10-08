@@ -24,6 +24,7 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_macros.h"
+#include "command/rs_node_showing_command.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -115,6 +116,10 @@ private:
     static void InitUniRenderEnabled();
     bool IsUniRenderEnabled() const;
     void FinishOnCurrent();
+    void CollectCancelableAnimations(const std::shared_ptr<RSUIContext>& rsUIContext,
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap& propertiesMap);
+    void ApplyShowingPropertyValues(const std::shared_ptr<RSUIContext>& rsUIContext,
+        const RSNodeGetShowingPropertiesAndCancelAnimation& task);
     void CallFinishCallback();
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
         FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
