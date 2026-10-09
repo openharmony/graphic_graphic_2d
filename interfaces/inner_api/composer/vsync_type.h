@@ -53,6 +53,16 @@ enum class FromWhom : uint8_t {
 };
 
 constexpr FromWhom DEFAULT_FROMWHOM = FromWhom::INNER;
+
+// Dvsync使能状态变化原因枚举
+enum class DvsyncDisableReason: uint8_t {
+    API_DISABLE = 0,            // 主场景下应用自己关闭
+    BACKGROUND_DISABLE = 1,     // 使能中窗口切后台，关闭使能
+    UNFOCUS_DISABLE = 2,        // 使能中窗口失焦，关闭使能
+    DESTROY_DISABLE = 3,        // 使能中窗口销毁，关闭使能
+};
+
+constexpr DvsyncDisableReason DEFAULT_DVSYNCDISABLEREASON = DvsyncDisableReason::API_DISABLE;
 } // OHOS
 
 #endif // VSYNC_TYPE_H

@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "vsync_type.h"
+
 namespace OHOS {
 namespace Rosen {
 class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener,
@@ -233,9 +235,11 @@ public:
      *
      * @param dvsyncSwitch true: switch on, false: switch off.
      * @param fromWhom the caller type, default is INNER.
+     * @param disableReason the reason of dvsync switch off, default is API_DISABLE.
      * @return Returns an error code.
      */
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM);
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM,
+        DvsyncDisableReason disableReason = DEFAULT_DVSYNCDISABLEREASON);
 
     /**
      * @brief callback will be called when isOpen is true, and stop when isOpen is false.
