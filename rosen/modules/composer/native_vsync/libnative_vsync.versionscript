@@ -16,5 +16,7 @@
         *;
     local:
         # libc++
-        _ZNSt3__h13basic_filebufIcNS_11char_traitsIcEEE*;
+        _ZTVN4OHOS19BrokerDelegatorBaseE;
+        _ZN4OHOS5Rosen21ModifierTypeConvertor16modifierTypeMap_E;
+        _ZGVN4OHOS5Rosen21ModifierTypeConvertor16modifierTypeMap_E;
 };
