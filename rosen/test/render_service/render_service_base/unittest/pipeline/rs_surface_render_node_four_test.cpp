@@ -109,6 +109,68 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetForceHardwareAndFixRotation, TestSize.L
 }
 
 /**
+ * @tc.name: SetForceHardwareAndFixRotationSameValue
+ * @tc.desc: test results of SetForceHardwareAndFixRotation with the same value as current state
+ * @tc.type:FUNC SetForceHardwareAndFixRotation
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetForceHardwareAndFixRotationSameValue, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->InitRenderParams();
+
+    // same value as the default (false): early return, no sync and no dirty
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->addedToPendingSyncList_ = false;
+    node->SetForceHardwareAndFixRotation(false);
+    EXPECT_FALSE(node->isFixRotationByUser_);
+    EXPECT_FALSE(node->addedToPendingSyncList_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::CLEAN);
+
+    // apply a real change first (false -> true)
+    node->SetForceHardwareAndFixRotation(true);
+    EXPECT_TRUE(node->isFixRotationByUser_);
+
+    // duplicate call with the same value (true): early return, no re-sync and no re-dirty
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->addedToPendingSyncList_ = false;
+    node->SetForceHardwareAndFixRotation(true);
+    EXPECT_TRUE(node->isFixRotationByUser_);
+    EXPECT_FALSE(node->addedToPendingSyncList_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::CLEAN);
+}
+
+/**
+ * @tc.name: SetForceHardwareAndFixRotationFullPath
+ * @tc.desc: test results of SetForceHardwareAndFixRotation when the flag changes
+ * @tc.type:FUNC SetForceHardwareAndFixRotation
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetForceHardwareAndFixRotationFullPath, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->InitRenderParams();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    // false -> true: flag applied to node and staging params, added to pending sync list and dirtied
+    node->SetForceHardwareAndFixRotation(true);
+    EXPECT_TRUE(node->isFixRotationByUser_);
+    EXPECT_TRUE(surfaceParams->GetFixRotationByUser());
+    EXPECT_TRUE(node->addedToPendingSyncList_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+
+    // true -> false: the reverse change also applies and dirties again
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->SetForceHardwareAndFixRotation(false);
+    EXPECT_FALSE(node->isFixRotationByUser_);
+    EXPECT_FALSE(surfaceParams->GetFixRotationByUser());
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+}
+
+/**
  * @tc.name: UpdateSurfaceDefaultSize
  * @tc.desc: test results of UpdateSurfaceDefaultSize
  * @tc.type:FUNC UpdateSurfaceDefaultSize

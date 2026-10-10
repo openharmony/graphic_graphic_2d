@@ -955,12 +955,16 @@ bool RSSurfaceRenderNode::IsHwcCrossNode() const
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
 #ifdef RS_ENABLE_GPU
+    if (isFixRotationByUser_ == flag) {
+        return;
+    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
     surfaceParams->SetFixRotationByUser(flag);
     AddToPendingSyncList();
+    SetDirty();
 
     isFixRotationByUser_ = flag;
 #endif
