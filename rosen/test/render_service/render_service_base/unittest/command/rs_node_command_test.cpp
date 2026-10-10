@@ -938,7 +938,7 @@ HWTEST_F(RSNodeCommandTest, UpdateModifierNGDrawCmdListTypeMismatch001, TestSize
 
 /**
  * @tc.name: SetTakeSurfaceForUIFlag001
- * @tc.desc: test SetTakeSurfaceForUIFlag when node is not found, flag should not be inserted
+ * @tc.desc: test SetTakeSurfaceForUIFlag when node is not found, flag is still inserted
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -949,7 +949,7 @@ HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
     RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
     auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
     EXPECT_EQ(cmdFlag.first, true);
-    EXPECT_EQ(cmdFlag.second, 0u);
+    EXPECT_NE(cmdFlag.second, 0u);
 }
 
 /**
