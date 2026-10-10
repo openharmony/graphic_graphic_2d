@@ -1034,6 +1034,89 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing
 }
 
 /**
+ * @tc.name: GenerateBehindWindowFilterHashTest001
+ * @tc.desc: Different saturation should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest001, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, 1.0f, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, 2.0f, brightness, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest002
+ * @tc.desc: Different brightness should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest002, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, 0.8f, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, 1.2f, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest003
+ * @tc.desc: Same parameters should produce same filter hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest003, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_EQ(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest004
+ * @tc.desc: Different maskColor should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest004, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor1(0xFFFFFFE5);
+    RSColor maskColor2(0x000000E5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor1);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor2);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
  * @tc.name: GenerateMaterialColorFilterTest001
  * @tc.desc: GenerateMaterialColorFilterTest
  * @tc.type: FUNC

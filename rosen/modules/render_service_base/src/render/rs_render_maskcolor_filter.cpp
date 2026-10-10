@@ -37,6 +37,8 @@ RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColo
     hash_ = hashFunc(&colorMode_, sizeof(colorMode_), hash_);
     uint32_t maskColorArgb = maskColor_.AsArgbInt();
     hash_ = hashFunc(&maskColorArgb, sizeof(maskColorArgb), hash_);
+    int16_t maskColorAlpha = maskColor_.GetAlpha();
+    hash_ = hashFunc(&maskColorAlpha, sizeof(maskColorAlpha), hash_);
 }
 
 RSMaskColorShaderFilter::~RSMaskColorShaderFilter() = default;
