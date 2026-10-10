@@ -55,6 +55,7 @@ public:
 
     void PrepareDelegateCompositeCommand(std::unique_ptr<RSTransactionData>& transactionData);
     bool ProcessDelegateCompositeCommand(RSContext& context);
+    bool CleanDelegateCompositeCommand(NodeId id, pid_t pid);
 
     bool RegisterReleaseListener(sptr<IConsumerSurface> cSurface);
     void DumpInfo(std::string& dumpString);
@@ -70,6 +71,7 @@ private:
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
     void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>>& targetsListenerMap);
     void DumpTotleInfo(std::string& dumpString);
+    void CleanDelegateCompositeCommandInner(NodeId id, std::queue<std::unique_ptr<RSCommand>>& queue);
     pid_t webProxyComposerTid_ = 0;
 
     std::mutex surfaceNodeBufferReleaseCallbackMapMutex_;

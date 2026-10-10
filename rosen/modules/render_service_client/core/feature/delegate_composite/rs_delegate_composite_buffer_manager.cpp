@@ -110,14 +110,15 @@ RSTransactionConfig RSDelegateCompositeBufferManager::GenerateTransactionConfigI
     return config;
 }
 
-void RSDelegateCompositeBufferManager::CleanBuffer(bool cleanAll)
+GSError RSDelegateCompositeBufferManager::CleanBuffer(bool cleanAll)
 {
     RS_TRACE_NAME_FMT("RSDelegateCompositeBufferManager::CleanBuffer, node:[name: %s, id: %" PRIu64 "], cleanAll=%d",
         name_.c_str(), nodeId_, cleanAll);
     uint32_t bufferSequence = 0;
-
+    GSError ret = GSERROR_INTERNAL;
     if (psurface_) {
-        psurface_->CleanCache(false, bufferSequence);
+        CleanDelegateModeBufferCmd();
+        ret = psurface_->CleanCache(false, bufferSequence);
         {
             std::lock_guard<std::mutex> lock(cacheMutex_);
             RS_TRACE_NAME_FMT("transactionCacheForSetBuffer=%d", transactionCacheForSetBuffer_.size());
@@ -133,6 +134,7 @@ void RSDelegateCompositeBufferManager::CleanBuffer(bool cleanAll)
             transactionCacheForSetBuffer_.clear();
         }
     }
+    return ret;
 }
 
 void RSDelegateCompositeBufferManager::SetDesiredPresentTime(int64_t desiredPresentTime)
@@ -316,6 +318,22 @@ RSDelegateCompositeBufferManager::~RSDelegateCompositeBufferManager()
     }
     rsTransactionHandle_ = nullptr;
 }
+
+bool RSDelegateCompositeBufferManager::CleanDelegateModeBufferCmd()
+{
+    if (!rsUIContext_) {
+        RS_LOGE("RSDelegateCompositeBufferManager::CleanDelegateModeBufferCmd fail: rsUIContext invalid");
+        return false;
+    }
+
+    auto renderInterface = rsUIContext_->GetRSRenderInterface();
+    if (!renderInterface) {
+        RS_LOGE("RSDelegateCompositeBufferManager::CleanDelegateModeBufferCmd fail: renderInterface invalid");
+        return false;
+    }
+    return renderInterface->CleanDelegateModeBufferCmd(nodeId_);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 #endif

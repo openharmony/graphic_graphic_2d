@@ -242,6 +242,7 @@ public:
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
     bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener);
     bool UnRegisterSurfaceNodeBufferReleaseListener();
+    bool CleanDelegateModeBufferCmd(NodeId id);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,

@@ -5523,5 +5523,83 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UpdateFrameStabilityDetectionTest00
     EXPECT_EQ(res, ERR_INVALID_REPLY);
 }
 
+/**
+ * @tc.name: CleanDelegateModeBufferCmdTest001
+ * @tc.desc: Test CLEAN_DELEGATE_BUFFER_CMD with parcel read fail and pid mismatch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CleanDelegateModeBufferCmdTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD);
+
+    // case 1: no node id in parcel, ReadUint64 fails
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, IPC_STUB_INVALID_DATA_ERR);
+
+    // case 2: node id not owned by remote pid (remotePid_ = 0, node pid = 1)
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId foreignNodeId = (static_cast<NodeId>(1) << 32) | 1;
+    data2.WriteUint64(foreignNodeId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, IPC_STUB_INVALID_DATA_ERR);
+    EXPECT_FALSE(connectionStub_->CleanDelegateModeBufferCmd(foreignNodeId));
+}
+
+/**
+ * @tc.name: CleanDelegateModeBufferCmdTest002
+ * @tc.desc: Test CLEAN_DELEGATE_BUFFER_CMD with null pipeline agent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CleanDelegateModeBufferCmdTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10086;
+    data.WriteUint64(nodeId);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, IPC_STUB_INVALID_DATA_ERR);
+    EXPECT_FALSE(connectionStub_->CleanDelegateModeBufferCmd(nodeId));
+}
+
+/**
+ * @tc.name: CleanDelegateModeBufferCmdTest003
+ * @tc.desc: Test CLEAN_DELEGATE_BUFFER_CMD with node id owned by the remote pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CleanDelegateModeBufferCmdTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    // remotePid_ = 0, node id keeps pid 0 in high 32 bits
+    NodeId nodeId = 10087;
+    data.WriteUint64(nodeId);
+
+    ASSERT_NE(connectionStub_->renderPipelineAgent_, nullptr);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+#ifdef RS_ENABLE_DELEGATE_COMPOSITE
+    // agent posts main thread task and returns true even if node is missing
+    ASSERT_EQ(res, ERR_NONE);
+    EXPECT_TRUE(connectionStub_->CleanDelegateModeBufferCmd(nodeId));
+#else
+    // feature disabled: agent always returns false
+    ASSERT_EQ(res, IPC_STUB_INVALID_DATA_ERR);
+    EXPECT_FALSE(connectionStub_->CleanDelegateModeBufferCmd(nodeId));
+#endif
+}
 } // namespace OHOS::Rosen
 #endif

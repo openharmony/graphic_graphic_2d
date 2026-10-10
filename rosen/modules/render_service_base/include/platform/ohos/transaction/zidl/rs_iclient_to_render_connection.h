@@ -239,6 +239,7 @@ public:
     virtual bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) = 0;
     virtual bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) = 0;
     virtual bool UnRegisterSurfaceNodeBufferReleaseListener() = 0;
+    virtual bool CleanDelegateModeBufferCmd(NodeId id) = 0;
 };
 
 } // namespace Rosen
