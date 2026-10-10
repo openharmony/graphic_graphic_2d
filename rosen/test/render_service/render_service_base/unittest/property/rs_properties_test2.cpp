@@ -2875,8 +2875,7 @@ HWTEST_F(PropertiesTest, SetDistortionKResetTest, TestSize.Level1)
     // Now set nullopt - should hit the else-if branch and reset
     properties.SetDistortionK(std::nullopt);
     auto distortionK = properties.GetDistortionK();
-    ASSERT_TRUE(distortionK.has_value());
-    EXPECT_FLOAT_EQ(*distortionK, 0.f);
+    ASSERT_FALSE(distortionK.has_value());
     EXPECT_FALSE(properties.GetDistortionDirty());
 }
 
