@@ -154,16 +154,16 @@ rosen/modules/render_service_base/include/render/rs_image_cache.h @xiaojianfeng_
 rosen/modules/render_service_base/include/render/rs_image.h @xiaojianfeng_jeffery
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @white-dragon-tiger
-rosen/modules/render_service/main/render_server/transaction/ @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.h @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.cpp @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.h @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @white-dragon-tiger
-rosen/modules/render_service_base/include/command/ @white-dragon-tiger
-etc/graphic.para.dac @white-dragon-tiger
-rosen/modules/safuzz/ @white-dragon-tiger
+rosen/modules/render_service/core/transaction/ @chuchengcheng
+rosen/modules/render_service/main/render_server/transaction/ @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.h @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.h @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @chuchengcheng
+rosen/modules/render_service_base/include/command/ @chuchengcheng
+etc/graphic.para.dac @chuchengcheng
+rosen/modules/safuzz/ @chuchengcheng
 
 [transaction]
 rosen/modules/render_service_client/core/transaction/rs_transaction.h @chuchengcheng
