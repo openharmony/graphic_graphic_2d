@@ -440,7 +440,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
         }
     }
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
-    if (!accessible && code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
+    if (!accessible &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
@@ -524,10 +525,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
-            // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
-            // we temporarily add a white list to avoid abnormal functionality or abnormal display.
-            // The white list will be removed after GetCallingPid interface can return real PID.
-            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
+            // Authoritative selfCapture is computed with the connection-level trusted identity in
+            // RSClientToRenderConnection::TakeSurfaceCapture (GetCallingPid() may be 0 for async binder).
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
             break;
         }
@@ -564,12 +563,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (ExtractPid(id) != callingPid) {
-                RS_LOGW("RSClientToRenderConnectionStub::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
-                        "], callingPid:[%{public}d], pid:[%{public}d]", id, callingPid, ExtractPid(id));
-                ret = ERR_INVALID_DATA;
-                break;
-            }
+            // Ownership is enforced with the connection-level trusted identity in
+            // RSClientToRenderConnection::TakeSelfSurfaceCapture (GetCallingPid() may be 0
+            // for asynchronous binder calls and cannot be relied upon here).
             RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -885,8 +881,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            uint64_t token = data.ReadUint64();
-            uint64_t timeStamp = data.ReadUint64();
+            uint64_t token = 0;
+            uint64_t timeStamp = 0;
+            if (!data.ReadUint64(token) || !data.ReadUint64(timeStamp)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest read token/timeStamp failed");
+                break;
+            }
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;

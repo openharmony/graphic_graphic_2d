@@ -22,8 +22,6 @@ std::vector<std::pair<RSIRenderServiceConnectionInterfaceCodeAccessVerifier::Cod
     RSIRenderServiceConnectionInterfaceCodeAccessVerifier::permissionRSIRenderServiceConnectionInterfaceMappings_ {
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE,
             PermissionType::CAPTURE_SCREEN },
-        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE,
-            PermissionType::UPDATE_CONFIGURATION },
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS,
             PermissionType::GET_RUNNING_INFO },
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
