@@ -78,6 +78,7 @@ void RSBufferReclaim::ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer)
     }
     auto endTime = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
     RS_TRACE_NAME_FMT("DoBufferReclaim done bufferReclaimMap_: %zu, hasReclaimed: %d, ret: %d",
         bufferReclaimMap_.size(), buffer->IsReclaimed(), ret);
     RS_LOGI("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu, hasReclaimed: "
@@ -100,12 +101,12 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
             return false;
         }
         bufferReclaimMap_[buffer->GetBufferId()] = ReclaimState::PENDING;
+        RS_TRACE_NAME_FMT("DoBufferReclaim(post to ffrt) bufId: %" PRIu64 ", seq: %u, bufferReclaimMap_: %zu",
+            buffer->GetBufferId(), buffer->GetSeqNum(), bufferReclaimMap_.size());
     }
-    RS_TRACE_NAME_FMT("DoBufferReclaim(post to ffrt) bufId: %" PRIu64 ", seq: %u, bufferReclaimMap_: %zu",
-        buffer->GetBufferId(), buffer->GetSeqNum(), bufferReclaimMap_.size());
     ffrt::submit([buffer = std::move(buffer)]() {
         RSBufferReclaim::GetInstance().ReclaimBufferOnFfrt(buffer);
-        }, ffrt::task_attr().name("LastBufferRecliam").qos(ffrt::qos_user_interactive));
+        }, ffrt::task_attr().name("LastBufferReclaim").qos(ffrt::qos_user_interactive));
     return true;
 }
 
@@ -117,8 +118,8 @@ bool RSBufferReclaim::TryResumeBuffer(sptr<SurfaceBuffer> buffer, uint64_t buffe
         if (iter == bufferReclaimMap_.end() || iter->second != ReclaimState::RECLAIMED) {
             return false;
         }
+        RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu", bufferReclaimMap_.size());
     }
-    RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu", bufferReclaimMap_.size());
     auto startTime = std::chrono::steady_clock::now();
     auto ret = buffer->TryResumeIfNeeded();
     if (ret == GSERROR_OK) {
@@ -130,10 +131,9 @@ bool RSBufferReclaim::TryResumeBuffer(sptr<SurfaceBuffer> buffer, uint64_t buffe
     }
     auto endTime = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu, ret: %d", bufferReclaimMap_.size(), ret);
-    RS_LOGI("DoBufferResume bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu,"
-        "hasReclaimed:%{public}d, cost:%{public}" PRIu64 " ms, ret:%{public}d",
-        bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed(),
+    RS_TRACE_NAME_FMT("DoBufferResume ret: %d", ret);
+    RS_LOGI("DoBufferResume bufId:%{public}" PRIu64 ", seq:%{public}u, hasReclaimed:%{public}d, cost:%{public}" PRIu64
+        " ms, ret:%{public}d", bufferId, buffer->GetSeqNum(), buffer->IsReclaimed(),
         static_cast<uint64_t>(duration.count()), ret);
     return ret == GSERROR_OK;
 }
@@ -163,8 +163,8 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
         }
     }
     if (needWaitingForReclaimDone) {
-        RS_TRACE_NAME_FMT("DoBufferResume waiting bufId:%" PRIu64 ", seq:%u, hasReclaimed:%d, bufferReclaimMap_:%zu",
-            bufferId, buffer->GetSeqNum(), buffer->IsReclaimed(), bufferReclaimMap_.size());
+        RS_TRACE_NAME_FMT("DoBufferResume waiting bufId:%" PRIu64 ", seq:%u, hasReclaimed:%d",
+            bufferId, buffer->GetSeqNum(), buffer->IsReclaimed());
         std::unique_lock<std::mutex> lock(resumeMutex_);
         if (!resumeCv_.wait_for(
             lock, std::chrono::milliseconds(RECLAIM_TIMEOUT_MS), [bufferId, this]() {
