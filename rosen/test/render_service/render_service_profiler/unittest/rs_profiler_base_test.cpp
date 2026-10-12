@@ -540,6 +540,9 @@ HWTEST_F(RecorRsProfileRecordTest, RecordStartSuccess, Level1)
     RSProfiler::RecordStart(args); // record starting
     EXPECT_TRUE(RSProfiler::IsWriteMode());
     EXPECT_TRUE(RSProfiler::IsRecordingMode());
+    // Clean up: stop recording to close g_recordFile and reset mode,
+    // preventing state leakage into subsequent tests.
+    RSProfiler::RecordStop(ArgList(std::vector<std::string> { "WAITFORFINISH" }));
 }
 
 /*

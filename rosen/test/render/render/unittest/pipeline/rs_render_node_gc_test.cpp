@@ -249,6 +249,11 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseDrawableMemory001, TestSize.Level1)
     node.DrawableDestructorInner(ptrToNode);
     node.ReleaseDrawableMemory();
     EXPECT_TRUE(node.drawableBucket_.size() == 0);
+
+    // Cover the "if (!ptr) { return; }" branch in DrawableDestructorInner:
+    // passing nullptr triggers the early return path.
+    node.DrawableDestructorInner(nullptr);
+    EXPECT_TRUE(node.drawableBucket_.size() == 0);
 }
 
 /**
