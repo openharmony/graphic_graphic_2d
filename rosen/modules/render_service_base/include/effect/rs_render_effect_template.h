@@ -139,6 +139,9 @@ public:
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
             case RSNGEffectType::COSMOS_RING_SHADOW: return "CosmosRingShadow";
+            case RSNGEffectType::BINARIZATION: return "Binarization";
+            case RSNGEffectType::LIGHT_UP_EFFECT: return "LightUpEffect";
+            case RSNGEffectType::DYNAMIC_DIM: return "DynamicDim";
             default: return "UNKNOWN";
         }
     }

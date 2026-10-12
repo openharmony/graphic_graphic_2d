@@ -98,6 +98,9 @@ enum class RSNGEffectType : int16_t {
     DISTORTION_COLLAPSE,
     HEAT_DISTORTION,
     BLUR_BUBBLES_RISE,
+    BINARIZATION,
+    LIGHT_UP_EFFECT,
+    DYNAMIC_DIM,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,

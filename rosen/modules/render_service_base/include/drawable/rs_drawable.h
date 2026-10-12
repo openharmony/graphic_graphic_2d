@@ -92,10 +92,7 @@ enum class RSDrawableSlot : int8_t {
     // FG properties in Bounds clip
     FG_SAVE_BOUNDS,
     FG_CLIP_TO_BOUNDS,
-    BINARIZATION,
     COLOR_FILTER,
-    LIGHT_UP_EFFECT,
-    DYNAMIC_DIM,
     COMPOSITING_FILTER,
     FOREGROUND_COLOR,
     FOREGROUND_SHADER,
@@ -126,7 +123,7 @@ enum class RSDrawableSlot : int8_t {
     CONTENT_BEGIN               = FRAME_OFFSET,
     CONTENT_END                 = FOREGROUND_STYLE,
     // foreground properties, clipped by bounds by default
-    FG_PROPERTIES_BEGIN         = BINARIZATION,
+    FG_PROPERTIES_BEGIN         = COLOR_FILTER,
     FG_PROPERTIES_END           = FG_RESTORE_BOUNDS - 1,
     // post-foreground properties, can be clipped by ClipToBounds
     EXTRA_PROPERTIES_BEGIN      = COVERAGE_NG_SHADER,

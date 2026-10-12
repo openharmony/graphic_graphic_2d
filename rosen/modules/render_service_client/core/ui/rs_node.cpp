@@ -3960,8 +3960,10 @@ void RSNode::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlaySh
 void RSNode::SetAiInvert(const Vector4f& aiInvert)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetAiInvert>(
-        aiInvert);
+    auto filter = RSNGFilterHelper::CreateNGBinarizationFilter(
+        aiInvert.x_, aiInvert.y_, aiInvert.z_, aiInvert.w_);
+    SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+        &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
 
 void RSNode::SetGrayScale(float grayScale)
@@ -4022,15 +4024,17 @@ void RSNode::SetColorBlend(uint32_t colorValue)
 void RSNode::SetLightUpEffectDegree(float lightUpEffectDegree)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(lightUpEffectDegree);
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
-        &ModifierNG::RSCompositingFilterModifier::SetLightUpEffectDegree>(lightUpEffectDegree);
+        &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
 
 void RSNode::SetDynamicDimDegree(const float dimDegree)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    auto filter = RSNGFilterHelper::CreateNGDynamicDimFilter(dimDegree);
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
-        &ModifierNG::RSCompositingFilterModifier::SetDynamicDimDegree>(dimDegree);
+        &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
 
 void RSNode::SetSystemBarEffect()

@@ -16,16 +16,6 @@
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
-void RSCompositingFilterModifier::SetAiInvert(const std::optional<Vector4f>& aiInvert)
-{
-    SetterOptional<RSAnimatableProperty>(RSPropertyType::AIINVERT, aiInvert);
-}
-
-std::optional<Vector4f> RSCompositingFilterModifier::GetAiInvert() const
-{
-    return GetterOptional<Vector4f>(RSPropertyType::AIINVERT);
-}
-
 void RSCompositingFilterModifier::SetGrayScale(std::optional<float> grayScale)
 {
     SetterOptional<RSAnimatableProperty>(RSPropertyType::GRAY_SCALE, grayScale);
@@ -104,26 +94,6 @@ void RSCompositingFilterModifier::SetColorBlend(const std::optional<Color> color
 std::optional<Color> RSCompositingFilterModifier::GetColorBlend() const
 {
     return GetterOptional<Color>(RSPropertyType::COLOR_BLEND);
-}
-
-void RSCompositingFilterModifier::SetLightUpEffectDegree(float lightUpEffectDegree)
-{
-    Setter(RSPropertyType::LIGHT_UP_EFFECT_DEGREE, lightUpEffectDegree);
-}
-
-float RSCompositingFilterModifier::GetLightUpEffectDegree() const
-{
-    return Getter<float>(RSPropertyType::LIGHT_UP_EFFECT_DEGREE, 1.f);
-}
-
-void RSCompositingFilterModifier::SetDynamicDimDegree(std::optional<float> dimDegree)
-{
-    SetterOptional<RSAnimatableProperty>(RSPropertyType::DYNAMIC_DIM_DEGREE, dimDegree);
-}
-
-std::optional<float> RSCompositingFilterModifier::GetDynamicDimDegree() const
-{
-    return GetterOptional<float>(RSPropertyType::DYNAMIC_DIM_DEGREE);
 }
 
 void RSCompositingFilterModifier::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
@@ -224,5 +194,15 @@ void RSCompositingFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase
 std::shared_ptr<RSNGFilterBase> RSCompositingFilterModifier::GetNGFilterBase() const
 {
     return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::COMPOSITING_NG_FILTER, nullptr);
+}
+
+void RSCompositingFilterModifier::SetColorNGFilter(std::shared_ptr<RSNGFilterBase> filter)
+{
+    Setter<RSProperty>(RSPropertyType::COLOR_NG_FILTER, filter);
+}
+
+std::shared_ptr<RSNGFilterBase> RSCompositingFilterModifier::getColorNGFilter() const
+{
+    return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::COLOR_NG_FILTER,nullptr)；
 }
 } // namespace OHOS::Rosen::ModifierNG

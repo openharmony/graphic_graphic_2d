@@ -309,3 +309,18 @@ DECLARE_FILTER(DistortLight, DISTORT_LIGHT,
     ADD_PROPERTY_TAG(DistortLight, HighLightSoft),
     ADD_PROPERTY_TAG(DistortLight, HighLightColor)
 );
+
+DECLARE_FILTER(Binarization, BINARIZATION,
+    ADD_PROPERTY_TAG(Binarization, Low),
+    ADD_PROPERTY_TAG(Binarization, High),
+    ADD_PROPERTY_TAG(Binarization, Threshold),
+    ADD_PROPERTY_TAG(Binarization, ThresholdRange)
+);
+
+DECLARE_FILTER(LightUpEffect, LIGHT_UP_EFFECT,
+    ADD_PROPERTY_TAG(LightUpEffect, Value)
+);
+
+DECLARE_FILTER(DynamicDim, DYNAMIC_DIM,
+    ADD_PROPERTY_TAG(DynamicDim, Value)
+);

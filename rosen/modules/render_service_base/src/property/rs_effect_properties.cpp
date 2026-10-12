@@ -1063,6 +1063,19 @@ std::shared_ptr<RSNGRenderFilterBase> RSEffectProperties::GetCompositingNGFilter
     return nullptr;
 }
 
+void RSEffectProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter)
+{
+    GetFilterEffect().colorNGFilter_ = filter;
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSEffectProperties::GetColorNGFilter() const
+{
+    if (filterEffect_ != nullptr) {
+        return filterEffect_->colorNGFilter_;
+    }
+    return nullptr;
+}
+
 const std::shared_ptr<RSFilter>& RSEffectProperties::GetMaterialFilter() const
 {
     static const std::shared_ptr<RSFilter> defaultValue = nullptr;

@@ -103,14 +103,6 @@ public:
         NodeId filterId, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
         Drawing::RectI& bounds, bool behindWindow = false);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
-    static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpShader(float lightUpDeg,
-        std::shared_ptr<Drawing::ShaderEffect> imageShader);
-    static void DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(float dynamicDimDeg,
-        std::shared_ptr<Drawing::ShaderEffect> imageShader);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high, float thresholdLow,
-        float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessBuilder();
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessLinearBuilder();
     static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params);
@@ -118,7 +110,6 @@ public:
     static std::shared_ptr<Drawing::Blender> MakeHdrDarkenBlender(const RSHdrDarkenBlenderPara& params);
     static std::shared_ptr<Drawing::Blender> MakeColorfulBrightnessBlender(
         const RSColorfulBrightnessBlenderPara& params);
-    static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode);
     static Drawing::Path CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
@@ -167,11 +158,8 @@ public:
 private:
     static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
     inline static void ClipVisibleRect(RSPaintFilterCanvas* canvas);
-    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessLinearBlenderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> shadowBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> hdrDarkenBlenderEffect_;
     inline static std::atomic<int> g_blurCnt = 0;

@@ -69,6 +69,12 @@ struct FilterEffectParams {
 
     std::unique_ptr<RSCompositingBlurPara> compositingBlurPara_ = nullptr;
     bool ctBlurDisableSystemAdaptation = true;
+
+    // color NG filter (Binarization / LightUpEffect / DynamicDim — Last Setter Wins)
+    std::shared_ptr<RSNGRenderFilterBase> colorNGFilter_ = nullptr;
+
+    std::unique_ptr<RSForegroundBlurPara> foregroundBlurPara_ = nullptr;
+    bool fgBlurDisableSystemAdaptation = true;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
 
     // foreground filter
@@ -394,6 +400,32 @@ public:
     void SetCompositingBlurRadiusY(float radiusY);
     float GetCompositingBlurRadiusY() const;
     bool IsCompositingBlurRadiusYValid() const;
+
+    // colorNGFilter_
+    void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter);
+    std::shared_ptr<RSNGRenderFilterBase> GetColorNGFilter() const;
+
+    // foregroundBlurPara_
+    void SetForegroundBlurRadius(float radius);
+    float GetForegroundBlurRadius() const;
+    bool IsForegroundBlurRadiusValid() const;
+    void SetForegroundBlurSaturation(float saturation);
+    float GetForegroundBlurSaturation() const;
+    bool IsForegroundBlurSaturationValid() const;
+    void SetForegroundBlurBrightness(float brightness);
+    float GetForegroundBlurBrightness() const;
+    bool IsForegroundBlurBrightnessValid() const;
+    void SetForegroundBlurMaskColor(Color maskColor);
+    const Color& GetForegroundBlurMaskColor() const;
+    bool IsForegroundBlurMaskColorValid() const;
+    void SetForegroundBlurColorMode(int colorMode);
+    int GetForegroundBlurColorMode() const;
+    void SetForegroundBlurRadiusX(float radiusX);
+    float GetForegroundBlurRadiusX() const;
+    bool IsForegroundBlurRadiusXValid() const;
+    void SetForegroundBlurRadiusY(float radiusY);
+    float GetForegroundBlurRadiusY() const;
+    bool IsForegroundBlurRadiusYValid() const;
     bool IsForegroundMaterialFilterValid() const;
 
     // ctBlurDisableSystemAdaptation
