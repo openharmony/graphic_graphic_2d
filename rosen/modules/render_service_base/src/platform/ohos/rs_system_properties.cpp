@@ -1906,5 +1906,13 @@ uint32_t RSSystemProperties::GetIpcSyncTimeoutMs()
     }
     return static_cast<uint32_t>(timeoutParam);
 }
+
+bool RSSystemProperties::GetUIFirstDirtyFrameControlEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.frame.control.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

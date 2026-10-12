@@ -3121,6 +3121,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
     bool hasMainAndLeashSurfaceDirty = false;
+    RSUifirstManager::Instance().SwapProcessDoneNodes(isSubthreadProcessDoneNodeSwaped_);
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
     // 0. update hwc node dirty region and create layer
     UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
@@ -3138,24 +3139,31 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto dirtyManager = surfaceNode->GetDirtyManager();
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
             // cal done node dirtyRegion for uifirst
+             bool notUifirstOrUpdate =
+                RSUifirstManager::Instance().UifirstCacheUpdated(surfaceNode);
             RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
             UpdatePointWindowDirtyStatus(surfaceNode);
             // 1. calculate abs dirtyrect and update partialRenderParams
             // currently only sync visible region info
             surfaceNode->UpdatePartialRenderParams();
-            // 2. check surface node dirtyrect need merge into displayDirtyManager
-            CheckMergeSurfaceDirtysForDisplay(surfaceNode);
+            if (notUifirstOrUpdate) {
+                // 2. check surface node dirtyrect need merge into displayDirtyManager
+                CheckMergeSurfaceDirtysForDisplay(surfaceNode);
+            }
             // 3. check merge transparent filter when it intersects with pre-dirty.
             CheckMergeFilterDirtyWithPreDirty(dirtyManager, accumulatedDirtyRegion,
                 surfaceNode->IsTransparent() ? FilterDirtyType::TRANSPARENT_SURFACE_FILTER
                                              : FilterDirtyType::OPAQUE_SURFACE_FILTER);
             // 4. for cross-display node, process its filter (which is not collected during prepare).
             CollectFilterInCrossDisplayWindow(surfaceNode, accumulatedDirtyRegion);
-            // 5. accumulate dirty region of this surface.
-            AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
-            hasMainAndLeashSurfaceDirty |=
-                dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
-                surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
+            if (notUifirstOrUpdate) {
+                // 5. accumulate dirty region of this surface.
+                AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
+            }
+            bool curDirty = notUifirstOrUpdate && dirtyManager &&
+                dirtyManager->IsCurrentFrameDirty() &&
+                 surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
+            hasMainAndLeashSurfaceDirty |= curDirty;
         });
     UpdateTopLayersDirtyStatus(topLayers);
 

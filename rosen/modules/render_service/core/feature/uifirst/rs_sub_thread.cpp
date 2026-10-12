@@ -236,7 +236,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     RSMainThread::Instance()->RequestNextVSync("subthreadDone");
 
     // mark nodedrawable can release
-    RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
+    RSUifirstManager::Instance().AddProcessDoneNode(nodeId, surfaceParams->GetUifirstNodeEnableParam());
     doingCacheProcessNum_--;
 }
 

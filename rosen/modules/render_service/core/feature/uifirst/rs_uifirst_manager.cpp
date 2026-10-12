@@ -124,15 +124,30 @@ bool RSUifirstManager::SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, Mult
 }
 
 // unref in sub when cache done
-void RSUifirstManager::AddProcessDoneNode(NodeId id)
+void RSUifirstManager::AddProcessDoneNode(NodeId id, MultiThreadCacheType type)
 {
     // mutex
     if (id == INVALID_NODEID) {
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("sub done %" PRIu64"", id);
-    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
-    subthreadProcessDoneNode_.push_back(id);
+    {
+        std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
+        if (GetUIFirstDirtyFrameControlEnabled() &&
+            type == MultiThreadCacheType::NONFOCUS_WINDOW) {
+            subthreadProcessDoneNodeStaging_.insert(id);
+            RS_OPTIONAL_TRACE_NAME_FMT("sub staging done %" PRIu64"", id);
+        } else {
+            subthreadProcessDoneNode_.push_back(id);
+        }
+    }
+}
+
+bool RSUifirstManager::GetUIFirstDirtyFrameControlEnabled()
+{
+    return RSMainThread::Instance()->GetRefreshRate() <= UI_FIRST_DIRTY_FRAME_CONTROL_MAX_FPS &&
+        RSSystemProperties::GetUIFirstDirtyFrameControlEnabled() &&
+        GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE;
 }
 
 void RSUifirstManager::AddProcessSkippedNode(NodeId id)
@@ -290,6 +305,11 @@ void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRend
         RS_LOGE("MergeOldDirtyToDirtyManager curDirtyManager is nullptr");
         return;
     }
+
+    if (GetUIFirstDirtyFrameControlEnabled() && !HandleUIFirstDirtyFrameControl(node)) {
+        return;
+    }
+
     auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
     auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
     curDirtyManager->MergeDirtyRect(uifirstDirtyRegion);
@@ -379,18 +399,62 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool waitUifirstFrame,
     }
 }
 
+bool RSUifirstManager::UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    // 1.node is not appwindow
+    // 2.UIFirst dirty frame control not enable
+    // 3.node's abd rect changed
+    // 4.node is uifirst node and its cache need updated
+    if (!GetUIFirstDirtyFrameControlEnabled() || node == nullptr || !node->IsAppWindow()) {
+        return true;
+    }
+
+    bool nodeAbsRectChanged =
+        !node->GetLastFrameAbsDrawRect().IsNearEqual(node->GetAbsDrawRect(), 0);
+    node->SetNodeAbsRectChanged(nodeAbsRectChanged);
+    node->SetLastFrameAbsDrawRect(node->GetAbsDrawRect());
+
+    if (nodeAbsRectChanged) {
+        return true;
+    }
+    if ((node->GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE)) {
+        return UifirstCacheUpdate(node->GetId());
+    } else {
+        auto leashNode
+            = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
+        if ((leashNode != nullptr) && leashNode->IsLeashWindow() &&
+            leashNode->GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
+                return UifirstCacheUpdate(leashNode->GetId());
+            }
+        return true;
+        }
+    return true;
+}
+
+bool RSUifirstManager::UifirstCacheUpdate(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
+    return subthreadProcessDoneNodeAhead_.count(id) || !subthreadProcessDoneNode_.empty();
+}
+
 void RSUifirstManager::ProcessDoneNodeInner()
 {
-    std::vector<NodeId> tmp;
+    std::vector<NodeId> processDoneNodes;
     {
+        RS_OPTIONAL_TRACE_NAME_FMT("subthreadProcessDoneNodeAhead_ size %d,"
+            "subthreadProcessDoneNode_ size %d", subthreadProcessDoneNodeAhead_.size(),
+            subthreadProcessDoneNode_.size());
         std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
-        if (subthreadProcessDoneNode_.size() == 0) {
-            return;
-        }
-        std::swap(tmp, subthreadProcessDoneNode_);
+        processDoneNodes.insert(processDoneNodes.end(),
+            subthreadProcessDoneNodeAhead_.begin(),
+            subthreadProcessDoneNodeAhead_.end());
+        processDoneNodes.insert(processDoneNodes.end(),
+            subthreadProcessDoneNode_.begin(),
+            subthreadProcessDoneNode_.end());
+        subthreadProcessDoneNodeAhead_.clear();
+        subthreadProcessDoneNode_.clear();
     }
-    RS_TRACE_NAME_FMT("ProcessDoneNode num:%zu", tmp.size());
-    for (auto& id : tmp) {
+    for (auto& id : processDoneNodes) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
         if (drawable && drawable->GetRsSubThreadCache().GetCacheSurfaceNeedUpdated() &&

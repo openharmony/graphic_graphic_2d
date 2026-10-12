@@ -534,6 +534,9 @@ void ProcessGpuOfflineForTopLayer(
     bool isVirtualExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
     bool isTargetUIFirstDfxEnabled_ = false;
+
+    // check if subthread process done nodes swaped
+    bool isSubthreadProcessDoneNodeSwaped_ = false;
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool isInFocusSurface_ = false;
 #endif

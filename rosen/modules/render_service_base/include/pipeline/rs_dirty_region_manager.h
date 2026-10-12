@@ -311,6 +311,7 @@ public:
     {
         return hasUifirstChild_;
     }
+    void MergeUifirstDirtyRect(const RectI& rect);
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);

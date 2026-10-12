@@ -863,10 +863,10 @@ HWTEST_F(RSUifirstManagerTest2, PurgePendingPostNode, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest2, AddProcessDoneNode, TestSize.Level1)
 {
     uifirstManager_.subthreadProcessDoneNode_.clear();
-    uifirstManager_.AddProcessDoneNode(0);
+    uifirstManager_.AddProcessDoneNode(0, MultiThreadCacheType::NONE);
     ASSERT_TRUE(uifirstManager_.subthreadProcessDoneNode_.empty());
 
-    uifirstManager_.AddProcessDoneNode(1);
+    uifirstManager_.AddProcessDoneNode(1, MultiThreadCacheType::NONE);
     ASSERT_FALSE(uifirstManager_.subthreadProcessDoneNode_.empty());
     uifirstManager_.subthreadProcessDoneNode_.clear();
 }

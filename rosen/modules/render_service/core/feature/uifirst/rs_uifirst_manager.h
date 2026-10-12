@@ -356,6 +356,8 @@ private:
 
     bool IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
+    void HandleAppWindowChildrenDirty(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSurfaceRenderNode>& node);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
@@ -375,6 +377,9 @@ private:
     static constexpr int BEHIND_WINDOW_RELEASE_TIME = 33;
     // the max Delivery time in behind window condition
     static constexpr int PURGE_BEHIND_WINDOW_TIME = BEHIND_WINDOW_RELEASE_TIME - BEHIND_WINDOW_TIME_THRESHOLD;
+
+    // Maximum frame rate at which the UIFirst dirty frame control feature is enabled
+    static constexpr int UI_FIRST_DIRTY_FRAME_CONTROL_MAX_FPS = 60;
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
     NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
@@ -399,6 +404,8 @@ private:
     // use in RT & subThread
     std::mutex childrenDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
+    std::set<NodeId> subthreadProcessDoneNodeAhead_;
+    std::set<NodeId> subthreadProcessDoneNodeStaging_;
     std::mutex skippedNodeMutex_;
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
     std::mutex purgedNodeMutex_;

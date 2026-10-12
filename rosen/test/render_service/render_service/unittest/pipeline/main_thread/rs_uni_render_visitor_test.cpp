@@ -131,6 +131,9 @@ public:
     static void InitTestSurfaceNodeAndScreenInfo(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSUniRenderVisitor>& rSUniRenderVisitor);
     std::shared_ptr<RSUniRenderVisitor> InitRSUniRenderVisitor();
+    void TestWithUIFirstDisabled(const std::shared_ptr<RSUniRenderVisitor>& rsUniRenderVisitor,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
     static sptr<RSScreenManager> screenManager_;
     static std::shared_ptr<AppExecFwk::EventRunner> runner_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
