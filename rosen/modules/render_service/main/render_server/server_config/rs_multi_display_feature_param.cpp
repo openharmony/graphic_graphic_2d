@@ -29,9 +29,9 @@ bool RSMultiDisplayFeatureParam::Load(const std::string& filePath)
     xmlDocPtr docPtr = nullptr;
 
     if (filePath.empty()) {
-        docPtr = xmlReadFile(PRODUCT_FILE.c_str(), nullptr, 0);
+        docPtr = xmlReadFile(PRODUCT_FILE.c_str(), nullptr, XML_PARSE_NONET);
     } else {
-        docPtr = xmlReadFile(filePath.c_str(), nullptr, 0);
+        docPtr = xmlReadFile(filePath.c_str(), nullptr, XML_PARSE_NONET);
     }
     if (!docPtr) {
         RS_LOGW("RSMultiDisplayFeature %{public}s xmlReadFile failed.", __func__);
@@ -51,15 +51,22 @@ bool RSMultiDisplayFeatureParam::Parse(xmlDoc& doc)
         xmlFreeDoc(docPtr);
         return false;
     }
+    xmlNodePtr featuresNode = nullptr;
     for (xmlNodePtr node = root->xmlChildrenNode; node; node = node->next) {
         if (node->type != XML_ELEMENT_NODE) {
             continue;
         }
         if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("multi_display_features")) == 0) {
-            ParseFeatureParam(*node);
+            featuresNode = node;
             break;
         }
     }
+    if (!featuresNode) {
+        RS_LOGW("RSMultiDisplayFeature %{public}s multi_display_features node not found", __func__);
+        xmlFreeDoc(docPtr);
+        return false;
+    }
+    ParseFeatureParam(*featuresNode);
     xmlFreeDoc(docPtr);
     return true;
 }
