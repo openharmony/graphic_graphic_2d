@@ -48,19 +48,18 @@ void RSBufferReclaim::ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer)
             bufferReclaimMap_.erase(bufferId);
             return;
         }
-        bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING;
+        iter->second = ReclaimState::RECLAIMING;
         if (!buffer->RegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
             RS_LOGE("DoBufferReclaim register destructor callback failed");
-            bufferReclaimMap_.erase(bufferId);
+            bufferReclaimMap_.erase(iter);
             return;
         }
     }
-    RS_LOGI("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu,"
-        "hasReclaimed:%{public}d",
-        bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed());
     RS_TRACE_NAME_FMT("DoBufferReclaim");
+    auto startTime = std::chrono::steady_clock::now();
     bool needNotify = false;
-    if (buffer->TryReclaim() == GSERROR_OK) {
+    auto ret = buffer->TryReclaim();
+    if (ret == GSERROR_OK) {
         std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
         auto iter = bufferReclaimMap_.find(bufferId);
         if (iter != bufferReclaimMap_.end()) {
@@ -72,18 +71,18 @@ void RSBufferReclaim::ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer)
     } else {
         buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback);
         std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
-        auto iter = bufferReclaimMap_.find(bufferId);
-        if (iter != bufferReclaimMap_.end()) {
-            bufferReclaimMap_.erase(iter);
-        }
+        bufferReclaimMap_.erase(bufferId);
     }
     if (needNotify) {
         resumeCv_.notify_one();
     }
-    RS_TRACE_NAME_FMT("DoBufferReclaim done bufferReclaimMap_: %zu, hasReclaimed: %d",
-        bufferReclaimMap_.size(), buffer->IsReclaimed());
-    RS_LOGI("DoBufferReclaim done bufId: %{public}" PRIu64 ", bufferReclaimMap_: %{public}zu,"
-        "hasReclaimed: %{public}d", bufferId, bufferReclaimMap_.size(), buffer->IsReclaimed());
+    auto endTime = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    RS_TRACE_NAME_FMT("DoBufferReclaim done bufferReclaimMap_: %zu, hasReclaimed: %d, ret: %d",
+        bufferReclaimMap_.size(), buffer->IsReclaimed(), ret);
+    RS_LOGI("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu, hasReclaimed: "
+        "%{public}d, cost:%{public}" PRIu64 " ms, ret: %{public}d", buffer->GetBufferId(), buffer->GetSeqNum(),
+        bufferReclaimMap_.size(), buffer->IsReclaimed(), static_cast<uint64_t>(duration.count()), ret);
 }
 
 bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
@@ -120,20 +119,23 @@ bool RSBufferReclaim::TryResumeBuffer(sptr<SurfaceBuffer> buffer, uint64_t buffe
         }
     }
     RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu", bufferReclaimMap_.size());
-    RS_LOGI("%{public}s bufId: %{public}" PRIu64 ", seq: %{public}u, bufferReclaimMap_: %{public}zu,"
-        "hasReclaimed: %{public}d",
-        __func__, bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed());
-    if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
-        RS_LOGD("%{public}s done bufId: %{public}" PRIu64 ", seq: %{public}u, hasReclaimed: %{public}d",
-            __func__, bufferId, buffer->GetSeqNum(), buffer->IsReclaimed());
+    auto startTime = std::chrono::steady_clock::now();
+    auto ret = buffer->TryResumeIfNeeded();
+    if (ret == GSERROR_OK) {
         if (!buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback)) {
             RS_LOGW("DoBufferResume: destructor callback is not registered");
         }
         std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
         bufferReclaimMap_.erase(bufferId);
-        return true;
     }
-    return false;
+    auto endTime = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    RS_TRACE_NAME_FMT("DoBufferResume bufferReclaimMap_: %zu, ret: %d", bufferReclaimMap_.size(), ret);
+    RS_LOGI("DoBufferResume bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu,"
+        "hasReclaimed:%{public}d, cost:%{public}" PRIu64 " ms, ret:%{public}d",
+        bufferId, buffer->GetSeqNum(), bufferReclaimMap_.size(), buffer->IsReclaimed(),
+        static_cast<uint64_t>(duration.count()), ret);
+    return ret == GSERROR_OK;
 }
 
 bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
