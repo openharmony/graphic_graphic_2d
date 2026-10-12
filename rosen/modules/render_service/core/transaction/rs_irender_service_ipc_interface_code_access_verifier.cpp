@@ -37,7 +37,13 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_RENDER_PROCESS_CONNECTION): {
+            // internal interface: only the render process (native system caller) registers itself
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_RENDER_PROCESS_CONNECTION");
+            break;
+        }
         default: {
+            hasPermission = false;
             break;
         }
     }
