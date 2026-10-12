@@ -202,7 +202,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (needOffscreen) {
         scaleManager_ = uniParam->GetSLRScaleManager();
-        UpdateSlrScale(screenProperty, params->GetFixedWidth(), params->GetFixedHeight(), screenParams);
+        UpdateSlrScale(screenProperty, params->GetFixedWidth(), params->GetFixedHeight(), screenParams,
+            params->IsRotationChanged());
         ScaleCanvasIfNeeded(screenProperty);
         auto rect = curCanvas_->GetDeviceClipBounds();
         if (screenProperty.GetIsSamplingOn() && scaleManager_ != nullptr) {
@@ -776,9 +777,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawSecurityMask()
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateSlrScale(const RSScreenProperty& screenProperty,
-    float srcWidth, float srcHeight, RSScreenRenderParams* params)
+    float srcWidth, float srcHeight, RSScreenRenderParams* params, bool isRotationChanged)
 {
-    if (screenProperty.GetIsSamplingOn() && RSSystemProperties::GetSLRScaleEnabled()) {
+    if (screenProperty.GetIsSamplingOn() && RSSystemProperties::GetSLRScaleEnabled() && !isRotationChanged) {
         if (scaleManager_== nullptr) {
             scaleManager_ = std::make_shared<RSSLRScaleFunction>(screenProperty.GetPhyWidth(),
                 screenProperty.GetPhyHeight(), srcWidth, srcHeight);
@@ -1014,6 +1015,15 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
             EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d], HDR:%d", offscreenWidth, offscreenHeight,
             hdrOrScRGB);
+        auto isSamplingOn = screenParams->GetScreenProperty().GetIsSamplingOn();
+        if (isSamplingOn && !params->IsRotationChanged()) {
+            bool isWiredScreen = params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE &&
+                !params->IsMirrorDisplay();
+            if (isWiredScreen) {
+                offscreenWidth = params->GetFixedWidth();
+                offscreenHeight = params->GetFixedHeight();
+            }
+        }
         if (hdrOrScRGB) {
             if (!params->GetNeedOffscreen() && useCanvasSize) {
                 offscreenWidth = curCanvas_->GetWidth();
@@ -1047,6 +1057,8 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
         }
     }
+    RS_LOGD("RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth:%{public}d, "
+        "offscreenHeight:%{public}d", offscreenWidth, offscreenHeight);
 
     if (offscreenSurface_ == nullptr) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender, offscreenSurface is nullptr");
