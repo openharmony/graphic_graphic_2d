@@ -106,7 +106,7 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
         buffer->GetBufferId(), buffer->GetSeqNum(), bufferReclaimMap_.size());
     ffrt::submit([buffer = std::move(buffer)]() {
         RSBufferReclaim::GetInstance().ReclaimBufferOnFfrt(buffer);
-    });
+    }, ffrt::task_attr().name("LastBufferRecliam").qos(ffrt::qos_user_interactive));
     return true;
 }
 
