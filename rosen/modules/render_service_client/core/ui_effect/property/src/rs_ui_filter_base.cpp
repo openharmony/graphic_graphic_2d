@@ -164,6 +164,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGMotionBlurFilter>();
         }
     },
+    {RSNGEffectType::DISTORT_LIGHT, [] {
+            return std::make_shared<RSNGDistortLightFilter>();
+        }
+    },
 };
 
 namespace {
