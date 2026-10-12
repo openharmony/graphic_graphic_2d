@@ -1861,9 +1861,7 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
     hgmContext_->NotifyRefreshRateEvent(remotePid_, eventInfo);
     if (VIDEO_TUNNEL == eventInfo.eventName) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s add config=%s", __func__, eventInfo.description.c_str());
         SurfaceUtils::GetInstance()->AddTunnelLayerConfig(eventInfo.description);
-        RS_LOGD("TUNNEL_DEBUG %s add config:%{public}s", __func__, eventInfo.description.c_str());
     }
 }
 

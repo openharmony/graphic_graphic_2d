@@ -37,24 +37,13 @@ struct RouteDecision {
     const char* cause = nullptr;
 };
 
-#ifndef ROSEN_CROSS_PLATFORM
 constexpr float ALPHA_EPS = 1e-3f;
 
 const RSSurfaceRenderParams* GetSurfaceParams(const RSSurfaceRenderNode& node)
 {
 #ifdef RS_ENABLE_GPU
+    // GetStagingRenderParams is non-const; same const_cast pattern as IsNodeHdrOn in helper.
     auto& stagingParams = const_cast<RSSurfaceRenderNode&>(node).GetStagingRenderParams();
-    return static_cast<const RSSurfaceRenderParams*>(stagingParams.get());
-#else
-    (void)node;
-    return nullptr;
-#endif
-}
-
-const RSSurfaceRenderParams* GetSurfaceParams(RSSurfaceRenderNode& node)
-{
-#ifdef RS_ENABLE_GPU
-    auto& stagingParams = node.GetStagingRenderParams();
     return static_cast<const RSSurfaceRenderParams*>(stagingParams.get());
 #else
     (void)node;
@@ -87,9 +76,7 @@ RSTunnelRuntimeState::LastFrameRouteSnapshot BuildSnapshot(RSSurfaceRenderNode& 
     return snapshot;
 }
 
-// Iterates screen nodes once to detect any non-mirror virtual screen on the tree, which
-// covers extended-desktop and virtual-recording outputs. Mirror virtual screens are filtered
-// out so the caller's earlier MIRROR_ACTIVE check stays the canonical mirror probe.
+// Detect any non-mirror virtual screen (mirrors stay covered by the MIRROR_ACTIVE probe).
 bool HasNonMirrorVirtualScreen(RSMainThread* mainThread)
 {
     if (mainThread == nullptr) {
@@ -208,20 +195,11 @@ RouteDecision CheckBufferDiff(const RSSurfaceRenderParams* params,
 RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node,
     RSTunnelRuntimeState& tunnelRuntime)
 {
-    // Kill-switch: if the runtime flag flips off while tunnelState is still ACTIVE, the
-    // listener path is already blocked (IsTunnelDirectAllowed gates on the same flag) and
-    // returning KEEP_DIRECT here would strand buffers in the consumer queue. Forcing
-    // GO_NORMAL lets ConsumeAndUpdateBuffer drain them; UpdateTunnelLayerState then resets
-    // tunnelState afterwards so the state machine converges.
-    if (!IsNewTunnelEnabled()) {
-        return {true, "NEW_TUNNEL_DISABLED"};
+    // NOT_TUNNEL: not eligible for GO_NORMAL evaluation; only ACTIVE surfaces are meaningful here.
+    if (tunnelRuntime.GetTunnelState() == RSTunnelRuntimeState::TunnelState::NOT_TUNNEL) {
+        return {};
     }
-    // Drain buffers stranded in the consumer queue by listener reject paths that never reached
-    // AcquirePendingBuffer (state/global/phase/CanCommit/AcquireBuffer early-exits). Those paths
-    // leave availableBufferCount > 0 without consuming. Routing to GO_NORMAL lets the RS pipeline
-    // consume the stale entry. The steady-state direct path is unaffected because
-    // AcquirePendingBuffer resyncs the handler count to the consumer's true count after a
-    // successful listener commit.
+    // Drain buffers stranded by listener reject paths; GO_NORMAL lets the pipeline consume them.
     if (auto handler = node.GetRSSurfaceHandler();
         handler != nullptr && handler->GetAvailableBufferCount() > 0) {
         return {true, "CONSUMER_QUEUE_STALE"};
@@ -261,32 +239,54 @@ void CaptureRouteSnapshot(RSSurfaceRenderNode& node, RSTunnelRuntimeState& tunne
     }
     auto* params = GetSurfaceParams(node);
     if (params == nullptr || params->GetBuffer() == nullptr) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s skip, nodeId=%" PRIu64 ", reason=%s",
-            __func__, node.GetId(), params == nullptr ? "no_params" : "no_buffer");
         return;
     }
     tunnelRuntime.UpdateLastFrameRouteSnapshot(BuildSnapshot(node, tunnelRuntime));
 }
-#else  // ROSEN_CROSS_PLATFORM
-RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& /* node */,
-    RSTunnelRuntimeState& /* tunnelRuntime */)
-{
-    return {};
-}
-
-void CaptureRouteSnapshot(RSSurfaceRenderNode& /* node */, RSTunnelRuntimeState& /* tunnelRuntime */)
-{
-}
-#endif // ROSEN_CROSS_PLATFORM
 } // namespace
 
 std::atomic<bool> RSTunnelRouteArbiter::globalRouteForcedNormal_{false};
+std::atomic<uint32_t> RSTunnelRouteArbiter::dynamicBuildingThreshold_{
+    TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD};
+std::atomic<uint32_t> RSTunnelRouteArbiter::consecutiveSolePresentCount_{0};
+
+uint32_t RSTunnelRouteArbiter::GetBuildingThreshold()
+{
+    return dynamicBuildingThreshold_.load(std::memory_order_acquire);
+}
+
+uint32_t RSTunnelRouteArbiter::GetConsecutiveSolePresentCount()
+{
+    return consecutiveSolePresentCount_.load(std::memory_order_acquire);
+}
+
+void RSTunnelRouteArbiter::ResetConsecutiveSolePresentCount()
+{
+    consecutiveSolePresentCount_.store(0, std::memory_order_release);
+}
+
+void RSTunnelRouteArbiter::OnTunnelRollbackDetected()
+{
+    (void)dynamicBuildingThreshold_.fetch_add(1, std::memory_order_acq_rel);
+    // The rollback frame is unstable: restart the BUILDING stability gate.
+    ResetConsecutiveSolePresentCount();
+}
+
+void RSTunnelRouteArbiter::OnDirectCompositionStable(uint32_t consecCount)
+{
+    if (consecCount > TUNNEL_STABLE_THRESHOLD) {
+        (void)dynamicBuildingThreshold_.exchange(
+            TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD, std::memory_order_acq_rel);
+    }
+}
 
 void RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot()
 {
-#ifndef ROSEN_CROSS_PLATFORM
+    // Kill-switch: no tunnel consumers read the snapshot when disabled; skip the screen-node scan.
+    if (!IsNewTunnelEnabled()) {
+        return;
+    }
     globalRouteForcedNormal_.store(ComputeGlobalRouteForcedNormal(), std::memory_order_release);
-#endif
 }
 
 bool RSTunnelRouteArbiter::IsGlobalRouteForcedNormal()
@@ -296,7 +296,6 @@ bool RSTunnelRouteArbiter::IsGlobalRouteForcedNormal()
 
 const char* RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(RSMainThread* mainThread)
 {
-#ifndef ROSEN_CROSS_PLATFORM
     if (mainThread == nullptr) {
         return nullptr;
     }
@@ -312,16 +311,6 @@ const char* RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(RSMainThread* main
     if (mainThread->IsLastFrameGpuComposition()) {
         return "GPU_COMPOSITION";
     }
-    // Tunnel must not enter ACTIVE until the composition path has been proven
-    // stable for consecutive frames. A low or zero consecutiveDoCompSuccessCount_
-    // means DoComp hasn't run (or just recovered from failure / GPU composition),
-    // and activating tunnel now risks an immediate GO_NORMAL forced by the next
-    // unstable frame, creating a CommitTunnelLayerBySurfaceId vs
-    // CommitAndGetReleaseFence conflict at the HdiOutput level.
-    if (mainThread->GetConsecutiveDoCompSuccessCount() < TUNNEL_STABLE_THRESHOLD) {
-        return "UNSTABLE_COMPOSITION";
-    }
-#endif
     return nullptr;
 }
 
@@ -331,26 +320,29 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     if (node == nullptr) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
     }
-    auto tunnelRuntimePtr = RSTunnelRuntimeStore::TryGet(node->GetId());
-    if (tunnelRuntimePtr == nullptr ||
-        tunnelRuntimePtr->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
+    auto tunnelRuntimePtr = node->TryGetTunnelRuntimeState();
+    if (tunnelRuntimePtr == nullptr) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
     }
     auto& tunnelRuntime = *tunnelRuntimePtr;
+    auto state = tunnelRuntime.GetTunnelState();
+    if (state != RSTunnelRuntimeState::TunnelState::ACTIVE) {
+        // NOT_TUNNEL / BUILDING / others: not participating in arbitration this frame.
+        return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
+    }
     auto decision = ShouldGoNormalThisFrame(*node, tunnelRuntime);
+    if (decision.needNormal) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s GO_NORMAL, cause:%s, nodeId=%" PRIu64,
+            __func__, decision.cause, node->GetId());
+        RS_LOGI_IF(DEBUG_TUNNEL, "%{public}s %{public}s GO_NORMAL, cause:%{public}s, "
+            "nodeId:%{public}" PRIu64, TUNNEL_DEBUG_PREFIX, __func__, decision.cause, node->GetId());
+    }
     auto claim = tunnelRuntime.TryClaimByMain(decision.needNormal);
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s arbitrate, nodeId=%" PRIu64
-        ", needNormal=%d, cause=%s, claim=%s",
-        __func__, node->GetId(), decision.needNormal,
-        decision.cause ? decision.cause : "",
-        ToClaimResultName(claim));
     if (claim == RSTunnelRuntimeState::ClaimResult::KEEP_DIRECT) {
         return MainThreadOutcome::KEEP_DIRECT;
     }
     CaptureRouteSnapshot(*node, tunnelRuntime);
-    // Snapshot the screen at claim time. If the surface migrates to another screen before the
-    // commit-done callback fires, the original screen's commit still advances this entry, so
-    // NORMAL_PREPARING cannot stall indefinitely.
+    // Snapshot the screen at claim time so a migration before commit-done cannot stall the phase.
     normalRouteNodes_[node->GetId()] = std::make_pair(node, node->GetScreenId());
     return MainThreadOutcome::GO_NORMAL;
 }
@@ -368,6 +360,14 @@ void RSTunnelRouteArbiter::SetTunnelSolePresentLayer(bool isSole)
 {
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s isSole %d", __func__, isSole);
     tunnelSolePresentLayer_.store(isSole, std::memory_order_release);
+    if (!isSole) {
+        // A not-sole frame breaks the consecutive sole-tunnel streak.
+        ResetConsecutiveSolePresentCount();
+        return;
+    }
+    uint32_t consecCount = consecutiveSolePresentCount_.fetch_add(1, std::memory_order_acq_rel) + 1;
+    // Relax the dynamic BUILDING threshold once sole-tunnel DoComp stays stable.
+    OnDirectCompositionStable(consecCount);
 }
 
 void RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(
@@ -383,8 +383,12 @@ void RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(
         ++presentCount;
         uint64_t tunnelLayerId = 0;
         uint32_t property = TUNNEL_PROP_INVALID;
-        bool isTunnel = RSTunnelRuntimeStore::GetLayerInfoIfPresent(surfaceNode->GetId(), tunnelLayerId, property) &&
-                        IsNewTunnelProperty(property);
+        bool isTunnel = false;
+        auto statePtr = surfaceNode->TryGetTunnelRuntimeState();
+        if (statePtr != nullptr) {
+            statePtr->GetLayerInfo(tunnelLayerId, property);
+            isTunnel = IsNewTunnelProperty(property);
+        }
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s id:%" PRIu64 "presentCount:%u isTunnel:%d tunnelLayerId:%" PRIu64
                           " property:%u",
             __func__, surfaceNode->GetId(), presentCount, isTunnel, tunnelLayerId, property);
@@ -394,21 +398,37 @@ void RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(
     }
 }
 
+void RSTunnelRouteArbiter::BeginTunnelBuilding(
+    RSTunnelRuntimeState& tunnelRuntime, NodeId nodeId, uint64_t tunnelLayerId)
+{
+    uint32_t consecCount = GetConsecutiveSolePresentCount();
+    uint32_t threshold = GetBuildingThreshold();
+    if (consecCount < threshold) {
+        return;
+    }
+    tunnelRuntime.SetBuilding();
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s NOT_TUNNEL->BUILDING, nodeId=%" PRIu64
+        ", tunnelLayerId=%" PRIu64 ", consecCount=%u, threshold=%u",
+        __func__, nodeId, tunnelLayerId, consecCount, threshold);
+    RS_LOGI("%{public}s%{public}s NOT_TUNNEL->BUILDING, nodeId:%{public}" PRIu64
+        ", tunnelLayerId:%{public}" PRIu64 ", consecCount:%{public}u, threshold:%{public}u",
+        TUNNEL_DEBUG_PREFIX, __func__, nodeId, tunnelLayerId, consecCount, threshold);
+}
+
 void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
         return;
     }
-    RSTunnelRuntimeStore::GetOrCreate(node->GetId()).AbandonNormalClaim();
-    // Self-reschedule so the next vsync re-arbitrates. The failed claim leaves either a fresh
-    // buffer that will arrive momentarily (drained by CONSUMER_QUEUE_STALE) or a stranded
-    // pending entry (drained by PENDING_BUFFER_STALE). Without this we would wait for an
-    // external trigger, stretching the recovery to multiple vsync intervals.
+    auto tunnelRuntimePtr = node->TryGetTunnelRuntimeState();
+    if (tunnelRuntimePtr == nullptr) {
+        return;
+    }
+    tunnelRuntimePtr->AbandonNormalClaim();
+    // Self-reschedule: the failed claim leaves a fresh buffer or stranded pending entry to drain.
     if (auto* mainThread = RSMainThread::Instance(); mainThread != nullptr) {
         mainThread->RequestNextVSync("tunnel-abandon-claim");
     }
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64, __func__, node->GetId());
-    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s nodeId:%{public}" PRIu64, __func__, node->GetId());
 }
 
 void RSTunnelRouteArbiter::OnRenderCommitDone(ScreenId screenId)
@@ -424,7 +444,10 @@ void RSTunnelRouteArbiter::OnRenderCommitDone(ScreenId screenId)
             ++iter;
             continue;
         }
-        RSTunnelRuntimeStore::GetOrCreate(nodeId).OnRenderCommitDone();
+        auto tunnelRuntimePtr = node->TryGetTunnelRuntimeState();
+        if (tunnelRuntimePtr != nullptr) {
+            tunnelRuntimePtr->OnRenderCommitDone();
+        }
         iter = normalRouteNodes_.erase(iter);
     }
 }

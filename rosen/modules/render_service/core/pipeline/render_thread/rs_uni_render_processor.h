@@ -69,7 +69,7 @@ private:
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
     void CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params);
-    void HandleTunnelLayerParameters(NodeId nodeId, RSLayerPtr& layer);
+    void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<std::weak_ptr<RSLayer>> layers_;
     RSLayerPtr uniLayer_ = nullptr;

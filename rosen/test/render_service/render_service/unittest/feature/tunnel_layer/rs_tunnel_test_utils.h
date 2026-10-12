@@ -60,27 +60,6 @@ inline void ClearRecordingComposerLayers()
     GetRecordingComposerLayers().clear();
 }
 
-inline std::unordered_set<NodeId>& GetTrackedTunnelTestNodeIds()
-{
-    static std::unordered_set<NodeId> nodeIds;
-    return nodeIds;
-}
-
-inline void TrackTunnelTestNode(NodeId nodeId)
-{
-    RSTunnelRuntimeStore::Erase(nodeId);
-    GetTrackedTunnelTestNodeIds().emplace(nodeId);
-}
-
-inline void ClearTrackedTunnelRuntimeStates()
-{
-    auto& nodeIds = GetTrackedTunnelTestNodeIds();
-    for (auto nodeId : nodeIds) {
-        RSTunnelRuntimeStore::Erase(nodeId);
-    }
-    nodeIds.clear();
-}
-
 inline TunnelLayerInfo MakeTunnelLayerInfo(TunnelTypeMask tunnelType = TUNNEL_TYPE_STYLUS)
 {
     TunnelLayerInfo info;
@@ -293,7 +272,6 @@ inline TunnelTestContext CreateTunnelTestContext(bool withProducer)
     if (context.node == nullptr) {
         return context;
     }
-    TrackTunnelTestNode(context.node->GetId());
     context.surfaceHandler = context.node->GetMutableRSSurfaceHandler();
     if (context.surfaceHandler == nullptr) {
         return context;

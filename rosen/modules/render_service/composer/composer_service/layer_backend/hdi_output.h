@@ -178,6 +178,8 @@ private:
     std::unordered_set<uint64_t> invalidTunnelSurfaceIds_;
     // surfaceId -> last failed tunnelLayerGeneration; suppresses tunnel retry until generation changes.
     std::unordered_map<uint64_t, uint64_t> tunnelFallbackGenerations_;
+    // expected tunnel layer count of current batch, set in SetRSLayers, checked in FinalizePostCommit.
+    size_t expectedTunnelLayerCount_ = 0;
     /* only used for GetLayerSolidFilledColor find hdi layer id */
     std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidRSLayerIdMap_;
     uint32_t screenId_;
@@ -203,7 +205,7 @@ private:
     int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer);
     void DestroyLayerBySurfaceIdLocked(uint64_t surfaceId);
     void UnregisterGlobalTunnelLayersLocked() const;
-    void UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer);
+    void UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, bool tunnelBatchExceeded = false);
     bool UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
@@ -237,7 +239,10 @@ private:
         const std::shared_ptr<RSLayer>& rsLayer, bool shouldEmitTunnelCreated);
     void SetLayerPerFrameParameters(uint32_t layerId, const std::shared_ptr<RSLayer>& rsLayer);
     bool IsTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation) const;
-    bool ShouldFallbackTunnelLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer) const;
+    bool IsTunnelBatchExceededLocked(const std::vector<std::shared_ptr<RSLayer>>& rsLayers,
+        size_t& expectedTunnelLayerCount) const;
+    bool ShouldFallbackTunnelLayerLocked(uint64_t surfaceId,
+        const std::shared_ptr<RSLayer>& rsLayer, bool tunnelBatchExceeded = false) const;
     void MarkTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation);
     void ClearTunnelDeclinedLocked(uint64_t surfaceId);
     void FinalizePostCommit(bool commitSucceeded = true);

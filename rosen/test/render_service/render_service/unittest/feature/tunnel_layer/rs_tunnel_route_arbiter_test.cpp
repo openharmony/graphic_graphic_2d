@@ -32,22 +32,13 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-using TunnelTest::ClearTrackedTunnelRuntimeStates;
 using TunnelTest::CreateTunnelTestContext;
 using TunnelTest::ScopedNewTunnelSwitch;
 namespace {
 constexpr uint64_t TEST_TUNNEL_LAYER_ID = 1001;
-constexpr uint32_t TEST_TUNNEL_LAYER_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
 constexpr ScreenId CLAIMED_SCREEN_ID = 7;
 constexpr ScreenId MIGRATED_SCREEN_ID = 9;
 constexpr ScreenId UNRELATED_SCREEN_ID = 5;
-constexpr uint32_t TEST_ROUTE_BUFFER_SIZE = 0x100;
-constexpr uint32_t TEST_ROUTE_BUFFER_SIZE_CHANGED = 0x200;
-constexpr uint32_t TEST_ROUTE_STRIDE_ALIGNMENT = 0x8;
-constexpr int32_t TEST_ROUTE_OFFSET = 10;
-constexpr int32_t TEST_ROUTE_ZORDER = 10;
-constexpr int32_t TEST_ROUTE_ZORDER_CHANGED = 11;
-constexpr float TEST_ROUTE_ALPHA_CHANGED = 0.5f;
 constexpr ScreenId TEST_PHYSICAL_SCREEN_ID = 1001;
 constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 1002;
 
@@ -138,66 +129,6 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> oldHandler_;
 };
 
-sptr<SurfaceBuffer> CreateRouteBuffer(uint32_t size = TEST_ROUTE_BUFFER_SIZE,
-    GraphicPixelFormat format = GRAPHIC_PIXEL_FMT_RGBA_8888)
-{
-    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    if (buffer == nullptr) {
-        return nullptr;
-    }
-    BufferRequestConfig config = {
-        .width = static_cast<int32_t>(size),
-        .height = static_cast<int32_t>(size),
-        .strideAlignment = TEST_ROUTE_STRIDE_ALIGNMENT,
-        .format = format,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-    return buffer->Alloc(config) == GSERROR_OK ? buffer : nullptr;
-}
-
-RSLayerInfo CreateBaseRouteLayerInfo()
-{
-    RSLayerInfo layerInfo;
-    layerInfo.srcRect = { 0, 0, TEST_ROUTE_BUFFER_SIZE, TEST_ROUTE_BUFFER_SIZE };
-    layerInfo.dstRect = { 0, 0, TEST_ROUTE_BUFFER_SIZE, TEST_ROUTE_BUFFER_SIZE };
-    layerInfo.zOrder = TEST_ROUTE_ZORDER;
-    layerInfo.alpha = 1.0f;
-    layerInfo.blendType = GRAPHIC_BLEND_NONE;
-    layerInfo.transformType = GRAPHIC_ROTATE_NONE;
-    return layerInfo;
-}
-
-void PrepareRouteBaseline(const TunnelTest::TunnelTestContext& context)
-{
-    auto* params = static_cast<RSSurfaceRenderParams*>(context.node->GetStagingRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    auto buffer = CreateRouteBuffer();
-    ASSERT_NE(buffer, nullptr);
-    auto layerInfo = CreateBaseRouteLayerInfo();
-    params->SetLayerInfo(layerInfo);
-    params->SetBuffer(buffer, nullptr, Rect());
-    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
-
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
-    tunnelRuntime.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
-    RSTunnelRuntimeState::LastFrameRouteSnapshot snapshot;
-    snapshot.dstRect = layerInfo.dstRect;
-    snapshot.srcRect = layerInfo.srcRect;
-    snapshot.transformType = layerInfo.transformType;
-    snapshot.zOrder = layerInfo.zOrder;
-    snapshot.alpha = layerInfo.alpha;
-    snapshot.blendType = layerInfo.blendType;
-    snapshot.hwcEnabled = !context.node->IsHardwareForcedDisabled();
-    snapshot.bufferWidth = buffer->GetWidth();
-    snapshot.bufferHeight = buffer->GetHeight();
-    snapshot.bufferFormat = buffer->GetFormat();
-    snapshot.tunnelLayerId = TEST_TUNNEL_LAYER_ID;
-    snapshot.tunnelProperty = TEST_TUNNEL_LAYER_PROPERTY;
-    tunnelRuntime.UpdateLastFrameRouteSnapshot(snapshot);
-    ActivateTunnelRuntime(tunnelRuntime);
-}
-
 enum class RouteMutationType {
     NONE,
     CAPTURE,
@@ -223,165 +154,6 @@ enum class ApplyMutationResult {
     NOT_MATCHED,
     FAILED,
 };
-
-ApplyMutationResult ApplyNonLayerRouteMutation(RouteMutationType type, const TunnelTest::TunnelTestContext& context,
-    RSSurfaceRenderParams& params)
-{
-    switch (type) {
-        case RouteMutationType::NONE:
-            return ApplyMutationResult::APPLIED;
-        case RouteMutationType::CAPTURE:
-            params.SetIsNodeToBeCaptured(true);
-            return ApplyMutationResult::APPLIED;
-        case RouteMutationType::PROTECTED:
-            context.node->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-            return ApplyMutationResult::APPLIED;
-        case RouteMutationType::TUNNEL_INFO:
-            RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetLayerInfo(TEST_TUNNEL_LAYER_ID + 1,
-                TEST_TUNNEL_LAYER_PROPERTY);
-            return ApplyMutationResult::APPLIED;
-        case RouteMutationType::BUFFER_SIZE: {
-            auto buffer = CreateRouteBuffer(TEST_ROUTE_BUFFER_SIZE_CHANGED);
-            if (buffer == nullptr) {
-                return ApplyMutationResult::FAILED;
-            }
-            params.SetBuffer(buffer, nullptr, Rect());
-            return ApplyMutationResult::APPLIED;
-        }
-        case RouteMutationType::BUFFER_FORMAT: {
-            auto buffer = CreateRouteBuffer();
-            if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-                return ApplyMutationResult::FAILED;
-            }
-            buffer->GetBufferHandle()->format = GRAPHIC_PIXEL_FMT_RGB_565;
-            params.SetBuffer(buffer, nullptr, Rect());
-            return ApplyMutationResult::APPLIED;
-        }
-        default:
-            return ApplyMutationResult::NOT_MATCHED;
-    }
-}
-
-bool ApplyLayerRouteMutation(RouteMutationType type, RSSurfaceRenderParams& params)
-{
-    auto layerInfo = params.GetLayerInfo();
-    switch (type) {
-        case RouteMutationType::DST_RECT:
-            layerInfo.dstRect.x = TEST_ROUTE_OFFSET;
-            break;
-        case RouteMutationType::TRANSFORM:
-            layerInfo.transformType = GRAPHIC_ROTATE_90;
-            break;
-        case RouteMutationType::ZORDER:
-            layerInfo.zOrder = TEST_ROUTE_ZORDER_CHANGED;
-            break;
-        case RouteMutationType::ALPHA:
-            layerInfo.alpha = TEST_ROUTE_ALPHA_CHANGED;
-            break;
-        case RouteMutationType::BLEND:
-            layerInfo.blendType = GRAPHIC_BLEND_SRCOVER;
-            break;
-        default:
-            return false;
-    }
-    params.SetLayerInfo(layerInfo);
-    return true;
-}
-
-bool ApplyRouteMutation(RouteMutationType type, const TunnelTest::TunnelTestContext& context,
-    RSSurfaceRenderParams& params)
-{
-    auto result = ApplyNonLayerRouteMutation(type, context, params);
-    if (result == ApplyMutationResult::FAILED) {
-        return false;
-    }
-    if (result == ApplyMutationResult::APPLIED) {
-        return true;
-    }
-    return ApplyLayerRouteMutation(type, params);
-}
-
-void ExpectRouteClaimGoesNormal(RSTunnelRouteArbiter& arbiter,
-    const TunnelTest::TunnelTestContext& context)
-{
-    EXPECT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
-    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetPhase(),
-        RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
-}
-
-void ExpectStaleQueueGoesNormal(RSTunnelRouteArbiter& arbiter)
-{
-    auto context = CreateTunnelTestContext(false);
-    ASSERT_TRUE(context.IsBaseReady());
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
-    ActivateTunnelRuntime(tunnelRuntime);
-    ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
-    context.surfaceHandler->SetAvailableBufferCount(1);
-    ExpectRouteClaimGoesNormal(arbiter, context);
-}
-
-void ExpectHardwareDisabledGoesNormal(RSTunnelRouteArbiter& arbiter)
-{
-    auto context = CreateTunnelTestContext(false);
-    ASSERT_TRUE(context.IsBaseReady());
-    ActivateTunnelRuntime(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()));
-    context.node->SetHardwareForcedDisabledState(true);
-    ExpectRouteClaimGoesNormal(arbiter, context);
-}
-
-void ExpectMissingBufferKeepsEmptySnapshot(RSTunnelRouteArbiter& arbiter)
-{
-    auto context = CreateTunnelTestContext(false);
-    ASSERT_TRUE(context.IsBaseReady());
-    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
-    tunnelRuntime.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
-    ActivateTunnelRuntime(tunnelRuntime);
-
-    auto* params = static_cast<RSSurfaceRenderParams*>(context.node->GetStagingRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    ASSERT_EQ(params->GetBuffer(), nullptr);
-    ExpectRouteClaimGoesNormal(arbiter, context);
-
-    const auto& snapshot = tunnelRuntime.GetLastFrameRouteSnapshot();
-    EXPECT_EQ(snapshot.tunnelLayerId, 0u);
-    EXPECT_EQ(snapshot.tunnelProperty, static_cast<uint32_t>(TUNNEL_PROP_INVALID));
-    EXPECT_EQ(snapshot.bufferWidth, 0);
-    EXPECT_EQ(snapshot.bufferHeight, 0);
-    EXPECT_EQ(snapshot.bufferFormat, 0);
-}
-
-void RunRouteGoNormalMatrix()
-{
-    const std::vector<RouteMutationCase> testCases = {
-        { "new_tunnel_disabled", false, RouteMutationType::NONE },
-        { "capture", true, RouteMutationType::CAPTURE },
-        { "protected", true, RouteMutationType::PROTECTED },
-        { "tunnel_info", true, RouteMutationType::TUNNEL_INFO },
-        { "dst_rect", true, RouteMutationType::DST_RECT },
-        { "transform", true, RouteMutationType::TRANSFORM },
-        { "zorder", true, RouteMutationType::ZORDER },
-        { "alpha", true, RouteMutationType::ALPHA },
-        { "blend", true, RouteMutationType::BLEND },
-        { "buffer_size", true, RouteMutationType::BUFFER_SIZE },
-        { "buffer_format", true, RouteMutationType::BUFFER_FORMAT },
-    };
-
-    for (const auto& testCase : testCases) {
-        SCOPED_TRACE(testing::Message() << "case=" << testCase.name);
-        ScopedNewTunnelSwitch scopedSwitch(testCase.newTunnelEnabled);
-        auto context = CreateTunnelTestContext(false);
-        ASSERT_TRUE(context.IsBaseReady());
-        PrepareRouteBaseline(context);
-        auto* params = static_cast<RSSurfaceRenderParams*>(context.node->GetStagingRenderParams().get());
-        ASSERT_NE(params, nullptr);
-        ASSERT_TRUE(ApplyRouteMutation(testCase.type, context, *params));
-
-        RSTunnelRouteArbiter arbiter;
-        ExpectRouteClaimGoesNormal(arbiter, context);
-    }
-}
-
 } // namespace
 
 class RSTunnelRouteArbiterTest : public testing::Test {
@@ -393,7 +165,6 @@ public:
 
     void TearDown() override
     {
-        ClearTrackedTunnelRuntimeStates();
         RSTunnelRouteArbiter::SetTunnelSolePresentLayer(false);
     }
 };
@@ -419,20 +190,41 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 }
 
 /**
- * @tc.name: ArbitrateAndClaim_GoNormalSurfaceCases
- * @tc.desc: Surface-level fallback causes must route GO_NORMAL so RS normal consume can own the frame.
+ * @tc.name: RSTunnelRouteArbiter_NewStaticFunctions
+ * @tc.desc: Cover the new building-threshold and consecutive-sole-present static functions:
+ *          GetBuildingThreshold, GetConsecutiveSolePresentCount, ResetConsecutiveSolePresentCount,
+ *          OnTunnelRollbackDetected, OnDirectCompositionStable, and BeginTunnelBuilding.
  * @tc.type: FUNC
  */
 HWTEST_F(RSTunnelRouteArbiterTest,
-    RSTunnelRouteArbiter_ArbitrateAndClaim_GoNormalSurfaceCases,
-    TestSize.Level1)
+    RSTunnelRouteArbiter_NewStaticFunctions, TestSize.Level1)
 {
-    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
-    RSTunnelRouteArbiter arbiter;
-    ExpectStaleQueueGoesNormal(arbiter);
-    ExpectHardwareDisabledGoesNormal(arbiter);
-    ExpectMissingBufferKeepsEmptySnapshot(arbiter);
-    RunRouteGoNormalMatrix();
+    RSTunnelRouteArbiter::OnDirectCompositionStable(TUNNEL_STABLE_THRESHOLD + 1);
+    RSTunnelRouteArbiter::ResetConsecutiveSolePresentCount();
+    EXPECT_EQ(RSTunnelRouteArbiter::GetBuildingThreshold(), TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD);
+    EXPECT_EQ(RSTunnelRouteArbiter::GetConsecutiveSolePresentCount(), 0u);
+
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
+    RSTunnelRouteArbiter::OnTunnelRollbackDetected();
+    EXPECT_EQ(RSTunnelRouteArbiter::GetBuildingThreshold(), TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD + 1);
+    EXPECT_EQ(RSTunnelRouteArbiter::GetConsecutiveSolePresentCount(), 0u);
+
+    RSTunnelRouteArbiter::OnDirectCompositionStable(TUNNEL_STABLE_THRESHOLD);
+    EXPECT_EQ(RSTunnelRouteArbiter::GetBuildingThreshold(), TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD + 1);
+    RSTunnelRouteArbiter::OnDirectCompositionStable(TUNNEL_STABLE_THRESHOLD + 1);
+    EXPECT_EQ(RSTunnelRouteArbiter::GetBuildingThreshold(), TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD);
+
+    RSTunnelRuntimeState tunnelRuntime;
+    RSTunnelRouteArbiter::BeginTunnelBuilding(tunnelRuntime, 1, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(
+        TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD, std::memory_order_release);
+    RSTunnelRouteArbiter::BeginTunnelBuilding(tunnelRuntime, 1, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
+
+    RSTunnelRouteArbiter::OnDirectCompositionStable(TUNNEL_STABLE_THRESHOLD + 1);
+    RSTunnelRouteArbiter::ResetConsecutiveSolePresentCount();
 }
 
 /**
@@ -448,10 +240,10 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
-    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
-        RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_EQ(context.node->GetTunnelRuntimeState()->GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
     EXPECT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE);
-    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetPhase(),
+    EXPECT_EQ(context.node->GetTunnelRuntimeState()->GetPhase(),
         RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
 
     arbiter.AbandonNormalClaim(nullptr);
@@ -470,7 +262,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
 
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
     ActivateTunnelRuntime(tunnelRuntime);
     context.surfaceHandler->SetAvailableBufferCount(1);
     auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
@@ -507,7 +299,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
         ASSERT_TRUE(context.IsBaseReady());
         weakNode = context.node;
 
-        ActivateTunnelRuntime(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()));
+        ActivateTunnelRuntime(*context.node->GetTunnelRuntimeState());
         context.surfaceHandler->SetAvailableBufferCount(1);
         auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
         context.node->SetAncestorScreenNode(claimedScreenNode);
@@ -537,7 +329,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
     ActivateTunnelRuntime(tunnelRuntime);
     context.surfaceHandler->SetAvailableBufferCount(1);
     auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
@@ -637,7 +429,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     ClearUiCaptureTasks(*mainThread);
 
@@ -689,11 +481,70 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     ClearUiCaptureTasks(*mainThread);
     ASSERT_FALSE(mainThread->IsSnapshotPendingThisFrame());
 
-    EXPECT_EQ(RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread), nullptr);
+EXPECT_EQ(RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread), nullptr);
 }
+
+/**
+ * @tc.name: ArbitrateAndClaim_NoRuntimeState_ReturnsNotTunnelActive
+ * @tc.desc: Cover null tunnelRuntime early return in ArbitrateAndClaim.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest, ArbitrateAndClaim_NoRuntimeState_ReturnsNotTunnelActive, TestSize.Level1)
+{
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    EXPECT_EQ(context.node->TryGetTunnelRuntimeState(), nullptr);
+    RSTunnelRouteArbiter arbiter;
+    EXPECT_EQ(arbiter.ArbitrateAndClaim(context.node),
+        RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE);
+}
+
+/**
+ * @tc.name: AbandonNormalClaim_NoRuntimeState_NoOp
+ * @tc.desc: Cover null tunnelRuntime and mainThread-not-null branches in AbandonNormalClaim.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest, AbandonNormalClaim_NoRuntimeState_NoOp, TestSize.Level1)
+{
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    RSTunnelRouteArbiter arbiter;
+    arbiter.AbandonNormalClaim(context.node);
+    EXPECT_EQ(context.node->GetTunnelRuntimeState()->GetPhase(),
+        RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
+}
+
+/**
+ * @tc.name: GetAllLayerAndTunnelLayerCount_CoversRuntimeStateBranches
+ * @tc.desc: Cover both statePtr==nullptr and statePtr!=nullptr in GetAllLayerAndTunnelLayerCount.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest, GetAllLayerAndTunnelLayerCount_CoversRuntimeStateBranches, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    context.surfaceHandler->SetCurrentFrameBufferConsumed();
+
+    uint32_t presentCount = 0;
+    uint32_t tunnelCount = 0;
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(context.node, presentCount, tunnelCount);
+    EXPECT_EQ(context.node->TryGetTunnelRuntimeState(), nullptr);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 0u);
+
+    context.node->GetTunnelRuntimeState()->SetLayerInfo(
+        TEST_TUNNEL_LAYER_ID, TUNNEL_PROP_BUFFER_ADDR);
+    presentCount = 0;
+    tunnelCount = 0;
+    RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(context.node, presentCount, tunnelCount);
+    EXPECT_EQ(presentCount, 1u);
+    EXPECT_EQ(tunnelCount, 1u);
+}
+
 } // namespace OHOS::Rosen

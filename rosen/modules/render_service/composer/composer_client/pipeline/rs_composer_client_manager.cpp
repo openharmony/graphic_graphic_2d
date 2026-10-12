@@ -117,19 +117,13 @@ void RSComposerClientManager::CleanLayerBufferBySurfaceId(uint64_t surfaceId, No
 int32_t RSComposerClientManager::CommitTunnelLayerBySurfaceId(
     const TunnelLayerCommitInfo& commitInfo, sptr<SyncFence>& releaseFence)
 {
-    std::unordered_map<ScreenId, std::shared_ptr<RSComposerClient>> clientMap;
-    {
-        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
-        clientMap = composerClientMap_;
+    auto client = GetComposerClient(commitInfo.screenId);
+    if (client != nullptr) {
+        return client->CommitTunnelLayerBySurfaceId(commitInfo.surfaceId, commitInfo.tunnelLayerId,
+            commitInfo.buffer, commitInfo.acquireFence, releaseFence);
     }
-    for (auto& [_, client] : clientMap) {
-        if (client != nullptr && client->IsFindRSLayer(commitInfo.nodeId)) {
-            return client->CommitTunnelLayerBySurfaceId(commitInfo.surfaceId, commitInfo.tunnelLayerId,
-                commitInfo.buffer, commitInfo.acquireFence, releaseFence);
-        }
-    }
-    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s can not find composer client, nodeId:%{public}" PRIu64, __func__,
-        commitInfo.nodeId);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s can not find composer client, screenId:%{public}" PRIu64, __func__,
+        commitInfo.screenId);
     return GRAPHIC_DISPLAY_FAILURE;
 }
 

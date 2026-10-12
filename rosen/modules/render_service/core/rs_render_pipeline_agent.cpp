@@ -111,17 +111,10 @@ void RSRenderPipelineAgent::ConfigureForceTunnelLayer(
     TunnelLayerInfo info;
     info.tunnelTypeMask = TUNNEL_TYPE_VIDEO;
     if (surface->SetTunnelLayerInfo(info) != GSERROR_OK) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s set tunnel layer failed, nodeId=%" PRIu64 ", name=%s",
-            __func__, config.id, config.name.c_str());
         RS_LOGW("RSRenderPipeline::CreateNodeAndSurface set tunnel layer info failed, name:%{public}s",
             config.name.c_str());
         return;
     }
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s force tunnel layer, nodeId=%" PRIu64 ", name=%s, bundle=%s",
-        __func__, config.id, config.name.c_str(), config.bundleName.c_str());
-    RS_LOGD("TUNNEL_DEBUG %s force tunnel layer, nodeId:%{public}" PRIu64
-        ", name:%{public}s, bundle:%{public}s", __func__, config.id, config.name.c_str(),
-        config.bundleName.c_str());
 }
 
 bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)

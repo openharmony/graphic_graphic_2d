@@ -454,7 +454,6 @@ void ProcessGpuOfflineForTopLayer(
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
     // map of surface node color gamut collected in CheckColorSpace
     std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
-    RSRenderThreadParams::TunnelLayerSnapshotMap tunnelLayerSnapshots_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes
