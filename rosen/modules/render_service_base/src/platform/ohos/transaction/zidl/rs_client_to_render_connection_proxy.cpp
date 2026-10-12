@@ -170,6 +170,19 @@ ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTra
     return ERR_OK;
 }
 
+uint32_t RSClientToRenderConnectionProxy::GetTransactionDataIndex() const
+{
+    return transactionDataIndex_.load(std::memory_order_relaxed);
+}
+
+bool RSClientToRenderConnectionProxy::SeedTransactionDataIndex(uint32_t value)
+{
+    // only succeeds while the counter still holds the default value, otherwise the connection
+    // has already issued indices of its own and must not be renumbered
+    uint32_t expected = 0;
+    return transactionDataIndex_.compare_exchange_strong(expected, value, std::memory_order_relaxed);
+}
+
 bool RSClientToRenderConnectionProxy::FillParcelWithTransactionData(
     std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data)
 {

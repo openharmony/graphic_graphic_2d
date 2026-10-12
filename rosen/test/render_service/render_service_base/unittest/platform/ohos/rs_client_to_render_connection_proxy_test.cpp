@@ -866,5 +866,36 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestTimeoutExemptDirect, Te
     ASSERT_EQ(sendTid, callerTid);
 }
 #endif
+
+/**
+ * @tc.name: TransactionDataIndexSeed001
+ * @tc.desc: Seed succeeds while the counter still holds the default value, Get returns it
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed001, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), 0u);
+    constexpr uint32_t seededIndex = 7;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(seededIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), seededIndex);
+}
+
+/**
+ * @tc.name: TransactionDataIndexSeed002
+ * @tc.desc: Seed fails once the counter has issued indices of its own, value is kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    constexpr uint32_t ownIndex = 3;
+    constexpr uint32_t otherIndex = 9;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(ownIndex));
+    ASSERT_FALSE(mockProxy->SeedTransactionDataIndex(otherIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), ownIndex);
+}
 } // namespace Rosen
 } // namespace OHOS
