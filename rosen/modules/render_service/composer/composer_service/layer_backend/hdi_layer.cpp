@@ -542,12 +542,11 @@ int32_t HdiLayer::SetTunnelLayerProperty()
     if (layerType_ != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
         return GRAPHIC_DISPLAY_NOT_SUPPORT;
     }
-    uint32_t property = hasSetTunnel_ ? rsLayer_->GetTunnelLayerProperty() : 0;
-    if (hasSetTunnel_ && tunnelLayerProperty_ == property) {
+    uint32_t property = rsLayer_->GetTunnelLayerProperty();
+    if (tunnelLayerProperty_ == property) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     tunnelLayerProperty_ = property;
-    hasSetTunnel_ = true;
 
     int32_t ret = device_->SetTunnelLayerProperty(screenId_, layerId_, property);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
@@ -691,11 +690,6 @@ void HdiLayer::UpdateRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
 void HdiLayer::MarkPendingTunnelLayerCreated(uint64_t tunnelLayerGeneration)
 {
     pendingTunnelLayerCreatedGeneration_.store(tunnelLayerGeneration, std::memory_order_release);
-}
-
-bool HdiLayer::HasPendingTunnelLayerCreated() const
-{
-    return pendingTunnelLayerCreatedGeneration_.load(std::memory_order_acquire) != 0;
 }
 
 bool HdiLayer::TakePendingTunnelLayerCreated(uint64_t& tunnelLayerGeneration)
@@ -1047,12 +1041,14 @@ void HdiLayer::ClearBufferCache()
 
 int32_t HdiLayer::SetTunnelLayerParameters()
 {
-    if (rsLayer_ == nullptr) {
+    if (rsLayer_ == nullptr || rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID ||
+        rsLayer_->GetType() != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
         return GRAPHIC_DISPLAY_FAILURE;
     }
-    if (rsLayer_->GetTunnelLayerId() == 0 && rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID) {
+    if (rsLayer_->GetTunnelLayerId() == 0) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
+    setTunnelSuccess_ = false;
     int32_t tunnelLayerIdRet = SetTunnelLayerId();
     if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
         CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");
@@ -1063,6 +1059,7 @@ int32_t HdiLayer::SetTunnelLayerParameters()
         CheckRet(tunnelLayerPropertyRet, "SetTunnelLayerProperty");
         return tunnelLayerPropertyRet;
     }
+    setTunnelSuccess_ = true;
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
@@ -1073,6 +1070,11 @@ void HdiLayer::ResetBufferCache()
     if (rsLayer_ != nullptr && rsLayer_->GetBuffer() != nullptr) {
         currBuffer_ = rsLayer_->GetBuffer();
     }
+}
+
+bool HdiLayer::IsSetTunnelSuccess() const
+{
+    return setTunnelSuccess_;
 }
 } // namespace Rosen
 } // namespace OHOS

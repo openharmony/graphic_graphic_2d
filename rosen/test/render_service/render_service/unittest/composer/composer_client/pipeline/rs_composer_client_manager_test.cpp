@@ -886,6 +886,7 @@ HWTEST_F(RSComposerClientManagerTest, CommitTunnelLayerBySurfaceId_ForwardToMatc
     commitInfo.surfaceId = surfaceId;
     commitInfo.nodeId = nodeId;
     commitInfo.tunnelLayerId = tunnelLayerId;
+    commitInfo.screenId = screenId;
     commitInfo.buffer = buffer;
     commitInfo.acquireFence = nullptr;
     EXPECT_EQ(mgr.CommitTunnelLayerBySurfaceId(commitInfo, releaseFence), GRAPHIC_DISPLAY_SUCCESS);

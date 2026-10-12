@@ -23,6 +23,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "feature/uifirst/rs_uifirst_params.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "params/rs_render_params.h"
@@ -942,6 +943,48 @@ public:
     const RectI& GetDelegateDstRect() const;
     void SetDelegateSrcRect(const RectI& rect);
     const RectI& GetDelegateSrcRect() const;
+
+    void SetTunnelState(RSTunnelRuntimeState::TunnelState state)
+    {
+        if (tunnelState_ != state) {
+            tunnelState_ = state;
+            needSync_ = true;
+        }
+    }
+    RSTunnelRuntimeState::TunnelState GetTunnelState() const { return tunnelState_; }
+    void SetTunnelLayerId(uint64_t id)
+    {
+        if (tunnelLayerId_ != id) {
+            tunnelLayerId_ = id;
+            needSync_ = true;
+        }
+    }
+    uint64_t GetTunnelLayerId() const { return tunnelLayerId_; }
+    void SetTunnelLayerProperty(uint32_t property)
+    {
+        if (tunnelLayerProperty_ != property) {
+            tunnelLayerProperty_ = property;
+            needSync_ = true;
+        }
+    }
+    uint32_t GetTunnelLayerProperty() const { return tunnelLayerProperty_; }
+    void SetTunnelLayerGeneration(uint64_t generation)
+    {
+        if (tunnelLayerGeneration_ != generation) {
+            tunnelLayerGeneration_ = generation;
+            needSync_ = true;
+        }
+    }
+    uint64_t GetTunnelLayerGeneration() const { return tunnelLayerGeneration_; }
+    void SetIsLppTunnel(bool isLpp)
+    {
+        if (isLppTunnel_ != isLpp) {
+            isLppTunnel_ = isLpp;
+            needSync_ = true;
+        }
+    }
+    bool GetIsLppTunnel() const { return isLppTunnel_; }
+
 private:
     void SyncVisibleRegions(RSSurfaceRenderParams* targetSurfaceParams) const;
     bool GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) const;
@@ -1107,6 +1150,14 @@ private:
 
     // for layer splitter
     bool splitLayerTag_ = false;
+
+    // L1 tunnel state mirror (per-frame, staging -> RT). Default NOT_TUNNEL so non-tunnel
+    // surfaces never trigger GRAPHIC_LAYER_TYPE_TUNNEL on the RT side.
+    RSTunnelRuntimeState::TunnelState tunnelState_ = RSTunnelRuntimeState::TunnelState::NOT_TUNNEL;
+    uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
+    bool isLppTunnel_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

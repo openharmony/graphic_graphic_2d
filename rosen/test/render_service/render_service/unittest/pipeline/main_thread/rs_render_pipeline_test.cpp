@@ -671,8 +671,9 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
+    tunnelRuntime.SetBuilding();
     auto tunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
 
     sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
@@ -683,8 +684,6 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
         COMPOSITOR_ERROR_OK);
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
-
-    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -708,8 +707,8 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
     auto staleTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     tunnelRuntime.SetBuilding();
 
@@ -719,7 +718,7 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
     uint64_t currentTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
@@ -729,24 +728,22 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::UNAVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_NE(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_EQ(tunnelRuntime.GetTunnelLayerGeneration(), currentTunnelLayerGeneration);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
-
-    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -780,9 +777,9 @@ HWTEST_F(RSRenderPipelineTest, CollectInfoForHardwareComposer001, TestSize.Level
     surfaceNode->isHardwareEnabledNode_ = true;
     auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(consumer, nullptr);
-    RSTunnelRuntimeStore::SetLayerInfo(
-        surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(),
+        TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
     tunnelRuntime.SetBuilding();
     ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
 

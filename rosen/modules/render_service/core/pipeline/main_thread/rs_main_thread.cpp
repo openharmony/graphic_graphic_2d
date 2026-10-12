@@ -66,7 +66,6 @@
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
-#include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
@@ -483,7 +482,6 @@ RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
     tunnelLayerManager_ = std::make_unique<RSTunnelLayerManager>(context_);
-    tunnelRouteArbiter_ = std::make_unique<RSTunnelRouteArbiter>();
     virtualScreenParallelManager_ = std::make_shared<RSVirtualScreenParallelManager>();
 }
 
@@ -670,8 +668,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
             RSUniRenderThread::Instance().PostRTTask(task);
         };
         context_->SetRTTaskRunner(rtTaskDispatchFunc);
-        if (tunnelRouteArbiter_ != nullptr) {
-            tunnelRouteArbiter_->AttachToRenderThread();
+        if (tunnelLayerManager_ != nullptr) {
+            tunnelLayerManager_->AttachArbiterToRenderThread();
         }
 #endif
     }
@@ -2098,8 +2096,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
-    // Republish global tunnel-route triggers (mirror / snapshot pending) before the per-node
-    // arbitrate loop so the listener thread sees this vsync's view in OnBufferAvailable.
     RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     requestNextVsyncTime_ = -1;
     curFrameBufferReclaimCount_ = 0;
@@ -2127,30 +2123,23 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
-            const bool isTunnelCandidate = surfaceHandler->HasReceivedTunnelLayerInfo();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
             dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
-            auto outcome = isTunnelCandidate
-                ? tunnelRouteArbiter_->ArbitrateAndClaim(surfaceNode)
-                : RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE;
-            bool goNormal = outcome != RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT;
-            bool comsumeResult = false;
-            if (goNormal) {
+            bool comsumeResult;
+            {
+                std::lock_guard<std::mutex> lock(surfaceHandler->GetTunnelMutex());
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
                     parentNode ? parentNode->GetId() : 0, surfaceNode);
-                tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
-            } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
-                comsumeResult = true;
             }
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 lppVideoHandler_.ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
             }
+            tunnelLayerManager_->UpdateTunnelStateMachine(surfaceNode, comsumeResult);
             if (comsumeResult) {
-                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2225,10 +2214,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
             }
 #endif
-            // still have buffer(s) to consume. Skip when KEEP_DIRECT: listener owns consumption,
-            // a stale availableBufferCount left by IncreaseAvailableBuffer would otherwise
-            // schedule a redundant vsync that re-arrives as KEEP_DIRECT again.
-            if (goNormal && surfaceHandler->GetAvailableBufferCount() > 0) {
+            // still have buffer(s) to consume. Main consume path always runs now,
+            // so any non-zero availableBufferCount means we need to schedule next vsync.
+            if (surfaceHandler->GetAvailableBufferCount() > 0) {
                 const auto& consumer = surfaceHandler->GetConsumer();
                 int64_t nextVsyncTime = 0;
                 GetFrontBufferDesiredPresentTimeStamp(consumer, nextVsyncTime, ExtractPid(surfaceHandler->GetNodeId()));
@@ -3129,7 +3117,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         aibarNodes_.clear();
         directComposeHelper_.lastFrameDidGpuRender_ = true;
         RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
-        ResetConsecutiveDoCompSuccessCount();
+        RSTunnelRouteArbiter::ResetConsecutiveSolePresentCount();
         if (RSUniRenderThread::Instance().IsPostedReclaimMemoryTask()) {
             SetIfStatusBarDirtyOnly(IfStatusBarDirtyOnly());
         }
@@ -3201,7 +3189,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else {
         directComposeHelper_.lastFrameDidGpuRender_ = false;
-        directComposeHelper_.consecutiveDoCompSuccessCount_.fetch_add(1, std::memory_order_acq_rel);
         RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
         RsFrameReport::DirectRenderEnd();
     }
@@ -3414,7 +3401,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                         surfaceNode->GetInstanceRootNodeId(), tempRefreshRects,
                         surfaceNode->GetAbsDrawRect().GetWidth() * surfaceNode->GetAbsDrawRect().GetHeight());
                 }
-                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isCurrentFrameBufferConsumed && params->GetPreBuffer() != nullptr) {
                     params->SetPreBuffer(nullptr, nullptr);
                     surfaceNode->AddToPendingSyncList();
@@ -3431,7 +3417,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             }
         }
         if (Rosen::IsNewTunnelEnabled()) {
-            bool isSole = tunnelCount == presentCount;
+            bool isSole = presentCount > 0 && tunnelCount == presentCount;
             RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s presentCount:%u tunnelCount:%u is Sole:%d",
                 __func__, presentCount, tunnelCount, isSole);
             RSTunnelRouteArbiter::SetTunnelSolePresentLayer(isSole);

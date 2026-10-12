@@ -34,31 +34,34 @@ namespace OHOS {
 namespace Rosen {
 class RSContext;
 class RSSurfaceRenderNode;
+class RSTunnelRouteArbiter;
 
 class RSTunnelLayerManager : public RSTunnelLayerStateHandler {
 public:
-    explicit RSTunnelLayerManager(std::shared_ptr<RSContext> context);
-    ~RSTunnelLayerManager() override = default;
+    RSTunnelLayerManager(std::shared_ptr<RSContext> context);
+    ~RSTunnelLayerManager() override;
+    void AttachArbiterToRenderThread() const;
 
-    void MarkTunnelBufferConsumedForNormal(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const std::shared_ptr<RSComposerClientManager>& clientManager) const;
     void ClearRuntimeStateByPid(pid_t remotePid);
-    void UpdateTunnelLayerState(NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
+    // Unified per-frame state-machine entry: arbitrate, roll ACTIVE back to NOT_TUNNEL, re-gate BUILDING.
+    void UpdateTunnelStateMachine(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        bool consumeSucceeded);
     void HandleLayerStateChanged(NodeId nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) override;
 
 private:
-    static const char* ToLayerStateChangeName(LayerStateChange state);
-
     std::shared_ptr<RSContext> GetContext() const;
     std::shared_ptr<RSSurfaceRenderNode> GetSurfaceNode(NodeId nodeId) const;
-    bool HandleLppTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId) const;
-    void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId);
-    void ProcessLayerStateChanged(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId,
+    bool HandleLppTunnelLayerId(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    // Mirror runtime tunnel fields into staging params; direct frames skip the visitor path.
+    void SyncTunnelStateToStaging(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    void ProcessLayerStateChanged(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, NodeId nodeId,
         LayerStateChange state, uint64_t tunnelLayerGeneration, const sptr<IConsumerSurface>& consumer);
     void DispatchLayerStateChanged(
         NodeId nodeId, LayerStateChange state, const sptr<IConsumerSurface>& callbackConsumer) const;
 
     std::weak_ptr<RSContext> context_;
+    std::unique_ptr<RSTunnelRouteArbiter> arbiter_;
 };
 } // namespace Rosen
 } // namespace OHOS

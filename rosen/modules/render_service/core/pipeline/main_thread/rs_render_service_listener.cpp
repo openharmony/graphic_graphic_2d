@@ -21,6 +21,7 @@
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
+#include "rs_trace.h"
 #include "sync_fence.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 namespace OHOS {
@@ -157,14 +158,30 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 
 void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& state)
 {
-    RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
-    RSTunnelLayerHelper::BeginTunnelBuilding(nodeId_, state.tunnelLayerId, state.property);
-    if (auto handler = surfaceHandler_.lock()) {
-        handler->MarkTunnelLayerInfoReceived();
+    if (!Rosen::IsNewTunnelEnabled()) {
+        return;
     }
-    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
-        ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
-        nodeId_, state.tunnelLayerId, state.property);
+    auto node = surfaceBufferInterface_.lock();
+    if (node == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnTunnelLayerInfoChanged node is nullptr");
+        return;
+    }
+    auto* surfaceNode = node->AsRSSurfaceRenderNode();
+    if (surfaceNode == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnTunnelLayerInfoChanged surfaceNode is nullptr");
+        return;
+    }
+    auto tunnelState = surfaceNode->GetTunnelRuntimeState();
+    tunnelState->SetLayerInfo(state.tunnelLayerId, state.property);
+    RSTunnelLayerHelper::BeginTunnelBuilding(*surfaceNode, state.tunnelLayerId, state.property);
+    auto surfaceHandler = surfaceHandler_.lock();
+    if (surfaceHandler != nullptr) {
+        surfaceHandler->MarkTunnelLayerInfoReceived();
+    }
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s tunnelLayerId=%" PRIu64 ", property=%u",
+        __func__, state.tunnelLayerId, state.property);
+    RS_LOGI("%{public}s %{public}s tunnelLayerId:%{public}" PRIu64 ", property:%{public}u",
+        TUNNEL_DEBUG_PREFIX, __func__, state.tunnelLayerId, state.property);
 }
 
 void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)

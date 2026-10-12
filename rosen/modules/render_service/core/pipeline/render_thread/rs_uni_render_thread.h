@@ -267,12 +267,6 @@ public:
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence, bufferOwnerCount);
     }
 
-    void ReplacePendingReleaseBufferFence(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
-        sptr<SyncFence> fence, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr)
-    {
-        bufferManager_.ReplacePendingReleaseBufferFence(consumer, buffer, fence, bufferOwnerCount);
-    }
-
     void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec,
         uint64_t screenId)

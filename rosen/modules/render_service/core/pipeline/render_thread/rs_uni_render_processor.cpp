@@ -35,6 +35,7 @@
 #include "feature/hwc/hpae_offline/rs_offline_util.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
@@ -51,13 +52,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
-
-bool GetTunnelLayerSnapshot(NodeId nodeId, RSRenderThreadParams::TunnelLayerSnapshot& snapshot)
-{
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    return renderThreadParams != nullptr && renderThreadParams->GetTunnelLayerSnapshot(nodeId, snapshot) &&
-        snapshot.tunnelLayerId != 0;
-}
 }
 
 RSUniRenderProcessor::RSUniRenderProcessor(ScreenId screenId)
@@ -222,7 +216,7 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
         layerRect.x, layerRect.y, layerRect.w, layerRect.h,
         cropRect.x, cropRect.y, cropRect.w, cropRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
-        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType, layer->GetTransform());
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(), layer->GetTransform());
     HandleDelegateComposerLayer(layer, params);
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s ScreenId:%{public}" PRIu64 " zorder:%{public}d layerRect:[%{public}d, %{public}d, "
@@ -287,7 +281,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(),
         uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
         uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
     HandleDelegateComposerLayer(layer, params);
@@ -400,8 +394,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     }
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
-    RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;
-    if (GetTunnelLayerSnapshot(params.GetId(), tunnelLayerSnapshot)) {
+    // Retype GRAPHIC only (never cursor); LPP stays NOT_TUNNEL and is signaled by the LPP flag from sourceType.
+    if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC &&
+        (params.GetTunnelState() != RSTunnelRuntimeState::TunnelState::NOT_TUNNEL ||
+         params.GetIsLppTunnel())) {
         RS_TRACE_NAME_FMT("%s lpp set tunnel layer type", __func__);
         layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
         hasTunnelLayer_ = true;
@@ -517,7 +513,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurfaceName(consumer->GetName());
     layer->SetSurfaceUniqueId(consumer->GetUniqueId());
     layer->SetIsNeedComposition(true);
-    HandleTunnelLayerParameters(params.GetId(), layer);
+    HandleTunnelLayerParameters(params, layer);
     return layer;
 }
 
@@ -732,18 +728,23 @@ void RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread(DrawableV2:
     layers_.emplace_back(layer);
 }
 
-void RSUniRenderProcessor::HandleTunnelLayerParameters(NodeId nodeId, RSLayerPtr& layer)
+void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
 {
-    if (layer == nullptr || layer->GetType() != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
+    if (layer == nullptr || layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         return;
     }
-    RSRenderThreadParams::TunnelLayerSnapshot snapshot;
-    if (!GetTunnelLayerSnapshot(nodeId, snapshot)) {
-        return;
+    if (params.GetTunnelState() != RSTunnelRuntimeState::TunnelState::NOT_TUNNEL ||
+        params.GetIsLppTunnel()) {
+        layer->SetTunnelLayerId(params.GetTunnelLayerId());
+        layer->SetTunnelLayerProperty(params.GetTunnelLayerProperty());
+        layer->SetTunnelLayerGeneration(params.GetTunnelLayerGeneration());
+    } else {
+        layer->SetTunnelLayerId(0);
+        layer->SetTunnelLayerProperty(0);
     }
-    layer->SetTunnelLayerId(snapshot.tunnelLayerId);
-    layer->SetTunnelLayerProperty(snapshot.property);
-    layer->SetTunnelLayerGeneration(snapshot.generation);
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64 ", layerId=%" PRIu64 ", property=%u, generation=%" PRIu64,
+        __func__, params.GetId(), layer->GetTunnelLayerId(), layer->GetTunnelLayerProperty(),
+        layer->GetTunnelLayerGeneration());
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
