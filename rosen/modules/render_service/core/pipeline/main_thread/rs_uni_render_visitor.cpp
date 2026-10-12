@@ -3215,7 +3215,7 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
             isIntersect |= filterNode->UpdateFilterCacheWithBelowDirty(
                 filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider);
         }
-        if (filterNode->GetRenderProperties().GetFilter()) {
+        if (filterNode->GetRenderProperties().GetCompositingFilter()) {
             // foregroundfilter affected by below dirty
             isIntersect |= filterNode->UpdateFilterCacheWithBelowDirty(
                 belowDirtyToConsider, RSDrawableSlot::COMPOSITING_FILTER);

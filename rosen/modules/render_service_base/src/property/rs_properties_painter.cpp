@@ -532,7 +532,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
     // use provided filter if not null
     auto& RSFilter = externalFilter ? externalFilter
-        : ((filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter());
+        : ((filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter()
+            : properties.GetCompositingFilter());
     if (RSFilter == nullptr) {
         return;
     }
