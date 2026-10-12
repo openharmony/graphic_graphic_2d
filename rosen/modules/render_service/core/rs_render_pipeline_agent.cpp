@@ -233,15 +233,19 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     // After a synchronous task times out, it will no longer be executed.
     auto canExecute = std::make_shared<std::atomic<bool>>(true);
     std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
+    auto future = pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
         if (mainThread == nullptr) {
             return;
         }
         if (canExecute->exchange(false)) {
             task->Process(mainThread->GetContext());
         }
-    }).wait_for(span);
-    canExecute->exchange(false);
+    });
+    if (future.wait_for(span) != std::future_status::ready) {
+        canExecute->exchange(false);
+        RS_LOGW("ExecuteSynchronousTask timed out, skip Marshalling to avoid data race with Process");
+        return ERR_TIMED_OUT;
+    }
     return ERR_OK;
 }
 
