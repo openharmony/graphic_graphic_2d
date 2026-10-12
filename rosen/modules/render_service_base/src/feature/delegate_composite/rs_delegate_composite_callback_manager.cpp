@@ -266,7 +266,7 @@ void RsDelegateCompositeCallbackManager::AddBufferReleaseInfo(NodeId nodeId, uin
         .clientPid = clientPid,
         .queueId = surfaceId,
 #ifdef ROSEN_OHOS
-        .releaseFence = releaseFence,
+        .releaseFence = releaseFence != nullptr ? releaseFence : SyncFence::InvalidFence(),
 #endif
         .bufferSeqNum = bufferSeqNum,
     };
@@ -312,7 +312,7 @@ bool RsDelegateCompositeCallbackManager::PrepareBufferReleaseInfo(NodeId nodeId,
         .clientPid = clientPid,
         .queueId = surfaceId,
 #ifdef ROSEN_OHOS
-        .releaseFence = releaseFence,
+        .releaseFence = releaseFence != nullptr ? releaseFence : SyncFence::InvalidFence(),
 #endif
         .bufferSeqNum = buffer->GetSeqNum(),
     };
@@ -449,7 +449,7 @@ bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSConte
         for (auto it2 = sendingPidCmdMap.begin(); it2 != sendingPidCmdMap.end(); ++it2) {
             auto &index = it2->first;
             auto &cmdqueue = it2->second;
-            RS_TRACE_NAME_FMT("ProcessDelegateCompositeCommand: [%d, %" PRIu64 "], cmdNums=%u",
+            RS_TRACE_NAME_FMT("ProcessDelegateCompositeCommand: [%d,%" PRIu64 "], cmdNums=%u",
                 sendingPid, index, cmdqueue.size());
             ProcessEachCommandQueue(cmdqueue, context);
         }
@@ -513,6 +513,7 @@ void RsDelegateCompositeCallbackManager::PrepareDelegateCompositeCommand(
             return;
         }
         it->second[transactionData->GetIndex()] = std::move(cmdQueue);
+        RS_TRACE_NAME_FMT("PrepareDelegateCompositeCommand: [%d,%" PRIu64 "]", sendingPid, transactionData->GetIndex());
     }
 }
 
@@ -691,6 +692,50 @@ void RsDelegateCompositeCallbackManager::DumpTotleInfo(std::string &dumpString)
                 ", queueSize=" + std::to_string(iter->second.size()) + "\n");
         }
     }
+}
+
+bool RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommand(NodeId nodeId, pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(cmdMapMutex_);
+    auto it = allPidCmdMap_.find(pid);
+    if (it == allPidCmdMap_.end()) {
+        return true;
+    }
+    auto &sendingPid = it->first;
+    auto &sendingPidCmdMap = it->second;
+    for (auto it1 = sendingPidCmdMap.begin(); it1 != sendingPidCmdMap.end(); ++it1) {
+        auto &index = it1->first;
+        auto &cmdqueue = it1->second;
+        CleanDelegateCompositeCommandInner(nodeId, cmdqueue);
+    }
+    return true;
+}
+
+void RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommandInner(NodeId nodeId,
+    std::queue<std::unique_ptr<RSCommand>>& queue)
+{
+    if (queue.empty()) {
+        return;
+    }
+    std::queue<std::unique_ptr<RSCommand>> unmatchedQueue;
+    RS_TRACE_NAME_FMT("CleanDelegateCompositeCommand: queueSize=%u, nodeId=%" PRIu64,
+        static_cast<uint32_t>(queue.size()), nodeId);
+    while (!queue.empty()) {
+        std::unique_ptr<RSCommand> cmd = std::move(queue.front());
+        queue.pop();
+        if (!cmd) {
+            continue;
+        }
+        if (cmd->GetType() == RSCommandType::DELEGATE_COMPOSITE &&
+            cmd->GetSubType() == RSDelegateCompositeCommandType::TRANSACTION_BUFFER &&
+            cmd->GetNodeId() == nodeId) {
+            RS_TRACE_NAME_FMT("cmd: NodeId=%" PRIu64 ", type=%u, subtype=%u, can clean",
+                cmd->GetNodeId(), cmd->GetType(), cmd->GetSubType());
+            continue;
+        }
+        unmatchedQueue.push(std::move(cmd));
+    }
+    std::swap(queue, unmatchedQueue);
 }
 } // namespace Rosen
 } // namespace OHOS

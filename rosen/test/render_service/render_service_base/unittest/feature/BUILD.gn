@@ -625,6 +625,38 @@ ohos_unittest("RSPersistentPropertyManagerTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSDelegateCompositeCallbackManagerTest  ##################################
+ohos_unittest("RSDelegateCompositeCallbackManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [ "delegate_composite/rs_delegate_composite_callback_manager_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -649,5 +681,6 @@ group("unittest") {
     ":RSPowerOffRenderSkipTest",
     ":RSDynamicLayerSkipControllerTest",
     ":RSPersistentPropertyManagerTest",
+    ":RSDelegateCompositeCallbackManagerTest",
   ]
 }

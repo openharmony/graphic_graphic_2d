@@ -27,7 +27,10 @@
 namespace OHOS {
 namespace Rosen {
 
-TransactionBufferCommand::Register TransactionBufferCommand::instance_;
+TransactionBufferCommand::RegisterTransactionBuffer TransactionBufferCommand::transactionBufferInstance_;
+TransactionBufferCommand::RegisterTransactionBufferSrcRect TransactionBufferCommand::transactionBufferSrcRectInstance_;
+TransactionBufferCommand::RegisterTransactionBufferDstRect TransactionBufferCommand::transactionBufferDstRectInstance_;
+
 SurfaceTransactionCommand::Register SurfaceTransactionCommand::instance_;
 
 static void RsDelegateCompositeCommandPrintLog(const std::string& log)
@@ -142,7 +145,7 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetBuffer(MessageParcel* messag
 }
 
 void TransactionBufferCommand::ProcessCmdTypeSetBufferwithAttach(sptr<Transaction> transaction,
-    sptr<IConsumerSurface> consumer, const RSTransactionConfig& config)
+    sptr<IConsumerSurface> consumer, const RSTransactionConfig& config, bool isDelegateMode)
 {
     auto buffer = transaction->GetBuffer();
     if (!buffer) {
@@ -159,18 +162,24 @@ void TransactionBufferCommand::ProcessCmdTypeSetBufferwithAttach(sptr<Transactio
     configDamages.desiredPresentTimestamp = transaction->GetDesiredPresentTimestamp();
     if (!consumer->IsCached(buffer->GetSeqNum())) {
         GSError ret = producer->AttachBufferToQueue(buffer);
-        if (ret == SURFACE_ERROR_BUFFER_QUEUE_FULL) {
-            producer->CleanProducerBySeqNum(config.delList);
-            ret = producer->AttachBufferToQueue(buffer);
+        RS_TRACE_NAME_FMT("AttachBufferToQueue=%d", ret);
+        if (ret != GSERROR_OK) {
+            ROSEN_LOGE("ProcessCmdTypeSetBufferwithAttach fail(nodeId=%{public}" PRIu64
+                "), bufferSeq=%{public}u, UniqueId=%{public}" PRIu64 ", ret=%{public}u",
+                config.nodeId, buffer->GetSeqNum(), producer->GetUniqueId(), ret);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("AttachBufferToQueue=%d", ret);
     }
     sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
-    GSError ret = producer->FlushBuffer(buffer->GetSeqNum(), bedata, transaction->GetFence(), configDamages);
+    sptr<SyncFence> fence = transaction->GetFence() ? transaction->GetFence() : SyncFence::InvalidFence();
+    GSError ret = producer->FlushBuffer(buffer->GetSeqNum(), bedata, fence, configDamages);
     if (ret != GSERROR_OK) {
         RS_TRACE_NAME_FMT("FlushBuffer=%u fail, buffer sequence=%u", ret, buffer->GetSeqNum());
         ROSEN_LOGE("DelegateModeDebugTag: FlushBuffer=%{public}u fail, buffer sequence=%{public}u",
             ret, buffer->GetSeqNum());
+        if (isDelegateMode) {
+            RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer,
+                fence, consumer);
+        }
     }
 }
 
@@ -181,16 +190,21 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
     }
     RS_TRACE_NAME_FMT("ProcessCmdTypeSetBuffer, configList size=%u", configList_.size());
     for (const auto& config : configList_) {
+        bool isDelegateMode = false;
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
             context.GetNodeMap().GetRenderNode(config.nodeId));
         if (!node || !node->GetRSSurfaceHandler()) {
             continue;
         }
+        isDelegateMode = node->GetDelegateMode();
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (!consumer || !consumer->GetProducer()) {
             continue;
         }
         auto producer = consumer->GetProducer();
+        if (!config.delList.empty()) {
+            producer->CleanProducerBySeqNum(config.delList);
+        }
         if (!config.transaction) {
             RS_TRACE_NAME_FMT("only has info=sequence=%u", config.transactionInfo.bufferInfo.sequence);
             BufferFlushConfigWithDamages configDamages;
@@ -207,10 +221,18 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
                 ROSEN_LOGE("DelegateModeDebugTag: FlushBuffer=%{public}u fail, buffer sequence=%{public}u",
                     ret, config.transactionInfo.bufferInfo.sequence);
             }
+            if (isDelegateMode && ret != GSERROR_OK) {
+                sptr<SyncFence> fence =
+                    config.transactionInfo.fence ? config.transactionInfo.fence : SyncFence::InvalidFence();
+                RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(config.nodeId,
+                    consumer->GetUniqueId(), config.transactionInfo.bufferInfo.sequence, fence,
+                    ExtractPid(config.nodeId));
+            }
             continue;
         }
-        ProcessCmdTypeSetBufferwithAttach(config.transaction, consumer, config);
+        ProcessCmdTypeSetBufferwithAttach(config.transaction, consumer, config, isDelegateMode);
     }
+    RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 }
 
 RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetBuffer(MessageParcel* messageParcel)
@@ -249,6 +271,7 @@ TransactionBufferCommand::TransactionBufferCommand(std::vector<RSTransactionConf
     configList_.swap(configs);
     nodeId_ = nodeId;
     cmdType_ = CmdType::SET_BUFFER;
+    cmdSubType_ = TRANSACTION_BUFFER;
 }
 
 TransactionBufferCommand::TransactionBufferCommand() {}
@@ -261,6 +284,7 @@ TransactionBufferCommand::TransactionBufferCommand(RectF rect, bool isSrcRect, N
     cmdType_ = CmdType::SET_RECT;
     isSrcRect_ = isSrcRect;
     rect_ = rect;
+    cmdSubType_ = isSrcRect ? TRANSACTION_BUFFER_SRC_RECT : TRANSACTION_BUFFER_DST_RECT;
 }
 
 void TransactionBufferCommand::ProcessCmdTypeSetRect(RSContext& context)

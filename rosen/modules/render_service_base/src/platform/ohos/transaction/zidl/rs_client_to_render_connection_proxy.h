@@ -206,6 +206,7 @@ public:
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) override;
     bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) override;
     bool UnRegisterSurfaceNodeBufferReleaseListener() override;
+    bool CleanDelegateModeBufferCmd(NodeId id) override;
 };
 } // namespace Rosen
 } // namespace OHOS
