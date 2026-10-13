@@ -5809,6 +5809,5 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CleanDelegateModeBufferCmdTest003, 
     EXPECT_FALSE(connectionStub_->CleanDelegateModeBufferCmd(nodeId));
 #endif
 }
-
 } // namespace OHOS::Rosen
 #endif
