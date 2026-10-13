@@ -170,6 +170,19 @@ ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTra
     return ERR_OK;
 }
 
+uint32_t RSClientToRenderConnectionProxy::GetTransactionDataIndex() const
+{
+    return transactionDataIndex_.load(std::memory_order_relaxed);
+}
+
+bool RSClientToRenderConnectionProxy::SeedTransactionDataIndex(uint32_t value)
+{
+    // only succeeds while the counter still holds the default value, otherwise the connection
+    // has already issued indices of its own and must not be renumbered
+    uint32_t expected = 0;
+    return transactionDataIndex_.compare_exchange_strong(expected, value, std::memory_order_relaxed);
+}
+
 bool RSClientToRenderConnectionProxy::FillParcelWithTransactionData(
     std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data)
 {
@@ -2348,5 +2361,28 @@ bool RSClientToRenderConnectionProxy::UnRegisterSurfaceNodeBufferReleaseListener
     return true;
 }
 
+bool RSClientToRenderConnectionProxy::CleanDelegateModeBufferCmd(NodeId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: Write data err.");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: Send Request err.");
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

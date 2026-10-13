@@ -52,7 +52,6 @@
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
-#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
@@ -238,14 +237,6 @@ public:
     void ProcessWindowCapTasks();
     bool IsSnapshotPendingThisFrame() const;
     bool IsLastFrameGpuComposition() const { return directComposeHelper_.lastFrameDidGpuRender_; }
-    uint32_t GetConsecutiveDoCompSuccessCount() const
-    {
-        return directComposeHelper_.consecutiveDoCompSuccessCount_.load(std::memory_order_acquire);
-    }
-    void ResetConsecutiveDoCompSuccessCount()
-    {
-        directComposeHelper_.consecutiveDoCompSuccessCount_.store(0, std::memory_order_release);
-    }
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -942,7 +933,6 @@ private:
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
-    std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool isWebCommandOnly_ = false;

@@ -404,15 +404,181 @@ HWTEST_F(RSRenderServiceConnectHubTest, OnRemoteDiedTest004, TestSize.Level1)
 HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionTokenNullRenderPrecess, TestSize.Level1)
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
-    constexpr uint64_t TEST_MASK_ID = 99999;
+    constexpr uint64_t takeMaskId = 99999;
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<IRemoteObject> remote = nullptr;
     sptr<RSIConnectToRenderProcess> nullProcess = nullptr;
     sptr<RSIClientToRenderConnection> nullConn = nullptr;
-    connHub->AddRenderProcessConnectionToken(TEST_MASK_ID, token, remote, nullProcess, nullConn);
-    EXPECT_EQ(connHub->connRenderProcesses_.count(TEST_MASK_ID), 0u);
+    connHub->AddRenderProcessConnectionToken(takeMaskId, token, remote, nullProcess, nullConn);
+    EXPECT_EQ(connHub->connRenderProcesses_.count(takeMaskId), 0u);
 }
 
+/**
+ * @tc.name: SeedTransactionDataIndexTest001
+ * @tc.desc: branch 1 - tokenMaskId is INVALID_TOKEN_MASK_ID, return early without touching hub state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest001, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(INVALID_TOKEN_MASK_ID);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest002
+ * @tc.desc: branch 2 - connHub instance is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest002, TestSize.Level1)
+{
+    auto saved = RSRenderServiceConnectHub::instance_;
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    constexpr uint64_t takeMaskId = 66600;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    RSRenderServiceConnectHub::instance_ = saved;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest003
+ * @tc.desc: branch 3 - tokenMaskId not found in connRenderProcesses_, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest003, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66601;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest004
+ * @tc.desc: branch 4 - clientToRenderConnection is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest004, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66602;
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest005
+ * @tc.desc: branch 5 - renderConn_ is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest005, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66603;
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = new RSClientToRenderConnectionProxy(nullptr);
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = nullptr;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest006
+ * @tc.desc: branch 6 - source connection issued no index (sourceIndex == 0), target stays 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest006, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66604;
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), 0u);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest007
+ * @tc.desc: branch 7 - source issued indices and target still holds default, seed succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66605;
+    constexpr uint32_t sourceIndex = 7;
+    auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = source;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), sourceIndex);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest008
+ * @tc.desc: branch 8 - target already issued its own indices, seed fails and value is kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66606;
+    constexpr uint32_t sourceIndex = 9;
+    constexpr uint32_t targetIndex = 3;
+    auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(target->SeedTransactionDataIndex(targetIndex));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = source;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), targetIndex);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
 
 } // namespace Rosen
 } // namespace OHOS

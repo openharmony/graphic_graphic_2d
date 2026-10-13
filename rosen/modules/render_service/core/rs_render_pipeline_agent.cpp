@@ -111,17 +111,10 @@ void RSRenderPipelineAgent::ConfigureForceTunnelLayer(
     TunnelLayerInfo info;
     info.tunnelTypeMask = TUNNEL_TYPE_VIDEO;
     if (surface->SetTunnelLayerInfo(info) != GSERROR_OK) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s set tunnel layer failed, nodeId=%" PRIu64 ", name=%s",
-            __func__, config.id, config.name.c_str());
         RS_LOGW("RSRenderPipeline::CreateNodeAndSurface set tunnel layer info failed, name:%{public}s",
             config.name.c_str());
         return;
     }
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s force tunnel layer, nodeId=%" PRIu64 ", name=%s, bundle=%s",
-        __func__, config.id, config.name.c_str(), config.bundleName.c_str());
-    RS_LOGD("TUNNEL_DEBUG %s force tunnel layer, nodeId:%{public}" PRIu64
-        ", name:%{public}s, bundle:%{public}s", __func__, config.id, config.name.c_str(),
-        config.bundleName.c_str());
 }
 
 bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)
@@ -163,16 +156,15 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
-    RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transactionData);
-#endif
-
     bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
         callingPid, transactionData.get(), isNonSystemAppCalling);
     if (shouldDrop) {
         RS_LOGW("CommitTransaction data droped");
         return ERR_INVALID_VALUE;
     }
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+    RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transactionData);
+#endif
     if (transactionData && transactionData->GetDVSyncUpdate()) {
         pipeline->GetMainThread()->DVSyncUpdate(
             transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
@@ -233,15 +225,19 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     // After a synchronous task times out, it will no longer be executed.
     auto canExecute = std::make_shared<std::atomic<bool>>(true);
     std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
+    auto future = pipeline->ScheduleMainThreadTask([task, mainThread = pipeline->GetMainThread(), canExecute] {
         if (mainThread == nullptr) {
             return;
         }
         if (canExecute->exchange(false)) {
             task->Process(mainThread->GetContext());
         }
-    }).wait_for(span);
-    canExecute->exchange(false);
+    });
+    if (future.wait_for(span) != std::future_status::ready) {
+        canExecute->exchange(false);
+        RS_LOGW("ExecuteSynchronousTask timed out, skip Marshalling to avoid data race with Process");
+        return ERR_TIMED_OUT;
+    }
     return ERR_OK;
 }
 
@@ -2958,6 +2954,39 @@ bool RSRenderPipelineAgent::UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid
 #if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceNodeBufferReleaseListener(pid);
     return true;
+#else
+    return false;
+#endif
+}
+
+bool RSRenderPipelineAgent::CleanDelegateModeBufferCmd(NodeId nodeId, pid_t pid)
+{
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+    RS_TRACE_NAME_FMT("RSRenderPipelineAgent::CleanDelegateModeBufferCmd: NodeId=%" PRIu64 ", pid=%u",
+        nodeId, pid);
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
+        return false;
+    }
+    bool repCode = false;
+    auto task = [renderPipeline = pipeline, nodeId, pid, &repCode]() -> void {
+        if (!renderPipeline) {
+            return;
+        }
+        auto mainThd = renderPipeline->GetMainThread();
+        if (!mainThd) {
+            return;
+        }
+        auto node = mainThd->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (!node || !node->GetDelegateMode()) {
+            return;
+        }
+        RsDelegateCompositeCallbackManager::GetInstance().CleanDelegateCompositeCommand(nodeId, pid);
+        repCode = true;
+    };
+    pipeline->PostMainThreadSyncTask(task);
+    return repCode;
 #else
     return false;
 #endif

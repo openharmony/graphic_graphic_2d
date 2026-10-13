@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "accesstoken_kit.h"
 #ifdef SUPPORT_ACCESS_TOKEN
@@ -1442,9 +1443,10 @@ bool DoSendVideoRateInfo()
     if (rsToServiceConn_ == nullptr) {
         return false;
     }
+    FuzzedDataProvider fdp(g_data, g_size);
+    std::string key = fdp.ConsumeRandomLengthString(64);
+    std::string value = fdp.ConsumeRandomLengthString(128);
     std::unordered_map<std::string, std::string> videoRateInfo;
-    std::string key = GetData<std::string>();
-    std::string value = GetData<std::string>();
     videoRateInfo[key] = value;
     rsToServiceConn_->SendVideoRateInfo(videoRateInfo);
     return true;

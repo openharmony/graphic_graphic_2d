@@ -725,49 +725,6 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         imageSnapshot->GetHeight()), dst);
 }
 
-void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
-    const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect)
-{
-    RS_OPTIONAL_TRACE_NAME("DrawSdfClip restore");
-    if (canvas.GetOffscreenDataList().empty()) { // offscreen not started
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip offscreen not started, skip");
-        return;
-    }
-
-    if (geContainer != nullptr && frameRect != nullptr) {
-        // Bake the SDF clip into the snapshot before swap-back; SaveAlpha/SetAlpha(1.0)
-        // isolates the effect from node alpha, restored right after.
-        canvas.SaveAlpha();
-        canvas.SetAlpha(1.0f);
-        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
-            frameRect->GetWidth(), frameRect->GetHeight());
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
-        canvas.RestoreAlpha();
-    } else {
-        ROSEN_LOGD("Clip SDF failed, geContainer or frameRect is nullptr");
-    }
-
-    auto imageSnapshot = EndOffscreen(canvas);
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
-        return;
-    }
-    // Snapshot already carries node opacity and SDF clip; composite at full alpha to avoid
-    // re-applying opacity. RestoreAlpha restores node alpha for later draws.
-    canvas.SaveAlpha();
-    canvas.SetAlpha(1.0f);
-    // Composite the SDF-clipped snapshot back to the original canvas.
-    Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
-        sdfDrawRect.GetRight(), sdfDrawRect.GetBottom());
-    Drawing::Brush brush;
-    canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
-    canvas.DetachBrush();
-    canvas.RestoreAlpha();
-}
-
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 {
     return g_blurCnt.exchange(0);

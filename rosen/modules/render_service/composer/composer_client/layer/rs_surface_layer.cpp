@@ -16,7 +16,6 @@
 #include "rs_surface_layer.h"
 #include <memory>
 #include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
-#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_composer_context.h"
 #include "rs_layer_parcel.h"
 #include "rs_surface_layer_parcel.h"
@@ -30,14 +29,12 @@ namespace {
 bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uint64_t tunnelLayerId,
     uint32_t property, NodeId nodeId)
 {
+    (void)nodeId;
     if (!IsNewTunnelEnabled()) {
         return false;
     }
     if (surface == nullptr) {
         return false;
-    }
-    if (tunnelLayerId == 0 && nodeId != 0) {
-        RSTunnelRuntimeStore::GetLayerInfoIfPresent(nodeId, tunnelLayerId, property);
     }
     return tunnelLayerId != 0;
 }

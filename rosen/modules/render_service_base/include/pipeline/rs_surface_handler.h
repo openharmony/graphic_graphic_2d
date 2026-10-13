@@ -25,6 +25,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_optional_trace.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -544,6 +545,10 @@ public:
         holdReturnValue_ = nullptr;
     }
 #endif
+    std::mutex& GetTunnelMutex()
+    {
+        return tunnelMutex_;
+    }
 
 protected:
 #ifndef ROSEN_CROSS_PLATFORM
@@ -590,6 +595,12 @@ private:
     uint64_t registeredConsumerDeleteListenerSurfaceId_ = 0;
     uint64_t lastBufferId_ = 0;
     uint32_t lastBufferReclaimNum_ = 0;
+    /**
+     * The buffer rotation of the tunnel send-to-display thread and that of
+     * the main thread are prevented from being concurrent,
+     * to avoid the problem that the buffer is not released.
+     */
+    mutable std::mutex tunnelMutex_;
 };
 }
 }

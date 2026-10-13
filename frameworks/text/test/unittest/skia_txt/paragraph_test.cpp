@@ -40,6 +40,8 @@ public:
     static skia::textlayout::ParagraphImpl* GetParagraphSkiaImpl(const std::shared_ptr<Paragraph>& paragraph);
     static ParagraphImpl* GetParagraphImpl(const std::shared_ptr<Paragraph>& paragraph);
     void PrepareMiddleEllipsis(size_t& maxLines, const std::u16string& str, const std::u16string& text);
+    static std::shared_ptr<Paragraph> BuildParagraphWithTab(const std::shared_ptr<FontCollection>& fontCollection,
+        const OHOS::Rosen::SPText::TextTab& tab, const std::u16string& text);
 
 protected:
     std::shared_ptr<Paragraph> paragraph_;
@@ -81,6 +83,19 @@ ParagraphImpl* ParagraphTest::GetParagraphImpl(const std::shared_ptr<Paragraph>&
 skia::textlayout::ParagraphImpl* ParagraphTest::GetParagraphSkiaImpl(const std::shared_ptr<Paragraph>& paragraph)
 {
     return static_cast<skia::textlayout::ParagraphImpl*>(GetParagraphImpl(paragraph)->paragraph_.get());
+}
+
+std::shared_ptr<Paragraph> ParagraphTest::BuildParagraphWithTab(const std::shared_ptr<FontCollection>& fontCollection,
+    const OHOS::Rosen::SPText::TextTab& tab, const std::u16string& text)
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.tab = tab;
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    if (paragraphBuilder == nullptr) {
+        return nullptr;
+    }
+    paragraphBuilder->AddText(text);
+    return paragraphBuilder->Build();
 }
 
 bool ParagraphTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
@@ -980,5 +995,96 @@ HWTEST_F(ParagraphTest, ParagraphTestGlyphRangeForCharNullParaWithNullActualRang
     EXPECT_EQ(result.end, 0);
 
     paragraphImpl->paragraph_.swap(originalPara);
+}
+
+/*
+ * @tc.name: ParagraphTestCacheTab001
+ * @tc.desc: text with tab characters must not create any paragraph cache entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCacheTab001, TestSize.Level0)
+{
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    // tab location >= 1.0 substitutes '\t' with ' ' during layout
+    std::shared_ptr<Paragraph> replaced = BuildParagraphWithTab(fontCollection,
+        OHOS::Rosen::SPText::TextTab(OHOS::Rosen::SPText::TextAlign::LEFT, 4.0f), u"Left\tRight");
+    ASSERT_NE(replaced, nullptr);
+    replaced->Layout(200.0);
+    skia::textlayout::ParagraphImpl* replacedImpl = GetParagraphSkiaImpl(replaced);
+    EXPECT_EQ(replacedImpl->fState, skia::textlayout::kFormatted);
+    skia::textlayout::ParagraphCache* cache = replacedImpl->fontCollection()->getParagraphCache();
+    ASSERT_NE(cache, nullptr);
+    EXPECT_EQ(cache->count(), 0);
+
+    // tab location < 1.0 keeps '\t' in the text; both variants must stay out of the cache,
+    // otherwise keys with tab and without tab coexist for the same input text
+    std::shared_ptr<Paragraph> kept = BuildParagraphWithTab(fontCollection,
+        OHOS::Rosen::SPText::TextTab(OHOS::Rosen::SPText::TextAlign::LEFT, -1.0f), u"Left\tRight");
+    ASSERT_NE(kept, nullptr);
+    kept->Layout(200.0);
+    skia::textlayout::ParagraphImpl* keptImpl = GetParagraphSkiaImpl(kept);
+    EXPECT_EQ(keptImpl->fState, skia::textlayout::kFormatted);
+    EXPECT_EQ(cache->count(), 0);
+}
+
+/*
+ * @tc.name: ParagraphTestCacheTab002
+ * @tc.desc: text without tab characters is still stored in and served from the paragraph cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCacheTab002, TestSize.Level0)
+{
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    const OHOS::Rosen::SPText::TextTab tab(OHOS::Rosen::SPText::TextAlign::LEFT, 1.5f);
+
+    std::shared_ptr<Paragraph> first = BuildParagraphWithTab(fontCollection, tab, u"LeftRight");
+    ASSERT_NE(first, nullptr);
+    first->Layout(200.0);
+    skia::textlayout::ParagraphImpl* firstImpl = GetParagraphSkiaImpl(first);
+    EXPECT_EQ(firstImpl->fState, skia::textlayout::kFormatted);
+    skia::textlayout::ParagraphCache* cache = firstImpl->fontCollection()->getParagraphCache();
+    ASSERT_NE(cache, nullptr);
+    EXPECT_EQ(cache->count(), 1);
+
+    // identical paragraph reuses the cached entry instead of adding another one
+    std::shared_ptr<Paragraph> second = BuildParagraphWithTab(fontCollection, tab, u"LeftRight");
+    ASSERT_NE(second, nullptr);
+    second->Layout(200.0);
+    EXPECT_EQ(GetParagraphSkiaImpl(second)->fState, skia::textlayout::kFormatted);
+    EXPECT_EQ(cache->count(), 1);
+}
+
+/*
+ * @tc.name: ParagraphTestCacheTab003
+ * @tc.desc: different tab stop locations must not share one paragraph cache entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestCacheTab003, TestSize.Level0)
+{
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    std::shared_ptr<Paragraph> first = BuildParagraphWithTab(fontCollection,
+        OHOS::Rosen::SPText::TextTab(OHOS::Rosen::SPText::TextAlign::LEFT, 1.5f), u"LeftRight");
+    ASSERT_NE(first, nullptr);
+    first->Layout(200.0);
+    skia::textlayout::ParagraphImpl* firstImpl = GetParagraphSkiaImpl(first);
+    skia::textlayout::ParagraphCache* cache = firstImpl->fontCollection()->getParagraphCache();
+    ASSERT_NE(cache, nullptr);
+    EXPECT_EQ(cache->count(), 1);
+
+    // same text but a different tab location needs a separate cache entry,
+    // otherwise the cached layout is reused with wrong tab stop positions
+    std::shared_ptr<Paragraph> second = BuildParagraphWithTab(fontCollection,
+        OHOS::Rosen::SPText::TextTab(OHOS::Rosen::SPText::TextAlign::LEFT, 2.5f), u"LeftRight");
+    ASSERT_NE(second, nullptr);
+    second->Layout(200.0);
+    EXPECT_EQ(cache->count(), 2);
 }
 } // namespace txt

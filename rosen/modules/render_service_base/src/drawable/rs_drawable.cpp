@@ -18,7 +18,6 @@
 #include <limits>
 
 #include "common/rs_common_tools.h"
-#include "drawable/rs_clip_to_bounds_restore_drawable.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_misc_drawable.h"
@@ -241,21 +240,6 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
     }
 }
 
-// Generate the clip drawable at clipSlot and a save/restore pair at saveSlot/restoreSlot.
-// RSClipToBoundsRestoreDrawable branches on sdfShape: CLIP_SDF (offscreen + DrawSdfClip)
-// or standard clip (RestoreToCount only).
-static void GenerateClipAndSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec,
-    RSDrawableSlot clipSlot, RSDrawableSlot saveSlot, RSDrawableSlot restoreSlot)
-{
-    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(clipSlot),
-        RSClipToBoundsDrawable::OnGenerate(node));
-    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
-    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(saveSlot),
-        std::make_shared<RSSaveDrawable>(count));
-    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(restoreSlot),
-        RSClipToBoundsRestoreDrawable::OnGenerate(node, count));
-}
-
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)
 {
     // Erase existing save/clip/restore before re-generating
@@ -276,8 +260,10 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
     if (flags & DrawableVecStatus::CLIP_TO_BOUNDS) {
         // case 1: ClipToBounds set.
         // add one clip, SAVE_CLIP_TO_BOUNDS and RESTORE_CLIP_TO_BOUNDS.
-        GenerateClipAndSaveRestore(node, drawableVec, RSDrawableSlot::CLIP_TO_BOUNDS,
-            RSDrawableSlot::SAVE_CLIP_TO_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_CLIP_TO_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
+            RSPaintFilterCanvas::kCanvas);
         return;
     }
 
@@ -285,11 +271,13 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         // case 2: ClipToBounds not set and we have bounds properties both BG and FG.
         // add two sets of save/clip/restore before & after content.
 
-        // part 1: before children (generates clip + SDF-aware save/restore)
-        GenerateClipAndSaveRestore(node, drawableVec, RSDrawableSlot::CLIP_TO_BOUNDS,
-            RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS);
+        // part 1: before children
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS,
+            RSPaintFilterCanvas::kCanvas);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
 
-        // part 2: after children, add aliases (reuse the same save/clip/restore instances)
+        // part 2: after children, add aliases
         assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_SAVE_BOUNDS),
             findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BG_SAVE_BOUNDS)));
         assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS),
@@ -301,15 +289,21 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
     if (flags & DrawableVecStatus::BG_BOUNDS_PROPERTY) {
         // case 3: ClipToBounds not set and we have background bounds properties.
-        GenerateClipAndSaveRestore(node, drawableVec, RSDrawableSlot::CLIP_TO_BOUNDS,
-            RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS);
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS,
+            RSPaintFilterCanvas::kCanvas);
+
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
         return;
     }
 
     if (flags & DrawableVecStatus::FG_BOUNDS_PROPERTY) {
         // case 4: ClipToBounds not set and we have foreground bounds properties.
-        GenerateClipAndSaveRestore(node, drawableVec, RSDrawableSlot::FG_CLIP_TO_BOUNDS,
-            RSDrawableSlot::FG_SAVE_BOUNDS, RSDrawableSlot::FG_RESTORE_BOUNDS);
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::FG_SAVE_BOUNDS, RSDrawableSlot::FG_RESTORE_BOUNDS,
+            RSPaintFilterCanvas::kCanvas);
+
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
         return;
     }
     // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
@@ -371,15 +365,12 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
-    RSDrawableSlot::BG_RESTORE_BOUNDS,
     RSDrawableSlot::FRAME_OFFSET,
     RSDrawableSlot::FG_CLIP_TO_BOUNDS,
     RSDrawableSlot::FOREGROUND_COLOR,
-    RSDrawableSlot::FG_RESTORE_BOUNDS,
     RSDrawableSlot::COVERAGE_NG_SHADER,
     RSDrawableSlot::BORDER,
     RSDrawableSlot::PIXEL_STRETCH,
-    RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
     RSDrawableSlot::OVERLAY_NG_SHADER,
     RSDrawableSlot::RESTORE_FOREGROUND_FILTER,
 };

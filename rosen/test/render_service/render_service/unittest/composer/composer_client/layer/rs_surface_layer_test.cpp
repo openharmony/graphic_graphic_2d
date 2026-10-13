@@ -297,67 +297,6 @@ HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback003, Function | SmallTe
 }
 
 /**
- * @tc.name: TunnelLayerDestroyedCallback_NodeIdFallback004
- * @tc.desc: Test tunnel layer destruction uses nodeId fallback
- *           when layer tunnelLayerId is zero but nodeId has stored info.
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback_NodeIdFallback004, Function | SmallTest | Level2)
-{
-    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
-    auto consumer = IConsumerSurface::Create();
-    ASSERT_NE(consumer, nullptr);
-    sptr<IBufferProducer> producerObj = consumer->GetProducer();
-    auto producer = Surface::CreateSurfaceAsProducer(producerObj);
-    ASSERT_NE(producer, nullptr);
- 
-    constexpr uint64_t testNodeId = 5001u;
-    constexpr uint64_t fallbackTunnelLayerId = 8001u;
-    constexpr uint32_t fallbackProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
-    constexpr uint64_t expectedGeneration = 555u;
- 
-    std::vector<LayerStateChange> reportedStates;
-    uint64_t reportedNodeId = 0;
-    uint64_t reportedGeneration = 0;
-    auto conn = sMgr->GetRSComposerConnection(screenId);
-    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
-    auto localClient = RSComposerClient::Create(ifaceConn, nullptr);
-    ASSERT_NE(localClient, nullptr);
-    localClient->RegisterLayerStateChangedCB(
-        [&reportedNodeId, &reportedGeneration, &reportedStates](
-            uint64_t nodeId, LayerStateChange state, uint64_t generation) {
-            reportedNodeId = nodeId;
-            reportedGeneration = generation;
-            reportedStates.emplace_back(state);
-        });
- 
-    auto context = localClient->GetComposerContext();
-    ASSERT_NE(context, nullptr);
- 
-    RSTunnelRuntimeStore::SetLayerInfo(testNodeId, fallbackTunnelLayerId, fallbackProperty);
-    RSTunnelRuntimeStore::GetOrCreate(testNodeId).SetBuilding();
-    RSTunnelRuntimeStore::GetOrCreate(testNodeId).SetActiveFromTunnelLayerAvailable(
-        RSTunnelRuntimeStore::GetOrCreate(testNodeId).GetTunnelLayerGeneration());
- 
-    {
-        auto rsLayer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(125u, context));
-        ASSERT_NE(rsLayer, nullptr);
-        rsLayer->SetNodeId(testNodeId);
-        rsLayer->SetSurface(consumer);
-        rsLayer->SetTunnelLayerId(0);
-        rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
-        rsLayer->SetTunnelLayerGeneration(expectedGeneration);
-    }
- 
-    ASSERT_EQ(reportedStates.size(), 1u);
-    EXPECT_EQ(reportedNodeId, testNodeId);
-    EXPECT_EQ(reportedGeneration, expectedGeneration);
-    EXPECT_EQ(reportedStates[0], LayerStateChange::UNAVAILABLE);
- 
-    RSTunnelRuntimeStore::Erase(testNodeId);
-}
- 
-/**
  * @tc.name: TunnelLayerDestroyedCallback_NodeIdFallbackSkipped005
  * @tc.desc: Test tunnel layer destruction skips callback when both layer and nodeId store have zero tunnelLayerId.
  * @tc.type: FUNC
@@ -372,9 +311,7 @@ HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback_NodeIdFallbackSkipped0
     std::vector<LayerStateChange> reportedStates;
     auto context = CreateContextWithLayerStateRecorder(sMgr, screenId, reportedStates);
     ASSERT_NE(context, nullptr);
- 
-    RSTunnelRuntimeStore::SetLayerInfo(testNodeId, 0, TUNNEL_PROP_INVALID);
- 
+
     {
         auto rsLayer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(126u, context));
         ASSERT_NE(rsLayer, nullptr);
@@ -385,8 +322,6 @@ HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback_NodeIdFallbackSkipped0
     }
  
     EXPECT_TRUE(reportedStates.empty());
- 
-    RSTunnelRuntimeStore::Erase(testNodeId);
 }
 
 /**

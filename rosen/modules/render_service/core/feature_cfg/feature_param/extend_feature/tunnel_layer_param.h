@@ -30,7 +30,7 @@ protected:
     static void SetNewTunnelEnabled(bool isEnable);
 
 private:
-    inline static bool isNewTunnelEnabled_ = true;
+    inline static bool isNewTunnelEnabled_ = false;
 
     friend class TunnelLayerParamParse;
 };

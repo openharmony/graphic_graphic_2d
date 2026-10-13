@@ -2474,7 +2474,7 @@ HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NormalPath_TaskExecut
 /**
  * @tc.name: ExecuteSynchronousTask_Timeout_TaskNotExecuted
  * @tc.desc: Verify ExecuteSynchronousTask skips Process() when timeout occurs
- *           before the task is picked up by the main thread
+ *           before the task is picked up by the main thread, and returns ERR_TIMED_OUT
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_Timeout_TaskNotExecuted, TestSize.Level1)
@@ -2493,7 +2493,8 @@ HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_Timeout_TaskNotExecut
     blockFuture.wait();
 
     auto task = std::make_shared<MockSyncTask>(1000000);
-    agent->ExecuteSynchronousTask(task);
+    auto ret = agent->ExecuteSynchronousTask(task);
+    EXPECT_EQ(ret, ERR_TIMED_OUT);
     EXPECT_FALSE(task->IsSuccess());
 }
 

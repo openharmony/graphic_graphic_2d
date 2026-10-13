@@ -64,6 +64,7 @@ class RSCommand;
 class RSDirtyRegionManager;
 class RSOcclusionHandler;
 class RSSurfaceHandler;
+class RSTunnelRuntimeState;
 
 // Used for control-level occlusion culling scene info and culled nodes transmission.
 // Maintained by the Dirty Regions feature team.
@@ -352,8 +353,11 @@ public:
     {
         return hasSubNodeShouldPaint_;
     }
-
 #ifndef ROSEN_CROSS_PLATFORM
+    void UpdateTunnelBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
@@ -890,6 +894,18 @@ public:
     RSSurfaceRenderNode* AsRSSurfaceRenderNode() override { return this; }
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
+
+    // Tunnel runtime state lives on the node (lazy-created). Callers obtain a shared_ptr via
+    // GetTunnelRuntimeState() and invoke RSTunnelRuntimeState methods directly; node does not
+    // re-wrap the state API. TryGetTunnelRuntimeState() returns null for non-tunnel surfaces.
+    //
+    // Usage constraint: GetTunnelRuntimeState() lazy-creates the state and is the sole write
+    // entrypoint — only RSRenderServiceListener::OnTunnelLayerInfoChanged may call it to attach
+    // tunnel state to a node that did not have one. All other call sites (read or write-after-
+    // creation) MUST use TryGetTunnelRuntimeState() and early-return on nullptr, so non-tunnel
+    // nodes never get a state object allocated spuriously.
+    std::shared_ptr<RSTunnelRuntimeState> GetTunnelRuntimeState();
+    std::shared_ptr<RSTunnelRuntimeState> TryGetTunnelRuntimeState() const;
 
     bool OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
@@ -2321,6 +2337,10 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
+    // Lazily-created tunnel runtime state owned by the node. Non-tunnel surfaces keep this null.
+    // Guarded by tunnelStateMutex_ for check-then-create atomicity in GetTunnelRuntimeState().
+    std::shared_ptr<RSTunnelRuntimeState> tunnelRuntimeState_;
+    mutable std::mutex tunnelStateMutex_;
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
     std::function<std::shared_ptr<Media::PixelMap>()> surfaceCaptureCallback_ = nullptr;
