@@ -2591,7 +2591,7 @@ bool RSRenderNode::IsAIBarFilter() const
         ROSEN_LOGD("blur is disabled or filter cache is disabled.");
         return false;
     }
-    auto filterDrawable = GetRenderProperties().GetFilter() != nullptr ?
+    auto filterDrawable = GetRenderProperties().GetCompositingFilter() != nullptr ?
         GetFilterDrawable(true) : GetFilterDrawable(false);
     if (filterDrawable == nullptr) {
         return false;
@@ -2606,7 +2606,7 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
-    auto filterDrawable = GetRenderProperties().GetFilter() != nullptr ?
+    auto filterDrawable = GetRenderProperties().GetCompositingFilter() != nullptr ?
         GetFilterDrawable(true) : GetFilterDrawable(false);
     if (filterDrawable == nullptr) {
         return false;
@@ -2641,7 +2641,7 @@ const RectI RSRenderNode::GetFilterCachedRegion() const
 
 bool RSRenderNode::HasBlurFilter() const
 {
-    return GetRenderProperties().GetBackgroundFilter() || GetRenderProperties().GetFilter() ||
+    return GetRenderProperties().GetBackgroundFilter() || GetRenderProperties().GetCompositingFilter() ||
         GetRenderProperties().GetMaterialFilter();
 }
 
@@ -2748,7 +2748,7 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
             RSDrawableSlot::MATERIAL_FILTER},
         RSCacheFilterPara{properties.GetBackgroundFilter() != nullptr && (rotationClear || bgDirty),
             RSDrawableSlot::BACKGROUND_FILTER},
-        RSCacheFilterPara{properties.GetFilter() != nullptr &&
+        RSCacheFilterPara{properties.GetCompositingFilter() != nullptr &&
             (rotationStatusChanged || !dirtySlots_.empty()), RSDrawableSlot::COMPOSITING_FILTER}
     };
 
@@ -2779,7 +2779,7 @@ void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeI
     if (properties.GetBackgroundFilter()) {
         RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
     }
-    if (properties.GetFilter()) {
+    if (properties.GetCompositingFilter()) {
         auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
@@ -3060,7 +3060,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
             RSDrawableSlot::MATERIAL_FILTER},
         RSCacheFilterPara{properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow(),
             RSDrawableSlot::BACKGROUND_FILTER},
-        RSCacheFilterPara{properties.GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+        RSCacheFilterPara{properties.GetCompositingFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
     };
     for (auto& p : filterDrawableVec) {
         auto filterDrawable = GetFilterDrawable(p.second);
@@ -3128,7 +3128,7 @@ void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
     RSCacheFilterParaArray filterDrawableVec {
         RSCacheFilterPara{GetRenderProperties().GetMaterialFilter() != nullptr,  RSDrawableSlot::MATERIAL_FILTER},
         RSCacheFilterPara{GetRenderProperties().GetBackgroundFilter() != nullptr, RSDrawableSlot::BACKGROUND_FILTER},
-        RSCacheFilterPara{GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+        RSCacheFilterPara{GetRenderProperties().GetCompositingFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
     };
     for (auto& p : filterDrawableVec) {
         auto filterDrawable = GetFilterDrawable(p.second);
@@ -5823,7 +5823,7 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
             return GetRenderProperties().GetBackgroundFilter();
         }
         case RSDrawableSlot::COMPOSITING_FILTER: {
-            return GetRenderProperties().GetFilter();
+            return GetRenderProperties().GetCompositingFilter();
         }
         default: {
             return nullptr;

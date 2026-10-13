@@ -771,7 +771,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, DealWithDrawBehindWindowTransparentRe
 
     auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
     testNode->opaqueRegion_ = regionBeforeProcess;
-    testNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    testNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     testNode->drawBehindWindowRegion_ = defaultSmallRect;
     testNode->childrenBlurBehindWindow_ = { INVALID_NODEID };
 

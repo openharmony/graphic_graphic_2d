@@ -515,7 +515,7 @@ struct RSBackgroundBlurPara {
     }
 };
 
-struct RSForegroundBlurPara {
+struct RSCompositingBlurPara {
     float radius = 0.f;
     float saturation = 1.f;
     float brightness = 1.f;
@@ -523,7 +523,7 @@ struct RSForegroundBlurPara {
     float radiusX = 0.f;
     float radiusY = 0.f;
     Color maskColor {};
-    bool operator==(const RSForegroundBlurPara& other) const
+    bool operator==(const RSCompositingBlurPara& other) const
     {
         return ROSEN_EQ(radius, other.radius) && ROSEN_EQ(saturation, other.saturation) &&
                ROSEN_EQ(brightness, other.brightness) && colorMode == other.colorMode &&

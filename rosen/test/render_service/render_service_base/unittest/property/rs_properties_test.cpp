@@ -495,14 +495,14 @@ HWTEST_F(RSPropertiesTest, OnApplyModifiers001, TestSize.Level1)
     properties.GetEffectProperties().GetFilterEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffectProperties().GetFilterEffect().shadow_->colorStrategy_ =
         SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().GetFilterEffect().foregroundEffectRadius_ = 1.f;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffectProperties().GetFilterEffect().motionBlurPara_ =
         std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.OnApplyModifiers();
-    EXPECT_TRUE(properties.filter_ != nullptr);
+    EXPECT_TRUE(properties.GetCompositingFilter() != nullptr);
 }
 
 /**
@@ -1493,8 +1493,8 @@ HWTEST_F(RSPropertiesTest, SetBackgroundFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSFilter>();
-    properties.backgroundFilter_ = backgroundFilter;
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    properties.GetEffectProperties().SetBackgroundFilter(backgroundFilter);
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
     EXPECT_EQ(properties.GetBackgroundFilter(), backgroundFilter);
 }
 
@@ -1883,9 +1883,9 @@ HWTEST_F(RSPropertiesTest, SetFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.filter_ = filter;
-    EXPECT_NE(properties.filter_, nullptr);
-    EXPECT_EQ(properties.GetFilter(), filter);
+    properties.GetEffectProperties().SetCompositingFilter(filter);
+    EXPECT_NE(properties.GetCompositingFilter(), nullptr);
+    EXPECT_EQ(properties.GetCompositingFilter(), filter);
 }
 
 /**
@@ -2065,10 +2065,12 @@ HWTEST_F(RSPropertiesTest, ComposeNGRenderFilter001, TestSize.Level1)
     std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
     properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
     std::shared_ptr<RSFilter> originFilter = nullptr;
-    properties.ComposeNGRenderFilter(originFilter, filter);
+    Vector3f rotationAngle = Vector3f(properties.boundsGeo_->GetRotationX(), properties.boundsGeo_->GetRotationY(),
+        properties.boundsGeo_->GetRotation());
+    properties.GetEffectProperties().ComposeNGRenderFilter(originFilter, filter, rotationAngle);
     filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
     properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
-    properties.ComposeNGRenderFilter(originFilter, filter);
+    properties.GetEffectProperties().ComposeNGRenderFilter(originFilter, filter, rotationAngle);
     EXPECT_NE(filter, nullptr);
 }
 
@@ -2260,11 +2262,11 @@ HWTEST_F(RSPropertiesTest, DisableHWCForFilter001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, NeedBlurFuzed001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.NeedBlurFuzed(), false);
+    EXPECT_EQ(properties.GetEffectProperties().NeedBlurFuzed(), false);
     // 1.0f: valid mesa blur params
     Vector2f vectorValue = { 1.0f, 1.0f };
     properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
-    EXPECT_EQ(properties.NeedBlurFuzed(), true);
+    EXPECT_EQ(properties.GetEffectProperties().NeedBlurFuzed(), true);
 }
 
 /**
@@ -2527,110 +2529,110 @@ HWTEST_F(RSPropertiesTest, SetBackgroundBlurRadiusY001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetForegroundBlurRadius001
- * @tc.desc: test results of SetForegroundBlurRadius
+ * @tc.name: SetCompositingBlurRadius001
+ * @tc.desc: test results of SetCompositingBlurRadius
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurRadius001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurRadius001, TestSize.Level1)
 {
     RSProperties properties;
     float foregroundBlurRadius = 0.f;
-    properties.SetForegroundBlurRadius(foregroundBlurRadius);
+    properties.SetCompositingBlurRadius(foregroundBlurRadius);
 
     foregroundBlurRadius = 2.f;
-    properties.SetForegroundBlurRadius(foregroundBlurRadius);
+    properties.SetCompositingBlurRadius(foregroundBlurRadius);
     EXPECT_NE(foregroundBlurRadius, 0.f);
 }
 
 /**
- * @tc.name: SetForegroundBlurSaturation001
- * @tc.desc: test results of SetForegroundBlurSaturation
+ * @tc.name: SetCompositingBlurSaturation001
+ * @tc.desc: test results of SetCompositingBlurSaturation
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurSaturation001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurSaturation001, TestSize.Level1)
 {
     RSProperties properties;
     float foregroundBlurSaturation = -1.f;
-    properties.SetForegroundBlurSaturation(foregroundBlurSaturation);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), -1.f);
+    properties.SetCompositingBlurSaturation(foregroundBlurSaturation);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), -1.f);
 
     foregroundBlurSaturation = 2.f;
-    properties.SetForegroundBlurSaturation(foregroundBlurSaturation);
-    EXPECT_NE(properties.GetForegroundBlurSaturation(), 0.f);
+    properties.SetCompositingBlurSaturation(foregroundBlurSaturation);
+    EXPECT_NE(properties.GetCompositingBlurSaturation(), 0.f);
 }
 
 /**
- * @tc.name: SetForegroundBlurBrightness001
- * @tc.desc: test results of SetForegroundBlurBrightness
+ * @tc.name: SetCompositingBlurBrightness001
+ * @tc.desc: test results of SetCompositingBlurBrightness
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurBrightness001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurBrightness001, TestSize.Level1)
 {
     RSProperties properties;
     float foregroundBlurBrightness = -1.f;
-    properties.SetForegroundBlurBrightness(foregroundBlurBrightness);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), -1.f);
+    properties.SetCompositingBlurBrightness(foregroundBlurBrightness);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), -1.f);
 
     foregroundBlurBrightness = 2.f;
-    properties.SetForegroundBlurBrightness(foregroundBlurBrightness);
-    EXPECT_NE(properties.GetForegroundBlurBrightness(), 0.f);
+    properties.SetCompositingBlurBrightness(foregroundBlurBrightness);
+    EXPECT_NE(properties.GetCompositingBlurBrightness(), 0.f);
 }
 
 /**
- * @tc.name: SetForegroundBlurMaskColor001
- * @tc.desc: test results of SetForegroundBlurMaskColor
+ * @tc.name: SetCompositingBlurMaskColor001
+ * @tc.desc: test results of SetCompositingBlurMaskColor
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurMaskColor001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurMaskColor001, TestSize.Level1)
 {
     RSProperties properties;
     Color foregroundMaskColor;
-    properties.SetForegroundBlurMaskColor(foregroundMaskColor);
+    properties.SetCompositingBlurMaskColor(foregroundMaskColor);
     EXPECT_EQ(foregroundMaskColor.GetAlpha(), 0);
 
     foregroundMaskColor.SetAlpha(255);
-    properties.SetForegroundBlurMaskColor(foregroundMaskColor);
+    properties.SetCompositingBlurMaskColor(foregroundMaskColor);
     EXPECT_NE(foregroundMaskColor.GetAlpha(), 0);
 }
 
 /**
- * @tc.name: SetForegroundBlurRadiusX001
- * @tc.desc: test results of SetForegroundBlurRadiusX
+ * @tc.name: SetCompositingBlurRadiusX001
+ * @tc.desc: test results of SetCompositingBlurRadiusX
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurRadiusX001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurRadiusX001, TestSize.Level1)
 {
     RSProperties properties;
     float foregroundBlurRadiusX = -1.f;
-    properties.SetForegroundBlurRadiusX(foregroundBlurRadiusX);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), -1.f);
+    properties.SetCompositingBlurRadiusX(foregroundBlurRadiusX);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), -1.f);
 
     foregroundBlurRadiusX = 2.f;
-    properties.SetForegroundBlurRadiusX(foregroundBlurRadiusX);
-    EXPECT_NE(properties.GetForegroundBlurRadiusX(), 0.f);
+    properties.SetCompositingBlurRadiusX(foregroundBlurRadiusX);
+    EXPECT_NE(properties.GetCompositingBlurRadiusX(), 0.f);
 }
 
 /**
- * @tc.name: SetForegroundBlurRadiusY001
- * @tc.desc: test results of SetForegroundBlurRadiusY
+ * @tc.name: SetCompositingBlurRadiusY001
+ * @tc.desc: test results of SetCompositingBlurRadiusY
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, SetForegroundBlurRadiusY001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCompositingBlurRadiusY001, TestSize.Level1)
 {
     RSProperties properties;
     float foregroundBlurRadiusY = -1.f;
-    properties.SetForegroundBlurRadiusY(foregroundBlurRadiusY);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), -1.f);
+    properties.SetCompositingBlurRadiusY(foregroundBlurRadiusY);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), -1.f);
 
     foregroundBlurRadiusY = 2.f;
-    properties.SetForegroundBlurRadiusY(foregroundBlurRadiusY);
-    EXPECT_NE(properties.GetForegroundBlurRadiusY(), 0.f);
+    properties.SetCompositingBlurRadiusY(foregroundBlurRadiusY);
+    EXPECT_NE(properties.GetCompositingBlurRadiusY(), 0.f);
 }
 
 /**
@@ -2643,17 +2645,17 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundBlurFilter001, TestSize.Level1)
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
-    properties.GenerateBackgroundBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     // 0.0f, 1.0f: valid mesa blur params
     Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
     properties.SetPixelStretch(pixelStretchTest);
-    properties.GenerateBackgroundBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
-    properties.GenerateBackgroundBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
 
@@ -2667,63 +2669,63 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundMaterialBlurFilter001, TestSize.Lev
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
-    properties.GenerateBackgroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     // 0.0f, 1.0f: valid mesa blur params
     Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
     properties.SetPixelStretch(pixelStretchTest);
-    properties.GenerateBackgroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
-    properties.GenerateBackgroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
     properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
-    properties.GenerateBackgroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
 
 /**
- * @tc.name: GenerateForegroundBlurFilter001
- * @tc.desc: test results of GenerateForegroundBlurFilter
+ * @tc.name: GenerateCompositingBlurFilter001
+ * @tc.desc: test results of GenerateCompositingBlurFilter
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, GenerateForegroundBlurFilter001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, GenerateCompositingBlurFilter001, TestSize.Level1)
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
-    properties.GenerateForegroundBlurFilter();
+    properties.GetEffectProperties().GenerateCompositingBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
-    properties.GenerateForegroundBlurFilter();
+    properties.GetEffectProperties().GenerateCompositingBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
 
 /**
- * @tc.name: GenerateForegroundMaterialBlurFilter001
- * @tc.desc: test results of GenerateForegroundMaterialBlurFilter
+ * @tc.name: GenerateCompositingMaterialBlurFilter001
+ * @tc.desc: test results of GenerateCompositingMaterialBlurFilter
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, GenerateForegroundMaterialBlurFilter001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, GenerateCompositingMaterialBlurFilter001, TestSize.Level1)
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
-    properties.GenerateForegroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateCompositingMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
-    properties.GenerateForegroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateCompositingMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
     properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
     properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
-    properties.GenerateForegroundMaterialBlurFilter();
+    properties.GetEffectProperties().GenerateCompositingMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
 
@@ -2737,8 +2739,8 @@ HWTEST_F(RSPropertiesTest, GenerateMaterialLightBlurFilter001, TestSize.Level1)
 {
     RSProperties properties;
     auto colorFilter = std::make_shared<Drawing::ColorFilter>();
-    auto filter =
-        properties.GenerateMaterialLightBlurFilter(colorFilter, 1, 1.5f, BLUR_COLOR_MODE::PRE_DEFINED, RSColor());
+    auto filter = properties.GetEffectProperties().GenerateMaterialLightBlurFilter(colorFilter, 1, 1.5f,
+        BLUR_COLOR_MODE::PRE_DEFINED, RSColor());
     EXPECT_NE(filter, nullptr);
 }
 
@@ -2751,7 +2753,7 @@ HWTEST_F(RSPropertiesTest, GenerateMaterialLightBlurFilter001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GenerateAIBarFilter001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.GenerateAIBarFilter();
+    properties.GetEffectProperties().GenerateAIBarFilter();
     EXPECT_EQ(properties.GetBackgroundBlurSaturation(), 1.f);
 }
 
@@ -2799,7 +2801,7 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     properties.GetEffectProperties().GetFilterEffect().bgNGRenderFilter_ =
         std::make_shared<RSNGRenderEdgeLightFilter>();
     properties.GenerateBackgroundFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
 
     properties.GetEffectProperties().GetFilterEffect().waterRippleProgress_ = 0.1f;
     uint32_t waveCount = 2;
@@ -2819,34 +2821,34 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateForegroundFilter001
- * @tc.desc: test results of GenerateForegroundFilter
+ * @tc.name: GenerateCompositingFilter001
+ * @tc.desc: test results of GenerateCompositingFilter
  * @tc.type: FUNC
  * @tc.require: issueI9QKVM
  */
-HWTEST_F(RSPropertiesTest, GenerateForegroundFilter001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, GenerateCompositingFilter001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.GenerateForegroundFilter();
+    properties.GenerateCompositingFilter();
     EXPECT_EQ(properties.GetBackgroundBlurSaturation(), 1.f);
 
-    properties.SetForegroundBlurRadiusX(2.f);
-    properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
+    properties.SetCompositingBlurRadiusX(2.f);
+    properties.GenerateCompositingFilter();
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurRadiusXValid());
 
-    properties.SetForegroundBlurRadiusY(2.f);
-    properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
+    properties.SetCompositingBlurRadiusY(2.f);
+    properties.GenerateCompositingFilter();
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurRadiusYValid());
 
-    properties.SetForegroundBlurRadius(2.f);
-    properties.GenerateForegroundFilter();
+    properties.SetCompositingBlurRadius(2.f);
+    properties.GenerateCompositingFilter();
     EXPECT_TRUE(properties.GetEffectProperties().IsForegroundMaterialFilterValid());
 
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction;
     properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_ =
         std::make_shared<RSLinearGradientBlurPara>(-1.f, fractionStops, direction);
-    properties.GenerateForegroundFilter();
+    properties.GenerateCompositingFilter();
     EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_ == nullptr);
 }
 
@@ -3760,7 +3762,7 @@ HWTEST_F(RSPropertiesTest, SetNGetWaterRippleProgress001, TestSize.Level1)
 
 /**
  * @tc.name: setandgetproperties
- * @tc.desc: test results of setscale 、skew、persp
+ * @tc.desc: test results of setscale 銆乻kew銆乸ersp
  * @tc.type: FUNC
  * @tc.require: issueIAP7XJ
  */
@@ -3835,27 +3837,27 @@ HWTEST_F(RSPropertiesTest, StatCompositing_Variants, TestSize.Level1)
     GradientDirection direction;
     props.SetLinearGradientBlurPara(std::make_shared<RSLinearGradientBlurPara>(-1.f, fractionStops, direction));
     props.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
-    props.SetForegroundBlurRadiusX(1.5f);
-    props.SetForegroundBlurRadiusY(1.5f);
-    props.SetForegroundBlurRadius(2.0f);
-    props.GenerateForegroundFilter();
+    props.SetCompositingBlurRadiusX(1.5f);
+    props.SetCompositingBlurRadiusY(1.5f);
+    props.SetCompositingBlurRadius(2.0f);
+    props.GenerateCompositingFilter();
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(1));
-    props.GenerateForegroundFilter();
+    props.GenerateCompositingFilter();
 
     auto node1 = std::make_shared<RSRenderNode>(1);
     RSProperties props1;
     props1.backref_ = node1;
     props1.hasReportedServerXXFilterCascade_.reset();
-    props1.SetForegroundBlurRadiusX(1.5f);
-    props1.GenerateForegroundFilter();
+    props1.SetCompositingBlurRadiusX(1.5f);
+    props1.GenerateCompositingFilter();
     EXPECT_FALSE(props1.hasReportedServerXXFilterCascade_.test(1));
 
     auto node2 = std::make_shared<RSRenderNode>(2);
     RSProperties props2;
     props2.backref_ = node2;
     props2.hasReportedServerXXFilterCascade_.reset();
-    props2.SetForegroundBlurRadiusY(1.5f);
-    props2.GenerateForegroundFilter();
+    props2.SetCompositingBlurRadiusY(1.5f);
+    props2.GenerateCompositingFilter();
     EXPECT_FALSE(props2.hasReportedServerXXFilterCascade_.test(1));
 }
 
@@ -3885,16 +3887,16 @@ HWTEST_F(RSPropertiesTest, StatForeground_Variants, TestSize.Level1)
     props.SetHDRUIBrightness(1.2f);
     props.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     props.SetAdaptive(true);
-    props.UpdateForegroundFilter();
+    props.GenerateForegroundFilter();
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(2));
-    props.UpdateForegroundFilter();
+    props.GenerateForegroundFilter();
 
     auto node1 = std::make_shared<RSRenderNode>(1);
     RSProperties props1;
     props1.backref_ = node1;
     props1.hasReportedServerXXFilterCascade_.reset();
     props1.SetMotionBlurPara(std::make_shared<MotionBlurParam>(-2.0f, pfScaleAnchor));
-    props1.UpdateForegroundFilter();
+    props1.GenerateForegroundFilter();
     EXPECT_FALSE(props1.hasReportedServerXXFilterCascade_.test(2));
 }
 
@@ -4256,23 +4258,23 @@ HWTEST_F(RSPropertiesTest, BackgroundBlurParaLazyAllocation002, TestSize.Level1)
 
 /**
  * @tc.name: ForegroundBlurParaLazyAllocation001
- * @tc.desc: Verify RSForegroundBlurPara is lazily allocated on first setter call
+ * @tc.desc: Verify RSCompositingBlurPara is lazily allocated on first setter call
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertiesTest, ForegroundBlurParaLazyAllocation001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 0.f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 1.f);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 0.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 0.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 0.f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 1.f);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 0.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 0.f);
 
-    properties.SetForegroundBlurRadius(6.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 6.f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 1.f);
+    properties.SetCompositingBlurRadius(6.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 6.f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 1.f);
 }
 
 /**
@@ -4283,25 +4285,25 @@ HWTEST_F(RSPropertiesTest, ForegroundBlurParaLazyAllocation001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, ForegroundBlurParaLazyAllocation002, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetForegroundBlurSaturation(0.5f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 0.5f);
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 0.f);
+    properties.SetCompositingBlurSaturation(0.5f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 0.5f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 0.f);
 
-    properties.SetForegroundBlurBrightness(0.8f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 0.8f);
+    properties.SetCompositingBlurBrightness(0.8f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 0.8f);
 
-    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+    properties.SetCompositingBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
 
-    properties.SetForegroundBlurRadiusX(3.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 3.f);
+    properties.SetCompositingBlurRadiusX(3.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 3.f);
 
-    properties.SetForegroundBlurRadiusY(4.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 4.f);
+    properties.SetCompositingBlurRadiusY(4.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 4.f);
 
     Color maskColor(102, 127, 153, 255);
-    properties.SetForegroundBlurMaskColor(maskColor);
-    EXPECT_EQ(properties.GetForegroundBlurMaskColor(), maskColor);
+    properties.SetCompositingBlurMaskColor(maskColor);
+    EXPECT_EQ(properties.GetCompositingBlurMaskColor(), maskColor);
 }
 
 /**
@@ -4347,28 +4349,28 @@ HWTEST_F(RSPropertiesTest, BackgroundBlurParaStructAggregation001, TestSize.Leve
 HWTEST_F(RSPropertiesTest, ForegroundBlurParaStructAggregation001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetForegroundBlurRadius(10.f);
-    properties.SetForegroundBlurSaturation(0.5f);
-    properties.SetForegroundBlurBrightness(0.8f);
-    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
-    properties.SetForegroundBlurRadiusX(5.f);
-    properties.SetForegroundBlurRadiusY(6.f);
+    properties.SetCompositingBlurRadius(10.f);
+    properties.SetCompositingBlurSaturation(0.5f);
+    properties.SetCompositingBlurBrightness(0.8f);
+    properties.SetCompositingBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    properties.SetCompositingBlurRadiusX(5.f);
+    properties.SetCompositingBlurRadiusY(6.f);
     Color maskColor(25, 51, 76, 127);
-    properties.SetForegroundBlurMaskColor(maskColor);
+    properties.SetCompositingBlurMaskColor(maskColor);
 
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 10.f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 0.5f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 0.8f);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 5.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 6.f);
-    EXPECT_EQ(properties.GetForegroundBlurMaskColor(), maskColor);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 10.f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 0.5f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 0.8f);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 5.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 6.f);
+    EXPECT_EQ(properties.GetCompositingBlurMaskColor(), maskColor);
 
-    properties.SetForegroundBlurRadius(20.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 20.f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 0.5f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 0.8f);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+    properties.SetCompositingBlurRadius(20.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 20.f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 0.5f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 0.8f);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
 }
 
 /**
@@ -4411,23 +4413,23 @@ HWTEST_F(RSPropertiesTest, BackgroundBlurParaValidityAfterRefactor001, TestSize.
 HWTEST_F(RSPropertiesTest, ForegroundBlurParaValidityAfterRefactor001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusValid());
-    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
-    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
-    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurMaskColorValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsCompositingBlurRadiusValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsCompositingBlurRadiusXValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsCompositingBlurRadiusYValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsCompositingBlurMaskColorValid());
 
-    properties.SetForegroundBlurRadius(2.f);
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusValid());
+    properties.SetCompositingBlurRadius(2.f);
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurRadiusValid());
 
-    properties.SetForegroundBlurRadiusX(2.f);
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
+    properties.SetCompositingBlurRadiusX(2.f);
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurRadiusXValid());
 
-    properties.SetForegroundBlurRadiusY(2.f);
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
+    properties.SetCompositingBlurRadiusY(2.f);
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurRadiusYValid());
 
     Color maskColor(25, 51, 76, 255);
-    properties.SetForegroundBlurMaskColor(maskColor);
-    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurMaskColorValid());
+    properties.SetCompositingBlurMaskColor(maskColor);
+    EXPECT_TRUE(properties.GetEffectProperties().IsCompositingBlurMaskColorValid());
 }
 
 /**
@@ -4439,18 +4441,18 @@ HWTEST_F(RSPropertiesTest, BlurParaIndependence001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetBackgroundBlurRadius(10.f);
-    properties.SetForegroundBlurRadius(20.f);
+    properties.SetCompositingBlurRadius(20.f);
     EXPECT_EQ(properties.GetBackgroundBlurRadius(), 10.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 20.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 20.f);
 
     properties.SetBackgroundBlurSaturation(0.5f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.f);
 
-    properties.SetForegroundBlurBrightness(0.8f);
+    properties.SetCompositingBlurBrightness(0.8f);
     EXPECT_EQ(properties.GetBackgroundBlurBrightness(), 1.f);
 
     properties.SetBackgroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
 }
 
 /**
