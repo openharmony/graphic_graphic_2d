@@ -3146,10 +3146,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             // 1. calculate abs dirtyrect and update partialRenderParams
             // currently only sync visible region info
             surfaceNode->UpdatePartialRenderParams();
-            if (notUifirstOrUpdate) {
-                // 2. check surface node dirtyrect need merge into displayDirtyManager
-                CheckMergeSurfaceDirtysForDisplay(surfaceNode);
-            }
+            // 2. check surface node dirtyrect need merge into displayDirtyManager
+            CheckMergeSurfaceDirtysForDisplay(surfaceNode, notUifirstOrUpdate);
             // 3. check merge transparent filter when it intersects with pre-dirty.
             CheckMergeFilterDirtyWithPreDirty(dirtyManager, accumulatedDirtyRegion,
                 surfaceNode->IsTransparent() ? FilterDirtyType::TRANSPARENT_SURFACE_FILTER
@@ -3532,7 +3530,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRend
     }
 }
 
-void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
+void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    bool transparentNotSkip) const
 {
     if (surfaceNode->GetDirtyManager() == nullptr || curScreenNode_->GetDirtyManager() == nullptr) {
         return;
@@ -3545,14 +3544,18 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
         CheckMergeDisplayDirtyByCrossDisplayWindow(*surfaceNode);
         return;
     }
-    // 3 Handles the case of transparent surface, merge transparent dirty rect
-    CheckMergeDisplayDirtyByTransparent(*surfaceNode);
+    if (transparentNotSkip) {
+        // 3 Handles the case of transparent surface, merge transparent dirty rect
+        CheckMergeDisplayDirtyByTransparent(*surfaceNode);
+    }
     // 4 Zorder changed case, merge surface dest Rect
     CheckMergeDisplayDirtyByZorderChanged(*surfaceNode);
     // 5 surfacePos chanded case, merge surface lastframe pos or curframe pos
     CheckMergeDisplayDirtyByPosChanged(*surfaceNode);
-    // 6 shadow disappear and appear case.
-    CheckMergeDisplayDirtyByShadowChanged(*surfaceNode);
+    if (transparentNotSkip) {
+        // 6 shadow disappear and appear case.
+        CheckMergeDisplayDirtyByShadowChanged(*surfaceNode);
+    }
     // 7 handle surface has attraction effect
     CheckMergeDisplayDirtyByAttractionChanged(*surfaceNode);
     // More: any other screen dirty caused by surfaceNode should be added here like CheckMergeDisplayDirtByXXX

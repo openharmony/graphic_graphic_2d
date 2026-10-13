@@ -26,7 +26,8 @@ UIFirstSwitchType UIFirstParamParse::GetUIFirstSwitchType(const std::string& inp
         {"CacheOptimizeRotateEnabled", UIFirstSwitchType::ROTATE_ENABLED},
         {"FreeMultiWindowEnabled", UIFirstSwitchType::FREE_MULTI_WINDOW_ENABLED},
         {"OcclusionEnabled", UIFirstSwitchType::OCCLUSION_ENABLED},
-        {"ShadowEnabled", UIFirstSwitchType::LEASH_ALL_ENABLED}
+        {"ShadowEnabled", UIFirstSwitchType::LEASH_ALL_ENABLED},
+        {"FrameControlEnabled", UIFirstSwitchType::FRAME_CONTROL_ENABLED}
     };
 
     auto it = uifirstSwitchTypeMap.find(input);
@@ -92,6 +93,10 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
                 UIFirstParam::SetUIFirstLeashAllEnable(isEnabled);
                 RS_LOGI("UIFirstParamParse parse UIFirstShadowEnable %{public}d",
                     UIFirstParam::IsUIFirstLeashAllEnable());
+                break;
+            case UIFirstSwitchType::FRAME_CONTROL_ENABLED:
+                UIFirstParam::SetUIFirstFrameControlEnable(isEnabled);
+                RS_LOGI("UIFirstFrameControlEnable %{public}d",UIFirstParam::IsUIFirstFrameControlEnable());
                 break;
             default:
                 RS_LOGE("UIFirstParamParse %{public}s is not support!", name.c_str());

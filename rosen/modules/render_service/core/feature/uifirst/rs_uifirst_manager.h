@@ -49,7 +49,8 @@ public:
         std::set<NodeId> disableNodes;
     };
 
-    void AddProcessDoneNode(NodeId id);
+    void AddProcessDoneNode(NodeId id, MultiThreadCacheType type);
+    bool GetUIFirstDirtyFrameControlEnabled();
     void AddPurgedNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
     void AddFirstFrameCacheGeneratedNode(NodeId id);
@@ -256,6 +257,10 @@ public:
     {
         return subthreadProcessingNode_.count(id) > 0;
     }
+    bool UifirstCacheUpdate(NodeId id);
+    bool UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void SwapProcessDoneNodes(bool& isDoneNodesSwaped);
+
 private:
     bool IsRebuildForceDisable(const RSSurfaceRenderNode& node) const;
     struct NodeDataBehindWindow {
@@ -364,6 +369,7 @@ private:
     bool isUiFirstSupportFlag_ = false;
     bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
+    bool isUiFirstFrameControlEnable_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool isFreeMultiWindowEnabled_ = false;
     // for recents scene

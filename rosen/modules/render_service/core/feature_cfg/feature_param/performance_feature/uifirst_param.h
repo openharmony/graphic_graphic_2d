@@ -34,6 +34,7 @@ public:
     static float GetSizeChangedThreshold();
     static bool IsOcclusionEnabled();
     static bool IsUIFirstLeashAllEnable();
+    static bool IsUIFirstFrameControlEnable();
     static uint32_t GetSubThreadFrameRateControlByScene();
 
 protected:
@@ -47,6 +48,7 @@ protected:
     static void SetSizeChangedThreshold(float threshold);
     static void SetOcclusionEnabled(bool isEnable);
     static void SetUIFirstLeashAllEnable(bool isEnable);
+    static void SetUIFirstFrameControlEnable(bool isEnable);
     static void SetSubThreadFrameRateControlByScene(uint32_t value);
 
 private:
@@ -60,6 +62,7 @@ private:
     inline static float sizeChangedThreshold_ = 0.1f;
     inline static bool isOcclusionEnabled_ = true;
     inline static bool isUIFirstLeashAllEnable_ = false;
+    inline static bool isUIFirstFrameControlEnable_ = false;
     inline static std::atomic<uint32_t> subThreadFrameRateControlByScene_ = 0xFF;
 
     friend class UIFirstParamParse;
