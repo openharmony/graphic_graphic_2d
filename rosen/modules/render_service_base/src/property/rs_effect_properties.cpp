@@ -197,24 +197,6 @@ bool RSEffectProperties::IsSpherizeValid() const
     return false;
 }
 
-void RSEffectProperties::SetLightUpEffect(float lightUpEffectDegree)
-{
-    GetFilterEffect().lightUpEffectDegree_ = lightUpEffectDegree;
-}
-
-float RSEffectProperties::GetLightUpEffect() const
-{
-    if (filterEffect_ != nullptr) {
-        return filterEffect_->lightUpEffectDegree_;
-    }
-    return 1.0f;
-}
-
-bool RSEffectProperties::IsLightUpEffectValid() const
-{
-    return ROSEN_GE(GetLightUpEffect(), 0.0) && ROSEN_LNE(GetLightUpEffect(), 1.0);
-}
-
 void RSEffectProperties::SetForegroundEffectRadius(float foregroundEffectRadius)
 {
     GetFilterEffect().foregroundEffectRadius_ = foregroundEffectRadius;
@@ -312,27 +294,6 @@ void RSEffectProperties::CheckGreyCoef()
         (ROSEN_EQ(greyCoef_->x_, 0.f) && ROSEN_EQ(greyCoef_->y_, 0.f))) {
         WITH_FILTER_EFFECT(greyCoef_ = std::nullopt);
     }
-}
-
-void RSEffectProperties::SetDynamicDimDegree(const std::optional<float>& dimDegree)
-{
-    GetFilterEffect().dynamicDimDegree_ = dimDegree;
-}
-
-const std::optional<float>& RSEffectProperties::GetDynamicDimDegree() const
-{
-    static const std::optional<float> defaultValue = std::nullopt;
-    if (filterEffect_ != nullptr) {
-        return filterEffect_->dynamicDimDegree_;
-    }
-    return defaultValue;
-}
-
-bool RSEffectProperties::IsDynamicDimValid() const
-{
-    const auto& dynamicDimDegree = GetDynamicDimDegree();
-    return dynamicDimDegree.has_value() &&
-           ROSEN_GE(*dynamicDimDegree, 0.0) && ROSEN_LNE(*dynamicDimDegree, 1.0);
 }
 
 void RSEffectProperties::SetGrayScale(const std::optional<float>& grayScale)
@@ -433,23 +394,11 @@ const std::optional<float>& RSEffectProperties::GetHueRotate() const
     return defaultValue;
 }
 
-void RSEffectProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
-{
-    GetFilterEffect().aiInvert_ = aiInvert;
-}
-
-const std::optional<Vector4f>& RSEffectProperties::GetAiInvert() const
-{
-    static const std::optional<Vector4f> defaultValue = std::nullopt;
-    if (filterEffect_ != nullptr) {
-        return filterEffect_->aiInvert_;
-    }
-    return defaultValue;
-}
-
 void RSEffectProperties::SetSystemBarEffect(bool systemBarEffect)
 {
     GetFilterEffect().systemBarEffect_ = systemBarEffect;
+
+    return nullptr;
 }
 
 bool RSEffectProperties::GetSystemBarEffect() const
@@ -1065,13 +1014,13 @@ std::shared_ptr<RSNGRenderFilterBase> RSEffectProperties::GetCompositingNGFilter
 
 void RSEffectProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter)
 {
-    GetFilterEffect().colorNGFilter_ = filter;
+    GetFilterEffect().colorNGRenderFilter_ = filter;
 }
 
 std::shared_ptr<RSNGRenderFilterBase> RSEffectProperties::GetColorNGFilter() const
 {
     if (filterEffect_ != nullptr) {
-        return filterEffect_->colorNGFilter_;
+        return filterEffect_->colorNGRenderFilter_;
     }
     return nullptr;
 }
