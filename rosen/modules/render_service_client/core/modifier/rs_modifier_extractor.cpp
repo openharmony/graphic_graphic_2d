@@ -18,12 +18,14 @@
 #include <securec.h>
 
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
+#include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_def.h"
 #include "ui/rs_node.h"
 #include "ui/rs_ui_context.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -375,6 +377,27 @@ float RSModifierExtractor::GetSpherizeDegree() const
     GET_PROPERTY_FROM_MODIFIERS_NG(float, FOREGROUND_FILTER, SPHERIZE, 0.f, =);
 }
 
+float RSModifierExtractor::GetLightUpEffectDegree() const
+{
+    auto context = rsUIContext_.lock();
+    auto node = context ? context->GetNodeMap().GetNode<RSNode>(id_)
+                        :RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if(!node){
+        return 0.f;
+    }
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
+    for(auto&[_,modifier]:node->modifierNG_){
+        if(modifier->GetType()==ModifierNG::RSModifierType::COMPOSITING_FILTER){
+            auto filterMod = std::static_pointer_cast<ModifierNG::RSCompositingFilterModifier>(modifier);
+            auto filter = filterMod->GetColorNGFilter();
+            if(filter&&filter->GetType()==RSNGEffectType::LIGHT_UP_EFFECT){
+                auto lightUpFilter =std::static_pointer_cast<RSNGLightUpEffectFilter>(filter);
+                return lightUpFilter->Getter<LightUpEffectValueTag>()->Get();
+            }
+        }
+    }
+    return 0.0f;
+}
 float RSModifierExtractor::GetHDRUIBrightness() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_UI_BRIGHTNESS, 1.0f, =);
@@ -400,15 +423,6 @@ float RSModifierExtractor::GetHDRColorHeadroom() const
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_COLOR_HEADROOM, 1.0f, =);
 }
 
-float RSModifierExtractor::GetLightUpEffectDegree() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, LIGHT_UP_EFFECT_DEGREE, 0.f, =);
-}
-
-float RSModifierExtractor::GetDynamicDimDegree() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, DYNAMIC_DIM_DEGREE, 0.f, =);
-}
 
 float RSModifierExtractor::GetBackgroundBlurRadius() const
 {

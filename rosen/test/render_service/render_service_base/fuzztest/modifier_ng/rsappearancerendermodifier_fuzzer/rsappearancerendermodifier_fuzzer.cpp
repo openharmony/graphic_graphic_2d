@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/rs_render_node.h"
+#include "effect/rs_render_filter_base.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_render_modifier.h"
 #include "modifier_ng/appearance/rs_blend_render_modifier.h"
@@ -80,7 +81,8 @@ void DoCompositingFilter(FuzzedDataProvider& fdp)
 {
     auto modifier = std::make_shared<ModifierNG::RSCompositingFilterRenderModifier>();
     RSProperties properties;
-    properties.SetLightUpEffect(fdp.ConsumeFloatingPoint<float>());
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    properties.SetColorNGFilter(filter);
     modifier->ResetProperties(properties);
 }
 

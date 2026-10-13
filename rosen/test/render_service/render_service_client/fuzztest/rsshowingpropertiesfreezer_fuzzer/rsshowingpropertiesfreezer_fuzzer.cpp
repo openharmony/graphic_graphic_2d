@@ -411,25 +411,6 @@ bool DoGetAttractionDstPointValue(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetLightUpEffectDegree(const uint8_t* data, size_t size)
-{
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetLightUpEffectDegree();
-
-    return true;
-}
-
-bool DoGetDynamicDimDegree(const uint8_t* data, size_t size)
-{
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetDynamicDimDegree();
-
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -475,8 +456,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetSpherizeDegree(data, size);
     OHOS::Rosen::DoGetAttractionFractionValue(data, size);
     OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
-    OHOS::Rosen::DoGetLightUpEffectDegree(data, size);
-    OHOS::Rosen::DoGetDynamicDimDegree(data, size);
     OHOS::Rosen::DoGetHDRUIBrightness(data, size);
     return 0;
 }

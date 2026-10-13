@@ -502,8 +502,8 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
     if (grayScale.has_value() && !ROSEN_EQ(*grayScale, 0.f)) {
         out["GrayScale"] = *grayScale;
     }
-    if (!ROSEN_EQ(properties.GetLightUpEffect(), 1.f)) {
-        out["LightUpEffect"] = properties.GetLightUpEffect();
+    if (properties.GetColorNGFilter() != nullptr) {
+        out["ColorNGFilter"] = true;
     }
     if (!ROSEN_EQ(properties.GetDynamicLightUpRate(), 0.f)) {
         out["DynamicLightUpRate"] = properties.GetDynamicLightUpRate();
