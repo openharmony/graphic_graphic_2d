@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -452,13 +452,6 @@ public:
     bool HasHarmonium() const;
     bool HasSpatialGlassEffect() const;
     bool HasGlassEffect() const;
-
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    void ClearFilterCache();
-#endif
-
-    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
 
     // ---------------------------- filter effect delegations ---------------------------- //
     // material filter
@@ -1061,7 +1054,6 @@ private:
 
     Drawing::Matrix prevAbsMatrix_;
 
-    static bool blurAdaptiveAdjustEnabled_;
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
 
