@@ -29,7 +29,7 @@ config("native_vsync_config") {
     libnative_vsync_version_script =
       rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/libnative_vsync.versionscript",
                   root_build_dir)
-    ldflags += [
+    ldflags = [
       "-Wl,--version-script=${libnative_vsync_version_script}",
       "-Wl,--emit-relocs",
       "-Wl,--no-relax",
