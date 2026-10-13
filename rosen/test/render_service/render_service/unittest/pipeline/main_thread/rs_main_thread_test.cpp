@@ -8792,28 +8792,32 @@ HWTEST_F(RSMainThreadTest, FormatDirectCompositionDisableReasons003, TestSize.Le
 }
 
 namespace {
-class ScopedTunnelSwitch {
-public:
-    explicit ScopedTunnelSwitch(bool enabled)
-    {
-        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
-        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
-    }
-    ~ScopedTunnelSwitch()
-    {
-        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
-    }
-
-private:
-    bool oldValue_ = false;
-};
-
 class TunnelLayerParamTestAccess : public TunnelLayerParam {
 public:
     static void SetNewTunnelEnabled(bool isEnable)
     {
         TunnelLayerParam::SetNewTunnelEnabled(isEnable);
     }
+};
+
+class ScopedTunnelSwitch {
+public:
+    explicit ScopedTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+        oldTunnelParamEnabled_ = TunnelLayerParam::IsNewTunnelEnabled();
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(enabled);
+    }
+    ~ScopedTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(oldTunnelParamEnabled_);
+    }
+
+private:
+    bool oldValue_ = false;
+    bool oldTunnelParamEnabled_ = false;
 };
 } // namespace
 
@@ -8829,8 +8833,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NewTunnelDisabled_Leav
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    ScopedTunnelSwitch scopedSwitch(true);
-    TunnelLayerParamTestAccess::SetNewTunnelEnabled(false);
+    ScopedTunnelSwitch scopedSwitch(false);
     ASSERT_FALSE(IsNewTunnelEnabled());
 
     auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
@@ -8844,8 +8847,6 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NewTunnelDisabled_Leav
     RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 1u);
-
-    TunnelLayerParamTestAccess::SetNewTunnelEnabled(true);
 }
 
 /**
@@ -8857,6 +8858,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NewTunnelDisabled_Leav
  */
 HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NotConsumedNode_SkipsPresentCount, TestSize.Level1)
 {
+    ScopedTunnelSwitch scopedSwitch(true);
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
@@ -8881,6 +8883,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NotConsumedNode_SkipsP
  */
 HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedNonTunnelNode_IncrementsPresentOnly, TestSize.Level1)
 {
+    ScopedTunnelSwitch scopedSwitch(true);
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
@@ -8907,6 +8910,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedNonTunnelNode_
  */
 HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedTunnelNode_IncrementsBothCounters, TestSize.Level1)
 {
+    ScopedTunnelSwitch scopedSwitch(true);
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
@@ -8936,6 +8940,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedTunnelNode_Inc
  */
 HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_AccumulatesCounters, TestSize.Level1)
 {
+    ScopedTunnelSwitch scopedSwitch(true);
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
