@@ -140,6 +140,7 @@ HWTEST_F(RefCountHolderTest, ConcurrentAddReleaseDestroyOnce005, TestSize.Level0
     constexpr int opsPerThread = 500;
     auto* holder = CreateTrackedHolder();
     RefCountedPtr<TrackedObj> keeper(holder); // main-thread reference
+    holder->Release(); // creator reference
     std::vector<std::thread> threads;
     for (int i = 0; i < threadNum; ++i) {
         threads.emplace_back([&holder]() {
