@@ -27,7 +27,7 @@ config("socketpair_config") {
     socketpair_version_script =
       rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/socketpair.versionscript",
                   root_build_dir)
-    ldflags += [
+    ldflags = [
       "-Wl,--version-script=${socketpair_version_script}",
       "-Wl,--emit-relocs",
       "-Wl,--no-relax",
