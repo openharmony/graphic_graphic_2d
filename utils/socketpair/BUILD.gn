@@ -25,7 +25,7 @@ config("socketpair_config") {
 
   if (target_cpu == "arm64" && defined(build_ext_path)) {
     socketpair_version_script =
-      rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/socketpair.versionscript",
+      rebase_path("//foundation/graphic/graphic_2d/utils/socketpair/socketpair.versionscript",
                   root_build_dir)
     ldflags = [
       "-Wl,--version-script=${socketpair_version_script}",
