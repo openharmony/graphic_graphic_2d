@@ -2427,7 +2427,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     uifirstManager_.uiFirstType_ = UiFirstCcmType::SINGLE;
     result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
     EXPECT_TRUE(result);
-     uifirstManager_.uiFirstType_ = UiFirstCcmType::MULTI;
+    uifirstManager_.uiFirstType_ = UiFirstCcmType::MULTI;
     result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
     EXPECT_TRUE(result);
 
@@ -2744,7 +2744,7 @@ HWTEST_F(RSUifirstManagerTest, SwapProcessDoneNode002, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInner001, TestSize.Level1)
 {
-    // save current state 
+    // save current state
     auto subthreadProcessDoneNodeAhead = uifirstManager_.subthreadProcessDoneNodeAhead_;
     auto subthreadProcessDoneNode = uifirstManager_.subthreadProcessDoneNode_;
 
@@ -2874,6 +2874,6 @@ HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled002, TestSize.L
     // Restore
     uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isFrameControlEnable;
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
-    uifirstManager_.uifirstType_ = uifirstType;  
+    uifirstManager_.uifirstType_ = uifirstType;
 }
 }

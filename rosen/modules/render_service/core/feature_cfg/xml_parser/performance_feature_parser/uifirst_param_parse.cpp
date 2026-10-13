@@ -96,7 +96,7 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
                 break;
             case UIFirstSwitchType::FRAME_CONTROL_ENABLED:
                 UIFirstParam::SetUIFirstFrameControlEnable(isEnabled);
-                RS_LOGI("UIFirstFrameControlEnable %{public}d",UIFirstParam::IsUIFirstFrameControlEnable());
+                RS_LOGI("UIFirstFrameControlEnable %{public}d", UIFirstParam::IsUIFirstFrameControlEnable());
                 break;
             default:
                 RS_LOGE("UIFirstParamParse %{public}s is not support!", name.c_str());

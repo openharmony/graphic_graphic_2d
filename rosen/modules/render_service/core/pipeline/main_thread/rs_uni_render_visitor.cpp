@@ -3139,7 +3139,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto dirtyManager = surfaceNode->GetDirtyManager();
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
             // cal done node dirtyRegion for uifirst
-             bool notUifirstOrUpdate =
+            bool notUifirstOrUpdate =
                 RSUifirstManager::Instance().UifirstCacheUpdated(surfaceNode);
             RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
             UpdatePointWindowDirtyStatus(surfaceNode);
