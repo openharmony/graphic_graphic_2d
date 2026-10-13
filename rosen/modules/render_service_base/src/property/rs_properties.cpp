@@ -78,7 +78,6 @@ static inline bool IsFilterNeedForceSubmit(const std::shared_ptr<RSFilter>& filt
 }
 #endif
 
-bool RSProperties::blurAdaptiveAdjustEnabled_ = false;
 void RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled)
 {
     FilterEffectParams::blurAdaptiveAdjustEnabled_ = isCCMBlurAdaptiveAdjustEnabled;
