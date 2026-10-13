@@ -669,7 +669,7 @@ HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node->renderProperties_.filter_ = filter;
+    node->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     node->InitRenderParams();
     node->OnTreeStateChanged();
     EXPECT_FALSE(node->isOnTheTree_);
@@ -1957,10 +1957,10 @@ HWTEST_F(RSRenderNodeTest, HasBlurFilterTest, TestSize.Level1)
     node.renderProperties_.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.filter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
     EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
 }
@@ -3585,7 +3585,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     // UpdateShouldPaint test
     nodeTest->renderProperties_.alpha_ = -1.0f;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(0.0f, 0.1f);
-    nodeTest->renderProperties_.filter_ = filter;
+    nodeTest->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     nodeTest->sharedTransitionParam_ = nullptr;
     nodeTest->UpdateShouldPaint();
 
@@ -3620,8 +3620,8 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->stagingCacheManager_->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -3643,8 +3643,8 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     filterDrawable->MarkFilterRegionInteractWithDirty();
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -3726,13 +3726,13 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
     // forground filter
     RSRenderNode foregroundNode(id, context);
     auto& fgProperties = foregroundNode.GetMutableRenderProperties();
-    fgProperties.filter_ = std::make_shared<RSFilter>();
+    fgProperties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     foregroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(foregroundNode.IsBackgroundInAppOrNodeSelfDirty());
     // background filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     backgroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(backgroundNode.IsBackgroundInAppOrNodeSelfDirty());
     // material filter
@@ -3789,8 +3789,8 @@ HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Leve
     RSRenderNode node(id, context);
     auto& properties = node.GetMutableRenderProperties();
     node.MarkForceClearFilterCacheWithInvisible();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     node.MarkForceClearFilterCacheWithInvisible();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
@@ -4237,7 +4237,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_COLOR);
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
@@ -4348,7 +4348,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::CHILDREN);
     auto compositingFilterDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
@@ -4767,7 +4767,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Set a background filter to make DisableHWCForFilter return true
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     node.renderProperties_.needFilter_ = true;
 
     // With both ColorPickerDrawable and a real filter, should return false
@@ -4785,7 +4785,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode004, TestSize.Level1)
     RSRenderNode node(1);
 
     // Set a background filter without ColorPickerDrawable
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
 
     // With real filter but no ColorPickerDrawable, should return false
     EXPECT_FALSE(node.IsColorPickerOnlyNode());

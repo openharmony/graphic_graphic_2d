@@ -338,7 +338,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
     ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    surfaceNode->renderProperties_.backgroundFilter_ = filter;
+    surfaceNode->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
     Occlusion::Region extendRegion;
     Occlusion::Region region{ Occlusion::Rect{ 0, 0, 100, 100 } };
     surfaceNode->SetVisibleRegion(region);
@@ -360,9 +360,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
     nodeMap.RegisterRenderNode(filterNode1);
     nodeMap.RegisterRenderNode(filterNode3);
     nodeMap.RegisterRenderNode(filterNode4);
-    filterNode1->renderProperties_.backgroundFilter_ = filter;
-    filterNode3->renderProperties_.backgroundFilter_ = filter;
-    filterNode4->renderProperties_.backgroundFilter_ = filter;
+    filterNode1->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
+    filterNode3->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
+    filterNode4->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
     surfaceNode->visibleFilterChild_.push_back(filterNode1->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode2->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode3->GetId());
@@ -406,9 +406,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured002, TestSize.Level1)
     nodeMap.RegisterRenderNode(filterNode3);
     filterNode1->visibleEffectChild_.clear();
     filterNode2->visibleEffectChild_.emplace(id);
-    filterNode1->renderProperties_.backgroundFilter_ = filter;
-    filterNode2->renderProperties_.backgroundFilter_ = filter;
-    filterNode3->renderProperties_.backgroundFilter_ = filter;
+    filterNode1->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
+    filterNode2->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
+    filterNode3->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
     surfaceNode->visibleFilterChild_.push_back(filterNode1->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode2->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode3->GetId());
@@ -931,7 +931,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode, TestSize.Level1)
     float blurRadiusX = 30.0f;
     float blurRadiusY = 30.0f;
     auto filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    rsCanvasRenderNode->GetMutableRenderProperties().filter_ = filter;
+    rsCanvasRenderNode->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(filter);
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
     rsSurfaceRenderNode->AddChild(rsCanvasRenderNode, -1);
 
@@ -1154,9 +1154,9 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_002, TestSize
     auto filterNode1 = std::make_shared<RSRenderNode>(++id);
     auto filterNode2 = std::make_shared<RSRenderNode>(++id);
     filterNode1->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
-    filterNode1->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    filterNode1->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     filterNode2->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = true;
-    filterNode2->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
+    filterNode2->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
 
     // register filter node
     nodeMap.RegisterRenderNode(filterNode1);
@@ -1188,7 +1188,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_003, TestSize
     NodeId id = 1;
     nodeMap.UnregisterRenderNode(id);
     auto filterNode1 = std::make_shared<RSRenderNode>(id);
-    filterNode1->GetMutableRenderProperties().backgroundFilter_ = std::make_shared< RSFilter>();
+    filterNode1->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared< RSFilter>());
     filterNode1->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     filterNode1->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_FILTER_RECT;
 
@@ -3369,7 +3369,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRegionInSkippedSurfaceNode, TestSiz
 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
     ASSERT_NE(canvasNode, nullptr);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
 
@@ -3398,13 +3398,13 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRegionInSkippedSurfaceNodeTestHpae,
 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(10); // 10 for node id
     ASSERT_NE(canvasNode, nullptr);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
 
     auto effectNode = std::make_shared<RSEffectRenderNode>(11); // 11 for node id
     ASSERT_NE(effectNode, nullptr);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
 
@@ -6140,7 +6140,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheNeedForceClearOrSave001, TestSi
     rsUniRenderVisitor->CheckFilterCacheNeedForceClearOrSave(*node);
 
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    node->renderProperties_.backgroundFilter_ = filter;
+    node->renderProperties_.GetEffectProperties().SetBackgroundFilter(filter);
     rsUniRenderVisitor->CheckFilterCacheNeedForceClearOrSave(*node);
 }
 
@@ -7656,7 +7656,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
     auto effectNode = std::make_shared<RSEffectRenderNode>(1);
     ASSERT_NE(effectNode, nullptr);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
 
@@ -7735,7 +7735,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
     ASSERT_NE(canvasNode, nullptr);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
 
@@ -7778,13 +7778,13 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
 
     auto effectNode = std::make_shared<RSEffectRenderNode>(2);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
 
@@ -7816,7 +7816,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     auto effectNode = std::make_shared<RSEffectRenderNode>(FILTER_NODE_ID_NOT_ON_TREE);
     ASSERT_NE(effectNode, nullptr);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->visibleFilterChild_.push_back(FILTER_NODE_ID_NOT_ON_TREE);
 
@@ -7861,7 +7861,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     auto effectNode = std::make_shared<RSEffectRenderNode>(FILTER_NODE_ID_ON_TREE);
     ASSERT_NE(effectNode, nullptr);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     effectNode->SetIsOnTheTree(true);
     rsRootRenderNode->visibleFilterChild_.push_back(FILTER_NODE_ID_ON_TREE);
@@ -7916,7 +7916,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     auto effectNode = std::make_shared<RSEffectRenderNode>(3);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
 
@@ -7978,14 +7978,14 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     auto effectNode = std::make_shared<RSEffectRenderNode>(1);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
     rsRootRenderNode->UpdateVisibleEffectChild(*effectNode);
 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(2);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
-    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     canvasNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
 
@@ -8101,7 +8101,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     auto effectNode = std::make_shared<RSEffectRenderNode>(1);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
-    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
 
@@ -9015,7 +9015,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
     rsCanvasRenderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
         std::move(rsChildrenDrawable);
-    rsCanvasRenderNode->GetMutableRenderProperties().foregroundFilter_ = std::make_shared<RSFilter>();
+    rsCanvasRenderNode->GetMutableRenderProperties().SetForegroundFilter(std::make_shared<RSFilter>());
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }
@@ -11399,7 +11399,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRenderContextForSkippedSubTree_With
 
     auto filterNode = std::make_shared<RSCanvasRenderNode>(1);
     ASSERT_NE(filterNode, nullptr);
-    filterNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    filterNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();

@@ -127,12 +127,12 @@ HWTEST_F(RSSurfaceRenderNodeTest2, UpdateFilterCacheStatusIfNodeStaticTest002, T
     node->filterNodes_.emplace_back(node2);
     auto node3 = std::make_shared<RSRenderNode>(id + 3);
     node3->isOnTheTree_ = true;
-    node3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    node3->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     node->filterNodes_.emplace_back(node3);
     auto node4 = std::make_shared<RSRenderNode>(id + 4);
     node4->isOnTheTree_ = true;
     node4->GetMutableRenderProperties().needFilter_ = true;
-    node4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
+    node4->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     node->filterNodes_.emplace_back(node4);
     std::shared_ptr<RSRenderNode> node5 = nullptr;
     node->filterNodes_.emplace_back(node5);
@@ -141,7 +141,7 @@ HWTEST_F(RSSurfaceRenderNodeTest2, UpdateFilterCacheStatusIfNodeStaticTest002, T
     std::shared_ptr<RSRenderNode> node6 = std::make_shared<RSEffectRenderNode>(id + 6);
     node6->isOnTheTree_ = true;
     node6->GetMutableRenderProperties().needFilter_ = true;
-    node6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    node6->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     node->filterNodes_.emplace_back(node6);
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 600, 600), false);
     ASSERT_NE(node->filterNodes_.size(), 0);

@@ -230,7 +230,7 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
     stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetFilter();
+    auto& rsFilter = node.GetRenderProperties().GetCompositingFilter();
     if (rsFilter == nullptr) {
         return false;
     }
