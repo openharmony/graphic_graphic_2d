@@ -27,7 +27,7 @@ config("native_vsync_config") {
 
   if (target_cpu == "arm64" && defined(build_ext_path)) {
     libnative_vsync_version_script =
-      rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/libnative_vsync.versionscript",
+      rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync/libnative_vsync.versionscript",
                   root_build_dir)
     ldflags = [
       "-Wl,--version-script=${libnative_vsync_version_script}",
