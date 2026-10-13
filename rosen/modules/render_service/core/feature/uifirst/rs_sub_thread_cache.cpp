@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "rs_sub_thread_cache.h"
 
 #include <memory>
@@ -69,7 +68,7 @@ static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
     return matrix;
 }();
 constexpr float SCALE_DIFF = 0.01f;
-}
+} // namespace
 
 namespace OHOS::Rosen::DrawableV2 {
 RsSubThreadCache::RsSubThreadCache()

@@ -45,39 +45,39 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int EVENT_START_TIMEOUT = 500;
-    constexpr int EVENT_STOP_TIMEOUT = 150;
-    constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
-    constexpr int CLEAR_CACHE_DELAY = 400;
-    constexpr size_t MAX_CLEAR_CACHE_NODE_COUNT = 500; // 500 is the maximum number of nodes can be added to the list.
-    const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
-    constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
-    constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
-    constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
-    constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
-    constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
-    constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
-    constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
-    const std::unordered_set<std::string_view> LAYER_PART_RENDER_DISABLE_ANIMATION = {
-        "APP_LIST_FLING",
-        "WEB_LIST_FLING",
-        "SCROLLER_ANIMATION",
-    };
-    // uifirst-disabled-by-animation-overlap is recorded on node only in these scenes
-    const std::vector<std::string_view> ANIMATION_OVERLAP_RECORD_SCENES = {
-        "START_APP_ANI_FORM",
-        "LAUNCHER_APP_LAUNCH_FROM_ICON",
-        "LAUNCHER_APP_LAUNCH_FROM_DOCK",
-        "LAUNCHER_APP_SWIPE_TO_HOME",
-        "LAUNCHER_APP_BACK_TO_HOME",
-    };
-
-    inline int64_t GetCurSysTime()
-    {
-        auto curTime = std::chrono::system_clock::now().time_since_epoch();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
-    }
+constexpr int EVENT_START_TIMEOUT = 500;
+constexpr int EVENT_STOP_TIMEOUT = 150;
+constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
+constexpr int CLEAR_CACHE_DELAY = 400;
+constexpr size_t MAX_CLEAR_CACHE_NODE_COUNT = 500; // 500 is the maximum number of nodes can be added to the list.
+const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
+constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
+constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
+constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
+constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
+constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
+constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
+constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
+const std::unordered_set<std::string_view> LAYER_PART_RENDER_DISABLE_ANIMATION = {
+    "APP_LIST_FLING",
+    "WEB_LIST_FLING",
+    "SCROLLER_ANIMATION",
 };
+// uifirst-disabled-by-animation-overlap is recorded on node only in these scenes
+const std::vector<std::string_view> ANIMATION_OVERLAP_RECORD_SCENES = {
+    "START_APP_ANI_FORM",
+    "LAUNCHER_APP_LAUNCH_FROM_ICON",
+    "LAUNCHER_APP_LAUNCH_FROM_DOCK",
+    "LAUNCHER_APP_SWIPE_TO_HOME",
+    "LAUNCHER_APP_BACK_TO_HOME",
+};
+
+inline int64_t GetCurSysTime()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+}
+}; // namespace
 
 RSUifirstManager& RSUifirstManager::Instance()
 {
@@ -886,7 +886,7 @@ bool RSUifirstManager::IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRe
             RS_OPTIONAL_TRACE_NAME_FMT("visibleRegion is [%s], visibleRegionBehindWindow is [%s]",
                 visibleRegion.GetRegionInfo().c_str(),
                 visibleRegionBehindWindow.GetRegionInfo().c_str());
-            
+
             if (visibleRegionBehindWindow.IsEmpty() && !visibleRegion.IsEmpty()) {
                 return true;
             }
@@ -2560,7 +2560,7 @@ void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
             id, markedClearCacheNodes_.size());
         return;
     }
-    
+
     RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
     RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
     markedClearCacheNodes_.insert(id);
