@@ -185,9 +185,13 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
 #endif // RS_MODIFIERS_DRAW_ENABLE
         captureConfig.isSync = true;
     }
+#ifndef ROSEN_CROSS_PLATFORM
+    // Cross-platform (arkui-x) does not support synchronous capture, flushing cached modifiers
+    // and forcing isSync there causes stale content during drag, so skip it entirely.
     if (node->FlushCachedModifiersRecursively()) {
         captureConfig.isSync = true;
     }
+#endif
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
     if (node->IsTextureExportNode()) {
