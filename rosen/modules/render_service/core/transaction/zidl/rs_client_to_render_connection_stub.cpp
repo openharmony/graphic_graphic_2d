@@ -449,8 +449,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            ExecuteSynchronousTask(task);
-            if (!task->Marshalling(reply)) {
+            ret = ExecuteSynchronousTask(task);
+            if (ret == ERR_OK && !task->Marshalling(reply)) {
                 ret = ERR_INVALID_STATE;
             }
             break;

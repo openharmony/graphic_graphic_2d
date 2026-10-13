@@ -30,6 +30,7 @@
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "mock/mock_accesstoken_kit.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_special_layer_manager.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
@@ -3425,6 +3426,104 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, Test
     data.WriteUint64(0); // Incomplete data
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest007
+ * @tc.desc: Test stub skips Marshalling when ExecuteSynchronousTask times out
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest007, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto blockDone = std::make_shared<std::promise<void>>();
+    auto blockFuture = blockDone->get_future();
+    mainThread_->handler_->PostTask([blockDone]() {
+        blockDone->set_value();
+        usleep(200000);
+    });
+    blockFuture.wait();
+
+    pid_t callingPid = connectionStub_->GetCallingPid();
+    NodeId nodeId = MakeNodeId(callingPid, 1);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, nullptr, 1);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    ASSERT_TRUE(task->Marshalling(data));
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_NE(res, ERR_OK);
+    EXPECT_EQ(reply.GetDataSize(), 0);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest008
+ * @tc.desc: Test ExecuteSynchronousTask returns ERR_INVALID_VALUE when task is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest008, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto ret = connectionStub_->ExecuteSynchronousTask(nullptr);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest009
+ * @tc.desc: Test stub calls Marshalling and returns ERR_OK when task completes successfully
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest009, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    pid_t callingPid = connectionStub_->GetCallingPid();
+    NodeId nodeId = MakeNodeId(callingPid, 1);
+    constexpr uint64_t timeoutNS = 1000000000; // 1s
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, nullptr, timeoutNS);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    ASSERT_TRUE(task->Marshalling(data));
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_OK);
+    EXPECT_GT(reply.GetDataSize(), 0);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTaskTest010
+ * @tc.desc: Test stub sets ERR_INVALID_STATE when task completes but Marshalling fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest010, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    constexpr size_t parcelMaxCapacity = 204800; // Parcel DEFAULT_CPACITY
+    std::vector<uint8_t> filler(parcelMaxCapacity, 0);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteBuffer(filler.data(), filler.size()));
+
+    pid_t callingPid = connectionStub_->GetCallingPid();
+    NodeId nodeId = MakeNodeId(callingPid, 1);
+    constexpr uint64_t timeoutNS = 1000000000; // 1s
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, nullptr, timeoutNS);
+    MessageParcel data;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    ASSERT_TRUE(task->Marshalling(data));
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**
