@@ -1630,4 +1630,50 @@ HWTEST_F(RSDirtyRegionManagerTest, ScaleSyncedFilterRegions, TestSize.Level1)
     ASSERT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), scaledRect);
     ASSERT_EQ(filterList.front().filterDirty_.GetBound().ToRectI(), scaledRect);
 }
+
+
+/**
+ * @tc.name: MergeUifirstDirtyRect001
+ * @tc.desc: test invalid input for Enabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC96MO
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect001, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI emptyRect;
+    dirtyManager.MergeUifirstDirtyRect(emptyRect);
+    EXPECT_TRUE(dirtyManager.GetUifirstFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: MergeUifirstDirtyRect002
+ * @tc.desc: test invalid input for Enabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC96MO
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect002, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI rect1 = {10, 20, 100, 100};
+    dirtyManager.MergeUifirstDirtyRect(rect1);
+    EXPECT_EQ(dirtyManager.GetUifirstFrameDirtyRegion(), rect1);
+}
+
+/**
+ * @tc.name: MergeUifirstDirtyRect003
+ * @tc.desc: test invalid input for Enabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC96MO
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect003, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI rect1 = {10, 20, 100, 100};
+    RectI rect2 = {50, 60, 150, 150};
+    dirtyManager.MergeUifirstDirtyRect(rect1);
+    dirtyManager.MergeUifirstDirtyRect(rect2);
+    RectI expectRect = rect1.JoinRect(rect2);
+    EXPECT_EQ(dirtyManager.GetUifirstFrameDirtyRegion(), expectRect);
+}
 } // namespace OHOS::Rosen
