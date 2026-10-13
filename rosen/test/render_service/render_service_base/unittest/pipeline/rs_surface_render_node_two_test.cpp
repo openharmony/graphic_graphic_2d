@@ -786,43 +786,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSurfaceSubTreeDirtyFlag, TestSize.Lev
 }
 
 /**
- * @tc.name: UpdateFilterCacheStatusWithVisible
- * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateFilterCacheStatusWithVisible, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    bool visible = true;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-    renderNode->UpdateFilterCacheStatusWithVisible(false);
-    renderNode->isOcclusionVisibleWithoutFilter_ = false;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    ASSERT_TRUE(renderNode->prevVisible_);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusIfNodeStatic
- * @tc.desc: test results of UpdateFilterCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
-    std::shared_ptr<RSRenderNode> mockNode = std::make_shared<RSRenderNode>(id);
-    mockNode->isOnTheTree_ = true;
-    mockNode->renderProperties_.needFilter_ = true;
-    node->filterNodes_.emplace_back(mockNode);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
-    ASSERT_NE(node->filterNodes_.size(), 0);
-}
-
-/**
  * @tc.name: CheckParticipateInOcclusion
  * @tc.desc: test results of CheckParticipateInOcclusion
  * @tc.type: FUNC

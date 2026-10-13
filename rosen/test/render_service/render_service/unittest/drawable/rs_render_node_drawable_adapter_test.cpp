@@ -781,12 +781,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, T
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
-    bool defaultSysProp = RSFilterCacheManager::isCCMFilterCacheEnable_;
-    RSFilterCacheManager::isCCMFilterCacheEnable_ = false;
+    bool defaultSysProp = RSFilterCacheManager::IsFilterCacheEnabled();
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
 
     EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
 
-    RSFilterCacheManager::isCCMFilterCacheEnable_ = defaultSysProp;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(defaultSysProp);
 }
 
 /**

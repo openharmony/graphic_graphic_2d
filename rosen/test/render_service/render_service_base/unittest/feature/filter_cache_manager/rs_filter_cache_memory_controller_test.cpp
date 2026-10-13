@@ -18,7 +18,7 @@
 #include <vector>
 #include <memory>
 
-#include "render/rs_filter_cache_memory_controller.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_system_properties.h"
 

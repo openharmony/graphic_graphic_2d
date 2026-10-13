@@ -1147,10 +1147,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
     canvas.surface_ = surface.get();
     EXPECT_NE(canvas.GetSurface(), nullptr);
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
-
-    canvas.disableFilterCache_ = false;
-    properties.foregroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
     EXPECT_NE(linearGradientFilter, nullptr);
 }
 

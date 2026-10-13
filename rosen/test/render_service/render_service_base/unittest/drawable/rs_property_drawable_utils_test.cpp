@@ -23,6 +23,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -33,7 +34,7 @@
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"
-#include "render/rs_filter_cache_memory_controller.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
@@ -1621,7 +1622,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     // Set up conditions to satisfy the branch:
 
     // 1. Enable filter cache
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     // 2. Create valid filter
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
@@ -1649,7 +1650,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     Drawing::RectI bounds(0, 0, 400, 400);
 
     // Verify all conditions are satisfied
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1673,7 +1674,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Set up conditions to satisfy the branch
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     // Create a valid filter
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
@@ -1698,7 +1699,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     Drawing::RectI bounds(0, 0, 200, 200);
 
     // Verify conditions
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1718,7 +1719,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Disable filter cache to ensure the branch is NOT taken
-    RSProperties::filterCacheEnabled_ = false;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1738,7 +1739,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify the first condition is false while others are true
-    EXPECT_FALSE(RSProperties::filterCacheEnabled_);
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1758,7 +1759,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest006, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Enable filter cache but disable it on canvas
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1778,7 +1779,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest006, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify one condition is false while others are true
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_TRUE(paintFilterCanvas.GetDisableFilterCache()); // This should prevent cache branch
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1798,7 +1799,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest007, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Enable filter cache but set up memory threshold to be exceeded
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1820,7 +1821,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest007, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify conditions
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_TRUE(cacheManager->IsFilterCacheMemExceedThreshold()); // This should prevent cache branch
@@ -1839,7 +1840,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest008, testing::ext:
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1856,7 +1857,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest008, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify one condition is false while others can't be checked (null cacheManager)
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_EQ(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
 
@@ -1875,7 +1876,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Set up all conditions to satisfy the cache branch
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1895,7 +1896,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
     Drawing::RectI bounds(0, 0, 400, 400);
 
     // Verify all conditions are satisfied
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());

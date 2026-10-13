@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "render/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "rs_trace.h"
 #include "common/rs_occlusion_region.h"
 #include "render/rs_filter.h"
@@ -33,7 +33,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_filter_cache_memory_controller.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "render/rs_high_performance_visual_engine.h"
 
 #ifdef USE_M133_SKIA
@@ -48,9 +48,28 @@ namespace Rosen {
 constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 6;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
-bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
-bool RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
 int64_t RSFilterCacheManager::frameTimestamp_ = 0;
+
+std::atomic<bool> RSFilterCacheManager::effectMergeEnabled_ = RSSystemProperties::GetEffectMergeEnabled();
+std::atomic<bool> RSFilterCacheManager::filterCacheEnabled_ =
+    RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
+void RSFilterCacheManager::SetEffectMergeEnabledByCCM(bool ccmEnable)
+{
+    effectMergeEnabled_.store(ccmEnable && RSSystemProperties::GetEffectMergeEnabled());
+}
+bool RSFilterCacheManager::IsEffectMergeEnabled()
+{
+    return effectMergeEnabled_.load();
+}
+void RSFilterCacheManager::SetFilterCacheEnabledByCCM(bool ccmEnable)
+{
+    filterCacheEnabled_.store(
+        ccmEnable && RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender());
+}
+bool RSFilterCacheManager::IsFilterCacheEnabled()
+{
+    return filterCacheEnabled_.load();
+}
 
 RSFilterCacheManager::RSFilterCacheManager()
 {
@@ -72,80 +91,6 @@ std::string RSFilterCacheManager::GetCacheState() const
             cachedSnapshot_->GetInfo();
     } else {
         return "No valid cache found.";
-    }
-}
-
-void RSFilterCacheManager::UpdateCacheStateWithFilterHash(const std::shared_ptr<RSFilter>& filter)
-{
-    RS_OPTIONAL_TRACE_FUNC();
-    auto filterHash = filter->Hash();
-    if (cachedFilteredSnapshot_ == nullptr || cachedFilterHash_ == filterHash) {
-        return;
-    }
-    // filter changed, clear the filtered snapshot.
-    ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithFilterHash Cache expired. Reason: Cached filtered hash "
-               "%{public}X does not match new hash %{public}X.",
-        cachedFilterHash_, filterHash);
-    InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
-}
-
-void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
-{
-    if (!IsCacheValid()) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_FUNC();
-
-    ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithFilterRegion Cache expired. Reason: Filter region is not "
-               "within the cached region.");
-    InvalidateFilterCache();
-}
-
-void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
-{
-    if (!IsCacheValid()) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_FUNC();
-    if (cacheUpdateInterval_ > 0) {
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
-                    "invalidation for %{public}d frames.",
-            cacheUpdateInterval_);
-        pendingPurge_ = true;
-    } else {
-        InvalidateFilterCache();
-    }
-}
-
-bool RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RSDirtyRegionManager& dirtyManager)
-{
-    if (!IsCacheValid()) {
-        return false;
-    }
-    RS_OPTIONAL_TRACE_FUNC();
-    auto& cachedImageRect = GetCachedImageRegion();
-    if (dirtyManager.currentFrameDirtyRegion_.Intersect(cachedImageRect) ||
-        std::any_of(dirtyManager.visitedDirtyRegions_.begin(), dirtyManager.visitedDirtyRegions_.end(),
-            [&cachedImageRect](const RectI& rect) { return rect.Intersect(cachedImageRect); })) {
-        // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache
-        // age. [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
-        if (cacheUpdateInterval_ > 0) {
-            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
-                       "invalidation for %{public}d frames.",
-                cacheUpdateInterval_);
-            pendingPurge_ = true;
-        } else {
-            InvalidateFilterCache();
-        }
-        return false;
-    }
-    if (pendingPurge_) {
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion MergeDirtyRect at %{public}d frames",
-            cacheUpdateInterval_);
-        InvalidateFilterCache();
-        return true;
-    } else {
-        return false;
     }
 }
 
@@ -182,7 +127,6 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     bool discardCanvas = CanDiscardCanvas(canvas, dst);
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
     filter->PostProcess(canvas);
-    cachedFilterHash_ = filter->Hash();
     return true;
 }
 
@@ -337,7 +281,6 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     ReplaceCachedEffectData(std::move(snapshot), snapshotIBounds,
         GetFrameTimestamp(), cachedSnapshot_);
-    cachedFilterHash_ = 0;
 }
 
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -861,12 +804,6 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
     return false;
 }
 
-void RSFilterCacheManager::ReleaseCacheOffTree()
-{
-    RS_OPTIONAL_TRACE_FUNC();
-    InvalidateFilterCache(FilterCacheType::BOTH);
-}
-
 FilterCacheType RSFilterCacheManager::GetCachedType() const
 {
     if (cachedSnapshot_ == nullptr && cachedFilteredSnapshot_ == nullptr) {
@@ -886,24 +823,6 @@ const RectI& RSFilterCacheManager::GetCachedImageRegion() const
 {
     static const auto emptyRect = RectI();
     return IsCacheValid() ? snapshotRegion_ : emptyRect;
-}
-
-inline static bool IsCacheInvalid(const RSPaintFilterCanvas::CachedEffectData& cache, RSPaintFilterCanvas& canvas)
-{
-    return cache.cachedImage_ == nullptr || !cache.cachedImage_->IsValid(canvas.GetGPUContext().get());
-}
-
-void RSFilterCacheManager::CheckCachedImages(RSPaintFilterCanvas& canvas)
-{
-    if (cachedSnapshot_ != nullptr && IsCacheInvalid(*cachedSnapshot_, canvas)) {
-        ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedSnapshot_ is invalid");
-        InvalidateFilterCache(FilterCacheType::SNAPSHOT);
-    }
-
-    if (cachedFilteredSnapshot_ != nullptr && IsCacheInvalid(*cachedFilteredSnapshot_, canvas)) {
-        ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedFilteredSnapshot_ is invalid");
-        InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
-    }
 }
 
 std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
@@ -990,21 +909,6 @@ void RSFilterCacheManager::CompactFilterCache()
 
     InvalidateFilterCache(renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::SNAPSHOT);
-}
-
-void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
-    const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound)
-{
-    if (!takeNewSnapshot_) {
-        return;
-    }
-    auto drawnRegion = canvas.GetDrawnRegion();
-    Occlusion::Region filterRegion(
-        Occlusion::Rect(filterBound.left_, filterBound.top_, filterBound.right_, filterBound.bottom_));
-    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty() && !filterRegion.And(drawnRegion).IsEmpty();
-    if (isCacheInvalid) {
-        InvalidateFilterCache(FilterCacheType::BOTH);
-    }
 }
 
 void RSFilterCacheManager::MarkDebugEnabled()

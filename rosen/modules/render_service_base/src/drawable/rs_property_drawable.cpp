@@ -34,7 +34,6 @@
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
@@ -254,7 +253,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 
 RSFilterDrawable::RSFilterDrawable()
 {
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
@@ -299,10 +298,10 @@ void RSFilterDrawable::OnSync()
 
     needSync_ = false;
 
-    if (!RSProperties::filterCacheEnabled_ || stagingCacheManager_ == nullptr ||
+    if (!RSFilterCacheManager::IsFilterCacheEnabled() || stagingCacheManager_ == nullptr ||
         cacheManager_ == nullptr || filter_ == nullptr) {
         ROSEN_LOGD("Clear filter cache failed or no need to clear cache, filterCacheEnabled:%{public}d,"
-            "cacheManager:%{public}d, filter:%{public}d", RSProperties::filterCacheEnabled_,
+            "cacheManager:%{public}d, filter:%{public}d", RSFilterCacheManager::IsFilterCacheEnabled(),
             stagingCacheManager_ != nullptr, filter_ == nullptr);
         return;
     }

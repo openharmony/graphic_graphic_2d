@@ -25,6 +25,7 @@
 #include "effect/rs_render_shape_base.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -943,16 +944,18 @@ HWTEST_F(RSRenderNodeTest2, ForceReduceAIBarCacheInterval, TestSize.Level1)
 {
     RSRenderNode node(id, context);
 #ifdef RS_ENABLE_GPU
-    RSProperties::filterCacheEnabled_ = false;
+    bool defaultEnabled = RSFilterCacheManager::IsFilterCacheEnabled();
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = drawable;
     EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(defaultEnabled);
 #else
     EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 #endif
@@ -1261,7 +1264,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
+    ASSERT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
@@ -1523,7 +1526,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
+    ASSERT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2407,7 +2410,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode03, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
+    ASSERT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();

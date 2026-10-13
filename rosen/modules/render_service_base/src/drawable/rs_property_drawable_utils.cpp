@@ -33,6 +33,7 @@
 #include "render/rs_color_picker.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
@@ -589,7 +590,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
-        RSProperties::filterCacheEnabled_ && !cacheManager->IsFilterCacheMemExceedThreshold());
+        RSFilterCacheManager::IsFilterCacheEnabled() && !cacheManager->IsFilterCacheMemExceedThreshold());
     if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
@@ -800,7 +801,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
+    if (RSFilterCacheManager::IsFilterCacheEnabled() && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
         !cacheManager->IsFilterCacheMemExceedThreshold()) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
@@ -1562,7 +1563,7 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
     const auto& effectData = useEffectType == UseEffectType::EFFECT_COMPONENT ?
         canvas->GetEffectData() : canvas->GetBehindWindowData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr ||
-        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+        !RSFilterCacheManager::IsEffectMergeEnabled()) {
         return;
     }
     RS_TRACE_FUNC();

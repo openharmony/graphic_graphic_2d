@@ -148,30 +148,6 @@ HWTEST_F(PropertiesTest, SetClipToBoundsTest, TestSize.Level1)
     EXPECT_TRUE(properties.geoDirty_);
 }
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-/**
- * @tc.name: CreateFilterCacheManagerIfNeedTest
- * @tc.desc: test results of CreateFilterCacheManagerIfNeed
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, CreateFilterCacheManagerIfNeedTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.filter_ = std::make_shared<RSFilter>();
-    properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.filter_ != nullptr);
-
-    properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.filter_ != nullptr);
-}
-#endif
-
 /**
  * @tc.name: OnApplyModifiersTest
  * @tc.desc: test results of OnApplyModifiers
@@ -1120,14 +1096,6 @@ HWTEST_F(PropertiesTest, CalculateFrameOffsetTest, TestSize.Level1)
 HWTEST_F(PropertiesTest, SetHaveEffectRegionTest, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetHaveEffectRegion(false);
-    EXPECT_NE(properties.isDrawn_, true);
-
-    properties.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    properties.backgroundFilterCacheManager_->cachedSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    properties.backgroundFilterCacheManager_->cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     properties.SetHaveEffectRegion(false);
     EXPECT_NE(properties.isDrawn_, true);
 }

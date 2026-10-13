@@ -376,7 +376,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired002, TestSize.Level1)
 
 /**
  * @tc.name: IsBlurNotRequired003
- * @tc.desc: Test IsBlurNotRequired when RSFilterCacheManager::isCCMEffectMergeEnable_ == false
+ * @tc.desc: Test IsBlurNotRequired when SetEffectMergeEnabledByCCM(false)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -390,7 +390,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired003, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = false;
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(false);
     EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
 }
 
@@ -410,7 +410,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired004, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
 
     paintFilterCanvas.SetUICapture(true);
     EXPECT_FALSE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
@@ -432,7 +432,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired005, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
 
     paintFilterCanvas.SetUICapture(false);
     params.SetHasEffectChildren(false);
@@ -463,8 +463,8 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired006, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    bool originalCCMEffectMergeEnable = RSFilterCacheManager::isCCMEffectMergeEnable_;
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    bool originalCCMEffectMergeEnable = RSFilterCacheManager::IsEffectMergeEnabled();
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
     paintFilterCanvas.SetUICapture(false);
     paintFilterCanvas.SetIsParallelCanvas(false);
 
@@ -479,7 +479,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired006, TestSize.Level1)
     paintFilterCanvas.SetCrossNodeDraw(false);
     EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
 
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = originalCCMEffectMergeEnable;
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(originalCCMEffectMergeEnable);
 }
 
 /**
@@ -498,8 +498,8 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired007, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
-    bool originalCCMEffectMergeEnable = RSFilterCacheManager::isCCMEffectMergeEnable_;
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+    bool originalCCMEffectMergeEnable = RSFilterCacheManager::IsEffectMergeEnabled();
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
     paintFilterCanvas.SetUICapture(false);
     paintFilterCanvas.SetCrossNodeDraw(false);
     params.SetHasEffectChildren(true);
@@ -513,7 +513,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired007, TestSize.Level1)
     paintFilterCanvas.SetIsParallelCanvas(false);
     EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
 
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = originalCCMEffectMergeEnable;
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(originalCCMEffectMergeEnable);
 }
 
 /**

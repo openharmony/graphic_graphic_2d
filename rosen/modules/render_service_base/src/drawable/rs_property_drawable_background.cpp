@@ -45,6 +45,7 @@
 #include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_drawing_filter.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -789,7 +790,7 @@ void RSUseEffectDrawable::OnSync()
 
 void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+    if (!RSFilterCacheManager::IsEffectMergeEnabled()) {
         return;
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);

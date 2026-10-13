@@ -18,6 +18,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_effect_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 class RSEffectRenderNode;
@@ -49,8 +50,7 @@ private:
     //   children, parallel canvas, or cross-node draw.
     bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
     {
-        if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
-            !RSFilterCacheManager::isCCMEffectMergeEnable_) {
+        if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSFilterCacheManager::IsEffectMergeEnabled()) {
             return true;
         }
         if (paintFilterCanvas->GetUICapture()) {

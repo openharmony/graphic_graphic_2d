@@ -1477,14 +1477,6 @@ public:
         return isFilterCacheStatusChanged_;
     }
 
-    void ResetFilterNodes()
-    {
-        filterNodes_.clear();
-    }
-    void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // update static node's back&front-ground filter cache status
-    void UpdateFilterCacheStatusWithVisible(bool visible);
-    void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
@@ -2209,7 +2201,6 @@ private:
     bool isScale_ = false;
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
-    bool prevVisible_ = false;
 
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
@@ -2395,8 +2386,6 @@ private:
 
     Occlusion::Region containerRegion_;
     std::unordered_set<NodeId> abilityNodeIds_;
-    // valid filter nodes within, including itself
-    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
 

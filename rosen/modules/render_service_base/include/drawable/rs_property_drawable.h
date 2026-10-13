@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "render/rs_filter.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable.h"
@@ -30,7 +31,6 @@
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
-class RSFilterCacheManager;
 class ExtendRecordingCanvas;
 namespace Drawing {
 class GEVisualEffectContainer;

@@ -32,7 +32,6 @@
 #include "property/rs_spatial_effect_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
@@ -899,11 +898,6 @@ public:
         return GetColorBlendApplyType() != static_cast<int>(RSColorBlendApplyType::FAST);
     }
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    void ClearFilterCache();
-#endif
-
     RRect GetRRect() const;
     RRect GetInnerRRect() const;
     RectF GetFrameRect() const;
@@ -915,7 +909,6 @@ public:
 
     void ResetBorder(bool isOutline);
 
-    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
     RRect GetRRectForSDF() const;
     void SetGeoDirty();
@@ -1072,12 +1065,6 @@ private:
 
     Drawing::Matrix prevAbsMatrix_;
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void CreateFilterCacheManagerIfNeed();
-    std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
-    std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static bool filterCacheEnabled_;
-#endif
     static bool blurAdaptiveAdjustEnabled_;
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
