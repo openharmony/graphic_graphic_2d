@@ -58,6 +58,8 @@ ohos_shared_library("libframe_analyzer") {
       "init:libbegetutil",
       "skia:skia_canvaskit",
     ]
+
+    ldflags = [ "-Wl,--exclude-libs,libc++_static.a" ]
   } else {
     sources = [
       "src/mingw/frame_collector.cpp",
@@ -73,6 +75,8 @@ ohos_shared_library("libframe_analyzer") {
   configs = [ ":libframe_analyzer_config" ]
 
   public_configs = [ ":libframe_analyzer_public_config" ]
+
+  version_script = "libframe_analyzer.versionscript"
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
