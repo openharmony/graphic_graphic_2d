@@ -37,6 +37,7 @@ public:
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId) const override { return nullptr; }
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override { return {}; }
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId) const override { return nullptr; }
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override { return nullptr; }
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t) override { return nullptr; }
 
     sptr<IRemoteObject> OnScreenConnected(ScreenId, const std::shared_ptr<HdiOutput>&,

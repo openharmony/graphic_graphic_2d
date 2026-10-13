@@ -784,5 +784,10 @@ bool RSRenderInterface::SetDelegateMode(NodeId id, bool isDelegateMode)
 {
     return renderPipelineClient_->SetDelegateMode(id, isDelegateMode, getpid());
 }
+
+bool RSRenderInterface::CleanDelegateModeBufferCmd(NodeId id)
+{
+    return renderPipelineClient_->CleanDelegateModeBufferCmd(id);
+}
 }
 }

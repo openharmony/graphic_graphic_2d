@@ -80,6 +80,7 @@ private:
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
     ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) override;

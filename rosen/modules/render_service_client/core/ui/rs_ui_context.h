@@ -33,6 +33,7 @@
 #include <iremote_object.h>
 #include <memory>
 #include <mutex>
+#include <set>
 
 #include "animation/rs_animation.h"
 #include "animation/rs_implicit_animator.h"
@@ -240,6 +241,9 @@ public:
      * @param id The ID of the RSInteractiveImplictAnimator to be removed.
      */
     void RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id);
+
+    // Collect node ids that are children of any group animator, so they can be kept alive across background.
+    std::set<NodeId> GetGroupAnimationNodeIds();
 
     void SetColorSpace(GraphicColorGamut colorSpace)
     {

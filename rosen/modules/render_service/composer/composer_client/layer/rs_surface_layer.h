@@ -159,6 +159,7 @@ public:
     void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount,
         bool needUpdate) override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override;
+    bool HasBufferOwnerCountById(uint64_t bufferId) const override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;

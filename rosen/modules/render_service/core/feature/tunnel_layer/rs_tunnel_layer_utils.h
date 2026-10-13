@@ -32,6 +32,12 @@ inline constexpr const char* TUNNEL_DEBUG_PREFIX = "TUNNEL_DEBUG ";
 // before activation while avoiding excessive delay in tunnel startup.
 inline constexpr uint32_t TUNNEL_STABLE_THRESHOLD = 5;
 
+// Consecutive DoComp-success frames required before NOT_TUNNEL can transition to BUILDING.
+// A surface cannot enter tunnel building until composition has been proven stable for this
+// many consecutive frames, even if layerId/property are already set by the listener.
+// Gates on the arbiter's process-level consecutiveSolePresentCount_ — no per-node counter.
+inline constexpr uint32_t TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD = 3;
+
 inline bool IsNewTunnelEnabled()
 {
     return TunnelLayerParam::IsNewTunnelEnabled() && RSSystemProperties::GetNewTunnelEnabled();

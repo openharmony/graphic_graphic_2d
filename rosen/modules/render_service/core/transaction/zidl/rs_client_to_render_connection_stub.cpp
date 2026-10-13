@@ -136,6 +136,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD),
 };
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -2030,6 +2031,20 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             RS_LOGI("MARK_WEB_NODE nodeId: %{public}" PRIu64 ", isSetDelegateMode: %{public}d", id, isSetDelegateMode);
             if (!SetDelegateMode(id, isSetDelegateMode, pid)) {
                 RS_LOGE("DelegateModeDebugTag:MARK_WEB_NODE: SetDelegateMode fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            ret = ERR_NONE;
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD): {
+            uint64_t id = 0;
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("DelegateModeDebugTag:CLEAN_DELEGATE_BUFFER_CMD: read data fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            RS_LOGI("CLEAN_DELEGATE_BUFFER_CMD nodeId: %{public}" PRIu64, id);
+            if (!CleanDelegateModeBufferCmd(id)) {
+                RS_LOGE("DelegateModeDebugTag:CLEAN_DELEGATE_BUFFER_CMD: CleanDelegateModeBufferCmd fail");
                 return IPC_STUB_INVALID_DATA_ERR;
             }
             ret = ERR_NONE;

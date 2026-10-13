@@ -4748,6 +4748,20 @@ bool RSRenderNode::HasAnimation() const
 {
     return animationManager_ && !animationManager_->animations_.empty();
 }
+
+bool RSRenderNode::HasInfiniteGroupAnimationChild() const
+{
+    if (!animationManager_) {
+        return false;
+    }
+    for (const auto& [_, animation] : animationManager_->animations_) {
+        if (animation && animation->IsGroupAnimationChild() && animation->GetGroupRepeatCount() == -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     if (rect && (rect->GetHeight() >= std::numeric_limits<uint16_t>::max() ||

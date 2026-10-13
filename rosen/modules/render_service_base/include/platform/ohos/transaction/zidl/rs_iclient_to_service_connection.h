@@ -227,6 +227,8 @@ public:
 
     virtual ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) = 0;
 
+    virtual std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid) = 0;
+
     virtual ErrCode GetScreenBacklight(uint64_t id, int32_t& level) = 0;
 
     virtual void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) = 0;

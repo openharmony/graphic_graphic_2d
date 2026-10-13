@@ -15,11 +15,11 @@
 
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 
+#include "platform/common/rs_log.h"
+#include "common/rs_optional_trace.h"
+
 namespace OHOS {
 namespace Rosen {
-std::mutex RSTunnelRuntimeStore::mutex_;
-std::unordered_map<NodeId, std::shared_ptr<RSTunnelRuntimeState>> RSTunnelRuntimeStore::tunnelRuntimeStates_;
-
 void RSTunnelRuntimeState::SetLayerInfo(uint64_t tunnelLayerId, uint32_t property)
 {
     tunnelLayerId_.store(tunnelLayerId, std::memory_order_release);
@@ -39,20 +39,49 @@ RSTunnelRuntimeState::TunnelState RSTunnelRuntimeState::GetTunnelState() const
 
 void RSTunnelRuntimeState::SetBuilding()
 {
-    tunnelLayerGeneration_.fetch_add(1, std::memory_order_acq_rel);
     phase_.store(Phase::TUNNEL_IDLE, std::memory_order_release);
     pendingParam_.store(false, std::memory_order_release);
     tunnelState_.store(TunnelState::BUILDING, std::memory_order_release);
 }
 
+void RSTunnelRuntimeState::IncrementTunnelLayerGeneration()
+{
+    tunnelLayerGeneration_.fetch_add(1, std::memory_order_acq_rel);
+}
+
+void RSTunnelRuntimeState::SetNotTunnel()
+{
+    tunnelLayerId_.store(0, std::memory_order_release);
+    tunnelLayerProperty_.store(TUNNEL_PROP_INVALID, std::memory_order_release);
+    phase_.store(Phase::TUNNEL_IDLE, std::memory_order_release);
+    pendingParam_.store(false, std::memory_order_release);
+    tunnelState_.store(TunnelState::NOT_TUNNEL, std::memory_order_release);
+}
+
 bool RSTunnelRuntimeState::SetActiveFromTunnelLayerAvailable(uint64_t tunnelLayerGeneration)
 {
     if (!IsCurrentTunnelLayerGeneration(tunnelLayerGeneration)) {
+        RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s rejected, "
+            "reason:generation mismatch, "
+            "incoming:%{public}" PRIu64 ", current:%{public}" PRIu64,
+            __func__, tunnelLayerGeneration,
+            tunnelLayerGeneration_.load(std::memory_order_acquire));
+        RS_OPTIONAL_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, reason:generation mismatch, "
+            "incoming:%" PRIu64 ", current:%" PRIu64,
+            __func__, tunnelLayerGeneration,
+            tunnelLayerGeneration_.load(std::memory_order_acquire));
         return false;
     }
     TunnelState expected = TunnelState::BUILDING;
-    return tunnelState_.compare_exchange_strong(
-        expected, TunnelState::ACTIVE, std::memory_order_acq_rel, std::memory_order_acquire);
+    if (tunnelState_.compare_exchange_strong(
+        expected, TunnelState::ACTIVE, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s BUILDING -> ACTIVE, generation:%" PRIu64,
+            __func__, tunnelLayerGeneration);
+        RS_LOGI("TUNNEL_DEBUG %{public}s BUILDING -> ACTIVE, generation:%{public}" PRIu64,
+            __func__, tunnelLayerGeneration);
+        return true;
+    }
+    return false;
 }
 
 bool RSTunnelRuntimeState::IsTunnelDirectAllowed() const
@@ -71,10 +100,23 @@ bool RSTunnelRuntimeState::IsCurrentTunnelLayerGeneration(uint64_t tunnelLayerGe
         tunnelLayerGeneration == tunnelLayerGeneration_.load(std::memory_order_acquire);
 }
 
-void RSTunnelRuntimeState::Clear()
+void RSTunnelRuntimeState::DisableTunnelLayer()
 {
-    SetLayerInfo(0, TUNNEL_PROP_INVALID);
-    SetBuilding();
+    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s disable tunnelId:%{public}" PRIu64
+        " tunnelLayerProperty:%{public}u", __func__, tunnelLayerId_.load(std::memory_order_acquire),
+        tunnelLayerProperty_.load(std::memory_order_acquire));
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s disable tunnelId:%" PRIu64 "tunnelLayerProperty:%u",
+         __func__, tunnelLayerId_.load(std::memory_order_acquire),
+        tunnelLayerProperty_.load(std::memory_order_acquire));
+    SetNotTunnel();
+    ClearCommittedTunnelBuffer();
+}
+
+void RSTunnelRuntimeState::ResetStateKeepLayerInfo()
+{
+    phase_.store(Phase::TUNNEL_IDLE, std::memory_order_release);
+    pendingParam_.store(false, std::memory_order_release);
+    tunnelState_.store(TunnelState::NOT_TUNNEL, std::memory_order_release);
     ClearCommittedTunnelBuffer();
 }
 
@@ -145,6 +187,7 @@ RSTunnelRuntimeState::ClaimResult RSTunnelRuntimeState::TryClaimByMain(bool need
         if (phase_.compare_exchange_weak(expected, Phase::NORMAL_PREPARING,
             std::memory_order_acq_rel, std::memory_order_acquire)) {
             pendingParam_.store(false, std::memory_order_release);
+            ClearCommittedTunnelBuffer();
             return ClaimResult::GO_NORMAL;
         }
     }
@@ -154,6 +197,7 @@ RSTunnelRuntimeState::ClaimResult RSTunnelRuntimeState::TryClaimByMain(bool need
     }
     if (expected == Phase::NORMAL_PREPARING) {
         pendingParam_.store(false, std::memory_order_release);
+        ClearCommittedTunnelBuffer();
         return ClaimResult::GO_NORMAL;
     }
     return ClaimResult::KEEP_DIRECT;
@@ -174,7 +218,6 @@ void RSTunnelRuntimeState::AbandonNormalClaim()
     pendingParam_.store(false, std::memory_order_release);
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 const RSTunnelRuntimeState::LastFrameRouteSnapshot& RSTunnelRuntimeState::GetLastFrameRouteSnapshot() const
 {
     return lastFrameRouteSnapshot_;
@@ -183,86 +226,6 @@ const RSTunnelRuntimeState::LastFrameRouteSnapshot& RSTunnelRuntimeState::GetLas
 void RSTunnelRuntimeState::UpdateLastFrameRouteSnapshot(const LastFrameRouteSnapshot& snapshot)
 {
     lastFrameRouteSnapshot_ = snapshot;
-}
-#endif
-
-RSTunnelRuntimeState& RSTunnelRuntimeStore::GetOrCreate(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto& tunnelRuntime = tunnelRuntimeStates_[nodeId];
-    if (tunnelRuntime == nullptr) {
-        tunnelRuntime = std::make_shared<RSTunnelRuntimeState>();
-    }
-    return *tunnelRuntime;
-}
-
-std::shared_ptr<RSTunnelRuntimeState> RSTunnelRuntimeStore::TryGet(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        return nullptr;
-    }
-    return iter->second;
-}
-
-bool RSTunnelRuntimeStore::GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        tunnelLayerId = 0;
-        property = TUNNEL_PROP_INVALID;
-        return false;
-    }
-    iter->second->GetLayerInfo(tunnelLayerId, property);
-    return true;
-}
-
-void RSTunnelRuntimeStore::GetLayerInfoOrDefault(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property)
-{
-    (void)GetLayerInfoIfPresent(nodeId, tunnelLayerId, property);
-}
-
-void RSTunnelRuntimeStore::SetLayerInfo(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property)
-{
-    GetOrCreate(nodeId).SetLayerInfo(tunnelLayerId, property);
-}
-
-uint64_t RSTunnelRuntimeStore::GetTunnelLayerGeneration(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        return 0;
-    }
-    return iter->second->GetTunnelLayerGeneration();
-}
-
-bool RSTunnelRuntimeStore::IsTunnelActive(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        return false;
-    }
-    return iter->second->GetTunnelState() == RSTunnelRuntimeState::TunnelState::ACTIVE;
-}
-
-void RSTunnelRuntimeStore::Clear(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        return;
-    }
-    iter->second->Clear();
-}
-
-void RSTunnelRuntimeStore::Erase(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    tunnelRuntimeStates_.erase(nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

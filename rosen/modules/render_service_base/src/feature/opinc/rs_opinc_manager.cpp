@@ -25,8 +25,16 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
 [[maybe_unused]] constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
+constexpr int16_t MAX_ALPHA = 255;
 
 namespace {
+static bool IsTransparentNode(const RSRenderNode& node)
+{
+    const auto& properties = node.GetRenderProperties();
+    return ROSEN_NE(node.GetGlobalAlpha(), 1.0f) ||
+        properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA || ROSEN_NE(properties.GetAlpha(), 1.0f);
+}
+
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
 {
     node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
@@ -413,9 +421,9 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     if (!layerPartRenderCache->IsLayerPartRender()) {
         return;
     }
-
-    if (node.GetOpincCache().IsMaterialNode()) {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node, suspend layer part render", node.GetId());
+    if (node.GetOpincCache().IsMaterialNode() || IsTransparentNode(node)) {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node or transparent background or transparent node,"
+            "suspend layer part render", node.GetId());
         mutableLayerPartRenderCache.MarkSuggestLayerPartRenderNode(false);
         mutableLayerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
         return;

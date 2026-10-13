@@ -60,7 +60,9 @@ bool RSRenderInteractiveImplictAnimatorMap::UpdateGroupAnimators(int64_t timesta
     }
     for (auto& animator : timeDrivenAnimators) {
         animator->OnAnimate(timestamp, minLeftDelayTime);
-        if (animator->IsRunning()) {
+        // Background group animators skip advancement in OnAnimate but keep RUNNING state;
+        // exclude them so the main thread stops requesting vsync while the ability is backgrounded.
+        if (animator->IsRunning() && !animator->IsBackground()) {
             hasRunningGroupAnimators = true;
         }
     }

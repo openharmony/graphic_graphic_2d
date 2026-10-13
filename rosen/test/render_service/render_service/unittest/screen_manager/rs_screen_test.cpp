@@ -2834,6 +2834,27 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
         EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
         EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::SUCCESS);
     }
+
+    // case 5: verify property update for both ENTER and EXIT
+    {
+        ScreenId screenId = mockScreenId_;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _))
+            .WillRepeatedly(testing::Return(0));
+        EXPECT_EQ(rsScreen->SetDualScreenState(DualScreenStatus::DUAL_SCREEN_ENTER),
+            StatusCode::SUCCESS);
+        EXPECT_EQ(rsScreen->property_.GetDualScreenState(),
+            DualScreenStatus::DUAL_SCREEN_ENTER);
+
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _))
+            .WillRepeatedly(testing::Return(0));
+        EXPECT_EQ(rsScreen->SetDualScreenState(DualScreenStatus::DUAL_SCREEN_EXIT),
+            StatusCode::SUCCESS);
+        EXPECT_EQ(rsScreen->property_.GetDualScreenState(),
+            DualScreenStatus::DUAL_SCREEN_EXIT);
+    }
 }
 
 /*

@@ -327,6 +327,16 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSMultiRenderProcessManager::Get
     return stateStore_.GetServiceToRenderConns();
 }
 
+sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConnByPid(pid_t pid) const
+{
+    auto uidOpt = stateStore_.GetValidRenderProcessUniqueIdByPid(pid);
+    if (!uidOpt.has_value()) {
+        RS_LOGE("%{public}s: GetConnectToRenderConnByPid failed", __func__);
+        return nullptr;
+    }
+    return stateStore_.GetServiceToRenderConnByUniqueId(uidOpt.value());
+}
+
 sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderConnection(ScreenId screenId) const
 {
     auto optionalProcessUniqueId =

@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_geometry.h"
-#include "draw/surface.h"
 #include "drawable/rs_property_drawable.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
@@ -235,11 +234,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableTestSDF, TestSize.Level1)
     // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
     Drawing::Rect rect { 1.0f, 1.0f, 2.0f, 2.0f };
     drawable->OnDraw(&canvas, &rect);
-    NodeId testId = 1;
-    RSRenderNode nodeTest(testId);
-    drawable->OnUpdate(nodeTest);
-    drawable->OnSync();
-    EXPECT_NE(drawable->type_, RSClipToBoundsType::CLIP_SDF);
+    EXPECT_EQ(drawable->geContainer_, nullptr);
 
     NodeId id = 3;
     RSRenderNode node(id);
@@ -249,7 +244,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableTestSDF, TestSize.Level1)
     drawable->OnSync();
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->OnDraw(&paintFilterCanvas, &rect);
-    EXPECT_EQ(drawable->type_, RSClipToBoundsType::CLIP_SDF);
+    EXPECT_NE(drawable->geContainer_, nullptr);
 }
 
 /**
@@ -736,74 +731,4 @@ HWTEST_F(RSPropertyDrawableTest, GetAbsRenderEffectRect001, TestSize.Level1)
         Drawing::RectI(result.GetLeft(), result.GetTop(), result.GetRight(), result.GetBottom()));
 }
 
-/**
- * @tc.name: DrawSdfClipEmptyOffscreenTest
- * @tc.desc: Test DrawSdfClip with empty offscreen → early return (branch 1)
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, DrawSdfClipEmptyOffscreenTest, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas pfCanvas(&canvas);
-    Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::DrawSdfClip(pfCanvas, nullptr, sdfRect, nullptr);
-    EXPECT_TRUE(pfCanvas.GetOffscreenDataList().empty());
-}
-
-/**
- * @tc.name: DrawSdfClipWithOffscreenTest
- * @tc.desc: Test DrawSdfClip with offscreen: null geContainer+frameRect → skip shader (branches 2,3,7)
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, DrawSdfClipWithOffscreenTest, TestSize.Level1)
-{
-    auto surface = Drawing::Surface::MakeRasterN32Premul(200, 200);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas pfCanvas(surface.get());
-    RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
-    EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
-    Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::DrawSdfClip(pfCanvas, nullptr, sdfRect, nullptr);
-    EXPECT_TRUE(pfCanvas.GetOffscreenDataList().empty());
-}
-
-/**
- * @tc.name: DrawSdfClipShaderSkipTest
- * @tc.desc: Test DrawSdfClip: geContainer non-null + frameRect null → skip shader (branch 7)
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, DrawSdfClipShaderSkipTest, TestSize.Level1)
-{
-    auto surface = Drawing::Surface::MakeRasterN32Premul(200, 200);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas pfCanvas(surface.get());
-    RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
-    EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
-    Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
-    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    RSPropertyDrawableUtils::DrawSdfClip(pfCanvas, geContainer, sdfRect, nullptr);
-    EXPECT_TRUE(pfCanvas.GetOffscreenDataList().empty());
-}
-
-/**
- * @tc.name: DrawSdfClipShaderRunTest
- * @tc.desc: Test DrawSdfClip: geContainer+frameRect non-null → run shader (branch 6)
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, DrawSdfClipShaderRunTest, TestSize.Level1)
-{
-    auto surface = Drawing::Surface::MakeRasterN32Premul(200, 200);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas pfCanvas(surface.get());
-    RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
-    EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
-    Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
-    Drawing::Rect frameRect(0.0f, 0.0f, 100.0f, 100.0f);
-    auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    RSPropertyDrawableUtils::DrawSdfClip(pfCanvas, geContainer, sdfRect, &frameRect);
-    EXPECT_TRUE(pfCanvas.GetOffscreenDataList().empty());
-}
 } // namespace OHOS::Rosen

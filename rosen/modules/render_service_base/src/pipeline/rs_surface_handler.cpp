@@ -132,6 +132,7 @@ RSSurfaceHandler::~RSSurfaceHandler() noexcept
     FlushGPUCacheCleanup();
 #endif
 }
+
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)
 {

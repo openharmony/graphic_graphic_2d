@@ -33,6 +33,10 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "string_utils.h"
 
+#ifdef RES_SCHED_ENABLE
+#include "ressched_event_listener.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
@@ -541,6 +545,10 @@ void RSUniRenderVirtualProcessor::PostProcess()
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderEngine is nullptr");
         return;
     }
+
+#ifdef RES_SCHED_ENABLE
+    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+#endif
 
     if (surfaceFrames_.size() == 1) {
         auto& frame = surfaceFrames_[0].frame;

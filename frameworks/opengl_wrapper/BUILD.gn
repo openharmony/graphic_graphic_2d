@@ -213,6 +213,7 @@ ohos_shared_library("GLESv2") {
 
   output_name = "GLESv2"
   output_extension = "so"
+  version_script = "GLESv2.versionscript"
   innerapi_tags = [
       "ndk",
       "llndk"
@@ -262,6 +263,7 @@ if (current_os != "ohos") {
 
     output_name = "GLESv3"
     output_extension = "so"
+    version_script = "GLESv3.versionscript"
 
     innerapi_tags = [ "llndk" ]
     part_name = "graphic_2d"
@@ -327,6 +329,7 @@ if (current_os != "ohos") {
 
     output_name = "GLv4"
     output_extension = "so"
+    version_script = "GLv4.versionscript"
 
     innerapi_tags = [ "ndk" ]
 

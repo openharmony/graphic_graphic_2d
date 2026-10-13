@@ -136,6 +136,17 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return memoryGraphics;
 }
 
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::GetMemoryGraphicsByRenderPid clientToService is nullptr");
+        return {};
+    }
+    std::vector<MemoryGraphic> memoryGraphics = clientToService->GetMemoryGraphicsByRenderPid(renderPid);
+    return memoryGraphics;
+}
+
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

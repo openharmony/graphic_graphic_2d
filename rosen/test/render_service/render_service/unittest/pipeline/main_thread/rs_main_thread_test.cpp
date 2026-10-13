@@ -161,6 +161,14 @@ public:
         return { serviceToRenderConnection_ };
     }
 
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override
+    {
+        if (pid == getpid()) {
+            return serviceToRenderConnection_;
+        }
+        return nullptr;
+    }
+
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
     {
         return connectToRenderConnection_;
@@ -3638,7 +3646,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsyn
     ASSERT_NE(node, nullptr);
     EXPECT_TRUE(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node));
 
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
+    auto& tunnelRuntime = *node->GetTunnelRuntimeState();
     tunnelRuntime.SetBuilding();
     ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
     ASSERT_TRUE(tunnelRuntime.TryClaimByListener());
@@ -3652,7 +3660,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsyn
 
     mainThread->ConsumeAndUpdateAllNodes();
 
-    EXPECT_EQ(mainThread->requestNextVsyncTime_, -1);
+    EXPECT_EQ(mainThread->requestNextVsyncTime_, 0);
 
     tunnelRuntime.ReleaseByListener();
     mainThread->isUniRender_ = isUniRender;
@@ -3704,7 +3712,10 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateLowPowerVideoNode001, TestSize.Level1
 
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(rsSurfaceRenderNode->GetId(), actualTunnelLayerId, actualProperty);
+    auto tunnelStatePtr = rsSurfaceRenderNode->TryGetTunnelRuntimeState();
+    if (tunnelStatePtr != nullptr) {
+        tunnelStatePtr->GetLayerInfo(actualTunnelLayerId, actualProperty);
+    }
     EXPECT_NE(actualTunnelLayerId, 0u);
     EXPECT_EQ(actualProperty, TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
 
@@ -6960,7 +6971,7 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
 
 /**
  * @tc.name: PostTryReclaimLastBuffer005
- * @tc.desc: 验证非 RosenWeb 节点的 delegate 回收分支及功能开关
+ * @tc.desc: 验证非 RosenWeb 的 delegate_child 节点的 delegate 回收分支及功能开关
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -6971,7 +6982,7 @@ HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer005, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceNode->name_ = "OrdinarySurface";
+    surfaceNode->name_ = "delegate_child";
     surfaceNode->isOnTheTree_ = false;
     surfaceHandler->SetLastBufferId(1);
     ASSERT_FALSE(surfaceNode->IsRosenWeb());
@@ -8859,8 +8870,6 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_NotConsumedNode_SkipsP
     RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 0u);
     EXPECT_EQ(tunnelCount, 0u);
-
-    RSTunnelRuntimeStore::Erase(node->GetId());
 }
 
 /**
@@ -8887,8 +8896,6 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedNonTunnelNode_
     RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 0u);
-
-    RSTunnelRuntimeStore::Erase(node->GetId());
 }
 
 /**
@@ -8909,15 +8916,13 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_ConsumedTunnelNode_Inc
     ASSERT_NE(surfaceHandler, nullptr);
     surfaceHandler->SetCurrentFrameBufferConsumed();
     constexpr uint64_t testTunnelLayerId = 8801;
-    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+    node->GetTunnelRuntimeState()->SetLayerInfo(testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
 
     RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(node, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 1u);
     EXPECT_EQ(tunnelCount, 1u);
-
-    RSTunnelRuntimeStore::Erase(node->GetId());
 }
 
 /**
@@ -8948,7 +8953,7 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_Accumulates
     ASSERT_NE(nonTunnelHandler, nullptr);
     tunnelHandler->SetCurrentFrameBufferConsumed();
     nonTunnelHandler->SetCurrentFrameBufferConsumed();
-    RSTunnelRuntimeStore::SetLayerInfo(tunnelNode->GetId(), testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
+    tunnelNode->GetTunnelRuntimeState()->SetLayerInfo(testTunnelLayerId, TUNNEL_PROP_BUFFER_ADDR);
 
     uint32_t presentCount = 0;
     uint32_t tunnelCount = 0;
@@ -8957,8 +8962,6 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_Accumulates
     RSTunnelRouteArbiter::GetAllLayerAndTunnelLayerCount(notConsumedNode, presentCount, tunnelCount);
     EXPECT_EQ(presentCount, 2u);
     EXPECT_EQ(tunnelCount, 1u);
-
-    RSTunnelRuntimeStore::Erase(tunnelNode->GetId());
 }
 } // namespace OHOS::Rosen
 #endif

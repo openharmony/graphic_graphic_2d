@@ -42,6 +42,11 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSRenderProcessManagerAgent::Get
     return renderProcessManager_->GetServiceToRenderConns();
 }
 
+sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRenderConnByPid(pid_t pid) const
+{
+    return renderProcessManager_->GetServiceToRenderConnByPid(pid);
+}
+
 int32_t RSRenderProcessManagerAgent::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
 {
     if (!transfer) {

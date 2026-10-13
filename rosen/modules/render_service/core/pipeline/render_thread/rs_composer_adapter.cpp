@@ -529,7 +529,10 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     }
     layer->SetNodeId(node.GetId());  // node id only for dfx
     layer->SetRSLayerId(node.GetId());
-    layer->SetTunnelLayerGeneration(RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()));
+    auto statePtr = node.TryGetTunnelRuntimeState();
+    if (statePtr) {
+        layer->SetTunnelLayerGeneration(statePtr->GetTunnelLayerGeneration());
+    }
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), &node);
     LayerRotate(layer, node);
     RS_LOGD_IF(DEBUG_PIPELINE,

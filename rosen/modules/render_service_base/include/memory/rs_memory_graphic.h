@@ -37,16 +37,19 @@ public:
     static MemoryGraphic *Unmarshalling(Parcel &parcel);
 
     int32_t GetPid() const;
+    int32_t GetRenderPid() const;
     float GetGpuMemorySize() const; // Memory of gpu = SkiaGpu
     float GetCpuMemorySize() const; // Memory of cpu = RSCpu + SkiaCpu
     float GetTotalMemorySize() const;
 
     void SetPid(int32_t pid);
+    void SetRenderPid(int32_t pid);
     void SetGpuMemorySize(float glSize);
     void SetCpuMemorySize(float graphicSize);
 
 private:
     int32_t pid_ = 0;
+    int32_t renderPid_ = 0;
     float cpuMemSize_ = 0.0f;
     float gpuMemSize_ = 0.0f;
 };

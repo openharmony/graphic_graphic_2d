@@ -185,7 +185,6 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContex
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
 {
-    RSTunnelRuntimeStore::Erase(GetId());
 #ifdef USE_SURFACE_TEXTURE
     SetSurfaceTexture(nullptr);
 #endif
@@ -232,11 +231,28 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
         return;
     }
     if (surfaceHandler->GetConsumer() != consumer) {
-        RSTunnelRuntimeStore::Clear(GetId());
+        // New consumer: clear node-owned tunnel state so the next access re-creates fresh.
+        std::lock_guard<std::mutex> lock(tunnelStateMutex_);
+        tunnelRuntimeState_.reset();
     }
     surfaceHandler->SetConsumer(consumer);
 }
 #endif
+
+std::shared_ptr<RSTunnelRuntimeState> RSSurfaceRenderNode::GetTunnelRuntimeState()
+{
+    std::lock_guard<std::mutex> lock(tunnelStateMutex_);
+    if (!tunnelRuntimeState_) {
+        tunnelRuntimeState_ = std::make_shared<RSTunnelRuntimeState>();
+    }
+    return tunnelRuntimeState_;
+}
+
+std::shared_ptr<RSTunnelRuntimeState> RSSurfaceRenderNode::TryGetTunnelRuntimeState() const
+{
+    std::lock_guard<std::mutex> lock(tunnelStateMutex_);
+    return tunnelRuntimeState_;
+}
 
 void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect,
     bool hasRotation)
@@ -955,12 +971,16 @@ bool RSSurfaceRenderNode::IsHwcCrossNode() const
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
 #ifdef RS_ENABLE_GPU
+    if (isFixRotationByUser_ == flag) {
+        return;
+    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
     surfaceParams->SetFixRotationByUser(flag);
     AddToPendingSyncList();
+    SetDirty();
 
     isFixRotationByUser_ = flag;
 #endif
@@ -1689,6 +1709,18 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceRenderNode::UpdateTunnelBufferInfo(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
+    surfaceParams->SetBuffer(buffer, bufferOwnerCount, damageRect);
+    surfaceParams->SetAcquireFence(acquireFence);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
     const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,

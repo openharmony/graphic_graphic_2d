@@ -146,6 +146,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderMotionBlurFilter>();
         }
     },
+    {RSNGEffectType::DISTORT_LIGHT, [] {
+            return std::make_shared<RSNGRenderDistortLightFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;

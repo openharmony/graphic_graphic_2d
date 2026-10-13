@@ -506,6 +506,13 @@ public:
      * @return a vector of MemoryGraphic, include all application GPU memory.
      */
     std::vector<MemoryGraphic> GetMemoryGraphics();
+
+    /**
+     * @brief Statistics of all application GPU memory.
+     * @param renderPid pid of render service.
+     * @return a vector of MemoryGraphic, include all application GPU memory.
+     */
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid);
 #endif // !ROSEN_ARKUI_X
     /**
      * @brief Get total App memory size.

@@ -2059,6 +2059,55 @@ ErrCode RSClientToServiceConnectionProxy::GetMemoryGraphics(std::vector<MemoryGr
     return ERR_OK;
 }
 
+std::vector<MemoryGraphic> RSClientToServiceConnectionProxy::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<MemoryGraphic> memoryGraphics;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: WriteInterfaceToken GetDescriptor err.");
+        return memoryGraphics;
+    }
+
+    if (!data.WriteInt32(renderPid)) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: writeInt32 renderPid err.");
+        return memoryGraphics;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: SendRequest err=%{public}d", err);
+        return memoryGraphics;
+    }
+
+    uint64_t count{0};
+    if (!reply.ReadUint64(count)) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: Read count failed");
+        return memoryGraphics;
+    }
+    size_t readableSize = reply.GetReadableBytes();
+    size_t len = static_cast<size_t>(count);
+    if (len > readableSize || len > memoryGraphics.max_size()) {
+        RS_LOGE("RSClientToServiceConnectionProxy::GetDescriptor() GetMemoryGraphicsByRenderPid Failed to read vector, "
+                "size:%{public}zu, readableSize:%{public}zu", len, readableSize);
+        return memoryGraphics;
+    }
+    memoryGraphics.resize(count);
+    for (uint64_t index = 0; index < count; index++) {
+        sptr<MemoryGraphic> item = reply.ReadParcelable<MemoryGraphic>();
+        if (item == nullptr) {
+            continue;
+        } else {
+            memoryGraphics[index] = *item;
+        }
+    }
+    return memoryGraphics;
+}
+
 ErrCode RSClientToServiceConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     MessageParcel data;

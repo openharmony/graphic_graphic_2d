@@ -295,7 +295,8 @@ bool RSAnimationFraction::IsFinished(bool isCustom) const
         int64_t totalDuration = totalMs * MS_TO_NS;
         return runningTime_ >= totalDuration;
     } else {
-        return runningTime_ <= 0;
+        // group child never finishes independently
+        return !isGroupAnimationChild_ && runningTime_ <= 0;
     }
 }
 
@@ -310,11 +311,16 @@ float RSAnimationFraction::GetEndFraction() const
     if ((autoReverse_ && repeatCount_ % REVERSE_COUNT == 0) || direction_ == ForwardDirection::REVERSE) {
         endFraction = 0.0f;
     }
-    // Consider group animator's autoReverse + even repeatCount (matches client-side InvertStagingValue)
-    if (groupAutoReverse_ && groupRepeatCount_ % REVERSE_COUNT == 0) {
-        endFraction = 0.0f;
-    }
     endFraction = isForward_ ? endFraction : 1.0 - endFraction;
+    return endFraction;
+}
+
+float RSAnimationFraction::GetGroupEndFraction() const
+{
+    float endFraction = GetEndFraction();
+    if (groupAutoReverse_ && groupRepeatCount_ % REVERSE_COUNT == 0) {
+        endFraction = isForward_ ? 0.0f : 1.0f;
+    }
     return endFraction;
 }
 

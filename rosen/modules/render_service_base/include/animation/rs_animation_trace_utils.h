@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATION_TRACE_UTILS_H
 
 #include "animation/rs_animation_common.h"
+#include "animation/rs_interpolator.h"
 #include "animation/rs_render_property_animation.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
@@ -25,6 +26,11 @@
 
 namespace OHOS {
 namespace Rosen {
+
+using KeyframeTuple = std::tuple<float, std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSInterpolator>>;
+using DurationKeyframeTuple =
+    std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSInterpolator>>;
+
 class RSB_EXPORT RSAnimationTraceUtils {
 public:
     static RSAnimationTraceUtils& GetInstance();
@@ -45,7 +51,8 @@ public:
     void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t nodeId, const std::string& nodeName,
         const uint64_t animationId, const uint64_t propertyId, const float fraction,
         const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time,
-        const int dur, const int repeat, const FrameRateRange& frameRateRange) const;
+        const int dur, const int repeat, const FrameRateRange& frameRateRange,
+        const int64_t runningTime = 0) const;
 
     void AddSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
@@ -58,6 +65,11 @@ public:
         const uint64_t propertyId, const std::shared_ptr<RSRenderPropertyBase>& endValue) const;
     static bool GetTestModeEnabled();
 
+    void AddKeyframeAnimationClientTrace(const uint64_t nodeId, const uint64_t animationId,
+        ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        bool isDurationKeyframe, int duration, const std::vector<KeyframeTuple>& keyframes,
+        const std::vector<DurationKeyframeTuple>& durationKeyframes) const;
+
 private:
     RSAnimationTraceUtils();
     ~RSAnimationTraceUtils();
@@ -65,6 +77,13 @@ private:
     RSAnimationTraceUtils& operator=(const RSAnimationTraceUtils&) = delete;
 
     std::string ParseRenderPropertyValueInner(const std::shared_ptr<RSRenderPropertyBase>& value) const;
+
+    void TraceDurationKeyframes(const uint64_t nodeId, const uint64_t animationId, const std::string& startValueBaseStr,
+        int totalDuration, const std::vector<DurationKeyframeTuple>& durationKeyframes,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue) const;
+
+    void TraceKeyframes(const uint64_t nodeId, const uint64_t animationId, const std::string& startValueBaseStr,
+        const std::vector<KeyframeTuple>& keyframes, const std::shared_ptr<RSRenderPropertyBase>& startValue) const;
 
     std::string GetColorString(const Color& value) const;
 

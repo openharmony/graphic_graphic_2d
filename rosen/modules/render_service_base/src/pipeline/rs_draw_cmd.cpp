@@ -531,7 +531,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         return false;
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
+    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !imageInfoReserved_) {
         RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this());
     }
 #endif
@@ -546,6 +546,16 @@ void RSExtendImageObject::PurgeMipmapMem()
         }
         drawingImageMutex_.unlock();
     }
+}
+
+bool RSExtendImageObject::IsImageInfoReserved() const
+{
+    return imageInfoReserved_;
+}
+
+void RSExtendImageObject::SetImageInfoReserved(bool reserved)
+{
+    imageInfoReserved_ = reserved;
 }
 #endif
 

@@ -5087,6 +5087,7 @@ HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | Med
     ASSERT_NE(graphicLayer, nullptr);
     ASSERT_NE(tunnelLayer, nullptr);
     ASSERT_NE(nonDeviceLayer, nullptr);
+    tunnelLayer->setTunnelSuccess_ = true;
     graphicLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
     tunnelLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID_SECOND);
     nonDeviceLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
@@ -5222,6 +5223,7 @@ HWTEST_F(HdiOutputTest, TunnelCreateNullAndFinalizePostCommitBranches, Function 
 
     auto createdLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     ASSERT_NE(createdLayer, nullptr);
+    createdLayer->setTunnelSuccess_ = true;
     output->RegisterCreatedLayerLocked(TEST_SURFACE_ID, createdLayer, tunnelRsLayer, true);
     output->FinalizePostCommit(false);
     uint64_t tunnelLayerGeneration = 0;
@@ -5230,10 +5232,16 @@ HWTEST_F(HdiOutputTest, TunnelCreateNullAndFinalizePostCommitBranches, Function 
 
     createdLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
     output->invalidTunnelSurfaceIds_.insert(TEST_SURFACE_ID);
+    output->expectedTunnelLayerCount_ = 5;
+    output->FinalizePostCommit(true);
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+
+    createdLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
+    output->expectedTunnelLayerCount_ = 1;
     output->FinalizePostCommit(true);
     EXPECT_EQ(callbackData.count, EXPECTED_TUNNEL_CALLBACK_COUNT);
     EXPECT_TRUE(callbackData.success);
-    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
     output->UnregisterGlobalTunnelLayersLocked();
 }
 
@@ -5267,6 +5275,7 @@ HWTEST_F(HdiOutputTest, TunnelFallbackThresholdBranches, Function | MediumTest |
     uint64_t tunnelLayerGeneration = 0;
     EXPECT_FALSE(graphicLayer->TakePendingTunnelLayerCreated(tunnelLayerGeneration));
     EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_THIRD, secondRsLayer));
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_THIRD, secondRsLayer, true));
 
     LayerCreatedCallbackData callbackData;
     ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
@@ -5994,7 +6003,7 @@ HWTEST_F(HdiOutputTest, CheckSupportTunnel_ThresholdExhausted_ReturnsFalse, Func
     sptr<SurfaceBuffer> secondBuffer = CreateHdiOutputTestBuffer();
     ASSERT_NE(secondBuffer, nullptr);
     secondRsLayer->SetBuffer(secondBuffer);
-    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_SECOND, secondRsLayer));
 
     registryOutput->UnregisterGlobalTunnelLayersLocked();
 }

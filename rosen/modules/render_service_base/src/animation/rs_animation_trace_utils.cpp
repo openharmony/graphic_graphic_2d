@@ -28,6 +28,8 @@ namespace Rosen {
 namespace {
 constexpr const char* ANIMATION_TRACE_ENABLE_NAME = "persist.rosen.animationtrace.enabled";
 constexpr const char* GRAPHIC_TEST_MODE_TRACE_NAME = "sys.graphic.openTestModeTrace";
+// DurationKeyframeTuple: <startFraction, endFraction, value, interpolator>
+constexpr size_t DURATION_KEYFRAME_VALUE_INDEX = 2;
 }
 bool RSAnimationTraceUtils::isDebugEnabled_ = false;
 bool RSAnimationTraceUtils::isTestModeEnabled_ = false;
@@ -320,7 +322,7 @@ void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const
 void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t nodeId,
     const std::string& nodeName, const uint64_t animationId, const uint64_t propertyId, const float fraction,
     const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur,
-    const int repeat, const FrameRateRange& frameRateRange) const
+    const int repeat, const FrameRateRange& frameRateRange, const int64_t runningTime) const
 {
     if (!isDebugEnabled_) {
         return;
@@ -348,6 +350,7 @@ void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, c
     oss << " pro[" << propertyId << "]";
     oss << " animate[" << animationId << "]";
     oss << " fraction[" << fraction << "]";
+    oss << " runningTime[" << runningTime / MS_TO_NS << "ms]";
     oss << " value[" << propertyValue << "]";
     oss << " time[" << time << "]";
     oss << " dur[" << dur << "]";
@@ -371,6 +374,75 @@ void RSAnimationTraceUtils::AddSpringInitialVelocityTrace(const uint64_t propert
         auto propertyValue = ParseRenderPropertyValue(initialVelocity);
         RS_TRACE_NAME_FMT("spring pro[%llu] animate[%llu], initialVelocity[%s]",
             propertyId, animationId, propertyValue.c_str());
+    }
+}
+
+void RSAnimationTraceUtils::AddKeyframeAnimationClientTrace(const uint64_t nodeId, const uint64_t animationId,
+    ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
+    bool isDurationKeyframe, int totalDuration, const std::vector<KeyframeTuple>& keyframes,
+    const std::vector<DurationKeyframeTuple>& durationKeyframes) const
+{
+    if (!isDebugEnabled_) {
+        return;
+    }
+    if (startValue == nullptr) {
+        return;
+    }
+    [[maybe_unused]] auto propertyTypeStr = ModifierNG::RSModifierTypeString::GetPropertyTypeString(propertyType);
+    [[maybe_unused]] auto startValueBaseStr = ParseRenderPropertyValue(startValue);
+    if (isDurationKeyframe) {
+        RS_TRACE_NAME_FMT("CreateKeyframeAnimationClient node[%llu] animate[%llu] propertyType[%s] startValue[%s] "
+            "totalDuration[%d] durationKeyframes[%zu]", nodeId, animationId, propertyTypeStr.c_str(),
+            startValueBaseStr.c_str(), totalDuration, durationKeyframes.size());
+        TraceDurationKeyframes(nodeId, animationId, startValueBaseStr, totalDuration, durationKeyframes, startValue);
+    } else {
+        RS_TRACE_NAME_FMT(
+            "CreateKeyframeAnimationClient node[%llu] animate[%llu] propertyType[%s] startValue[%s] keyframes[%zu]",
+            nodeId, animationId, propertyTypeStr.c_str(), startValueBaseStr.c_str(), keyframes.size());
+        TraceKeyframes(nodeId, animationId, startValueBaseStr, keyframes, startValue);
+    }
+}
+
+void RSAnimationTraceUtils::TraceDurationKeyframes(const uint64_t nodeId, const uint64_t animationId,
+    const std::string& startValueBaseStr, int totalDuration,
+    const std::vector<DurationKeyframeTuple>& durationKeyframes,
+    const std::shared_ptr<RSRenderPropertyBase>& startValue) const
+{
+    for (size_t i = 0; i < durationKeyframes.size(); ++i) {
+        const auto& keyframe = durationKeyframes[i];
+        auto startFraction = std::get<0>(keyframe);
+        auto endFraction = std::get<1>(keyframe);
+        auto duration = endFraction - startFraction;
+        [[maybe_unused]] auto segmentDuration = static_cast<int>(duration * totalDuration);
+        auto value = std::get<DURATION_KEYFRAME_VALUE_INDEX>(keyframe);
+        if (value == nullptr) {
+            continue;
+        }
+        auto prevValue = (i == 0) ? startValue : std::get<DURATION_KEYFRAME_VALUE_INDEX>(durationKeyframes[i - 1]);
+        [[maybe_unused]] auto startValueStr = (i == 0) ? startValueBaseStr : ParseRenderPropertyValue(prevValue);
+        [[maybe_unused]] auto endValueStr = ParseRenderPropertyValue(value);
+        RS_TRACE_NAME_FMT("Keyframe[%zu] node[%llu] animate[%llu] startFraction[%.3f] endFraction[%.3f] "
+            "duration[%d] startValue[%s] endValue[%s]", i, nodeId, animationId, startFraction, endFraction,
+            segmentDuration, startValueStr.c_str(), endValueStr.c_str());
+    }
+}
+
+void RSAnimationTraceUtils::TraceKeyframes(const uint64_t nodeId, const uint64_t animationId,
+    const std::string& startValueBaseStr, const std::vector<KeyframeTuple>& keyframes,
+    const std::shared_ptr<RSRenderPropertyBase>& startValue) const
+{
+    for (size_t i = 0; i < keyframes.size(); ++i) {
+        const auto& keyframe = keyframes[i];
+        [[maybe_unused]] auto fraction = std::get<0>(keyframe);
+        auto value = std::get<1>(keyframe);
+        if (value == nullptr) {
+            continue;
+        }
+        auto prevValue = (i == 0) ? startValue : std::get<1>(keyframes[i - 1]);
+        [[maybe_unused]] auto startValueStr = (i == 0) ? startValueBaseStr : ParseRenderPropertyValue(prevValue);
+        [[maybe_unused]] auto endValueStr = ParseRenderPropertyValue(value);
+        RS_TRACE_NAME_FMT("Keyframe[%zu] node[%llu] animate[%llu] fraction[%.3f] startValue[%s] endValue[%s]", i,
+            nodeId, animationId, fraction, startValueStr.c_str(), endValueStr.c_str());
     }
 }
 

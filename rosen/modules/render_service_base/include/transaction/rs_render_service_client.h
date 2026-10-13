@@ -255,6 +255,8 @@ public:
     MemoryGraphic GetMemoryGraphic(int pid);
 
     std::vector<MemoryGraphic> GetMemoryGraphics();
+    
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid);
 #endif // !ROSEN_ARKUI_X
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 

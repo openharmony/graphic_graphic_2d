@@ -380,6 +380,7 @@ std::string RSNode::GetFrameNodeTag()
 void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddKeyFrame fraction[%f]", fraction);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
@@ -398,6 +399,7 @@ void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float f
 void RSNode::AddKeyFrame(
     const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddKeyFrame fraction[%f]", fraction);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
@@ -416,6 +418,7 @@ void RSNode::AddKeyFrame(
 void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddDurationKeyFrame duration[%d]", duration);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
         return;

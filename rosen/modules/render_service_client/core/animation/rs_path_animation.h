@@ -116,6 +116,7 @@ private:
     float startTangent_ { 0.0f };
     float endTangent_ { 0.0f };
     bool isNeedPath_ { true };
+    bool pathAnimationRemoved_ { true };
     bool needAddOrigin_ { true };
     PropertyId rotationId_ {};
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };

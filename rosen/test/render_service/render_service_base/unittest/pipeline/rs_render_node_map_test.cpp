@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation_manager.h"
 #include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1616,6 +1617,40 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInSelfDrawing, Te
               rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
     EXPECT_EQ(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(normalNodeId),
               rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+}
+
+/**
+ * @tc.name: DestroyTokenNodeSkipInfiniteGroupChild
+ * @tc.desc: Verify DestroyTokenNode skips node with infinite group animation child
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSkipInfiniteGroupChild, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId nodeId = (static_cast<NodeId>(pid) << 32) | 1;
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    node->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(node);
+
+    // Inject animation manager with infinite group child via private member access
+    auto animationManager = std::make_shared<RSAnimationManager>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    animation->isGroupAnimationChild_ = true;
+    animation->SetGroupRepeatCount(-1);
+    animationManager->animations_[1] = animation;
+    node->animationManager_ = animationManager;
+    ASSERT_TRUE(node->HasInfiniteGroupAnimationChild());
+
+    // DestroyTokenNode should skip this node (return false in EraseIf lambda)
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+    // Node should still exist because it was skipped
+    EXPECT_NE(rsRenderNodeMap.GetRenderNode(nodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen

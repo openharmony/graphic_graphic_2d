@@ -179,7 +179,7 @@ void RSRenderAnimation::FinishOnPosition(RSInteractiveAnimationPosition pos)
     if (pos == RSInteractiveAnimationPosition::START) {
         ProcessFillModeOnFinish(animationFraction_.GetStartFraction());
     } else if (pos == RSInteractiveAnimationPosition::END) {
-        ProcessFillModeOnFinish(animationFraction_.GetEndFraction());
+        ProcessFillModeOnFinish(animationFraction_.GetGroupEndFraction());
     }
 }
 
@@ -301,7 +301,9 @@ void RSRenderAnimation::Restart()
         return;
     }
     animationFraction_.ResetFraction();
+    OnRestart();
     OnSetFraction(0.0f);
+    fractionChangeInfo_ = { false, 0.0f };
     state_ = AnimationState::RUNNING;
 }
 

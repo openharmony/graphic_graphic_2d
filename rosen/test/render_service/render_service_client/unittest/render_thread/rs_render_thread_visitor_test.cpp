@@ -226,6 +226,84 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareCanvasRenderNode008
+ * @tc.desc: When a canvas node transitions from visible to invisible (alpha 1->0), PrepareCanvasRenderNode
+ *           must still call Update() to generate a dirty region covering the node's previous bounds.
+ *           Otherwise old content remains in the surface buffer under partial-render op-drop mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode008, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    RSCanvasRenderNode node(0);
+    // Simulate: node was visible last frame, became invisible this frame (alpha changed to 0)
+    node.shouldPaint_ = false;
+    node.isLastVisible_ = true;
+    node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    const RectI expectedDirty(10, 20, 30, 40);
+    node.oldDirty_ = expectedDirty;
+
+    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+
+    // dirty region must include the node's previous bounds so the buffer gets cleared
+    EXPECT_FALSE(rsRenderThreadVisitor.curDirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
+    // isLastVisible_ should be updated to false after Update()
+    EXPECT_FALSE(node.isLastVisible_);
+    // dirtyStatus_ should be reset to CLEAN after UpdateDirtyRegion -> SetClean
+    EXPECT_EQ(node.dirtyStatus_, RSRenderNode::NodeDirty::CLEAN);
+}
+
+/**
+ * @tc.name: PrepareCanvasRenderNode009
+ * @tc.desc: A canvas node that was already invisible (shouldPaint=false, isLastVisible=false) must be
+ *           skipped by PrepareCanvasRenderNode — no dirty region should be generated.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode009, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    RSCanvasRenderNode node(0);
+    // always invisible: shouldPaint=false and was invisible last frame
+    node.shouldPaint_ = false;
+    node.isLastVisible_ = false;
+    node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node.oldDirty_ = RectI(10, 20, 30, 40);
+
+    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+
+    // no dirty region should be generated for always-invisible nodes
+    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
+    // isLastVisible_ should remain false (Update() was not called)
+    EXPECT_FALSE(node.isLastVisible_);
+    // dirtyStatus_ should remain DIRTY (SetClean was not called)
+    EXPECT_EQ(node.dirtyStatus_, RSRenderNode::NodeDirty::DIRTY);
+}
+
+/**
+ * @tc.name: PrepareEffectRenderNode002
+ * @tc.desc: When an effect node transitions from visible to invisible, PrepareEffectRenderNode must
+ *           still call Update() to generate a dirty region covering the node's previous bounds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareEffectRenderNode002, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    RSEffectRenderNode node(0);
+    // Simulate: node was visible last frame, became invisible this frame
+    node.shouldPaint_ = false;
+    node.isLastVisible_ = true;
+    node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    const RectI expectedDirty(10, 20, 30, 40);
+    node.oldDirty_ = expectedDirty;
+
+    rsRenderThreadVisitor.PrepareEffectRenderNode(node);
+
+    EXPECT_FALSE(rsRenderThreadVisitor.curDirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
+    EXPECT_FALSE(node.isLastVisible_);
+    EXPECT_EQ(node.dirtyStatus_, RSRenderNode::NodeDirty::CLEAN);
+}
+
+/**
  * @tc.name: PrepareRootRenderNode001
  * @tc.desc: test results of PrepareRootRenderNode
  * @tc.type: FUNC

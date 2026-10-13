@@ -114,7 +114,7 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsFinishRecording(OH_Drawing_RecordC
 *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
 *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if recordCmdUtils or height is nullptr.</li>
 *         </ul>
-* @since 26.1.0
+* @since 26.0.1
 */
 OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetHeight(
     const OH_Drawing_RecordCmdUtils *recordCmdUtils, int32_t *height);
@@ -128,7 +128,7 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetHeight(
 *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
 *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if recordCmdUtils or width is nullptr.</li>
 *         </ul>
-* @since 26.1.0
+* @since 26.0.1
 */
 OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsGetWidth(const OH_Drawing_RecordCmdUtils *recordCmdUtils, int32_t *width);
 

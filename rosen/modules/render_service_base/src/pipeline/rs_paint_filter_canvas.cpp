@@ -1909,12 +1909,12 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
     screenId_ = screenId;
 }
 
-int32_t RSPaintFilterCanvas::GetPid() const
+::pid_t RSPaintFilterCanvas::GetPid() const
 {
     return pid_;
 }
  
-void RSPaintFilterCanvas::SetPid(int32_t pid)
+void RSPaintFilterCanvas::SetPid(::pid_t pid)
 {
     pid_ = pid;
 }

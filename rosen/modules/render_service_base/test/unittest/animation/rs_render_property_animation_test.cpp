@@ -15,8 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_interpolator.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_property_animation.h"
+#include "animation/rs_value_estimator.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
@@ -236,6 +238,99 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetType001, TestSize.Level1)
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property);
     EXPECT_EQ(renderPropertyAnimation->GetType(), RSRenderAnimationType::PROPERTY_ANIMATION);
+}
+
+/**
+ * @tc.name: OnRestart001
+ * @tc.desc: Verify OnRestart with null originValue and null valueEstimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, OnRestart001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto animation = std::make_shared<RSRenderPropertyAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    // Explicitly null out to test the null-skip branches of OnRestart
+    animation->originValue_ = nullptr;
+    animation->valueEstimator_ = nullptr;
+    animation->lastValue_ = nullptr;
+    animation->OnRestart();
+    // Both branches skipped: originValue_ null -> no clone; estimator null -> no ResetLastValue
+    EXPECT_EQ(animation->originValue_, nullptr);
+    EXPECT_EQ(animation->valueEstimator_, nullptr);
+    EXPECT_EQ(animation->lastValue_, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart001 end";
+}
+
+/**
+ * @tc.name: OnRestart002
+ * @tc.desc: Verify OnRestart with valid originValue and null valueEstimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, OnRestart002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto animation = std::make_shared<RSRenderPropertyAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, originValue);
+    animation->lastValue_ = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    animation->valueEstimator_ = nullptr;
+    // originValue_ non-null -> lastValue_ = originValue_->Clone()
+    animation->OnRestart();
+    EXPECT_NE(animation->lastValue_, nullptr);
+    EXPECT_NE(animation->lastValue_, originValue); // should be a clone, not same pointer
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart002 end";
+}
+
+/**
+ * @tc.name: OnRestart003
+ * @tc.desc: Verify OnRestart with null originValue and valid valueEstimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, OnRestart003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart003 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto animation = std::make_shared<RSRenderPropertyAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    animation->originValue_ = nullptr;
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    animation->valueEstimator_ = estimator;
+    // originValue_ null -> skip clone; valueEstimator_ non-null -> call ResetLastValue
+    animation->OnRestart();
+    EXPECT_EQ(animation->originValue_, nullptr);
+    EXPECT_NE(animation->valueEstimator_, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart003 end";
+}
+
+/**
+ * @tc.name: OnRestart004
+ * @tc.desc: Verify OnRestart with valid originValue and valid valueEstimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, OnRestart004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart004 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto animation = std::make_shared<RSRenderPropertyAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, originValue);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    animation->valueEstimator_ = estimator;
+    animation->SetAdditive(true);
+    // Both non-null -> clone lastValue_ and call ResetLastValue
+    animation->OnRestart();
+    EXPECT_NE(animation->lastValue_, nullptr);
+    EXPECT_NE(animation->lastValue_, originValue);
+    // ResetLastValue should have set lastValue_ back to startValue_ (2.0f)
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 2.0f);
+    GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest OnRestart004 end";
 }
 
 } // namespace Rosen

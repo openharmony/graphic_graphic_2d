@@ -3910,7 +3910,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
 
 /**
  * @tc.name: BeforeUpdateSurfaceDirtyCalcDelegateBufferResume
- * @tc.desc: 验证非 RosenWeb 节点仅在 delegate 模式及回收开关均开启时恢复 buffer
+ * @tc.desc: 验证非 RosenWeb 的 delegate_child 节点仅在 delegate 模式及回收开关均开启时恢复 buffer
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3918,7 +3918,7 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
 {
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
-    node->name_ = "OrdinarySurface";
+    node->name_ = "delegate_child";
     ASSERT_FALSE(node->IsRosenWeb());
     ASSERT_FALSE(node->GetDelegateMode());
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
@@ -6631,7 +6631,15 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisa
         LAYER_PART_VISITOR_SURFACE_ID + 10, rsContext->weak_from_this());
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
+    rsUniRenderVisitor->autoCacheEnable_ = false;
 
+    RSUifirstManager::EventInfo eventInfo;
+    eventInfo.sceneId = "APP_LIST_FLING";
+    RSUifirstManager::Instance().currentFrameEvent_ = { eventInfo };
+    OPIncParam::SetLayerPartRenderEnable(true);
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
+    OPIncParam::SetLayerPartRenderEnable(false);
+    RSUifirstManager::Instance().currentFrameEvent_.clear();
     auto& dirtyManager = canvasNode->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);
@@ -8827,7 +8835,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), actualTunnelLayerId, actualProperty);
+    surfaceNode->GetTunnelRuntimeState()->GetLayerInfo(actualTunnelLayerId, actualProperty);
     EXPECT_EQ(actualTunnelLayerId, 0u);
 }
 
@@ -8943,12 +8951,12 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId002, TestSize.Level2)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
  
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), 1, TUNNEL_PROP_INVALID);
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(1, TUNNEL_PROP_INVALID);
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), actualTunnelLayerId, actualProperty);
+    surfaceNode->GetTunnelRuntimeState()->GetLayerInfo(actualTunnelLayerId, actualProperty);
     if (nodeParams != nullptr) {
         EXPECT_EQ(actualTunnelLayerId, 1u);
     } else {
@@ -8977,19 +8985,17 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
     ASSERT_NE(surfaceNode->GetStagingRenderParams(), nullptr);
 
     constexpr uint64_t tunnelLayerId = 3002;
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), tunnelLayerId, TUNNEL_PROP_INVALID);
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(tunnelLayerId, TUNNEL_PROP_INVALID);
     auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
     surfaceHandler->MarkTunnelLayerInfoReceived();
 
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
 
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    rsUniRenderVisitor->SetUniRenderThreadParam(renderThreadParams);
-    RSRenderThreadParams::TunnelLayerSnapshot snapshot;
-    ASSERT_TRUE(renderThreadParams->GetTunnelLayerSnapshot(surfaceNode->GetId(), snapshot));
-    EXPECT_EQ(snapshot.tunnelLayerId, tunnelLayerId);
-    EXPECT_EQ(snapshot.property, TUNNEL_PROP_INVALID);
+    auto* staging = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(staging, nullptr);
+    EXPECT_EQ(staging->GetTunnelLayerId(), tunnelLayerId);
+    EXPECT_EQ(staging->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
 }
 
 /*
@@ -11163,7 +11169,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     EXPECT_NE(surfaceNode, nullptr);
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), 0, TUNNEL_PROP_INVALID);
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(0, TUNNEL_PROP_INVALID);
 
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();

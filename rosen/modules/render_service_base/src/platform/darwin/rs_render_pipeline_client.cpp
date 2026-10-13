@@ -336,5 +336,10 @@ bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
 {
     return false;
 }
+
+bool RSRenderPipelineClient::CleanDelegateModeBufferCmd(NodeId id)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

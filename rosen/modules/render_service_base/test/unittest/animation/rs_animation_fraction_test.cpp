@@ -325,7 +325,7 @@ HWTEST_F(RSAnimationFractionTest, GroupRepeatCount001, TestSize.Level1)
 
 /**
  * @tc.name: GetEndFractionGroupAutoReverse001
- * @tc.desc: Verify GetEndFraction considers groupAutoReverse + even groupRepeatCount
+ * @tc.desc: Verify GetEndFraction ignores groupAutoReverse (logic moved to GetGroupEndFraction)
  * @tc.type:FUNC
  */
 HWTEST_F(RSAnimationFractionTest, GetEndFractionGroupAutoReverse001, TestSize.Level1)
@@ -335,16 +335,16 @@ HWTEST_F(RSAnimationFractionTest, GetEndFractionGroupAutoReverse001, TestSize.Le
     // isForward_ default true; default endFraction = 1.0 (no autoReverse, direction NORMAL).
     EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
 
-    // groupAutoReverse true + even groupRepeatCount -> endFraction 0.0 (isForward_ true).
+    // GetEndFraction no longer considers group autoReverse; returns 1.0 regardless.
     fraction.SetGroupAutoReverse(true);
     fraction.SetGroupRepeatCount(2);
-    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 0.0f);
+    EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
 
-    // groupAutoReverse true + odd groupRepeatCount -> condition false, endFraction stays 1.0.
+    // odd groupRepeatCount -> still 1.0 (group fields ignored by GetEndFraction).
     fraction.SetGroupRepeatCount(3);
     EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
 
-    // groupAutoReverse false -> group fields ignored, endFraction stays 1.0.
+    // groupAutoReverse false -> still 1.0.
     fraction.SetGroupAutoReverse(false);
     fraction.SetGroupRepeatCount(2);
     EXPECT_FLOAT_EQ(fraction.GetEndFraction(), 1.0f);
@@ -1057,6 +1057,125 @@ HWTEST_F(RSAnimationFractionTest, IsFinishedOverflow001, TestSize.Level1)
     fraction.runningTime_ = 0;
     EXPECT_TRUE(fraction.IsFinished(false));
     GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedOverflow001 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFraction001
+ * @tc.desc: Verify GetGroupEndFraction returns GetEndFraction when groupAutoReverse is false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetGroupEndFraction001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction001 start";
+    RSAnimationFraction fraction;
+    // groupAutoReverse_ default false -> condition false, returns GetEndFraction()
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), fraction.GetEndFraction());
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), 1.0f);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction001 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFraction002
+ * @tc.desc: Verify GetGroupEndFraction returns 0.0 when groupAutoReverse + even count + forward
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetGroupEndFraction002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction002 start";
+    RSAnimationFraction fraction;
+    fraction.SetGroupAutoReverse(true);
+    fraction.SetGroupRepeatCount(2);
+    // isForward_ default true -> condition true, returns 0.0f
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), 0.0f);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction002 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFraction003
+ * @tc.desc: Verify GetGroupEndFraction returns 1.0 when groupAutoReverse + even count + reverse
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetGroupEndFraction003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction003 start";
+    RSAnimationFraction fraction;
+    fraction.SetGroupAutoReverse(true);
+    fraction.SetGroupRepeatCount(2);
+    fraction.SetDirection(false); // isForward_ = false
+    // condition true + isForward_ false -> returns 1.0f
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), 1.0f);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction003 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFraction004
+ * @tc.desc: Verify GetGroupEndFraction returns GetEndFraction when groupRepeatCount is odd
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetGroupEndFraction004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction004 start";
+    RSAnimationFraction fraction;
+    fraction.SetGroupAutoReverse(true);
+    fraction.SetGroupRepeatCount(3); // odd -> condition false
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), fraction.GetEndFraction());
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction004 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFraction005
+ * @tc.desc: Verify GetGroupEndFraction with groupRepeatCount zero (0 % 2 == 0)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetGroupEndFraction005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction005 start";
+    RSAnimationFraction fraction;
+    fraction.SetGroupAutoReverse(true);
+    fraction.SetGroupRepeatCount(0); // 0 % 2 == 0 -> condition true
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), 0.0f);
+    fraction.SetDirection(false);
+    EXPECT_FLOAT_EQ(fraction.GetGroupEndFraction(), 1.0f);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetGroupEndFraction005 end";
+}
+
+/**
+ * @tc.name: IsFinishedGroupAnimationChild001
+ * @tc.desc: Verify IsFinished returns false when isGroupAnimationChild_ is true (REVERSE direction)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, IsFinishedGroupAnimationChild001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedGroupAnimationChild001 start";
+    RSAnimationFraction fraction;
+    fraction.SetRepeatCount(-1); // infinite loop
+    fraction.direction_ = ForwardDirection::REVERSE; // enter else branch in IsFinished
+    fraction.SetGroupAnimationChild(true); // group child never finishes independently
+    EXPECT_FALSE(fraction.IsFinished(false));
+    // Also with runningTime_ > 0, group child still not finished
+    fraction.runningTime_ = 1000;
+    EXPECT_FALSE(fraction.IsFinished(false));
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedGroupAnimationChild001 end";
+}
+
+/**
+ * @tc.name: IsFinishedGroupAnimationChild002
+ * @tc.desc: Verify IsFinished returns true when isGroupAnimationChild_ is false and runningTime_ <= 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, IsFinishedGroupAnimationChild002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedGroupAnimationChild002 start";
+    RSAnimationFraction fraction;
+    fraction.SetRepeatCount(-1); // infinite loop
+    fraction.direction_ = ForwardDirection::REVERSE; // enter else branch in IsFinished
+    fraction.SetGroupAnimationChild(false);
+    // runningTime_ default 0 -> finished (not started yet)
+    EXPECT_TRUE(fraction.IsFinished(false));
+    // runningTime_ > 0 -> not finished (running)
+    fraction.runningTime_ = 1000;
+    EXPECT_FALSE(fraction.IsFinished(false));
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedGroupAnimationChild002 end";
 }
 
 } // namespace Rosen

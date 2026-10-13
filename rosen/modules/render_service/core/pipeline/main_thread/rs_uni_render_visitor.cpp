@@ -2662,8 +2662,7 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
-        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() &&
-            (node.IsRosenWeb() || node.GetDelegateMode())) {
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && node.IsBufferReclaimNode()) {
             node.GetRSSurfaceHandler()->TryResumeLastBuffer();
         }
     }
@@ -4340,7 +4339,6 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
         renderThreadParams->forceCommitReason_ |= ForceCommitReason::FORCED_BY_POINTER_WINDOW;
     }
     renderThreadParams->surfaceColorGamutMap_ = std::move(surfaceColorGamutMap_);
-    renderThreadParams->SetTunnelLayerSnapshots(std::move(tunnelLayerSnapshots_));
     renderThreadParams->GetMutableScreenSpecialLayerParam().SetGlobalBlackList(
         ScreenSpecialLayerInfo::GetGlobalBlackList());
 }
@@ -4679,23 +4677,26 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
-    auto handler = node.GetRSSurfaceHandler();
-    if (handler == nullptr || !handler->HasReceivedTunnelLayerInfo()) {
+    auto statePtr = node.TryGetTunnelRuntimeState();
+    if (!statePtr) {
+        return;  // Non-tunnel node, no mirror needed.
+    }
+    auto& stagingParams = node.GetStagingRenderParams();
+    auto* staging = static_cast<RSSurfaceRenderParams*>(stagingParams.get());
+    if (!staging) {
         return;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
+    staging->SetTunnelState(statePtr->GetTunnelState());
     uint64_t tunnelLayerId = 0;
-    uint32_t property = TUNNEL_PROP_INVALID;
-    tunnelRuntime.GetLayerInfo(tunnelLayerId, property);
-    if (tunnelLayerId == 0) {
-        return;
-    }
-    tunnelLayerSnapshots_[node.GetId()] = { tunnelLayerId, property,
-        tunnelRuntime.GetTunnelLayerGeneration() };
-    RS_LOGI("%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u, nodeid:%{public}" PRIu64,
-        __func__, tunnelLayerId, property, node.GetId());
+    uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
+    statePtr->GetLayerInfo(tunnelLayerId, tunnelLayerProperty);
+    staging->SetTunnelLayerId(tunnelLayerId);
+    staging->SetTunnelLayerProperty(tunnelLayerProperty);
+    staging->SetTunnelLayerGeneration(statePtr->GetTunnelLayerGeneration());
+    RS_LOGI_IF(DEBUG_TUNNEL, "%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u"
+        ", nodeid:%{public}" PRIu64, __func__, tunnelLayerId, tunnelLayerProperty, node.GetId());
     RS_TRACE_NAME_FMT("%s tunnel surfaceid:%" PRIu64 ", property:%u, nodeid:%" PRIu64,
-        __func__, tunnelLayerId, property, node.GetId());
+        __func__, tunnelLayerId, tunnelLayerProperty, node.GetId());
 }
 
 void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node)

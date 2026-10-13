@@ -1137,4 +1137,85 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     ASSERT_TRUE(node->GetOpincRootCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
 }
+
+/**
+ * @tc.name: IsLastVisible001
+ * @tc.desc: Verify IsLastVisible() getter returns the correct value of isLastVisible_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsLastVisible001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    // default isLastVisible_ is false
+    EXPECT_FALSE(node->IsLastVisible());
+
+    node->isLastVisible_ = true;
+    EXPECT_TRUE(node->IsLastVisible());
+
+    node->isLastVisible_ = false;
+    EXPECT_FALSE(node->IsLastVisible());
+}
+
+/**
+ * @tc.name: UpdateVisibleToInvisibleGeneratesDirty001
+ * @tc.desc: When a node transitions from visible to invisible (shouldPaint=false, isLastVisible=true),
+ *           Update() must generate a dirty region covering the node's previous bounds so that the
+ *           surface buffer content is properly cleared in partial-render mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderNodeTest, UpdateVisibleToInvisibleGeneratesDirty001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RSDirtyRegionManager dirtyManager;
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(id + 1);
+    bool parentDirty = true;
+    std::optional<RectI> clipRect;
+
+    // Simulate: node was visible last frame, became invisible this frame (alpha changed to 0)
+    node->shouldPaint_ = false;
+    node->isLastVisible_ = true;
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    const RectI expectedDirty(10, 20, 30, 40);
+    node->oldDirty_ = expectedDirty;
+
+    node->Update(dirtyManager, parent, parentDirty, clipRect);
+
+    // dirty region must include oldDirty_ so the buffer gets cleared
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+    // isLastVisible_ should be updated to false after Update()
+    EXPECT_FALSE(node->isLastVisible_);
+    // dirtyStatus_ should be reset to CLEAN after UpdateDirtyRegion -> SetClean
+    EXPECT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::CLEAN);
+}
+
+/**
+ * @tc.name: UpdateAlwaysInvisibleNoDirty001
+ * @tc.desc: A node that was already invisible (shouldPaint=false, isLastVisible=false) must be
+ *           skipped by Update() — no dirty region should be generated, and dirtyStatus_ should
+ *           be reset to CLEAN by the early-return path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderNodeTest, UpdateAlwaysInvisibleNoDirty001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RSDirtyRegionManager dirtyManager;
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(id + 1);
+    bool parentDirty = true;
+    std::optional<RectI> clipRect;
+
+    // always invisible: shouldPaint=false and was invisible last frame
+    node->shouldPaint_ = false;
+    node->isLastVisible_ = false;
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->oldDirty_ = RectI(10, 20, 30, 40);
+
+    node->Update(dirtyManager, parent, parentDirty, clipRect);
+
+    // no dirty region should be generated for always-invisible nodes
+    EXPECT_TRUE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+    // isLastVisible_ should remain false (Update() early-returned)
+    EXPECT_FALSE(node->isLastVisible_);
+    // dirtyStatus_ should be CLEAN (SetClean called in early-return path)
+    EXPECT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::CLEAN);
+}
 } // namespace OHOS::Rosen

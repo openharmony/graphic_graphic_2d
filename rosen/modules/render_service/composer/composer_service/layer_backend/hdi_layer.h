@@ -66,14 +66,13 @@ public:
     void DumpByName(std::string windowName, std::string& result);
     void SelectHitchsInfo(std::string windowName, std::string& result);
     void MarkPendingTunnelLayerCreated(uint64_t tunnelLayerGeneration);
-    bool HasPendingTunnelLayerCreated() const;
     bool TakePendingTunnelLayerCreated(uint64_t& tunnelLayerGeneration);
 
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
     void ClearBufferCache();
     void ResetBufferCache();
-
+    bool IsSetTunnelSuccess() const;
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -108,7 +107,7 @@ private:
     bool bufferCleared_ = false;
     std::atomic<uint64_t> pendingTunnelLayerCreatedGeneration_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
-    bool hasSetTunnel_ = false;
+    bool setTunnelSuccess_ = false;
 
     int32_t CreateLayer(const std::shared_ptr<RSLayer> &rsLayer);
     void CloseLayer();

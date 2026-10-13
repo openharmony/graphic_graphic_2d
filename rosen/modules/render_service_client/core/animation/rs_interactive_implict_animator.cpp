@@ -26,6 +26,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int NUMBER_FOR_HALF = 2;
+}
 enum class StartAnimationErrorCode : int32_t {
     SUCCESS = 0,
     INVALID_STATUS,
@@ -377,7 +380,7 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
 
 void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPosition position)
 {
-    RS_TRACE_FUNC();
+    RS_TRACE_NAME_FMT("FinishAnimation position[%d]", static_cast<int>(position));
     if (state_ != RSInteractiveAnimationState::RUNNING && state_ != RSInteractiveAnimationState::PAUSED) {
         ROSEN_LOGE("FinishAnimation failed, state_ is error");
         return;
@@ -390,13 +393,14 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
         return;
     }
     if (position == RSInteractiveAnimationPosition::START || position == RSInteractiveAnimationPosition::END) {
+        auto clientPosition = GetClientFinishPosition(position);
         for (auto& [item, nodeId] : animations_) {
             auto animation = item.lock();
             auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
             if (target == nullptr || animation == nullptr) {
                 continue;
             }
-            animation->InteractiveFinish(position);
+            animation->InteractiveFinish(clientPosition);
         }
         std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorFinish>(id_, position);
         AddCommand(command, IsUniRenderEnabled());
@@ -419,32 +423,60 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
         return;
     }
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
-    for (auto& [item, nodeId] : animations_) {
-        auto animation = item.lock();
-        auto node = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
-        if (node == nullptr || animation == nullptr) {
-            continue;
-        }
-        if (!node->HasPropertyAnimation(animation->GetPropertyId()) || animation->IsUiAnimation()) {
-            continue;
-        }
-        propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), animation->GetPropertyId()),
-            std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
-                nullptr, {animation->GetId()}));
-    }
+    CollectCancelableAnimations(rsUIContext, propertiesMap);
     if (propertiesMap.size() == 0) {
+        ROSEN_LOGW("FinishOnCurrent skip, propertiesMap is empty, no animation to cancel");
         return;
     }
     auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(propertiesMap));
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, IsUniRenderEnabled());
     if (!task || !task->IsSuccess()) {
+        ROSEN_LOGE("FinishOnCurrent failed, sync task to cancel animation failed");
         return;
     }
-    for (const auto& [key, value] : task->GetProperties()) {
+    ApplyShowingPropertyValues(rsUIContext, *task);
+}
+
+void RSInteractiveImplictAnimator::CollectCancelableAnimations(
+    const std::shared_ptr<RSUIContext>& rsUIContext,
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap& propertiesMap)
+{
+    for (auto& [item, nodeId] : animations_) {
+        auto animation = item.lock();
+        auto node = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
+        if (node == nullptr || animation == nullptr) {
+            ROSEN_LOGW("FinishOnCurrent skip, node or animation is null, nodeId[%{public}" PRIu64 "]", nodeId);
+            continue;
+        }
+        if (!node->HasPropertyAnimation(animation->GetPropertyId()) || animation->IsUiAnimation()) {
+            ROSEN_LOGW("FinishOnCurrent skip, no property animation or ui animation, "
+                "nodeId[%{public}" PRIu64 "] propertyId[%{public}" PRIu64 "] isUiAnimation[%{public}d]",
+                node->GetId(), animation->GetPropertyId(), animation->IsUiAnimation());
+            continue;
+        }
+        auto [it, inserted] = propertiesMap.emplace(
+            std::make_pair<NodeId, PropertyId>(node->GetId(), animation->GetPropertyId()),
+            std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
+                nullptr, {animation->GetId()}));
+        // emplace is a no-op for an existing key: when several animations share the same
+        // (nodeId, propertyId), append the id so the server cancels all of them; otherwise
+        // only the first is cancelled and the rest keep running.
+        if (!inserted) {
+            it->second.second.push_back(animation->GetId());
+        }
+    }
+}
+
+void RSInteractiveImplictAnimator::ApplyShowingPropertyValues(
+    const std::shared_ptr<RSUIContext>& rsUIContext,
+    const RSNodeGetShowingPropertiesAndCancelAnimation& task)
+{
+    for (const auto& [key, value] : task.GetProperties()) {
         const auto& [nodeId, propertyId] = key;
         auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
             RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (node == nullptr) {
+            ROSEN_LOGW("FinishOnCurrent skip, node is null, nodeId[%{public}" PRIu64 "]", nodeId);
             continue;
         }
         std::shared_ptr<RSPropertyBase> property = nullptr;
@@ -452,6 +484,8 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
             property = prop;
         }
         if (property == nullptr) {
+            ROSEN_LOGW("FinishOnCurrent skip, property is null, nodeId[%{public}" PRIu64 "] "
+                "propertyId[%{public}" PRIu64 "]", nodeId, propertyId);
             continue;
         }
         const auto& [propertyValue, animations] = value;
@@ -544,6 +578,18 @@ float RSInteractiveImplictAnimator::GetFraction()
 void RSInteractiveImplictAnimator::SetFinishCallBack(const std::function<void()>& finishCallback)
 {
     finishCallback_ = finishCallback;
+}
+
+RSInteractiveAnimationPosition RSInteractiveImplictAnimator::GetClientFinishPosition(
+    RSInteractiveAnimationPosition position) const
+{
+    // For group autoReverse + even repeatCount, group ends at start position.
+    // Client-side staging value should be startValue_, matching server's GetGroupEndFraction.
+    if (position == RSInteractiveAnimationPosition::END && isGroupAnimator_ && timingProtocol_.GetAutoReverse() &&
+        timingProtocol_.GetRepeatCount() % NUMBER_FOR_HALF == 0) {
+        return RSInteractiveAnimationPosition::START;
+    }
+    return position;
 }
 
 void RSInteractiveImplictAnimator::CallFinishCallback()

@@ -149,6 +149,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_JANK_STATS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS),
@@ -365,6 +366,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
     if (!accessible &&
         code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
+        code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID) &&
         code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(
             RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID)) {
@@ -1397,6 +1399,30 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             for (uint32_t index = 0; index < memoryGraphics.size(); index++) {
                 if (!reply.WriteParcelable(&memoryGraphics[index])) {
                     RS_LOGE("RSClientToServiceConnectionStub::GET_MEMORY_GRAPHICS Write index failed!");
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID): {
+            int32_t renderPid{0};
+            if (!data.ReadInt32(renderPid)) {
+                RS_LOGE("RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID read renderPid "
+                        "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphicsByRenderPid(renderPid);
+            if (!reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()))) {
+                RS_LOGE(
+                    "RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID write size failed");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            for (uint32_t index = 0; index < memoryGraphics.size(); index++) {
+                if (!reply.WriteParcelable(&memoryGraphics[index])) {
+                    RS_LOGE("RSClientToServiceConnectionStub::GET_MEMORY_GRAPHICS_BY_RENDER_PID Write index failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }

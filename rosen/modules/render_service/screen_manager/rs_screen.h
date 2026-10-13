@@ -233,7 +233,7 @@ private:
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     mutable std::mutex supportedPhysicalHDRFormatsMutex_;
     std::mutex surfaceConfigsMutex_;
-    std::atomic<bool> specialHDRFormatsInit_ = false;
+    bool specialHDRFormatsInit_ = false;
 
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;

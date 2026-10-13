@@ -40,9 +40,9 @@ typedef enum VkStructureTypeHUAWEI {
 } VkstructureTypeHUAWEI;
 
 typedef struct VkDeviceMemoryExclusiveThresholdHUAWEI {
-    VkStructureTypeHUAWEI sType;
-    const void*           pNext;
-    uint32_t              threshold;
+    VkStructureTypeHUAWEI sType = VK_STRUCTURE_TYPE_DEVICE_MEMORY_EXCLUSIVE_THRESHOLD_INFO;
+    const void*           pNext = nullptr;
+    uint32_t              threshold = 0;
 } VkDeviceMemoryExclusiveThresholdHUAWEI;
 
 }

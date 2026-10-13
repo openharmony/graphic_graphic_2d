@@ -20,6 +20,7 @@
 #include "animation/rs_render_animation.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
@@ -348,6 +349,11 @@ void RSRenderTimeDrivenGroupAnimator::OnAnimate(int64_t timestamp, int64_t& minL
         return;
     }
 
+    if (IsBackground()) {
+        needUpdateStartTime_ = true;
+        return;
+    }
+
     if (needUpdateStartTime_) {
         RS_TRACE_NAME_FMT("RSRenderTimeDrivenGroupAnimator::OnAnimate animator[%llu] UpdateStartTime", id_);
         SetStartTime(timestamp);
@@ -358,15 +364,42 @@ void RSRenderTimeDrivenGroupAnimator::OnAnimate(int64_t timestamp, int64_t& minL
     UpdateFraction(timestamp, minLeftDelayTime);
 }
 
+bool RSRenderTimeDrivenGroupAnimator::IsBackground() const
+{
+    if (timingProtocol_.GetRepeatCount() != -1) {
+        return false;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        return false;
+    }
+    for (const auto& weakAnim : cachedAnimations_) {
+        auto animation = weakAnim.lock();
+        if (animation == nullptr) {
+            continue;
+        }
+        auto node = context->GetNodeMap().GetRenderNode<RSRenderNode>(animation->GetTargetId());
+        if (node == nullptr) {
+            continue;
+        }
+        auto instanceRoot = node->GetInstanceRootNode();
+        if (instanceRoot && instanceRoot->GetAbilityState() == RSSurfaceNodeAbilityState::BACKGROUND) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSRenderTimeDrivenGroupAnimator::UpdateFraction(int64_t timestamp, int64_t& minLeftDelayTime)
 {
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished] =
         animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false);
 
     RS_TRACE_NAME_FMT("RSRenderTimeDrivenGroupAnimator::UpdateFraction animator[%llu] fraction[%f] "
-        "runningTime[%lld]ms duration[%d]ms delay[%d]ms repeat[%d] childCount[%zu]",
+        "runningTime[%lld]ms duration[%d]ms delay[%d]ms repeat[%d] childCount[%zu] isActualRepeatFinished[%d]",
         id_, fraction, animationFraction_.GetRunningTime() / MS_TO_NS, timingProtocol_.GetDuration(),
-        timingProtocol_.GetStartDelay(), timingProtocol_.GetRepeatCount(), cachedAnimations_.size());
+        timingProtocol_.GetStartDelay(), timingProtocol_.GetRepeatCount(), cachedAnimations_.size(),
+        isActualRepeatFinished);
 
     if (isActualRepeatFinished) {
         ResetChildAnimations();
@@ -403,12 +436,17 @@ void RSRenderTimeDrivenGroupAnimator::ResetChildAnimations()
         }
 
         if (animationFraction_.GetAutoReverse()) {
-            // Flip groupReverseCycle_ instead of direction_ to avoid polluting GetEndFraction()
             animation->SetGroupReverseCycle(!animation->GetGroupReverseCycle());
-        } else {
+        }
+        // Reverse→forward and non-autoReverse: restart to reset runningTime_.
+        // Forward→reverse: skip restart, keep runningTime_ continuous.
+        // Restart resets child's runningTime_ and lastFrameTime_ to zero, eliminating the
+        // accumulated time skew between the group's timeline and the child's own timeline.
+        bool needRestart = !animationFraction_.GetAutoReverse() ||
+            !animationFraction_.GetCurrentIsReverseCycle();
+        if (needRestart) {
             animation->Restart();
-            // Skip child's Animate on the same frame (called later in node->Animate),
-            // so child doesn't accumulate deltaTime before group advances.
+            // Reset lastFrameTime_ so child's Animate (called later this frame) doesn't jump
             animation->SetNeedUpdateStartTime(true);
         }
     }

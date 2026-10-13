@@ -76,7 +76,7 @@ public:
     /**
      * @brief Start offscreen rendering by creating a MakeSurface, swapping the canvas,
      * and pushing the offscreen stack. Pair with EndOffscreen to snapshot and restore
-     * the canvas, then composite the result back (see DrawForegroundFilter/DrawSdfClip).
+     * the canvas, then composite the result back (see DrawForegroundFilter).
      */
     static void BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds);
     /**
@@ -92,14 +92,6 @@ public:
      */
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect = std::nullopt);
-    /**
-     * @brief Restore the offscreen started by BeginOffscreen for SDF clip: snapshot
-     * the offscreen content, restore the canvas, and composite through an SDF-clipped
-     * SaveLayer. frameRect is the drawable's OnDraw rect.
-     */
-    static void DrawSdfClip(RSPaintFilterCanvas& canvas,
-        const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
-        const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
         const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,

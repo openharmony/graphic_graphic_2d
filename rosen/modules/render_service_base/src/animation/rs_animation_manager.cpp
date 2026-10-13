@@ -173,15 +173,19 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
     EraseIf(animations_, [this, &hasRunningAnimation, time, &needRequestNextVsync, nodeIsOnTheTree,
         &isCalculateAnimationValue, abilityState, &minLeftDelayTime](auto& iter) -> bool {
         auto& animation = iter.second;
-        // infinite iteration animation out of the tree or in the background does not request vsync
-        if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) &&
-            animation->GetRepeatCount() == -1) {
+        // infinite iteration animation out of the tree or in the background does not request vsync.
+        // For group animation children, only suspend if the group itself is infinite-loop;
+        // finite-loop group children should finish normally (the group animator will FinishAnimator too).
+        bool isInfiniteLoop = animation->IsGroupAnimationChild() ?
+            (animation->GetGroupRepeatCount() == -1) : (animation->GetRepeatCount() == -1);
+        if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) && isInfiniteLoop) {
             RS_TRACE_NAME_FMT("InfiniteAnim Suspend animId:%llu nodeId:%llu pid:%d onTree:%d abilityState:%d",
                 animation->GetAnimationId(), animation->GetTargetId(), GetAnimationPid(), nodeIsOnTheTree,
                 static_cast<int>(abilityState));
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
-            if (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION &&
-                !animation->GetNeedUpdateStartTime()) {
+            // Suspend keeps lastFrameTime_ stale across background; mark needUpdateStartTime so the first
+            // foreground frame resets lastFrameTime_ via SetStartTime, avoiding a huge deltaTime jump.
+            if (!animation->GetNeedUpdateStartTime()) {
                 animation->needUpdateStartTime_ = true;
             }
             return false;

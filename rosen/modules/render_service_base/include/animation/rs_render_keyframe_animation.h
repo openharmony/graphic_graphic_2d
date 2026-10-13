@@ -62,6 +62,8 @@ private:
     std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     bool isDurationKeyframe_ { false };
+
+    friend class RSKeyframeAnimation;
 };
 } // namespace Rosen
 } // namespace OHOS

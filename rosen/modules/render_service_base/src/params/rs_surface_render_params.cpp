@@ -768,6 +768,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
     targetSurfaceParams->delegateDstRect_ = delegateDstRect_;
     targetSurfaceParams->delegateSrcRect_ = delegateSrcRect_;
+    targetSurfaceParams->tunnelState_ = tunnelState_;
+    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
+    targetSurfaceParams->tunnelLayerProperty_ = tunnelLayerProperty_;
+    targetSurfaceParams->tunnelLayerGeneration_ = tunnelLayerGeneration_;
+    targetSurfaceParams->isLppTunnel_ = isLppTunnel_;
     RSRenderParams::OnSync(target);
 }
 

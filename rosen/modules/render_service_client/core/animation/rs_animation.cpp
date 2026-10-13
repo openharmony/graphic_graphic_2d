@@ -282,6 +282,10 @@ void RSAnimation::InteractiveFinish(RSInteractiveAnimationPosition pos)
         uiAnimation_->FinishOnPosition(pos);
     }
     UpdateStagingValueOnInteractiveFinish(pos);
+    // Synchronously balance runningPathNum_ for path animations so that an immediate Set() after
+    // FinishAnimation is not blocked. Idempotent in RSPathAnimation::OnCallFinishCallback guards
+    // against the later async FINISHED event (RSNode::AnimationCallback) double-decrementing.
+    OnCallFinishCallback();
 }
 
 void RSAnimation::InteractiveReverse()

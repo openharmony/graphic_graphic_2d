@@ -50,6 +50,7 @@ public:
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override;
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
     std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const override;

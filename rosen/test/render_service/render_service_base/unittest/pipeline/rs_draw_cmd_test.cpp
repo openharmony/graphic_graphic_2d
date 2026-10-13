@@ -1214,6 +1214,103 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
         ASSERT_EQ(extendImageObject.image_.use_count(), 2);
     }
 }
+
+/**
+ * @tc.name: PurgeMipmapMemTest003
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ (only RemoveImageMemForWindow resets it)
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest003, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    ASSERT_EQ(extendImageObject.image_.use_count(), 1);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_EQ(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest004
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image use_count > 1
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest004, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    auto imageHolder = extendImageObject.image_;
+    ASSERT_EQ(extendImageObject.image_.use_count(), 2);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_NE(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest005
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when lock is held by others
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest005, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    std::unique_lock<std::mutex> lock(extendImageObject.drawingImageMutex_);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_NE(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest006
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image_ is nullptr
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest006, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = nullptr;
+    extendImageObject.SetImageInfoReserved(true);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_EQ(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: ImageInfoReservedInitialValueTest
+ * @tc.desc: test imageInfoReserved_ defaults to false via IsImageInfoReserved
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, ImageInfoReservedInitialValueTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: ImageInfoReservedGetterSetterTest
+ * @tc.desc: test IsImageInfoReserved/SetImageInfoReserved round-trip
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, ImageInfoReservedGetterSetterTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.SetImageInfoReserved(true);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.SetImageInfoReserved(false);
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+}
 #endif
 
 /**

@@ -1243,7 +1243,6 @@ void RSScreen::GetScreenSupportedHDRFormatsCallBack(sptr<RSIScreenSupportedHdrFo
         RS_LOGE("RSScreen::GetScreenSupportedHDRFormatsCallBack callback is nullptr");
         return;
     }
-    specialHDRFormatsInit_ = true;
     std::vector<ScreenHDRFormat> hdrFormatsByVpe;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     Media::Format parameter{};
@@ -1258,9 +1257,14 @@ void RSScreen::GetScreenSupportedHDRFormatsCallBack(sptr<RSIScreenSupportedHdrFo
                 ScreenHDRFormat::VIDEO_AIHDR) == supportedPhysicalHDRFormats_.end()) {
                 supportedPhysicalHDRFormats_.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
             }
+            specialHDRFormatsInit_ = true;
         }
-    }
+    } else
 #endif
+    {
+        std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
+        specialHDRFormatsInit_ = true;
+    }
     callback->OnScreenSupportedHDRFormatsUpdate(Id(), hdrFormatsByVpe);
 }
 
@@ -1271,12 +1275,14 @@ int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdr
     if (IsVirtual()) {
         hdrFormats = supportedVirtualHDRFormats_;
     } else {
+        bool needInit = false;
         {
             std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
             hdrFormats = supportedPhysicalHDRFormats_;
+            needInit = !specialHDRFormatsInit_;
         }
         if (callback &&
-            GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL && !specialHDRFormatsInit_) {
+            GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL && needInit) {
             RSBackgroundThread::Instance().PostTask([weakThis = weak_from_this(), callback]() {
                 auto rsScreen = weakThis.lock();
                 if (rsScreen) {

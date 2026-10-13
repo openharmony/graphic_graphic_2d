@@ -646,4 +646,18 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
 #endif
 }
 
+/**
+ * @tc.name: IsFeatureVerificationPassedGetMemoryGraphicsByRenderPid
+ * @tc.desc: Verify GET_MEMORY_GRAPHICS_BY_RENDER_PID passes exclusive verification
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsFeatureVerificationPassedGetMemoryGraphicsByRenderPid, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID);
+    ASSERT_EQ(verifier->IsFeatureVerificationPassed(code), true);
+}
 } // namespace OHOS::Rosen

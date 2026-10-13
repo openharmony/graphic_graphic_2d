@@ -84,6 +84,9 @@ void RSVKImageManagerFuzztest(const uint8_t* data, size_t size)
     }
 
     auto vkImageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::UNPROTECTED_REDRAW);
+    vkImageManager->SetRenderContext(renderContext);
     auto fakeSeqNum = GetData<uint32_t>();
     auto fakeTid = GetData<uint32_t>();
     (void)vkImageManager->MapVkImageFromSurfaceBuffer(nullptr, nullptr, fakeTid);
@@ -119,6 +122,9 @@ void RSVKImageManagerFuzztestVKSemaphore(const uint8_t* data, size_t size)
     }
 
     auto vkImageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::UNPROTECTED_REDRAW);
+    vkImageManager->SetRenderContext(renderContext);
     auto buffer1 = CreateBuffer();
     auto drawingSurface = std::make_unique<Drawing::Surface>();
     sptr<SyncFence> bufferFence1 = SyncFence::INVALID_FENCE;

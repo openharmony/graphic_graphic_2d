@@ -1468,5 +1468,78 @@ HWTEST_F(RSRenderAnimationTest, GroupRepeatCount001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderAnimationTest GroupRepeatCount001 end";
 }
 
+/**
+ * @tc.name: OnRestartInRestartEarlyReturn001
+ * @tc.desc: Verify Restart returns early (OnRestart NOT called) when not running
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, OnRestartInRestartEarlyReturn001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartEarlyReturn001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // Not running, not groupWaiting -> Restart returns early, OnRestart not called
+    EXPECT_FALSE(renderAnimation->IsRunning());
+    EXPECT_FALSE(renderAnimation->IsGroupWaiting());
+    renderAnimation->Restart();
+    // State should NOT become RUNNING (early return)
+    EXPECT_NE(renderAnimation->GetState(), AnimationState::RUNNING);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartEarlyReturn001 end";
+}
+
+/**
+ * @tc.name: OnRestartInRestartRunning001
+ * @tc.desc: Verify OnRestart is called during Restart when animation is running
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, OnRestartInRestartRunning001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartRunning001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    renderAnimation->Start();
+    EXPECT_TRUE(renderAnimation->IsRunning());
+    // Running -> Restart proceeds, calls OnRestart (default no-op in base class)
+    renderAnimation->Restart();
+    EXPECT_EQ(renderAnimation->GetState(), AnimationState::RUNNING);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartRunning001 end";
+}
+
+/**
+ * @tc.name: OnRestartInRestartGroupWaiting001
+ * @tc.desc: Verify OnRestart is called during Restart when in GROUP_WAITING state
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, OnRestartInRestartGroupWaiting001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartGroupWaiting001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    renderAnimation->Start();
+    renderAnimation->Pause();
+    renderAnimation->ResumeGroupWaiting();
+    EXPECT_TRUE(renderAnimation->IsGroupWaiting());
+    // GroupWaiting -> Restart proceeds, calls OnRestart
+    renderAnimation->Restart();
+    EXPECT_EQ(renderAnimation->GetState(), AnimationState::RUNNING);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest OnRestartInRestartGroupWaiting001 end";
+}
+
+/**
+ * @tc.name: GetGroupEndFractionOnRenderAnimation001
+ * @tc.desc: Verify GetGroupEndFraction delegates to animationFraction_ on RSRenderAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, GetGroupEndFractionOnRenderAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GetGroupEndFractionOnRenderAnimation001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    // Default: groupAutoReverse false, returns same as animationFraction_.GetEndFraction()
+    EXPECT_FLOAT_EQ(renderAnimation->GetGroupEndFraction(), renderAnimation->animationFraction_.GetEndFraction());
+
+    renderAnimation->SetGroupAutoReverse(true);
+    renderAnimation->SetGroupRepeatCount(2);
+    // groupAutoReverse true + even count + forward -> 0.0f
+    EXPECT_FLOAT_EQ(renderAnimation->GetGroupEndFraction(), 0.0f);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest GetGroupEndFractionOnRenderAnimation001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

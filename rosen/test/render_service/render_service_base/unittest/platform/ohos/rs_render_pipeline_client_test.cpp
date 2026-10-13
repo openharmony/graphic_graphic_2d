@@ -15,8 +15,12 @@
 
 #include <gtest/gtest.h>
 
+#include <iremote_stub.h>
+
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_pipeline_client.h"
+#include "transaction/rs_transaction_data.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "ui/rs_surface_node.h"
@@ -1111,6 +1115,53 @@ HWTEST_F(RSPipelineClientTest, TransactionDataCbDirector_ClientDestroyed_001, Te
     auto director = localClient->transactionDataCbDirector_;
     localClient.reset();
     director->OnAfterProcess(token, timeStamp);
+}
+
+/**
+ * @tc.name: CommitTransactionLazyReResolve001
+ * @tc.desc: INVALID tokenMaskId is lazily re-resolved before committing (uni-render), null
+ *           transaction keeps the mocked connection on its nullptr-transaction early return
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineClientTest, CommitTransactionLazyReResolve001, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        GTEST_SKIP() << "uni-render disabled at runtime";
+    }
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t TEST_MASK_ID = 10086;
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = new RSClientToRenderConnectionProxy(nullptr);
+    connHub->connRenderProcesses_[TEST_MASK_ID] = info;
+    connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
+
+    auto localClient = std::make_shared<RSRenderPipelineClient>();
+    localClient->tokenMaskId_ = INVALID_TOKEN_MASK_ID;
+    std::unique_ptr<RSTransactionData> emptyTransaction = nullptr;
+    localClient->CommitTransaction(emptyTransaction);
+    EXPECT_EQ(localClient->tokenMaskId_, TEST_MASK_ID);
+
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
+
+/**
+ * @tc.name: CommitTransactionLazyReResolve002
+ * @tc.desc: valid tokenMaskId skips the lazy re-resolution and is kept unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineClientTest, CommitTransactionLazyReResolve002, TestSize.Level1)
+{
+    auto localClient = std::make_shared<RSRenderPipelineClient>();
+    constexpr uint64_t VALID_MASK_ID = 10087;
+    localClient->tokenMaskId_ = VALID_MASK_ID;
+    std::unique_ptr<RSTransactionData> emptyTransaction = nullptr;
+    localClient->CommitTransaction(emptyTransaction);
+    EXPECT_EQ(localClient->tokenMaskId_, VALID_MASK_ID);
 }
 #endif
 } // namespace Rosen

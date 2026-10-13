@@ -56,7 +56,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static void SetTunnelLayerSnapshot(NodeId nodeId, uint64_t tunnelLayerId = 1,
+    static void SetTunnelLayerInfo(RSSurfaceRenderParams& params, uint64_t tunnelLayerId = 1,
         uint32_t property = TUNNEL_PROP_BUFFER_ADDR, uint64_t generation = 1);
 
     static inline uint32_t screenId_ = 0;
@@ -101,14 +101,13 @@ void RSUniRenderProcessorTest::TearDown()
     RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
 }
 
-void RSUniRenderProcessorTest::SetTunnelLayerSnapshot(NodeId nodeId, uint64_t tunnelLayerId,
+void RSUniRenderProcessorTest::SetTunnelLayerInfo(RSSurfaceRenderParams& params, uint64_t tunnelLayerId,
     uint32_t property, uint64_t generation)
 {
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    RSRenderThreadParams::TunnelLayerSnapshotMap snapshots;
-    snapshots[nodeId] = { tunnelLayerId, property, generation };
-    renderThreadParams->SetTunnelLayerSnapshots(std::move(snapshots));
-    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(renderThreadParams));
+    params.SetTunnelState(RSTunnelRuntimeState::TunnelState::BUILDING);
+    params.SetTunnelLayerId(tunnelLayerId);
+    params.SetTunnelLayerProperty(property);
+    params.SetTunnelLayerGeneration(generation);
 }
 
 /**
@@ -693,20 +692,56 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
     constexpr uint32_t testTunnelLayerProperty = TUNNEL_PROP_BUFFER_ADDR;
 
     RSLayerPtr layer = nullptr;
-    SetTunnelLayerSnapshot(params.GetId(), testTunnelLayerId, testTunnelLayerProperty);
-    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
+    SetTunnelLayerInfo(params, testTunnelLayerId, testTunnelLayerProperty);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
 
     layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
     layer->SetTunnelLayerId(testTunnelLayerId);
     layer->SetTunnelLayerProperty(testTunnelLayerProperty);
-    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
     EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
     EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
 
     layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
 
+    EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
+}
+
+/**
+ * @tc.name: HandleTunnelLayerParameters002
+ * @tc.desc: Test new branches of HandleTunnelLayerParameters: CURSOR early-return, NOT_TUNNEL
+ *          non-LPP else-clear, and NOT_TUNNEL + LPP flag tunnel path.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters002, TestSize.Level1)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    constexpr uint64_t testTunnelLayerId = 2001;
+    constexpr uint32_t testTunnelLayerProperty = TUNNEL_PROP_BUFFER_ADDR;
+
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(layer, nullptr);
+
+    layer->SetTunnelLayerId(9999);
+    layer->SetTunnelLayerProperty(9999);
+    layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 9999u);
+
+    layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 0u);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), 0u);
+
+    params.SetTunnelLayerId(testTunnelLayerId);
+    params.SetTunnelLayerProperty(testTunnelLayerProperty);
+    params.SetIsLppTunnel(true);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
     EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
     EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
 }
@@ -726,7 +761,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    SetTunnelLayerSnapshot(params.GetId());
+    SetTunnelLayerInfo(params);
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result, nullptr);
 }
@@ -741,7 +776,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
 {
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
+    SetTunnelLayerInfo(params);
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -767,7 +802,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
+    SetTunnelLayerInfo(params);
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -793,7 +828,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
+    SetTunnelLayerInfo(params);
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -819,7 +854,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
+    SetTunnelLayerInfo(params);
     params.SetHwcGlobalPositionEnabled(true);
     params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     sptr<SurfaceBuffer> buffer = nullptr;

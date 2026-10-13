@@ -113,6 +113,15 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSSingleRenderProcessManager::Ge
     return { serviceToRenderConnection_ };
 }
 
+sptr<RSIServiceToRenderConnection> RSSingleRenderProcessManager::GetServiceToRenderConnByPid(pid_t pid) const
+{
+    if (pid == getpid()) {
+        return serviceToRenderConnection_;
+    }
+    RS_LOGE("%{public}s: pid:%{public}d is error ", __func__, pid);
+    return nullptr;
+}
+
 sptr<RSIConnectToRenderProcess> RSSingleRenderProcessManager::GetConnectToRenderConnection(ScreenId screenId) const
 {
     return connectToRenderConnection_;

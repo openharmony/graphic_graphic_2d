@@ -41,14 +41,15 @@ public:
     };
 
     static bool ResolveTunnelLayerInfo(
-        const sptr<IConsumerSurface>& consumer, uint64_t& tunnelLayerId, uint32_t& property,
-        NodeId nodeId = 0);
+        const std::shared_ptr<RSSurfaceRenderNode>& node,
+        uint64_t& tunnelLayerId, uint32_t& property);
     static RSSurfaceHandler::SurfaceBufferEntry AcquirePendingBuffer(
         const std::shared_ptr<RSSurfaceRenderNode>& node, RSTunnelRuntimeState& tunnelRuntime);
     static bool TryCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,
-        bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime);
-    static void BeginTunnelBuilding(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
+        bool preBufferFromTunnel, RSTunnelRuntimeState& tunnelRuntime);
+    static void BeginTunnelBuilding(RSSurfaceRenderNode& node,
+        uint64_t tunnelLayerId, uint32_t property);
     static void ResetTunnelState(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static ListenerHandleResult HandleListenerBuffer(
         const std::shared_ptr<RSSurfaceRenderNode>& node,
@@ -58,7 +59,7 @@ public:
 private:
     static bool TryCommitPendingBuffer(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,
-        bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime,
+        bool preBufferFromTunnel, RSTunnelRuntimeState& tunnelRuntime,
         RSSurfaceHandler::SurfaceBufferEntry pendingBuffer);
     static RSLayerPtr CreateTunnelLayer(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,

@@ -1351,4 +1351,17 @@ HWTEST_F(RSMultiRenderProcessManagerTest, SendTransfer011, TestSize.Level2)
     EXPECT_EQ(multiProcessManager_->SendTransfer(nonPersistent), StatusCode::SUCCESS);
     EXPECT_EQ(ipcManager->GetPersistenceMap().count(typeId), 0u); // non-persistent is ignored
 }
+
+/**
+ * @tc.name: GetServiceToRenderConnByPid001
+ * @tc.desc: Test GetServiceToRenderConnByPid return nullptr when pid not found
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetServiceToRenderConnByPid001, TestSize.Level2)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto conn = multiProcessManager_->GetServiceToRenderConnByPid(TEST_PID);
+    EXPECT_EQ(conn, nullptr);
+}
 } // namespace OHOS::Rosen

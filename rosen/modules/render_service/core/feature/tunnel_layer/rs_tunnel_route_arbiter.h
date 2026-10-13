@@ -30,6 +30,7 @@ namespace OHOS {
 namespace Rosen {
 class RSMainThread;
 class RSSurfaceRenderNode;
+class RSTunnelRuntimeState;
 
 class RSTunnelRouteArbiter {
 public:
@@ -54,19 +55,33 @@ public:
     static void GetAllLayerAndTunnelLayerCount(
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, uint32_t& presentCount, uint32_t& tunnelCount);
 
+    // NOT_TUNNEL -> BUILDING gate (bind path, dynamic threshold); below threshold, re-check next entry.
+    static void BeginTunnelBuilding(
+        RSTunnelRuntimeState& tunnelRuntime, NodeId nodeId, uint64_t tunnelLayerId);
+
+    // Dynamic threshold state: TunnelRollbackDetected +1 (no cap); DirectCompositionStable resets to base.
+    static uint32_t GetBuildingThreshold();
+    static void OnTunnelRollbackDetected();
+    static void OnDirectCompositionStable(uint32_t consecCount);
+
+    // Consecutive sole-tunnel present frames; resets to 0 on rollback / listener commit / not-sole frames.
+    static uint32_t GetConsecutiveSolePresentCount();
+    static void ResetConsecutiveSolePresentCount();
+
     static void RefreshGlobalTriggerSnapshot();
     static bool IsGlobalRouteForcedNormal();
 
     static const char* ComputeGlobalForbiddenCause(RSMainThread* mainThread);
 
 private:
-    // Pair the weak node with the screenId observed at claim time. If the surface migrates to
-    // another screen before render commit, the original screen's commit-done still recognises
-    // the entry and advances NORMAL_PREPARING -> NORMAL_COMMITTED, avoiding a permanent phase
-    // stall that would lock out the listener path.
+    // Pair the weak node with claim-time screenId so migration cannot stall the NORMAL phase.
     std::unordered_map<NodeId, std::pair<std::weak_ptr<RSSurfaceRenderNode>, ScreenId>> normalRouteNodes_;
     static std::atomic<bool> tunnelSolePresentLayer_;
     static std::atomic<bool> globalRouteForcedNormal_;
+    // Dynamic NOT_TUNNEL -> BUILDING threshold; atomic (main writes, listener reads).
+    static std::atomic<uint32_t> dynamicBuildingThreshold_;
+    // Consecutive sole-tunnel present frames; atomic (render thread writes, main/listener read).
+    static std::atomic<uint32_t> consecutiveSolePresentCount_;
 };
 } // namespace Rosen
 } // namespace OHOS
