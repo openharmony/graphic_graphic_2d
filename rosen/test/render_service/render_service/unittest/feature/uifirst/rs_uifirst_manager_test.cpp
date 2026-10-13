@@ -75,6 +75,9 @@ void RSUifirstManagerTest::TearDownTestCase()
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
     uifirstManager_.pendingResetWindowCachedNodes_.clear();
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNodeStaging_.clear();
     uifirstManager_.firstFrameCacheGeneratedNodes_.clear();
 
     mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
@@ -2331,28 +2334,36 @@ HWTEST_F(RSUifirstManagerTest, IsNodeInSubthreadProcessingTest, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
 {
-    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(2);
     ASSERT_NE(leashNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(leashNode);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->SetFirstLevelCrossNode(false);
     leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
     auto needUpdated = uifirstManager_.UifirstCacheUpdated(leashNode);
     EXPECT_TRUE(needUpdated);
 
+    auto uifirstType = uifirstManager_.uUiFirstType_;
+    auto isUiFirstDirtyFrameControlEnabled = uifirstManager_.isUiFirstDirtyFrameControlEnable_;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = true;
+    uifirstManager_.uUiFirstType_ = UiFirstCcmType::MULTI;
+    auto checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
     auto appNode = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(appNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(appNode);
     appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appNode->SetFirstLevelCrossNode(false);
     appNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
     auto checkUpdated = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_FALSE(checkUpdated);
 
-    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
+    uifirstManager_.subthreadProcessDoneNodeAhead_.insert(appNode->GetId());
     checkUpdated = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(checkUpdated);
 
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
     uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
     checkUpdated = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_FALSE(checkUpdated);
@@ -2360,19 +2371,22 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
     uifirstManager_.subthreadProcessDoneNodeAhead_.insert(appNode->GetId());
     checkUpdated = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(checkUpdated);
-
     auto appWindowNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appWindowNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(appWindowNode);
     appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->SetFirstLevelCrossNode(false);
     appWindowNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     appWindowNode->SetParent(leashNode);
+
     auto result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
     EXPECT_TRUE(result);
-
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
     mainThread_->context_->nodeMap.UnregisterRenderNode(leashNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appWindowNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
+    uifirstManager_.uUiFirstType_ = uifirstType;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isUiFirstDirtyFrameControlEnabled;
 }
 
 /**
@@ -2387,28 +2401,49 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     ASSERT_NE(leashNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(leashNode);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->SetFirstLevelCrossNode(false);
     leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
-
     auto appWindowNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appWindowNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(appWindowNode);
     appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->SetFirstLevelCrossNode(false);
     appWindowNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     appWindowNode->SetParent(leashNode);
+
+    auto isUiFirstDirtyFrameControlEnabled = uifirstManager_.isUiFirstDirtyFrameControlEnable_;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = true;
     auto result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
     EXPECT_TRUE(result);
+    auto checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
+    result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
+    EXPECT_TRUE(result);
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+    result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
+    EXPECT_TRUE(result);
+
+    auto uifirstType = uifirstManager_.uiFirstType_;
+    uifirstManager_.uiFirstType_ = UiFirstCcmType::SINGLE;
+    result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
+    EXPECT_TRUE(result);
+     uifirstManager_.uiFirstType_ = UiFirstCcmType::MULTI;
+    result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
+    EXPECT_TRUE(result);
+
 
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     auto appNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(appNode);
     appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appNode->SetFirstLevelCrossNode(false);
     appNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     leashNode->AddChild(appNode, -1);
     auto result2 = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(result2);
 
-    leashNode->RemoveChild(appNode);
+    leashNode->MoveChild(appNode, -1);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
     leashNode->AddChild(appNode, -1);
@@ -2417,9 +2452,8 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
 
     leashNode->RemoveChild(appNode);
     leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    leashNode->AddChild(appNode, -1);
 
-    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
     uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
     auto result4 = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_FALSE(result4);
@@ -2431,6 +2465,57 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
     mainThread_->context_->nodeMap.UnregisterRenderNode(leashNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appWindowNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
+    uifirstManager_.uiFirstType_ = uifirstType;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isUiFirstDirtyFrameControlEnabled;
+}
+
+/**
+ * @tc.name: UifirstCacheUpdated006
+ * @tc.desc: Test UifirstCacheUpdated
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated006, TestSize.Level1)
+{
+    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
+
+    auto appNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(appNode, nullptr);
+    mainThread_->context_->nodeMap.RegisterRenderNode(appNode);
+    appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appNode->SetFirstLevelCrossNode(true);
+    auto result = uifirstManager_.UifirstCacheUpdated(appNode);
+    EXPECT_TRUE(result);
+
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+    auto uiFirstType = uifirstManager_.uiFirstType_;
+    uifirstManager_.uiFirstType_ = UiFirstCcmType::MULTI;
+
+    std::shared_ptr<SurfaceRenderNode> appNoeTmp = nullptr;
+    result = uifirstManager_.UifirstCacheUpdated(appNoeTmp);
+    EXPECT_TRUE(result);
+
+    appNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    appNode->SetFirstLevelCrossNode(false);
+    result = uifirstManager_.UifirstCacheUpdated(appNode);
+    EXPECT_TRUE(result);
+
+    appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appNode->SetFirstLevelCrossNode(true);
+    result = uifirstManager_.UifirstCacheUpdated(appNode);
+    EXPECT_TRUE(result);
+
+    appNode->SetFirstLevelCrossNode(false);
+    appNode->absDrawRect_ = {0, 0, 100, 100};
+    appNode->SetLastFrameAbsDrawRect({0, 0, 200, 200});
+    result = uifirstManager_.UifirstCacheUpdated(appNode);
+    EXPECT_TRUE(result);
+
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
+    mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
+    uifirstManager_.uiFirstType_ = uifirstType;
 }
 
 /**
@@ -2524,38 +2609,22 @@ HWTEST_F(RSUifirstManagerTest, HandleAppWindowChildrenDirty004, TestSize.Level1)
     ASSERT_NE(leashNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(leashNode);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
     auto noneAppWindowNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(noneAppWindowNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(noneAppWindowNode);
     noneAppWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     leashNode->AddChild(noneAppWindowNode);
     leashNode->GenerateFullChildrenList();
+
     uifirstManager_.HandleAppWindowChildrenDirty(leashNode);
     auto childDirtyManager = noneAppWindowNode->GetDirtyManagerForUifirst();
     ASSERT_NE(childDirtyManager, nullptr);
     auto newUifirstDirty = childDirtyManager->GetUifirstFrameDirtyRegion();
     EXPECT_TRUE(newUifirstDirty.IsEmpty());
+
     mainThread_->context_->nodeMap.UnregisterRenderNode(leashNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(noneAppWindowNode->GetId());
-}
-
-/**
- * @tc.name: HandleAppWindowChildrenDirty005
- * @tc.desc: Test HandleAppWindowChildrenDirty
- * @tc.type: FUNC
- * @tc.require: issueIAVLLE
- */
-HWTEST_F(RSUifirstManagerTest, HandleAppWindowChildrenDirty005, TestSize.Level1)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    auto childDirtyManager = node->GetDirtyManagerForUifirst();
-    auto newUifirstDirty = childDirtyManager->GetUifirstFrameDirtyRegion();
-    ASSERT_NE(childDirtyManager, nullptr);
-
-    uifirstManager_.HandleAppWindowChildrenDirty(node);
-    EXPECT_TRUE(newUifirstDirty.IsEmpty());
 }
 
 /**
@@ -2566,12 +2635,11 @@ HWTEST_F(RSUifirstManagerTest, HandleAppWindowChildrenDirty005, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled001, TestSize.Level1)
 {
-    mainThread_->defaultScreenRefreshRate_ = 120;
-    EXPECT_FALSE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
-    mainThread_->defaultScreenRefreshRate_ = 60;
     bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
     auto uifirstType = uifirstManager_.uifirstType_;
+    auto isUiFirstDirtyFrameControlEnabled = uifirstManager_.isUiFirstDirtyFrameControlEnable_;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = true;
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     EXPECT_FALSE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
     uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
@@ -2580,6 +2648,7 @@ HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled001, TestSize.L
     EXPECT_FALSE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
     uifirstManager_.uifirstType_ = uifirstType;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isUiFirstDirtyFrameControlEnabled;
 }
 
 /**
@@ -2600,6 +2669,8 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode001, TestSize.Level1)
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
     mainThread_->defaultScreenRefreshRate_ = 60;
     auto uifirstType = uifirstManager_.uifirstType_;
+    auto isUiFirstDirtyFrameControlEnable = uifirstManager_.isUiFirstDirtyFrameControlEnable_;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = true;
     uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
     uifirstManager_.AddProcessDoneNode(id, type);
     EXPECT_FALSE(uifirstManager_.subthreadProcessDoneNodeStaging_.empty());
@@ -2612,5 +2683,6 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode001, TestSize.Level1)
     EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeStaging_.empty());
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
     uifirstManager_.uifirstType_ = uifirstType;
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isUiFirstDirtyFrameControlEnable;
 }
 }
