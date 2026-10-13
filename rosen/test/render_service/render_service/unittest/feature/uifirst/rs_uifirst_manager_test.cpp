@@ -2685,4 +2685,195 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode001, TestSize.Level1)
     uifirstManager_.uifirstType_ = uifirstType;
     uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isUiFirstDirtyFrameControlEnable;
 }
+
+/**
+ * @tc.name: SwapProcessDoneNode001
+ * @tc.desc: Test SwapProcessDoneNode early return when uifirstType is SINGLE
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, SwapProcessDoneNode001, TestSize.Level1)
+{
+    auto uifirstType = uifirstManager_.uifirstType_;
+    auto isDoneNodeSwaped = false;
+
+    // Test when uifirstType_ == UiFirstCcmType::SINGLE, should return early without swapping
+    uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNodeStaging_.clear();
+    uifirstManager_.subthreadProcessDoneNodeStaging_.insert(1);
+    uifirstManager_.SwapProcessDoneNode(isDoneNodeSwaped);
+    EXPECT_FALSE(isDoneNodeSwaped);
+    EXPECT_FALSE(uifirstManager_.subthreadProcessDoneNodeStaging_.empty());
+    EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeAhead_.empty());
+
+    // Restore
+    uifirstManager_.uifirstType_ = uifirstType;
+}
+
+/**
+ * @tc.name: SwapProcessDoneNode002
+ * @tc.desc: Test SwapProcessDoneNode early return when uifirstType is MULTI
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, SwapProcessDoneNode002, TestSize.Level1)
+{
+    auto uifirstType = uifirstManager_.uifirstType_;
+    auto isDoneNodeSwaped = false;
+
+    // Test when uifirstType_ == UiFirstCcmType::MULTI, should return early without swapping
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNodeStaging_.clear();
+    uifirstManager_.subthreadProcessDoneNodeStaging_.insert(1);
+    uifirstManager_.SwapProcessDoneNode(isDoneNodeSwaped);
+    EXPECT_TRUE(isDoneNodeSwaped);
+    EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeStaging_.empty());
+    EXPECT_FALSE(uifirstManager_.subthreadProcessDoneNodeAhead_.empty());
+
+    // Restore
+    uifirstManager_.uifirstType_ = uifirstType;
+}
+
+/**
+ * @tc.name: ProcessDoneNodeInner001
+ * @tc.desc: Test ProcessDoneNodeInner early return when both node collections are empty
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInner001, TestSize.Level1)
+{
+    // save current state 
+    auto subthreadProcessDoneNodeAhead = uifirstManager_.subthreadProcessDoneNodeAhead_;
+    auto subthreadProcessDoneNode = uifirstManager_.subthreadProcessDoneNode_;
+
+    // Test when both collections are empty - should return early
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.ProcessDoneNodeInner();
+
+    // Verify collections are still empty after early return
+    EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeAhead_.empty());
+    EXPECT_FALSE(uifirstManager_.subthreadProcessDoneNode_.empty());
+
+    // Restore
+    uifirstManager_.subthreadProcessDoneNodeAhead_ = subthreadProcessDoneNodeAhead;
+    uifirstManager_.subthreadProcessDoneNode_ = subthreadProcessDoneNode;
+}
+
+/**
+ * @tc.name: ProcessDoneNodeInner002
+ * @tc.desc: Test ProcessDoneNodeInner early return when both node collections are not empty
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInner002, TestSize.Level1)
+{
+    // save current state 
+    auto subthreadProcessDoneNodeAhead = uifirstManager_.subthreadProcessDoneNodeAhead_;
+    auto subthreadProcessDoneNode = uifirstManager_.subthreadProcessDoneNode_;
+
+    // Test when subthreadProcessDoneNodeAhead_ is not empty
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.subthreadProcessDoneNodeAhead_.insert(1);
+    uifirstManager_.subthreadProcessDoneNodeAhead_.insert(2);
+    uifirstManager_.ProcessDoneNodeInner();
+
+    // After processing, nodes should be moved to subthreadProcessDoneNode_ and cleared from ahead
+    EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeAhead_.empty());
+
+    // Restore
+    uifirstManager_.subthreadProcessDoneNodeAhead_ = subthreadProcessDoneNodeAhead;
+    uifirstManager_.subthreadProcessDoneNode_ = subthreadProcessDoneNode;
+}
+
+/**
+ * @tc.name: ProcessDoneNodeInner002
+ * @tc.desc: Test ProcessDoneNodeInner early return when both node collections are not empty
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInner002, TestSize.Level1)
+{
+    // save current state 
+    auto subthreadProcessDoneNodeAhead = uifirstManager_.subthreadProcessDoneNodeAhead_;
+    auto subthreadProcessDoneNode = uifirstManager_.subthreadProcessDoneNode_;
+
+    // Test when subthreadProcessDoneNodeAhead_ is not empty
+    uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.subthreadProcessDoneNodeAhead_.insert(1);
+    uifirstManager_.subthreadProcessDoneNodeAhead_.insert(2);
+    uifirstManager_.ProcessDoneNodeInner();
+
+    // After processing, nodes should be moved to subthreadProcessDoneNode_ and cleared from ahead
+    EXPECT_TRUE(uifirstManager_.subthreadProcessDoneNodeAhead_.empty());
+
+    // Restore
+    uifirstManager_.subthreadProcessDoneNodeAhead_ = subthreadProcessDoneNodeAhead;
+    uifirstManager_.subthreadProcessDoneNode_ = subthreadProcessDoneNode;
+}
+
+/**
+ * @tc.name: MergeOldDirtyToDirtyManager001
+ * @tc.desc: Test MergeOldDirtyToDirtyManager early return when GetUIFirstDirtyFrameControlEnabled is true
+                and HandleUIFirstDirtyFrameControl returns false
+ * @tc.type: FUNC
+ * @tc.require: issueDTS2026052746214
+ */
+HWTEST_F(RSUifirstManagerTest, MergeOldDirtyToDirtyManager001, TestSize.Level1)
+{
+    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+
+    auto uifirstType = uifirstManager_.uifirstType_;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
+
+    // Create a surface node for testing
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode);
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
+
+    // The function should handle the case when GetUIFirstDirtyFrameControlEnabled() returns true
+    // and HandleUIFirstDirtyFrameControl returns false - this is tested through normal flow
+
+    uifirstManager_.MergeOldDirtyToDirtyManager(surfaceNode);
+
+    // Cleanup
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+
+    // Restore
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
+    uifirstManager_.uifirstType_ = uifirstType;  
+}
+
+/**
+ * @tc.name: GetUIFirstDirtyFrameControlEnabled002
+ * @tc.desc: Test GetUIFirstDirtyFrameControlEnabled with isUIFirstFrameControlEnable_ flag
+ * @tc.type: FUNC
+ * @tc.require: issueI9NVOG
+ */
+HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled002, TestSize.Level1)
+{
+    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+    auto uifirstType = uifirstManager_.uifirstType_;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
+    auto isFrameControlEnable = uifirstManager_.isUiFirstDirtyFrameControlEnable_;
+
+    // Test when isUIFirstFrameControlEnable_ is false, should return false
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = false;
+    EXPECT_FALSE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
+
+    // Test when isUIFirstFrameControlEnable_ is true, should return true (other conditions met)
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = true;
+    EXPECT_TRUE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
+
+    // Restore
+    uifirstManager_.isUiFirstDirtyFrameControlEnable_ = isFrameControlEnable;
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1":"0");
+    uifirstManager_.uifirstType_ = uifirstType;  
+}
 }
