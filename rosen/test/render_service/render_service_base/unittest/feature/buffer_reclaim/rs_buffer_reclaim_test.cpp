@@ -107,7 +107,7 @@ sptr<MockSurfaceBuffer> RSBufferReclaimTest::CreateMockSurfaceBuffer(uint64_t bu
     }
     buffer->SetBufferId(bufferId);
     buffer->SetSeqNum(static_cast<uint32_t>(bufferId));
-    return buffer;
+    return sptr<MockSurfaceBuffer>(buffer);
 }
 
 void RSBufferReclaimTest::TestReclaimBufferOnFfrtWrongState(uint64_t bufferId, ReclaimState state)

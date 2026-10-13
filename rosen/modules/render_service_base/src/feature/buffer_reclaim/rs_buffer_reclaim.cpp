@@ -57,32 +57,30 @@ void RSBufferReclaim::ReclaimBufferOnFfrt(sptr<SurfaceBuffer> buffer)
     }
     RS_TRACE_NAME_FMT("DoBufferReclaim");
     auto startTime = std::chrono::steady_clock::now();
-    bool needNotify = false;
     auto ret = buffer->TryReclaim();
+    std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
+    auto iter = bufferReclaimMap_.find(bufferId);
+    if (iter == bufferReclaimMap_.end()) {
+        RS_LOGE("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu,"
+            "hasReclaimed:%{public}d, ret:%{public}d", buffer->GetBufferId(), buffer->GetSeqNum(),
+            bufferReclaimMap_.size(), buffer->IsReclaimed(), ret);
+        return;
+    }
+    if (iter->second == ReclaimState::RECLAIMING_RESUME) {
+        resumeCv_.notify_one();
+    }
     if (ret == GSERROR_OK) {
-        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
-        auto iter = bufferReclaimMap_.find(bufferId);
-        if (iter != bufferReclaimMap_.end()) {
-            if (iter->second == ReclaimState::RECLAIMING_RESUME) {
-                needNotify = true;
-            }
-            iter->second = ReclaimState::RECLAIMED;
-        }
+        iter->second = ReclaimState::RECLAIMED;
     } else {
         buffer->UnRegisterBufferDestructorCallbackFunc(&RSBufferReclaim::BufferDestructorCallback);
-        std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
-        bufferReclaimMap_.erase(bufferId);
-    }
-    if (needNotify) {
-        resumeCv_.notify_one();
+        bufferReclaimMap_.erase(iter);
     }
     auto endTime = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    std::lock_guard<std::mutex> lock(bufferReclaimMapMutex_);
     RS_TRACE_NAME_FMT("DoBufferReclaim done bufferReclaimMap_: %zu, hasReclaimed: %d, ret: %d",
         bufferReclaimMap_.size(), buffer->IsReclaimed(), ret);
     RS_LOGI("DoBufferReclaim bufId:%{public}" PRIu64 ", seq:%{public}u, bufferReclaimMap_:%{public}zu, hasReclaimed: "
-        "%{public}d, cost:%{public}" PRIu64 " ms, ret: %{public}d", buffer->GetBufferId(), buffer->GetSeqNum(),
+        "%{public}d, cost:%{public}" PRIu64 " ms, ret:%{public}d", buffer->GetBufferId(), buffer->GetSeqNum(),
         bufferReclaimMap_.size(), buffer->IsReclaimed(), static_cast<uint64_t>(duration.count()), ret);
 }
 
