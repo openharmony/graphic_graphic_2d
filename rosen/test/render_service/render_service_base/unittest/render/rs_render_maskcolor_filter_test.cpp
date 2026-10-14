@@ -116,6 +116,44 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashDifferenceTest0
 }
 
 /**
+ * @tc.name: RSMaskColorShaderFilterHashRgbDifferenceTest001
+ * @tc.desc: Same GetAlpha but different AsArgbInt should produce different hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashRgbDifferenceTest001, TestSize.Level1)
+{
+    RSColor color1(100, 100, 100, 200);
+    RSColor color2(200, 200, 200, 200);
+    ASSERT_EQ(color1.GetAlpha(), color2.GetAlpha());
+    ASSERT_NE(color1.AsArgbInt(), color2.AsArgbInt());
+    auto filter1 = std::make_shared<RSMaskColorShaderFilter>(PRE_DEFINED, color1);
+    auto filter2 = std::make_shared<RSMaskColorShaderFilter>(PRE_DEFINED, color2);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: RSMaskColorShaderFilterHashAlphaNormalRangeTest001
+ * @tc.desc: Same RGB but different alpha in normal range [0,255] should produce different hash
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashAlphaNormalRangeTest001, TestSize.Level1)
+{
+    RSColor color1(100, 100, 100, 100);
+    RSColor color2(100, 100, 100, 200);
+    ASSERT_NE(color1.AsArgbInt(), color2.AsArgbInt());
+    ASSERT_NE(color1.GetAlpha(), color2.GetAlpha());
+    auto filter1 = std::make_shared<RSMaskColorShaderFilter>(PRE_DEFINED, color1);
+    auto filter2 = std::make_shared<RSMaskColorShaderFilter>(PRE_DEFINED, color2);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
  * @tc.name: RSMaskColorShaderFilterHashAlphaDifferenceTest001
  * @tc.desc: Same AsArgbInt but different raw GetAlpha should produce different hash
  * @tc.type: FUNC
