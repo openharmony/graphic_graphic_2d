@@ -898,7 +898,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes, RectI& backgroundAlphaRect,
     bool& isHardwareEnableByBackgroundAlpha)
 {
-    std::list<RectI> hwcRects;
+    std::list<std::pair<RectI, size_t>> hwcRects;
     for (size_t i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
@@ -919,13 +919,28 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         }
 
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcRects.push_back(hwcNodePtr->GetDstRect());
+            hwcRects.emplace_back(hwcNodePtr->GetDstRect(), i);
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
-                   hwcRects.size() != 0 && (hwcRects.back().IsInsideOf(hwcNodePtr->GetDstRect()) ||
-                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back())) &&
-                                            IsTargetSourceTuning(*hwcNodePtr)) {
+                   hwcRects.size() != 0 && (hwcRects.back().first.IsInsideOf(hwcNodePtr->GetDstRect()) ||
+                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back().first)) &&
+                                            IsTargetSourceTuning(*hwcNodePtr) && hwcRects.back().second == i-1) {
             isHardwareEnableByBackgroundAlpha = true;
             backgroundAlphaRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+            for (size_t j = 0; j < hwcRects.back().second; j++) {
+                auto targetNodePtr = hwcNodes[j].lock();
+                if (!targetNodePtr || targetNodePtr->IsHardwareForcedDisabled()) {
+                    continue;
+                }
+                bool isIntersected = !backgroundAlphaRect.IntersectRect(
+                    targetNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).IsEmpty();
+                if (isIntersected) {
+                    targetNodePtr->SetHardwareForcedDisabledState(true);
+                    auto parentNode = targetNodePtr->GetParent().lock();
+                    RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+                        "hwc node backgound_alpha", targetNodePtr->GetName().c_str(), targetNodePtr->GetId(),
+                        parentNode ? parentNode->GetId() : 0);
+                }
+            }
             continue;
         } else if (!hwcNodePtr->IsHardwareForcedDisabled()) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
