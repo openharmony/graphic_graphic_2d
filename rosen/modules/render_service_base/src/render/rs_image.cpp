@@ -105,7 +105,10 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d, isEDRSurface: %{public}d, "
         "isHDRUiCapture: %{public}d, nodeId: %{public}" PRIu64 "",
         isHDRPixelMap, isEDRSurface, isHDRUiCapture, nodeId_);
-    if (!isHDRPixelMap && !isHDRUiCapture && !isEDRSurface) {
+    // GetFd() only carries a valid SurfaceBuffer* for DMA-backed pixel maps;
+    // casting a plain fd int would cause type confusion and arbitrary write.
+    if ((!isHDRPixelMap && !isHDRUiCapture && !isEDRSurface) ||
+        pixelMap_->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
         return false;
     }
 

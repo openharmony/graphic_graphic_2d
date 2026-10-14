@@ -818,6 +818,85 @@ HWTEST_F(RSImageTest, IsEDRSurfaceTest001, TestSize.Level1)
 }
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest001
+ * @tc.desc: Verify HDRConvert returns false for non-DMA HDR pixelMap
+ *           (IsHdr true but allocator not DMA, must not reach reinterpret_cast)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    ASSERT_NE(pixelmap, nullptr);
+    // make IsHdr() return true via ASTC format + astcHdr_, without DMA backing
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ASTC_4x4;
+    pixelmap->astcHdr_ = true;
+    rsImage->pixelMap_ = pixelmap;
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    EXPECT_TRUE(pixelmap->IsHdr());
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::DMA_ALLOC);
+
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions samplingOptions;
+    // non-DMA HDR pixelMap must be rejected to avoid type confusion on GetFd()
+    EXPECT_FALSE(rsImage->HDRConvert(samplingOptions, canvas));
+}
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest002
+ * @tc.desc: Verify HDRConvert returns false when pixelMap_ or image_ is null,
+ *           and when pixelMap is non-HDR non-DMA (all HDR flags false)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest002, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions sampling;
+    // null pixelMap_ and image_
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+    // null image_ only
+    rsImage->pixelMap_ = CreatePixelMap(200, 300);
+    ASSERT_NE(rsImage->pixelMap_, nullptr);
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+    // non-HDR non-DMA pixelMap, all HDR flags false
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+}
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest003
+ * @tc.desc: Verify HDRConvert returns false when canvas is not PAINT_FILTER
+ *           (reached via IsHdr true + DMA allocator, returns before reinterpret_cast)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    ASSERT_NE(pixelmap, nullptr);
+    // IsHdr true + DMA to pass guard, plain canvas triggers type check
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ASTC_4x4;
+    pixelmap->astcHdr_ = true;
+    pixelmap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    rsImage->pixelMap_ = pixelmap;
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions sampling;
+    // plain canvas (COMMON) != PAINT_FILTER, returns before reinterpret_cast
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+}
+#endif
+
 /**
  * @tc.name: RSImageMarshallingTest001
  * @tc.desc: Verify function Marshalling
