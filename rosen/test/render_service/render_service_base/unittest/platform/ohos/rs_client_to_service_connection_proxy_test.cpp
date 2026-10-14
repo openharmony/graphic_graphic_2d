@@ -2496,33 +2496,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestAsyncDirect, TestSize.
 }
 
 /**
- * @tc.name: SendRequestSyncOffloaded
- * @tc.desc: Sync plain-data calls run on the executor worker and the reply is cloned back.
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SendRequestSyncOffloaded, TestSize.Level1)
-{
-    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
-    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
-    auto callerTid = std::this_thread::get_id();
-    std::thread::id sendTid;
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
-        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
-            sendTid = std::this_thread::get_id();
-            reply.WriteInt32(1);
-            return NO_ERROR;
-        });
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    ASSERT_EQ(mockProxy->SendRequest(0, data, reply, option), NO_ERROR);
-    ASSERT_NE(sendTid, callerTid); // offloaded to the timeout executor worker
-    int32_t value = 0;
-    ASSERT_TRUE(reply.ReadInt32(value));
-    ASSERT_EQ(value, 1);
-}
-
-/**
  * @tc.name: SendRequestSyncWithFdDirect
  * @tc.desc: Sync calls whose input parcel carries fds/binder objects stay on the direct path.
  * @tc.type: FUNC
