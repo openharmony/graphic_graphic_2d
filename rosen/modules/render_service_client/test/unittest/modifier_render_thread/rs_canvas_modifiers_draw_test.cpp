@@ -837,7 +837,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_SchedulesRecurringTask001, 
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
-    canvasModifiersDraw->CleanFreeBuffers(1000, false);
+    canvasModifiersDraw->CleanFreeBuffers(false);
     EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
@@ -845,7 +845,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_RemovesTaskWhenImmediately0
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
-    canvasModifiersDraw->CleanFreeBuffers(1000, true);
+    canvasModifiersDraw->CleanFreeBuffers(true);
     EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
@@ -853,7 +853,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffersImmediately_SchedulesImmedia
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
-    canvasModifiersDraw->CleanFreeBuffersImmediately();
+    canvasModifiersDraw->CleanFreeBuffers(true);
     EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
@@ -897,6 +897,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_RestoreFlag001, TestSize.
     drawable.lastFlushBufferTime_ = 1; // non-zero, long ago relative to maxDuration=0
     canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(
         canvasModifiersDraw->cacheDir_);
+    canvasModifiersDraw->lastGpuContextActiveTime_ = 1; // non-zero, long ago
     canvasModifiersDraw->DoCleanFreeBuffers(0);
     if (canvasModifiersDraw->gpuContext_ != nullptr) {
         EXPECT_TRUE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
@@ -968,6 +969,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, GetGpuContext_ReuseExisting001, TestSize.Lev
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     auto mockContext = std::make_shared<Drawing::GPUContext>();
     canvasModifiersDraw->gpuContext_ = mockContext;
+    canvasModifiersDraw->renderContext_ = RenderContext::Create();
     auto result = canvasModifiersDraw->GetGpuContext();
     EXPECT_EQ(result, mockContext);
 }
