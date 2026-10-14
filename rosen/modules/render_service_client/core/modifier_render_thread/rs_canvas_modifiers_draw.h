@@ -163,9 +163,7 @@ private:
 
     void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
 
-    void CleanFreeBuffers(int64_t delayTime, bool immediately);
-
-    void CleanFreeBuffersImmediately();
+    void CleanFreeBuffers(bool immediately);
 
     void DoCleanFreeBuffers(int64_t maxDuration);
 
@@ -187,7 +185,7 @@ private:
 
     bool needRestoreGpuCacheLimit_ = false;
 
-    int64_t lastUpdateCanvasContentTime_ = 0;
+    int64_t lastGpuContextActiveTime_ = 0;
 
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 

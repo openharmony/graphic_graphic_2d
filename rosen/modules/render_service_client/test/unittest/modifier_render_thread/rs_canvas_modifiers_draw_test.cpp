@@ -1353,5 +1353,109 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollect_ActiveWithBuffer002, TestSi
     pSurface->CancelBuffer(buffer);
     EXPECT_TRUE(surfaceFrameNull);
 }
+
+HWTEST_F(RSCanvasModifiersDrawTest, OnNodeCreate_SetsLastGpuContextActiveTime001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->cacheDir_ = "/data/local/tmp";
+    NodeId nodeId = 100;
+    std::weak_ptr<RSRenderInterface> weakInterface;
+    canvasModifiersDraw->OnNodeCreate(nodeId, weakInterface);
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->lastGpuContextActiveTime_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(100)), std::future_status::ready);
+    EXPECT_GT(future.get(), 0);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, OnNodeRelease_SetsLastGpuContextActiveTime001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 200;
+    canvasModifiersDraw->drawableMap_[nodeId];
+    std::weak_ptr<RSRenderInterface> weakInterface;
+    canvasModifiersDraw->OnNodeRelease(nodeId, weakInterface);
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() {
+            return std::make_pair(canvasModifiersDraw->lastGpuContextActiveTime_,
+                canvasModifiersDraw->drawableMap_.count(nodeId) == 0);
+        });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(100)), std::future_status::ready);
+    auto [activeTime, erased] = future.get();
+    EXPECT_GT(activeTime, 0);
+    EXPECT_TRUE(erased);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_NonActiveTriggersClean001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 300;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.lastFlushBufferTime_ = 1;
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    canvasModifiersDraw->OnNodeStateChanged(nodeId, RSNodeState::INACTIVE);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_[nodeId].lastFlushBufferTime_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(200)), std::future_status::ready);
+    EXPECT_EQ(future.get(), 0);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, ResetSurface_SizeOutOfGpuLimitTriggersClean001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 400;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.lastFlushBufferTime_ = 1;
+    drawable.width_ = 50;
+    drawable.height_ = 50;
+    canvasModifiersDraw->ResetSurface(nodeId, 100, 100, true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_[nodeId].lastFlushBufferTime_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(200)), std::future_status::ready);
+    EXPECT_EQ(future.get(), 0);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_RecurringTaskContinues001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 600;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.lastFlushBufferTime_ = 1;
+    canvasModifiersDraw->CleanFreeBuffers(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2100));
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_[nodeId].lastFlushBufferTime_; });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(100)), std::future_status::ready);
+    EXPECT_EQ(future.get(), 0);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_ZeroActiveTimeSkipClean001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 500;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeState_ = RSNodeState::INACTIVE;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.lastFlushBufferTime_ = 1;
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(
+        canvasModifiersDraw->cacheDir_);
+    ASSERT_EQ(canvasModifiersDraw->lastGpuContextActiveTime_, 0);
+    canvasModifiersDraw->DoCleanFreeBuffers(0);
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    EXPECT_EQ(canvasModifiersDraw->lastGpuContextActiveTime_, 0);
+}
 } // namespace Rosen
 } // namespace OHOS
