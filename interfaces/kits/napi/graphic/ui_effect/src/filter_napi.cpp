@@ -207,14 +207,14 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
     napi_status status = napi_create_object(env, &object);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
         FILTER_LOG_E("FilterNapi CreateFilter create object fail"));
-    status = napi_wrap(
+    status = napi_wrap_s(
         env, object, filterObj,
         [](napi_env env, void* data, void* hint) {
             Filter* filterObj = (Filter*)data;
             delete filterObj;
             filterObj = nullptr;
         },
-        nullptr, nullptr);
+        nullptr, &FILTER_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
         FILTER_LOG_E("FilterNapi CreateFilter wrap fail"));
     napi_property_descriptor resultFuncs[] = {

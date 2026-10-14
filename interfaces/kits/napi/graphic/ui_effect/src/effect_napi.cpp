@@ -111,14 +111,14 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
     napi_status status = napi_create_object(env, &object);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
         UIEFFECT_LOG_E("EffectNapi CreateEffect create object fail"));
-    status = napi_wrap(
+    status = napi_wrap_s(
         env, object, effectObj,
         [](napi_env env, void* data, void* hint) {
             VisualEffect* effectObj = (VisualEffect*)data;
             delete effectObj;
             effectObj = nullptr;
         },
-        nullptr, nullptr);
+        nullptr, &VISUAL_EFFECT_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
         UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail"));
     napi_property_descriptor resultFuncs[] = {
@@ -205,13 +205,13 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
         ParseBrightnessBlender(env, nativeObj, blender), nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender fail"));
 
-    status = napi_wrap(
+    status = napi_wrap_s(
         env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             BrightnessBlender* blenderObj = (BrightnessBlender*)data;
             delete blenderObj;
         },
-        nullptr, nullptr);
+        nullptr, &BLENDER_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender wrap fail"));
 
@@ -251,13 +251,13 @@ napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_in
 
     blender->SetHdr(true);
 
-    status = napi_wrap(
+    status = napi_wrap_s(
         env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             BrightnessBlender* blenderObj = (BrightnessBlender*)data;
             delete blenderObj;
         },
-        nullptr, nullptr);
+        nullptr, &BLENDER_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
 
@@ -660,13 +660,13 @@ napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info
         ParseShadowBlender(env, nativeObj, blender), nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateShadowBlender parse failed"));
 
-    status = napi_wrap(
+    status = napi_wrap_s(
         env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             ShadowBlender* blenderObj = (ShadowBlender*)data;
             delete blenderObj;
         },
-        nullptr, nullptr);
+        nullptr, &BLENDER_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateShadowBlender wrap fail"));
 
@@ -724,10 +724,10 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
     status = napi_create_object(env, &nativeObj);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender create object fail"));
-    status = napi_wrap(env, nativeObj, blender,
+    status = napi_wrap_s(env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             delete static_cast<HdrDarkenBlender*>(data);
-        }, nullptr, nullptr);
+        }, nullptr, &BLENDER_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender wrap fail"));
     return nativeObj;
