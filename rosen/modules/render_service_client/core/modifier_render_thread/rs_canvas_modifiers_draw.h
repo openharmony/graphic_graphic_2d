@@ -167,6 +167,8 @@ private:
 
     void DoCleanFreeBuffers(int64_t maxDuration);
 
+    void RestoreGpuCacheLimits();
+
     // Thread-related members
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

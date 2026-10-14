@@ -531,6 +531,7 @@ void RSCanvasModifiersDraw::OnNodeStateChanged(NodeId nodeId, RSNodeState nodeSt
             canvasModifiersDraw->CleanFreeBuffers(true);
             return;
         }
+        canvasModifiersDraw->RestoreGpuCacheLimits();
         drawable.UpdateContent(nullptr, true);
     });
 }
@@ -544,6 +545,7 @@ void RSCanvasModifiersDraw::ResetSurface(
         if (canvasModifiersDraw == nullptr) {
             return;
         }
+        canvasModifiersDraw->RestoreGpuCacheLimits();
         auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
         drawable.ResetSurface(width, height, sizeOutOfGpuLimit, colorSpace);
         if (sizeOutOfGpuLimit) {
@@ -587,18 +589,24 @@ void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdL
         if (canvasModifiersDraw == nullptr) {
             return;
         }
-        if (canvasModifiersDraw->needRestoreGpuCacheLimit_) {
-            if (auto gpuContext = canvasModifiersDraw->GetGpuContext()) {
-                gpuContext->SetResourceCacheLimits(0, maxGpuResourceBytes_);
-                canvasModifiersDraw->needRestoreGpuCacheLimit_ = false;
-            }
-        }
+        canvasModifiersDraw->RestoreGpuCacheLimits();
         auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
         drawable.UpdateContent(drawCmdList, false);
         canvasModifiersDraw->lastGpuContextActiveTime_ = static_cast<int64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
                 .count());
     });
+}
+
+void RSCanvasModifiersDraw::RestoreGpuCacheLimits()
+{
+    if (!needRestoreGpuCacheLimit_) {
+        return;
+    }
+    if (auto gpuContext = GetGpuContext()) {
+        gpuContext->SetResourceCacheLimits(0, maxGpuResourceBytes_);
+        needRestoreGpuCacheLimit_ = false;
+    }
 }
 
 DestroySemaphoreInfo* RSCanvasModifiersDraw::FlushSurfaceWithSemaphore(

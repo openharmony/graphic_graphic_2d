@@ -1452,12 +1452,31 @@ HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_ZeroActiveTimeSkipClean00
     drawable.nodeState_ = RSNodeState::INACTIVE;
     drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
     drawable.lastFlushBufferTime_ = 1;
-    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(
-        canvasModifiersDraw->cacheDir_);
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(canvasModifiersDraw->cacheDir_);
     ASSERT_EQ(canvasModifiersDraw->lastGpuContextActiveTime_, 0);
     canvasModifiersDraw->DoCleanFreeBuffers(0);
     EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
     EXPECT_EQ(canvasModifiersDraw->lastGpuContextActiveTime_, 0);
+    canvasModifiersDraw->lastGpuContextActiveTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+    canvasModifiersDraw->DoCleanFreeBuffers(0);
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, RestoreGpuCacheLimitsTest, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    canvasModifiersDraw->RestoreGpuCacheLimits();
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    canvasModifiersDraw->needRestoreGpuCacheLimit_ = true;
+    canvasModifiersDraw->RestoreGpuCacheLimits();
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    canvasModifiersDraw->needRestoreGpuCacheLimit_ = true;
+    canvasModifiersDraw->gpuContext_ = nullptr;
+    canvasModifiersDraw->RestoreGpuCacheLimits();
+    EXPECT_TRUE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
 }
 } // namespace Rosen
 } // namespace OHOS
