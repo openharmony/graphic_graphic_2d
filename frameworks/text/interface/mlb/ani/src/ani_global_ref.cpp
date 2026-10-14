@@ -256,7 +256,7 @@ constexpr std::string_view DECORATION_SIGN =
 constexpr CacheKey DECORATION_KEY{ANI_CLASS_DECORATION, "<ctor>", DECORATION_SIGN};
 
 constexpr CacheKey RECT_STYLE_KEY{
-    ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}ddddC{" ANI_INTERFACE_COLOR "}d:"};
+    ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}ddddC{" ANI_INTERFACE_COLOR "}C{" ANI_DOUBLE "}:"};
 
 constexpr CacheKey FONT_FEATURE_KEY{ANI_CLASS_FONT_FEATURE, "<ctor>", "C{" ANI_STRING "}i:"};
 constexpr CacheKey FONT_VARIATION_KEY{ANI_CLASS_FONT_VARIATION, "<ctor>", "C{" ANI_STRING "}dC{" ANI_BOOLEAN "}:"};

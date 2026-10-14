@@ -434,7 +434,8 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
     }
     ani_object aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().rectStyle,
         AniGlobalMethod::GetInstance().rectStyleCtor, aniColorObj, rectStyle.leftTopRadius, rectStyle.rightTopRadius,
-        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius, aniBorderColorObj, ani_double(rectStyle.borderWidth));
+        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius, aniBorderColorObj,
+        AniTextUtils::CreateAniDoubleObj(env, rectStyle.borderWidth));
     return aniObj;
 }
 
