@@ -936,6 +936,35 @@ HWTEST_F(RSRenderNodeTest, RemoveUIExtensionChildTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UIExtensionChildWithInvalidParentTest
+ * @tc.desc: Verify that removing or moving an unobscured UIExtension whose parent is not a main
+ *           window terminates instead of recursing infinitely between the routing helpers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UIExtensionChildWithInvalidParentTest, TestSize.Level1)
+{
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    uiExtension->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    // abnormal tree state: the unobscured UIExtension's parent is not a main window
+    auto invalidParent = std::make_shared<RSRenderNode>(id + 2, context);
+    invalidParent->children_.emplace_back(uiExtension);
+    uiExtension->SetParent(invalidParent);
+    // must terminate instead of infinite mutual recursion, and remove the child locally
+    invalidParent->RemoveChild(uiExtension);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 0);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+    // move path must also terminate
+    invalidParent->children_.emplace_back(uiExtension);
+    uiExtension->SetParent(invalidParent);
+    invalidParent->MoveChild(uiExtension, 0);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 1);
+    invalidParent->RemoveUIExtensionChild(uiExtension);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 0);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+}
+
+/**
  * @tc.name: NeedRoutedBasedOnUIExtensionTest
  * @tc.desc:
  * @tc.type: FUNC
