@@ -2982,7 +2982,8 @@ bool RSRenderPipelineAgent::CleanDelegateModeBufferCmd(NodeId nodeId, pid_t pid)
         if (!node || !node->GetDelegateMode()) {
             return;
         }
-        RsDelegateCompositeCallbackManager::GetInstance().CleanDelegateCompositeCommand(nodeId, pid);
+        RsDelegateCompositeCallbackManager::GetInstance().CleanDelegateCompositeCommand(
+            node->GetUIContextToken(), nodeId, pid);
         repCode = true;
     };
     pipeline->PostMainThreadSyncTask(task);

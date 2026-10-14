@@ -221,6 +221,11 @@ public:
         return scene_;
     }
 
+    uint64_t GetToken() const
+    {
+        return token_;
+    }
+
 private:
     using InaccessibleCommandMap = std::unordered_map<pid_t,
         std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>>;
