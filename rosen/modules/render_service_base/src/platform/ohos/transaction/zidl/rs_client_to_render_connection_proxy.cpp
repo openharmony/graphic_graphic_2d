@@ -2361,5 +2361,28 @@ bool RSClientToRenderConnectionProxy::UnRegisterSurfaceNodeBufferReleaseListener
     return true;
 }
 
+bool RSClientToRenderConnectionProxy::CleanDelegateModeBufferCmd(NodeId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: Write data err.");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAN_DELEGATE_BUFFER_CMD);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd: Send Request err.");
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -123,19 +123,19 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     std::shared_ptr<DrawableV2::RSCompositingFilterDrawable> compositingFilterDrawable =
         std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
     EXPECT_NE(compositingFilterDrawable, nullptr);
-    renderNodeTest6.renderProperties_.filter_ = nullptr;
+    renderNodeTest6.renderProperties_.GetEffectProperties().SetCompositingFilter(nullptr);
     EXPECT_EQ(compositingFilterDrawable->OnGenerate(renderNodeTest6), nullptr);
 
     RSRenderNode renderNodeTest7(0);
     std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
     EXPECT_NE(foregroundFilterDrawable, nullptr);
-    renderNodeTest7.renderProperties_.foregroundFilter_ = nullptr;
+    renderNodeTest7.renderProperties_.SetForegroundFilter(nullptr);
     EXPECT_EQ(foregroundFilterDrawable->OnGenerate(renderNodeTest7), nullptr);
     EXPECT_FALSE(foregroundFilterDrawable->OnUpdate(renderNodeTest7));
     std::shared_ptr<RSFilter> foregroundFilterTest1 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest1, nullptr);
-    renderNodeTest7.renderProperties_.foregroundFilter_ = foregroundFilterTest1;
+    renderNodeTest7.renderProperties_.SetForegroundFilter(foregroundFilterTest1);
     EXPECT_NE(foregroundFilterDrawable->OnGenerate(renderNodeTest7), nullptr);
     EXPECT_TRUE(foregroundFilterDrawable->OnUpdate(renderNodeTest7));
 }
@@ -152,13 +152,13 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
     std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
-    renderNodeTest8.renderProperties_.foregroundFilter_ = nullptr;
+    renderNodeTest8.renderProperties_.SetForegroundFilter(nullptr);
     EXPECT_FALSE(foregroundFilterRestoreDrawable->OnUpdate(renderNodeTest8));
     EXPECT_EQ(foregroundFilterRestoreDrawable->stagingNodeId_, renderNodeTest8.GetId());
     EXPECT_EQ(foregroundFilterRestoreDrawable->OnGenerate(renderNodeTest8), nullptr);
     std::shared_ptr<RSFilter> foregroundFilterTest2 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest2, nullptr);
-    renderNodeTest8.renderProperties_.foregroundFilter_ = foregroundFilterTest2;
+    renderNodeTest8.renderProperties_.SetForegroundFilter(foregroundFilterTest2);
     EXPECT_NE(foregroundFilterRestoreDrawable->OnGenerate(renderNodeTest8), nullptr);
     EXPECT_TRUE(foregroundFilterRestoreDrawable->OnUpdate(renderNodeTest8));
 

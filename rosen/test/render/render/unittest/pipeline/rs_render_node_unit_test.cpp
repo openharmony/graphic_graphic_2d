@@ -411,10 +411,10 @@ HWTEST_F(RSRenderNodeUnitTest, HasBlurFilterTest, TestSize.Level1)
     node.renderProperties_.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.filter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
     EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
 }
@@ -1594,7 +1594,7 @@ HWTEST_F(RSRenderNodeUnitTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node->renderProperties_.filter_ = filter;
+    node->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     node->OnTreeStateChanged();
     EXPECT_FALSE(node->isOnTheTree_);
     EXPECT_TRUE(node->HasBlurFilter());

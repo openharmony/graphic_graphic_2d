@@ -2402,7 +2402,8 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
             DrawablePair{node->GetRenderProperties().GetBackgroundFilter() != nullptr,
                 RSDrawableSlot::BACKGROUND_FILTER},
             DrawablePair{node->GetRenderProperties().GetMaterialFilter() != nullptr, RSDrawableSlot::MATERIAL_FILTER},
-            DrawablePair{node->GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+            DrawablePair{node->GetRenderProperties().GetCompositingFilter() != nullptr,
+                RSDrawableSlot::COMPOSITING_FILTER}
         };
         for (auto& p : filterCacheParas) {
             if (p.first) {

@@ -63,7 +63,7 @@ public:
     ~RSDelegateCompositeBufferManager() override;
 
     GSError ReleaseBuffer(uint32_t sequence, sptr<SyncFence> fence);
-    void CleanBuffer(bool cleanAll);
+    GSError CleanBuffer(bool cleanAll);
     void SetDesiredPresentTime(int64_t desiredPresentTime);
     void SetDamageRegion(std::vector<Rect> rects);
     void SetBufferTransform(GraphicTransformType transform);
@@ -77,6 +77,7 @@ private:
     void GenerateBufferParams(SetBufferParams &params, const int64_t &desiredPresentTime);
     RSTransactionConfig GenerateTransactionConfigIfNecessary(int64_t desiredPresentTime);
     void GenerateTransactionConfigDelList(RSTransactionConfig& config);
+    bool CleanDelegateModeBufferCmd();
 
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandle_ = nullptr;

@@ -720,7 +720,7 @@ HWTEST(RenderProfilerDumpTest, DumpNodePropertiesEffectsOtherFilter, TestSize.Le
     auto node = std::make_shared<RSRenderNode>(nodeId++);
     node->GetMutableRenderProperties().SetBackgroundBlurRadiusX(1);
     node->GetMutableRenderProperties().SetBackgroundBlurRadiusY(2);
-    node->GetMutableRenderProperties().GenerateBackgroundBlurFilter();
+    node->GetMutableRenderProperties().GetEffectProperties().GenerateBackgroundBlurFilter();
 
     auto foregroundFilterCache = RSFilter::CreateBlurFilter(3, 4);
     node->GetMutableRenderProperties().SetForegroundFilterCache(foregroundFilterCache);
@@ -746,8 +746,8 @@ HWTEST(RenderProfilerDumpTest, DumpNodePropertiesEffectsFilter, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(nodeId++);
 
     RSProperties& prop = node->GetMutableRenderProperties();
-    prop.SetForegroundBlurRadiusX(5);
-    prop.GenerateForegroundBlurFilter();
+    prop.SetCompositingBlurRadiusX(5);
+    prop.GetEffectProperties().GenerateCompositingBlurFilter();
 
     RSProfiler::DumpNodePropertiesEffects(node->GetRenderProperties(), out);
 

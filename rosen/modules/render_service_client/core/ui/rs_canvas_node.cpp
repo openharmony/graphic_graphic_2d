@@ -259,9 +259,11 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 
 void RSCanvasNode::SetIsOnTheTree(bool onTheTree)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     if (onTheTree) {
         FlushCachedModifiers();
     }
+#endif
     RSNode::SetIsOnTheTree(onTheTree);
 }
 

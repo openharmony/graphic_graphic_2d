@@ -137,6 +137,7 @@ public:
             case RSNGEffectType::SWEEP_REFRACTION_MASK: return "SweepRefractionMask";
             case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
+            case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
             default: return "UNKNOWN";
         }
     }

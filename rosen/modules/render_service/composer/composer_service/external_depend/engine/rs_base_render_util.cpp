@@ -884,7 +884,7 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
         return true;
     }
 
-    if (property.GetBackgroundFilter() || property.GetFilter()) {
+    if (property.GetBackgroundFilter() || property.GetCompositingFilter()) {
         RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
         return true;
     }

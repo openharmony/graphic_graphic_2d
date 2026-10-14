@@ -258,6 +258,7 @@ public:
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
     bool RegisterSurfaceNodeBufferReleaseListener(pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener);
     bool UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid);
+    bool CleanDelegateModeBufferCmd(NodeId nodeId, pid_t pid);
 
 private:
     void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);

@@ -27,6 +27,8 @@ namespace Rosen {
 enum RSDelegateCompositeCommandType : uint16_t {
     TRANSACTION_BUFFER = 0,
     SURFACE_TRANSACTION_CMD = 1,
+    TRANSACTION_BUFFER_SRC_RECT = 2,
+    TRANSACTION_BUFFER_DST_RECT = 3,
 };
 
 class RSB_EXPORT TransactionBufferCommand : public RSCommand {
@@ -71,7 +73,7 @@ public:
 
     uint16_t GetSubType() const override
     {
-        return RSDelegateCompositeCommandType::TRANSACTION_BUFFER;
+        return cmdSubType_;
     }
 
     RSCommandPermissionType GetAccessPermission() const override
@@ -91,11 +93,12 @@ private:
     // common
     CmdType cmdType_ = CmdType::INVALID;
     NodeId nodeId_ = 0;
+    uint16_t cmdSubType_ = RSDelegateCompositeCommandType::TRANSACTION_BUFFER;
 
     // setBuffer
     void ProcessCmdTypeSetBuffer(RSContext& context);
     void ProcessCmdTypeSetBufferwithAttach(sptr<Transaction> transaction,
-        sptr<IConsumerSurface> consumer, const RSTransactionConfig& config);
+        sptr<IConsumerSurface> consumer, const RSTransactionConfig& config, bool isDelegateMode);
     static RSCommand* UnmarshallingCmdTypeSetBuffer(MessageParcel* messageParcel);
     bool MarshallingCmdTypeSetBuffer(MessageParcel* messageParcel) const;
     std::vector<RSTransactionConfig> configList_;
@@ -108,9 +111,17 @@ private:
     RectF rect_;
 
     // rs command define
-    using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+    using RegisterTransactionBuffer = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
         RSDelegateCompositeCommandType::TRANSACTION_BUFFER, Unmarshalling>;
-    static Register instance_;
+    static RegisterTransactionBuffer transactionBufferInstance_;
+
+    using RegisterTransactionBufferSrcRect = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::TRANSACTION_BUFFER_SRC_RECT, Unmarshalling>;
+    static RegisterTransactionBufferSrcRect transactionBufferSrcRectInstance_;
+
+    using RegisterTransactionBufferDstRect = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::TRANSACTION_BUFFER_DST_RECT, Unmarshalling>;
+    static RegisterTransactionBufferDstRect transactionBufferDstRectInstance_;
 };
 
 class RSB_EXPORT SurfaceTransactionCommand : public RSCommand {

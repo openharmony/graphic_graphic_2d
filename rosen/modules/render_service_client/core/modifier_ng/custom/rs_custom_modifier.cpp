@@ -150,12 +150,16 @@ void RSCustomModifier::UpdateToRender()
         property->stagingValue_ = drawCmdList;
     }
     property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
-    // For CanvasNode: cache property when off-tree, don't send to server
+    // For CanvasNode: cache property when off-tree, don't send to server.
+    // Not applied on cross-platform (arkui-x): synchronous capture is not supported there,
+    // cached properties would cause stale content during drag, so always send directly.
+#ifndef ROSEN_CROSS_PLATFORM
     if (!node->GetIsOnTheTree() && node->GetType() == RSUINodeType::CANVAS_NODE) {
         cachedDrawCmdList_ = drawCmdList;
         cachedPropertyId_ = property->GetId();
         return;
     }
+#endif
     UpdateProperty(node, drawCmdList, property->GetId());
 }
 

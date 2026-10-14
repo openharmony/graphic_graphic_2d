@@ -1078,7 +1078,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter004, TestSize.Level1)
     auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
     sContext->nodeMap.RegisterRenderNode(child);
     unionNode->unionChildren_.emplace(id + 1);
-    child->renderProperties_.isGravityPullModeCenter_ = false;
+    child->renderProperties_.SetGravityPullCenterFlag(false);
     auto ret = unionNode->GetGravityCenter();
     ASSERT_EQ(ret[0], 0.0f);
     ASSERT_EQ(ret[1], 0.0f);
@@ -1096,7 +1096,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter005, TestSize.Level1)
     auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
     sContext->nodeMap.RegisterRenderNode(child);
     unionNode->unionChildren_.emplace(id + 1);
-    child->renderProperties_.isGravityPullModeCenter_ = true;
+    child->renderProperties_.SetGravityPullCenterFlag(true);
     unionNode->renderProperties_.boundsGeo_ = nullptr;
     auto ret = unionNode->GetGravityCenter();
     ASSERT_EQ(ret[0], 0.0f);

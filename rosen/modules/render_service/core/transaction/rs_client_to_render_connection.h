@@ -209,6 +209,7 @@ private:
     bool UnRegisterSurfaceNodeBufferReleaseListener() override;
     bool RegisterSurfaceTransactionListenerNew(sptr<RSISurfaceTransactionListener> listener,
         uint64_t listenerId, uint32_t pid, uint32_t tid) override;
+    bool CleanDelegateModeBufferCmd(NodeId id) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

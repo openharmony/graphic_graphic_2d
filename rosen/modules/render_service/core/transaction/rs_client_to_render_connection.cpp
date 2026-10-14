@@ -944,5 +944,19 @@ bool RSClientToRenderConnection::UnRegisterSurfaceNodeBufferReleaseListener()
     }
     return renderPipelineAgent_->UnRegisterSurfaceNodeBufferReleaseListener(remotePid_);
 }
+
+bool RSClientToRenderConnection::CleanDelegateModeBufferCmd(NodeId id)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    if (ExtractPid(id) != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: CleanDelegateModeBufferCmd fail: node %{public}" PRIu64
+                " not owned by remote pid %{public}d",
+            id, remotePid_);
+        return false;
+    }
+    return renderPipelineAgent_->CleanDelegateModeBufferCmd(id, remotePid_);
+}
 } // namespace Rosen
 } // namespace OHOS

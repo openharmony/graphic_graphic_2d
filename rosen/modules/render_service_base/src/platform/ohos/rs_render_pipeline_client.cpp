@@ -1269,5 +1269,15 @@ bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
     }
     return renderPipeline->UnRegisterSurfaceNodeBufferReleaseListener();
 }
+
+bool RSRenderPipelineClient::CleanDelegateModeBufferCmd(NodeId nodeId)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->CleanDelegateModeBufferCmd(nodeId);
+}
 } // namespace Rosen
 } // namespace OHOS

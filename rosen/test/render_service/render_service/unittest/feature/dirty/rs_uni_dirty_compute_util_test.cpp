@@ -178,7 +178,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, Te
     ASSERT_TRUE(filterRect.IsEmpty());
 
     // Now add a real filter to the node (background filter)
-    colorPickerOnlyNode->renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    colorPickerOnlyNode->renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     colorPickerOnlyNode->renderProperties_.needFilter_ = true;
 
     // GetVisibleFilterRect should now include the node since it has a real filter

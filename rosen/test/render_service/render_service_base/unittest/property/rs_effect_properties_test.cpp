@@ -730,39 +730,39 @@ HWTEST_F(RSEffectPropertiesTest, BgBlurDisableSystemAdaptation001, TestSize.Leve
 HWTEST_F(RSEffectPropertiesTest, ForegroundBlur001, TestSize.Level1)
 {
     RSEffectProperties properties;
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 0.f);
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusValid());
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.f);
-    EXPECT_TRUE(properties.IsForegroundBlurSaturationValid());
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 1.f);
-    EXPECT_TRUE(properties.IsForegroundBlurBrightnessValid());
-    EXPECT_EQ(properties.GetForegroundBlurMaskColor(), RSColor());
-    EXPECT_FALSE(properties.IsForegroundBlurMaskColorValid());
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 0.f);
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusXValid());
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 0.f);
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusYValid());
-    EXPECT_TRUE(properties.GetFgBlurDisableSystemAdaptation());
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 0.f);
+    EXPECT_FALSE(properties.IsCompositingBlurRadiusValid());
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.f);
+    EXPECT_TRUE(properties.IsCompositingBlurSaturationValid());
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 1.f);
+    EXPECT_TRUE(properties.IsCompositingBlurBrightnessValid());
+    EXPECT_EQ(properties.GetCompositingBlurMaskColor(), RSColor());
+    EXPECT_FALSE(properties.IsCompositingBlurMaskColorValid());
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::DEFAULT);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 0.f);
+    EXPECT_FALSE(properties.IsCompositingBlurRadiusXValid());
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 0.f);
+    EXPECT_FALSE(properties.IsCompositingBlurRadiusYValid());
+    EXPECT_TRUE(properties.GetCtBlurDisableSystemAdaptation());
 
-    properties.SetForegroundBlurRadius(1.f);
-    properties.SetForegroundBlurRadius(2.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadius(), 2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusValid());
+    properties.SetCompositingBlurRadius(1.f);
+    properties.SetCompositingBlurRadius(2.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadius(), 2.f);
+    EXPECT_TRUE(properties.IsCompositingBlurRadiusValid());
 
-    properties.SetForegroundBlurSaturation(1.5f);
-    properties.SetForegroundBlurSaturation(1.8f);
-    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.8f);
-    EXPECT_TRUE(properties.IsForegroundBlurSaturationValid());
-    properties.SetForegroundBlurSaturation(0.8f);
-    EXPECT_FALSE(properties.IsForegroundBlurSaturationValid());
+    properties.SetCompositingBlurSaturation(1.5f);
+    properties.SetCompositingBlurSaturation(1.8f);
+    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.8f);
+    EXPECT_TRUE(properties.IsCompositingBlurSaturationValid());
+    properties.SetCompositingBlurSaturation(0.8f);
+    EXPECT_FALSE(properties.IsCompositingBlurSaturationValid());
 
-    properties.SetForegroundBlurBrightness(1.5f);
-    properties.SetForegroundBlurBrightness(1.8f);
-    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 1.8f);
-    EXPECT_TRUE(properties.IsForegroundBlurBrightnessValid());
-    properties.SetForegroundBlurBrightness(0.8f);
-    EXPECT_FALSE(properties.IsForegroundBlurBrightnessValid());
+    properties.SetCompositingBlurBrightness(1.5f);
+    properties.SetCompositingBlurBrightness(1.8f);
+    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 1.8f);
+    EXPECT_TRUE(properties.IsCompositingBlurBrightnessValid());
+    properties.SetCompositingBlurBrightness(0.8f);
+    EXPECT_FALSE(properties.IsCompositingBlurBrightnessValid());
 }
 
 /**
@@ -776,29 +776,29 @@ HWTEST_F(RSEffectPropertiesTest, ForegroundBlur002, TestSize.Level1)
 {
     RSEffectProperties properties;
     Color maskColor = Color::FromArgbInt(0xFF00FF00);
-    properties.SetForegroundBlurMaskColor(maskColor);
-    properties.SetForegroundBlurMaskColor(maskColor);
-    EXPECT_EQ(properties.GetForegroundBlurMaskColor(), maskColor);
-    EXPECT_TRUE(properties.IsForegroundBlurMaskColorValid());
+    properties.SetCompositingBlurMaskColor(maskColor);
+    properties.SetCompositingBlurMaskColor(maskColor);
+    EXPECT_EQ(properties.GetCompositingBlurMaskColor(), maskColor);
+    EXPECT_TRUE(properties.IsCompositingBlurMaskColorValid());
 
-    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
-    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+    properties.SetCompositingBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    properties.SetCompositingBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_EQ(properties.GetCompositingBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
 
-    properties.SetForegroundBlurRadiusX(1.f);
-    properties.SetForegroundBlurRadiusX(2.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusXValid());
+    properties.SetCompositingBlurRadiusX(1.f);
+    properties.SetCompositingBlurRadiusX(2.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 2.f);
+    EXPECT_TRUE(properties.IsCompositingBlurRadiusXValid());
 
-    properties.SetForegroundBlurRadiusY(1.f);
-    properties.SetForegroundBlurRadiusY(2.f);
-    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusYValid());
+    properties.SetCompositingBlurRadiusY(1.f);
+    properties.SetCompositingBlurRadiusY(2.f);
+    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 2.f);
+    EXPECT_TRUE(properties.IsCompositingBlurRadiusYValid());
 
-    properties.SetFgBlurDisableSystemAdaptation(false);
-    EXPECT_FALSE(properties.GetFgBlurDisableSystemAdaptation());
-    properties.SetFgBlurDisableSystemAdaptation(true);
-    EXPECT_TRUE(properties.GetFgBlurDisableSystemAdaptation());
+    properties.SetCtBlurDisableSystemAdaptation(false);
+    EXPECT_FALSE(properties.GetCtBlurDisableSystemAdaptation());
+    properties.SetCtBlurDisableSystemAdaptation(true);
+    EXPECT_TRUE(properties.GetCtBlurDisableSystemAdaptation());
 }
 
 /**
@@ -825,7 +825,7 @@ HWTEST_F(RSEffectPropertiesTest, MaterialFilterValid001, TestSize.Level1)
     EXPECT_TRUE(saturationProperties.IsBackgroundMaterialFilterValid());
 
     RSEffectProperties fgProperties;
-    fgProperties.SetForegroundBlurRadius(1.f);
+    fgProperties.SetCompositingBlurRadius(1.f);
     EXPECT_TRUE(fgProperties.IsForegroundMaterialFilterValid());
 }
 
@@ -1491,7 +1491,7 @@ HWTEST_F(RSEffectPropertiesTest, ColorBlend001, TestSize.Level1)
     properties.SetColorBlend(colorBlend);
     EXPECT_EQ(properties.GetColorBlend(), colorBlend);
     properties.SetColorBlend(std::nullopt);
-    EXPECT_TRUE(properties.GetColorBlend().has_value());
+    EXPECT_FALSE(properties.GetColorBlend().has_value());
 }
 } // namespace Rosen
 } // namespace OHOS

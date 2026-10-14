@@ -249,3 +249,10 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);
 
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Colors, std::vector<Vector4f>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Positions, std::vector<float>);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortLight, DistortMask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, LightFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightSoft, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightColor, Vector4f);

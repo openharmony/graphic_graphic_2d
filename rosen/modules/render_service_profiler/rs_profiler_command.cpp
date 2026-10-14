@@ -336,7 +336,7 @@ void RSProfiler::ClearFilter(const ArgList& args)
         return;
     }
 
-    node->GetMutableRenderProperties().backgroundFilter_ = nullptr;
+    node->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(nullptr);
     Respond("OK");
     AwakeRenderServiceThread();
 }

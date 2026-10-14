@@ -477,7 +477,7 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
     if (properties.border_ && properties.border_->HasBorder()) {
         out["Border"] = properties.border_->ToString();
     }
-    auto filter = properties.GetFilter();
+    auto filter = properties.GetCompositingFilter();
     if (filter && filter->IsValid()) {
         out["Filter"] = filter->GetDescription();
     }

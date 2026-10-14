@@ -98,6 +98,7 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER = 0x18003,
     UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER = 0x18004,
     MARK_WEB_NODE = 0x18005,
+    CLEAN_DELEGATE_BUFFER_CMD = 0x18006,
 };
 } // namespace Rosen
 } // namespace OHOS

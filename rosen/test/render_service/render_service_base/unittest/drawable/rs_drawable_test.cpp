@@ -122,7 +122,7 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
     node.GetMutableRenderProperties().SetBackgroundBlurRadius(10.f);  // 10.f: radius
     std::optional<Vector2f> greyPara = { Vector2f(1.f, 1.f) };  // 1.f: grey coef
     node.GetMutableRenderProperties().SetGreyCoef(greyPara);
-    node.GetMutableRenderProperties().GenerateBackgroundMaterialBlurFilter();
+    node.GetMutableRenderProperties().GetEffectProperties().GenerateBackgroundMaterialBlurFilter();
     std::shared_ptr<RSDrawable> bgDrawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] = bgDrawable;
     auto stretchDrawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();

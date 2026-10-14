@@ -162,7 +162,7 @@ HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
     HveFilter filter;
     RectI filterRect = {0, 0, 100, 100};
     rootSurfaceNode->SetArsrTag(false);
-    renderNode->GetMutableRenderProperties().backgroundFilter_ = nullptr;
+    renderNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(nullptr);
     renderNode->GetMutableRenderProperties().SetUseEffect(false);
     EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *rootSurfaceNode));
     rootSurfaceNode->SetArsrTag(true);

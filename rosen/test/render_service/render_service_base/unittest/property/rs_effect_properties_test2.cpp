@@ -17,6 +17,9 @@
 
 #include "property/rs_effect_properties.h"
 
+#include "animation/rs_particle_field_collection.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "effect/rs_render_shader_base.h"
 
 using namespace testing;
@@ -492,6 +495,143 @@ HWTEST_F(EffectPropertiesTest, SpatialEffectXyzCornerPoints001, TestSize.Level1)
     ASSERT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
     EXPECT_EQ(properties.GetSpatialEffectVariantPara()->xyzCornerPoints[SpatialEffectPara::LEFT_TOP_INDEX],
         Vector3f(1.f, 1.f, 1.f));
+}
+
+/**
+ * @tc.name: FilterStorage001
+ * @tc.desc: test background/foreground filter and foreground filter cache storage
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(EffectPropertiesTest, FilterStorage001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundFilterCache(), nullptr);
+
+    auto backgroundFilter = std::make_shared<RSFilter>();
+    properties.SetBackgroundFilter(backgroundFilter);
+    EXPECT_EQ(properties.GetBackgroundFilter(), backgroundFilter);
+
+    auto foregroundFilter = std::make_shared<RSFilter>();
+    properties.SetForegroundFilter(foregroundFilter);
+    EXPECT_EQ(properties.GetForegroundFilter(), foregroundFilter);
+
+    auto foregroundFilterCache = std::make_shared<RSFilter>();
+    properties.SetForegroundFilterCache(foregroundFilterCache);
+    EXPECT_EQ(properties.GetForegroundFilterCache(), foregroundFilterCache);
+
+    properties.SetBackgroundFilter(nullptr);
+    properties.SetForegroundFilter(nullptr);
+    properties.SetForegroundFilterCache(nullptr);
+    EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundFilterCache(), nullptr);
+}
+
+/**
+ * @tc.name: NodesEffectGravity001
+ * @tc.desc: test SDF union mode and gravity params
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(EffectPropertiesTest, NodesEffectGravity001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_EQ(properties.GetSDFUnionMode(), 0);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 0.f);
+    EXPECT_EQ(properties.GetGravityHotZone(), 0.f);
+    EXPECT_FALSE(properties.GetGravityPullCenterFlag());
+
+    properties.SetSDFUnionMode(1);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 1);
+
+    properties.SetGravityPullStrength(0.5f);
+    EXPECT_FLOAT_EQ(properties.GetGravityPullStrength(), 0.5f);
+
+    properties.SetGravityHotZone(0.25f);
+    EXPECT_FLOAT_EQ(properties.GetGravityHotZone(), 0.25f);
+
+    properties.SetGravityPullCenterFlag(true);
+    EXPECT_TRUE(properties.GetGravityPullCenterFlag());
+}
+
+/**
+ * @tc.name: ParticleFields001
+ * @tc.desc: test particle ripple/velocity/field params storage
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(EffectPropertiesTest, ParticleFields001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_EQ(properties.GetParticleRippleFields(), nullptr);
+    EXPECT_EQ(properties.GetParticleVelocityFields(), nullptr);
+    EXPECT_EQ(properties.GetParticleFields(), nullptr);
+
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    properties.SetParticleRippleFields(rippleFields);
+    EXPECT_EQ(properties.GetParticleRippleFields(), rippleFields);
+
+    auto velocityFields = std::make_shared<ParticleVelocityFields>();
+    properties.SetParticleVelocityFields(velocityFields);
+    EXPECT_EQ(properties.GetParticleVelocityFields(), velocityFields);
+
+    auto particleFields = std::make_shared<ParticleFieldCollection>();
+    properties.SetParticleFields(particleFields);
+    EXPECT_EQ(properties.GetParticleFields(), particleFields);
+}
+
+/**
+ * @tc.name: BgBrightnessParams001
+ * @tc.desc: test background brightness params setters and description
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(EffectPropertiesTest, BgBrightnessParams001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_FALSE(properties.GetBgBrightnessParams().has_value());
+    EXPECT_EQ(properties.GetBgBrightnessDescription(), "bgBrightnessParams_ is nullopt");
+
+    properties.SetBgBrightnessRates(Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+    properties.SetBgBrightnessSaturation(0.5f);
+    properties.SetBgBrightnessPosCoeff(Vector4f(1.f, 1.f, 1.f, 1.f));
+    properties.SetBgBrightnessNegCoeff(Vector4f(2.f, 2.f, 2.f, 2.f));
+    properties.SetBgBrightnessFract(0.6f);
+    auto params = properties.GetBgBrightnessParams();
+    ASSERT_TRUE(params.has_value());
+    EXPECT_EQ(params->rates_, Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+    EXPECT_FLOAT_EQ(params->saturation_, 0.5f);
+    EXPECT_EQ(params->posCoeff_, Vector4f(1.f, 1.f, 1.f, 1.f));
+    EXPECT_EQ(params->negCoeff_, Vector4f(2.f, 2.f, 2.f, 2.f));
+    EXPECT_FLOAT_EQ(params->fraction_, 0.6f);
+    EXPECT_NE(properties.GetBgBrightnessDescription(), "bgBrightnessParams_ is nullopt");
+
+    properties.SetBgBrightnessParams(std::nullopt);
+    EXPECT_FALSE(properties.GetBgBrightnessParams().has_value());
+}
+
+/**
+ * @tc.name: BlurAdaptiveAdjust001
+ * @tc.desc: test NeedBlurFuzed/NeedLightBlur with and without blur adaptive adjustment
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(EffectPropertiesTest, BlurAdaptiveAdjust001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    // no grey coef, NeedBlurFuzed is false regardless of system properties
+    EXPECT_FALSE(properties.NeedBlurFuzed());
+    // disabled by default
+    EXPECT_FALSE(properties.NeedLightBlur(true));
+    EXPECT_FALSE(properties.NeedLightBlur(false));
+
+    FilterEffectParams::blurAdaptiveAdjustEnabled_ = true;
+    // disableSystemAdaptation forces light blur off
+    EXPECT_FALSE(properties.NeedLightBlur(true));
+    FilterEffectParams::blurAdaptiveAdjustEnabled_ = false;
 }
 } // namespace Rosen
 } // namespace OHOS

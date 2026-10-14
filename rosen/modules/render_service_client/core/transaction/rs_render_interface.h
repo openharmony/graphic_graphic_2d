@@ -502,6 +502,12 @@ public:
      * @param isDelegateMode Indicates whether enable.
      */
     bool SetDelegateMode(NodeId id, bool isDelegateMode);
+
+    /**
+     * @brief Clean delegate mode buffer command by NodeId
+     * @param id nodeId.
+     */
+    bool CleanDelegateModeBufferCmd(NodeId id);
 private:
     RSRenderInterface();
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
