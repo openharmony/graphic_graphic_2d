@@ -2091,10 +2091,7 @@ void RSMainThread::PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRende
         }
         if (surfaceHandler->ReclaimLastBufferPrepare()) {
             curFrameBufferReclaimCount_++;
-            auto task = [this, surfaceHandler]() {
-                surfaceHandler->ReclaimLastBufferProcess();
-            };
-            PostTask(task);
+            surfaceHandler->ReclaimLastBufferProcess();
         }
     }
 }
