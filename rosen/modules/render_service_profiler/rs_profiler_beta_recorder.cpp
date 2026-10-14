@@ -99,9 +99,7 @@ void RSProfiler::BetaRecordOnFrameBegin()
     if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
         if (!IsNoneMode() && (IsSecureScreen() || IsPowerOffScreen())) {
             // don't record secure screens
-            std::vector<std::string> argList;
-            argList.push_back("REMOVELAST");
-            RecordStop(ArgList(argList));
+            RecordStop(ArgList({ "REMOVELAST" }));
             EnableBetaRecord();
         }
     }
@@ -163,8 +161,8 @@ void RSProfiler::BetaRecordTick()
     }
 
     if (IsNoneMode()) {
-        if (!(!g_animationCount && g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS < Now() && !IsSecureScreen() &&
-                !IsPowerOffScreen())) {
+        if (g_animationCount || g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS >= Now() || IsSecureScreen() ||
+                IsPowerOffScreen()) {
             return;
         }
         // rendering thread doesn't work
@@ -174,7 +172,7 @@ void RSProfiler::BetaRecordTick()
             return;
         }
         delete[] ptr;
-        ScheduleTask([]() {
+        PostMainThreadTask([]() {
             // executes in main thread when mainLoop is sleeping
             bool betaRecordStarted = IsBetaRecordStarted();
             if (!betaRecordStarted || !IsBetaRecordEnabled()) {
@@ -184,9 +182,7 @@ void RSProfiler::BetaRecordTick()
                 return;
             }
             g_recordsTimestamp = Now();
-            std::vector<std::string> argList;
-            argList.push_back("BETAREC");
-            RecordStart(ArgList(argList));
+            RecordStart(ArgList({ "BETAREC" }));
         });
         return;
     }
