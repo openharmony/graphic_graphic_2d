@@ -84,79 +84,76 @@ std::string RSAnimationTraceUtils::GetColorString(const Color& value) const
 std::string RSAnimationTraceUtils::ParseRenderPropertyValueInner(
     const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
-    std::string str;
+    std::ostringstream oss;
     auto propertyType = value->GetPropertyType();
     switch (propertyType) {
         case RSPropertyType::FLOAT: {
             auto property = value->CastToAnimatablePropertyOf<float>(__func__);
-            str = property ? ("float:" + std::to_string(property->Get())) : "float:invalid";
+            property ? (oss << "float:" << property->Get()) : (oss << "float:invalid");
             break;
         }
         case RSPropertyType::RS_COLOR: {
             auto property = value->CastToAnimatablePropertyOf<Color>(__func__);
-            str = property ? GetColorString(property->Get()) : "RS_COLOR:invalid";
+            property ? (oss << GetColorString(property->Get())) : (oss << "RS_COLOR:invalid");
             break;
         }
         case RSPropertyType::QUATERNION: {
             if (auto property = value->CastToAnimatablePropertyOf<Quaternion>(__func__)) {
                 auto val = property->Get();
-                str = "Quaternion:x:" + std::to_string(val.x_) + ",y:" + std::to_string(val.y_) +
-                      ",z:" + std::to_string(val.z_) + ",w:" + std::to_string(val.w_);
+                oss << "Quaternion:x:" << val.x_ << ",y:" << val.y_ << ",z:" << val.z_ << ",w:" << val.w_;
             } else {
-                str = "Quaternion:invalid";
+                oss << "Quaternion:invalid";
             }
             break;
         }
         case RSPropertyType::VECTOR2F: {
             if (auto property = value->CastToAnimatablePropertyOf<Vector2f>(__func__)) {
                 auto val = property->Get();
-                str = "Vector2f:x:" + std::to_string(val.x_) + ",y:" + std::to_string(val.y_);
+                oss << "Vector2f:x:" << val.x_ << ",y:" << val.y_;
             } else {
-                str = "Vector2f:invalid";
+                oss << "Vector2f:invalid";
             }
             break;
         }
         case RSPropertyType::VECTOR3F: {
             if (auto property = value->CastToAnimatablePropertyOf<Vector3f>(__func__)) {
                 auto val = property->Get();
-                str = "Vector3f:x:" + std::to_string(val.x_) + ",y:" + std::to_string(val.y_) +
-                      ",z:" + std::to_string(val.z_);
+                oss << "Vector3f:x:" << val.x_ << ",y:" << val.y_ << ",z:" << val.z_;
             } else {
-                str = "Vector3f:invalid";
+                oss << "Vector3f:invalid";
             }
             break;
         }
         case RSPropertyType::VECTOR4F: {
             if (auto property = value->CastToAnimatablePropertyOf<Vector4f>(__func__)) {
                 auto val = property->Get();
-                str = "Vector4f:x:" + std::to_string(val.x_) + ",y:" + std::to_string(val.y_) +
-                      ",z:" + std::to_string(val.z_) + ",w:" + std::to_string(val.w_);
+                oss << "Vector4f:x:" << val.x_ << ",y:" << val.y_ << ",z:" << val.z_ << ",w:" << val.w_;
             } else {
-                str = "Vector4f:invalid";
+                oss << "Vector4f:invalid";
             }
             break;
         }
         case RSPropertyType::VECTOR4_COLOR: {
             if (auto property = value->CastToAnimatablePropertyOf<Vector4<Color>>(__func__)) {
                 auto val = property->Get();
-                str = "Vector4<Color>:x:" + GetColorString(val.x_) + ",y:" + GetColorString(val.y_) +
-                      ",z:" + GetColorString(val.z_) + ",w:" + GetColorString(val.w_);
+                oss << "Vector4<Color>:x:" << GetColorString(val.x_) << ",y:" << GetColorString(val.y_)
+                    << ",z:" << GetColorString(val.z_) << ",w:" << GetColorString(val.w_);
             } else {
-                str = "Vector4<Color>:invalid";
+                oss << "Vector4<Color>:invalid";
             }
             break;
         }
         case RSPropertyType::RRECT: {
             auto property = value->CastToAnimatablePropertyOf<RRect>(__func__);
-            str = property ? ("RRECT " + property->Get().ToString()) : "RRECT:invalid";
+            property ? (oss << "RRECT " << property->Get().ToString()) : (oss << "RRECT:invalid");
             break;
         }
         default: {
-            str = "None";
+            oss << "None";
             break;
         }
     }
-    return str;
+    return oss.str();
 }
 
 std::string RSAnimationTraceUtils::ParseRenderPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value) const
