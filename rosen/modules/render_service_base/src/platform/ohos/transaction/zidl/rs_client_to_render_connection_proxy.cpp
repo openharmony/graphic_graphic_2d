@@ -53,21 +53,6 @@ bool ShouldUseTimeoutProtection(uint32_t code)
 }
 }
 
-// Synchronous interfaces exempt from timeout protection.
-// Direct in-thread send restores the pre-offload behavior for these calls.
-bool IsTimeoutProtectionExempt(uint32_t code)
-{
-    switch (static_cast<RSIClientToRenderConnectionInterfaceCode>(code)) {
-#if defined(RS_ENABLE_VK)
-        case RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER:
-            return true;
-#endif
-        default:
-            return false;
-    }
-}
-}
-
 RSClientToRenderConnectionProxy::RSClientToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIClientToRenderConnection>(impl)
 {
