@@ -50,21 +50,33 @@ constexpr uint64_t TEST_TUNNEL_LAYER_ID = 789u;
 constexpr uint64_t TEST_NODE_ID = 456u;
 constexpr uint64_t TEST_LAYER_ID_BASE = 1200u;
 
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+
 class ScopedNewTunnelSwitch {
 public:
     explicit ScopedNewTunnelSwitch(bool enabled)
     {
         oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
         system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+        oldTunnelParamEnabled_ = TunnelLayerParam::IsNewTunnelEnabled();
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(enabled);
     }
 
     ~ScopedNewTunnelSwitch()
     {
         system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(oldTunnelParamEnabled_);
     }
 
 private:
-    bool oldValue_;
+    bool oldValue_ = false;
+    bool oldTunnelParamEnabled_ = false;
 };
 
 std::shared_ptr<RSComposerContext> CreateContextWithLayerStateRecorder(
