@@ -568,7 +568,7 @@ HWTEST_F(TextStyleTest, TextStyleTest018, TestSize.Level0)
 
 /*
  * @tc.name: TextStyleTest019
- * @tc.desc: merged box with fill only draws a single round rect op
+ * @tc.desc: fill only keeps one round rect op per run with corner roles
  * @tc.type: FUNC
  */
 HWTEST_F(TextStyleTest, TextStyleTest019, TestSize.Level0)
@@ -600,8 +600,8 @@ HWTEST_F(TextStyleTest, TextStyleTest019, TestSize.Level0)
 
     auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(600, 200, false);
     paragraph->Paint(recordingCanvas.get(), 0.0, 0.0);
-    // merged fill only => 1 op; per-run drawing would give 2
-    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 1);
+    // no border: merging is disabled, each run keeps its own rect with corner roles => 2 ops
+    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 2);
 }
 
 /*
@@ -632,7 +632,34 @@ HWTEST_F(TextStyleTest, TextStyleTest020, TestSize.Level0)
 
     auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(600, 200, false);
     paragraph->Paint(recordingCanvas.get(), 0.0, 0.0);
-    // one complete box per line => 2 ops
-    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 2);
+    // one complete box per line => 3 ops
+    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 3);
+}
+
+/*
+ * @tc.name: TextStyleTest021
+ * @tc.desc: RectStyle equality operators treat border fields as discriminators
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest021, TestSize.Level0)
+{
+    SPText::RectStyle rectStyle = { 0xFF00FF00, 1.0f, 2.0f, 3.0f, 4.0f, 0xFFFF0000, 2.0f };
+
+    // operator== is false when only borderColor differs
+    SPText::RectStyle diffBorderColor = rectStyle;
+    diffBorderColor.borderColor = 0xFF0000FF;
+    EXPECT_FALSE(rectStyle == diffBorderColor);
+    EXPECT_TRUE(rectStyle != diffBorderColor);
+
+    // operator== is false when only borderWidth differs
+    SPText::RectStyle diffBorderWidth = rectStyle;
+    diffBorderWidth.borderWidth = 5.0f; // 5.0 just for test
+    EXPECT_FALSE(rectStyle == diffBorderWidth);
+    EXPECT_TRUE(rectStyle != diffBorderWidth);
+
+    // operators agree when all border fields are equal
+    SPText::RectStyle sameStyle = rectStyle;
+    EXPECT_TRUE(rectStyle == sameStyle);
+    EXPECT_FALSE(rectStyle != sameStyle);
 }
 } // namespace txt

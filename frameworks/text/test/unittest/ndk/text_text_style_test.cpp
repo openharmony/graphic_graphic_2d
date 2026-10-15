@@ -465,6 +465,40 @@ HWTEST_F(NdkTextStyleTest, SetTextStyleBackgroundRectKeepsBorderDefault, TestSiz
 }
 
 /*
+ * @tc.name: TextStyleBackgroundRectBorderEquality
+ * @tc.desc: service RectStyle equality operators compare borderColor and borderWidth
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextStyleTest, TextStyleBackgroundRectBorderEquality, TestSize.Level0)
+{
+    OHOS::Rosen::RectStyle rectStyle;
+    rectStyle.color = 0xFF00FF00;
+    rectStyle.leftTopRadius = 2.0;
+    rectStyle.rightTopRadius = 2.0;
+    rectStyle.rightBottomRadius = 2.0;
+    rectStyle.leftBottomRadius = 2.0;
+    rectStyle.borderColor = 0xFFFF0000;
+    rectStyle.borderWidth = 2.0;
+
+    // equality fails when only borderColor differs
+    OHOS::Rosen::RectStyle diffBorderColor = rectStyle;
+    diffBorderColor.borderColor = 0xFF0000FF;
+    EXPECT_FALSE(rectStyle == diffBorderColor);
+    EXPECT_TRUE(rectStyle != diffBorderColor);
+
+    // equality fails when only borderWidth differs
+    OHOS::Rosen::RectStyle diffBorderWidth = rectStyle;
+    diffBorderWidth.borderWidth = 5.0; // 5.0 just for test
+    EXPECT_FALSE(rectStyle == diffBorderWidth);
+    EXPECT_TRUE(rectStyle != diffBorderWidth);
+
+    // equality holds when all border fields are equal
+    OHOS::Rosen::RectStyle sameStyle = rectStyle;
+    EXPECT_TRUE(rectStyle == sameStyle);
+    EXPECT_FALSE(rectStyle != sameStyle);
+}
+
+/*
  * @tc.name: TextStyleIsPlaceholder
  * @tc.desc: test for sets and gets isPlaceholder for TextStyle objects
  * @tc.type: FUNC
