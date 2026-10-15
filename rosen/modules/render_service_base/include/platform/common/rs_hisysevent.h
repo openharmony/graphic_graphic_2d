@@ -49,6 +49,7 @@ namespace RSEventName {
     inline const std::string RENDER_DRAWABLE_MULTI_ACCESS = "RENDER_DRAWABLE_MULTI_ACCESS";
     inline const std::string RS_RENDER_EXCEPTION = "RS_RENDER_EXCEPTION";
     inline const std::string RNEDERFIT_TYPE_RT_MONITORING = "RNEDERFIT_TYPE_RT_MONITORING";
+    inline const std::string RS_CMD_OVER_THRESHOLD = "RS_CMD_OVER_THRESHOLD";
 } // namespace RSEventName
 
 enum RSEventType {
