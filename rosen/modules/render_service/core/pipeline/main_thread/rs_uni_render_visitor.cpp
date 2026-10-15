@@ -1565,7 +1565,8 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
-        isAccessibilityConfigChanged, renderGroupCacheRoots_);
+        isAccessibilityConfigChanged,
+        node.TryGetOpincRootCachePtr() != nullptr ? HasAncestorRenderGroup(node.GetId()) : false);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 
@@ -2223,7 +2224,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
-        isAccessibilityConfigChanged, renderGroupCacheRoots_);
+        isAccessibilityConfigChanged,
+        node.TryGetOpincRootCachePtr() != nullptr ? HasAncestorRenderGroup(node.GetId()) : false);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 

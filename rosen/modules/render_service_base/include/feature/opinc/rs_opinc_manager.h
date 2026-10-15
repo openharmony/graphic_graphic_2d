@@ -17,12 +17,10 @@
 #define RS_OPINC_MANAGER_H
 
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_canvas_render_node.h"
 #include <mutex>
 #include <unordered_map>
 
 namespace OHOS::Rosen {
-using RenderGroupCacheRoots = std::unordered_map<NodeId, std::shared_ptr<RSCanvasRenderNode>>;
 enum class OpincUnsupportType : uint8_t {
     NONE,
     CHILD_NOT_SUPPORT,
@@ -61,7 +59,7 @@ public:
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
     void QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-        bool isAccessibilityConfigChanged, const RenderGroupCacheRoots& renderGroupCacheRoots = {});
+        bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup = false);
     void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
     void QuickCheckOpincStable(
         RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode);
@@ -90,7 +88,6 @@ private:
     RSOpincManager& operator=(const RSOpincManager&&);
 
     bool OpincGetCanvasNodeSupportFlag(RSRenderNode& node);
-    bool OpincHasAncestorRenderGroup(NodeId nodeId, const RenderGroupCacheRoots& renderGroupCacheRoots) const;
     bool CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
         RectI& layerCurDirty);
