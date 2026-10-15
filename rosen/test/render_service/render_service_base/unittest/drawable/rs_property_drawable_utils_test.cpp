@@ -1044,10 +1044,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest001, tes
     auto utils = std::make_shared<RSPropertyDrawableUtils>();
     ASSERT_NE(utils, nullptr);
     float radius = 80.0f;
+    float saturation1 = 1.0f;
+    float saturation2 = 2.0f;
     float brightness = 1.0f;
     RSColor maskColor(0xFFFFFFE5);
-    auto filter1 = utils->GenerateBehindWindowFilter(radius, 1.0f, brightness, maskColor);
-    auto filter2 = utils->GenerateBehindWindowFilter(radius, 2.0f, brightness, maskColor);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation1, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation2, brightness, maskColor);
     ASSERT_NE(filter1, nullptr);
     ASSERT_NE(filter2, nullptr);
     EXPECT_NE(filter1->Hash(), filter2->Hash());
@@ -1065,9 +1067,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest002, tes
     ASSERT_NE(utils, nullptr);
     float radius = 80.0f;
     float saturation = 1.9f;
+    float brightness1 = 0.8f;
+    float brightness2 = 1.2f;
     RSColor maskColor(0xFFFFFFE5);
-    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, 0.8f, maskColor);
-    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, 1.2f, maskColor);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness1, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness2, maskColor);
     ASSERT_NE(filter1, nullptr);
     ASSERT_NE(filter2, nullptr);
     EXPECT_NE(filter1->Hash(), filter2->Hash());
@@ -1126,11 +1130,13 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest005, tes
 {
     auto utils = std::make_shared<RSPropertyDrawableUtils>();
     ASSERT_NE(utils, nullptr);
+    float radius1 = 40.0f;
+    float radius2 = 80.0f;
     float saturation = 1.9f;
     float brightness = 1.0f;
     RSColor maskColor(0xFFFFFFE5);
-    auto filter1 = utils->GenerateBehindWindowFilter(40.0f, saturation, brightness, maskColor);
-    auto filter2 = utils->GenerateBehindWindowFilter(80.0f, saturation, brightness, maskColor);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius1, saturation, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius2, saturation, brightness, maskColor);
     ASSERT_NE(filter1, nullptr);
     ASSERT_NE(filter2, nullptr);
     EXPECT_NE(filter1->Hash(), filter2->Hash());
