@@ -702,4 +702,139 @@ HWTEST_F(RSOpincManagerTest, ReduceOpincCacheMem, Function | SmallTest | Level1)
     opincManager_.ReduceOpincCacheMem(cacheMem + 1);
     EXPECT_EQ(opincManager_.GetOpincCacheMem(), 0);
 }
+
+/**
+ * @tc.name: OpincHasAncestorRenderGroupInMapMultipleEntries
+ * @tc.desc: Verify OpincHasAncestorRenderGroup returns true when nodeId is in map and map size > 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, OpincHasAncestorRenderGroupInMapMultipleEntries, Function | SmallTest | Level1)
+{
+    constexpr NodeId TARGET_ID = 500;
+    constexpr NodeId ANOTHER_ID = 501;
+    auto targetNode = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    auto anotherNode = std::make_shared<RSCanvasRenderNode>(ANOTHER_ID);
+    RenderGroupCacheRoots roots = { { TARGET_ID, targetNode }, { ANOTHER_ID, anotherNode } };
+    ASSERT_TRUE(opincManager_.OpincHasAncestorRenderGroup(TARGET_ID, roots));
+}
+
+/**
+ * @tc.name: OpincHasAncestorRenderGroupInMapSingleEntry
+ * @tc.desc: Verify OpincHasAncestorRenderGroup returns false when nodeId is in map and map size == 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, OpincHasAncestorRenderGroupInMapSingleEntry, Function | SmallTest | Level1)
+{
+    constexpr NodeId TARGET_ID = 502;
+    auto targetNode = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    RenderGroupCacheRoots roots = { { TARGET_ID, targetNode } };
+    ASSERT_FALSE(opincManager_.OpincHasAncestorRenderGroup(TARGET_ID, roots));
+}
+
+/**
+ * @tc.name: OpincHasAncestorRenderGroupNotInMapNonEmpty
+ * @tc.desc: Verify OpincHasAncestorRenderGroup returns true when nodeId is not in map and map is non-empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, OpincHasAncestorRenderGroupNotInMapNonEmpty, Function | SmallTest | Level1)
+{
+    constexpr NodeId TARGET_ID = 503;
+    constexpr NodeId ANCESTOR_ID = 504;
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(ANCESTOR_ID);
+    RenderGroupCacheRoots roots = { { ANCESTOR_ID, ancestorNode } };
+    ASSERT_TRUE(opincManager_.OpincHasAncestorRenderGroup(TARGET_ID, roots));
+}
+
+/**
+ * @tc.name: OpincHasAncestorRenderGroupEmptyMap
+ * @tc.desc: Verify OpincHasAncestorRenderGroup returns false when map is empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, OpincHasAncestorRenderGroupEmptyMap, Function | SmallTest | Level1)
+{
+    constexpr NodeId TARGET_ID = 505;
+    RenderGroupCacheRoots roots;
+    ASSERT_FALSE(opincManager_.OpincHasAncestorRenderGroup(TARGET_ID, roots));
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupDirty
+ * @tc.desc: Verify branch 5: node with ancestor render group is marked dirty when opincRootCache exists
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupDirty, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 506;
+    constexpr NodeId ANCESTOR_ID = 507;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(ANCESTOR_ID);
+    RenderGroupCacheRoots roots = { { ANCESTOR_ID, ancestorNode } };
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, roots);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeNoAncestorRenderGroupStaysUnchange
+ * @tc.desc: Verify branch 5 negative: node without ancestor render group stays unchange when no other dirty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeNoAncestorRenderGroupStaysUnchange, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 508;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+
+    RenderGroupCacheRoots emptyRoots;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, emptyRoots);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_UNCHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupNullRootCache
+ * @tc.desc: Verify branch 5 short-circuit: renderGroupCacheRoots branch is skipped when opincRootCache is null
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupNullRootCache, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 509;
+    constexpr NodeId ANCESTOR_ID = 510;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+
+    auto ancestorNode = std::make_shared<RSCanvasRenderNode>(ANCESTOR_ID);
+    RenderGroupCacheRoots roots = { { ANCESTOR_ID, ancestorNode } };
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, roots);
+
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+    ASSERT_FALSE(unchangeMarkEnable);
+}
 }

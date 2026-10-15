@@ -117,6 +117,13 @@ bool RSOpincManager::OpincGetCanvasNodeSupportFlag(RSRenderNode& node)
     return node.GetOpincCache().GetSubTreeSupportFlag();
 }
 
+bool RSOpincManager::OpincHasAncestorRenderGroup(NodeId nodeId,
+    const RenderGroupCacheRoots& renderGroupCacheRoots) const
+{
+    return (renderGroupCacheRoots.count(nodeId) > 0) ? (renderGroupCacheRoots.size() > 1)
+                                                        : !renderGroupCacheRoots.empty();
+}
+
 bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 {
     const auto* opincRootCache = node.TryGetOpincRootCachePtr();
@@ -130,7 +137,7 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 }
 
 void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-    bool isAccessibilityConfigChanged)
+    bool isAccessibilityConfigChanged, const RenderGroupCacheRoots& renderGroupCacheRoots)
 {
     const auto* opincRootCache = node.TryGetOpincRootCachePtr();
     // The opinc state needs to be reset in the following cases:
@@ -138,9 +145,16 @@ void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkI
     // 2. content is dirty
     // 3. the node is marked as a node group
     // 4. the node is marked as a root node of opinc and the high-contrast state change
+    // 5. the node has an ancestor render group
     auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
         node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
-        (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged);
+        (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged) ||
+        (opincRootCache != nullptr && OpincHasAncestorRenderGroup(node.GetId(), renderGroupCacheRoots));
+    RS_OPTIONAL_TRACE_FMT("QuickMarkStableNode id:%" PRIu64 ", isSelfDirty:%d, subD:%d, conD:%d, group:%d, "
+        "acc:%d, ancRG:%d", node.GetId(), isSelfDirty, node.IsSubTreeDirty(), node.IsContentDirty(),
+        node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE,
+        (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged),
+        (opincRootCache != nullptr && OpincHasAncestorRenderGroup(node.GetId(), renderGroupCacheRoots)));
     if (opincRootCache != nullptr) {
         auto& mutableOpincRootCache = node.GetOpincRootCache();
         mutableOpincRootCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
