@@ -1037,7 +1037,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing
  * @tc.name: GenerateBehindWindowFilterHashTest001
  * @tc.desc: Different saturation should produce different filter hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest001, testing::ext::TestSize.Level1)
 {
@@ -1059,7 +1059,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest001, tes
  * @tc.name: GenerateBehindWindowFilterHashTest002
  * @tc.desc: Different brightness should produce different filter hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest002, testing::ext::TestSize.Level1)
 {
@@ -1081,7 +1081,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest002, tes
  * @tc.name: GenerateBehindWindowFilterHashTest003
  * @tc.desc: Same parameters should produce same filter hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest003, testing::ext::TestSize.Level1)
 {
@@ -1102,7 +1102,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest003, tes
  * @tc.name: GenerateBehindWindowFilterHashTest004
  * @tc.desc: Different maskColor should produce different filter hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest004, testing::ext::TestSize.Level1)
 {
@@ -1124,7 +1124,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest004, tes
  * @tc.name: GenerateBehindWindowFilterHashTest005
  * @tc.desc: Different radius should produce different filter hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest005, testing::ext::TestSize.Level1)
 {

@@ -41,7 +41,7 @@ void RSMaskColorShaderFilterTest::TearDown() {}
  * @tc.name: RSMaskColorShaderFilterConstructorTest001
  * @tc.desc: Test RSMaskColorShaderFilter constructor with PRE_DEFINED mode
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterConstructorTest001, TestSize.Level1)
 {
@@ -56,7 +56,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterConstructorTest001,
  * @tc.name: RSMaskColorShaderFilterConstructorTest002
  * @tc.desc: Test RSMaskColorShaderFilter constructor with AVERAGE mode
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterConstructorTest002, TestSize.Level1)
 {
@@ -70,7 +70,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterConstructorTest002,
  * @tc.name: RSMaskColorShaderFilterHashConsistencyTest001
  * @tc.desc: Same color and colorMode should produce same hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashConsistencyTest001, TestSize.Level1)
 {
@@ -86,7 +86,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashConsistencyTest
  * @tc.name: RSMaskColorShaderFilterHashDifferenceTest001
  * @tc.desc: Different maskColor should produce different hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashDifferenceTest001, TestSize.Level1)
 {
@@ -103,7 +103,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashDifferenceTest0
  * @tc.name: RSMaskColorShaderFilterHashDifferenceTest002
  * @tc.desc: Different colorMode should produce different hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashDifferenceTest002, TestSize.Level1)
 {
@@ -119,7 +119,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashDifferenceTest0
  * @tc.name: RSMaskColorShaderFilterHashRgbDifferenceTest001
  * @tc.desc: Same GetAlpha but different AsArgbInt should produce different hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashRgbDifferenceTest001, TestSize.Level1)
 {
@@ -138,7 +138,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashRgbDifferenceTe
  * @tc.name: RSMaskColorShaderFilterHashAlphaNormalRangeTest001
  * @tc.desc: Same RGB but different alpha in normal range [0,255] should produce different hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashAlphaNormalRangeTest001, TestSize.Level1)
 {
@@ -157,7 +157,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashAlphaNormalRang
  * @tc.name: RSMaskColorShaderFilterHashAlphaDifferenceTest001
  * @tc.desc: Same AsArgbInt but different raw GetAlpha should produce different hash
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashAlphaDifferenceTest001, TestSize.Level1)
 {
@@ -176,7 +176,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterHashAlphaDifference
  * @tc.name: RSMaskColorShaderFilterGetPostProcessAlphaTest001
  * @tc.desc: GetPostProcessAlpha returns alpha divided by MAX_ALPHA
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterGetPostProcessAlphaTest001, TestSize.Level1)
 {
@@ -191,7 +191,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterGetPostProcessAlpha
  * @tc.name: RSMaskColorShaderFilterNeedForceSubmitTest001
  * @tc.desc: NeedForceSubmit returns true for AVERAGE mode
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterNeedForceSubmitTest001, TestSize.Level1)
 {
@@ -205,7 +205,7 @@ HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterNeedForceSubmitTest
  * @tc.name: RSMaskColorShaderFilterNeedForceSubmitTest002
  * @tc.desc: NeedForceSubmit returns false for PRE_DEFINED mode
  * @tc.type: FUNC
- * @tc.require: issueIB0UQV
+ * @tc.require: issue26459
  */
 HWTEST_F(RSMaskColorShaderFilterTest, RSMaskColorShaderFilterNeedForceSubmitTest002, TestSize.Level1)
 {
