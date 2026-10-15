@@ -138,9 +138,8 @@ void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkI
     // 2. content is dirty
     // 3. the node is marked as a node group
     // 4. the node is marked as a root node of opinc and the high-contrast state change
-    // 5. the node has an ancestor render group
-    auto isSelfDirty =
-        node.IsSubTreeDirty() || node.IsContentDirty() || node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
+    auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
+        node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
         (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged);
     if (opincRootCache != nullptr) {
         auto& mutableOpincRootCache = node.GetOpincRootCache();

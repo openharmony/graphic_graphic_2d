@@ -1565,8 +1565,7 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
-        isAccessibilityConfigChanged,
-        node.TryGetOpincRootCachePtr() != nullptr ? HasAncestorRenderGroup(node.GetId()) : false);
+        isAccessibilityConfigChanged,);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 

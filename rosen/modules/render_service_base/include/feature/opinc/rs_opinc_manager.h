@@ -18,7 +18,6 @@
 
 #include "pipeline/rs_render_node.h"
 #include <mutex>
-#include <unordered_map>
 
 namespace OHOS::Rosen {
 enum class OpincUnsupportType : uint8_t {
