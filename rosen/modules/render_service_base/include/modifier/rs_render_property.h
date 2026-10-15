@@ -16,12 +16,16 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 #define RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 
+#include <cstdint>
+#include <vector>
+
+#include "animation/rs_spring_model.h"
 #include "animation/rs_render_particle.h"
-#include "animation/rs_value_estimator.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
+#include "pipeline/rs_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -40,6 +44,9 @@ class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
 enum class Gravity;
+enum class RSValueEstimatorType : int16_t;
+class RSValueEstimator;
+class RSSpringValueEstimatorBase;
 namespace ModifierNG {
 class RSRenderModifier;
 }
@@ -65,6 +72,8 @@ struct supports_animatable_arithmetic<T,
         decltype(std::declval<T>() * std::declval<float>()),
         decltype(std::declval<T>() == std::declval<T>())>>
     : std::true_type {};
+template<>
+struct supports_animatable_arithmetic<std::vector<float>> : std::true_type {};
 
 enum PropertyUpdateType : uint8_t {
     UPDATE_TYPE_OVERWRITE = 0,   // overwrite by given value
@@ -186,6 +195,32 @@ public:
     virtual void Dump(std::string& out) const = 0;
     virtual size_t GetSize() const = 0;
 
+    template<typename T>
+    std::shared_ptr<RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName)
+    {
+        if (UNLIKELY(!IsAnimatable())) {
+            return nullptr;
+        }
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(shared_from_this());
+    }
+
+    template<typename T>
+    std::shared_ptr<const RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName) const
+    {
+        if (UNLIKELY(!IsAnimatable())) {
+            return nullptr;
+        }
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(shared_from_this());
+    }
+
+    virtual bool IsAnimatable() const = 0;
+
 protected:
     virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
@@ -255,6 +290,8 @@ protected:
     };
 
 private:
+    bool CheckPropertyType(RSPropertyType type, const char* funcName) const;
+
     virtual std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value)
     {
         return shared_from_this();
@@ -353,6 +390,11 @@ public:
         updateUIPropertyFunc_ = updateUIPropertyFunc;
     }
 
+    bool IsAnimatable() const override
+    {
+        return false;
+    }
+
 protected:
     T stagingValue_{};
     static constexpr RSPropertyType type_ = RSRenderPropertyTypeTraits<T>::type;
@@ -417,6 +459,11 @@ public:
         }
     }
 
+    bool IsAnimatable() const override
+    {
+        return true;
+    }
+
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
     {
@@ -426,8 +473,8 @@ protected:
 
     void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) override
     {
-        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(value);
-        if (property != nullptr && property->GetPropertyType() == RSRenderProperty<T>::type_) {
+        auto property = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        if (property != nullptr) {
             RSRenderProperty<T>::Set(property->Get());
         }
     }
@@ -452,25 +499,8 @@ protected:
         return IsEqual(value);
     }
 
-    std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
-    {
-        switch (type) {
-            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
-                return std::make_shared<RSCurveValueEstimator<T>>();
-            }
-            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
-                return std::make_shared<RSKeyframeValueEstimator<T>>();
-            }
-            default: {
-                return nullptr;
-            }
-        }
-    }
-
-    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
-    {
-        return std::make_shared<RSSpringValueEstimator<T>>();
-    }
+    std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override;
+    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override;
 
     bool Marshalling(Parcel& parcel) override
     {
@@ -493,7 +523,7 @@ private:
 
     std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             RSRenderProperty<T>::stagingValue_ = RSRenderProperty<T>::stagingValue_ + animatableProperty->stagingValue_;
         }
@@ -502,7 +532,7 @@ private:
 
     std::shared_ptr<RSRenderPropertyBase> Minus(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             RSRenderProperty<T>::stagingValue_ = RSRenderProperty<T>::stagingValue_ - animatableProperty->stagingValue_;
         }
@@ -517,7 +547,7 @@ private:
 
     bool IsEqual(const std::shared_ptr<const RSRenderPropertyBase>& value) const override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             return RSRenderProperty<T>::stagingValue_ == animatableProperty->stagingValue_;
         }
@@ -638,5 +668,7 @@ class RSRenderParticleVector;
 extern template class RSRenderProperty<RSRenderParticleVector>;
 } // namespace Rosen
 } // namespace OHOS
+
+#include "animation/rs_value_estimator.h"
 
 #endif // RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H

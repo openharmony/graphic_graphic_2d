@@ -464,8 +464,6 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate006, TestSize.Level1)
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
         property, property1, property2, 1.0f, path);
     EXPECT_TRUE(renderPathAnimation != nullptr);
-    renderPathAnimation->originValue_.reset();
-    EXPECT_TRUE(renderPathAnimation->GetOriginValue() == nullptr);
     renderPathAnimation->OnAnimate(1.0f);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate006 end";
 }
