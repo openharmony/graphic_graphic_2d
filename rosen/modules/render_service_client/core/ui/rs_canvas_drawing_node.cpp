@@ -230,7 +230,7 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height, bool forceDisableD
 #endif
     } else {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        if (forceDisableDmaPreAllocate) {
+        if (preAllocateDmaCcm_ && forceDisableDmaPreAllocate) {
             preAllocateDmaCcm_ = false;
             RSCanvasCallbackRouter::GetInstance().UnregisterNode(GetId());
         }

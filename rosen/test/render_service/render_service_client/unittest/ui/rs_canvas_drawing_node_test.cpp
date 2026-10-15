@@ -565,7 +565,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
  */
 HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_ForceDisableDmaPreAllocateTest, TestSize.Level1)
 {
-    // forceDisableDmaPreAllocate=true should disable preAllocateDmaCcm_
     auto node = RSCanvasDrawingNode::Create(true);
     ASSERT_NE(node, nullptr);
     node->hybridEnabled_ = false;
@@ -575,7 +574,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_ForceDisableDmaPreAllocateTest, T
     EXPECT_TRUE(ret);
     EXPECT_FALSE(node->preAllocateDmaCcm_);
 
-    // forceDisableDmaPreAllocate=false (explicit) should not change preAllocateDmaCcm_
     node = RSCanvasDrawingNode::Create(true);
     ASSERT_NE(node, nullptr);
     node->hybridEnabled_ = false;
@@ -584,6 +582,24 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_ForceDisableDmaPreAllocateTest, T
     ret = node->ResetSurface(100, 100, false);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(node->preAllocateDmaCcm_);
+
+    node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    ret = node->ResetSurface(100, 100, true);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(node->preAllocateDmaCcm_);
+
+    node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    ret = node->ResetSurface(100, 100, false);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(node->preAllocateDmaCcm_);
 }
 #endif
 
