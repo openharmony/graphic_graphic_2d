@@ -189,7 +189,8 @@ napi_value JsTypeface::OnGetFamilyName(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
 
     auto name = m_typeface->GetFamilyName();
@@ -230,7 +231,8 @@ napi_value JsTypeface::OnMakeFromCurrent(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
@@ -361,7 +363,8 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
         !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile get rawfilebuffer failed!");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the resourceinfo object or the rawfilebuffer");
     }
 
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
@@ -401,7 +404,8 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
     if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
         !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
             ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments get rawfilebuffer failed.");
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter error. Failed to obtain the resourceinfo object or the rawfilebuffer");
     }
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
     JsTypeFaceArguments* jsTypefaceArguments = nullptr;
@@ -447,7 +451,8 @@ napi_value JsTypeface::OnIsBold(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
     auto result = m_typeface->GetBold();
     return CreateJsValue(env, result);
@@ -463,7 +468,8 @@ napi_value JsTypeface::OnIsItalic(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
 
     auto result = m_typeface->GetItalic();
