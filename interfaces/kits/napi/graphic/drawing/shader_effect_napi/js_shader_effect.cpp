@@ -117,14 +117,16 @@ napi_value JsShaderEffect::CreateLinearGradient(napi_env env, napi_callback_info
     double startPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], startPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of x, y be number.");
+            "Parameter error. Param[0] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingStartPoint = Drawing::Point(startPoint[ARGC_ZERO], startPoint[ARGC_ONE]);
     Drawing::Point drawingEndPoint;
     double endPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_ONE], endPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of x, y be number.");
+            "Parameter error. Param[1] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingEndPoint = Drawing::Point(endPoint[ARGC_ZERO], endPoint[ARGC_ONE]);
     napi_value arrayColors = argv[ARGC_TWO];
@@ -154,7 +156,7 @@ napi_value JsShaderEffect::CreateLinearGradient(napi_env env, napi_callback_info
     if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateLinearGradient parameter4 type.");
+            BuildParamTypeMismatchMsg(ARGC_FOUR, "array or null", env, argv[ARGC_FOUR]));
     }
     if (valueType != napi_null) {
         napi_value arrayPos = argv[ARGC_FOUR];
@@ -177,7 +179,7 @@ napi_value JsShaderEffect::CreateLinearGradient(napi_env env, napi_callback_info
     if (napi_typeof(env, argv[ARGC_FIVE], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateLinearGradient parameter5 type.");
+            BuildParamTypeMismatchMsg(ARGC_FIVE, "Matrix or null", env, argv[ARGC_FIVE]));
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
@@ -201,7 +203,8 @@ napi_value JsShaderEffect::CreateRadialGradient(napi_env env, napi_callback_info
     double centerPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], centerPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of x, y be number.");
+            "Parameter error. Param[0] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingCenterPoint = Drawing::Point(centerPoint[ARGC_ZERO], centerPoint[ARGC_ONE]);
 
@@ -236,7 +239,7 @@ napi_value JsShaderEffect::CreateRadialGradient(napi_env env, napi_callback_info
     if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateRadialGradient parameter4 type.");
+            BuildParamTypeMismatchMsg(ARGC_FOUR, "array or null", env, argv[ARGC_FOUR]));
     }
     if (valueType != napi_null) {
         napi_value arrayPos = argv[ARGC_FOUR];
@@ -259,7 +262,7 @@ napi_value JsShaderEffect::CreateRadialGradient(napi_env env, napi_callback_info
     if (napi_typeof(env, argv[ARGC_FIVE], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateRadialGradient parameter5 type.");
+            BuildParamTypeMismatchMsg(ARGC_FIVE, "Matrix or null", env, argv[ARGC_FIVE]));
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
@@ -284,7 +287,8 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
     double centerPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], centerPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of x, y be number.");
+            "Parameter error. Param[0] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingCenterPoint = Drawing::Point(centerPoint[ARGC_ZERO], centerPoint[ARGC_ONE]);
 
@@ -319,7 +323,7 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
     if (napi_typeof(env, argv[ARGC_FIVE], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateRadialGradient parameter5 type.");
+            BuildParamTypeMismatchMsg(ARGC_FIVE, "array or null", env, argv[ARGC_FIVE]));
     }
     if (valueType != napi_null) {
         napi_value arrayPos = argv[ARGC_FIVE];
@@ -342,7 +346,7 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
     if (napi_typeof(env, argv[ARGC_SIX], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateRadialGradient parameter6 type.");
+            BuildParamTypeMismatchMsg(ARGC_SIX, "Matrix or null", env, argv[ARGC_SIX]));
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
@@ -364,7 +368,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateComposeShader parameter0 type.");
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "ShaderEffect object", env, argv[ARGC_ZERO]));
     }
     JsShaderEffect* dstJsShaderEffect = nullptr;
     GET_UNWRAP_PARAM_S(ARGC_ZERO, dstJsShaderEffect, &SHADER_EFFECT_TYPE_TAG);
@@ -375,7 +379,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
 
     if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateComposeShader parameter1 type.");
+            BuildParamTypeMismatchMsg(ARGC_ONE, "ShaderEffect object", env, argv[ARGC_ONE]));
     }
     JsShaderEffect* srcJsShaderEffect = nullptr;
     GET_UNWRAP_PARAM_S(ARGC_ONE, srcJsShaderEffect, &SHADER_EFFECT_TYPE_TAG);
@@ -403,7 +407,8 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     double startPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], startPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of x, y be number.");
+            "Parameter error. Param[0] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingStartPoint = Drawing::Point(startPoint[ARGC_ZERO], startPoint[ARGC_ONE]);
 
@@ -414,7 +419,8 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     double endPoint[ARGC_TWO] = {0};
     if (!ConvertFromJsPoint(env, argv[ARGC_TWO], endPoint, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter2 type. The type of x, y be number.");
+            "Parameter error. Param[2] type mismatch. Expected: point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     drawingEndPoint = Drawing::Point(endPoint[ARGC_ZERO], endPoint[ARGC_ONE]);
     double endRadius = 0.0;
@@ -447,7 +453,7 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     if (napi_typeof(env, argv[ARGC_SIX], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateConicalGradient parameter6 type.");
+            BuildParamTypeMismatchMsg(ARGC_SIX, "array or null", env, argv[ARGC_SIX]));
     }
     if (valueType != napi_null) {
         napi_value arrayPos = argv[ARGC_SIX];
@@ -471,7 +477,7 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     if (napi_typeof(env, argv[ARGC_SEVEN], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect CreateConicalGradient parameter7 type.");
+            BuildParamTypeMismatchMsg(ARGC_SEVEN, "Matrix or null", env, argv[ARGC_SEVEN]));
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
@@ -514,7 +520,8 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
     GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
     std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
     if (samplingOptions == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. param[3] type mismatch. Expected: SamplingOptions object, Actual: nullptr");
     }
 
     Drawing::Matrix matrix;

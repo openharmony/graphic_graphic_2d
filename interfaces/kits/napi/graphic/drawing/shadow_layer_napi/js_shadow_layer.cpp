@@ -97,7 +97,7 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
     if (blurRadius <= 0) {
         ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. blurRadius must be greater than 0.");
+            "Parameter verification failed. The range of blurRadius be greater than 0");
     }
 
     double dx = 0.0;
@@ -110,7 +110,7 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_THREE], color)) {
         ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter verification failed. The range of colour component values must be [0, 255].");
     }
 
     std::shared_ptr<BlurDrawLooper> looper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);

@@ -89,7 +89,7 @@ napi_value JsRecordCmdUtils::Constructor(napi_env env, napi_callback_info info)
 
     if (argCount != 0) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsRecordCmdUtils::Constructor Invalid params.");
+            BuildParamCountMsg(ARGC_ZERO, argCount));
     }
 
     std::shared_ptr<RSRecordCmdUtils> rsRecordCmdUtils = std::make_shared<RSRecordCmdUtils>();
@@ -130,12 +130,13 @@ napi_value JsRecordCmdUtils::OnBeginRecording(napi_env env, napi_callback_info i
 {
     if (rsRecordCmdUtils_ == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::BeginRecording rsRecordCmdUtils is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The RecordCmdUtils object is invalid.");
     }
 
     if (recordingCanvas_ != nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::BeginRecording already in recording");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Already in recording.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Already in recording.");
     }
 
     napi_value argv[ARGC_TWO] = { nullptr };
@@ -156,8 +157,8 @@ napi_value JsRecordCmdUtils::OnBeginRecording(napi_env env, napi_callback_info i
     Drawing::Canvas *canvas = rsRecordCmdUtils_->BeginRecording(bounds);
     if (canvas == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::BeginRecording BeginRecording failed");
-        return NapiThrowError(
-            env, DrawingErrorCode::ERROR_INVALID_PARAM, "Insufficient memory, failed to create the canvas");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Insufficient memory, failed to create the canvas.");
     }
 
     napi_value jsCanvasObj = JsCanvas::CreateJsCanvas(env, canvas);
@@ -180,7 +181,8 @@ napi_value JsRecordCmdUtils::OnFinishRecording(napi_env env, napi_callback_info 
 {
     if (rsRecordCmdUtils_ == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::FinishRecording rsRecordCmdUtils is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The RecordCmdUtils object is invalid.");
     }
 
     if (recordingCanvas_ != nullptr) {
@@ -208,7 +210,8 @@ napi_value JsRecordCmdUtils::OnGetHeight(napi_env env, napi_callback_info info)
 {
     if (rsRecordCmdUtils_ == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::GetHeight rsRecordCmdUtils is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The RecordCmdUtils object is invalid.");
     }
 
     int32_t height = rsRecordCmdUtils_->GetHeight();
@@ -225,7 +228,8 @@ napi_value JsRecordCmdUtils::OnGetWidth(napi_env env, napi_callback_info info)
 {
     if (rsRecordCmdUtils_ == nullptr) {
         ROSEN_LOGE("JsRecordCmdUtils::GetWidth rsRecordCmdUtils is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The RecordCmdUtils object is invalid.");
     }
 
     int32_t width = rsRecordCmdUtils_->GetWidth();
