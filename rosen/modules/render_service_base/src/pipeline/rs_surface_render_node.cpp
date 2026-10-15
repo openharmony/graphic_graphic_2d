@@ -2142,6 +2142,10 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     if (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
         surfaceParams->SetLayerSourceTuning(1);
     }
+    // if hwcNode is HardwareForcedDisabled, reset vcldInfo
+    if (isHardwareForcedDisabled_ && vcldInfo_.enable) {
+        ResetVcldInfo();
+    }
     UpdateDelegateRectToSurfaceParams();
     AddToPendingSyncList();
 #endif

@@ -1819,6 +1819,29 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function
 }
 
 /**
+ * @tc.name: UpdateHwcNodeVcldInfo_HardwareForcedDisabled
+ * @tc.desc: Test UpdateHwcNodeVcldInfo when layer is HardwareForcedDisabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_HardwareForcedDisabled, Function | SmallTest | Level2)
+{
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
+ 
+    NodeId hwcNodeId = 0;
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
+    hwcNode->SetHardwareForcedDisabledState(true);
+ 
+    NodeId parentId = 1;
+    auto parentNode = std::make_shared<RSRenderNode>(parentId);
+    parentNode->GetMutableRenderProperties().SetCornerRadius({10.0f, 10.0f, 10.0f, 10.0f});
+ 
+    RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(hwcNode, parentNode);
+ 
+    ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
+}
+
+/**
  * @tc.name: UpdateHwcNodeVcldInfo_AncoLayer
  * @tc.desc: Test UpdateHwcNodeVcldInfo when layer is AncoLayer
  * @tc.type: FUNC
