@@ -216,7 +216,7 @@ void RSCanvasDrawingNode::CreateRenderNode()
     AddCommand(command, IsRenderServiceNode());
 }
 
-bool RSCanvasDrawingNode::ResetSurface(int width, int height)
+bool RSCanvasDrawingNode::ResetSurface(int width, int height, bool forceDisableDmaPreAllocate)
 {
     if (width > EDGE_WIDTH_LIMIT) {
         ROSEN_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 "width:%{public}d height:%{public}d",
@@ -230,6 +230,10 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 #endif
     } else {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (forceDisableDmaPreAllocate) {
+            preAllocateDmaCcm_ = false;
+            RSCanvasCallbackRouter::GetInstance().UnregisterNode(GetId());
+        }
         if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
             std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
             resetSurfaceIndex_ = GenerateResetSurfaceIndex();

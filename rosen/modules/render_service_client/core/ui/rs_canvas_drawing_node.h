@@ -118,9 +118,10 @@ public:
      *
      * @param width The new width of the surface.
      * @param height The new height of the surface.
+     * @param forceDisableDmaPreAllocate When true, forcibly disables DMA pre-allocation.
      * @return true if the surface was successfully reset; false otherwise.
      */
-    bool ResetSurface(int width, int height);
+    bool ResetSurface(int width, int height, bool forceDisableDmaPreAllocate = false);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     /**
