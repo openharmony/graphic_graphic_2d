@@ -951,12 +951,12 @@ napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle)
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "color", CreateJsNumber(env, (uint32_t)rectStyle.color));
+        napi_set_named_property(env, objValue, "color", CreateJsNumber(env, static_cast<uint32_t>(rectStyle.color)));
         napi_set_named_property(env, objValue, "leftTopRadius", CreateJsNumber(env, rectStyle.leftTopRadius));
         napi_set_named_property(env, objValue, "rightTopRadius", CreateJsNumber(env, rectStyle.rightTopRadius));
         napi_set_named_property(env, objValue, "rightBottomRadius", CreateJsNumber(env, rectStyle.rightBottomRadius));
         napi_set_named_property(env, objValue, "leftBottomRadius", CreateJsNumber(env, rectStyle.leftBottomRadius));
-        napi_set_named_property(env, objValue, "borderColor", CreateJsNumber(env, (uint32_t)rectStyle.borderColor));
+        napi_set_named_property(env, objValue, "borderColor", CreateJsNumber(env, static_cast<uint32_t>(rectStyle.borderColor)));
         napi_set_named_property(env, objValue, "borderWidth", CreateJsNumber(env, rectStyle.borderWidth));
     }
     return objValue;
