@@ -203,6 +203,10 @@ bool RenderContextGL::SetUpGpuContext(const std::string& cacheDir)
         return true;
     }
 
+    if (!IsEglContextReady()) {
+        LOGE("Egl context not ready !");
+        return false;
+    }
     mHandler_ = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     auto dir = cacheDir;
