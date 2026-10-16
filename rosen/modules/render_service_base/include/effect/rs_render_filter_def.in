@@ -48,7 +48,8 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, LightMode),
     ADD_PROPERTY_TAG(SoundWave, CircleCenter),
     ADD_PROPERTY_TAG(SoundWave, CircleRadius),
-    ADD_PROPERTY_TAG(SoundWave, LightIntensity)
+    ADD_PROPERTY_TAG(SoundWave, LightIntensity),
+    ADD_PROPERTY_TAG(SoundWave, SmoothUnionThreshold)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
