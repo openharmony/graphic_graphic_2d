@@ -369,7 +369,7 @@ private:
     bool isUiFirstSupportFlag_ = false;
     bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
-    bool isUiFirstFrameControlEnable_ = false;
+    bool isUIFirstFrameControlEnable_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool isFreeMultiWindowEnabled_ = false;
     // for recents scene

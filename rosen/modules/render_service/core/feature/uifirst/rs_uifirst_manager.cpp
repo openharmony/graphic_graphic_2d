@@ -145,7 +145,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id, MultiThreadCacheType type)
 
 bool RSUifirstManager::GetUIFirstDirtyFrameControlEnabled()
 {
-    return  isUiFirstFrameControlEnable_ &&
+    return  isUIFirstFrameControlEnable_ &&
         uifirstType_ != UiFirstCcmType::SINGLE &&
         GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE &&
         RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
@@ -314,6 +314,7 @@ void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRend
     if (GetUIFirstDirtyFrameControlEnabled() && !HandleUIFirstDirtyFrameControl(node)) {
         return;
     }
+
     auto& curDirtyManager = node->GetDirtyManagerForUifirst();
     if (!curDirtyManager) {
         RS_LOGE("MergeOldDirtyToDirtyManager curDirtyManager is nullptr");
@@ -347,14 +348,14 @@ bool RSUifirstManager::HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSu
         auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
         curDirtyManager->MergeUifirstDirtyRect(curDirtyRegion);
         auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
-        RS_OPTIONAL_TRACE_NAME_FMT("UIfirstDirtyFrameControl %" PRIu64",nodeName %s"
+        RS_OPTIONAL_TRACE_NAME_FMT("UIfirstDirtyFrameControl %" PRIu64", nodeName %s"
             " curDirtyRegion[%d %d %d %d], uifirstDirtyRegion[%d %d %d %d]",
             node->GetId(), node->GetName().c_str(), curDirtyRegion.left_, curDirtyRegion.top_,
             curDirtyRegion.width_, curDirtyRegion.height_, uifirstDirtyRegion.left_,
             uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
         if (!uifirstDirtyRegion.IsEmpty()) {
             node->AddToPendingSyncList();
-            }
+        }
         return false;
     }
 
@@ -522,6 +523,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNodeAhead_.clear();
         subthreadProcessDoneNode_.clear();
     }
+    
     for (auto& id : processDoneNodes) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);

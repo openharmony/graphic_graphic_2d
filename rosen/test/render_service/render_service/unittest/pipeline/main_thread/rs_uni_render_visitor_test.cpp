@@ -12065,9 +12065,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty005, TestSize.L
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curScreenNode_ = displayNode;
-    Occlusion::Region regionTemp({0, 0, 20, 20});
-    surfaceNode->SetVisibleRegion(regionTemp);
-    
+    Occlusion::Region regiontemp({0, 0, 20, 20});
+    surfaceNode->SetVisibleRegion(regiontemp);
+
     rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
     rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
     ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());

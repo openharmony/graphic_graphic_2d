@@ -3161,7 +3161,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             }
             bool curDirty = uifirstCacheUpdated && dirtyManager &&
                 dirtyManager->IsCurrentFrameDirty() &&
-                 surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
+                surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
             hasMainAndLeashSurfaceDirty |= curDirty;
         });
     UpdateTopLayersDirtyStatus(topLayers);
