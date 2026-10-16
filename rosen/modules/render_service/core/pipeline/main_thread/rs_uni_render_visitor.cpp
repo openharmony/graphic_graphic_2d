@@ -3141,6 +3141,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             // cal done node dirtyRegion for uifirst
             bool uifirstCacheUpdated =
                 RSUifirstManager::Instance().UifirstCacheUpdated(surfaceNode);
+            
             RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
             UpdatePointWindowDirtyStatus(surfaceNode);
             // 1. calculate abs dirtyrect and update partialRenderParams

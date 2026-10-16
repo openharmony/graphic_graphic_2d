@@ -410,6 +410,7 @@ public:
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
 
     static bool GetReleaseImageOneByOneFlag();
+    static bool GetUIFirstDirtyFrameControlEnabled();
     static bool GetUsePrimList();
 
     static bool GetRebuildSceneEnabled();
@@ -422,7 +423,6 @@ public:
 
     // Timeout (ms) for offloaded synchronous IPC calls to render service.
     static uint32_t GetIpcSyncTimeoutMs();
-    static bool GetUIFirstDirtyFrameControlEnabled();
 
 private:
     RSSystemProperties() = default;

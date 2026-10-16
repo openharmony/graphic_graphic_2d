@@ -12020,28 +12020,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode005, TestSize.Level2)
     RSTestUtil::UnregisterConsumerListener();
 }
 
-void RSUniRenderVisitorTest::TestWithUIFirstDisabled(
-    const std::shared_ptr<RSUniRenderVisitor>& rsUniRenderVisitor,
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-    const std::shared_ptr<RSDirtyRegionManager>& dirtyManager)
-{
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
-    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
-    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
-
-    dirtyManager->SetCurrentFrameDirtyRect({200, 200, 300, 300});
-    Occlusion::Region region1({200, 200, 300, 300});
-    surfaceNode->SetVisibleRegion(region1);
-    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
-    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
-
-    Occlusion::Region region2({300, 300, 50, 50});
-    surfaceNode->SetVisibleRegion(region2);
-    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
-    ASSERT_TRUE(surfaceNode->GetVisibleRegion().IsEmpty());
-}
-
-
 /**
  * @tc.name: UpdateSurfaceDirtyAndGlobalDirty005
  * @tc.desc: Test while app window node skip in calculate global dirty
@@ -12089,6 +12067,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty005, TestSize.L
     rsUniRenderVisitor->curScreenNode_ = displayNode;
     Occlusion::Region regionTemp({0, 0, 20, 20});
     surfaceNode->SetVisibleRegion(regionTemp);
+    
     rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
     rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
     ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());

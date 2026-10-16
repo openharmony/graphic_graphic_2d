@@ -1634,9 +1634,9 @@ HWTEST_F(RSDirtyRegionManagerTest, ScaleSyncedFilterRegions, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect001
- * @tc.desc: test MergeUifirstDirtyRect with empty rect
+ * @tc.desc: Test MergeUifirstDirtyRect with empty rect
  * @tc.type:FUNC
- * @tc.require: issuesI9NVOG
+ * @tc.require: issueI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect001, TestSize.Level1)
 {
@@ -1648,9 +1648,9 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect001, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect002
- * @tc.desc: test MergeUifirstDirtyRect with valid rect
+ * @tc.desc: Test MergeUifirstDirtyRect with valid rect
  * @tc.type:FUNC
- * @tc.require: issuesI9NVOG
+ * @tc.require: issueI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect002, TestSize.Level1)
 {
@@ -1662,9 +1662,9 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect002, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect003
- * @tc.desc: test MergeUifirstDirtyRect with multiple rect
+ * @tc.desc: Test MergeUifirstDirtyRect with multiple rects
  * @tc.type:FUNC
- * @tc.require: issuesI9NVOG
+ * @tc.require: issueI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect003, TestSize.Level1)
 {

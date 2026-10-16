@@ -341,10 +341,9 @@ bool RSUifirstManager::HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSu
         return false;
     }
 
-    bool UifirstCacheUpdated =
-            (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) ||
+    bool uifirstCacheUpdated = (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) ||
             !UifirstCacheUpdate(node->GetId());
-    if (UifirstCacheUpdated && !node->GetNodeAbsRectChanged()) {
+    if (uifirstCacheUpdated && !node->GetNodeAbsRectChanged()) {
         auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
         curDirtyManager->MergeUifirstDirtyRect(curDirtyRegion);
         auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();

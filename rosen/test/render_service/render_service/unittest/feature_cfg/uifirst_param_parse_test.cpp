@@ -229,12 +229,12 @@ HWTEST_F(UIFirstParamParseTest, ParseSubThreadFrameRateControlBySceneTest, TestS
 }
 
 /**
- * @tc.name: GetUiFirstSwitchTypeFrameControlEnabledTest
+ * @tc.name: GetUIFirstSwitchTypeFrameControlEnabledTest
  * @tc.desc: Test GetUIFirstSwitchType for FRAME_CONTROL_ENABLED
  * @tc.type: FUNC
  * @tc.require:#I12345
  */
-HWTEST_F(UIFirstParamParseTest, GetUiFirstSwitchTypeFrameControlEnabledTest, TestSize.Level1)
+HWTEST_F(UIFirstParamParseTest, GetUIFirstSwitchTypeFrameControlEnabledTest, TestSize.Level1)
 {
     UIFirstParamParse uifirstParamParse;
     
@@ -268,7 +268,7 @@ HWTEST_F(UIFirstParamParseTest, ParseUIFirstInternalFrameControlEnabledTest, Tes
         &attrVal);
     node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
 
-    auto res = uifirstParamParse.ParseUIFirstSingleParam("FeatureSwitch", "true");
+    auto res = uifirstParamParse.ParseUIFirstInternal(node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
     ASSERT_EQ(UIFirstParam::IsUIFirstFrameControlEnable(), true);
 }
