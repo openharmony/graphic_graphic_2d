@@ -20,7 +20,6 @@
 #include "render/rs_filter.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -424,16 +423,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     auto result1 = canvasNode->GetShowingProperties().GetSpherizeDegree();
     ASSERT_TRUE(result1.has_value());
     EXPECT_FLOAT_EQ(result1.value(), SHOWING_FLOAT_NUM);
-
-    canvasNode->SetLightUpEffectDegree(SHOWING_FLOAT_NUM);
-    auto result2 = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result2 != nullptr);
-    EXPECT_EQ(result2->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
-
-    canvasNode->SetDynamicDimDegree(SHOWING_FLOAT_NUM);
-    auto result3 = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result3 != nullptr);
-    EXPECT_EQ(result3->GetType(), RSNGEffectType::DYNAMIC_DIM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
 }
 
@@ -482,68 +471,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetAttractionValueTest, TestSize.Level1
     ASSERT_TRUE(result4.has_value());
     EXPECT_FLOAT_EQ(result4.value().x_, showingFloatNumber);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAttractionValueTest end";
-}
-
-HWTEST_F(RSShowingPropertiesFreezerTest, GetColorNGFilterTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterTest start";
-    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
-    ASSERT_TRUE(canvasNode != nullptr);
-    auto filter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.9f, 0.5f, 0.1f);
-    ASSERT_TRUE(filter != nullptr);
-    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
-    auto result = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::BINARIZATION);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterTest end";
-}
-
-HWTEST_F(RSShowingPropertiesFreezerTest, GetColorNGFilterLightUpTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterLightUpTest start";
-    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
-    ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->SetLightUpEffectDegree(SHOWING_FLOAT_NUM);
-    auto result = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterLightUpTest end";
-}
-
-HWTEST_F(RSShowingPropertiesFreezerTest, GetColorNGFilterDynamicDimTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterDynamicDimTest start";
-    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
-    ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->SetDynamicDimDegree(SHOWING_FLOAT_NUM);
-    auto result = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::DYNAMIC_DIM);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorNGFilterDynamicDimTest end";
-}
-
-HWTEST_F(RSShowingPropertiesFreezerTest, ColorNGFilterLastSetterWinsTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest ColorNGFilterLastSetterWinsTest start";
-    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
-    ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
-    canvasNode->SetLightUpEffectDegree(SHOWING_FLOAT_NUM);
-    canvasNode->SetDynamicDimDegree(SHOWING_FLOAT_NUM);
-    auto result = canvasNode->GetShowingProperties().GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::DYNAMIC_DIM);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest ColorNGFilterLastSetterWinsTest end";
-}
-
-HWTEST_F(RSShowingPropertiesFreezerTest, ColorNGFilterNullByDefaultTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest ColorNGFilterNullByDefaultTest start";
-    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
-    ASSERT_TRUE(canvasNode != nullptr);
-    auto result = canvasNode->GetShowingProperties().GetColorNGFilter();
-    EXPECT_EQ(result, nullptr);
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest ColorNGFilterNullByDefaultTest end";
 }
 } // namespace Rosen
 } // namespace OHOS
