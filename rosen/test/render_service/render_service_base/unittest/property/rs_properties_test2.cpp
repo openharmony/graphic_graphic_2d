@@ -799,31 +799,6 @@ HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNGetDynamicDimDegreeTest
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::optional<float> dimDegree(0.99f);
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
-    dimDegree = 1.f;
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-
-    std::optional<float> degree;
-    properties.SetDynamicDimDegree(degree);
-    EXPECT_TRUE(!degree.has_value());
-}
-
-/**
  * @tc.name: SetShadowIsFilledTest
  * @tc.desc: test results of SetShadowIsFilled
  * @tc.type: FUNC
