@@ -318,9 +318,12 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
             rectObj, AniGlobalMethod::GetInstance().rectStyleRightBottomRadius, &rectStyle.rightBottomRadius);
         env->Object_CallMethod_Double(
             rectObj, AniGlobalMethod::GetInstance().rectStyleLeftBottomRadius, &rectStyle.leftBottomRadius);
-        Drawing::Color borderColor = Drawing::Color(rectStyle.borderColor);
-        ParseDrawingColorToNative(env, rectObj, true, AniGlobalMethod::GetInstance().rectStyleBorderColor, borderColor);
-        rectStyle.borderColor = borderColor.CastToColorQuad();
+        Drawing::Color borderColor;
+        ret = ParseDrawingColorToNative(env, rectObj, true, AniGlobalMethod::GetInstance().rectStyleBorderColor,
+            borderColor);
+        if (ret == ANI_OK) {
+            rectStyle.borderColor = borderColor.CastToColorQuad();
+        }
         double borderWidth = 0.0;
         AniTextUtils::ReadOptionalDoubleField(
             env, rectObj, AniGlobalMethod::GetInstance().rectStyleBorderWidth, borderWidth);
