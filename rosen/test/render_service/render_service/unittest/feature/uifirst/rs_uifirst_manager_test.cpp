@@ -2385,7 +2385,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
 
     auto result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
     EXPECT_FALSE(result);
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     mainThread_->context_->nodeMap.UnregisterRenderNode(leashNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appWindowNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
@@ -2464,7 +2464,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     auto result5 = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(result5);
 
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     mainThread_->context_->nodeMap.UnregisterRenderNode(leashNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appWindowNode->GetId());
     mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
@@ -2515,7 +2515,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated006, TestSize.Level1)
     result = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(result);
 
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     mainThread_->context_->nodeMap.UnregisterRenderNode(appNode->GetId());
     uifirstManager_.uifirstType_ = uifirstType;
 }
@@ -2647,7 +2647,7 @@ HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled001, TestSize.L
     EXPECT_TRUE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
     EXPECT_FALSE(uifirstManager_.GetUIFirstDirtyFrameControlEnabled());
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     uifirstManager_.uifirstType_ = uifirstType;
     uifirstManager_.isUIFirstFrameControlEnable_ = isUIFirstFrameControlEnable;
 }
@@ -2680,7 +2680,7 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode001, TestSize.Level1)
     uifirstManager_.subthreadProcessDoneNodeStaging_.clear();
     uifirstManager_.AddProcessDoneNode(id3, type);
     EXPECT_FALSE(uifirstManager_.subthreadProcessDoneNodeStaging_.empty());
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     uifirstManager_.uifirstType_ = uifirstType;
     uifirstManager_.isUIFirstFrameControlEnable_ = isUIFirstFrameControlEnable;
 }
@@ -2816,7 +2816,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirtyToDirtyManager001, TestSize.Level1)
     mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 
     // Restore
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     uifirstManager_.uifirstType_ = uifirstType;
 }
 
@@ -2844,7 +2844,7 @@ HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled002, TestSize.L
 
     // Restore
     uifirstManager_.isUIFirstFrameControlEnable_ = isFrameControlEnable;
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
     uifirstManager_.uifirstType_ = uifirstType;
 }
 }

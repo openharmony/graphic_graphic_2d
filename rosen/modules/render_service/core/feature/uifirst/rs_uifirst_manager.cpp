@@ -145,7 +145,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id, MultiThreadCacheType type)
 
 bool RSUifirstManager::GetUIFirstDirtyFrameControlEnabled()
 {
-    return  isUIFirstFrameControlEnable_ &&
+    return isUIFirstFrameControlEnable_ &&
         uifirstType_ != UiFirstCcmType::SINGLE &&
         GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE &&
         RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
@@ -523,7 +523,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNodeAhead_.clear();
         subthreadProcessDoneNode_.clear();
     }
-    
+
     for (auto& id : processDoneNodes) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);

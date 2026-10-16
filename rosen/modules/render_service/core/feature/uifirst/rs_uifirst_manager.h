@@ -384,7 +384,7 @@ private:
     // the max Delivery time in behind window condition
     static constexpr int PURGE_BEHIND_WINDOW_TIME = BEHIND_WINDOW_RELEASE_TIME - BEHIND_WINDOW_TIME_THRESHOLD;
 
-    // Maximum frame rate at which the UIFirst dirty frame control feature is enabled.
+    // Maximum frame rate at which the UI First dirty frame control feature is enabled.
     static constexpr uint32_t UI_FIRST_DIRTY_FRAME_CONTROL_MAX_FPS = 60;
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
