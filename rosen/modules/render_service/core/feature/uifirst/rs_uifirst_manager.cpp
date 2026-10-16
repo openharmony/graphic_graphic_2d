@@ -510,7 +510,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
     {
         std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
         RS_OPTIONAL_TRACE_NAME_FMT("subthreadProcessDoneNodeAhead_ size %d, subthreadProcessDoneNode_ size %d",
-            subthreadProcessDoneNodeAhead_.size(),subthreadProcessDoneNode_.size());
+            subthreadProcessDoneNodeAhead_.size(), subthreadProcessDoneNode_.size());
         if (subthreadProcessDoneNodeAhead_.size() == 0 && subthreadProcessDoneNode_.size() == 0) {
             return;
         }
