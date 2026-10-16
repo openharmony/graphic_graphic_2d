@@ -442,7 +442,7 @@ HWTEST_F(NdkTextStyleTest, SetTextStyleFontFeatureAndBackgroundRect, TestSize.Le
 
 /*
  * @tc.name: SetTextStyleBackgroundRectKeepsBorderDefault
- * @tc.desc: NDK 5-field rect info keeps border fields default (no border) after set
+ * @tc.desc: 5-field rect info keeps border fields default (no border) after set
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTextStyleTest, SetTextStyleBackgroundRectKeepsBorderDefault, TestSize.Level0)
@@ -453,7 +453,7 @@ HWTEST_F(NdkTextStyleTest, SetTextStyleBackgroundRectKeepsBorderDefault, TestSiz
     int styleId = 1;
     OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
 
-    // NDK struct has no border fields; internal style must keep border defaults (no border)
+    // struct has no border fields; internal style must keep border defaults (no border)
     auto* innerStyle = reinterpret_cast<OHOS::Rosen::TextStyle*>(txtStyle);
     ASSERT_NE(innerStyle, nullptr);
     EXPECT_EQ(innerStyle->backgroundRect.color, 0xFF00FF00);
