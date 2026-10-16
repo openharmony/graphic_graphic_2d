@@ -15,6 +15,7 @@
 
 #include "rs_anco_manager.h"
 
+#include <charconv>
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "params/rs_surface_render_params.h"
@@ -36,8 +37,12 @@ RSAncoManager* RSAncoManager::Instance()
 static bool AncoDisableHebcProperty()
 {
     // Dynamically disable unified rendering layer hebc if persist.sys.graphic.anco.disableHebc equal 1
-    static bool result =
-        std::atoi((system::GetParameter("persist.sys.graphic.anco.disableHebc", "0")).c_str()) != 0;
+    const std::string value = system::GetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    int32_t parsedValue = 0;
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, parsedValue);
+    static bool result = parsed.ec == std::errc{} && parsed.ptr == end && parsedValue != 0;
     return result;
 }
 
