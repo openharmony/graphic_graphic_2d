@@ -44,27 +44,12 @@ static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
 #endif
-// Synchronous interfaces whose reply carries binder objects / fds / ashmem (e.g. PixelMap,
-// IRemoteObject) must stay on the direct path: such replies cannot be cloned back safely by
-// the timeout executor. Calls carrying binder objects/fds in the input parcel are filtered
-// at runtime via GetOffsetsSize() in the SendRequest wrapper.
-// REGISTER_SHARED_TYPEFACE must be listed explicitly: its input parcel carries an fd only for
-// base typefaces (originId_ == 0); variation typefaces send plain data yet the reply still
-// carries an fd when the service registers a new shared typeface (needUpdate != 0).
-[[maybe_unused]] bool IsReplyNotClonable(uint32_t code)
+// Only GET_DEFAULT_SCREEN_ID is routed through ExecuteSyncWithTimeout; all other synchronous
+// IPCs use the direct in-thread SendRequest without timeout protection.
+[[maybe_unused]] bool ShouldUseTimeoutProtection(uint32_t code)
 {
-    switch (static_cast<RSIClientToServiceConnectionInterfaceCode>(code)) {
-        case RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION:
-        case RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID:
-        case RSIClientToServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE:
-        case RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER:
-        case RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE:
-        case RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL:
-        case RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE:
-            return true;
-        default:
-            return false;
-    }
+    return static_cast<RSIClientToServiceConnectionInterfaceCode>(code) ==
+        RSIClientToServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID;
 }
 }
 
@@ -5411,16 +5396,13 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
 #ifdef ENABLE_RS_PROXY
     return Remote()->SendRequest(code, data, reply, option);
 #else
-    // Async calls, calls with binder objects/fds in the input parcel, and calls whose reply
-    // cannot be cloned keep the direct in-thread SendRequest without timeout protection.
-    bool isAsync =
-        (static_cast<uint32_t>(option.GetFlags()) & static_cast<uint32_t>(MessageOption::TF_ASYNC)) != 0;
-    bool needDirectSend = isAsync || data.GetOffsetsSize() > 0 || IsReplyNotClonable(code);
-    if (needDirectSend) {
-        return Remote()->SendRequest(code, data, reply, option);
+    // Only GET_DEFAULT_SCREEN_ID is routed through ExecuteSyncWithTimeout; all other
+    // synchronous IPCs use the direct in-thread SendRequest without timeout protection.
+    if (ShouldUseTimeoutProtection(code)) {
+        return RSSIpcSyncExecutor::GetInstance().ExecuteSyncWithTimeout(
+            Remote(), code, data, reply, option, RSSystemProperties::GetIpcSyncTimeoutMs());
     }
-    return RSSIpcSyncExecutor::GetInstance().ExecuteSyncWithTimeout(
-        Remote(), code, data, reply, option, RSSystemProperties::GetIpcSyncTimeoutMs());
+    return Remote()->SendRequest(code, data, reply, option);
 #endif
 }
 #ifndef ENABLE_RS_PROXY
