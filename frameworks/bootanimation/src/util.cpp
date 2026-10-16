@@ -15,6 +15,7 @@
 
 #include "util.h"
 
+#include <charconv>
 #include <event_handler.h>
 #include <fstream>
 #include <securec.h>
@@ -521,13 +522,20 @@ int32_t StringToInt32(const std::string& str)
         LOGE("invalid str: %{public}s", str.c_str());
         return 0;
     }
-    if (str[0] == '-' && str.length() > 1 && std::all_of(str.begin() + 1, str.end(), isdigit)) {
-        return static_cast<int32_t>(std::stoi(str));
-    }
-    if (!std::all_of(str.begin(), str.end(), isdigit)) {
+    if ((str[0] == '-' && (str.length() == 1 ||
+        !std::all_of(str.begin() + 1, str.end(), isdigit))) ||
+        (str[0] != '-' && !std::all_of(str.begin(), str.end(), isdigit))) {
         LOGE("not number str: %{public}s", str.c_str());
         return 0;
     }
-    return static_cast<int32_t>(std::stoi(str));
+    int32_t result = 0;
+    const char *begin = str.data();
+    const char *end = begin + str.size();
+    auto parsed = std::from_chars(begin, end, result);
+    if (parsed.ec != std::errc{} || parsed.ptr != end) {
+        LOGE("number out of range: %{public}s", str.c_str());
+        return 0;
+    }
+    return result;
 }
 } // namespace OHOS
