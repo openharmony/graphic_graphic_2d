@@ -15,7 +15,9 @@
 
 #include "rs_system_parameters.h"
 
+#include <charconv>
 #include <cstdlib>
+#include <cstring>
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
@@ -26,7 +28,13 @@ namespace Rosen {
 constexpr int DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE = 3;
 static int ConvertToInt(const char *originValue, int defaultValue)
 {
-    return originValue == nullptr ? defaultValue : std::atoi(originValue);
+    if (originValue == nullptr) {
+        return defaultValue;
+    }
+    int value = 0;
+    const char *end = originValue + std::strlen(originValue);
+    auto parsed = std::from_chars(originValue, end, value);
+    return (parsed.ec == std::errc{} && parsed.ptr == end) ? value : defaultValue;
 }
 
 bool RSSystemParameters::GetCalcCostEnabled()
