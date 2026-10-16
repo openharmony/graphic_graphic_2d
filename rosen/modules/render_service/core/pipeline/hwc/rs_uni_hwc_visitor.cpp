@@ -40,6 +40,8 @@ constexpr size_t MAX_NUM_SOLID_LAYER = 2;
 constexpr int MIN_OVERLAP = 2;
 constexpr float EPSILON_SCALE = 0.00001f;
 constexpr float NIT_COMPARE_THRESHOLD = 0.001f;
+// define default queue size for composer auto switch
+constexpr uint32_t DEFAULT_QUEUE_SIZE = 4;
 
 // IsSolidLayerEnable : effective in all scenarios
 // GetIsWhiteListForSolidColorLayerFlag : applicable to a single app
@@ -588,6 +590,27 @@ void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRen
     }
 }
 
+void RSUniHwcVisitor::UpdateHwcNodeEnableByFrameTimeInterval(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+{
+    auto handler = hwcNode->GetRSSurfaceHandler();
+    if (handler == nullptr) {
+        return;
+    }
+    const auto surfaceConsumer = handler->GetConsumer();
+    if (surfaceConsumer != nullptr) {
+        if (surfaceConsumer->GetQueueSize() >= DEFAULT_QUEUE_SIZE
+            && RSUniRenderUtil::GetFrameTimeInterval() >= RSUniRenderUtil::GetAutoSwitchInterval()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
+                    "disabled by accumulate buffer frame time intervals:" PRId32, hwcNode->GetName().c_str(),
+                    hwcNode->GetId(), RSUniRenderUtil::GetFrameTimeInterval());
+                hwcNode->SetHardwareForcedDisabledState(true);
+                RS_LOGD_IF(DEBUG_PIPELINE,
+                           "hwc disabled by accumulate buffer frame time intervals:%{public}d, queuesize:%{public}d",
+                           RSUniRenderUtil::GetFrameTimeInterval(), surfaceConsumer->GetQueueSize());
+            }
+    }
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
     UpdateHwcNodeEnableByFilterIntersection();
@@ -634,6 +657,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         UpdateHwcNodeEnableByForceDisableHdr(hwcNodePtr);
         if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
             ancoNodes.push_back(hwcNodePtr);
+            if (RSUniRenderUtil::GetComposerAutoSwitch()) {
+                UpdateHwcNodeEnableByFrameTimeInterval(hwcNodePtr);
+            }
         }
         CollectHdrForceHwcNodes(hwcNodePtr, hdrForceHwcNodes);
     }
@@ -872,7 +898,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes, RectI& backgroundAlphaRect,
     bool& isHardwareEnableByBackgroundAlpha)
 {
-    std::list<RectI> hwcRects;
+    std::list<std::pair<RectI, size_t>> hwcRects;
     for (size_t i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
@@ -893,13 +919,28 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         }
 
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcRects.push_back(hwcNodePtr->GetDstRect());
+            hwcRects.emplace_back(hwcNodePtr->GetDstRect(), i);
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
-                   hwcRects.size() != 0 && (hwcRects.back().IsInsideOf(hwcNodePtr->GetDstRect()) ||
-                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back())) &&
-                                            IsTargetSourceTuning(*hwcNodePtr)) {
+                   hwcRects.size() != 0 && (hwcRects.back().first.IsInsideOf(hwcNodePtr->GetDstRect()) ||
+                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back().first)) &&
+                                            IsTargetSourceTuning(*hwcNodePtr) && hwcRects.back().second == i-1) {
             isHardwareEnableByBackgroundAlpha = true;
             backgroundAlphaRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+            for (size_t j = 0; j < hwcRects.back().second; j++) {
+                auto targetNodePtr = hwcNodes[j].lock();
+                if (!targetNodePtr || targetNodePtr->IsHardwareForcedDisabled()) {
+                    continue;
+                }
+                bool isIntersected = !backgroundAlphaRect.IntersectRect(
+                    targetNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).IsEmpty();
+                if (isIntersected) {
+                    targetNodePtr->SetHardwareForcedDisabledState(true);
+                    auto parentNode = targetNodePtr->GetParent().lock();
+                    RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+                        "hwc node backgound_alpha", targetNodePtr->GetName().c_str(), targetNodePtr->GetId(),
+                        parentNode ? parentNode->GetId() : 0);
+                }
+            }
             continue;
         } else if (!hwcNodePtr->IsHardwareForcedDisabled()) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);

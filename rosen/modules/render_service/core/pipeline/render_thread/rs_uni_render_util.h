@@ -150,6 +150,35 @@ public:
         RSLogicalDisplayRenderParams& displayParams);
     static BufferDrawParam DealWithBufferDrawParam(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
+    static void SetFrameTimeInterval(int32_t frameTimeInterval)
+    {
+        frameTimeInterval_.store(frameTimeInterval);
+    }
+
+    static int32_t GetFrameTimeInterval()
+    {
+        return frameTimeInterval_;
+    }
+
+    static void SetAutoSwitchInterval(int32_t autoSwitchInterval)
+    {
+        autoSwitchInterval_.store(autoSwitchInterval);
+    }
+
+    static int32_t GetAutoSwitchInterval()
+    {
+        return autoSwitchInterval_;
+    }
+
+    static void SetComposerAutoSwitch(bool composerAutoSwitch)
+    {
+        composerAutoSwitch_.store(composerAutoSwitch);
+    }
+
+    static bool GetComposerAutoSwitch()
+    {
+        return composerAutoSwitch_.load();
+    }
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
@@ -165,6 +194,9 @@ private:
 
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
+    static inline std::atomic<int32_t> frameTimeInterval_ = 0;
+    static inline std::atomic<int32_t> autoSwitchInterval_ = 0;
+    static inline std::atomic<bool> composerAutoSwitch_{false};
 };
 }
 }

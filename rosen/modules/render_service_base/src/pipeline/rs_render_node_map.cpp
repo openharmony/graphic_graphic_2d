@@ -536,6 +536,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                     AddPendingUIBufferEntry(appWindow);
                 }
             }
+            pair.second->RemoveFromTree(true);
             return true;
         });
     }

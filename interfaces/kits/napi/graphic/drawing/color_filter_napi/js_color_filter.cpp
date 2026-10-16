@@ -115,7 +115,7 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
         ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
 
     int32_t jsMode = 0;
@@ -172,11 +172,10 @@ napi_value JsColorFilter::CreateMatrixColorFilter(napi_env env, napi_callback_in
 
     uint32_t arrayLength = 0;
     if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Invalid array length.");
     }
     if (arrayLength != ColorMatrix::MATRIX_SIZE) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "parameter array length verification failed.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect array size.");
     }
 
     scalar matrix[ColorMatrix::MATRIX_SIZE];
@@ -209,13 +208,13 @@ napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], mulColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter0 verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
     ColorQuad addColor;
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ONE], addColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[1] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter1 verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[1] value range error. The range of color channels must be [0, 255].");
     }
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLightingColorFilter(mulColor, addColor);

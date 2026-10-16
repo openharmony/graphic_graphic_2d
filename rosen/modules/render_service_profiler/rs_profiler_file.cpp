@@ -618,9 +618,6 @@ bool RSFile::LogEventEOF(uint32_t layer) const
 
 bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime)
 {
-    // Hold mutex across the read: Close() (on the command thread) takes the same mutex
-    // before setting file_=nullptr and clearing layerData_, preventing the playback thread
-    // from touching a closed FILE* / invalidated layerData_.
     const std::lock_guard<std::mutex> guard(mutex_);
     readTime = 0.0;
     if (!file_ || layerData_.empty()) {
@@ -891,21 +888,11 @@ void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>&
 int64_t RSFile::GetClosestVsyncId(int64_t vsyncId) const
 {
     const std::lock_guard<std::mutex> guard(mutex_);
-    if (mapVsyncId2Time_.count(vsyncId)) {
-        return vsyncId;
-    }
     if (mapVsyncId2Time_.empty()) {
         return 0;
     }
-
-    int64_t minVSync = mapVsyncId2Time_.begin()->first;
-    int64_t maxVSync = mapVsyncId2Time_.rbegin()->first;
-
-    auto it = mapVsyncId2Time_.lower_bound(vsyncId);
-    if (it != mapVsyncId2Time_.end()) {
-        return it->first;
-    }
-    return minVSync;
+    const auto vsync = mapVsyncId2Time_.lower_bound(vsyncId);
+    return (vsync != mapVsyncId2Time_.end()) ? vsync->first : mapVsyncId2Time_.begin()->first;
 }
 
 double RSFile::ConvertVsyncId2Time(int64_t vsyncId) const
@@ -927,25 +914,24 @@ int64_t RSFile::ConvertTime2VsyncId(double time) const
     return 0;
 }
 
-void RSFile::GetVsyncList(std::set<int64_t>& vsyncList) const
+std::vector<int64_t> RSFile::GetVsyncList() const
 {
+    std::vector<int64_t> list;
     const std::lock_guard<std::mutex> guard(mutex_);
-    vsyncList.clear();
-    for (auto& item : mapVsyncId2Time_) {
-        vsyncList.insert(item.first);
+    list.reserve(mapVsyncId2Time_.size());
+    for (const auto& item : mapVsyncId2Time_) {
+        list.push_back(item.first);
     }
+    return list;
 }
 
-void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const
+std::pair<double, double> RSFile::GetStartAndEndTime() const
 {
     const std::lock_guard<std::mutex> guard(mutex_);
     if (mapVsyncId2Time_.empty()) {
-        startAndEndTime.first = 0.0;
-        startAndEndTime.second = 0.0;
-        return;
+        return { 0, 0 };
     }
-    startAndEndTime.first = mapVsyncId2Time_.begin()->second;
-    startAndEndTime.second = mapVsyncId2Time_.rbegin()->second;
+    return { mapVsyncId2Time_.begin()->second, mapVsyncId2Time_.rbegin()->second };
 }
 
 void RSFile::CacheVsyncId2Time(uint32_t layer)

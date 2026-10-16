@@ -132,21 +132,33 @@ public:
     void OnBufferAvailable() override {}
 };
 
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+
 class ScopedNewTunnelSwitch {
 public:
     explicit ScopedNewTunnelSwitch(bool enabled)
     {
         oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
         system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+        oldTunnelParamEnabled_ = TunnelLayerParam::IsNewTunnelEnabled();
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(enabled);
     }
 
     ~ScopedNewTunnelSwitch()
     {
         system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(oldTunnelParamEnabled_);
     }
 
 private:
-    bool oldValue_;
+    bool oldValue_ = false;
+    bool oldTunnelParamEnabled_ = false;
 };
 
 class RecordingRenderToComposerConnection final : public RSRenderToComposerConnectionStub {

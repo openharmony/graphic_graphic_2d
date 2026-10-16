@@ -4295,4 +4295,321 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_SameNit_AIHDR
     rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
     EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
 }
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_001
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when consumer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_002
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize < DEFAULT_QUEUE_SIZE
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_003
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize >= DEFAULT_QUEUE_SIZE
+ *           and frameTimeInterval < autoSwitchInterval
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_003, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(5);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(3);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_004
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize >= DEFAULT_QUEUE_SIZE
+ *           and frameTimeInterval > autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_004, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(5);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_005
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval boundary when queueSize >= DEFAULT_QUEUE_SIZE
+ *           and frameTimeInterval == autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(5);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(5);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_006
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when handler is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_006, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    // Set surfaceHandler_ to nullptr to cover the handler == nullptr early return
+    surfaceNode->surfaceHandler_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    // handler == nullptr → early return, no state change
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_007
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize == DEFAULT_QUEUE_SIZE (boundary)
+ *           and frameTimeInterval >= autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_007, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    // Set queueSize exactly to DEFAULT_QUEUE_SIZE (4) to cover the boundary
+    psurf->SetQueueSize(4);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    // queueSize(4) >= DEFAULT_QUEUE_SIZE(4) && frameTimeInterval(10) >= autoSwitchInterval(5)
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001
+ * @tc.desc: Test UpdateHwcNodeEnable when GetComposerAutoSwitch is true and hwcNode is anco node,
+ *           UpdateHwcNodeEnableByFrameTimeInterval should be called and hardware composer disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    // Push directly into childHwcNodes_ to make GetChildHwcNodes return it
+    displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    // Set auto switch enabled and conditions for UpdateHwcNodeEnableByFrameTimeInterval to disable
+    auto oldComposerAutoSwitch = RSUniRenderUtil::GetComposerAutoSwitch();
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetComposerAutoSwitch(true);
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_TRUE(hwcNodePtr->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnable_AutoSwitchFalse_AncoNode_001
+ * @tc.desc: Test UpdateHwcNodeEnable when GetComposerAutoSwitch is false and hwcNode is anco node,
+ *           UpdateHwcNodeEnableByFrameTimeInterval should not be called
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchFalse_AncoNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    // Set auto switch disabled, even though frameTimeInterval >= autoSwitchInterval
+    auto oldComposerAutoSwitch = RSUniRenderUtil::GetComposerAutoSwitch();
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(hwcNodePtr->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
 } // namespace OHOS::Rosen

@@ -138,7 +138,8 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColor brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     size_t argc = ARGC_FOUR;
@@ -151,7 +152,7 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
         if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
             ROSEN_LOGE("JsBrush::SetColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The range of color channels must be [0, 255].");
+                "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
         }
         drawingColor.SetColorQuad(color);
     } else if (argc == ARGC_FOUR) {
@@ -165,7 +166,8 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
         GET_COLOR_PARAM(ARGC_THREE, blue);
         drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect parameter count. Expected: 1 or 4, Actual: " + std::to_string(argc));
     }
     brush->SetColor(drawingColor);
     return nullptr;
@@ -176,12 +178,14 @@ napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     const Color& color = brush->GetColor();
@@ -198,7 +202,8 @@ napi_value JsBrush::SetColor4f(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColor4f brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     napi_value argv[ARGC_TWO] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
@@ -231,12 +236,14 @@ napi_value JsBrush::GetColor4f(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor4f jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor4f brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     const Color4f& color4f = brush->GetColor4f();
@@ -248,12 +255,14 @@ napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetHexColor jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetHexColor brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     const Color& color = brush->GetColor();
@@ -269,7 +278,8 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAntiAlias brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -291,7 +301,8 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetAlpha brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -301,7 +312,7 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsBrush::SetAlpha Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The alpha range must be [0, 255].");
+            "Parameter error. param[0] value range error. The alpha range must be [0, 255].");
     }
 
     brush->SetAlpha(alpha);
@@ -313,12 +324,14 @@ napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::IsAntiAlias jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::IsAntiAlias brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     return CreateJsValue(env, brush->IsAntiAlias());
@@ -329,12 +342,14 @@ napi_value JsBrush::GetAlpha(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetAlpha jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetAlpha brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     uint32_t alpha = brush->GetAlpha();
@@ -350,7 +365,8 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetColorFilter brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -370,12 +386,14 @@ napi_value JsBrush::GetColorFilter(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColorFilter jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColorFilter brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     if (brush->HasFilter()) {
         return JsColorFilter::Create(env, brush->GetFilter().GetColorFilter());
@@ -388,12 +406,14 @@ napi_value JsBrush::SetImageFilter(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetImageFilter jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetImageFilter brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -413,12 +433,14 @@ napi_value JsBrush::SetMaskFilter(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetMaskFilter jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetMaskFilter brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -442,7 +464,8 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetBlendMode brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -460,12 +483,14 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShadowLayer jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShadowLayer brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -483,12 +508,14 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShaderEffect jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShaderEffect brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -506,12 +533,14 @@ napi_value JsBrush::Reset(napi_env env, napi_callback_info info)
     JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::Reset jsBrush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
     std::shared_ptr<Brush> brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::Reset brush is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Brush object is invalid.");
     }
 
     brush->Reset();

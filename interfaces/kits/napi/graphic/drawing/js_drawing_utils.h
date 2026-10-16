@@ -77,6 +77,33 @@ private:
     } while (0)
 #endif
 
+std::string GetNapiValueTypeString(napi_env env, napi_value value);
+
+inline std::string BuildParamTypeMismatchMsg(size_t index, const std::string& expected, napi_env env, napi_value val)
+{
+    return std::string("Parameter error. Param[") + std::to_string(index) +
+        "] type mismatch. Expected: " + expected + ", Actual: " + GetNapiValueTypeString(env, val);
+}
+
+inline std::string BuildParamTypeMismatchMsg(size_t index, const std::string& expected, const std::string& actual)
+{
+    return std::string("Parameter error. Param[") + std::to_string(index) +
+        "] type mismatch. Expected: " + expected + ", Actual: " + actual;
+}
+
+inline std::string BuildParamCountMsg(size_t expected, size_t actual)
+{
+    return std::string("Parameter error. Incorrect parameter count. Expected: ") +
+        std::to_string(expected) + ", Actual: " + std::to_string(actual);
+}
+
+inline std::string BuildParamCountRangeMsg(size_t minNum, size_t maxNum, size_t actual)
+{
+    return std::string("Parameter error. Incorrect parameter count. Expected: ") +
+        std::to_string(minNum) + "-" + std::to_string(maxNum) +
+        ", Actual: " + std::to_string(actual);
+}
+
 #define CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, minNum, maxNum)                                            \
     do {                                                                                                               \
         if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < minNum || argc > maxNum) { \

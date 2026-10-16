@@ -329,7 +329,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
         frameContextConfig.isProtected);
     RS_OPTIONAL_TRACE_END();
     if (surfaceFrame == nullptr) {
-        RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
+        RS_LOGE_LIMIT(__func__, __line__, "RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
         return nullptr;
     }
     return std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));

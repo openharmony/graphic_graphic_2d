@@ -131,7 +131,8 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnGetBoundaryPath region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     std::shared_ptr<Path> path = std::make_shared<Path>();
@@ -149,7 +150,8 @@ napi_value JsRegion::OnGetBounds(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnGetBounds region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     RectI src = m_region->GetBounds();
@@ -166,7 +168,8 @@ napi_value JsRegion::OnIsComplex(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsComplex region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsComplex());
@@ -182,7 +185,8 @@ napi_value JsRegion::OnIsEmpty(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEmpty region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsEmpty());
@@ -198,7 +202,8 @@ napi_value JsRegion::OnIsEqual(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -225,7 +230,8 @@ napi_value JsRegion::OnIsPointContained(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsPointContained region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -249,7 +255,8 @@ napi_value JsRegion::OnIsRegionContained(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRegionContained region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -275,7 +282,8 @@ napi_value JsRegion::OnOffset(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnOffset region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -299,7 +307,8 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnOp region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -318,7 +327,8 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
     RegionOp op = static_cast<RegionOp>(regionOp);
     if (op < RegionOp::DIFFERENCE || op > RegionOp::REPLACE) {
         ROSEN_LOGE("JsRegion::OnOp regionOp is error param");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The range of op must be [0, 5].");
     }
 
     return CreateJsValue(env, m_region->Op(*region->GetRegion(), op));
@@ -334,7 +344,8 @@ napi_value JsRegion::OnQuickReject(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickReject region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -363,7 +374,8 @@ napi_value JsRegion::OnQuickRejectRegion(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickRejectRegion region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -390,7 +402,8 @@ napi_value JsRegion::OnSetEmpty(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetEmpty region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     m_region->SetEmpty();
@@ -407,7 +420,8 @@ napi_value JsRegion::OnSetRect(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRect region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -436,7 +450,8 @@ napi_value JsRegion::OnSetRegion(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRegion region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -463,7 +478,8 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -495,7 +511,8 @@ napi_value JsRegion::OnIsRect(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRect region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsRect());
@@ -511,7 +528,8 @@ napi_value JsRegion::OnQuickContains(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickContains region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};

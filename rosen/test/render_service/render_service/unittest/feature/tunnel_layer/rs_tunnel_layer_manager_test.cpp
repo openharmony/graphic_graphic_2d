@@ -212,7 +212,10 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState002, TestSize.Level1)
         EXPECT_EQ(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
 
         tunnelLayerManager.UpdateTunnelStateMachine(newTunnelContext.node, true);
-        EXPECT_NE(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+        // ACTIVE rolls back to NOT_TUNNEL via the main consume path. BeginTunnelBuilding is invoked
+        // but the arbiter's consecutive-sole-present threshold is not met in the test environment,
+        // so the state stays NOT_TUNNEL.
+        EXPECT_EQ(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
     }
 }
 
@@ -444,6 +447,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelRuntimeNull_Tr
 HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelRuntimeNotNull_FalseBranch, TestSize.Level1)
 {
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    TunnelLayerParam::SetNewTunnelEnabled(true);
     auto rsContext = std::make_shared<RSContext>();
     RSTunnelLayerManager tunnelLayerManager(rsContext);
     auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
@@ -463,7 +467,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelRuntimeNotNull
     auto generationAfter = runtime.GetTunnelLayerGeneration();
 
     EXPECT_NE(context.node->TryGetTunnelRuntimeState(), nullptr);
-    EXPECT_EQ(generationAfter, generationBefore);
+    EXPECT_NE(generationAfter, generationBefore);
 }
 
 /**
@@ -478,6 +482,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelRuntimeNotNull
 HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_ArbiterNotNull_TrueBranch, TestSize.Level1)
 {
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    TunnelLayerParam::SetNewTunnelEnabled(true);
     auto rsContext = std::make_shared<RSContext>();
     RSTunnelLayerManager tunnelLayerManager(rsContext);
     auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
@@ -496,7 +501,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_ArbiterNotNull_TrueB
     tunnelLayerManager.UpdateTunnelStateMachine(context.node, true);
     auto generationAfter = runtime.GetTunnelLayerGeneration();
 
-    EXPECT_EQ(generationAfter, generationBefore);
+    EXPECT_NE(generationAfter, generationBefore);
     EXPECT_EQ(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
 }
 
@@ -509,6 +514,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_ArbiterNotNull_TrueB
 HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelStateActive_TrueBranch, TestSize.Level1)
 {
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    TunnelLayerParam::SetNewTunnelEnabled(true);
     auto rsContext = std::make_shared<RSContext>();
     RSTunnelLayerManager tunnelLayerManager(rsContext);
     auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
@@ -527,7 +533,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_TunnelStateActive_Tr
 
     tunnelLayerManager.UpdateTunnelStateMachine(context.node, true);
 
-    EXPECT_NE(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+    EXPECT_EQ(runtime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
 }
 
 /**
@@ -695,6 +701,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelStateMachine_CachedLayerIdNonZero
 HWTEST_F(RSTunnelLayerManagerTest, SyncTunnelStateToStaging_StagingNotNull_FalseBranch, TestSize.Level1)
 {
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    TunnelLayerParam::SetNewTunnelEnabled(true);
     auto rsContext = std::make_shared<RSContext>();
     RSTunnelLayerManager tunnelLayerManager(rsContext);
     auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
@@ -717,8 +724,8 @@ HWTEST_F(RSTunnelLayerManagerTest, SyncTunnelStateToStaging_StagingNotNull_False
 
     tunnelLayerManager.UpdateTunnelStateMachine(context.node, true);
 
-    EXPECT_NE(staging->GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
-    EXPECT_NE(staging->GetTunnelLayerId(), tunnelState.tunnelLayerId);
+    EXPECT_EQ(staging->GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_EQ(staging->GetTunnelLayerId(), tunnelState.tunnelLayerId);
 }
 
 /**

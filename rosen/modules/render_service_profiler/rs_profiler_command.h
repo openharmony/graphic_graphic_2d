@@ -56,6 +56,11 @@ public:
         return index < Count() ? args_[index] : EMPTY;
     }
 
+    bool Bool(size_t index = 0u) const
+    {
+        return (String(index) == "1") || (String(index) == "true");
+    }
+
     int8_t Int8(size_t index = 0u) const
     {
         return Utils::ToInt8(String(index));

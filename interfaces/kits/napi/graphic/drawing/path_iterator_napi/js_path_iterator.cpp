@@ -107,7 +107,8 @@ napi_value JsPathIterator::Constructor(napi_env env, napi_callback_info info)
         PathIterator* p = new PathIterator(*path->GetPath());
         jsPathIterator = new JsPathIterator(p);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamCountMsg(ARGC_ONE, argc));
     }
     if (!jsPathIterator) {
         ROSEN_LOGE("Failed to create JsPathIterator");
@@ -190,7 +191,8 @@ napi_value JsPathIterator::OnNext(napi_env env, napi_callback_info info)
 {
     if (m_iter == nullptr) {
         ROSEN_LOGE("JsPathIterator::OnNext pathiterator is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The PathIterator object is invalid.");
     }
 
     size_t argc = ARGC_TWO;
@@ -205,7 +207,7 @@ napi_value JsPathIterator::OnNext(napi_env env, napi_callback_info info)
         if (offset < 0) {
             ROSEN_LOGE("JsPathIterator::OnNext offset is incorrect.");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The value of offset must be greater than or equal to 0.");
+                "Parameter error. The value of offset must be greater than or equal to 0.");
         }
     }
 
@@ -213,7 +215,7 @@ napi_value JsPathIterator::OnNext(napi_env env, napi_callback_info info)
     if (napi_get_array_length(env, array, &size) != napi_ok ||
         size < static_cast<uint32_t>(offset) + MAX_PAIRS_PATHVERB) {
         ROSEN_LOGE("JsPathIterator::OnNext array size is incorrect.");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect array size.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect array size.");
     }
 
     PathVerb returnVerb = getReturnVerb(m_verb);
@@ -233,7 +235,8 @@ napi_value JsPathIterator::OnPeek(napi_env env, napi_callback_info info)
 {
     if (m_iter == nullptr) {
         ROSEN_LOGE("JsPathIterator::OnPeek pathiterator is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The PathIterator object is invalid.");
     }
     if (m_done) {
         return CreateJsNumber(env, static_cast<int32_t>(PathVerb::DONE));
@@ -245,7 +248,8 @@ napi_value JsPathIterator::OnHasNext(napi_env env, napi_callback_info info)
 {
     if (m_iter == nullptr) {
         ROSEN_LOGE("JsPathIterator::OnHasNext pathiterator is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The PathIterator object is invalid.");
     }
     if (m_verb == PathVerb::UNINIT) {
         m_verb = nextInternal();

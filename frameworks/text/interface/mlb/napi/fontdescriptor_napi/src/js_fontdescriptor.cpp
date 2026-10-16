@@ -143,7 +143,6 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
         std::set<FontDescSharedPtr> matchResult;
     };
     sptr<MatchFontDescriptorsContext> cb = sptr<MatchFontDescriptorsContext>::MakeSptr();
-    NAPI_CHECK_AND_THROW_ERROR(cb != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, cb](size_t argc, napi_value *argv) {
         cb->status = napi_invalid_arg;
         cb->errCode = static_cast<int32_t>(TextErrorCode::ERROR_INVALID_PARAM);
@@ -334,9 +333,6 @@ napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_cal
 
     sptr<SystemFontListContext> context = sptr<SystemFontListContext>::MakeSptr();
 
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY,
-        "Failed to get systemFont fullName list by type, no memory");
-
     auto inputParser = [env, context](size_t argc, napi_value *argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
@@ -380,8 +376,6 @@ napi_value JsFontDescriptor::CreateFontList(napi_env env, const std::unordered_s
 napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callback_info info)
 {
     sptr<FontDescriptorsListContext> context = sptr<FontDescriptorsListContext>::MakeSptr();
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY,
-        "Failed to get font descriptors, no memory");
 
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
@@ -525,9 +519,6 @@ napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_call
     };
 
     sptr<FontDescriptorContext> context = sptr<FontDescriptorContext>::MakeSptr();
-
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY,
-        "Failed to get fontDescriptor by name, no memory");
 
     auto inputParser = [env, context](size_t argc, napi_value *argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");

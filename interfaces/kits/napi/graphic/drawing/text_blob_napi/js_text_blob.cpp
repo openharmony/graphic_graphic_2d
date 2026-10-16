@@ -113,7 +113,8 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
     if (napi_get_array_length(env, array, &size) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "array", env, argv[ARGC_ZERO]));
     }
 
     JsFont* jsFont = nullptr;
@@ -162,7 +163,8 @@ bool JsTextBlob::OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawin
         double ltrb[ARGC_FOUR] = {0};
         if (!ConvertFromJsRect(env, argv, ltrb, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
+                "Parameter error. Param[2] type mismatch. Expected: Rect with number properties "
+                "(left, top, right, bottom), Actual: invalid Rect.");
         }
 
         drawingRect.SetLeft(ltrb[ARGC_ZERO]);
@@ -225,7 +227,8 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     // Chinese characters need to be encoded with UTF16
     size_t len = 0;
     if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to read the string.");
     }
     char16_t* buffer = new(std::nothrow) char16_t[len + 1];
     if (!buffer) {
@@ -234,7 +237,8 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     }
     if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer, len + 1, &len) != napi_ok) {
         delete[] buffer;
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to read the string.");
     }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(buffer, CHAR16_SIZE * len, *font, TextEncoding::UTF16);
 
@@ -298,7 +302,8 @@ napi_value JsTextBlob::OnUniqueID(napi_env env, napi_callback_info info)
 {
     if (m_textBlob == nullptr) {
         ROSEN_LOGE("JsTextBlob::OnUniqueID textBlob is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The TextBlob object is invalid.");
     }
     return CreateJsNumber(env, m_textBlob->UniqueID());
 }
@@ -384,7 +389,8 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
 
     size_t bufferLen = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &bufferLen) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to read the string.");
     }
 
     char* buffer = new(std::nothrow) char[bufferLen + 1];
@@ -472,8 +478,7 @@ napi_value JsTextBlob::MakeFromPosTextWithFallback(napi_env env, napi_callback_i
 
     size_t bufferLen = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &bufferLen) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The text input must be string.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. param[0] must be string.");
     }
     std::vector<char> buffer(bufferLen + 1);
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], buffer.data(), bufferLen + 1, &bufferLen) != napi_ok) {
@@ -485,7 +490,7 @@ napi_value JsTextBlob::MakeFromPosTextWithFallback(napi_env env, napi_callback_i
     uint32_t pointsSize = 0;
     if (napi_get_array_length(env, array, &pointsSize) != napi_ok) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The points input must be an array.");
+            "Parameter error. Param[2] type mismatch. Expected: Array object, Actual: Invalid Array.");
     }
     if (pointsSize == 0 || bufferLen == 0) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -493,7 +498,7 @@ napi_value JsTextBlob::MakeFromPosTextWithFallback(napi_env env, napi_callback_i
     }
     if (len != pointsSize) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
-            "string length does not match points array length.");
+            "Parameter error. String length does not match points array length.");
     }
 
     JsFont* jsFont = nullptr;
@@ -513,7 +518,8 @@ napi_value JsTextBlob::MakeFromPosTextWithFallback(napi_env env, napi_callback_i
     if (!MakePoints(env, points.data(), pointsSize, array)) {
         ROSEN_LOGE("JsTextBlob::MakeFromPosTextWithFallback: Argv[2] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The points input is invalid.");
+            "Parameter error. Param[2] type mismatch. Expected: array of Point objects and Point with number properties"
+            " (x, y), Actual: cannot fill Point.");
     }
     std::vector<std::shared_ptr<TextBlob>> textBlobs =
         TextBlob::MakeFromPosTextWithFallback(buffer.data(), bufferLen, points.data(), *font, TextEncoding::UTF8);
@@ -547,7 +553,8 @@ napi_value JsTextBlob::OnBounds(napi_env env, napi_callback_info info)
 {
     if (m_textBlob == nullptr) {
         ROSEN_LOGE("JsTextBlob::OnBounds textBlob is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The TextBlob object is invalid.");
     }
     std::shared_ptr<Rect> rect = m_textBlob->Bounds();
 

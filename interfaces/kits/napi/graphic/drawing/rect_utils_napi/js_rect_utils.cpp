@@ -112,7 +112,8 @@ napi_value JsRectUtils::CenterX(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     return CreateJsNumber(env, (ltrb[ARGC_ZERO] + ltrb[ARGC_TWO]) / 2); // 2 represents the average of left and right.
@@ -126,7 +127,8 @@ napi_value JsRectUtils::CenterY(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     return CreateJsNumber(env, (ltrb[ARGC_ONE] + ltrb[ARGC_THREE]) / 2); // 2 represents the average of top and bottom.
@@ -141,14 +143,16 @@ napi_value JsRectUtils::Contains(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
     if (argc == ARGC_TWO) {
         double ltrb2[ARGC_FOUR] = {0};
         if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+                "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+                "(left, top, right, bottom), Actual: invalid Rect.");
         }
         Drawing::Rect other = Drawing::Rect(ltrb2[ARGC_ZERO], ltrb2[ARGC_ONE], ltrb2[ARGC_TWO], ltrb2[ARGC_THREE]);
         return CreateJsValue(env, rect.Contains(other));
@@ -170,7 +174,9 @@ napi_value JsRectUtils::Contains(napi_env env, napi_callback_info info)
         Drawing::Rect other = Drawing::Rect(left, top, right, bottom);
         return CreateJsValue(env, rect.Contains(other));
     }
-    return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of Contains parameters.");
+    return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        "Parameter error. Incorrect parameter count. Expected: 2, 3, or 5, Actual: " +
+        std::to_string(argc) + ".");
 }
 
 napi_value JsRectUtils::GetHeight(napi_env env, napi_callback_info info)
@@ -181,7 +187,8 @@ napi_value JsRectUtils::GetHeight(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -196,7 +203,8 @@ napi_value JsRectUtils::GetWidth(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -211,7 +219,8 @@ napi_value JsRectUtils::Inset(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double left = 0.0;
@@ -236,13 +245,15 @@ napi_value JsRectUtils::Intersect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double ltrb2[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -262,7 +273,8 @@ napi_value JsRectUtils::IsEmpty(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -277,13 +289,15 @@ napi_value JsRectUtils::IsEqual(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double ltrb2[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -299,13 +313,15 @@ napi_value JsRectUtils::IsIntersect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double ltrb2[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -321,7 +337,8 @@ napi_value JsRectUtils::MakeCopy(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     return GetRectAndConvertToJsValue(env, ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -357,7 +374,8 @@ napi_value JsRectUtils::Offset(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double dx = 0.0;
@@ -379,7 +397,8 @@ napi_value JsRectUtils::OffsetTo(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double newLeft = 0.0;
@@ -403,7 +422,8 @@ napi_value JsRectUtils::SetEmpty(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     DrawingRectConvertToJsRect(env, argv[ARGC_ZERO], Drawing::Rect());
@@ -418,7 +438,8 @@ napi_value JsRectUtils::SetLtrb(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double left = 0.0;
@@ -442,13 +463,15 @@ napi_value JsRectUtils::SetRect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double ltrb2[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     LtrbConvertToJsRect(env, argv[ARGC_ZERO], ltrb2[ARGC_ZERO], ltrb2[ARGC_ONE], ltrb2[ARGC_TWO], ltrb2[ARGC_THREE]);
@@ -463,7 +486,8 @@ napi_value JsRectUtils::Sort(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -480,13 +504,15 @@ napi_value JsRectUtils::Union(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     double ltrb2[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb2, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. Param[1] type mismatch. Expected: Rect with number properties "
+            "(left, top, right, bottom), Actual: invalid Rect.");
     }
 
     Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);

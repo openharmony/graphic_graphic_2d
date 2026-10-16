@@ -63,7 +63,8 @@ napi_value JsRecordCmd::Constructor(napi_env env, napi_callback_info info)
     }
 
     if (argc != 0) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamCountMsg(ARGC_ZERO, argc));
     }
 
     std::shared_ptr<RecordCmd> recordCmd = std::make_shared<RecordCmd>(nullptr, Drawing::Rect());

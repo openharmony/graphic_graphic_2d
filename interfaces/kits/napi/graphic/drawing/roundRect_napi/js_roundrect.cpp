@@ -68,7 +68,7 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsRoundRect::Constructor Argv[0] is invalid.");
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "object or null", env, argv[ARGC_ZERO]));
     }
     JsRoundRect* jsRoundRect = nullptr;
     if (argCount == ARGC_ONE) {
@@ -82,7 +82,8 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
         double ltrb[ARGC_FOUR] = {0};
         if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+                "Parameter error. Param[0] type mismatch. Expected: Rect with number properties "
+                "(left, top, right, bottom), Actual: invalid Rect.");
         }
         Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
     

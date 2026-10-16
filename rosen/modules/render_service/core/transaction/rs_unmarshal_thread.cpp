@@ -26,7 +26,6 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 #include "rs_frame_report.h"
-#include "rs_profiler.h"
 #include "command/rs_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "rs_trace.h"
@@ -155,7 +154,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             return;
         }
         transData->SetCallingPid(callingPid);
-        RS_PROFILER_SET_TRANSACTION_SENDING_PID(*transData, *parcel, callingPid);
+        transData->SetSendingPid(callingPid);
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
             if (!transData->IsCallingPidValid(callingPid, nodeMap)) {

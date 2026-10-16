@@ -663,6 +663,8 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
         return "ReplayDeserialize: Count exceeds the limit";
     }
 
+    ReplayClear();
+
     std::shared_ptr<Drawing::Typeface> typeface;
     for (size_t i = 0, totalSize = 0; i < count; i++) {
         uint64_t uniqueId = 0ull;

@@ -18,6 +18,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,7 @@ RSCommand* RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(Parcel& par
             RSMarshallingHelper::Unmarshalling(parcel, timeoutNS))) {
         return nullptr;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, targetId);
     auto command = new RSNodeGetShowingPropertyAndCancelAnimation(targetId, property, timeoutNS);
     if (!command->ReadFromParcel(parcel)) {
         delete command;
@@ -154,6 +156,16 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::ReadFromParcel(Parcel& parcel
     if (!RSMarshallingHelper::Unmarshalling(parcel, nodeNotFound_)) {
         return false;
     }
+
+#ifdef RS_PROFILER_ENABLED
+    if (RS_PROFILER_IS_PARCEL_MOCK(parcel)) {
+        for (auto it = propertiesMap_.begin(); it != propertiesMap_.end();) {
+            auto node = propertiesMap_.extract(it++);
+            RS_PROFILER_PATCH_NODE_ID(parcel, node.key().first);
+            propertiesMap_.insert(std::move(node));
+        }
+    }
+#endif
     return true;
 }
 
@@ -238,6 +250,7 @@ bool RSNodeGetAnimationsValueFraction::ReadFromParcel(Parcel& parcel)
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId_)) {
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId_);
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, animationId_)) {
         return false;
     }

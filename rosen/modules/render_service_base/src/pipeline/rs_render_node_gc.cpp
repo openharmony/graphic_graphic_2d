@@ -23,6 +23,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include <csignal>
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -295,6 +296,11 @@ void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter*
 
 void RSRenderNodeGC::DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr)
 {
+    RS_PROFILER_ON_GARBAGE_COLLECT(ptr);
+    if (!ptr) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(drawableMutex_);
     if (drawableBucket_.size() > 0) {
         auto& bucket = drawableBucket_.back();

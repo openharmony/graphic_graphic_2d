@@ -68,7 +68,7 @@ napi_value JsTypeFaceArguments::Constructor(napi_env env, napi_callback_info inf
     }
 
     if (argc != ARGC_ZERO) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, BuildParamCountMsg(ARGC_ZERO, argc));
     }
     auto typeFaceArguments = std::make_shared<TypeFaceArgumentsHelper>();
     JsTypeFaceArguments* jsTypeFaceArguments = new JsTypeFaceArguments(typeFaceArguments);

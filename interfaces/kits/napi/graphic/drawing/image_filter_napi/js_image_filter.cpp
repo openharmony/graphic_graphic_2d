@@ -170,7 +170,7 @@ napi_value JsImageFilter::CreateComposeImageFilter(napi_env env, napi_callback_i
 
     if (jsInner == nullptr && jsOuter == nullptr) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Inner and outer are nullptr");
+            "Parameter error. Param[0] and Param[1] are required, cannot both be null.");
     }
 
     std::shared_ptr<ImageFilter> outer = jsOuter ? jsOuter->GetImageFilter() : nullptr;
@@ -246,7 +246,7 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
             double srcLtrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsRect(env, argv[ARGC_ONE], srcLtrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+                    "Parameter error. param[1] type mismatch. The type of left, top, right and bottom must be number.");
             }
             srcRect = Drawing::Rect(srcLtrb[ARGC_ZERO], srcLtrb[ARGC_ONE], srcLtrb[ARGC_TWO], srcLtrb[ARGC_THREE]);
         }
@@ -265,7 +265,7 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
             double dstLtrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsRect(env, argv[ARGC_TWO], dstLtrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
+                    "Parameter error. param[2] type mismatch. The type of left, top, right and bottom must be number.");
             }
             dstRect = Drawing::Rect(dstLtrb[ARGC_ZERO], dstLtrb[ARGC_ONE], dstLtrb[ARGC_TWO], dstLtrb[ARGC_THREE]);
         }

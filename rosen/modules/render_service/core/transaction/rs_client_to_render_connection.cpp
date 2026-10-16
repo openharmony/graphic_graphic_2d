@@ -25,6 +25,7 @@
 #include "rs_frame_report.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "rs_profiler.h"
 
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
@@ -287,7 +288,7 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
             "transaction dropped, hasData:%{public}d", transactionData != nullptr);
         return ERR_INVALID_VALUE;
     }
-    pid_t callingPid = GetCallingPid();
+    pid_t callingPid = RS_PROFILER_GET_CALLING_PID(this);
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
@@ -357,7 +358,7 @@ ErrCode RSClientToRenderConnection::UnRegisterApplicationAgent()
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    auto pid = GetCallingPid();
+    auto pid = RS_PROFILER_GET_CALLING_PID(this);
     RS_LOGI("RSClientToRenderConnection::UnRegisterApplicationAgent pid=[%{public}d]", pid);
     // The agent is keyed on the client process pid on the server side, so resolve it by the calling pid.
     sptr<IApplicationAgent> app =
@@ -666,7 +667,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
-    if (!isSystemCalling && GetCallingPid() != pid) {
+    if (!isSystemCalling && RS_PROFILER_GET_CALLING_PID(this) != pid) {
         RS_LOGE("RSClientToRenderConnection::SetSurfaceWatermark %{public}s,"
             "callingPid != pid", name.c_str());
         return WATER_MARK_RS_CONNECTION_ERROR;
@@ -684,7 +685,7 @@ void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const 
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
-    if (!isSystemCalling && GetCallingPid() != pid) {
+    if (!isSystemCalling && RS_PROFILER_GET_CALLING_PID(this) != pid) {
         RS_LOGE("RSClientToRenderConnection::ClearSurfaceWatermarkForNodes %{public}s,"
             "callingPid != pid", name.c_str());
         return;

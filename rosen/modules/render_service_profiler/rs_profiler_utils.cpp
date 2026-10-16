@@ -565,7 +565,7 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     }
 #endif
 
-    if (realPath.empty()) {
+    if (realPath.empty() || !Utils::IsSandboxPath(realPath)) {
         HRPE("FileOpen: Invalid path '%s'", path.data()); // NOLINT
         return nullptr;
     }

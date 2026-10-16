@@ -94,6 +94,7 @@ protected:
     void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
     void DumpVKImageInfo(std::string& dumpString);
+    void SetFrameTimeInterval(const int64_t idealPeriod, const int64_t actualTimestamp);
 
 private:
     struct LayerCreatedCallbackContext {
