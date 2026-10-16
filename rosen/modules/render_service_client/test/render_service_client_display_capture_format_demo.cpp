@@ -72,6 +72,7 @@ struct DemoOptions {
     Media::PixelFormat format = Media::PixelFormat::RGBA_8888;
     string output = DEFAULT_OUTPUT;
     bool useDma = false;
+    NodeId displayNodeId = INVALID_NODEID;
 };
 
 struct FormatEntry {
@@ -79,7 +80,6 @@ struct FormatEntry {
     Media::PixelFormat format;
 };
 
-// Media::PixelFormat values 0-9 have stable names; other values fall back to FORMAT(n).
 const FormatEntry FORMAT_TABLE[] = {
     { "UNKNOWN", Media::PixelFormat::UNKNOWN },
     { "ARGB_8888", Media::PixelFormat::ARGB_8888 },
@@ -91,6 +91,14 @@ const FormatEntry FORMAT_TABLE[] = {
     { "RGBA_F16", Media::PixelFormat::RGBA_F16 },
     { "NV21", Media::PixelFormat::NV21 },
     { "NV12", Media::PixelFormat::NV12 },
+    { "RGBA_1010102", Media::PixelFormat::RGBA_1010102 },
+    { "YCBCR_P010", Media::PixelFormat::YCBCR_P010 },
+    { "YCRCB_P010", Media::PixelFormat::YCRCB_P010 },
+    { "RGBA_U16", Media::PixelFormat::RGBA_U16 },
+    { "YUV_400", Media::PixelFormat::YUV_400 },
+    { "ALPHA_U8", Media::PixelFormat::ALPHA_U8 },
+    { "ALPHA_F16", Media::PixelFormat::ALPHA_F16 },
+    { "Y1", Media::PixelFormat::Y1 },
 };
 
 string FormatName(Media::PixelFormat format)
@@ -169,7 +177,7 @@ bool ParseFormat(const string& text, Media::PixelFormat& format)
     }
     char* end = nullptr;
     unsigned long value = strtoul(text.c_str(), &end, DECIMAL_BASE);
-    if (end == nullptr || *end != '\0' || value > static_cast<unsigned long>(Media::PixelFormat::NV12)) {
+    if (end == nullptr || *end != '\0' || value >= static_cast<unsigned long>(Media::PixelFormat::EXTERNAL_MAX)) {
         return false;
     }
     format = static_cast<Media::PixelFormat>(value);
@@ -184,17 +192,39 @@ void PrintUsage(const char* name)
     cout << "                         UNKNOWN ARGB_8888 RGB_565 RGBA_8888 BGRA_8888 RGB_888"
             " ALPHA_8 RGBA_F16 NV21 NV12"
          << endl;
+    cout << "                         RGBA_1010102 YCBCR_P010 YCRCB_P010 RGBA_U16 YUV_400"
+            " ALPHA_U8 ALPHA_F16 Y1"
+         << endl;
     cout << "  --output <file>        output base file; any extension in it is dropped and both" << endl;
     cout << "                         files are named with the actual format, e.g."
             " xxx_BGRA_8888.png plus"
          << endl;
     cout << "                         raw copy xxx_BGRA_8888.raw (default base " << DEFAULT_OUTPUT << ")" << endl;
     cout << "  --dma                  capture with dma buffer (default off)" << endl;
+    cout << "  --displayNodeId <id>   capture the display node with this NodeId (e.g. a real screen's" << endl;
+    cout << "                         display node) instead of drawing on a new virtual screen" << endl;
     cout << "  --help                 print this help" << endl;
+    cout << "Note: with --displayNodeId no content is drawn; the real main screen display node id is" << endl;
+    cout << "      printed by RS as 'RSDisplayNode::Create, NodeId[<id>], Config[screenId:...]' (hilog)," << endl;
+    cout << "      or dump it with 'hidumper -s RenderService -a'." << endl;
     cout << "Note: RS outputs RGBA_8888/BGRA_8888 directly; other requested formats fall back" << endl;
     cout << "      to RGBA_8888 and the callback reports CAPTURE_UNSUPPORTED_FORMAT." << endl;
     cout << "Note: --dma capture always outputs RGBA_8888; the requested --format is ignored" << endl;
     cout << "      and no CAPTURE_UNSUPPORTED_FORMAT is reported." << endl;
+}
+
+bool ParseUint64(const string& text, uint64_t& value)
+{
+    if (text.empty()) {
+        return false;
+    }
+    char* end = nullptr;
+    unsigned long long parsed = strtoull(text.c_str(), &end, DECIMAL_BASE);
+    if (end == nullptr || *end != '\0') {
+        return false;
+    }
+    value = static_cast<uint64_t>(parsed);
+    return true;
 }
 
 bool ParseArgs(int argc, char* argv[], DemoOptions& options, bool& helpRequested)
@@ -225,6 +255,11 @@ bool ParseArgs(int argc, char* argv[], DemoOptions& options, bool& helpRequested
                 return false;
             }
             options.output = value;
+        } else if (arg == "--displayNodeId") {
+            if (!ParseUint64(value, options.displayNodeId) || options.displayNodeId == INVALID_NODEID) {
+                cout << "invalid node id: " << value << endl;
+                return false;
+            }
         } else {
             cout << "unknown option: " << arg << endl;
             return false;
@@ -452,9 +487,9 @@ struct CaptureSource {
     shared_ptr<RSDisplayNode> displayNode;
 };
 
-// Creates a virtual screen plus a display node with drawn content. The producer surface
-// must outlive the virtual screen, so csurface/psurface are returned to the caller.
-bool SetupCaptureSource(sptr<IConsumerSurface>& csurface, sptr<Surface>& psurface, CaptureSource& source)
+// Connects to RenderService and prepares the render interface used to issue capture requests.
+// Needed in both modes; this does not create a virtual screen or draw any content.
+bool SetupRenderInterface(CaptureSource& source)
 {
     auto& rsInterfaces = RSInterfaces::GetInstance();
     ScreenId defaultScreenId = rsInterfaces.GetDefaultScreenId();
@@ -474,6 +509,14 @@ bool SetupCaptureSource(sptr<IConsumerSurface>& csurface, sptr<Surface>& psurfac
         cout << "get RSRenderInterface failed" << endl;
         return false;
     }
+    return true;
+}
+
+// Creates a virtual screen plus a display node with drawn content. Requires SetupRenderInterface
+// first. The producer surface must outlive the virtual screen, so csurface/psurface are returned.
+bool SetupVirtualScreen(sptr<IConsumerSurface>& csurface, sptr<Surface>& psurface, CaptureSource& source)
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
     csurface = IConsumerSurface::Create();
     if (csurface == nullptr) {
         cout << "create consumer surface failed" << endl;
@@ -510,6 +553,14 @@ bool SetupCaptureSource(sptr<IConsumerSurface>& csurface, sptr<Surface>& psurfac
     source.uiDirector->SendMessages();
     sleep(RENDER_WAIT_SECONDS);
     return true;
+}
+
+// Only removes a virtual screen that was actually created; --displayNodeId mode has none.
+void RemoveVirtualScreen(ScreenId screenId)
+{
+    if (screenId != INVALID_SCREEN_ID) {
+        RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+    }
 }
 } // namespace
 
@@ -594,20 +645,29 @@ int main(int argc, char* argv[])
         return helpRequested ? EXIT_OK : EXIT_INVALID_ARGS;
     }
     cout << "display capture format demo start: format=" << FormatName(options.format)
-         << ", dma=" << (options.useDma ? "on" : "off") << ", output=" << options.output << ", screen="
-         << VIRTUAL_SCREEN_WIDTH << "x" << VIRTUAL_SCREEN_HEIGHT << endl;
+         << ", dma=" << (options.useDma ? "on" : "off") << ", output=" << options.output;
+    if (options.displayNodeId != INVALID_NODEID) {
+        cout << ", displayNodeId=" << options.displayNodeId << endl;
+    } else {
+        cout << ", screen=" << VIRTUAL_SCREEN_WIDTH << "x" << VIRTUAL_SCREEN_HEIGHT << endl;
+    }
     if (options.useDma && options.format != Media::PixelFormat::RGBA_8888) {
         cout << "hint: dma capture always outputs RGBA_8888, requested format " << FormatName(options.format)
              << " will be ignored" << endl;
     }
 
     InitNativeTokenInfo();
-    InitRenderContext();
+    if (options.displayNodeId == INVALID_NODEID) {
+        InitRenderContext();
+    }
 
     CaptureSource source;
     sptr<IConsumerSurface> csurface;
     sptr<Surface> psurface;
-    if (!SetupCaptureSource(csurface, psurface, source)) {
+    if (!SetupRenderInterface(source)) {
+        return EXIT_SETUP_FAILED;
+    }
+    if (options.displayNodeId == INVALID_NODEID && !SetupVirtualScreen(csurface, psurface, source)) {
         return EXIT_SETUP_FAILED;
     }
 
@@ -616,9 +676,12 @@ int main(int argc, char* argv[])
     captureConfig.useDma = options.useDma;
     captureConfig.needErrorCode = true;
     auto callback = make_shared<DemoSurfaceCaptureCallback>(options.output);
-    if (!source.renderInterface->TakeSurfaceCapture(source.displayNode, callback, captureConfig)) {
+    bool requested = options.displayNodeId != INVALID_NODEID
+                         ? source.renderInterface->TakeSurfaceCapture(options.displayNodeId, callback, captureConfig)
+                         : source.renderInterface->TakeSurfaceCapture(source.displayNode, callback, captureConfig);
+    if (!requested) {
         cout << "TakeSurfaceCapture request failed" << endl;
-        RSInterfaces::GetInstance().RemoveVirtualScreen(source.virtualScreenId);
+        RemoveVirtualScreen(source.virtualScreenId);
         return EXIT_CAPTURE_FAILED;
     }
     uint32_t waitedMs = 0;
@@ -626,7 +689,7 @@ int main(int argc, char* argv[])
         usleep(POLL_INTERVAL_US);
         waitedMs += POLL_INTERVAL_MS;
     }
-    RSInterfaces::GetInstance().RemoveVirtualScreen(source.virtualScreenId);
+    RemoveVirtualScreen(source.virtualScreenId);
     if (!callback->IsDone()) {
         cout << "timeout waiting capture callback, capture may be rejected (check CAPTURE_SCREEN permission)" << endl;
 #ifdef RS_ENABLE_GPU

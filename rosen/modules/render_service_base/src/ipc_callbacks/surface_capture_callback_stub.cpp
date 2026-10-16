@@ -145,7 +145,7 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         return false;
     }
     captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
-    if (pixelFormat > static_cast<uint32_t>(Media::PixelFormat::NV12)) {
+    if (pixelFormat >= static_cast<uint32_t>(Media::PixelFormat::EXTERNAL_MAX)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig Read pixelFormat failed!"
             "value=%{public}u", pixelFormat);
         return false;
