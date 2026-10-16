@@ -519,6 +519,7 @@ OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* 
     TypographyCreate* rosenHandler = ConvertToOriginalText<TypographyCreate>(handler);
     std::unique_ptr<Typography> typography = rosenHandler->CreateTypography();
     if (typography == nullptr) {
+        TEXT_LOGE("Failed to create typography: engine returned null typography");
         return nullptr;
     }
     return ConvertToNDKText<OH_Drawing_Typography>(new RefCountedHolder<Typography>(std::move(typography)));
