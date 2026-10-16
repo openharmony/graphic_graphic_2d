@@ -9150,10 +9150,10 @@ HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit003, TestSize.Level1)
     mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
     mainThread->CheckDrawOpOverLimit();
     ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
-    int64_t firstTime = mainThread->lastDrawOpReportTimeMap_[TEST_PID_1];
-    mainThread->lastDrawOpReportTimeMap_[TEST_PID_1] = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    int64_t expiredTime = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    mainThread->lastDrawOpReportTimeMap_[TEST_PID_1] = expiredTime;
     mainThread->CheckDrawOpOverLimit();
-    EXPECT_GT(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], firstTime);
+    EXPECT_GT(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], expiredTime);
 }
 
 /**
@@ -9258,10 +9258,10 @@ HWTEST_F(RSMainThreadTest, CheckCommandOverLimit003, TestSize.Level1)
     auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
     mainThread->CheckCommandOverLimit(dataMap);
     ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
-    int64_t firstTime = mainThread->lastCommandReportTimeMap_[TEST_PID_1];
-    mainThread->lastCommandReportTimeMap_[TEST_PID_1] = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    int64_t expiredTime = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    mainThread->lastCommandReportTimeMap_[TEST_PID_1] = expiredTime;
     mainThread->CheckCommandOverLimit(dataMap);
-    EXPECT_GT(mainThread->lastCommandReportTimeMap_[TEST_PID_1], firstTime);
+    EXPECT_GT(mainThread->lastCommandReportTimeMap_[TEST_PID_1], expiredTime);
 }
 
 /**
