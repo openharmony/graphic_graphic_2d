@@ -1483,7 +1483,7 @@ HWTEST_F(RSRenderFilterBaseTest, ColorGradientFilterContains, TestSize.Level1)
     EXPECT_TRUE(filter->Contains<ColorGradientMaskRenderTag>());
 }
 
-HWTEST_F(RSNGRenderFilterBaseTest, CreateDynamicDimFilter001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, CreateDynamicDimFilter001, TestSize.Level1)
 {
     auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
     ASSERT_NE(filter, nullptr);
@@ -1491,7 +1491,7 @@ HWTEST_F(RSNGRenderFilterBaseTest, CreateDynamicDimFilter001, TestSize.Level1)
     EXPECT_EQ(filter->GetType(), RSNGEffectType::DYNAMIC_DIM);
 }
 
-HWTEST_F(RSNGRenderFilterBaseTest, GenerateGEVisualEffect001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect001, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
     RSNGRenderFilterHelper::GenerateGEVisualEffect(nullFilter);
@@ -1503,7 +1503,7 @@ HWTEST_F(RSNGRenderFilterBaseTest, GenerateGEVisualEffect001, TestSize.Level1)
     EXPECT_NE(filter, nullptr);
 }
 
-HWTEST_F(RSNGRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
     EXPECT_FALSE(RSNGRenderFilterHelper::CheckEnableEDR(nullFilter));
@@ -1521,7 +1521,7 @@ HWTEST_F(RSNGRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
     EXPECT_NE(filter->nextEffect_, nullptr);
 }
 
-HWTEST_F(RSNGRenderFilterBaseTest, CheckFilterSkipFrame001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, CheckFilterSkipFrame001, TestSize.Level1)
 {
     auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
     ASSERT_NE(blurFilter, nullptr);
@@ -1546,7 +1546,7 @@ HWTEST_F(RSNGRenderFilterBaseTest, CheckFilterSkipFrame001, TestSize.Level1)
     EXPECT_FALSE(result2);
 }
 
-HWTEST_F(RSNGRenderFilterBaseTest, PrepareForForeground001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, PrepareForForeground001, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
     RSNGRenderFilterHelper::PrepareForForeground(nullFilter);
