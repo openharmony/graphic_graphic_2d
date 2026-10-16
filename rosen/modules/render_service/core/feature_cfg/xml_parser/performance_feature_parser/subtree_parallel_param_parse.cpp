@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <charconv>
 #include <sstream>
 #include "subtree_parallel_param_parse.h"
 
@@ -67,7 +68,14 @@ int32_t SubtreeParallelParamParse::ParseFeatureSingleParam(std::string name, std
             name.c_str(), val.c_str());
         return PARSE_ERROR;
     }
-    num = std::stoi(val);
+    const char *begin = val.data();
+    const char *end = begin + val.size();
+    auto parsed = std::from_chars(begin, end, num);
+    if (parsed.ec != std::errc{} || parsed.ptr != end) {
+        RS_LOGE("SubtreeParallelParamParse failed, value is out of range, name[%{public}s], value[%{public}s]",
+            name.c_str(), val.c_str());
+        return PARSE_ERROR;
+    }
     switch (GetSubtreeSwitchType(name)) {
         case SubtreeSwitchType::MULTIWIN_POLICY_SURFACE_NUMBER:
             SubtreeParallelParam::SetMultiWinSurfaceNum(num);
