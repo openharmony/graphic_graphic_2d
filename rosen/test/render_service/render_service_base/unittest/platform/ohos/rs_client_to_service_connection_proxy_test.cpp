@@ -2631,5 +2631,24 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterTypefaceDirectPath, TestS
     mockProxy->RegisterTypeface(globalUniqueId, typeface);
     ASSERT_EQ(sendTid, callerTid);
 }
+
+/**
+ * @tc.name: WriteSurfaceCaptureConfig001
+ * @tc.desc: Test WriteSurfaceCaptureConfig writes capture config with pixel format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, WriteSurfaceCaptureConfig001, TestSize.Level1)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::BGRA_8888;
+    captureConfig.isSyncRender = true;
+    captureConfig.windowSync = true;
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    ASSERT_NE(remoteObject, nullptr);
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    MessageParcel data;
+    ASSERT_EQ(mockProxy->WriteSurfaceCaptureConfig(captureConfig, data), true);
+}
 } // namespace Rosen
 } // namespace OHOS
