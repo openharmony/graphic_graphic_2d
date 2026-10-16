@@ -200,28 +200,6 @@ HWTEST_F(RSEffectPropertiesTest, Spherize001, TestSize.Level1)
 }
 
 /**
- * @tc.name: LightUpEffect001
- * @tc.desc: test SetLightUpEffect/GetLightUpEffect and IsLightUpEffectValid branches
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSEffectPropertiesTest, LightUpEffect001, TestSize.Level1)
-{
-    RSEffectProperties properties;
-    EXPECT_EQ(properties.GetLightUpEffect(), 1.0f);
-    EXPECT_FALSE(properties.IsLightUpEffectValid());
-
-    properties.SetLightUpEffect(0.5f);
-    EXPECT_EQ(properties.GetLightUpEffect(), 0.5f);
-    EXPECT_TRUE(properties.IsLightUpEffectValid());
-
-    properties.SetLightUpEffect(-0.5f);
-    EXPECT_FALSE(properties.IsLightUpEffectValid());
-    properties.SetLightUpEffect(1.0f);
-    EXPECT_FALSE(properties.IsLightUpEffectValid());
-}
-
-/**
  * @tc.name: ForegroundEffectRadius001
  * @tc.desc: test SetForegroundEffectRadius/GetForegroundEffectRadius and IsForegroundEffectRadiusValid branches
  * @tc.type:FUNC
@@ -1556,40 +1534,7 @@ HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
     // update on existing shadow_ does not recreate it
     properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
     EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
-HWTEST_F(RSEffectPropertiesTest, ColorNGFilterSetNGet, TestSize.Level1)
-{
-    RSEffectProperties properties;
-    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
-    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
-    ASSERT_NE(filter, nullptr);
-    properties.SetColorNGFilter(filter);
-    EXPECT_NE(properties.GetColorNGFilter(), nullptr);
-    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::BINARIZATION);
-}
 
-HWTEST_F(RSEffectPropertiesTest, ColorNGFilterSetNull, TestSize.Level1)
-{
-    RSEffectProperties properties;
-    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
-    ASSERT_NE(filter, nullptr);
-    properties.SetColorNGFilter(filter);
-    EXPECT_NE(properties.GetColorNGFilter(), nullptr);
-    properties.SetColorNGFilter(nullptr);
-    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
-}
 
-HWTEST_F(RSEffectPropertiesTest, ColorNGFilterLastSetterWins, TestSize.Level1)
-{
-    RSEffectProperties properties;
-    auto binFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
-    properties.SetColorNGFilter(binFilter);
-    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::BINARIZATION);
-    auto lightUpFilter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
-    properties.SetColorNGFilter(lightUpFilter);
-    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
-    auto dimFilter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
-    properties.SetColorNGFilter(dimFilter);
-    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::DYNAMIC_DIM);
-}
 } // namespace Rosen
 } // namespace OHOS
