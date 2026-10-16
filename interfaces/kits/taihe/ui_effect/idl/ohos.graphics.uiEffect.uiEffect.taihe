@@ -152,6 +152,7 @@ interface Filter {
     @optional alphaMask: Optional<Mask>): Filter;
   SpinBlur(center: @sts_type("common2D.Point") Opaque, angle: f64, samples: i32): Filter;
   HaloBloom(tintColor: Color, bloomFactor: f64, glowExposure: f64): Filter;
+  MapColorByBrightness(colors: Array<Color>, positions: Array<f64>): Filter;
   getNativePtr(): i64;
 }
 
