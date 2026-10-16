@@ -21,7 +21,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-// Helper function to create xml attribute for testing
+// Helper function to create xml attributes for testing
 xmlAttribute CreateXmlAttributeForTest(const xmlChar* key, const xmlChar* value, xmlAttributePtr next)
 {
     xmlAttribute attribute;
@@ -31,6 +31,7 @@ xmlAttribute CreateXmlAttributeForTest(const xmlChar* key, const xmlChar* value,
     attribute.next = reinterpret_cast<xmlNodePtr>(next);
     return attribute;
 }
+
 class UIFirstParamParseTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -243,15 +244,15 @@ HWTEST_F(UIFirstParamParseTest, GetUiFirstSwitchTypeFrameControlEnabledTest, Tes
 }
 
 /**
- * @tc.name: ParseUIFirstSwitchTypeFrameControlEnabledTest
- * @tc.desc: Test GetUIFirstSwitchType for FRAME_CONTROL_ENABLED
+ * @tc.name: ParseUIFirstInternalFrameControlEnabledTest
+ * @tc.desc: Test ParseUIFirstInternal with FRAME_CONTROL_ENABLED switch type
  * @tc.type: FUNC
  * @tc.require:#I12345
  */
-HWTEST_F(UIFirstParamParseTest, ParseUIFirstSwitchTypeFrameControlEnabledTest, TestSize.Level1)
+HWTEST_F(UIFirstParamParseTest, ParseUIFirstInternalFrameControlEnabledTest, TestSize.Level1)
 {
     UIFirstParamParse uifirstParamParse;
-    UIFirstParam::SetFrameControlEnabled(false);
+    UIFirstParam::SetUIFirstFrameControlEnable(false);
     xmlNode node;
     node.xmlChildrenNode = nullptr;
     node.name = reinterpret_cast<const xmlChar*>("FeatureSwitch");
@@ -260,18 +261,15 @@ HWTEST_F(UIFirstParamParseTest, ParseUIFirstSwitchTypeFrameControlEnabledTest, T
     xmlAttribute attrVal = CreateXmlAttributeForTest(
         reinterpret_cast<const xmlChar*>("value"),
         reinterpret_cast<const xmlChar*>("true"),
-        nullptr
-    );
-
+        nullptr);
     xmlAttribute attrName = CreateXmlAttributeForTest(
         reinterpret_cast<const xmlChar*>("name"),
         reinterpret_cast<const xmlChar*>("FrameControlEnabled"),
-        &attrVal
-    );
+        &attrVal);
     node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
 
     auto res = uifirstParamParse.ParseUIFirstSingleParam("FeatureSwitch", "true");
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
-    ASSERT_EQ(UIFirstParam::GetFrameControlEnabled(), true);
+    ASSERT_EQ(UIFirstParam::IsUIFirstFrameControlEnable(), true);
 }
 }

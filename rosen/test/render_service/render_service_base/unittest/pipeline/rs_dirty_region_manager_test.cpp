@@ -1634,9 +1634,9 @@ HWTEST_F(RSDirtyRegionManagerTest, ScaleSyncedFilterRegions, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect001
- * @tc.desc: test invalid input for Enabled
+ * @tc.desc: test MergeUifirstDirtyRect with empty rect
  * @tc.type:FUNC
- * @tc.require: issuesIC96MO
+ * @tc.require: issuesI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect001, TestSize.Level1)
 {
@@ -1648,9 +1648,9 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect001, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect002
- * @tc.desc: test invalid input for Enabled
+ * @tc.desc: test MergeUifirstDirtyRect with valid rect
  * @tc.type:FUNC
- * @tc.require: issuesIC96MO
+ * @tc.require: issuesI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect002, TestSize.Level1)
 {
@@ -1662,9 +1662,9 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect002, TestSize.Level1)
 
 /**
  * @tc.name: MergeUifirstDirtyRect003
- * @tc.desc: test invalid input for Enabled
+ * @tc.desc: test MergeUifirstDirtyRect with multiple rect
  * @tc.type:FUNC
- * @tc.require: issuesIC96MO
+ * @tc.require: issuesI9NVOG
  */
 HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect003, TestSize.Level1)
 {
@@ -1673,7 +1673,7 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeUifirstDirtyRect003, TestSize.Level1)
     RectI rect2 = {50, 60, 150, 150};
     dirtyManager.MergeUifirstDirtyRect(rect1);
     dirtyManager.MergeUifirstDirtyRect(rect2);
-    RectI expectRect = rect1.JoinRect(rect2);
-    EXPECT_EQ(dirtyManager.GetUifirstFrameDirtyRegion(), expectRect);
+    RectI expected = rect1.JoinRect(rect2);
+    EXPECT_EQ(dirtyManager.GetUifirstFrameDirtyRegion(), expected);
 }
 } // namespace OHOS::Rosen

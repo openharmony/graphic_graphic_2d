@@ -422,6 +422,7 @@ public:
 
     // Timeout (ms) for offloaded synchronous IPC calls to render service.
     static uint32_t GetIpcSyncTimeoutMs();
+    static bool GetUIFirstDirtyFrameControlEnabled();
 
 private:
     RSSystemProperties() = default;

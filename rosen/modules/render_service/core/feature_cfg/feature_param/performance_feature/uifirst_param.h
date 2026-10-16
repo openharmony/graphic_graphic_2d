@@ -48,7 +48,7 @@ protected:
     static void SetSizeChangedThreshold(float threshold);
     static void SetOcclusionEnabled(bool isEnable);
     static void SetUIFirstLeashAllEnable(bool isEnable);
-    static void SetUIFirstFrameControlEnable(bool isEnable);
+    static void SetUIFirstFrameControlEnable(bool isEnabled);
     static void SetSubThreadFrameRateControlByScene(uint32_t value);
 
 private:

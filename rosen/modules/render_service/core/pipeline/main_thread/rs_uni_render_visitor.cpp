@@ -3139,7 +3139,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto dirtyManager = surfaceNode->GetDirtyManager();
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
             // cal done node dirtyRegion for uifirst
-            bool notUifirstOrUpdate =
+            bool uifirstCacheUpdated =
                 RSUifirstManager::Instance().UifirstCacheUpdated(surfaceNode);
             RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
             UpdatePointWindowDirtyStatus(surfaceNode);
@@ -3147,18 +3147,18 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             // currently only sync visible region info
             surfaceNode->UpdatePartialRenderParams();
             // 2. check surface node dirtyrect need merge into displayDirtyManager
-            CheckMergeSurfaceDirtysForDisplay(surfaceNode, notUifirstOrUpdate);
+            CheckMergeSurfaceDirtysForDisplay(surfaceNode, uifirstCacheUpdated);
             // 3. check merge transparent filter when it intersects with pre-dirty.
             CheckMergeFilterDirtyWithPreDirty(dirtyManager, accumulatedDirtyRegion,
                 surfaceNode->IsTransparent() ? FilterDirtyType::TRANSPARENT_SURFACE_FILTER
                                              : FilterDirtyType::OPAQUE_SURFACE_FILTER);
             // 4. for cross-display node, process its filter (which is not collected during prepare).
             CollectFilterInCrossDisplayWindow(surfaceNode, accumulatedDirtyRegion);
-            if (notUifirstOrUpdate) {
+            if (uifirstCacheUpdated) {
                 // 5. accumulate dirty region of this surface.
                 AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
             }
-            bool curDirty = notUifirstOrUpdate && dirtyManager &&
+            bool curDirty = uifirstCacheUpdated && dirtyManager &&
                 dirtyManager->IsCurrentFrameDirty() &&
                  surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
             hasMainAndLeashSurfaceDirty |= curDirty;

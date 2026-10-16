@@ -2231,7 +2231,7 @@ private:
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
-    RectI lastFrameAbsDrawRect_; //last frame node's draw rects
+    RectI lastFrameAbsDrawRect_; // last frame node's abs draw rects
     bool nodeAbsRectChanged_ = false; // node's abs draw rects changed or not
 
     // mark if this self-drawing node do not consume buffer when gpu -> hwc

@@ -134,8 +134,8 @@ bool UIFirstParam::IsUIFirstFrameControlEnable()
     return isUIFirstFrameControlEnable_;
 }
 
-bool UIFirstParam::SetUIFirstFrameControlEnable(bool isEnable)
+void UIFirstParam::SetUIFirstFrameControlEnable(bool isEnabled)
 {
-    isUIFirstFrameControlEnable_ = isEnable;
+    isUIFirstFrameControlEnable_ = isEnabled;
 }
 } // namespace OHOS::Rosen
