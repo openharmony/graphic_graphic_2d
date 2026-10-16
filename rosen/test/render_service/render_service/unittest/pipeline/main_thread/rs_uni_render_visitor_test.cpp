@@ -4956,6 +4956,69 @@ HWTEST_F(RSUniRenderVisitorTest, TraverseRenderGroupCacheRootsTest, TestSize.Lev
 }
 
 /**
+ * @tc.name: HasAncestorRenderGroupEmptyMap
+ * @tc.desc: Verify HasAncestorRenderGroup returns false when renderGroupCacheRoots_ is empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupEmptyMap, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->renderGroupCacheRoots_.clear();
+    EXPECT_FALSE(rsUniRenderVisitor->HasAncestorRenderGroup(1));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdInMapSingleEntry
+ * @tc.desc: Verify HasAncestorRenderGroup returns false when nodeId is in map and map size == 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdInMapSingleEntry, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId TARGET_ID = 10;
+    auto targetNode = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    rsUniRenderVisitor->renderGroupCacheRoots_[TARGET_ID] = targetNode;
+    EXPECT_FALSE(rsUniRenderVisitor->HasAncestorRenderGroup(TARGET_ID));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdInMapMultipleEntries
+ * @tc.desc: Verify HasAncestorRenderGroup returns true when nodeId is in map and map size > 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdInMapMultipleEntries, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId TARGET_ID = 20;
+    constexpr NodeId ANOTHER_ID = 21;
+    rsUniRenderVisitor->renderGroupCacheRoots_[TARGET_ID] = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    rsUniRenderVisitor->renderGroupCacheRoots_[ANOTHER_ID] = std::make_shared<RSCanvasRenderNode>(ANOTHER_ID);
+    EXPECT_TRUE(rsUniRenderVisitor->HasAncestorRenderGroup(TARGET_ID));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdNotInMapNonEmpty
+ * @tc.desc: Verify HasAncestorRenderGroup returns true when nodeId is not in map and map is non-empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdNotInMapNonEmpty, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId ANCESTOR_ID = 30;
+    constexpr NodeId QUERY_ID = 31;
+    rsUniRenderVisitor->renderGroupCacheRoots_[ANCESTOR_ID] = std::make_shared<RSCanvasRenderNode>(ANCESTOR_ID);
+    EXPECT_TRUE(rsUniRenderVisitor->HasAncestorRenderGroup(QUERY_ID));
+}
+
+/**
  * @tc.name: IsNodeInBlackListTest
  * @tc.desc: Test IsNodeInBlackList
  * @tc.type: FUNC
