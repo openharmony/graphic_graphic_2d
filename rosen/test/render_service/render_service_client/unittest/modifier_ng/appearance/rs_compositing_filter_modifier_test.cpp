@@ -126,63 +126,27 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     auto filter = RSNGFilterHelper::CreateNGBlurFilter(0.5, 0.5);
     modifier->SetNGFilterBase(filter);
     EXPECT_EQ(modifier->GetNGFilterBase(), filter);
-}
 
-HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    ASSERT_TRUE(modifier != nullptr);
-    auto filter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.9f, 0.5f, 0.1f);
-    ASSERT_TRUE(filter != nullptr);
-    modifier->SetColorNGFilter(filter);
-    auto result = modifier->GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::BINARIZATION);
-}
+    auto binarizationFilter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.2f, 0.3f, 0.4f);
+    modifier->SetColorNGFilter(binarizationFilter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), binarizationFilter);
 
-HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterNullTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    ASSERT_TRUE(modifier != nullptr);
-    modifier->SetColorNGFilter(nullptr);
-    auto result = modifier->GetColorNGFilter();
-    EXPECT_EQ(result, nullptr);
-}
-
-HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterLightUpTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    ASSERT_TRUE(modifier != nullptr);
-    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
-    ASSERT_TRUE(filter != nullptr);
-    modifier->SetColorNGFilter(filter);
-    auto result = modifier->GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
-}
-
-HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterDynamicDimTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    ASSERT_TRUE(modifier != nullptr);
-    auto filter = RSNGFilterHelper::CreateNGDynamicDimFilter(0.3f);
-    ASSERT_TRUE(filter != nullptr);
-    modifier->SetColorNGFilter(filter);
-    auto result = modifier->GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::DYNAMIC_DIM);
-}
-
-HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterLastSetterWinsTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    ASSERT_TRUE(modifier != nullptr);
-    auto binFilter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.9f, 0.5f, 0.1f);
-    modifier->SetColorNGFilter(binFilter);
     auto lightUpFilter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
     modifier->SetColorNGFilter(lightUpFilter);
-    auto result = modifier->GetColorNGFilter();
-    ASSERT_TRUE(result != nullptr);
-    EXPECT_EQ(result->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+    EXPECT_EQ(modifier->GetColorNGFilter(), lightUpFilter);
+
+    auto dynamicDimFilter = RSNGFilterHelper::CreateNGDynamicDimFilter(0.5f);
+    modifier->SetColorNGFilter(dynamicDimFilter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), dynamicDimFilter);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterNullptr, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
+    modifier->SetColorNGFilter(filter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), filter);
+    modifier->SetColorNGFilter(nullptr);
+    EXPECT_EQ(modifier->GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen
