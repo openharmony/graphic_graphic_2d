@@ -49,7 +49,7 @@ public:
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
-    void DrawColorNGFilter(Drawing::Canvas* canvas,const Drawing::Rect* rect) const;
+    void DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const;
     bool needSync_ = false;
     std::shared_ptr<Drawing::ColorFilter> filter_;
     std::shared_ptr<Drawing::ColorFilter> stagingFilter_;

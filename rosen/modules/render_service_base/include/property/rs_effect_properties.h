@@ -71,10 +71,8 @@ struct FilterEffectParams {
     bool ctBlurDisableSystemAdaptation = true;
 
     // color NG filter (Binarization / LightUpEffect / DynamicDim — Last Setter Wins)
-    std::shared_ptr<RSNGRenderFilterBase> colorNGFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> colorNGRenderFilter_ = nullptr;
 
-    std::unique_ptr<RSForegroundBlurPara> foregroundBlurPara_ = nullptr;
-    bool fgBlurDisableSystemAdaptation = true;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
 
     // foreground filter
@@ -106,11 +104,7 @@ struct FilterEffectParams {
     std::optional<float> sepia_;
     std::optional<float> invert_;
     std::optional<float> hueRotate_;
-    std::optional<Vector4f> aiInvert_;
     std::optional<Color> colorBlend_;
-
-    float lightUpEffectDegree_ = 1.0f;
-    std::optional<float> dynamicDimDegree_;
 
     // pixel stretch
     std::unique_ptr<RSPixelStretchPara> pixelStretchPara_ = nullptr;
@@ -401,31 +395,10 @@ public:
     float GetCompositingBlurRadiusY() const;
     bool IsCompositingBlurRadiusYValid() const;
 
-    // colorNGFilter_
+    // colorNGRenderFilter_
     void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter);
     std::shared_ptr<RSNGRenderFilterBase> GetColorNGFilter() const;
 
-    // foregroundBlurPara_
-    void SetForegroundBlurRadius(float radius);
-    float GetForegroundBlurRadius() const;
-    bool IsForegroundBlurRadiusValid() const;
-    void SetForegroundBlurSaturation(float saturation);
-    float GetForegroundBlurSaturation() const;
-    bool IsForegroundBlurSaturationValid() const;
-    void SetForegroundBlurBrightness(float brightness);
-    float GetForegroundBlurBrightness() const;
-    bool IsForegroundBlurBrightnessValid() const;
-    void SetForegroundBlurMaskColor(Color maskColor);
-    const Color& GetForegroundBlurMaskColor() const;
-    bool IsForegroundBlurMaskColorValid() const;
-    void SetForegroundBlurColorMode(int colorMode);
-    int GetForegroundBlurColorMode() const;
-    void SetForegroundBlurRadiusX(float radiusX);
-    float GetForegroundBlurRadiusX() const;
-    bool IsForegroundBlurRadiusXValid() const;
-    void SetForegroundBlurRadiusY(float radiusY);
-    float GetForegroundBlurRadiusY() const;
-    bool IsForegroundBlurRadiusYValid() const;
     bool IsForegroundMaterialFilterValid() const;
 
     // ctBlurDisableSystemAdaptation
@@ -551,23 +524,9 @@ public:
     void SetHueRotate(const std::optional<float>& hueRotate);
     const std::optional<float>& GetHueRotate() const;
 
-    // aiInvert_
-    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
-    const std::optional<Vector4f>& GetAiInvert() const;
-
     // colorBlend_
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
-
-    // lightUpEffectDegree_
-    void SetLightUpEffect(float lightUpEffectDegree);
-    float GetLightUpEffect() const;
-    bool IsLightUpEffectValid() const;
-
-    // dynamicDimDegree_
-    void SetDynamicDimDegree(const std::optional<float>& dimDegree);
-    const std::optional<float>& GetDynamicDimDegree() const;
-    bool IsDynamicDimValid() const;
 
     // pixelStretchPara_
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);

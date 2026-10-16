@@ -1482,4 +1482,141 @@ HWTEST_F(RSRenderFilterBaseTest, ColorGradientFilterContains, TestSize.Level1)
     EXPECT_TRUE(filter->Contains<ColorGradientStrengthsRenderTag>());
     EXPECT_TRUE(filter->Contains<ColorGradientMaskRenderTag>());
 }
+
+HWTEST_F(RSRenderFilterBaseTest, BinarizationFilterCreate, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::BINARIZATION);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, BinarizationFilterSetterGetter, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    auto binFilter = std::static_pointer_cast<RSNGRenderBinarizationFilter>(filter);
+    binFilter->Setter<BinarizationLowRenderTag>(0.2f);
+    binFilter->Setter<BinarizationHighRenderTag>(0.8f);
+    binFilter->Setter<BinarizationThresholdRenderTag>(0.5f);
+    binFilter->Setter<BinarizationThresholdRangeRenderTag>(0.1f);
+    EXPECT_FLOAT_EQ(binFilter->Getter<BinarizationLowRenderTag>()->Get(), 0.2f);
+    EXPECT_FLOAT_EQ(binFilter->Getter<BinarizationHighRenderTag>()->Get(), 0.8f);
+    EXPECT_FLOAT_EQ(binFilter->Getter<BinarizationThresholdRenderTag>()->Get(), 0.5f);
+    EXPECT_FLOAT_EQ(binFilter->Getter<BinarizationThresholdRangeRenderTag>()->Get(), 0.1f);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, LightUpEffectFilterCreate, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, LightUpEffectFilterSetterGetter, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_NE(filter, nullptr);
+    auto lightUpFilter = std::static_pointer_cast<RSNGRenderLightUpEffectFilter>(filter);
+    lightUpFilter->Setter<LightUpEffectValueRenderTag>(0.7f);
+    EXPECT_FLOAT_EQ(lightUpFilter->Getter<LightUpEffectValueRenderTag>()->Get(), 0.7f);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, DynamicDimFilterCreate, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, DynamicDimFilterSetterGetter, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_NE(filter, nullptr);
+    auto dimFilter = std::static_pointer_cast<RSNGRenderDynamicDimFilter>(filter);
+    dimFilter->Setter<DynamicDimValueRenderTag>(0.3f);
+    EXPECT_FLOAT_EQ(dimFilter->Getter<DynamicDimValueRenderTag>()->Get(), 0.3f);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, BinarizationFilterMarshallingAndUnmarshalling, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    auto binFilter = std::static_pointer_cast<RSNGRenderBinarizationFilter>(filter);
+    binFilter->Setter<BinarizationLowRenderTag>(0.1f);
+    binFilter->Setter<BinarizationHighRenderTag>(0.9f);
+    binFilter->Setter<BinarizationThresholdRenderTag>(0.4f);
+    binFilter->Setter<BinarizationThresholdRangeRenderTag>(0.05f);
+    Parcel parcel;
+    ASSERT_TRUE(filter->Marshalling(parcel));
+    parcel.RewindRead(0);
+    std::shared_ptr<RSNGRenderFilterBase> unmarshalledFilter;
+    ASSERT_TRUE(RSNGRenderFilterBase::Unmarshalling(parcel, unmarshalledFilter));
+    ASSERT_NE(unmarshalledFilter, nullptr);
+    EXPECT_EQ(unmarshalledFilter->GetType(), RSNGEffectType::BINARIZATION);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, LightUpEffectFilterMarshallingAndUnmarshalling, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_NE(filter, nullptr);
+    auto lightUpFilter = std::static_pointer_cast<RSNGRenderLightUpEffectFilter>(filter);
+    lightUpFilter->Setter<LightUpEffectValueRenderTag>(0.65f);
+    Parcel parcel;
+    ASSERT_TRUE(filter->Marshalling(parcel));
+    parcel.RewindRead(0);
+    std::shared_ptr<RSNGRenderFilterBase> unmarshalledFilter;
+    ASSERT_TRUE(RSNGRenderFilterBase::Unmarshalling(parcel, unmarshalledFilter));
+    ASSERT_NE(unmarshalledFilter, nullptr);
+    EXPECT_EQ(unmarshalledFilter->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, DynamicDimFilterMarshallingAndUnmarshalling, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_NE(filter, nullptr);
+    auto dimFilter = std::static_pointer_cast<RSNGRenderDynamicDimFilter>(filter);
+    dimFilter->Setter<DynamicDimValueRenderTag>(0.45f);
+    Parcel parcel;
+    ASSERT_TRUE(filter->Marshalling(parcel));
+    parcel.RewindRead(0);
+    std::shared_ptr<RSNGRenderFilterBase> unmarshalledFilter;
+    ASSERT_TRUE(RSNGRenderFilterBase::Unmarshalling(parcel, unmarshalledFilter));
+    ASSERT_NE(unmarshalledFilter, nullptr);
+    EXPECT_EQ(unmarshalledFilter->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, BinarizationFilterGenerateGEVisualEffect, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    RSNGRenderFilterHelper::GenerateGEVisualEffect(filter);
+    auto binFilter = std::static_pointer_cast<RSNGRenderBinarizationFilter>(filter);
+    EXPECT_NE(binFilter->geFilter_, nullptr);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, LightUpEffectFilterGenerateGEVisualEffect, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_NE(filter, nullptr);
+    RSNGRenderFilterHelper::GenerateGEVisualEffect(filter);
+    auto lightUpFilter = std::static_pointer_cast<RSNGRenderLightUpEffectFilter>(filter);
+    EXPECT_NE(lightUpFilter->geFilter_, nullptr);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, DynamicDimFilterGenerateGEVisualEffect, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_NE(filter, nullptr);
+    RSNGRenderFilterHelper::GenerateGEVisualEffect(filter);
+    auto dimFilter = std::static_pointer_cast<RSNGRenderDynamicDimFilter>(filter);
+    EXPECT_NE(dimFilter->geFilter_, nullptr);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, BinarizationFilterContains, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    EXPECT_TRUE(filter->ContainsType(RSNGEffectType::BINARIZATION));
+    EXPECT_FALSE(filter->ContainsType(RSNGEffectType::LIGHT_UP_EFFECT));
+}
 } // namespace OHOS::Rosen

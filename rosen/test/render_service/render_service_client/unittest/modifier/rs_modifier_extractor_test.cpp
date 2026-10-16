@@ -719,4 +719,14 @@ HWTEST_F(RSModifierExtractorTest, GetAllTransformPropertyValues003, TestSize.Lev
     EXPECT_EQ(result.translateZ, 0.f);
     EXPECT_EQ(result.skew, Vector3f(0.f, 0.f, 0.f));
 }
+
+HWTEST_F(RSModifierExtractorTest, GetColorNGFilterFromNode, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
+    RSModifierExtractor extractor(canvasNode->GetId());
+    auto result = extractor.GetLightUpEffectDegree();
+    EXPECT_FLOAT_EQ(result, 0.f);
+}
 } // namespace OHOS::Rosen

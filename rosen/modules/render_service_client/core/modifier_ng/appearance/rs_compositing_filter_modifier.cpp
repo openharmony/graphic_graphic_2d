@@ -201,8 +201,8 @@ void RSCompositingFilterModifier::SetColorNGFilter(std::shared_ptr<RSNGFilterBas
     Setter<RSProperty>(RSPropertyType::COLOR_NG_FILTER, filter);
 }
 
-std::shared_ptr<RSNGFilterBase> RSCompositingFilterModifier::getColorNGFilter() const
+std::shared_ptr<RSNGFilterBase> RSCompositingFilterModifier::GetColorNGFilter() const
 {
-    return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::COLOR_NG_FILTER,nullptr)；
+    return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::COLOR_NG_FILTER, nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

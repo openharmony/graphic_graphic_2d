@@ -573,4 +573,14 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_MultipleDirtyTypes, TestSize.Leve
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::MATERIAL_SHADER) != dirtySlots.end());
 }
 
+
+HWTEST_F(RSDrawableTest, CalculateDirtySlotsColorNGFilter, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    ModifierNG::ModifierDirtyTypes dirtyTypes;
+    dirtyTypes.set(static_cast<size_t>(ModifierNG::RSModifierType::COMPOSITING_FILTER));
+    RSDrawable::Vec drawableVec;
+    auto slots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
+    EXPECT_TRUE(slots.find(RSDrawableSlot::COLOR_FILTER) != slots.end());
+}
 } // namespace OHOS::Rosen

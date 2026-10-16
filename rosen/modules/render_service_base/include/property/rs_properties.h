@@ -646,19 +646,8 @@ public:
     void SetHueRotate(const std::optional<float>& hueRotate);
     const std::optional<float>& GetHueRotate() const;
 
-    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
-    const std::optional<Vector4f>& GetAiInvert() const;
-
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
-
-    void SetLightUpEffect(float lightUpEffectDegree);
-    float GetLightUpEffect() const;
-    bool IsLightUpEffectValid() const;
-
-    void SetDynamicDimDegree(const std::optional<float>& DimDegree);
-    const std::optional<float>& GetDynamicDimDegree() const;
-    bool IsDynamicDimValid() const;
 
     // Pixel Stretch
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);

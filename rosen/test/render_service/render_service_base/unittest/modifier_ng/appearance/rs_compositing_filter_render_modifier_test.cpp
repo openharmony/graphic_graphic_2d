@@ -23,6 +23,7 @@
 #include "message_parcel.h"
 
 #include "common/rs_vector4.h"
+#include "effect/rs_render_filter_base.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "property/rs_properties.h"
@@ -57,7 +58,6 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::COMPOSITING_FILTER);
     EXPECT_EQ(modifier.IsForeground(), true);
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetAiInvert(), std::nullopt);
     EXPECT_EQ(properties.GetGrayScale(), std::nullopt);
     EXPECT_EQ(properties.GetBrightness(), std::nullopt);
     EXPECT_EQ(properties.GetContrast(), std::nullopt);
@@ -66,18 +66,38 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(properties.GetInvert(), std::nullopt);
     EXPECT_EQ(properties.GetHueRotate(), std::nullopt);
     EXPECT_EQ(properties.GetColorBlend(), std::nullopt);
-    EXPECT_EQ(properties.GetLightUpEffect(), 1.f);
-    EXPECT_EQ(properties.GetDynamicDimDegree(), std::nullopt);
-    EXPECT_EQ(properties.GetCompositingFilter(), nullptr);
+    EXPECT_EQ(properties.GetFilter(), nullptr);
     EXPECT_EQ(properties.GetLinearGradientBlurPara(), nullptr);
-    EXPECT_EQ(properties.GetCompositingBlurRadius(), 0.0f);
-    EXPECT_EQ(properties.GetCompositingBlurSaturation(), 1.f);
-    EXPECT_EQ(properties.GetCompositingBlurBrightness(), 1.f);
-    EXPECT_EQ(properties.GetCompositingBlurMaskColor(), Color());
-    EXPECT_EQ(properties.GetCompositingBlurColorMode(), 0);
-    EXPECT_EQ(properties.GetCompositingBlurRadiusX(), 0.0f);
-    EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 0.0f);
-    EXPECT_EQ(properties.GetCtBlurDisableSystemAdaptation(), true);
+    EXPECT_EQ(properties.GetForegroundBlurRadius(), 0.0f);
+    EXPECT_EQ(properties.GetForegroundBlurSaturation(), 1.f);
+    EXPECT_EQ(properties.GetForegroundBlurBrightness(), 1.f);
+    EXPECT_EQ(properties.GetForegroundBlurMaskColor(), Color());
+    EXPECT_EQ(properties.GetForegroundBlurColorMode(), 0);
+    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), 0.0f);
+    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), 0.0f);
+    EXPECT_EQ(properties.GetFgBlurDisableSystemAdaptation(), true);
     EXPECT_EQ(properties.GetCompositingNGFilter(), nullptr);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
+}
+
+HWTEST_F(RSCompositingFilterRenderModifierNGTest, ResetColorNGFilterTest, TestSize.Level1)
+{
+    RSCompositingFilterRenderModifier modifier;
+    RSProperties properties;
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_TRUE(filter != nullptr);
+    properties.SetColorNGFilter(filter);
+    ASSERT_TRUE(properties.GetColorNGFilter() != nullptr);
+    modifier.ResetProperties(properties);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
+}
+
+HWTEST_F(RSCompositingFilterRenderModifierNGTest, ResetColorNGFilterWhenNullTest, TestSize.Level1)
+{
+    RSCompositingFilterRenderModifier modifier;
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
+    modifier.ResetProperties(properties);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen

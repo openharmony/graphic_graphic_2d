@@ -5051,6 +5051,34 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
     properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
+HWTEST_F(RSPropertiesTest, SetAndGetColorNGFilter, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    properties.SetColorNGFilter(filter);
+    EXPECT_NE(properties.GetColorNGFilter(), nullptr);
+    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::BINARIZATION);
+    properties.SetColorNGFilter(nullptr);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
+}
+
+HWTEST_F(RSPropertiesTest, ColorNGFilterLastSetterWins, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
+    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::BINARIZATION);
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT));
+    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM));
+    EXPECT_EQ(properties.GetColorNGFilter()->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSPropertiesTest, ColorNGFilterDefaultNull, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

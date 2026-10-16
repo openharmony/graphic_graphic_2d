@@ -51,10 +51,6 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COMPOSITING_FILTER);
 
-    Vector4f aiInvertValue(0.1f, 0.2f, 0.3f, 0.4f);
-    modifier->SetAiInvert(aiInvertValue);
-    EXPECT_EQ(modifier->GetAiInvert(), std::optional<Vector4f>(aiInvertValue));
-
     float grayScaleValue = 0.5f;
     modifier->SetGrayScale(grayScaleValue);
     EXPECT_EQ(modifier->GetGrayScale(), grayScaleValue);
@@ -86,14 +82,6 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     Color colorBlendValue(16, 15, 14, 16);
     modifier->SetColorBlend(colorBlendValue);
     EXPECT_EQ(modifier->GetColorBlend(), std::optional<Color>(colorBlendValue));
-
-    float lightUpEffectDegreeValue = 1.2f;
-    modifier->SetLightUpEffectDegree(lightUpEffectDegreeValue);
-    EXPECT_EQ(modifier->GetLightUpEffectDegree(), lightUpEffectDegreeValue);
-
-    float dynamicDimDegreeValue = 1.3f;
-    modifier->SetDynamicDimDegree(dynamicDimDegreeValue);
-    EXPECT_EQ(modifier->GetDynamicDimDegree(), std::optional<float>(dynamicDimDegreeValue));
 
     std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
     float blurRadius = 1.0f;
@@ -138,5 +126,63 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     auto filter = RSNGFilterHelper::CreateNGBlurFilter(0.5, 0.5);
     modifier->SetNGFilterBase(filter);
     EXPECT_EQ(modifier->GetNGFilterBase(), filter);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    ASSERT_TRUE(modifier != nullptr);
+    auto filter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.9f, 0.5f, 0.1f);
+    ASSERT_TRUE(filter != nullptr);
+    modifier->SetColorNGFilter(filter);
+    auto result = modifier->GetColorNGFilter();
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::BINARIZATION);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterNullTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    ASSERT_TRUE(modifier != nullptr);
+    modifier->SetColorNGFilter(nullptr);
+    auto result = modifier->GetColorNGFilter();
+    EXPECT_EQ(result, nullptr);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterLightUpTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    ASSERT_TRUE(modifier != nullptr);
+    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
+    ASSERT_TRUE(filter != nullptr);
+    modifier->SetColorNGFilter(filter);
+    auto result = modifier->GetColorNGFilter();
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterDynamicDimTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    ASSERT_TRUE(modifier != nullptr);
+    auto filter = RSNGFilterHelper::CreateNGDynamicDimFilter(0.3f);
+    ASSERT_TRUE(filter != nullptr);
+    modifier->SetColorNGFilter(filter);
+    auto result = modifier->GetColorNGFilter();
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterLastSetterWinsTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    ASSERT_TRUE(modifier != nullptr);
+    auto binFilter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.9f, 0.5f, 0.1f);
+    modifier->SetColorNGFilter(binFilter);
+    auto lightUpFilter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
+    modifier->SetColorNGFilter(lightUpFilter);
+    auto result = modifier->GetColorNGFilter();
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
 }
 } // namespace OHOS::Rosen

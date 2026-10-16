@@ -9487,4 +9487,66 @@ HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_EmptyModifiersNoCrash001, T
     EXPECT_TRUE(root->modifiersNG_.empty());
     EXPECT_TRUE(child->modifiersNG_.empty());
 }
+
+HWTEST_F(RSNodeTest, SetAiInvertCreatesColorNGFilter, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    ASSERT_TRUE(filter != nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::BINARIZATION);
+}
+
+HWTEST_F(RSNodeTest, SetLightUpEffectDegreeCreatesColorNGFilter, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetLightUpEffectDegree(0.5f);
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    ASSERT_TRUE(filter != nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::LIGHT_UP_EFFECT);
+}
+
+HWTEST_F(RSNodeTest, SetDynamicDimDegreeCreatesColorNGFilter, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetDynamicDimDegree(0.3f);
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    ASSERT_TRUE(filter != nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSNodeTest, ColorNGFilterLastSetterWins, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
+    canvasNode->SetLightUpEffectDegree(0.5f);
+    canvasNode->SetDynamicDimDegree(0.3f);
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    ASSERT_TRUE(filter != nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSNodeTest, ColorNGFilterLastSetterWinsReverse, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->SetDynamicDimDegree(0.3f);
+    canvasNode->SetLightUpEffectDegree(0.5f);
+    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    ASSERT_TRUE(filter != nullptr);
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::BINARIZATION);
+}
+
+HWTEST_F(RSNodeTest, ColorNGFilterDefaultNull, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    auto filter = canvasNode->GetStagingProperties().GetColorNGFilter();
+    EXPECT_EQ(filter, nullptr);
+}
 } // namespace OHOS::Rosen

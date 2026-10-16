@@ -58,16 +58,6 @@ void RSPropertyDrawableForegroundTest::TearDown() {}
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSize.Level1)
 {
-    RSRenderNode renderNodeTest1(0);
-    Vector4f aiInvertTest(0.0f, 0.0f, 0.0f, 1.0f);
-    std::shared_ptr<DrawableV2::RSBinarizationDrawable> binarizationDrawable =
-        std::make_shared<DrawableV2::RSBinarizationDrawable>();
-    EXPECT_NE(binarizationDrawable, nullptr);
-    renderNodeTest1.renderProperties_.GetEffectProperties().GetFilterEffect().aiInvert_ = std::nullopt;
-    EXPECT_EQ(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
-    renderNodeTest1.renderProperties_.GetEffectProperties().GetFilterEffect().aiInvert_ = aiInvertTest;
-    EXPECT_NE(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
-
     RSRenderNode renderNodeTest2(0);
     std::shared_ptr<DrawableV2::RSColorFilterDrawable> colorFilterDrawable =
         std::make_shared<DrawableV2::RSColorFilterDrawable>();
@@ -78,15 +68,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
     EXPECT_NE(colorFilter, nullptr);
     renderNodeTest2.renderProperties_.GetEffectProperties().GetFilterEffect().colorFilter_ = colorFilter;
     EXPECT_NE(colorFilterDrawable->OnGenerate(renderNodeTest2), nullptr);
-
-    RSRenderNode renderNodeTest3(0);
-    std::shared_ptr<DrawableV2::RSLightUpEffectDrawable> lightUpEffectDrawable =
-        std::make_shared<DrawableV2::RSLightUpEffectDrawable>();
-    EXPECT_NE(lightUpEffectDrawable, nullptr);
-    renderNodeTest3.renderProperties_.GetEffectProperties().GetFilterEffect().lightUpEffectDegree_ = -1.0f;
-    EXPECT_EQ(lightUpEffectDrawable->OnGenerate(renderNodeTest3), nullptr);
-    renderNodeTest3.renderProperties_.GetEffectProperties().GetFilterEffect().lightUpEffectDegree_ = 0.1f;
-    EXPECT_NE(lightUpEffectDrawable->OnGenerate(renderNodeTest3), nullptr);
 }
 
 /**
@@ -97,17 +78,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSize.Level1)
 {
-    RSRenderNode renderNodeTest4(0);
-    std::shared_ptr<DrawableV2::RSDynamicDimDrawable> dynamicDimDrawable =
-        std::make_shared<DrawableV2::RSDynamicDimDrawable>();
-    EXPECT_NE(dynamicDimDrawable, nullptr);
-    float dynamicDimDegreeTest1 = -1.0f;
-    float dynamicDimDegreeTest2 = 0.1f;
-    renderNodeTest4.renderProperties_.GetEffectProperties().GetFilterEffect().dynamicDimDegree_ = dynamicDimDegreeTest1;
-    EXPECT_EQ(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
-    renderNodeTest4.renderProperties_.GetEffectProperties().GetFilterEffect().dynamicDimDegree_ = dynamicDimDegreeTest2;
-    EXPECT_NE(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
-
     RSRenderNode renderNodeTest5(0);
     std::shared_ptr<DrawableV2::RSForegroundColorDrawable> foregroundColorDrawable =
         std::make_shared<DrawableV2::RSForegroundColorDrawable>();
@@ -249,15 +219,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest005, TestSiz
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest001, TestSize.Level1)
 {
-    std::shared_ptr<DrawableV2::RSBinarizationDrawable> binarizationDrawable =
-        std::make_shared<DrawableV2::RSBinarizationDrawable>();
-    EXPECT_NE(binarizationDrawable, nullptr);
-    binarizationDrawable->needSync_ = true;
-    std::optional<Vector4f> stagingAiInvert = 1.0f;
-    binarizationDrawable->OnSync();
-    EXPECT_FALSE(binarizationDrawable->needSync_);
-    binarizationDrawable->OnSync();
-
     std::shared_ptr<DrawableV2::RSColorFilterDrawable> colorFilterDrawable =
         std::make_shared<DrawableV2::RSColorFilterDrawable>();
     EXPECT_NE(colorFilterDrawable, nullptr);
@@ -268,14 +229,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest001, TestSize.Level1)
     colorFilterDrawable->OnSync();
     EXPECT_FALSE(colorFilterDrawable->needSync_);
     colorFilterDrawable->OnSync();
-
-    std::shared_ptr<DrawableV2::RSLightUpEffectDrawable> lightUpEffectDrawable =
-        std::make_shared<DrawableV2::RSLightUpEffectDrawable>();
-    EXPECT_NE(lightUpEffectDrawable, nullptr);
-    lightUpEffectDrawable->needSync_ = true;
-    lightUpEffectDrawable->OnSync();
-    EXPECT_FALSE(lightUpEffectDrawable->needSync_);
-    lightUpEffectDrawable->OnSync();
 }
 
 /**
@@ -288,13 +241,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest002, TestSize.Level1)
 {
     const NodeId nodeID = 10;
 
-    std::shared_ptr<DrawableV2::RSDynamicDimDrawable> dynamicDimDrawable =
-        std::make_shared<DrawableV2::RSDynamicDimDrawable>();
-    EXPECT_NE(dynamicDimDrawable, nullptr);
-    dynamicDimDrawable->needSync_ = true;
-    dynamicDimDrawable->OnSync();
-    EXPECT_FALSE(dynamicDimDrawable->needSync_);
-    dynamicDimDrawable->OnSync();
     std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
     EXPECT_NE(foregroundFilterDrawable, nullptr);
@@ -1798,5 +1744,78 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDr
 
     EXPECT_TRUE(drawable->OnUpdate(renderNode));
     EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnGenerateWithColorNGFilter, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_TRUE(filter != nullptr);
+    renderNodeTest.GetMutableRenderProperties().SetColorNGFilter(filter);
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(renderNodeTest);
+    ASSERT_NE(drawable, nullptr);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnGenerateWithTraditionalColorFilter, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto colorFilter = Drawing::ColorFilter::CreateBlendModeColorFilter(
+        Drawing::Color(128, 128, 128, 255), Drawing::BlendMode::SRC_OVER);
+    ASSERT_TRUE(colorFilter != nullptr);
+    renderNodeTest.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().colorFilter_ = colorFilter;
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(renderNodeTest);
+    ASSERT_NE(drawable, nullptr);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnGenerateEmpty, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(renderNodeTest);
+    EXPECT_EQ(drawable, nullptr);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnUpdateWithColorNGFilter, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_TRUE(filter != nullptr);
+    renderNodeTest.GetMutableRenderProperties().SetColorNGFilter(filter);
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(renderNodeTest);
+    ASSERT_NE(drawable, nullptr);
+    auto filter2 = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_TRUE(filter2 != nullptr);
+    renderNodeTest.GetMutableRenderProperties().SetColorNGFilter(filter2);
+    bool result = drawable->OnUpdate(renderNodeTest);
+    EXPECT_TRUE(result);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnUpdateWhenBothNull, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_TRUE(drawable != nullptr);
+    bool result = drawable->OnUpdate(renderNodeTest);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnSyncWithColorNGFilter, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_TRUE(filter != nullptr);
+    renderNodeTest.GetMutableRenderProperties().SetColorNGFilter(filter);
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(renderNodeTest);
+    ASSERT_NE(drawable, nullptr);
+    drawable->OnUpdate(renderNodeTest);
+    drawable->OnSync();
+}
+
+HWTEST_F(RSPropertyDrawableForegroundTest, RSColorFilterDrawableOnSyncWithNullColorNGFilter, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_TRUE(drawable != nullptr);
+    drawable->OnUpdate(renderNodeTest);
+    drawable->OnSync();
 }
 } // namespace OHOS::Rosen

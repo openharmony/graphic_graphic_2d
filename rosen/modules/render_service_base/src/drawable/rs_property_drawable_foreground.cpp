@@ -57,7 +57,7 @@ RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
 bool RSColorFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& colorFilter = node.GetRenderProperties().GetColorFilter();
-    auto& colorNGFilter = node.GetRenderProperties().GetColorNGFilter();
+    auto colorNGFilter = node.GetRenderProperties().GetColorNGFilter();
     if (colorFilter == nullptr && colorNGFilter == nullptr) {
         return false;
     }
@@ -76,8 +76,8 @@ void RSColorFilterDrawable::OnSync()
     colorNGFilter_ = std::move(stagingColorNGFilter_);
     if (colorNGFilter_) {
         RSNGRenderFilterHelper::GenerateGEVisualEffect(colorNGFilter_);
-        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        RSNGRenderFilterHelper::UpdateToGEContainer(colorNGFilter_, visualEffectContainer_);
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        RSNGRenderFilterHelper::UpdateToGEContainer(colorNGFilter_, visualEffectContainer);
         visualEffectContainer_ =visualEffectContainer;
     } else {
         visualEffectContainer_.reset();
@@ -87,80 +87,66 @@ void RSColorFilterDrawable::OnSync()
 
 void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
 #endif
- if (filter_) {
+    if (filter_) {
         RSPropertyDrawableUtils::DrawColorFilter(canvas, filter_);
     }
-    if (colorNGFilter_ && visualEffectContainer_ && rect) {
-       DrawColorNGFilter(canvas,rect);
+    if (colorNGRenderFilter_ && visualEffectContainer_ && rect) {
+        DrawColorNGFilter(canvas, rect);
     }
 }
 
 void RSColorFilterDrawable::DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    if(canvas == nullptr || rect ==nullptr)
-    {
+    if (canvas == nullptr || rect == nullptr) {
         return;
     }
-    auto surface = canvas-> GetSurface();
-    if(surface == nullptr)
-    {
-        ROSEN_LOGE("RSColorFilterDrawable::OnDraw enter GE path,container=%{public}p rect valid=true",visualEffectContainer_.get());
-        auto surface = canvas->GetSurface();
-        if(surface == nullptr)
-        {
-            ROSEN_LOGE("RSColorFilterDrawable::OnDraw surface is nullptr");
-            return;
-        }
-        Drawing::Rect relativeRect = *rect;
-        auto mat = canvas->GetTotalMatrix();
-        Drawing::RectI drawRect = absRect.RoundOut();
-        Drawing::RectI surfaceRect(0,0,surface->Width(),surface->Height())；
-        drawRect.Intersect(surfaceRect)；
-        auto image = surface ->GetImageSnapshot(drawRect)；
-        if(image == nullptr)
-        {
-            return;
-        }
-        Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR,Drawing::MipmapMode::NONE);
-        Drawing::Rect devRect(static_cast<float>(drawRect.getLeft()),static_cast<float>(drawRect.getTop()),
-            static_cast<float>(drawRect.getLeft() + drawRect.getWidth()),
-            static_cast<float>(drawRect.getTop() + drawRect.getHeight()));
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        // Step 1： ApplyImageEffect only processes the image via GE pipeline without
-        // drawing back to canvas，avoiding double-composition with original content.
-        GraphicsEffectEngine::GERender::ShaderFilterEffectContext geContext{image, devRect, devRect, nullptr};
-        auto resImage = geRender->ApplyImageEffect(* canvas, *visualEffectContainerr_, geContext, samplingOptions);
-        if(resImage == nullptr)
-        {
-            return;
-        }
-        // Step 2: Create imageShader from processed image,then use Brush+DrawBackground
-        // to overwrite the canvas area （same model as old DrawLightUpEffect/DrawDynamicDim/
-        // DrawBinarization)，instead of DrawImageRect which composites on top.
-        Drawing::Matrix identityMatrix;
-        auto imageShader = Drawing::ShaderEffect::CreateImageShader(*resImage,Drawing::TileMOde::CLAMP,
-            Drawing::TileMode::CLAMP,Drawing::samplingOptions(Drawing::FilterMode::LINEAR),identityMatrix);
-        if(imageShader == nullptr)
-        {
-            return;
-        }
-        Drawing::Brush brush;
-        brush.SetShaderEffect(imageShader);
-        brush.SetAntiAlias(true);
-        // Step 3: ResetMatrix + Translate to snapshot origin + DrawBackGround to
-        // overwrite the entire snapshot region with processed pixels.
-        Drawing::AutoCanvasRestore acr(*canvas, true);
-        canvas->ResetMatrix();
-        canvas->Translate(static_cast<float>(drawRect.GetLeft()),static_cast<float>(drawRect.getTop()));
-        canvas->DrawBackground(brush);
+    auto surface = canvas->GetSurface();
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter surface is nullptr");
+        return;
     }
-
+    Drawing::Rect absRectf;
+    auto mat = canvas->GetTotalMatrix();
+    mat.MapRect(absRectf, *rect);
+    Drawing::RectI drawRect = absRectf.RoundOut();
+    Drawing::RectI surfaceRect(0, 0, surface->Width(), surface->Height());
+    drawRect.Intersect(surfaceRect);
+    auto image = surface->GetImageSnapshot(drawRect);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter image is nullptr");
+        return;
+    }
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Rect devRect(static_cast<float>(drawRect.GetLeft()), static_cast<float>(drawRect.GetTop()),
+        static_cast<float>(drawRect.GetLeft() + drawRect.GetWidth()),
+        static_cast<float>(drawRect.GetTop() + drawRect.GetHeight()));
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    GraphicsEffectEngine::GERender::ShaderFilterEffectContext geContext{image, devRect, devRect, nullptr};
+    auto resImage = geRender->ApplyImageEffect(*canvas, *visualEffectContainer_, geContext, samplingOptions);
+    if (resImage == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter resImage is nullptr");
+        return;
+    }
+    Drawing::Matrix identityMatrix;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*resImage, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, samplingOptions, identityMatrix);
+    if (imageShader == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter imageShader is nullptr");
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetShaderEffect(imageShader);
+    brush.SetAntiAlias(true);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    canvas->ResetMatrix();
+    canvas->Translate(static_cast<float>(drawRect.GetLeft()), static_cast<float>(drawRect.GetTop()));
+    canvas->DrawBackground(brush);
 }
+
 RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSForegroundColorDrawable>(); ret->OnUpdate(node)) {

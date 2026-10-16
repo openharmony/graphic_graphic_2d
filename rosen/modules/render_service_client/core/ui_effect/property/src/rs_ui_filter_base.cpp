@@ -659,10 +659,6 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGBinarizationFilter(
 {
     auto filter = std::static_pointer_cast<RSNGBinarizationFilter>(
         RSNGFilterBase::Create(RSNGEffectType::BINARIZATION));
-    // if (filter == nullptr) {
-    //     ROSEN_LOGE("CreateNGBinarizationFilter filter is nullptr");
-    //     return nullptr;
-    // }
     filter->Setter<BinarizationLowTag>(low);
     filter->Setter<BinarizationHighTag>(high);
     filter->Setter<BinarizationThresholdTag>(threshold);
@@ -674,10 +670,6 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGLightUpEffectFilter(fl
 {
     auto filter = std::static_pointer_cast<RSNGLightUpEffectFilter>(
         RSNGFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT));
-    // if (filter == nullptr) {
-    //     ROSEN_LOGE("CreateNGLightUpEffectFilter filter is nullptr");
-    //     return nullptr;
-    // }
     filter->Setter<LightUpEffectValueTag>(value);
     return filter;
 }
@@ -686,10 +678,6 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGDynamicDimFilter(float
 {
     auto filter = std::static_pointer_cast<RSNGDynamicDimFilter>(
         RSNGFilterBase::Create(RSNGEffectType::DYNAMIC_DIM));
-    // if (filter == nullptr) {
-    //     ROSEN_LOGE("CreateNGDynamicDimFilter filter is nullptr");
-    //     return nullptr;
-    // }
     filter->Setter<DynamicDimValueTag>(value);
     return filter;
 }

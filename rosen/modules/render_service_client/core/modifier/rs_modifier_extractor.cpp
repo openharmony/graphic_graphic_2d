@@ -381,22 +381,22 @@ float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     auto context = rsUIContext_.lock();
     auto node = context ? context->GetNodeMap().GetNode<RSNode>(id_)
-                        :RSNodeMap::Instance().GetNode<RSNode>(id_);
-    if(!node){
+                        : RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if (!node) {
         return 0.f;
     }
     std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
-    for(auto&[_,modifier]:node->modifierNG_){
-        if(modifier->GetType()==ModifierNG::RSModifierType::COMPOSITING_FILTER){
+    for (auto& [_, modifier] : node->modifiersNG_) {
+        if (modifier->GetType() == ModifierNG::RSModifierType::COMPOSITING_FILTER) {
             auto filterMod = std::static_pointer_cast<ModifierNG::RSCompositingFilterModifier>(modifier);
             auto filter = filterMod->GetColorNGFilter();
-            if(filter&&filter->GetType()==RSNGEffectType::LIGHT_UP_EFFECT){
-                auto lightUpFilter =std::static_pointer_cast<RSNGLightUpEffectFilter>(filter);
+            if (filter && filter->GetType() == RSNGEffectType::LIGHT_UP_EFFECT) {
+                auto lightUpFilter = std::static_pointer_cast<RSNGLightUpEffectFilter>(filter);
                 return lightUpFilter->Getter<LightUpEffectValueTag>()->Get();
             }
         }
     }
-    return 0.0f;
+    return 0.f;
 }
 float RSModifierExtractor::GetHDRUIBrightness() const
 {

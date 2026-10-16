@@ -421,48 +421,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::Test
 }
 
 /**
- * @tc.name: DrawLightUpEffectTest010
- * @tc.desc: DrawLightUpEffect and DrawDynamicDim test
- * @tc.type: FUNC
- * @tc.require:issueIA5Y41
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
-    Drawing::Canvas canvasTest1;
-    RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
-    paintFilterCanvasTest1.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, -1.0f);
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 1.0f);
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 0.0f);
-    Drawing::Surface surfaceTest1;
-    paintFilterCanvasTest1.surface_ = &surfaceTest1;
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 0.0f);
-    Drawing::Canvas canvas(10, 10); // width and height
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    Drawing::Surface surface;
-    paintFilterCanvas.surface_ = &surface;
-    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvas, 0.0f);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);
-    Drawing::Canvas canvasTest2;
-    RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
-    paintFilterCanvasTest2.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, -1.0f);
-    rsPropertyDrawableUtilsTest1->DrawDynamicDim(&paintFilterCanvasTest2, 1.0f);
-    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, 0.0f);
-    Drawing::Surface surfaceTest2;
-    paintFilterCanvasTest2.surface_ = &surfaceTest2;
-    std::shared_ptr<Drawing::SkiaSurface> implTest2 = std::make_shared<Drawing::SkiaSurface>();
-    EXPECT_NE(implTest2, nullptr);
-    implTest2->skSurface_ = nullptr;
-    paintFilterCanvasTest2.surface_->impl_ = implTest2;
-    rsPropertyDrawableUtilsTest2->DrawDynamicDim(&paintFilterCanvasTest2, 0.0f);
-}
-
-/**
  * @tc.name: TransformativeShaderTest011
  * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder
  * MakeLightUpShader test
@@ -500,32 +458,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
     std::shared_ptr<Drawing::ShaderEffect> imageShaderTest3 = std::make_shared<Drawing::ShaderEffect>();
     EXPECT_NE(rsPropertyDrawableUtilsTest6->MakeLightUpShader(1.0f, imageShaderTest3), nullptr);
 }
-/**
- * @tc.name: DrawBinarizationTest012
- * @tc.desc: DrawBinarization test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawBinarizationTest012, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
-
-    Drawing::Canvas canvasTest;
-    RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
-
-    std::optional<Vector4f> aiInvert = std::nullopt;
-    rsPropertyDrawableUtilsTest->DrawBinarization(&paintFilterCanvasTest, aiInvert);
-
-    aiInvert = 1.0f;
-    paintFilterCanvasTest.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest->DrawBinarization(&paintFilterCanvasTest, aiInvert);
-
-    Drawing::Surface surface;
-    paintFilterCanvasTest.surface_ = &surface;
-    rsPropertyDrawableUtilsTest->DrawBinarization(&paintFilterCanvasTest, aiInvert);
-}
-
 /**
  * @tc.name: DrawPixelStretchTest013
  * @tc.desc: DrawPixelStretch test
@@ -2590,5 +2522,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape008, testing::ext::Test
     auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
+
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterWithColorNGFilter, TestSize.Level1)
+{
+    RSProperties properties;
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_TRUE(filter != nullptr);
+    properties.SetColorNGFilter(filter);
+    EXPECT_TRUE(properties.GetColorNGFilter() != nullptr);
+    properties.SetColorNGFilter(nullptr);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen
