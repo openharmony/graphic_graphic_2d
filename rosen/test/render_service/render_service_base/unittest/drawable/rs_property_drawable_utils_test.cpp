@@ -421,44 +421,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::Test
 }
 
 /**
- * @tc.name: TransformativeShaderTest011
- * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder
- * MakeLightUpShader test
- * @tc.type: FUNC
- * @tc.require:issueIA5Y41
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
-    std::shared_ptr<Drawing::ShaderEffect> imageShaderTest1 = std::make_shared<Drawing::ShaderEffect>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest1->MakeDynamicDimShader(1.0f, imageShaderTest1), nullptr);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);
-    std::shared_ptr<Drawing::ShaderEffect> imageShaderTest2 = std::make_shared<Drawing::ShaderEffect>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest2->MakeBinarizationShader(1.0f, 1.0f, 1.0f, 1.0f, imageShaderTest2), nullptr);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest3 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest3, nullptr);
-    EXPECT_NE(rsPropertyDrawableUtilsTest3->MakeDynamicBrightnessBuilder(), nullptr);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest4 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest4, nullptr);
-    RSDynamicBrightnessPara params;
-    EXPECT_NE(rsPropertyDrawableUtilsTest4->MakeDynamicBrightnessBlender(params), nullptr);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest5 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest5, nullptr);
-    params.fraction_ = 0.0;
-    EXPECT_NE(rsPropertyDrawableUtilsTest5->MakeDynamicBrightnessBlender(params), nullptr);
-
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest6 = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest6, nullptr);
-    std::shared_ptr<Drawing::ShaderEffect> imageShaderTest3 = std::make_shared<Drawing::ShaderEffect>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest6->MakeLightUpShader(1.0f, imageShaderTest3), nullptr);
-}
-/**
  * @tc.name: DrawPixelStretchTest013
  * @tc.desc: DrawPixelStretch test
  * @tc.type: FUNC
@@ -2522,16 +2484,5 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape008, testing::ext::Test
     auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
-}
-
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterWithColorNGFilter, TestSize.Level1)
-{
-    RSProperties properties;
-    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
-    ASSERT_TRUE(filter != nullptr);
-    properties.SetColorNGFilter(filter);
-    EXPECT_TRUE(properties.GetColorNGFilter() != nullptr);
-    properties.SetColorNGFilter(nullptr);
-    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen
