@@ -18,6 +18,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
 #include "ui/rs_ui_context.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -58,8 +59,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     ASSERT_EQ(extractor.GetBackgroundBlurRadius(), 0.f);
 
     ASSERT_EQ(extractor.GetBackgroundBlurSaturation(), 0.f);
-
-    ASSERT_EQ(extractor.GetDynamicDimDegree(), 0.f);
 
     ASSERT_EQ(extractor.GetBackgroundBlurBrightness(), 0.f);
 
@@ -362,34 +361,6 @@ HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1
     RSModifierExtractor extractor(id);
     Vector2f attractionDstPoint = extractor.GetAttractionDstPointValue();
     EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
-}
-
-/**
- * @tc.name: GetLightUpEffectDegree001
- * @tc.desc: test results of GetLightUpEffectDegree
- * @tc.type: FUNC
- * @tc.require: issueI9VXLH
- */
-HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegree001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSModifierExtractor extractor(id);
-    float degree = extractor.GetLightUpEffectDegree();
-    EXPECT_TRUE(degree == 0.f);
-}
-
-/**
- * @tc.name: GetDynamicDimDegree001
- * @tc.desc: test results of GetDynamicDimDegree
- * @tc.type: FUNC
- * @tc.require: issueI9VXLH
- */
-HWTEST_F(RSModifierExtractorTest, GetDynamicDimDegree001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSModifierExtractor extractor(id);
-    float degree = extractor.GetDynamicDimDegree();
-    EXPECT_TRUE(degree == 0.f);
 }
 
 /**
@@ -720,13 +691,100 @@ HWTEST_F(RSModifierExtractorTest, GetAllTransformPropertyValues003, TestSize.Lev
     EXPECT_EQ(result.skew, Vector3f(0.f, 0.f, 0.f));
 }
 
-HWTEST_F(RSModifierExtractorTest, GetColorNGFilterFromNode, TestSize.Level1)
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest001, TestSize.Level1)
 {
-    auto canvasNode = RSCanvasNode::Create();
-    ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->SetAiInvert(Vector4f(0.1f, 0.9f, 0.5f, 0.1f));
-    RSModifierExtractor extractor(canvasNode->GetId());
-    auto result = extractor.GetLightUpEffectDegree();
-    EXPECT_FLOAT_EQ(result, 0.f);
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    auto& props = node->GetStagingProperties();
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    auto& props = node->GetStagingProperties();
+    node->SetLightUpEffectDegree(0.5f);
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.5f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    auto& props = node->GetStagingProperties();
+    node->SetLightUpEffectDegree(0.5f);
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.5f);
+
+    node->SetDynamicDimDegree(0.3f);
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest004, TestSize.Level1)
+{
+    NodeId invalidId = 999999;
+    RSModifierExtractor extractor(invalidId);
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest005, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    auto& props = node->GetStagingProperties();
+    node->SetAiInvert(Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest006, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    auto& props = node->GetStagingProperties();
+    node->SetPositionZ(10.f);
+    EXPECT_FLOAT_EQ(props.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest007, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    constexpr float testDegree = 0.5f;
+    node->SetLightUpEffectDegree(testDegree);
+
+    RSModifierExtractor extractor(node->GetId());
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), testDegree);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest008, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    node->SetLightUpEffectDegree(0.5f);
+    node->SetDynamicDimDegree(0.3f);
+
+    RSModifierExtractor extractor(node->GetId());
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest009, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    node->SetAiInvert(Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+
+    RSModifierExtractor extractor(node->GetId());
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
+}
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest010, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    RSModifierExtractor extractor(node->GetId());
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
 }
 } // namespace OHOS::Rosen
