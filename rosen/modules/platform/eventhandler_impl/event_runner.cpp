@@ -15,6 +15,7 @@
 
 #include "event_runner.h"
 
+#include <charconv>
 #include <condition_variable>
 #include <mutex>
 #include <sstream>
@@ -546,7 +547,15 @@ uint64_t EventRunner::GetThreadId()
     std::stringstream buf;
     buf << tid;
     std::string stid = buf.str();
-    return std::stoull(stid);
+    uint64_t threadId = 0;
+    const char *begin = stid.data();
+    const char *end = begin + stid.size();
+    auto parsed = std::from_chars(begin, end, threadId);
+    if (parsed.ec != std::errc{} || parsed.ptr != end) {
+        HILOGE("EventRunner thread id is not numeric");
+        return 0;
+    }
+    return threadId;
 }
 
 bool EventRunner::IsCurrentRunnerThread()
