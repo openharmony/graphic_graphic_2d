@@ -14,9 +14,20 @@
  */
 
 #include "dvsync_param_parse.h"
+#include <charconv>
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
+namespace {
+int32_t ParseInt32(const std::string &value)
+{
+    int32_t result = 0;
+    const char *begin = value.data();
+    const char *end = begin + value.size();
+    auto parsed = std::from_chars(begin, end, result);
+    return (parsed.ec == std::errc{} && parsed.ptr == end) ? result : 0;
+}
+} // namespace
 
 int32_t DVSyncParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
@@ -64,16 +75,16 @@ int32_t DVSyncParamParse::ParseDVSyncInternal(xmlNode &node)
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "DVSyncRsBufferCount") {
-            DVSyncParam::SetRsBufferCount(std::atoi(val.c_str()));
+            DVSyncParam::SetRsBufferCount(ParseInt32(val));
             RS_LOGI("DVSyncParamParse parse DVSyncRsBufferCount %{public}u", DVSyncParam::GetRsBufferCount());
         } else if (name == "DVSyncUiBufferCount") {
-            DVSyncParam::SetUiBufferCount(std::atoi(val.c_str()));
+            DVSyncParam::SetUiBufferCount(ParseInt32(val));
             RS_LOGI("DVSyncParamParse parse DVSyncUiBufferCount %{public}u", DVSyncParam::GetUiBufferCount());
         } else if (name == "DVSyncNativeBufferCount") {
-            DVSyncParam::SetNativeBufferCount(std::atoi(val.c_str()));
+            DVSyncParam::SetNativeBufferCount(ParseInt32(val));
             RS_LOGI("DVSyncParamParse parse DVSyncNativeBufferCount %{public}u", DVSyncParam::GetNativeBufferCount());
         } else if (name == "DVSyncWebBufferCount") {
-            DVSyncParam::SetWebBufferCount(std::atoi(val.c_str()));
+            DVSyncParam::SetWebBufferCount(ParseInt32(val));
             RS_LOGI("DVSyncParamParse parse DVSyncWebBufferCount %{public}u", DVSyncParam::GetWebBufferCount());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
