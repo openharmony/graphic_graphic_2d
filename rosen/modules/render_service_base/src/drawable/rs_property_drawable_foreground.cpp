@@ -94,7 +94,7 @@ void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     if (filter_) {
         RSPropertyDrawableUtils::DrawColorFilter(canvas, filter_);
     }
-    if (colorNGRenderFilter_ && visualEffectContainer_ && rect) {
+    if (colorNGFilter_ && visualEffectContainer_ && rect) {
         DrawColorNGFilter(canvas, rect);
     }
 }
