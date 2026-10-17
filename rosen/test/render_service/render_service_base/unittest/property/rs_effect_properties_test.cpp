@@ -310,30 +310,6 @@ HWTEST_F(RSEffectPropertiesTest, CheckGreyCoef001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DynamicDimDegree001
- * @tc.desc: test SetDynamicDimDegree/GetDynamicDimDegree and IsDynamicDimValid branches
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSEffectPropertiesTest, DynamicDimDegree001, TestSize.Level1)
-{
-    RSEffectProperties properties;
-    EXPECT_FALSE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-
-    properties.SetDynamicDimDegree(0.5f);
-    EXPECT_EQ(properties.GetDynamicDimDegree(), 0.5f);
-    EXPECT_TRUE(properties.IsDynamicDimValid());
-
-    properties.SetDynamicDimDegree(1.5f);
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-    properties.SetDynamicDimDegree(-0.5f);
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-    properties.SetDynamicDimDegree(std::nullopt);
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-}
-
-/**
  * @tc.name: DynamicLightUp001
  * @tc.desc: test SetDynamicLightUpRate/SetDynamicLightUpDegree/Get/IsDynamicLightUpValid branches
  * @tc.type:FUNC
@@ -391,7 +367,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorParamsSetNGet001, TestSize.Level1)
     EXPECT_FALSE(properties.GetSepia().has_value());
     EXPECT_FALSE(properties.GetInvert().has_value());
     EXPECT_FALSE(properties.GetHueRotate().has_value());
-    EXPECT_FALSE(properties.GetAiInvert().has_value());
     EXPECT_FALSE(properties.GetSystemBarEffect());
     EXPECT_FALSE(properties.GetColorAdaptive());
     EXPECT_EQ(properties.GetColorFilter(), nullptr);
@@ -404,7 +379,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorParamsSetNGet001, TestSize.Level1)
     properties.SetSepia(value);
     properties.SetInvert(value);
     properties.SetHueRotate(value);
-    properties.SetAiInvert(Vector4f { 1.f, 1.f, 1.f, 1.f });
     properties.SetSystemBarEffect(true);
     properties.SetColorAdaptive(true);
     EXPECT_EQ(properties.GetGrayScale(), value);
@@ -414,7 +388,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorParamsSetNGet001, TestSize.Level1)
     EXPECT_EQ(properties.GetSepia(), value);
     EXPECT_EQ(properties.GetInvert(), value);
     EXPECT_EQ(properties.GetHueRotate(), value);
-    EXPECT_TRUE(properties.GetAiInvert().has_value());
     EXPECT_TRUE(properties.GetSystemBarEffect());
     EXPECT_TRUE(properties.GetColorAdaptive());
 }
@@ -436,7 +409,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorParamsSetNGet002, TestSize.Level1)
     properties.SetSepia(std::nullopt);
     properties.SetInvert(std::nullopt);
     properties.SetHueRotate(std::nullopt);
-    properties.SetAiInvert(std::nullopt);
     properties.SetSystemBarEffect(false);
     properties.SetColorAdaptive(false);
     EXPECT_FALSE(properties.GetGrayScale().has_value());
@@ -446,7 +418,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorParamsSetNGet002, TestSize.Level1)
     EXPECT_FALSE(properties.GetSepia().has_value());
     EXPECT_FALSE(properties.GetInvert().has_value());
     EXPECT_FALSE(properties.GetHueRotate().has_value());
-    EXPECT_FALSE(properties.GetAiInvert().has_value());
     EXPECT_FALSE(properties.GetSystemBarEffect());
     EXPECT_FALSE(properties.GetColorAdaptive());
 }
