@@ -27,6 +27,7 @@
 #include "consumer_surface.h"
 #include "draw/color.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "effect/rs_render_filter_base.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -3532,7 +3533,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayDirtyAndExtendVisibleRegion, TestS
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
     ASSERT_NE(canvasNode, nullptr);
     auto& property = canvasNode->GetMutableRenderProperties();
-    property.SetLightUpEffect(0.2f);
+    property.SetColorNGFilter(
+        RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT));
     property.UpdateFilter();
     surfaceNode->UpdateVisibleFilterChild(*canvasNode);
     auto visibleFilterChildren = surfaceNode->GetVisibleFilterChild();
