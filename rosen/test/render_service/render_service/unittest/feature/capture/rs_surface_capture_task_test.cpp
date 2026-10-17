@@ -456,7 +456,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest003, Function 
 
 /*
  * @tc.name: CreatePixelMapByDisplayNodeTest004
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format RGB_565
  * @tc.type: FUNC
  * @tc.require: issueI794H6
 */
@@ -486,6 +486,28 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest005, Function 
 {
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.useDma = true;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest006
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest006, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::UNKNOWN;
     RSSurfaceCaptureTask task(0, captureConfig);
     RSDisplayNodeConfig config;
     std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);

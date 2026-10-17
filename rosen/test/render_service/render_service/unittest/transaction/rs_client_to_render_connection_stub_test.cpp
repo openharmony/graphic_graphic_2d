@@ -1974,6 +1974,55 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest002, Test
 }
 
 /**
+ * @tc.name: ReadSurfaceCaptureConfigTest001
+ * @tc.desc: Test ReadSurfaceCaptureConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ReadSurfaceCaptureConfigTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        g_WriteSurfaceCaptureConfigMock(captureConfig, data);
+        EXPECT_TRUE(connectionStub_->ReadSurfaceCaptureConfig(captureConfig, data));
+    }
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        EXPECT_FALSE(connectionStub_->ReadSurfaceCaptureConfig(captureConfig, data));
+    }
+
+    {
+        constexpr size_t OVERSIZED_BLACK_LIST_SIZE = 1025;
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        captureConfig.blackList.assign(OVERSIZED_BLACK_LIST_SIZE, 0);
+        g_WriteSurfaceCaptureConfigMock(captureConfig, data);
+        EXPECT_FALSE(connectionStub_->ReadSurfaceCaptureConfig(captureConfig, data));
+    }
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        captureConfig.captureType = SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT;
+        g_WriteSurfaceCaptureConfigMock(captureConfig, data);
+        EXPECT_FALSE(connectionStub_->ReadSurfaceCaptureConfig(captureConfig, data));
+    }
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        captureConfig.pixelFormat = Media::PixelFormat::EXTERNAL_MAX;
+        g_WriteSurfaceCaptureConfigMock(captureConfig, data);
+        EXPECT_FALSE(connectionStub_->ReadSurfaceCaptureConfig(captureConfig, data));
+    }
+}
+
+/**
  * @tc.name: TakeSelfSurfaceCaptureTest001
  * @tc.desc: Test TAKE_SELF_SURFACE_CAPTURE interface code path
  * @tc.type: FUNC
