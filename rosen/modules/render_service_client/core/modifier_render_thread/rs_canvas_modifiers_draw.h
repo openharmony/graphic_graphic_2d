@@ -95,6 +95,7 @@ private:
     int height_ = 0;
     bool forceFlushBuffer_ = false;
     bool needResetCanvas_ = false;
+    bool hasDrawn_ = false;
     int64_t lastFlushBufferTime_ = 0;
     RSNodeState nodeState_ = RSNodeState::ACTIVE;
     std::shared_ptr<RSSurface> producerSurface_ = nullptr;
