@@ -2887,7 +2887,7 @@ void RSProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>&
     contentDirty_ = true;
 }
 
-std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetColorNGFilter() const
+const std::shared_ptr<RSNGRenderFilterBase>& RSProperties::GetColorNGFilter() const
 {
     return GetEffectProperties().GetColorNGFilter();
 }

@@ -397,7 +397,7 @@ public:
 
     // colorNGRenderFilter_
     void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter);
-    std::shared_ptr<RSNGRenderFilterBase> GetColorNGFilter() const;
+    const std::shared_ptr<RSNGRenderFilterBase>& GetColorNGFilter() const;
 
     bool IsForegroundMaterialFilterValid() const;
 

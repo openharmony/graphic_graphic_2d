@@ -58,7 +58,7 @@ RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
 bool RSColorFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& colorFilter = node.GetRenderProperties().GetColorFilter();
-    auto colorNGFilter = node.GetRenderProperties().GetColorNGFilter();
+    const auto& colorNGFilter = node.GetRenderProperties().GetColorNGFilter();
     if (colorFilter == nullptr && colorNGFilter == nullptr) {
         return false;
     }

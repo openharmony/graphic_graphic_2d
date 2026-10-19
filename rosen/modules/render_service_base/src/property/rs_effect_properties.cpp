@@ -950,12 +950,13 @@ void RSEffectProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilter
     GetFilterEffect().colorNGRenderFilter_ = filter;
 }
 
-std::shared_ptr<RSNGRenderFilterBase> RSEffectProperties::GetColorNGFilter() const
+const std::shared_ptr<RSNGRenderFilterBase>& RSEffectProperties::GetColorNGFilter() const
 {
+    static const std::shared_ptr<RSNGRenderFilterBase> defaultValue = nullptr;
     if (filterEffect_ != nullptr) {
         return filterEffect_->colorNGRenderFilter_;
     }
-    return nullptr;
+    return defaultValue;
 }
 
 void RSEffectProperties::SetAlwaysSnapshot(bool enable)

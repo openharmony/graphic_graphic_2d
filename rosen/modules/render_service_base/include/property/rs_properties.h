@@ -503,7 +503,7 @@ public:
     void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
     void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
-    std::shared_ptr<RSNGRenderFilterBase> GetColorNGFilter() const;
+    const std::shared_ptr<RSNGRenderFilterBase>& GetColorNGFilter() const;
 
     const std::shared_ptr<RSFilter>& GetCompositingFilter() const
     {
