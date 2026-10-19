@@ -361,7 +361,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode_NegativeS
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode while node is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -374,7 +374,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest001, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest002, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -389,7 +389,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest002, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with pixelmap not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest003, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -412,7 +412,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest003, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with BGRA_8888 format
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest004, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -433,7 +433,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest004, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with unsupported format RGB_565
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest005, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -454,7 +454,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest005, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with dma capture
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest006, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -475,7 +475,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest006, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with format RGBA_8888
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest007, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -496,7 +496,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest007, T
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with pixelmap is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -510,7 +510,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface001, TestSize.Level2)
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with RGBA_8888 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface002, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -529,7 +529,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface002, TestSize.Level2)
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with BGRA_8888 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface003, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -548,7 +548,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface003, TestSize.Level2)
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with RGBA_F16 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface004, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;

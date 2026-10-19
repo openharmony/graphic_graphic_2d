@@ -398,7 +398,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run007, Function | SmallTest | Level2)
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
@@ -415,7 +415,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest001, Function 
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with BGRA_8888 format
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest002, Function | SmallTest | Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -437,7 +437,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest002, Function 
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with RGBA_8888 format
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest003, Function | SmallTest | Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -459,7 +459,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest003, Function 
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format RGB_565
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest004, Function | SmallTest | Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -481,7 +481,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest004, Function 
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with dma capture
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest005, Function | SmallTest | Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -503,7 +503,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest005, Function 
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format UNKNOWN
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest006, Function | SmallTest | Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
@@ -525,7 +525,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest006, Function 
  * @tc.desc: Test CopyDataToPixelMap with RGBA_8888 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap001, Function | SmallTest | Level2)
 {
     Media::InitializationOptions opts;
@@ -544,7 +544,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap001, Function | SmallTest |
  * @tc.desc: Test CopyDataToPixelMap with BGRA_8888 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap002, Function | SmallTest | Level2)
 {
     Media::InitializationOptions opts;
@@ -563,7 +563,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap002, Function | SmallTest |
  * @tc.desc: Test CopyDataToPixelMap with RGBA_F16 pixelmap
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap003, Function | SmallTest | Level2)
 {
     Media::InitializationOptions opts;
