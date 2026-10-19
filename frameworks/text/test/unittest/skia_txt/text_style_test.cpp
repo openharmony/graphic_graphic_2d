@@ -14,10 +14,12 @@
  */
 
 #include "gtest/gtest.h"
+#include "draw_cmd.h"
 #include "include/TextStyle.h"
 #include "modules/skparagraph/src/ParagraphImpl.h"
 #include "paragraph_builder.h"
 #include "paragraph_impl.h"
+#include "recording_canvas.h"
 #include "text_style.h"
 #include "text_types.h"
 
@@ -28,6 +30,19 @@ using namespace OHOS::Rosen;
 namespace txt {
 constexpr float LINE_HEIGHT = 100;
 constexpr float FONT_SIZE = 100;
+
+namespace {
+int CountRoundRectOps(const std::shared_ptr<Drawing::RecordingCanvas>& canvas)
+{
+    int count = 0;
+    for (const auto& opItem : canvas->GetDrawCmdList()->GetDrawOpItems()) {
+        if (opItem->GetType() == Drawing::DrawOpItem::ROUND_RECT_OPITEM) {
+            ++count;
+        }
+    }
+    return count;
+}
+} // namespace
 
 class TextStyleTest : public testing::Test {
 public:
@@ -453,7 +468,7 @@ HWTEST_F(TextStyleTest, TextStyleTest016, TestSize.Level0)
     auto skParagraph = reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraphImpl->paragraph_.get());
     ASSERT_NE(skParagraph, nullptr);
     EXPECT_EQ(skParagraph->fRuns.size(), 2); // Expect 2 runs for different font edging
-    
+
     // Test 2: Same font edging results in one run (merged)
     std::unique_ptr<SPText::ParagraphBuilder> paragraphBuilder2 =
         SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
@@ -479,5 +494,172 @@ HWTEST_F(TextStyleTest, TextStyleTest016, TestSize.Level0)
     skParagraph = reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraphImpl->paragraph_.get());
     ASSERT_NE(skParagraph, nullptr);
     EXPECT_EQ(skParagraph->fRuns.size(), 1); // Expect 1 run for same font edging
+}
+
+/*
+ * @tc.name: TextStyleTest017
+ * @tc.desc: test for change backgroundRect borderColor and borderWidth
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest017, TestSize.Level0)
+{
+    SPText::RectStyle backgroundRect = { 0, 1.0f, 0.0f, 0.0f, 0.0f };
+    textStyle_->backgroundRect = backgroundRect;
+
+    // default border values keep equality when border fields are identical
+    SPText::RectStyle sameBorder = backgroundRect;
+    EXPECT_EQ(textStyle_->backgroundRect, sameBorder);
+
+    // different borderColor breaks equality
+    SPText::RectStyle otherBorderColor = backgroundRect;
+    otherBorderColor.borderColor = 0xFFFF0000;
+    EXPECT_NE(textStyle_->backgroundRect, otherBorderColor);
+
+    // different borderWidth breaks equality
+    SPText::RectStyle otherBorderWidth = backgroundRect;
+    otherBorderWidth.borderWidth = 2.0f;
+    EXPECT_NE(textStyle_->backgroundRect, otherBorderWidth);
+
+    // full assignment round trip with border fields
+    SPText::RectStyle borderRect = { 0xFF0000FF, 4.0f, 4.0f, 4.0f, 4.0f, 0xFFFF0000, 2.0f };
+    EXPECT_NE(textStyle_->backgroundRect, borderRect);
+    textStyle_->backgroundRect = borderRect;
+    EXPECT_EQ(textStyle_->backgroundRect, borderRect);
+}
+
+/*
+ * @tc.name: TextStyleTest018
+ * @tc.desc: consecutive runs sharing styleId and RectStyle are merged into one complete box
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest018, TestSize.Level0)
+{
+    SPText::ParagraphStyle paragraphStyle;
+    auto fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    // different fontSize forces two runs on one line; same styleId + same RectStyle is one box
+    SPText::TextStyle style1;
+    style1.fontSize = 30.0;
+    style1.styleId = 1; // 1 means styleId for test
+    style1.backgroundRect = { 0xFF00FF00, 8.0f, 8.0f, 8.0f, 8.0f, 0xFFFF0000, 2.0f };
+    SPText::TextStyle style2;
+    style2.fontSize = 50.0;
+    style2.styleId = 1;
+    style2.backgroundRect = style1.backgroundRect;
+
+    std::unique_ptr<SPText::ParagraphBuilder> builder =
+        SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(builder, nullptr);
+    builder->PushStyle(style1);
+    builder->AddText(u"Hel");
+    builder->PushStyle(style2);
+    builder->AddText(u"lo");
+    std::shared_ptr<SPText::Paragraph> paragraph = builder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(500);
+
+    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(600, 200, false);
+    paragraph->Paint(recordingCanvas.get(), 0.0, 0.0);
+    // merged fill + merged border => 2 ops; per-run drawing would give 4
+    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 2);
+}
+
+/*
+ * @tc.name: TextStyleTest019
+ * @tc.desc: fill only keeps one round rect op per run with corner roles
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest019, TestSize.Level0)
+{
+    SPText::ParagraphStyle paragraphStyle;
+    auto fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    SPText::TextStyle style1;
+    style1.fontSize = 30.0;
+    style1.styleId = 1; // 1 means styleId for test
+    style1.backgroundRect = { 0xFF00FF00, 8.0f, 8.0f, 8.0f, 8.0f };
+    SPText::TextStyle style2;
+    style2.fontSize = 50.0;
+    style2.styleId = 1;
+    style2.backgroundRect = style1.backgroundRect;
+
+    std::unique_ptr<SPText::ParagraphBuilder> builder =
+        SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(builder, nullptr);
+    builder->PushStyle(style1);
+    builder->AddText(u"Hel");
+    builder->PushStyle(style2);
+    builder->AddText(u"lo");
+    std::shared_ptr<SPText::Paragraph> paragraph = builder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(500);
+
+    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(600, 200, false);
+    paragraph->Paint(recordingCanvas.get(), 0.0, 0.0);
+    // no border: merging is disabled, each run keeps its own rect with corner roles => 2 ops
+    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 2);
+}
+
+/*
+ * @tc.name: TextStyleTest020
+ * @tc.desc: one style split by a hard line break paints one box per line
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest020, TestSize.Level0)
+{
+    SPText::ParagraphStyle paragraphStyle;
+    auto fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    SPText::TextStyle style;
+    style.fontSize = 30.0;
+    style.styleId = 1; // 1 means styleId for test
+    style.backgroundRect = { 0xFF00FF00, 8.0f, 8.0f, 8.0f, 8.0f };
+
+    std::unique_ptr<SPText::ParagraphBuilder> builder =
+        SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(builder, nullptr);
+    builder->PushStyle(style);
+    builder->AddText(u"aaaa\nbbbb");
+    std::shared_ptr<SPText::Paragraph> paragraph = builder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(500);
+
+    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(600, 200, false);
+    paragraph->Paint(recordingCanvas.get(), 0.0, 0.0);
+    // one complete box per line => 3 ops
+    EXPECT_EQ(CountRoundRectOps(recordingCanvas), 3);
+}
+
+/*
+ * @tc.name: TextStyleTest021
+ * @tc.desc: RectStyle equality operators treat border fields as discriminators
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest021, TestSize.Level0)
+{
+    SPText::RectStyle rectStyle = { 0xFF00FF00, 1.0f, 2.0f, 3.0f, 4.0f, 0xFFFF0000, 2.0f };
+
+    // operator== is false when only borderColor differs
+    SPText::RectStyle diffBorderColor = rectStyle;
+    diffBorderColor.borderColor = 0xFF0000FF;
+    EXPECT_FALSE(rectStyle == diffBorderColor);
+    EXPECT_TRUE(rectStyle != diffBorderColor);
+
+    // operator== is false when only borderWidth differs
+    SPText::RectStyle diffBorderWidth = rectStyle;
+    diffBorderWidth.borderWidth = 5.0f; // 5.0 just for test
+    EXPECT_FALSE(rectStyle == diffBorderWidth);
+    EXPECT_TRUE(rectStyle != diffBorderWidth);
+
+    // operators agree when all border fields are equal
+    SPText::RectStyle sameStyle = rectStyle;
+    EXPECT_TRUE(rectStyle == sameStyle);
+    EXPECT_FALSE(rectStyle != sameStyle);
 }
 } // namespace txt

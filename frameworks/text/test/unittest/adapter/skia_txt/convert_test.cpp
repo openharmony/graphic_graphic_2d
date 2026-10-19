@@ -275,5 +275,28 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest011, TestSize.Level0)
     EXPECT_EQ(textStyle.backgroundBrush.value().GetColor(), Drawing::Color::COLOR_LTGRAY);
     EXPECT_EQ(textStyle.foregroundBrush.value().GetColor(), Drawing::Color::COLOR_MAGENTA);
 }
+
+/*
+ * @tc.name: OHDrawingConvertTest012
+ * @tc.desc: test for Convert backgroundRect border fields in both directions
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest012, TestSize.Level0)
+{
+    constexpr uint32_t borderRed = 0xFFFF0000;
+    constexpr double borderWid = 2.5;
+    TextStyle textStyle;
+    textStyle.backgroundRect = { 0xFF00FF00, 4.0, 4.0, 4.0, 4.0, borderRed, borderWid };
+
+    SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
+    EXPECT_EQ(sptextStyle.backgroundRect.color, textStyle.backgroundRect.color);
+    EXPECT_EQ(sptextStyle.backgroundRect.borderColor, borderRed);
+    EXPECT_DOUBLE_EQ(sptextStyle.backgroundRect.borderWidth, borderWid);
+
+    TextStyle roundTrip = AdapterTxt::Convert(sptextStyle);
+    EXPECT_EQ(roundTrip.backgroundRect.color, textStyle.backgroundRect.color);
+    EXPECT_EQ(roundTrip.backgroundRect.borderColor, borderRed);
+    EXPECT_DOUBLE_EQ(roundTrip.backgroundRect.borderWidth, borderWid);
+}
 } // namespace Rosen
 } // namespace OHOS

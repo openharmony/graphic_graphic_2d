@@ -231,7 +231,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.locale = style.locale;
     textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
-        style.backgroundRect.leftBottomRadius };
+        style.backgroundRect.leftBottomRadius, style.backgroundRect.borderColor, style.backgroundRect.borderWidth };
     textStyle.styleId = style.styleId;
     textStyle.textStyleUid = style.textStyleUid;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
@@ -330,7 +330,7 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.locale = style.locale;
     textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
-        style.backgroundRect.leftBottomRadius };
+        style.backgroundRect.leftBottomRadius, style.backgroundRect.borderColor, style.backgroundRect.borderWidth };
     textStyle.styleId = style.styleId;
     textStyle.textStyleUid = style.textStyleUid;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;

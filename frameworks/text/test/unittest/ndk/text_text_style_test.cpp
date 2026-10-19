@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "rosen_text/text_style.h"
 #include "text_typography_test_common.h"
 
 namespace OHOS {
@@ -437,6 +438,64 @@ HWTEST_F(NdkTextStyleTest, SetTextStyleFontFeatureAndBackgroundRect, TestSize.Le
     EXPECT_EQ(OH_Drawing_TextStyleGetBaselineShift(nullptr), 0.0);
     OH_Drawing_TextStyleSetBaselineShift(txtStyle, lineShift);
     EXPECT_EQ(OH_Drawing_TextStyleGetBaselineShift(txtStyle), 1.5);
+}
+
+/*
+ * @tc.name: SetTextStyleBackgroundRectKeepsBorderDefault
+ * @tc.desc: 5-field rect info keeps border fields default (no border) after set
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextStyleTest, SetTextStyleBackgroundRectKeepsBorderDefault, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_NE(txtStyle, nullptr);
+    OH_Drawing_RectStyle_Info rectStyleInfo = { 0xFF00FF00, 2.0, 2.0, 2.0, 2.0 };
+    int styleId = 1;
+    OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
+
+    // struct has no border fields; internal style must keep border defaults (no border)
+    auto* innerStyle = reinterpret_cast<OHOS::Rosen::TextStyle*>(txtStyle);
+    ASSERT_NE(innerStyle, nullptr);
+    EXPECT_EQ(innerStyle->backgroundRect.color, 0xFF00FF00);
+    EXPECT_DOUBLE_EQ(innerStyle->backgroundRect.leftTopRadius, 2.0);
+    EXPECT_EQ(innerStyle->backgroundRect.borderColor, 0xFFFFFFFF);
+    EXPECT_DOUBLE_EQ(innerStyle->backgroundRect.borderWidth, 0.0);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleBackgroundRectBorderEquality
+ * @tc.desc: service RectStyle equality operators compare borderColor and borderWidth
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextStyleTest, TextStyleBackgroundRectBorderEquality, TestSize.Level0)
+{
+    OHOS::Rosen::RectStyle rectStyle;
+    rectStyle.color = 0xFF00FF00;
+    rectStyle.leftTopRadius = 2.0;
+    rectStyle.rightTopRadius = 2.0;
+    rectStyle.rightBottomRadius = 2.0;
+    rectStyle.leftBottomRadius = 2.0;
+    rectStyle.borderColor = 0xFFFF0000;
+    rectStyle.borderWidth = 2.0;
+
+    // equality fails when only borderColor differs
+    OHOS::Rosen::RectStyle diffBorderColor = rectStyle;
+    diffBorderColor.borderColor = 0xFF0000FF;
+    EXPECT_FALSE(rectStyle == diffBorderColor);
+    EXPECT_TRUE(rectStyle != diffBorderColor);
+
+    // equality fails when only borderWidth differs
+    OHOS::Rosen::RectStyle diffBorderWidth = rectStyle;
+    diffBorderWidth.borderWidth = 5.0; // 5.0 just for test
+    EXPECT_FALSE(rectStyle == diffBorderWidth);
+    EXPECT_TRUE(rectStyle != diffBorderWidth);
+
+    // equality holds when all border fields are equal
+    OHOS::Rosen::RectStyle sameStyle = rectStyle;
+    EXPECT_TRUE(rectStyle == sameStyle);
+    EXPECT_FALSE(rectStyle != sameStyle);
 }
 
 /*
