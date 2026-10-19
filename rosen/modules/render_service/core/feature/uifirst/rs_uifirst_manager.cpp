@@ -342,7 +342,7 @@ bool RSUifirstManager::HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSu
         return false;
     }
 
-    bool uifirstCacheUpdated = (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) ||
+    bool uifirstCacheUpdated = (node->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE) ||
             !UifirstCacheUpdate(node->GetId());
     if (uifirstCacheUpdated && !node->GetNodeAbsRectChanged()) {
         auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
@@ -485,12 +485,12 @@ bool RSUifirstManager::UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>&
     if (nodeAbsRectChanged) {
         return true;
     }
-    if ((node->GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE)) {
+    if ((node->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE)) {
         return UifirstCacheUpdate(node->GetId());
     } else {
         auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
         if ((leashNode != nullptr) && leashNode->IsLeashWindow() &&
-            leashNode->GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
+            leashNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
                 return UifirstCacheUpdate(leashNode->GetId());
             }
         return true;
