@@ -3480,7 +3480,8 @@ void RSProperties::StatBackgroundFilter()
 {
     ServerXXFilterCascadeParams params;
     params.functionType = ServerFilterFunctionType::BACKGROUND_FILTER;
-    if (GetColorNGFilter() != nullptr || GetSystemBarEffect()) {
+    if ((GetColorNGFilter() != nullptr && GetColorNGFilter()->ContainsType(RSNGEffectType::BINARIZATION)) ||
+        GetSystemBarEffect()) {
         params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)]++;
     }
     if (GetEffectProperties().IsBackgroundMaterialFilterValid()) {
