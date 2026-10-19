@@ -963,6 +963,8 @@ void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
     auto& nodeMap = context.GetMutableNodeMap();
     MemoryTrack::Instance().RemovePidRecord(remotePid);
     tunnelLayerManager_->ClearRuntimeStateByPid(remotePid);
+    lastDrawOpReportTimeMap_.erase(remotePid);
+    lastCommandReportTimeMap_.erase(remotePid);
 
     RS_PROFILER_KILL_PID(remotePid);
     nodeMap.FilterNodeByPid(remotePid);
