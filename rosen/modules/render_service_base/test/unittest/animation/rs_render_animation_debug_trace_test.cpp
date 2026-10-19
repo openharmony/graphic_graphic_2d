@@ -178,8 +178,9 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, ParseRenderPropertyValue001, TestSize.
 {
     float val = 1.0f;
     auto floatProperty = std::make_shared<RSRenderAnimatableProperty<float>>(val);
-    EXPECT_EQ(
-        RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(floatProperty), "float:" + std::to_string(val));
+    std::ostringstream expectedOss;
+    expectedOss << "float:" << val;
+    EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(floatProperty), expectedOss.str());
     auto red = RgbPalette::Red();
     auto colorProperty = std::make_shared<RSRenderAnimatableProperty<Color>>(red);
     std::string colorString;

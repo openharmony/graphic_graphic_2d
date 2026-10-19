@@ -305,13 +305,16 @@ HWTEST_F(RSRenderCurveAnimationTest, InitValueEstimatorTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderCurveAnimationTest, InitValueEstimatorTest002, TestSize.Level1)
 {
-    RSRenderCurveAnimation renderCurveAnimation;
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, PROPERTY_ID);
 
-    renderCurveAnimation.AttachRenderProperty(property);
-    renderCurveAnimation.InitValueEstimator();
-    EXPECT_TRUE(renderCurveAnimation.valueEstimator_ != nullptr);
+    auto renderCurveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, startValue, endValue);
+    ASSERT_NE(renderCurveAnimation, nullptr);
+    renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->InitValueEstimator();
+    EXPECT_TRUE(renderCurveAnimation->valueEstimator_ != nullptr);
 }
 
 /**
@@ -818,6 +821,7 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach004, TestSize.Level1)
         std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     ASSERT_NE(renderCurveAnimation, nullptr);
     renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->property_ = property;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
     std::string nodeName = "1"; // for test
     renderNode->SetNodeName(nodeName);
@@ -854,6 +858,7 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach005, TestSize.Level1)
         std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     ASSERT_NE(renderCurveAnimation, nullptr);
     renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->property_ = property;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
     std::string nodeName = "1"; // for test
     renderNode->SetNodeName(nodeName);
@@ -917,6 +922,7 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach007, TestSize.Level1)
         std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     ASSERT_NE(renderCurveAnimation, nullptr);
     renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->property_ = property;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
     renderCurveAnimation->Attach(renderNode.get());
     // Make animationManager_ non-null by adding an animation to the node
@@ -944,6 +950,7 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach008, TestSize.Level1)
         std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     ASSERT_NE(renderCurveAnimation, nullptr);
     renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->property_ = property;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
     renderCurveAnimation->Attach(renderNode.get());
     // Make animationManager_ non-null by adding animations to the node
@@ -975,6 +982,7 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach009, TestSize.Level1)
         std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     ASSERT_NE(renderCurveAnimation, nullptr);
     renderCurveAnimation->AttachRenderProperty(property);
+    renderCurveAnimation->property_ = property;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
     renderCurveAnimation->Attach(renderNode.get());
     // Make animationManager_ non-null by adding the animation to the node
