@@ -12083,7 +12083,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode005, TestSize.Level2)
     RSTestUtil::UnregisterConsumerListener();
 }
 
-/**
+/*
  * @tc.name: UpdateSurfaceDirtyAndGlobalDirty005
  * @tc.desc: Test while app window node skip in calculate global dirty
  * @tc.type: FUNC
