@@ -54,6 +54,8 @@ public:
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
+    void DrawSDFShadow(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        Drawing::Path& path, const Color& shadowColor, bool sdfFilled) const;
     bool needSync_ = false;
     bool isFilled_ = false;
     bool stagingIsFilled_ = false;
@@ -77,6 +79,10 @@ private:
     std::unique_ptr<Drawing::Rect> stagingSdfTransformRect_;
     std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
+    int clipType_ = 0;
+    int stagingClipType_ = 0;
+    RRect rRect_;
+    RRect stagingRRect_;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {

@@ -161,10 +161,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
     Drawing::Canvas canvasTest1;
     Drawing::Path pathTest1;
     Color spotColor;
-    rsPropertyDrawableUtils->DrawShadow(&canvasTest1, pathTest1, 1.0f, 1.0f, 1.0f, false, spotColor);
+    rsPropertyDrawableUtils->DrawShadow(&canvasTest1, pathTest1, 1.0f, 1.0f, 1.0f, false, spotColor, false, RRect());
     Drawing::Canvas canvasTest2;
     Drawing::Path pathTest2;
-    rsPropertyDrawableUtils->DrawShadow(&canvasTest2, pathTest2, 1.0f, 1.0f, 1.0f, true, spotColor);
+    rsPropertyDrawableUtils->DrawShadow(&canvasTest2, pathTest2, 1.0f, 1.0f, 1.0f, true, spotColor, false, RRect());
 }
 
 /**
@@ -564,7 +564,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, tes
     Drawing::Canvas canvasTest1;
     Drawing::Path path;
     Color spotColor;
-    rsPropertyDrawableUtilsTest1->DrawShadow(&canvasTest1, path, 1.0f, 1.0f, 1.0f, true, spotColor);
+    rsPropertyDrawableUtilsTest1->DrawShadow(&canvasTest1, path, 1.0f, 1.0f, 1.0f, true, spotColor, false, RRect());
     EXPECT_EQ(spotColor.GetAlpha(), 0);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
@@ -721,7 +721,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Path path;
     path.AddRect({ 0, 0, 5, 5 });
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(
-        &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+        &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false, false, RRect());
     ASSERT_TRUE(true);
 }
 
@@ -738,7 +738,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterNullCanvasTest, testin
     path.AddRect({ 0, 0, 5, 5 });
     const auto bounds = path.GetBounds();
 
-    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false, false, RRect());
     EXPECT_EQ(path.GetBounds(), bounds);
 }
 
@@ -756,7 +756,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest020, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 0.f, false,
-        Color(255, 0, 0, 255), false);
+        Color(255, 0, 0, 255), false, false, RRect());
     ASSERT_TRUE(true);
 }
 
@@ -774,7 +774,49 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest021, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, -1.f, false,
-        Color(255, 255, 255, 255), false);
+        Color(255, 0, 0, 255), false, false, RRect());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowUseBoundsClipTest
+ * @tc.desc: DrawShadow with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowUseBoundsClipTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    RectT<float> rect(0.0f, 0.0f, 100.0f, 100.0f);
+    RRect rrect(rect, 10.0f, 10.0f);
+    // isFilled=false: clip applied via ClipRoundRect
+    utils->DrawShadow(&canvas, path, 5.0f, 5.0f, 10.0f, false, Color(0, 0, 0, 255), true, rrect);
+    // isFilled=true: clip not applied
+    utils->DrawShadow(&canvas, path, 5.0f, 5.0f, 10.0f, true, Color(0, 0, 0, 255), true, rrect);
+    ASSERT_TRUE(true);
+}
+ 
+/**
+ * @tc.name: DrawShadowMaskFilterUseBoundsClipTest
+ * @tc.desc: DrawShadowMaskFilter with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterUseBoundsClipTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    RectT<float> rect(0.0f, 0.0f, 100.0f, 100.0f);
+    RRect rrect(rect, 10.0f, 10.0f);
+    // isFilled=false: clip applied via ClipRoundRect
+    utils->DrawShadowMaskFilter(&canvas, path, 5.f, 5.f, 10.f, false, Color(255, 0, 0, 255), false, true, rrect);
+    // isFilled=true: clip not applied
+    utils->DrawShadowMaskFilter(&canvas, path, 5.f, 5.f, 10.f, true, Color(255, 0, 0, 255), false, true, rrect);
     ASSERT_TRUE(true);
 }
 

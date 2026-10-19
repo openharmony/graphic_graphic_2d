@@ -327,4 +327,45 @@ HWTEST_F(RSShadowTest, TestRSShadow006, TestSize.Level1)
     EXPECT_EQ(shadow.GetRadius(), DEFAULT_SHADOW_RADIUS);
     EXPECT_EQ(shadow.GetRadius(), -1.f);
 }
+
+/**
+ * @tc.name: SetClipTypeTest001
+ * @tc.desc: Verify SetClipType with DEFAULT_SHAPE
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSShadowTest, SetClipTypeTest001, TestSize.Level1)
+{
+    auto rsShadow = std::make_shared<RSShadow>();
+    rsShadow->SetClipType(ClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(rsShadow->GetClipType(), ClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(rsShadow->clipType_, ClipType::DEFAULT_SHAPE);
+}
+ 
+/**
+ * @tc.name: SetClipTypeTest002
+ * @tc.desc: Verify SetClipType with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSShadowTest, SetClipTypeTest002, TestSize.Level1)
+{
+    auto rsShadow = std::make_shared<RSShadow>();
+    rsShadow->SetClipType(ClipType::BOUNDS_SHAPE);
+    EXPECT_EQ(rsShadow->GetClipType(), ClipType::BOUNDS_SHAPE);
+    EXPECT_EQ(rsShadow->clipType_, ClipType::BOUNDS_SHAPE);
+}
+ 
+/**
+ * @tc.name: GetClipTypeTest001
+ * @tc.desc: Verify default clipType_ is DEFAULT_SHAPE on construction
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSShadowTest, GetClipTypeTest001, TestSize.Level1)
+{
+    RSShadow shadow;
+    EXPECT_EQ(shadow.GetClipType(), ClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(shadow.clipType_, ClipType::DEFAULT_SHAPE);
+}
 } // namespace OHOS::Rosen

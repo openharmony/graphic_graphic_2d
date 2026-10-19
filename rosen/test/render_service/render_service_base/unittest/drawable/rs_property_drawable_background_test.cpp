@@ -1349,4 +1349,113 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw004, TestSi
     drawable->OnDraw(&canvas, &rect);
     ASSERT_NE(drawable->clipPath_, nullptr);
 }
+
+/**
+ * @tc.name: RSShadowDrawableClipTypeOnUpdateTest
+ * @tc.desc: Test OnUpdate syncs stagingClipType_ from properties
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateTest, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+ 
+    node.GetMutableRenderProperties().SetShadowColor(Color());
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    node.GetMutableRenderProperties().SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
+ 
+    shadowDrawable->OnUpdate(node);
+    EXPECT_EQ(shadowDrawable->stagingClipType_, static_cast<int>(ClipType::BOUNDS_SHAPE));
+    EXPECT_TRUE(shadowDrawable->needSync_);
+}
+ 
+/**
+ * @tc.name: RSShadowDrawableClipTypeOnSyncTest
+ * @tc.desc: Test OnSync syncs stagingClipType_ to clipType_
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncTest, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    drawable->needSync_ = true;
+    drawable->stagingClipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+    drawable->clipType_ = static_cast<int>(ClipType::DEFAULT_SHAPE);
+ 
+    drawable->OnSync();
+    EXPECT_EQ(drawable->clipType_, static_cast<int>(ClipType::BOUNDS_SHAPE));
+    EXPECT_FALSE(drawable->needSync_);
+}
+ 
+/**
+ * @tc.name: RSShadowDrawableClipTypeOnDrawTest
+ * @tc.desc: Test OnDraw with various clipType_, isFilled_, and shadow path combinations
+ * @tc.type: FUNC
+ * @tc.require: SR20260812035796
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestSize.Level1)
+{
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0.0f, 0.0f, 100.0f, 100.0f);
+ 
+    // BOUNDS_SHAPE + isFilled=false + elevation (DrawShadow path, useBoundsClip=true)
+    {
+        auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+        drawable->elevation_ = 1.0f;
+        drawable->radius_ = 0.f;
+        drawable->offsetX_ = 5.f;
+        drawable->offsetY_ = 5.f;
+        drawable->color_ = Color(0, 0, 0, 255);
+        drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+        drawable->isFilled_ = false;
+        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->OnDraw(filterCanvas.get(), rect.get());
+    }
+ 
+    // DEFAULT_SHAPE + isFilled=false + elevation (DrawShadow path, useBoundsClip=false)
+    {
+        auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+        drawable->elevation_ = 1.0f;
+        drawable->radius_ = 0.f;
+        drawable->offsetX_ = 5.f;
+        drawable->offsetY_ = 5.f;
+        drawable->color_ = Color(0, 0, 0, 255);
+        drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+        drawable->isFilled_ = false;
+        drawable->clipType_ = static_cast<int>(ClipType::DEFAULT_SHAPE);
+        drawable->OnDraw(filterCanvas.get(), rect.get());
+    }
+ 
+    // BOUNDS_SHAPE + isFilled=true (useBoundsClip=false, clip not applied)
+    {
+        auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+        drawable->elevation_ = 0.f;
+        drawable->radius_ = 1.0f;
+        drawable->offsetX_ = 5.f;
+        drawable->offsetY_ = 5.f;
+        drawable->color_ = Color(0, 0, 0, 255);
+        drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+        drawable->isFilled_ = true;
+        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->OnDraw(filterCanvas.get(), rect.get());
+    }
+ 
+    // BOUNDS_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path)
+    {
+        auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+        drawable->elevation_ = 0.f;
+        drawable->radius_ = 10.0f;
+        drawable->offsetX_ = 5.f;
+        drawable->offsetY_ = 5.f;
+        drawable->color_ = Color(0, 0, 0, 255);
+        drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+        drawable->isFilled_ = false;
+        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->OnDraw(filterCanvas.get(), rect.get());
+    }
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::Rosen

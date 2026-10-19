@@ -1451,7 +1451,8 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 }
 
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
+    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor
+    const bool& useBoundsClip, const RRect& rRect_)
 {
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadow, ShadowElevation: %f, ShadowOffsetX: "
@@ -1459,7 +1460,12 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
         elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
     if (!isFilled) {
-        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (useBoundsClip) {
+            canvas->ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rRect_),
+                Drawing::ClipOp::DIFFERENCE, true);
+        } else {
+            canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     }
     path.Offset(offsetX, offsetY);
     Drawing::Point3 planeParams = {0.0f, 0.0f, elevation};
@@ -1475,7 +1481,8 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 }
 
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur)
+    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur,
+    const bool& useBoundsClip, const RRect& rRect_)
 {
     if (UNLIKELY(canvas == nullptr)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawShadowMaskFilter canvas is null");
@@ -1487,7 +1494,12 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
         radius, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
     if (!isFilled) {
-        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (useBoundsClip) {
+            canvas->ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rRect_),
+                Drawing::ClipOp::DIFFERENCE, true);
+        } else {
+            canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     }
     path.Offset(offsetX, offsetY);
     Drawing::Brush brush;

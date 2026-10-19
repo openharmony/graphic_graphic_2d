@@ -2483,6 +2483,19 @@ bool RSProperties::GetShadowDisableSDFBlur() const
     return GetEffectProperties().GetShadowDisableSDFBlur();
 }
 
+void RSProperties::SetShadowClipType(int clipType)
+{
+    GetEffectProperties().SetShadowClipType(static_cast<ClipType>(clipType));
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+int RSProperties::GetShadowClipType() const
+{
+    const auto& shadow = GetShadow();
+    return shadow ? shadow->GetClipType() : static_cast<int>(ClipType::DEFAULT_SHAPE);
+}
+
 const Color& RSProperties::GetShadowColor() const
 {
     return GetEffectProperties().GetShadowColor();
@@ -4470,6 +4483,14 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetShadowIsFilled(), false) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowIsFilled[%d]", GetShadowIsFilled()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowClipType, ret=" + std::to_string(ret);
+    }
+    if (sprintf_s(buffer, UINT8_MAX, ", ShadowClipType[%d]", GetShadowClipType()) != -1) {
         dumpInfo.append(buffer);
     }
 

@@ -91,6 +91,13 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
     modifier->SetUseShadowBatching(true);
     EXPECT_EQ(modifier->GetUseShadowBatching(), true);
 
+    EXPECT_EQ(modifier->GetClipType(), static_cast<int>(ClipType::DEFAULT_SHAPE));
+    modifier->SetClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(modifier->GetClipType(), static_cast<int>(ClipType::BOUNDS_SHAPE));
+
+    modifier->SetClipType(static_cast<int>(ClipType::DEFAULT_SHAPE));
+    EXPECT_EQ(modifier->GetClipType(), static_cast<int>(ClipType::DEFAULT_SHAPE));
+
     //Shadow alpha combine test
     std::shared_ptr<ModifierNG::RSShadowModifier> modifierCom = std::make_shared<ModifierNG::RSShadowModifier>();
     modifierCom->SetShadowAlpha(0.5f);
