@@ -1503,7 +1503,7 @@ HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect001, TestSize.Level1)
     EXPECT_NE(filter, nullptr);
 }
 
-HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR002, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
     EXPECT_FALSE(RSNGRenderFilterHelper::CheckEnableEDR(nullFilter));
