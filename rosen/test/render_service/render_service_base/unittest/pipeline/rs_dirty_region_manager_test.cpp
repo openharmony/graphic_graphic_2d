@@ -1631,7 +1631,6 @@ HWTEST_F(RSDirtyRegionManagerTest, ScaleSyncedFilterRegions, TestSize.Level1)
     ASSERT_EQ(filterList.front().filterDirty_.GetBound().ToRectI(), scaledRect);
 }
 
-
 /**
  * @tc.name: MergeUifirstDirtyRect001
  * @tc.desc: Test MergeUifirstDirtyRect with empty rect

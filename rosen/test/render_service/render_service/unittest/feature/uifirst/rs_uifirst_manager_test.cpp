@@ -2328,7 +2328,7 @@ HWTEST_F(RSUifirstManagerTest, IsNodeInSubthreadProcessingTest, TestSize.Level1)
 
 /**
  * @tc.name: UifirstCacheUpdated004
- * @tc.desc: Test UifirstCacheUpdated
+ * @tc.desc: Test UifirstCacheUpdated when node is app window with parent leash
  * @tc.type: FUNC
  * @tc.require: issueI9NVOG
  */
