@@ -788,6 +788,15 @@ void RSClientToServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
     hgmContext_->SetRefreshRateMode(refreshRateMode);
 }
 
+void RSClientToServiceConnection::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    if (vsyncManagerAgent_ == nullptr) {
+        RS_LOGD("%{public}s vsyncManagerAgent is nullptr", __func__);
+        return;
+    }
+    vsyncManagerAgent_->SetThermalFrameRateLimit(frameRate);
+}
+
 void RSClientToServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
     const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {

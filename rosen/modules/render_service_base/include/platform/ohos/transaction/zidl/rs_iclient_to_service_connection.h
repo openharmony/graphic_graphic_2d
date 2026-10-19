@@ -160,6 +160,8 @@ public:
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
 
+    virtual void SetThermalFrameRateLimit(uint32_t frameRate) = 0;
+
     virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) = 0;
 

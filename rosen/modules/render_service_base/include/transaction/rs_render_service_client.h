@@ -188,6 +188,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
+    void SetThermalFrameRateLimit(uint32_t frameRate);
+
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate);
 

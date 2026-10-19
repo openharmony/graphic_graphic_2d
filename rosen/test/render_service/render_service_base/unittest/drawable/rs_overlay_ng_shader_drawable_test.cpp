@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_overlay_ng_shader_drawable.h"
+#include "drawable/rs_shader_drawable.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_image_cache_provider.h"
@@ -186,7 +186,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest002, TestSize.Level1)
 
 /**
  * @tc.name: OnSyncTest003
- * @tc.desc: OnSync without sync flag still updates corner radius
+ * @tc.desc: OnSync without sync flag publishes nothing
  * @tc.type: FUNC
  * @tc.require:issueI9SCBR
  */
@@ -195,15 +195,19 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest003, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> overlayDrawable =
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(overlayDrawable, nullptr);
-    
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    overlayDrawable->stagingShader_ = shader;
     overlayDrawable->stagingCornerRadius_ = 10.0f;
     overlayDrawable->stagingNodeId_ = 12345;
     overlayDrawable->needSync_ = false;
-    
+
     overlayDrawable->OnSync();
-    
-    EXPECT_EQ(overlayDrawable->cornerRadius_, 10.0f);
-    EXPECT_EQ(overlayDrawable->nodeId_, 12345);
+
+    // No sync request: the whole staging snapshot stays unpublished.
+    EXPECT_EQ(overlayDrawable->cornerRadius_, 0.0f);
+    EXPECT_EQ(overlayDrawable->nodeId_, INVALID_NODEID);
+    EXPECT_FALSE(overlayDrawable->needSync_);
 }
 
 /**
@@ -217,19 +221,20 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest004, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> overlayDrawable =
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(overlayDrawable, nullptr);
-    
+
     overlayDrawable->needSync_ = true;
     overlayDrawable->stagingShader_ = nullptr;  // Key: shader is null
     overlayDrawable->stagingCornerRadius_ = 5.0f;
     overlayDrawable->stagingNodeId_ = 123;
-    
+
     overlayDrawable->OnSync();
-    
-    // Should NOT create visualEffectContainer when shader is null
+
+    // No staged shader means the base sync is skipped entirely: no container rebuild and no
+    // member publishing, needSync_ is kept.
     EXPECT_EQ(overlayDrawable->visualEffectContainer_, nullptr);
-    // But still updates cornerRadius and nodeId
-    EXPECT_EQ(overlayDrawable->cornerRadius_, 5.0f);
-    EXPECT_EQ(overlayDrawable->nodeId_, 123);
+    EXPECT_EQ(overlayDrawable->cornerRadius_, 0.0f);
+    EXPECT_EQ(overlayDrawable->nodeId_, INVALID_NODEID);
+    EXPECT_TRUE(overlayDrawable->needSync_);
 }
 
 /**
@@ -250,10 +255,10 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest005, TestSize.Level1)
     overlayDrawable->stagingCornerRadius_ = 8.0f;
     
     overlayDrawable->OnSync();
-    
+
     // Should NOT create visualEffectContainer when needSync is false
     EXPECT_EQ(overlayDrawable->visualEffectContainer_, nullptr);
-    EXPECT_EQ(overlayDrawable->cornerRadius_, 8.0f);
+    EXPECT_EQ(overlayDrawable->cornerRadius_, 0.0f);
 }
 
 /**

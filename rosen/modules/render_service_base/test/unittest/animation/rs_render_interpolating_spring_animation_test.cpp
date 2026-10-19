@@ -1545,6 +1545,8 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, IsConvergeCloseToTarget001, T
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto anim = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Critical damping (>=1.0) takes the displacement-proximity path.
+    anim->SetSpringParameters(1.0f, 1.0f, 0.0f);
     anim->endThreshold_ = 0.01f;
 
     // displacement 0.999 -> |0.999-1|=0.001 <= 0.01 -> true
@@ -1565,11 +1567,13 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, IsConvergeEnd001, TestSize.Le
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto anim = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    anim->SetSpringParameters(1.0f, 0.5f, 0.0f); // underdamped -> WillOverShoot=false
+    // Critical damping (>=1.0) takes the displacement-proximity path; zero initial velocity
+    // means WillOverShoot=false, so IsConvergeEnd is gated by proximity alone.
+    anim->SetSpringParameters(1.0f, 1.0f, 0.0f);
     anim->OnInitialize(0);
     anim->endThreshold_ = 0.01f;
 
-    // underdamped: WillOverShoot=false, displacement close to 1 -> true
+    // displacement close to 1 -> true
     EXPECT_TRUE(anim->IsConvergeEnd(0.999f));
     // displacement far from 1 -> false
     EXPECT_FALSE(anim->IsConvergeEnd(0.5f));
@@ -1741,7 +1745,9 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CheckConvergeStatus003, TestS
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto anim = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    anim->SetSpringParameters(1.0f, 0.5f, 0.0f); // underdamped → WillOverShoot=false
+    // Critical damping (>=1.0) takes the displacement-proximity path; zero initial velocity
+    // means WillOverShoot=false, so IsConvergeEnd is gated by proximity alone.
+    anim->SetSpringParameters(1.0f, 1.0f, 0.0f);
     anim->OnInitialize(0);
     anim->isConverging_ = true;
     anim->endThreshold_ = 0.5f; // |0.8-1.0|=0.2 <= 0.5 → IsConvergeCloseToTarget true

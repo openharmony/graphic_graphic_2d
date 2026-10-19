@@ -133,6 +133,60 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_Enum_BlendType_Success, TestSiz
 }
 
 /**
+ * Function: Marshall_Unmarshall_AlphaType_AllEnums_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. build AlphaType command for each GraphicAlphaType enum value
+ *                  2. marshal and unmarshal round-trip
+ *                  3. verify cmd type is ALPHA_TYPE and property value matches
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_AlphaType_AllEnums_Success, TestSize.Level1)
+{
+    const std::vector<GraphicAlphaType> alphaTypes = {
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL,
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL,
+    };
+    for (auto expected : alphaTypes) {
+        auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicAlphaType>>(expected);
+        auto cmd = std::make_shared<RSRenderLayerAlphaTypeCmd>(prop);
+
+        MessageParcel parcel;
+        ASSERT_TRUE(cmd->Marshalling(parcel));
+        EXPECT_EQ(cmd->GetRSRenderLayerCmdType(), RSLayerCmdType::ALPHA_TYPE);
+        EXPECT_NE(cmd->GetRSRenderLayerProperty(), nullptr);
+
+        auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+        ASSERT_NE(out, nullptr);
+        EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::ALPHA_TYPE);
+
+        auto outProp =
+            std::static_pointer_cast<RSRenderLayerCmdProperty<GraphicAlphaType>>(out->GetRSRenderLayerProperty());
+        ASSERT_NE(outProp, nullptr);
+        EXPECT_EQ(outProp->Get(), expected);
+    }
+}
+
+/**
+ * Function: AlphaType_GetRSRenderLayerProperty_ReturnsProperty
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. build AlphaType command with a known property
+ *                  2. call GetRSRenderLayerProperty
+ *                  3. verify returned pointer is the same property passed in
+ */
+HWTEST(RSRenderLayerCmdTest, AlphaType_GetRSRenderLayerProperty_ReturnsProperty, TestSize.Level1)
+{
+    auto prop =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicAlphaType>>(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    auto cmd = std::make_shared<RSRenderLayerAlphaTypeCmd>(prop);
+    EXPECT_EQ(cmd->GetRSRenderLayerProperty(), prop);
+}
+
+/**
  * Function: Marshall_Unmarshall_Struct_Rect_Success
  * Type: Function
  * Rank: Important(2)
@@ -1429,6 +1483,21 @@ HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_PreMulti_PayloadMissing, TestSize.L
 }
 
 /**
+ * Function: Unmarshall_Fail_AlphaType_PayloadMissing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Write type only for AlphaType; expect Unmarshalling returns nullptr.
+ */
+HWTEST(RSRenderLayerCmdTest, Unmarshall_Fail_AlphaType_PayloadMissing, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::ALPHA_TYPE)));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
  * Function: Unmarshall_Fail_UniRenderFlag_PayloadMissing
  * Type: Function
  * Rank: Important(2)
@@ -2103,6 +2172,23 @@ HWTEST(RSRenderLayerCmdTest, Marshall_CompositionType_Fail, TestSize.Level1)
     auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicCompositionType>>(
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     auto cmd = std::make_shared<RSRenderLayerCompositionTypeCmd>(prop);
+    MessageParcel parcel;
+    cmd->rsRenderLayerProperty_ = nullptr;
+    ASSERT_FALSE(cmd->Marshalling(parcel));
+}
+
+/**
+ * Function: Marshall_AlphaType_Fail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: AlphaType command with null property; expect Marshalling returns false.
+ */
+HWTEST(RSRenderLayerCmdTest, Marshall_AlphaType_Fail, TestSize.Level1)
+{
+    auto prop =
+        std::make_shared<RSRenderLayerCmdProperty<GraphicAlphaType>>(GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+    auto cmd = std::make_shared<RSRenderLayerAlphaTypeCmd>(prop);
     MessageParcel parcel;
     cmd->rsRenderLayerProperty_ = nullptr;
     ASSERT_FALSE(cmd->Marshalling(parcel));

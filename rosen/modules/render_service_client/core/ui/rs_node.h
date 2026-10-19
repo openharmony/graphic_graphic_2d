@@ -2576,6 +2576,7 @@ private:
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitAnimator;
     friend class RSCurveAnimation;
+    friend class RSAtlasInfoAnimation;
     friend class RSParticleAnimation;
     friend class RSAnimation;
     template<typename T>

@@ -215,7 +215,9 @@ HWTEST_F(RSRenderConnectParcelInfoTest, ReplyToRenderInfoUnmarshalling005, TestS
     ASSERT_TRUE(parcel.WriteUint32(invalidMapSize));
 
     auto* result = ReplyToRenderInfo::Unmarshalling(parcel);
-    EXPECT_EQ(result, nullptr);
+    // persistenceData unmarshalling fails but ReplyToRenderInfo falls back to empty map
+    ASSERT_NE(result, nullptr);
+    delete result;
 }
 
 /**

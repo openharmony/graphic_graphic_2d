@@ -109,6 +109,7 @@ bool RSRenderInterface::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
+    captureConfig.windowSync = true;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     PrepareSyncCaptureIfNeeded(node, captureConfig);
 #endif // RS_MODIFIERS_DRAW_ENABLE

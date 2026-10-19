@@ -183,6 +183,9 @@ public:
     void ForceRsDVsync(const std::string& sceneId);
     bool DvsyncNeedSkipRsCommitDelay() const;
 
+    // set thermal frame rate limit, 0 means no limit
+    void SetThermalFrameRateLimit(uint32_t frameRate);
+
     // used by VRate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
@@ -281,6 +284,11 @@ private:
     bool dvsyncControllerEnabled_ = false;
     std::map<pid_t, std::vector<sptr<VSyncConnection>>> unalliedWindowConnectionsMap_;
     // End of DVSync
+    
+    // set thermal frame rate limit
+    uint32_t thermalRateLimit_ = 0;
+    int64_t lastThermalTrigTime_ = 0;
+    std::mutex thermalLimitMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS

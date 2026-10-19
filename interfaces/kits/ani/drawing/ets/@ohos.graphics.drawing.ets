@@ -540,7 +540,7 @@ namespace drawing {
    * Describes a list of recorded drawing commands.
    * @syscap SystemCapability.Graphics.Drawing
    * @stagemodelonly
-   * @since 26.1.0 dynamic&static
+   * @since 26.0.1 static
    */
   export class RecordCmd {
     static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
@@ -567,7 +567,7 @@ namespace drawing {
     /**
      * Constructor for the RecordCmd.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 26.1.0
+     * @since 26.0.1
      */
     native constructorNative(): void;
 
@@ -580,7 +580,7 @@ namespace drawing {
    * This class offers a set of operations to generate drawing commands.
    * @syscap SystemCapability.Graphics.Drawing
    * @stagemodelonly
-   * @since 26.1.0 dynamic&static
+   * @since 26.0.1 static
    */
   export class RecordCmdUtils {
     static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
@@ -607,7 +607,7 @@ namespace drawing {
     /**
      * Constructor for the RecordCmdUtils.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 26.1.0
+     * @since 26.0.1
      */
     native constructorNative(): void;
 
@@ -629,7 +629,7 @@ namespace drawing {
      * @returns { Canvas | undefined } Returns the canvas that records the drawing commands.
      * @syscap SystemCapability.Graphics.Drawing
      * @stagemodelonly
-     * @since 26.1.0 static
+     * @since 26.0.1 static
      */
     native beginRecording(width: int, height: int): Canvas | undefined;
 
@@ -639,7 +639,7 @@ namespace drawing {
      * @returns { RecordCmd | undefined } Returns the recorded drawing commands.
      * @syscap SystemCapability.Graphics.Drawing
      * @stagemodelonly
-     * @since 26.1.0 static
+     * @since 26.0.1 static
      */
     native finishRecording(): RecordCmd | undefined;
 
@@ -648,7 +648,7 @@ namespace drawing {
      * @returns { int } Returns the height of recording canvas.
      * @syscap SystemCapability.Graphics.Drawing
      * @stagemodelonly
-     * @since 26.1.0 dynamic&static
+     * @since 26.0.1 static
      */
     native getHeight(): int;
 
@@ -657,7 +657,7 @@ namespace drawing {
      * @returns { int } Returns the width of recording canvas.
      * @syscap SystemCapability.Graphics.Drawing
      * @stagemodelonly
-     * @since 26.1.0 dynamic&static
+     * @since 26.0.1 static
      */
     native getWidth(): int;
   }
@@ -1457,7 +1457,7 @@ namespace drawing {
      * @param { RecordCmd } recordCmd - Recorded drawing command.
      * @syscap SystemCapability.Graphics.Drawing
      * @stagemodelonly
-     * @since 26.1.0
+     * @since 26.0.1
      */
     native drawRecordCmd(recordCmd: RecordCmd): void;
   }

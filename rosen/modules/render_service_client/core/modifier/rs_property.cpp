@@ -706,6 +706,12 @@ void RSProperty<DepthLightPara>::UpdateToRender(const DepthLightPara& value, Pro
 }
 
 template<>
+void RSProperty<AtlasInfo>::UpdateToRender(const AtlasInfo& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyAtlasInfo, value, type);
+}
+
+template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {

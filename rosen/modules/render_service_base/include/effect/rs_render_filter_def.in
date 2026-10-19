@@ -289,3 +289,8 @@ DECLARE_FILTER(MotionBlur, MOTION_BLUR,
     ADD_PROPERTY_TAG(MotionBlur, Anchor),
     ADD_PROPERTY_TAG(MotionBlur, SampleCount)
 );
+
+DECLARE_FILTER(MapColorByBrightness, MAP_COLOR_BY_BRIGHTNESS,
+    ADD_PROPERTY_TAG(MapColorByBrightness, Colors),
+    ADD_PROPERTY_TAG(MapColorByBrightness, Positions)
+);

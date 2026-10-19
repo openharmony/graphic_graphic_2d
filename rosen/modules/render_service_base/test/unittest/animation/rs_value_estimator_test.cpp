@@ -894,25 +894,25 @@ HWTEST_F(RSValueEstimatorTest, GetInitialOffset002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetLastFrameThreshold001
- * @tc.desc: Verify GetLastFrameThreshold returns nullptr when springModel_ is null
+ * @tc.name: GetFrameThreshold001
+ * @tc.desc: Verify GetFrameThreshold returns nullptr when springModel_ is null
  * @tc.type:FUNC
  */
-HWTEST_F(RSValueEstimatorTest, GetLastFrameThreshold001, TestSize.Level1)
+HWTEST_F(RSValueEstimatorTest, GetFrameThreshold001, TestSize.Level1)
 {
     auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
     // Constructor calls InitSpringModel() which creates springModel_.
     // Explicitly null it to test the !springModel_ guard branch.
     estimator->springModel_ = nullptr;
-    EXPECT_EQ(estimator->GetLastFrameThreshold(), nullptr);
+    EXPECT_EQ(estimator->GetFrameThreshold(0.0f), nullptr);
 }
 
 /**
- * @tc.name: GetLastFrameThreshold002
- * @tc.desc: Verify GetLastFrameThreshold returns valid property when springModel_ exists
+ * @tc.name: GetFrameThreshold002
+ * @tc.desc: Verify GetFrameThreshold returns valid property when springModel_ exists
  * @tc.type:FUNC
  */
-HWTEST_F(RSValueEstimatorTest, GetLastFrameThreshold002, TestSize.Level1)
+HWTEST_F(RSValueEstimatorTest, GetFrameThreshold002, TestSize.Level1)
 {
     auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
@@ -924,7 +924,7 @@ HWTEST_F(RSValueEstimatorTest, GetLastFrameThreshold002, TestSize.Level1)
     estimator->SetDampingRatio(0.5f);
     estimator->InitSpringModel();
     ASSERT_NE(estimator->springModel_, nullptr);
-    auto result = estimator->GetLastFrameThreshold();
+    auto result = estimator->GetFrameThreshold(1.0f);
     EXPECT_NE(result, nullptr);
 }
 

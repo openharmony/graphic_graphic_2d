@@ -39,6 +39,7 @@ public:
         BINOCULAR_MASK,
         SWEEP_REFRACTION_MASK,
         WARPED_RING_MASK,
+        ATLAS_FRAME_MASK,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;

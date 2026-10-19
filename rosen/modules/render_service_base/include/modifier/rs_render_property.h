@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "common/rs_atlas_info.h"
 #include "animation/rs_spring_model.h"
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
@@ -131,6 +132,7 @@ enum class RSPropertyType : uint8_t {
     DEPTH_LIGHT_PARA,
     PARTICLE_FIELDS,
     SIMPLE_DRAW_CMD_LIST,
+    ATLAS_INFO,
 };
 
 enum class RSPropertyUnit : uint8_t {
@@ -657,6 +659,8 @@ template<>
 float RSRenderAnimatableProperty<Vector3f>::ToFloat() const;
 template<>
 float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
+template<>
+float RSRenderAnimatableProperty<AtlasInfo>::ToFloat() const;
 
 template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -684,6 +688,9 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
 bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 
 template<>
@@ -713,6 +720,9 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsAbsNearEqual(
 template<>
 bool RSRenderAnimatableProperty<RRect>::IsAbsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
 
 template<>
 void RSRenderAnimatableProperty<float>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
@@ -732,6 +742,8 @@ template<>
 void RSRenderAnimatableProperty<Vector4<Color>>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
 template<>
 void RSRenderAnimatableProperty<RRect>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<AtlasInfo>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
 
 template<>
 bool RSRenderAnimatableProperty<float>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
@@ -760,6 +772,9 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsReachProgress(const std::shar
 template<>
 bool RSRenderAnimatableProperty<RRect>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
     const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
 
 template<>
 size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
@@ -776,6 +791,8 @@ template<>
 size_t RSRenderProperty<SimpleDrawCmdListPtr>::GetSize() const;
 template<>
 void RSRenderProperty<SimpleDrawCmdListPtr>::Dump(std::string& out) const;
+template<>
+void RSRenderProperty<AtlasInfo>::Dump(std::string& out) const;
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);

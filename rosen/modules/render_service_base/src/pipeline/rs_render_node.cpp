@@ -1157,10 +1157,11 @@ void RSRenderNode::ResetParent()
 {
     if (auto parentNode = parent_.lock()) {
         parentNode->hasRemovedChild_ = true;
-        auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-        if (geoPtr != nullptr) {
-            parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
-                geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
+        if (!RecordHardCursorOffTreeRegion()) {
+            if (auto geoPtr = GetRenderProperties().GetBoundsGeometry()) {
+                parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
+                    geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
+            }
         }
         ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE) ||
             GetNeedUseCmdlistDrawRegion())
@@ -1172,6 +1173,26 @@ void RSRenderNode::ResetParent()
     ShowSetIsOnetheTreeCntIfNeed(__func__, GetId(), GetNodeName());
     parent_.reset();
     OnResetParent();
+}
+
+bool RSRenderNode::RecordHardCursorOffTreeRegion()
+{
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr || !surfaceNode->GetHardCursorStatus()) {
+        return false;
+    }
+    auto ancestor = surfaceNode->GetAncestorScreenNode().lock();
+    if (ancestor == nullptr) {
+        return false;
+    }
+    auto screenNode = ancestor->ReinterpretCastTo<RSScreenRenderNode>();
+    if (screenNode == nullptr) {
+        return false;
+    }
+    // Record only HWC dirty region for hard cursor off tree, so that removing the hard cursor does
+    // not join its rect into the parent's removedChildrenRect_ and trigger a global dirty region.
+    screenNode->AddOffTreeHwcRegion(surfaceNode->GetSurfaceNodeType(), surfaceNode->GetOldDirty());
+    return true;
 }
 
 void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
@@ -2772,7 +2793,6 @@ bool RSRenderNode::IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFi
     return filterDrawable->IsForceUseFilterCache() || filterDrawable->IsForceClearFilterCache();
 }
 #endif
-
 void RSRenderNode::MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     bool isForeground, bool isFilterRegionChanged)
 {
@@ -2938,50 +2958,6 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 #endif
 }
 
-#ifdef RS_ENABLE_GPU
-void RSRenderNode::CheckRegionInsideForFilterCache(
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (filterDrawable == nullptr) {
-        return;
-    }
-    const auto& properties = GetRenderProperties();
-    auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-    auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-    bool regionChanged = ((!snapshotRegion.IsInsideOf(lastSnapshotRegion)) ||
-        (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
-        !IsForceClearOrUseFilterCache(filterDrawable);
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
-        " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
-        snapshotRegion.ToString().c_str());
-    if (regionChanged) {
-        MarkFilterStatusChanged(filterDrawable, false, true);
-    }
-#endif
-}
-
-void RSRenderNode::CheckRegionChangeForFilterCache(
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable, bool isForeground)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (filterDrawable == nullptr) {
-        return;
-    }
-    auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-    auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-    bool regionChanged = (snapshotRegion != lastSnapshotRegion || GetRenderProperties().IsCurGeoDirty()) &&
-        !IsForceClearOrUseFilterCache(filterDrawable);
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty"
-        " lastRect:%s, currRegion:%s, geoDirty:%d", GetId(), lastSnapshotRegion.ToString().c_str(),
-        snapshotRegion.ToString().c_str(), GetRenderProperties().IsCurGeoDirty());
-    if (regionChanged) {
-        MarkFilterStatusChanged(filterDrawable, isForeground, true);
-    }
-#endif
-}
-#endif
-
 void RSRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -2990,9 +2966,9 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
         return;
     }
 
-    CheckRegionChangeForFilterCache(GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER), false);
-    CheckRegionInsideForFilterCache(GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER));
-    CheckRegionChangeForFilterCache(GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER), true);
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER), false);
+    RSEffectUtils::CheckRegionInsideForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER));
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER), true);
 #endif
 }
 
@@ -4786,7 +4762,7 @@ void RSRenderNode::InitRenderParams()
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
 #ifndef ROSEN_ARKUI_X
-        RS_LOGE("RSRenderNode::InitRenderParams failed");
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::InitRenderParams failed, renderDrawable_ is null");
 #endif
         return;
     }

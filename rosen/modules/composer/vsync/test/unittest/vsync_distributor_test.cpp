@@ -2274,6 +2274,201 @@ HWTEST_F(VSyncDistributorTest, ForceRsDVsyncTest001, Function | MediumTest| Leve
     vsyncDistributor->ForceRsDVsync(sceneId);
     ASSERT_EQ(sceneId, "APP_SWIPER_FLING");
 }
+
+/*
+* Function: SetThermalFrameRateLimitTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. set thermal frame rate limit and verify thermalRateLimit_ updated
+*/
+HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest001, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
+}
+ 
+/*
+* Function: SetThermalFrameRateLimitTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. clear thermal limit and verify thermalRateLimit_ reset to 0
+*/
+HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest002, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, THERMAL_LIMIT_30);
+ 
+    vsyncDistributor->SetThermalFrameRateLimit(0);
+    EXPECT_EQ(vsyncDistributor->thermalRateLimit_, 0u);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
+}
+ 
+/*
+* Function: SetThermalFrameRateLimitTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. verify lastThermalTrigTime_ reset to 0 when setting new limit
+*/
+HWTEST_F(VSyncDistributorTest, SetThermalFrameRateLimitTest003, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    constexpr int64_t NOW_TIME_NS = 1000000000;
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+    // simulate a trigger that updates lastThermalTrigTime_
+    vsyncDistributor->lastThermalTrigTime_ = NOW_TIME_NS;
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, NOW_TIME_NS);
+ 
+    // re-set limit should reset lastThermalTrigTime_ to 0
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+    EXPECT_EQ(vsyncDistributor->lastThermalTrigTime_, 0);
+    vsyncDistributor->SetThermalFrameRateLimit(0);
+}
+ 
+/*
+* Function: OnVSyncTriggerThermalLimitTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. first trigger passes when thermal limit 30fps set (lastThermalTrigTime_ == 0)
+*/
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest001, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    constexpr int64_t NOW_TIME_NS = 1000000000; // 1s
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+ 
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "ThermalLimitFirst");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_;
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+ 
+    int64_t countBefore = vsyncDistributor->GetVsyncCount();
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS), true);
+    // first trigger: lastThermalTrigTime_ == 0, should pass
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS, 8333333, 120, VSYNC_MODE_LTPS, 360);
+    int64_t countAfter = vsyncDistributor->GetVsyncCount();
+    EXPECT_EQ(countAfter, countBefore + 1);
+ 
+    conn->requestVsyncTimestamp_.clear();
+    ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+    vsyncDistributor->SetThermalFrameRateLimit(0);
+}
+ 
+/*
+* Function: OnVSyncTriggerThermalLimitTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. trigger within min interval (~33.3ms for 30fps) is dropped
+*/
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest002, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    constexpr int64_t NOW_TIME_NS = 2000000000;     // 2s
+    constexpr int64_t SHORT_DELTA = 10000000;  // 10ms < 33.3ms(30fps interval)
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+ 
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "ThermalLimitDrop");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_;
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+ 
+    // first trigger passes
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS, 8333333, 120, VSYNC_MODE_LTPS, 360);
+    int64_t countAfterFirst = vsyncDistributor->GetVsyncCount();
+ 
+    // second trigger within min interval, should be dropped
+    conn->requestVsyncTimestamp_.clear();
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS + SHORT_DELTA), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS + SHORT_DELTA, 8333333, 120, VSYNC_MODE_LTPS, 360);
+    int64_t countAfterSecond = vsyncDistributor->GetVsyncCount();
+    EXPECT_EQ(countAfterSecond, countAfterFirst); // not increased
+ 
+    conn->requestVsyncTimestamp_.clear();
+    ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+    vsyncDistributor->SetThermalFrameRateLimit(0);
+}
+ 
+/*
+* Function: OnVSyncTriggerThermalLimitTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. trigger after min interval (~33.3ms for 30fps) passes
+*/
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest003, Function | MediumTest| Level3)
+{
+    constexpr uint32_t THERMAL_LIMIT_30 = 30;
+    constexpr int64_t NOW_TIME_NS = 3000000000;      // 3s
+    constexpr int64_t ENOUGH_DELTA = 40000000;  // 40ms > 33.3ms(30fps interval)
+    vsyncDistributor->SetThermalFrameRateLimit(THERMAL_LIMIT_30);
+ 
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "ThermalLimitPass");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_;
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+ 
+    // first trigger passes
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS, 8333333, 120, VSYNC_MODE_LTPS, 360);
+    int64_t countAfterFirst = vsyncDistributor->GetVsyncCount();
+ 
+    // second trigger after min interval, should pass
+    conn->requestVsyncTimestamp_.clear();
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS + ENOUGH_DELTA), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS + ENOUGH_DELTA, 8333333, 120, VSYNC_MODE_LTPS, 360);
+    int64_t countAfterSecond = vsyncDistributor->GetVsyncCount();
+    EXPECT_EQ(countAfterSecond, countAfterFirst + 1);
+ 
+    conn->requestVsyncTimestamp_.clear();
+    ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+    vsyncDistributor->SetThermalFrameRateLimit(0);
+}
+ 
+/*
+* Function: OnVSyncTriggerThermalLimitTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. no thermal limit (0) means all triggers pass
+*/
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerThermalLimitTest004, Function | MediumTest| Level3)
+{
+    constexpr int64_t NOW_TIME_NS = 4000000000;     // 4s
+    constexpr int64_t SHORT_DELTA = 1000000;   // 1ms, very short interval
+    vsyncDistributor->SetThermalFrameRateLimit(0); // no limit
+ 
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "ThermalNoLimit");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_;
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+ 
+    int64_t countBefore = vsyncDistributor->GetVsyncCount();
+ 
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS, 8333333, 120, VSYNC_MODE_LTPS, 360);
+ 
+    conn->requestVsyncTimestamp_.clear();
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(NOW_TIME_NS + SHORT_DELTA), true);
+    vsyncDistributor->OnVSyncTrigger(NOW_TIME_NS + SHORT_DELTA, 8333333, 120, VSYNC_MODE_LTPS, 360);
+ 
+    int64_t countAfter = vsyncDistributor->GetVsyncCount();
+    EXPECT_EQ(countAfter, countBefore + 2); // both passed
+ 
+    conn->requestVsyncTimestamp_.clear();
+    ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

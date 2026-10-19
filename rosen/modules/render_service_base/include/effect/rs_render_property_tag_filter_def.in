@@ -246,3 +246,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Radius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Anchor, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Colors, std::vector<Vector4f>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MapColorByBrightness, Positions, std::vector<float>);

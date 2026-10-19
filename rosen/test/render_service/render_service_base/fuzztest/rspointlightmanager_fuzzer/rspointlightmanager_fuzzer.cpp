@@ -157,7 +157,8 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
     illuminatedGeoPtr->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr, false);
 
-    lightSourcePtr->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    lightSourcePtr->GetMutableRenderProperties().GetEffectProperties().GetShaderEffect().lightSourcePtr_ =
+        std::make_shared<RSLightSource>();
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr, true);
     return true;
 }

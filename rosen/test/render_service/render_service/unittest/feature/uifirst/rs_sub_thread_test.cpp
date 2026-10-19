@@ -43,7 +43,7 @@ void RsSubThreadTest::SetUpTestCase()
 }
 void RsSubThreadTest::TearDownTestCase()
 {
-    sleep(25); // wait 25s ensure asnyc task is excuted.
+    sleep(25); // wait 25s ensure async task is executed.
 }
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
@@ -624,7 +624,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
 
     {
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_TRUE(result.first);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
@@ -639,8 +639,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
         surfaceParams->ancestorScreenDrawable_ = screenDrawable;
 
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
-        EXPECT_TRUE(result.first);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
 
@@ -653,7 +652,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
         surfaceParams->ancestorScreenDrawable_ = screenDrawable;
 
-        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true);
         EXPECT_TRUE(result.first);
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     }
@@ -690,7 +689,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsSuccessWithBrightnessRatio, TestSize.Level
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(2);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
-    auto result = curThread->GetHdrParams(surfaceParams.get(), true, 2);
+    auto result = curThread->GetHdrParams(surfaceParams.get(), true);
     if (result.first) {
         EXPECT_FLOAT_EQ(result.second, 1.0f);
     } else {
@@ -739,5 +738,129 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageHDRParams, TestSize.Level1)
     curThread->DrawableCacheWithSkImage(nodeDrawable);
     EXPECT_EQ(curThread->grContext_, nullptr);
     EXPECT_TRUE(subCache.GetHDRPresent());
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageSurfaceParamsNullTest
+ * @tc.desc: Test DrawableCacheWithSkImage when surface params is null
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageSurfaceParamsNullTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    nodeDrawable->uifirstRenderParams_ = nullptr;
+    curThread->DrawableCacheWithSkImage(nodeDrawable);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageHdrSurfaceBranchTest
+ * @tc.desc: Test DrawableCacheWithSkImage hdr surface branch
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageHdrSurfaceBranchTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetHDRPresent(true);
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    curThread->DrawableCacheWithSkImage(nodeDrawable);
+    EXPECT_TRUE(surfaceParams->GetHDRPresent());
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageNonHdrBranchTest
+ * @tc.desc: Test DrawableCacheWithSkImage non-hdr surface and no color space change branch
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageNonHdrBranchTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    curThread->DrawableCacheWithSkImage(nodeDrawable);
+    EXPECT_FALSE(surfaceParams->GetHDRPresent());
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageColorSpaceChangeBranchTest
+ * @tc.desc: Test DrawableCacheWithSkImage color space change branch
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeBranchTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    curThread->DrawableCacheWithSkImage(nodeDrawable);
+    EXPECT_NE(subCache.GetTargetColorGamut(), subCache.GetCacheSurfaceColorSpace());
+}
+
+/**
+ * @tc.name: DumpMemNullNodeTest
+ * @tc.desc: Verify function DumpMem traverses null surface node
+ * @tc.type:FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RsSubThreadTest, DumpMemNullNodeTest, TestSize.Level1)
+{
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    DfxString log;
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().surfaceNodeMap_.emplace(0xFFFFF, nullptr);
+    curThread->DumpMem(log, false);
+    EXPECT_TRUE(curThread->grContext_);
 }
 } // namespace OHOS::Rosen

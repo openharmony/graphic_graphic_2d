@@ -50,6 +50,7 @@ constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
 bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
 bool RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+int64_t RSFilterCacheManager::frameTimestamp_ = 0;
 
 RSFilterCacheManager::RSFilterCacheManager()
 {
@@ -284,7 +285,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
             RS_TRACE_NAME_FMT("ForceTakeSnapshot: %s", src.ToString().c_str());
             auto snapshot = canvas.GetSurface()->GetImageSnapshot(src, false);
             filter->PreProcess(snapshot);
-            ReplaceCachedEffectData(std::move(snapshot), src, cachedSnapshot_);
+            ReplaceCachedEffectData(std::move(snapshot), src,
+                GetFrameTimestamp(), cachedSnapshot_);
             InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
         }
     }
@@ -333,7 +335,8 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
     // Update the cache state.
     takeNewSnapshot_ = true;
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
-    ReplaceCachedEffectData(std::move(snapshot), snapshotIBounds, cachedSnapshot_);
+    ReplaceCachedEffectData(std::move(snapshot), snapshotIBounds,
+        GetFrameTimestamp(), cachedSnapshot_);
     cachedFilterHash_ = 0;
 }
 
@@ -387,7 +390,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         }
     }
     ReplaceCachedEffectData(
-        std::move(filteredSnapshot), offscreenRect, cachedFilteredSnapshot_, cachedSnapshot_->geCacheProvider_);
+        std::move(filteredSnapshot), offscreenRect, cachedSnapshot_->timestamp_,
+        cachedFilteredSnapshot_, cachedSnapshot_->geCacheProvider_);
     isHpaeCachedFilteredSnapshot_ = false;
 }
 
@@ -462,7 +466,7 @@ void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
 }
 
 void RSFilterCacheManager::ReplaceCachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect,
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
+    int64_t timestamp, std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
     std::shared_ptr<IGECacheProvider> cacheProvider)
 {
     int64_t oldMem = targetCache ? (static_cast<int64_t>(targetCache->cachedRect_.GetHeight()) *
@@ -474,6 +478,7 @@ void RSFilterCacheManager::ReplaceCachedEffectData(std::shared_ptr<Drawing::Imag
         targetCache = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(image), rect);
     }
     RSFilterCacheMemoryController::Instance().ReplaceFilterCacheMem(oldMem, newMem);
+    targetCache->timestamp_ = timestamp;
 }
 
 bool RSFilterCacheManager::GetFilterInvalid()
@@ -641,7 +646,6 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
 
     // save staging param value
     lastOffscreenNodeId_ = offscreenNodeId_;
-    lastStagingFilterInteractWithDirty_ = stagingFilterInteractWithDirty_;
 
     // stagingParams init
     stagingFilterHashChanged_ = false;
@@ -693,7 +697,6 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     }
 
     stagingIsSkipFrame_ = stagingIsLargeArea_ && canSkipFrame_ && !stagingFilterRegionChanged_;
-    PrintDebugInfo(nodeId);
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -936,13 +939,15 @@ void RSFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas:
     // using filter results from HPAE
     // Update cachedSnapshot and cachedFilteredSnapshot only if their images are valid (not null)
     if (cachedSnapshot && cachedSnapshot->cachedImage_) {
-        ReplaceCachedEffectData(cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_, cachedSnapshot_);
+        ReplaceCachedEffectData(cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_,
+            cachedSnapshot->timestamp_, cachedSnapshot_);
     } else {
         InvalidateFilterCache(FilterCacheType::SNAPSHOT);
     }
     if (cachedFilteredSnapshot && cachedFilteredSnapshot->cachedImage_) {
         ReplaceCachedEffectData(
-            cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_, cachedFilteredSnapshot_);
+            cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_,
+            cachedFilteredSnapshot->timestamp_, cachedFilteredSnapshot_);
         isHpaeCachedFilteredSnapshot_ = isHpaeCachedFilteredSnapshot;
     } else {
         InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
@@ -1005,23 +1010,6 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
 void RSFilterCacheManager::MarkDebugEnabled()
 {
     debugEnabled_ = true;
-}
-
-void RSFilterCacheManager::PrintDebugInfo(NodeId nodeID)
-{
-    if (!debugEnabled_) {
-        return;
-    }
-
-    if (lastStagingFilterInteractWithDirty_ == stagingFilterInteractWithDirty_) {
-        return;
-    }
-
-    ROSEN_LOGI("RSFilterDrawable::PrintDebugInfo nodeID: %{public}" PRIu64 ", forceUseCache_:%{public}d,"
-        " forceClearCache_:%{public}d, belowDirty_:%{public}d, cacheUpdateInterval_:%{public}d,"
-        " pendingPurge_:%{public}d,",
-        nodeID, stagingForceUseCache_, stagingForceClearCache_, stagingFilterInteractWithDirty_,
-        cacheUpdateInterval_, pendingPurge_);
 }
 
 std::shared_ptr<Drawing::Surface> RSFilterCacheManager::CreateOffscreenSurface(

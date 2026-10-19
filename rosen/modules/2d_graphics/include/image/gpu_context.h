@@ -342,18 +342,24 @@ public:
      * @param size              Memory size limit.
      */
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
-    
-    /**
-     * @brief                   set abnormal pid.
-     * @param pid               abnormal pid.
-     */
-    void SetAbnormalPid(pid_t pid);
 
     /**
      * @brief Register GPU memory statistics callback.
      * @param callback Callback for memory allocation/deallocation.
      */
     void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback);
+
+    /**
+     * @brief mark pid as abnormal so it cannot allocate new gpu memory.
+     * @param pid of abnormal process.
+     */
+    void SetAbnormalPid(pid_t pid);
+
+    /**
+     * @brief remove pid from the abnormal set.
+     * @param pid of abnormal process.
+     */
+    void RemoveAbnormalPid(pid_t pid);
 
 #ifdef RS_ENABLE_VK
     /**

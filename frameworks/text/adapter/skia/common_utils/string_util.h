@@ -18,11 +18,17 @@
 
 #include <string>
 
+#ifdef _WIN32
+#define STRING_UTIL_API __attribute__((dllexport))
+#else
+#define STRING_UTIL_API __attribute__((visibility("default")))
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-class Utf16Utils {
+class STRING_UTIL_API Utf16Utils {
 public:
     static bool IsUTF16LowSurrogate(uint16_t ch);
     static bool IsUTF16HighSurrogate(uint16_t ch);

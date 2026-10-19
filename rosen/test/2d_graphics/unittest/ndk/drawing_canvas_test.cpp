@@ -82,7 +82,6 @@ constexpr int32_t IS_OPAQUE_TEST_HEIGHT = 720;
 
 static void TestIsOpaqueHelper(OH_Drawing_ColorFormat colorType, OH_Drawing_AlphaFormat alphaType, bool expectedOpaque)
 {
-    OH_Drawing_GpuContext* gpuContext = OH_Drawing_GpuContextCreate();
     OH_Drawing_Image_Info imageInfo = { IS_OPAQUE_TEST_WIDTH, IS_OPAQUE_TEST_HEIGHT, colorType, alphaType };
     uint32_t sizePix = IS_OPAQUE_TEST_HEIGHT * IS_OPAQUE_TEST_WIDTH;
     auto pixels = std::vector<uint32_t>(sizePix, 0);
@@ -96,7 +95,6 @@ static void TestIsOpaqueHelper(OH_Drawing_ColorFormat colorType, OH_Drawing_Alph
     EXPECT_EQ(isOpaque, expectedOpaque);
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_BitmapDestroy(bitmap);
-    OH_Drawing_GpuContextDestroy(gpuContext);
 }
 
 void NativeDrawingCanvasTest::SetUpTestCase() {}
@@ -3423,7 +3421,6 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque006, TestSize.
  */
 HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque007, TestSize.Level1)
 {
-    OH_Drawing_GpuContext* gpuContext = OH_Drawing_GpuContextCreate();
     OH_Drawing_Image_Info imageInfo = { IS_OPAQUE_TEST_WIDTH, IS_OPAQUE_TEST_HEIGHT,
         OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL };
     uint32_t sizePix = IS_OPAQUE_TEST_HEIGHT * IS_OPAQUE_TEST_WIDTH;
@@ -3441,7 +3438,6 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque007, TestSize.
     EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_BitmapDestroy(bitmap);
-    OH_Drawing_GpuContextDestroy(gpuContext);
 }
 
 } // namespace Drawing

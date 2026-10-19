@@ -47,6 +47,7 @@ public:
 
     void AddScreenToHgm(const sptr<RSScreenProperty>& property);
     void RemoveScreenFromHgm(ScreenId screenId);
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
 
     void CleanAllWhenServiceConnectionDie(pid_t remotePid);
     void CreateFrameRateLinker(const std::string& name, FrameRateLinkerId id, NodeId windowNodeId);

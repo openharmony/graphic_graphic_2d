@@ -30,7 +30,6 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #ifdef RS_ENABLE_GPU
 #include "gpuComposition/rs_gpu_cache_manager.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -1030,10 +1029,11 @@ int32_t RSRenderPipelineAgent::SetGlobalBlackList(const std::vector<NodeId>& bla
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::SetGlobalBlackList(
             std::unordered_set<NodeId>(blackList.begin(), blackList.end()));
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -1050,9 +1050,10 @@ int32_t RSRenderPipelineAgent::AddGlobalBlackList(const std::vector<NodeId>& bla
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::AddGlobalBlackList(blackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -1069,9 +1070,10 @@ int32_t RSRenderPipelineAgent::RemoveGlobalBlackList(const std::vector<NodeId>& 
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return ERR_INVALID_VALUE;
     }
-    auto task = [blackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [blackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::RemoveGlobalBlackList(blackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
@@ -1736,33 +1738,30 @@ ErrCode RSRenderPipelineAgent::GetTotalAppMemSize(float& cpuMemSize, float& gpuM
 ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (pipeline != nullptr) {
-        const auto& nodeMap = pipeline->GetMainThread()->GetContext().GetNodeMap();
-        std::vector<pid_t> pids;
-        nodeMap.TraverseSurfaceNodes([&pids](const std::shared_ptr<RSSurfaceRenderNode>& node) {
-            auto pid = ExtractPid(node->GetId());
-            if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-                pids.emplace_back(pid);
-            }
-        });
-
-        bool enable = RSUniRenderJudgement::IsUniRender();
-        if (pipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
-            pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
-            return ERR_INVALID_VALUE;
-        }
-
-        auto context =
-            pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        if (enable) {
-            pipeline->PostUniRenderThreadSyncTask(
-                [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
-            return ERR_OK;
-        } else {
-            return ERR_INVALID_VALUE;
-        }
+    if (pipeline == nullptr) {
+        return ERR_INVALID_VALUE;
     }
-    return ERR_INVALID_VALUE;
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
+    std::vector<pid_t> pids;
+    for (const auto& [pid, info] : snapshotMap) {
+        pids.emplace_back(pid);
+    }
+
+    bool enable = RSUniRenderJudgement::IsUniRender();
+    if (pipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
+        pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+
+    auto context = pipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    if (enable) {
+        pipeline->PostUniRenderThreadSyncTask(
+            [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
+        return ERR_OK;
+    } else {
+        return ERR_INVALID_VALUE;
+    }
 }
 
 void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
@@ -2571,9 +2570,10 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
         RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
         return;
     }
-    auto task = [globalBlackList, mainThread = pipeline->GetMainThread()]() {
+    auto task = [globalBlackList, mainThread = pipeline->GetMainThread(), func = __func__]() {
         ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
         RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(mainThread->GetContext().GetNodeMap());
+        RSSpecialLayerUtils::DumpGlobalBlackList(func);
     };
     pipeline->PostMainThreadTask(task);
 }

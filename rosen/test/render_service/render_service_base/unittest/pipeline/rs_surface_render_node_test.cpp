@@ -40,6 +40,9 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+const RectI ROG_DIRTY_RECT = { 10, 20, 100, 200 };
+} // namespace
 class RSSurfaceRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -75,6 +78,19 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
+};
+
+class TestDrawableAdapterWithSyncDirtyManager : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit TestDrawableAdapterWithSyncDirtyManager(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override
+    {
+        return syncDirtyManager_;
+    }
+    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_;
 };
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
@@ -2215,6 +2231,72 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnSyncTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnSyncClipAndScaleDirtyManagerDeviceGpu
+ * @tc.desc: test OnSync clips and scales sync dirty manager by rog ratio for main window under DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncClipAndScaleDirtyManagerDeviceGpu, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = std::make_shared<TestDrawableAdapterWithSyncDirtyManager>(surfaceNode);
+    surfaceNode->renderDrawable_ = drawable;
+    auto syncDirtyManager = drawable->GetSyncDirtyManager();
+    ASSERT_NE(syncDirtyManager, nullptr);
+
+    constexpr uint32_t renderWidth = 1080;
+    constexpr uint32_t renderHeight = 2400;
+    // 2 means physical resolution is twice of render resolution
+    constexpr int32_t rogRatio = 2;
+    constexpr uint32_t phyWidth = renderWidth * static_cast<uint32_t>(rogRatio);
+    constexpr uint32_t phyHeight = renderHeight * static_cast<uint32_t>(rogRatio);
+    constexpr uint32_t refreshRate = 60;
+    constexpr ScreenId screenId = 0;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId);
+    screenNode->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION,
+        sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolutionValType(renderWidth, renderHeight)));
+    screenNode->UpdateScreenProperty(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE,
+        sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(
+            phyResolutionValType(phyWidth, phyHeight, refreshRate)));
+    screenNode->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU)));
+
+    auto stagingParams = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    stagingParams->SetAncestorScreenNode(screenNode);
+    stagingParams->SetOldDirtyInSurface(
+        RectI(0, 0, static_cast<int32_t>(renderWidth), static_cast<int32_t>(renderHeight)));
+    surfaceNode->stagingRenderParams_ = std::move(stagingParams);
+
+    surfaceNode->dirtyManager_->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    surfaceNode->OnSync();
+
+    // OnSync copies node dirty into sync dirty manager then clips and scales it by rog ratio
+    RectI expectedDirty(ROG_DIRTY_RECT.left_ * rogRatio, ROG_DIRTY_RECT.top_ * rogRatio,
+        ROG_DIRTY_RECT.width_ * rogRatio, ROG_DIRTY_RECT.height_ * rogRatio);
+    EXPECT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), expectedDirty);
+}
+
+/**
+ * @tc.name: OnSyncClipAndScaleDirtyManagerNullSyncDirtyManager
+ * @tc.desc: test OnSync handles null sync dirty manager without crash for main window
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncClipAndScaleDirtyManagerNullSyncDirtyManager, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    // TestDrawableAdapter::GetSyncDirtyManager returns nullptr
+    surfaceNode->renderDrawable_ = std::make_shared<TestDrawableAdapter>(surfaceNode);
+    ASSERT_NE(surfaceNode->renderDrawable_, nullptr);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    surfaceNode->OnSync();
+}
+
+/**
  * @tc.name: UpdateLayerPartRenderStatus001
  * @tc.desc: test UpdateLayerPartRenderStatus updates dirty manager for uifirst or subthread-assignable child
  * @tc.type: FUNC
@@ -3640,6 +3722,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
     ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
     surfaceRenderNode.SetRebuildingState(true);
     EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap001
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with staging render params
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap002
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with null stagingRenderParams_ without crash
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap002, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
 }
 
 /**

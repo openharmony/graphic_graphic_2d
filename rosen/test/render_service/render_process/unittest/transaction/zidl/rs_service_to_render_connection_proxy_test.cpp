@@ -2853,7 +2853,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SendTransfer_SendRequestFail, Tes
 
 /**
  * @tc.name: SendTransfer_ProxyMarshallingFail
- * @tc.desc: SYNC transfer with null inputData_ fails ProxyMarshalling and returns WRITE_PARCEL_ERR
+ * @tc.desc: SYNC transfer with null inputData_ fails ProxyMarshalling and returns ERR_INVALID_DATA
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
@@ -2867,7 +2867,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SendTransfer_ProxyMarshallingFail
     // null inputData_ -> ProxyMarshalling fails before any SendRequest is issued
     auto transfer = std::make_shared<SetShowRefreshRateEnabledTransfer>(
         std::shared_ptr<SetShowRefreshRateEnabledInput>{nullptr});
-    EXPECT_EQ(mockProxy->SendTransfer(transfer), StatusCode::WRITE_PARCEL_ERR);
+    EXPECT_EQ(mockProxy->SendTransfer(transfer), ERR_INVALID_DATA);
 }
 
 /**

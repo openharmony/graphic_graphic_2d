@@ -947,6 +947,48 @@ void ClearNotOnTreeState()
 } // namespace
 
 /**
+ * @tc.name: ReleaseNodeMemNotOnTreeTest005
+ * @tc.desc: Verify keepAlive defers node destruction past lock release. Create nodes
+ *           via allocator (with NodeDestructor deleter) so that destruction calls
+ *           EraseFromNotOnTreeNodeMap which acquires nodeNotOnTreeMutex_. The function
+ *           must return without deadlock and the mutex must be free afterwards.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemNotOnTreeTest005, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    nodeGC.isEnable_.store(true);
+
+    pid_t pid = 9;
+    // Encode pid in high 32 bits so EraseFromNotOnTreeNodeMap finds the correct bucket
+    NodeId nodeId = (static_cast<uint64_t>(pid) << 32) + 1;
+
+    // Create via allocator so the shared_ptr uses NodeDestructor deleter
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    auto node = allocator.CreateRSCanvasRenderNode(nodeId);
+    ASSERT_NE(node, nullptr);
+    nodeGC.notOnTreeNodeMap_[pid][nodeId] = node->weak_from_this();
+    nodeGC.backgroundPidSet_.insert(pid);
+
+    // Should complete without deadlock; keepAlive defers destruction past lock release
+    nodeGC.ReleaseNodeMemNotOnTree();
+
+    // Map entry should be erased
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_.end(), nodeGC.notOnTreeNodeMap_.find(pid));
+
+    // Mutex must be free after the call
+    EXPECT_TRUE(nodeGC.nodeNotOnTreeMutex_.try_lock());
+    nodeGC.nodeNotOnTreeMutex_.unlock();
+
+    // Reset external shared_ptr: NodeDestructor calls EraseFromNotOnTreeNodeMap which
+    // acquires the mutex — must not deadlock since the lock is free
+    node.reset();
+
+    ClearNotOnTreeState();
+}
+
+/**
  * @tc.name: CheckHasNodeNotOnTreeTest001
  * @tc.desc: Test CheckHasNodeNotOnTree returns false when loop finishes without hit,
  *           including empty set, background pid without node and non-background pid ignored

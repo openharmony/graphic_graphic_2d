@@ -31,6 +31,15 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    struct TestHeader {
+        size_t numShaders;
+    };
+
+    struct TestShaderData {
+        size_t keySize;
+        size_t valueSize;
+    };
 };
 
 void CacheDataTest::SetUpTestCase() {}
@@ -175,8 +184,8 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test the deserialization function
      */
-    uint8_t *tempBuffer = new uint8_t[sizeof(size_t)]();
-    int retDeserialized = cacheData->DeSerialize(tempBuffer, sizeof(size_t));
+    uint8_t *tempBuffer = new uint8_t[2 * sizeof(size_t)]();
+    int retDeserialized = cacheData->DeSerialize(tempBuffer, 2 * sizeof(size_t));
     EXPECT_NE(retDeserialized, -EINVAL);
     delete[] tempBuffer;
 #endif
@@ -352,8 +361,8 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
     std::string testFileDir = "testCachedata";
     std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
-    uint8_t *tempBuffer = new uint8_t[sizeof(size_t)]();
-    int retDeserialized1 = cacheData->DeSerialize(tempBuffer, sizeof(size_t));
+    uint8_t *tempBuffer = new uint8_t[2 * sizeof(size_t)]();
+    int retDeserialized1 = cacheData->DeSerialize(tempBuffer, 2 * sizeof(size_t));
     EXPECT_NE(retDeserialized1, -EINVAL);
     delete[] tempBuffer;
 }
@@ -634,6 +643,93 @@ HWTEST_F(CacheDataTest, RewriteUpdateTest, TestSize.Level1)
     EXPECT_EQ(errorCode, CacheData::ErrorCode::NO_ERR);
     EXPECT_EQ(sizeGet, 8);
     EXPECT_EQ(0, memcmp(output, testValue2, 8));
+}
+
+/**
+ * @tc.name: DeSerializeSizeLessThanHeaderTest
+ * @tc.desc: Cover DeSerialize branch where size < sizeof(Header)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DeSerializeSizeLessThanHeaderTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
+    int ret = cacheData->DeSerialize(nullptr, 0);
+    EXPECT_EQ(-EINVAL, ret);
+}
+
+/**
+ * @tc.name: DeSerializeSizeLessThanShaderDataTest
+ * @tc.desc: Cover DeSerialize branch where sizeof(Header) <= size < sizeof(ShaderData)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DeSerializeSizeLessThanShaderDataTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
+    std::vector<uint8_t> buffer(sizeof(size_t));
+    int ret = cacheData->DeSerialize(buffer.data(), buffer.size());
+    EXPECT_EQ(-EINVAL, ret);
+}
+
+/**
+ * @tc.name: DeSerializeInsufficientShaderSpaceTest
+ * @tc.desc: Cover DeSerialize branch where byteOffset > size - sizeof(ShaderData)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DeSerializeInsufficientShaderSpaceTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
+    std::vector<uint8_t> buffer(sizeof(TestShaderData));
+    auto header = reinterpret_cast<TestHeader*>(buffer.data());
+    header->numShaders = 1;
+    int ret = cacheData->DeSerialize(buffer.data(), buffer.size());
+    EXPECT_EQ(-EINVAL, ret);
+}
+
+/**
+ * @tc.name: DeSerializeKeyOrValueExceedsMaxTest
+ * @tc.desc: Cover DeSerialize branch where keySize > maxKeySize_ or valueSize > maxValueSize_
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DeSerializeKeyOrValueExceedsMaxTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 16, testFileDir);
+    std::vector<uint8_t> buffer(sizeof(TestHeader) + sizeof(TestShaderData));
+    auto header = reinterpret_cast<TestHeader*>(buffer.data());
+    header->numShaders = 1;
+    auto shader = reinterpret_cast<TestShaderData*>(buffer.data() + sizeof(TestHeader));
+    
+    shader->keySize = static_cast<size_t>(-1);
+    shader->valueSize = 0;
+    int retKey = cacheData->DeSerialize(buffer.data(), buffer.size());
+    EXPECT_EQ(-EINVAL, retKey);
+
+    shader->keySize = 0;
+    shader->valueSize = static_cast<size_t>(-1);
+    int retValue = cacheData->DeSerialize(buffer.data(), buffer.size());
+    EXPECT_EQ(-EINVAL, retValue);
+}
+
+/**
+ * @tc.name: DeSerializeInsufficientAlignedSpaceTest
+ * @tc.desc: Cover DeSerialize branch where alignedSize > size - byteOffset
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheDataTest, DeSerializeInsufficientAlignedSpaceTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(64, 64, 128, testFileDir);
+    std::vector<uint8_t> buffer(sizeof(TestHeader) + sizeof(TestShaderData));
+    auto header = reinterpret_cast<TestHeader*>(buffer.data());
+    header->numShaders = 1;
+    auto shader = reinterpret_cast<TestShaderData*>(buffer.data() + sizeof(TestHeader));
+    shader->keySize = sizeof(size_t);
+    shader->valueSize = sizeof(size_t);
+    int ret = cacheData->DeSerialize(buffer.data(), buffer.size());
+    EXPECT_EQ(-EINVAL, ret);
 }
 } // namespace Rosen
 } // namespace OHOS

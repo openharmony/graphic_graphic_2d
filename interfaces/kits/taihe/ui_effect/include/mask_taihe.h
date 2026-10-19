@@ -18,6 +18,7 @@
 
 #include "ohos.graphics.uiEffect.uiEffect.proj.hpp"
 #include "ohos.graphics.uiEffect.uiEffect.impl.hpp"
+#include "ohos.graphics.drawing.proj.hpp"
 #include "taihe/runtime.hpp"
 #include "stdexcept"
 #include <hilog/log.h>
@@ -25,6 +26,7 @@
 #include "mask/include/binocular_mask_para.h"
 #include "mask/include/fractal_glass_mask_para.h"
 #include "mask/include/image_mask_para.h"
+#include "mask/include/atlas_frame_mask_para.h"
 #include "mask/include/mask.h"
 #include "mask/include/mask_para.h"
 #include "mask/include/pixel_map_mask_para.h"

@@ -75,6 +75,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
+class RSEffectUtils;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -724,7 +725,6 @@ public:
     void UpdateFilterCacheWithBackgroundDirty();
     virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty,
         RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER);
-
     virtual void UpdateFilterCacheWithSelfDirty();
     void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, RSDrawableSlot slot);
     bool IsBackgroundInAppOrNodeSelfDirty() const
@@ -1200,10 +1200,6 @@ protected:
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
-    void CheckRegionInsideForFilterCache(
-        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable);
-    void CheckRegionChangeForFilterCache(
-        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable, bool isForeground);
     bool InvokeFilterDrawable(RSDrawableSlot slot,
         std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
 
@@ -1444,6 +1440,7 @@ private:
 
     void SetParent(WeakPtr parent);
     void ResetParent();
+    bool RecordHardCursorOffTreeRegion();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     virtual void OnResetParent() {}
 
@@ -1507,6 +1504,7 @@ private:
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
     friend class RSDynamicLayerSkipController;
+    friend class RSEffectUtils;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

@@ -1857,7 +1857,7 @@ int32_t RSServiceToRenderConnectionProxy::SendTransfer(const std::shared_ptr<RSI
         RS_LOGE("%{public}s: Transfer ProxyMarshalling failed", __func__);
         return StatusCode::WRITE_PARCEL_ERR;
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != ERR_OK) {
         RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);

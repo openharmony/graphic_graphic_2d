@@ -18,8 +18,6 @@
 #include "rosen_text/font_collection.h"
 #include "rosen_text/font_collection_mgr.h"
 
-#include "skia_txt/font_collection.h"
-
 #include "utils/object_mgr.h"
 
 using namespace OHOS::Rosen::Drawing;
@@ -33,18 +31,15 @@ inline T1* ConvertToFontCollection(T2* ptr)
 // LCOV_EXCL_START
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
-    OH_Drawing_FontCollection* fc =
-        (OH_Drawing_FontCollection*)new (std::nothrow) OHOS::Rosen::AdapterTxt::FontCollection;
-    if (fc == nullptr) {
-        return nullptr;
-    }
+    OH_Drawing_FontCollection* fc = reinterpret_cast<OH_Drawing_FontCollection*>(
+        OHOS::Rosen::FontCollection::CreateStandalone().release());
     ObjectMgr::GetInstance().AddObject(fc);
     return fc;
 }
 
 OH_Drawing_FontCollection* OH_Drawing_CreateSharedFontCollection(void)
 {
-    auto fc = std::make_shared<OHOS::Rosen::AdapterTxt::FontCollection>();
+    std::shared_ptr<OHOS::Rosen::FontCollection> fc(OHOS::Rosen::FontCollection::CreateStandalone());
     OH_Drawing_FontCollection* pointer = reinterpret_cast<OH_Drawing_FontCollection*>(fc.get());
     OHOS::Rosen::FontCollectionMgr::GetInstance().InsertSharedFontColleciton(pointer, fc);
     return pointer;
@@ -63,7 +58,7 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    delete ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection);
+    delete ConvertToFontCollection<OHOS::Rosen::FontCollection>(fontCollection);
 }
 
 void OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection* fontCollection)
@@ -71,7 +66,7 @@ void OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection* fontCol
     if (!fontCollection) {
         return;
     }
-    ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->DisableFallback();
+    ConvertToFontCollection<OHOS::Rosen::FontCollection>(fontCollection)->DisableFallback();
 }
 
 void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontCollection)
@@ -79,7 +74,7 @@ void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontC
     if (fontCollection == nullptr) {
         return;
     }
-    ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->DisableSystemFont();
+    ConvertToFontCollection<OHOS::Rosen::FontCollection>(fontCollection)->DisableSystemFont();
 }
 
 void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
@@ -94,8 +89,8 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    ObjectMgr::GetInstance().WithObject(fontCollection,
-        [](void* ptr) { ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(ptr)->ClearCaches(); });
+    ObjectMgr::GetInstance().WithObject(
+        fontCollection, [](void* ptr) { ConvertToFontCollection<OHOS::Rosen::FontCollection>(ptr)->ClearCaches(); });
 }
 
 OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)

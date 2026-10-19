@@ -575,34 +575,41 @@ void RSRenderNodeGC::SetIsOnTheTree(NodeId nodeId, std::weak_ptr<RSBaseRenderNod
 
 void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
 {
-    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
-    uint32_t cnt = 0;
-    for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
-        auto mapIt = notOnTreeNodeMap_.find(*pidIt);
-        if (mapIt == notOnTreeNodeMap_.end()) {
-            continue;
-        }
-        auto& nodeMap = mapIt->second;
-        auto nodeIt = nodeMap.begin();
-        RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32, *pidIt, nodeMap.size());
-        while (nodeIt != nodeMap.end()) {
-            // VSync arrival or limit reached, break release early
-            if (isEnable_.load() == false || cnt > NODE_MEM_RELEASE_LIMIT) {
-                RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
-                    cnt, isEnable_.load() ? "true" : "false");
-                return;
-            }
-            auto node = nodeIt->second.lock();
-            if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
-                nodeMap.erase(nodeIt++);
+    // Keep nodes alive until after the lock is released to prevent deadlock:
+    // node destruction (when shared_ptr ref count reaches zero) calls
+    // EraseFromNotOnTreeNodeMap which acquires nodeNotOnTreeMutex_.
+    std::vector<std::shared_ptr<RSBaseRenderNode>> keepAlive;
+    {
+        std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+        uint32_t cnt = 0;
+        for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
+            auto mapIt = notOnTreeNodeMap_.find(*pidIt);
+            if (mapIt == notOnTreeNodeMap_.end()) {
                 continue;
             }
-            cnt++;
-            node->ReleaseNodeMem();
-            nodeMap.erase(nodeIt++);
-        }
-        if (nodeMap.empty())  {
-            notOnTreeNodeMap_.erase(mapIt);
+            auto& nodeMap = mapIt->second;
+            auto nodeIt = nodeMap.begin();
+            RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32,
+                *pidIt, nodeMap.size());
+            while (nodeIt != nodeMap.end()) {
+                if (!isEnable_.load() || cnt > NODE_MEM_RELEASE_LIMIT) {
+                    RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
+                        cnt, isEnable_.load() ? "true" : "false");
+                    return;
+                }
+                auto node = nodeIt->second.lock();
+                if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
+                    nodeMap.erase(nodeIt++);
+                    continue;
+                }
+                cnt++;
+                node->ReleaseNodeMem();
+                keepAlive.push_back(std::move(node));
+                nodeMap.erase(nodeIt++);
+            }
+            if (nodeMap.empty()) {
+                notOnTreeNodeMap_.erase(mapIt);
+            }
         }
     }
 }

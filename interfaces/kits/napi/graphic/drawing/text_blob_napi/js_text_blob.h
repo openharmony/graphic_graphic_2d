@@ -37,6 +37,8 @@ public:
     static napi_value MakeFromRunBuffer(napi_env env, napi_callback_info info);
     static napi_value Bounds(napi_env env, napi_callback_info info);
     static napi_value MakeFromPosText(napi_env env, napi_callback_info info);
+    static napi_value MakeFromStringWithFallback(napi_env env, napi_callback_info info);
+    static napi_value MakeFromPosTextWithFallback(napi_env env, napi_callback_info info);
     static napi_value UniqueID(napi_env env, napi_callback_info info);
 
     std::shared_ptr<TextBlob> GetTextBlob();

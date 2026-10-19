@@ -128,9 +128,9 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     property.SetSpherize(0.0f);
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
-    property.GetEffect().isAttractionValid_ = true;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = true;
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
-    property.GetEffect().isAttractionValid_ = false;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
     property.needFilter_ = true;
@@ -138,9 +138,9 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     property.needFilter_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
-    property.GetEffect().useEffect_ = true;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
-    property.GetEffect().useEffect_ = false;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
     Color color(255, 0, 0);
@@ -431,17 +431,17 @@ HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::SPHERIZE);
     property.SetSpherize(0.0f);
 
-    property.GetEffect().isAttractionValid_ = true;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::ATTRACTION);
-    property.GetEffect().isAttractionValid_ = false;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = false;
 
     property.needFilter_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::HAS_FILTER);
     property.needFilter_ = false;
 
-    property.GetEffect().useEffect_ = true;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::USE_EFFECT);
-    property.GetEffect().useEffect_ = false;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = false;
 
     Color color(255, 0, 0);
     std::optional<Color> colorBlend = color;

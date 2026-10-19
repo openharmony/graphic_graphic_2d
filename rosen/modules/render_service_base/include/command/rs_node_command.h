@@ -74,6 +74,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DEPTH_LIGHT_PARA = 0x012F,
     // 0x0130 deleted, do not use this value never
     UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
+    UPDATE_MODIFIER_ATLAS_INFO = 0x0132,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -487,6 +488,11 @@ ADD_COMMAND(RSUpdatePropertyDepthLightPara,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_LIGHT_PARA,
         RSNodeCommandHelper::UpdateProperty<DepthLightPara>,
         NodeId, DepthLightPara, PropertyId, PropertyUpdateType))
+
+ADD_COMMAND(RSUpdatePropertyAtlasInfo,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_ATLAS_INFO,
+        RSNodeCommandHelper::UpdateProperty<AtlasInfo>,
+        NodeId, AtlasInfo, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSortChildrenByZIndex,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SORT_CHILDREN_BY_INDEX,

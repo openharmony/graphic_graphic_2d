@@ -591,8 +591,8 @@ HWTEST_F(RSUifirstManagerTest2, CheckHwcChildrenType, TestSize.Level1)
     ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    auto surfaceNdoe2 = RSTestUtil::CreateSurfaceNode();
-    surfaceNode->AddChild(surfaceNdoe2);
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->AddChild(surfaceNode2);
     surfaceNode->GenerateFullChildrenList();
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
@@ -2143,7 +2143,7 @@ HWTEST_F(RSUifirstManagerTest2, CheckAndBlockFirstFrameCallbackTest001, TestSize
 
     surfaceNode->SetUifirstHasContentAppWindow(true);
     surfaceNode->SetUifirstStartingWindowId(100);
-    // aleary has content app window, not block
+    // already has content app window, not block
     uifirstManager.CheckAndBlockFirstFrameCallback(*surfaceNode);
     EXPECT_TRUE(surfaceNode->GetUifirstHasContentAppWindow());
 }

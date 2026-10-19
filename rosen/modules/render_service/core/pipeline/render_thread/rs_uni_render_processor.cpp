@@ -384,8 +384,12 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     auto layerBuffer = layer->GetBuffer();
-    if (!offlineResult && layerBuffer != buffer) {
-        layer->SetPreBuffer(layerBuffer);
+    // For non-offline path, only set preBuffer when layerBuffer is valid and its ownerCount was not
+    // already released by ReleaseUniOnDrawBuffers; otherwise clear preBuffer to avoid double DecRef.
+    if (!offlineResult) {
+        bool ownerCountValid = layerBuffer != buffer && layerBuffer != nullptr &&
+            layer->HasBufferOwnerCountById(layerBuffer->GetBufferId());
+        layer->SetPreBuffer(ownerCountValid ? layerBuffer : nullptr);
     }
     layer->SetBuffer(buffer, acquireFence);
     layer->SetSplitLayerTag(params.GetSplitLayerTag());

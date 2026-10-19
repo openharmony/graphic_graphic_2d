@@ -188,8 +188,7 @@ private:
         Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
         bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree,
         int& orientationFitNum);
-    static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
-        const std::shared_ptr<Media::PixelMap>& pixelMap);
+    static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId);
 #endif
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;

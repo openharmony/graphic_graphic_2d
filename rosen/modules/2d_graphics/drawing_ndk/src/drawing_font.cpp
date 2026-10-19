@@ -43,6 +43,43 @@ static const Font* CastToFont(const OH_Drawing_Font* cFont)
     return reinterpret_cast<const Font*>(cFont);
 }
 
+static std::mutex g_typefaceFallbackMutex;
+static std::unordered_map<OH_Drawing_TypefaceFallbackInfo*, std::vector<std::shared_ptr<Typeface>>>
+    g_fontFallbackTypefaces;
+
+static OH_Drawing_TypefaceFallbackInfo* MakeTypefaceFallbackInfos(
+    const std::vector<FontFallbackInfo>& fallbackInfos, std::vector<std::shared_ptr<Typeface>>& typefaces)
+{
+    auto infosArray = new (std::nothrow) OH_Drawing_TypefaceFallbackInfo[fallbackInfos.size()];
+    if (infosArray == nullptr) {
+        return nullptr;
+    }
+    for (size_t i = 0; i < fallbackInfos.size(); i++) {
+        const FontFallbackInfo& run = fallbackInfos[i];
+        infosArray[i].typeface = reinterpret_cast<OH_Drawing_Typeface*>(run.typeface.get());
+        infosArray[i].glyphCount = static_cast<uint32_t>(run.glyphIds.size());
+        if (run.typeface != nullptr) {
+            typefaces.push_back(run.typeface);
+        }
+        if (run.glyphIds.empty()) {
+            infosArray[i].glyphIds = nullptr;
+            continue;
+        }
+        infosArray[i].glyphIds = new (std::nothrow) uint16_t[run.glyphIds.size()];
+        if (infosArray[i].glyphIds == nullptr) {
+            for (size_t j = 0; j < i; j++) {
+                delete[] infosArray[j].glyphIds;
+            }
+            delete[] infosArray;
+            return nullptr;
+        }
+        for (size_t j = 0; j < run.glyphIds.size(); j++) {
+            infosArray[i].glyphIds[j] = run.glyphIds[j];
+        }
+    }
+    return infosArray;
+}
+
 static Drawing::DrawingFontFeatures* CastToFontFeatures(OH_Drawing_FontFeatures* fontFeatures)
 {
     return reinterpret_cast<Drawing::DrawingFontFeatures*>(fontFeatures);
@@ -244,6 +281,70 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* t
         static_cast<TextEncoding>(encoding), glyphs, maxGlyphCount);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_FontTextToGlyphsWithFallback(const OH_Drawing_Font *cFont, const void *text,
+    uint32_t byteLength, OH_Drawing_TextEncoding encoding, OH_Drawing_TypefaceFallbackInfo **typefaceFallbackInfo,
+    uint32_t *infosCount)
+{
+    if (cFont == nullptr || text == nullptr || byteLength == 0 || typefaceFallbackInfo == nullptr
+        || infosCount == nullptr) {
+        LOGE("OH_Drawing_FontTextToGlyphsWithFallback: any of font, text, infosCount and "
+            "typefaceFallbackInfo is nullptr or byteLength is 0.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (encoding < TEXT_ENCODING_UTF8 || encoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_FontTextToGlyphsWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    *infosCount = 0;
+    *typefaceFallbackInfo = nullptr;
+
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+
+    std::vector<FontFallbackInfo> fallbackInfos =
+        font->TextToGlyphsWithFallback(text, byteLength, static_cast<TextEncoding>(encoding));
+    if (fallbackInfos.empty()) {
+        return OH_DRAWING_SUCCESS;
+    }
+    std::vector<std::shared_ptr<Typeface>> typefaces;
+    OH_Drawing_TypefaceFallbackInfo* infosArray = MakeTypefaceFallbackInfos(fallbackInfos, typefaces);
+    if (infosArray == nullptr) {
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
+
+    if (!typefaces.empty()) {
+        std::lock_guard<std::mutex> lock(g_typefaceFallbackMutex);
+        g_fontFallbackTypefaces.emplace(infosArray, std::move(typefaces));
+    }
+    *infosCount = static_cast<uint32_t>(fallbackInfos.size());
+    *typefaceFallbackInfo = infosArray;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontTypefaceFallbackInfoDestroy(OH_Drawing_TypefaceFallbackInfo *infos, uint32_t count)
+{
+    if (infos == nullptr || count == 0) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    {
+        std::lock_guard<std::mutex> lock(g_typefaceFallbackMutex);
+        // Erasing the entry releases the keep-alive references: typefaces discovered by the
+        // create call die here, typefaces owned elsewhere keep their own owners.
+        auto it = g_fontFallbackTypefaces.find(infos);
+        if (it != g_fontFallbackTypefaces.end()) {
+            g_fontFallbackTypefaces.erase(it);
+        }
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        delete[] infos[i].glyphIds;
+    }
+    delete[] infos;
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyphs, int count, float* widths)
 {
     if (cFont == nullptr || glyphs == nullptr || widths == nullptr || count <= 0) {
@@ -372,6 +473,53 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_F
         font = themeFont.get();
     }
     *textWidth = font->MeasureText(text, byteLength, static_cast<TextEncoding>(encoding),
+        reinterpret_cast<Drawing::Rect*>(bounds), reinterpret_cast<const Drawing::Brush*>(brush),
+        reinterpret_cast<const Drawing::Pen*>(pen));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithFallback(const OH_Drawing_Font *cFont, const void *text,
+    uint32_t byteLength, OH_Drawing_TextEncoding encoding, OH_Drawing_Rect *bounds, float *textWidth)
+{
+    if (cFont == nullptr || text == nullptr || byteLength == 0 || textWidth == nullptr) {
+        LOGE("OH_Drawing_FontMeasureTextWithFallback: any of font, text and textWidth is nullptr "
+            "or byteLength is 0.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (encoding < TEXT_ENCODING_UTF8 || encoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_FontMeasureTextWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    *textWidth = font->MeasureTextWithFallback(text, byteLength, static_cast<TextEncoding>(encoding),
+        reinterpret_cast<Drawing::Rect*>(bounds));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(const OH_Drawing_Font *cFont,
+    const void *text, uint32_t byteLength, OH_Drawing_TextEncoding encoding, const OH_Drawing_Brush *brush,
+    const OH_Drawing_Pen *pen, OH_Drawing_Rect *bounds, float *textWidth)
+{
+    if (cFont == nullptr || text == nullptr || byteLength == 0 || textWidth == nullptr ||
+        (brush != nullptr && pen != nullptr)) {
+        LOGE("OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback: any of font, text and textWidth "
+            "is nullptr or byteLength is 0 or brush and pen are both not nullptr.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (encoding < TEXT_ENCODING_UTF8 || encoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    *textWidth = font->MeasureTextWithFallback(text, byteLength, static_cast<TextEncoding>(encoding),
         reinterpret_cast<Drawing::Rect*>(bounds), reinterpret_cast<const Drawing::Brush*>(brush),
         reinterpret_cast<const Drawing::Pen*>(pen));
     return OH_DRAWING_SUCCESS;

@@ -27,6 +27,7 @@ constexpr uint64_t DEFAULT_WIDTH = 30;
 constexpr uint32_t DEFAULT_HEIGHT = 30;
 constexpr uint64_t DEFAULT_HOST_PID = 1;
 constexpr uint32_t DEFAULT_UIEXTENSION_PID = 2;
+constexpr uint32_t MAX_TOTAL_NODES = 10240;
 
 class RSUIExtensionDataTest : public testing::Test {
 public:
@@ -158,6 +159,85 @@ HWTEST_F(RSUIExtensionDataTest, MarshallingMultipleNodesTest, TestSize.Level1)
     ASSERT_EQ(secData[id2][0].upperNodes.size(), resultData[id2][0].upperNodes.size());
     ASSERT_EQ(secData[id2][0].upperNodes[0].relativeCoords.GetWidth(),
         resultData[id2][0].upperNodes[0].relativeCoords.GetWidth());
+}
+
+/**
+ * @tc.name: DuplicateHostNodeIdTest
+ * @tc.desc: test unmarshalling rejects duplicate hostNodeId.
+ * @tc.type:FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSUIExtensionDataTest, DuplicateHostNodeIdTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint32(2);           // mapSize
+    parcel.WriteUint64(1);           // hostNodeId
+    parcel.WriteUint32(0);           // uiExtensionNodesCount
+    parcel.WriteUint64(1);           // duplicate hostNodeId
+    parcel.WriteUint32(0);           // uiExtensionNodesCount
+    auto result = RSUIExtensionData::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: TotalNodesOverflowBySurfacesTest
+ * @tc.desc: test unmarshalling rejects when uiExtensionNodesCount exceeds total node limit.
+ * @tc.type:FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSUIExtensionDataTest, TotalNodesOverflowBySurfacesTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint32(1);           // mapSize
+    parcel.WriteUint64(1);           // hostNodeId
+    parcel.WriteUint32(MAX_TOTAL_NODES + 1);  // uiExtensionNodesCount overflow
+    auto result = RSUIExtensionData::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: TotalNodesOverflowByUpperNodesTest
+ * @tc.desc: test unmarshalling rejects when surfaces * upperNodes exceeds total node limit.
+ * @tc.type:FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSUIExtensionDataTest, TotalNodesOverflowByUpperNodesTest, TestSize.Level1)
+{
+    // 2 surfaces + 2 * (MAX_TOTAL_NODES / 2) upperNodes = MAX_TOTAL_NODES + 2 > MAX_TOTAL_NODES
+    constexpr uint32_t NODE_COUNT = MAX_TOTAL_NODES / 2;
+    Parcel parcel;
+    parcel.WriteUint32(1);           // mapSize
+    parcel.WriteUint64(1);           // hostNodeId
+    parcel.WriteUint32(2);           // uiExtensionNodesCount
+    for (uint32_t i = 0; i < 2; ++i) {
+        // uiExtensionRectInfo
+        parcel.WriteInt32(0);        // left
+        parcel.WriteInt32(0);        // top
+        parcel.WriteInt32(0);        // width
+        parcel.WriteInt32(0);        // height
+        parcel.WriteFloat(1.0f);     // scale[0]
+        parcel.WriteFloat(1.0f);     // scale[1]
+        parcel.WriteFloat(0.0f);     // anchor[0]
+        parcel.WriteFloat(0.0f);     // anchor[1]
+        parcel.WriteInt32(1);        // hostPid
+        parcel.WriteInt32(2);        // uiExtensionPid
+        parcel.WriteUint64(1);       // hostNodeId
+        parcel.WriteUint64(2);       // uiExtensionNodeId
+        parcel.WriteUint32(NODE_COUNT);  // upperNodesCount
+        for (uint32_t j = 0; j < NODE_COUNT; ++j) {
+            parcel.WriteInt32(0);
+            parcel.WriteInt32(0);
+            parcel.WriteInt32(0);
+            parcel.WriteInt32(0);
+            parcel.WriteFloat(1.0f);
+            parcel.WriteFloat(1.0f);
+            parcel.WriteFloat(0.0f);
+            parcel.WriteFloat(0.0f);
+        }
+    }
+    // totalNodes = 2 surfaces + 2 * NODE_COUNT upperNodes = MAX_TOTAL_NODES + 2, cross-dimension overflow
+    auto result = RSUIExtensionData::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

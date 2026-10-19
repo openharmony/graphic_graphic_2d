@@ -48,6 +48,10 @@ namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr float FLOAT_DATA_EPSILON = 1e-6f;
+constexpr uint32_t ROG_RENDER_WIDTH = 1080;
+constexpr uint32_t ROG_RENDER_HEIGHT = 2400;
+constexpr int32_t ROG_RATIO = 2;
+const RectI ROG_DAMAGE_RECT = { 200, 400, 100, 200 };
 }
 class RSLogicalDisplayRenderNodeDrawableTest : public testing::Test {
 public:
@@ -3386,5 +3390,114 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawRogScale, TestSize.Level1
     EXPECT_EQ(screenParams->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
     EXPECT_NE(screenParams->screenProperty_.GetRogWidthRatio(), 1.0f);
     EXPECT_NE(screenParams->screenProperty_.GetRogHeightRatio(), 1.0f);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsDeviceGpu
+ * @tc.desc: test MapDamageRegionRects maps damage rects with inverse rog ratio when main screen is DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    mainScreenInfo.phyWidth = ROG_RENDER_WIDTH * static_cast<uint32_t>(ROG_RATIO);
+    mainScreenInfo.phyHeight = ROG_RENDER_HEIGHT * static_cast<uint32_t>(ROG_RATIO);
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    // damage rects in physical resolution are pre-scaled by 1/rogRatio into render resolution
+    RectI expectedRect(ROG_DAMAGE_RECT.left_ / ROG_RATIO, ROG_DAMAGE_RECT.top_ / ROG_RATIO,
+        ROG_DAMAGE_RECT.width_ / ROG_RATIO, ROG_DAMAGE_RECT.height_ / ROG_RATIO);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), expectedRect);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsNotDeviceGpu
+ * @tc.desc: test MapDamageRegionRects keeps damage rects unchanged when sampling mode is not DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsNotDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsInvalidRatio
+ * @tc.desc: test MapDamageRegionRects skips rog pre-scale when rog ratio is invalid under DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsInvalidRatio, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    // phyWidth/phyHeight are zero so both rog ratios are 0, which is invalid and skips pre-scale
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
+ * @tc.name: ScaleMatrixByInverseRogRatioDeviceGpu
+ * @tc.desc: Test ScaleMatrixByInverseRogRatio undoes rog scale for DEVICE_GPU and keeps matrix otherwise
+ * @tc.type: FUNC
+ * @tc.require: issue26347
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleMatrixByInverseRogRatioDeviceGpu, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    constexpr int32_t ROG_TEST_RATIO = 2;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    constexpr int32_t PHY_WIDTH = RENDER_WIDTH * ROG_TEST_RATIO;
+    constexpr int32_t PHY_HEIGHT = RENDER_HEIGHT * ROG_TEST_RATIO;
+    Drawing::Matrix canvasMatrix;
+    canvasMatrix.SetScaleTranslate(1.f, 1.f, static_cast<float>(RENDER_WIDTH), 0.f);
+
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = RENDER_WIDTH;
+    mainScreenInfo.height = RENDER_HEIGHT;
+    mainScreenInfo.phyWidth = PHY_WIDTH;
+    mainScreenInfo.phyHeight = PHY_HEIGHT;
+
+    // sampling mode is not DEVICE_GPU, canvas matrix keeps unchanged
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_DSS;
+    Drawing::Matrix unchangedMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(unchangedMatrix, mainScreenInfo);
+    EXPECT_NEAR(unchangedMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(unchangedMatrix.Get(Drawing::Matrix::TRANS_X), static_cast<float>(RENDER_WIDTH), FLOAT_DATA_EPSILON);
+
+    // DEVICE_GPU, regions in physical resolution are mapped back by 1 / rogRatio in advance
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Drawing::Matrix scaledMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(scaledMatrix, mainScreenInfo);
+    EXPECT_NEAR(scaledMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f / ROG_TEST_RATIO, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(scaledMatrix.Get(Drawing::Matrix::TRANS_X), static_cast<float>(RENDER_WIDTH), FLOAT_DATA_EPSILON);
+    // the matrix held by caller is scaled in place, thus caller should pass its own copy
+    EXPECT_NEAR(canvasMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
+
+    // DEVICE_GPU with invalid physical resolution, canvas matrix keeps unchanged
+    mainScreenInfo.phyWidth = 0;
+    Drawing::Matrix invalidRatioMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(invalidRatioMatrix, mainScreenInfo);
+    EXPECT_NEAR(invalidRatioMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
 }
 }

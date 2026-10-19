@@ -115,3 +115,5 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, PrismHeight, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, SweepCenterX, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SweepRefractionMask, SweepCenterY, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SweepRefractionMask, ShapeType, int);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(AtlasFrameMask, AtlasInfo, AtlasInfo);

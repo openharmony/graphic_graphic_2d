@@ -54,6 +54,8 @@ public:
     bool IsVsyncAppDistributorExist();
     bool DvsyncNeedSkipRsCommitDelay() const;
 
+    void SetThermalFrameRateLimit(uint32_t frameRate);
+
 private:
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncDistributor> rsVsyncDistributor_ = nullptr;

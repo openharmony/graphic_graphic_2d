@@ -912,7 +912,7 @@ HWTEST_F(RSRenderNodeTest2, IsFilterCacheValid002, TestSize.Level1)
     auto& properties = node.GetMutableRenderProperties();
     properties.filter_ = std::make_shared<RSFilter>();
     EXPECT_FALSE(node.IsFilterCacheValid());
-    properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     EXPECT_FALSE(node.IsFilterCacheValid());
@@ -1247,7 +1247,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
@@ -1265,7 +1265,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().needDrawBehindWindow_ = true;
+    properties.GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = true;
     RectI inRegion(10, 10, 20, 20);
     RectI outRegion(90, 90, 110, 110);
     RectI lastRegion(0, 0, 100, 100);
@@ -1528,7 +1528,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().needDrawBehindWindow_ = true;
+    properties.GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = true;
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
@@ -2412,7 +2412,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode03, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().needDrawBehindWindow_ = false;
+    properties.GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = false;
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
@@ -2632,6 +2632,212 @@ HWTEST_F(RSRenderNodeTest2, GenerateFullChildrenListTest02, TestSize.Level1)
 
     node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
+}
+
+/**
+ * @tc.name: ResetParentHardCursorSkipRemovedRect001
+ * @tc.desc: hard cursor surface node must not join its rect into parent removedChildrenRect_ on ResetParent,
+ *           but its off-tree HWC region is recorded
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentHardCursorSkipRemovedRect001, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0);
+    auto parent = std::make_shared<RSRenderNode>(2);
+    auto child = std::make_shared<RSSurfaceRenderNode>(3);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->isHardCursor_ = true;
+    child->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    child->SetAncestorScreenNode(screenNode);
+    child->oldDirty_ = {10, 10, 50, 50};
+    child->parent_ = parent;
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_TRUE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+    auto offTreeHwcRegions = screenNode->TakeOffTreeHwcRegions();
+    ASSERT_EQ(offTreeHwcRegions.size(), 1);
+    EXPECT_EQ(offTreeHwcRegions[0].first, RSSurfaceNodeType::CURSOR_NODE);
+    EXPECT_EQ(offTreeHwcRegions[0].second, RectI(10, 10, 50, 50));
+}
+
+/**
+ * @tc.name: ResetParentSurfaceNotHardCursorJoinRemovedRect002
+ * @tc.desc: non-hard-cursor surface node still joins its rect into parent removedChildrenRect_ on ResetParent
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentSurfaceNotHardCursorJoinRemovedRect002, TestSize.Level1)
+{
+    auto parent = std::make_shared<RSRenderNode>(1);
+    auto child = std::make_shared<RSSurfaceRenderNode>(2);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->isHardCursor_ = false;
+    child->parent_ = parent;
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_FALSE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->removedChildrenRect_ == RectI(0, 0, 100, 100));
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetParentNonSurfaceJoinRemovedRect003
+ * @tc.desc: non-surface node joins its rect into parent removedChildrenRect_ on ResetParent
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentNonSurfaceJoinRemovedRect003, TestSize.Level1)
+{
+    auto parent = std::make_shared<RSRenderNode>(1);
+    auto child = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->parent_ = parent;
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_FALSE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->removedChildrenRect_ == RectI(0, 0, 100, 100));
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetParentHardCursorNoScreenAncestorJoinRemovedRect004
+ * @tc.desc: hard cursor surface node without screen ancestor falls back to joining parent removedChildrenRect_
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentHardCursorNoScreenAncestorJoinRemovedRect004, TestSize.Level1)
+{
+    auto parent = std::make_shared<RSRenderNode>(1);
+    auto child = std::make_shared<RSSurfaceRenderNode>(2);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->isHardCursor_ = true;
+    child->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    child->parent_ = parent;
+    ASSERT_EQ(child->GetAncestorScreenNode().lock(), nullptr);
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_FALSE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->removedChildrenRect_ == RectI(0, 0, 100, 100));
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetParentHardCursorAncestorNotScreenJoinRemovedRect005
+ * @tc.desc: hard cursor surface node with non-screen ancestor falls back to joining parent removedChildrenRect_
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentHardCursorAncestorNotScreenJoinRemovedRect005, TestSize.Level1)
+{
+    auto ancestor = std::make_shared<RSRenderNode>(1);
+    auto parent = std::make_shared<RSRenderNode>(2);
+    auto child = std::make_shared<RSSurfaceRenderNode>(3);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->isHardCursor_ = true;
+    child->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    child->SetAncestorScreenNode(ancestor);
+    child->parent_ = parent;
+    ASSERT_NE(child->GetAncestorScreenNode().lock(), nullptr);
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_FALSE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->removedChildrenRect_ == RectI(0, 0, 100, 100));
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetParentNullBoundsGeometrySkipRemovedRect006
+ * @tc.desc: node without bounds geometry skips joining parent removedChildrenRect_ on ResetParent
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentNullBoundsGeometrySkipRemovedRect006, TestSize.Level1)
+{
+    auto parent = std::make_shared<RSRenderNode>(1);
+    auto child = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->parent_ = parent;
+    ASSERT_EQ(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_TRUE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetParentHardCursorEmptyOldDirtySkipRemovedRect007
+ * @tc.desc: hard cursor surface node with empty old dirty still skips parent removedChildrenRect_
+ *           and records no off-tree HWC region
+ * @tc.type: FUNC
+ * @tc.require: issue26333
+ */
+HWTEST_F(RSRenderNodeTest2, ResetParentHardCursorEmptyOldDirtySkipRemovedRect007, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0);
+    auto parent = std::make_shared<RSRenderNode>(2);
+    auto child = std::make_shared<RSSurfaceRenderNode>(3);
+    ASSERT_NE(child, nullptr);
+    child->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child->selfDrawRect_ = {0, 0, 100, 100};
+    child->childrenRect_.Clear();
+    child->isHardCursor_ = true;
+    child->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    child->SetAncestorScreenNode(screenNode);
+    child->oldDirty_ = RectI();
+    child->parent_ = parent;
+    ASSERT_TRUE(child->GetOldDirty().IsEmpty());
+    ASSERT_NE(child->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    ASSERT_TRUE(parent->removedChildrenRect_.IsEmpty());
+
+    child->ResetParent();
+
+    EXPECT_TRUE(parent->removedChildrenRect_.IsEmpty());
+    EXPECT_TRUE(parent->hasRemovedChild_);
+    EXPECT_EQ(child->parent_.lock(), nullptr);
+    EXPECT_TRUE(screenNode->TakeOffTreeHwcRegions().empty());
 }
 
 /**
@@ -3224,7 +3430,7 @@ HWTEST_F(RSRenderNodeTest2, MarkBlurIntersectWithDRM, TestSize.Level1)
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     backgroundNode.MarkBlurIntersectWithDRM(true, true);
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
@@ -3243,7 +3449,7 @@ HWTEST_F(RSRenderNodeTest2, NodeDrawLargeAreaBlur, TestSize.Level1)
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     std::pair<bool, bool> nodeBlurState = {true, true};
@@ -3263,7 +3469,7 @@ HWTEST_F(RSRenderNodeTest2, InvokeFilterDrawable, TestSize.Level1)
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     EXPECT_EQ(backgroundNode.InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, nullptr), false);
@@ -3287,7 +3493,7 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawable2, TestSize.Level1)
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     EXPECT_EQ(backgroundNode.GetFilterDrawable(RSDrawableSlot::BACKGROUND_IMAGE) != nullptr, false);
@@ -3306,7 +3512,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterInForegroundFilterAndCheckNeedForceClearCa
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;

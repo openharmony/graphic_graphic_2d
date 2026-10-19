@@ -67,6 +67,20 @@ bool IsReplyNotClonable(uint32_t code)
             return false;
     }
 }
+
+// Synchronous interfaces exempt from timeout protection.
+// Direct in-thread send restores the pre-offload behavior for these calls.
+bool IsTimeoutProtectionExempt(uint32_t code)
+{
+    switch (static_cast<RSIClientToRenderConnectionInterfaceCode>(code)) {
+#if defined(RS_ENABLE_VK)
+        case RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER:
+            return true;
+#endif
+        default:
+            return false;
+    }
+}
 }
 
 RSClientToRenderConnectionProxy::RSClientToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -80,11 +94,13 @@ int32_t RSClientToRenderConnectionProxy::SendRequest(
     if (!Remote()) {
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
-    // Async calls, calls with binder objects/fds in the input parcel, and calls whose reply
-    // cannot be cloned keep the direct in-thread SendRequest without timeout protection.
+    // Async calls, calls with binder objects/fds in the input parcel, calls whose reply
+    // cannot be cloned, and timeout-exempt calls keep the direct in-thread SendRequest
+    // without timeout protection.
     bool isAsync =
         (static_cast<uint32_t>(option.GetFlags()) & static_cast<uint32_t>(MessageOption::TF_ASYNC)) != 0;
-    bool needDirectSend = isAsync || data.GetOffsetsSize() > 0 || IsReplyNotClonable(code);
+    bool needDirectSend =
+        isAsync || data.GetOffsetsSize() > 0 || IsReplyNotClonable(code) || IsTimeoutProtectionExempt(code);
     if (needDirectSend) {
         return Remote()->SendRequest(code, data, reply, option);
     }

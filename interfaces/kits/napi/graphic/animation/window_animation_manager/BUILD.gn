@@ -51,6 +51,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "window_manager:libwmutil",
     "window_manager:libwmutil_base",
     "window_manager:sms",
+    "libuv:uv",
   ]
 
   defines = []

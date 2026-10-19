@@ -222,6 +222,24 @@ void HgmContext::RemoveScreenFromHgm(ScreenId screenId)
     });
 }
 
+void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+{
+    if (type == ScreenPropertyType::RENDER_RESOLUTION) {
+        uint32_t width = 0;
+        uint32_t height = 0;
+        if (auto screenManager = hgmCore_.GetScreenManager(); screenManager != nullptr &&
+            screenManager->GetRogScreenResolution(id, width, height) == static_cast<int32_t>(StatusCode::SUCCESS)) {
+            HGM_LOGD("screenId: %{public}" PRIu64 " width: %{public}u height: %{public}u", id, width, height);
+            HgmTaskHandleThread::Instance().PostTask([this, id, width, height] {
+                RS_TRACE_NAME_FMT("%s id: %" PRIu64 " width: %u height: %u", __func__, id, width, height);
+                hgmCore_.UpdateScreenRenderResolution(id, width, height);
+            });
+        } else {
+            HGM_LOGW("get rog screen resolution failed, screenId: %{public}" PRIu64, id);
+        }
+    }
+}
+
 void HgmContext::CleanAllWhenServiceConnectionDie(pid_t remotePid)
 {
     renderServiceHandler_->PostSyncTask([this, remotePid] {

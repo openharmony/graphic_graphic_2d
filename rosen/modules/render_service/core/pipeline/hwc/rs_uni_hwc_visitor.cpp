@@ -617,6 +617,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
         inputHwclayers++;
+        PrintHiperfCounterLog(hwcNodePtr->GetName().c_str(), 1);
         if (hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             uniRenderVisitor_.drmNodes_.emplace_back(hwcNode);
             auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
@@ -1337,7 +1338,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalPosition(RSSurfaceRenderNode& h
 void RSUniHwcVisitor::PrintHiperfCounterLog(const char* const counterContext, uint64_t counter)
 {
 #ifdef HIPERF_TRACE_ENABLE
-    RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64, counterContext, counter);
+    RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64 " %{public}" PRIu64, counterContext, counter,
+            RSMainThread::Instance()->GetVsyncId());
 #endif
 }
 

@@ -18,6 +18,7 @@
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "ui_effect/effect/include/border_light_effect_para.h"
+#include "ui_effect/effect/include/glass_effect_para.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/effect/include/frosted_glass_effect_para.h"
 #include "ui_effect/effect/include/harmonium_effect_para.h"
@@ -102,6 +103,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::SPATIAL_POINT_LIGHT, [] {
             return std::make_shared<RSNGSpatialPointLight>();
+        }
+    },
+    {RSNGEffectType::GLASS_EFFECT, [] {
+            return std::make_shared<RSNGGlassEffect>();
         }
     },
 };
@@ -291,6 +296,38 @@ std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEff
     borderLightEffect->Setter<BorderLightWidthTag>(borderLightEffectPara->GetLightWidth());
     return borderLightEffect;
 }
+
+std::shared_ptr<RSNGShaderBase> ConvertGlassEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
+{
+    auto effect = RSNGShaderBase::Create(RSNGEffectType::GLASS_EFFECT);
+    auto glassEffect = std::static_pointer_cast<RSNGGlassEffect>(effect);
+    auto glassEffectPara = std::static_pointer_cast<GlassEffectPara>(effectPara);
+    if (glassEffect == nullptr || glassEffectPara == nullptr) {
+        ROSEN_LOGE("ConvertGlassEffectPara glassEffect or para is nullptr");
+        return nullptr;
+    }
+    glassEffect->Setter<GlassEffectSphereCenterTag>(glassEffectPara->GetSphereCenter());
+    glassEffect->Setter<GlassEffectSphereRadiusTag>(glassEffectPara->GetSphereRadius());
+    glassEffect->Setter<GlassEffectAverageBgColorTag>(glassEffectPara->GetAverageBgColor());
+    glassEffect->Setter<GlassEffectOpacityTag>(glassEffectPara->GetOpacity());
+    glassEffect->Setter<GlassEffectShapeScaleTag>(glassEffectPara->GetShapeScale());
+    glassEffect->Setter<GlassEffectShadowOffsetTag>(glassEffectPara->GetShadowOffset());
+    glassEffect->Setter<GlassEffectShadowRadiusTag>(glassEffectPara->GetShadowRadius());
+    glassEffect->Setter<GlassEffectShadowEdgeSoftnessTag>(glassEffectPara->GetShadowEdgeSoftness());
+    glassEffect->Setter<GlassEffectShadowOpacityTag>(glassEffectPara->GetShadowOpacity());
+    glassEffect->Setter<GlassEffectCausticOffsetTag>(glassEffectPara->GetCausticOffset());
+    glassEffect->Setter<GlassEffectCausticRadiusTag>(glassEffectPara->GetCausticRadius());
+    glassEffect->Setter<GlassEffectCausticEdgeSoftnessTag>(glassEffectPara->GetCausticEdgeSoftness());
+    glassEffect->Setter<GlassEffectCausticOpacityTag>(glassEffectPara->GetCausticOpacity());
+    glassEffect->Setter<GlassEffectContentTintColorTag>(glassEffectPara->GetContentTintColor());
+    glassEffect->Setter<GlassEffectContentScaleTag>(glassEffectPara->GetContentScale());
+    glassEffect->Setter<GlassEffectContentSaturationTag>(glassEffectPara->GetContentSaturation());
+    glassEffect->Setter<GlassEffectContentDispersionTag>(glassEffectPara->GetContentDispersion());
+    glassEffect->Setter<GlassEffectShapeMaskTag>(RSNGMaskBase::Create(glassEffectPara->GetShapeMask()));
+    glassEffect->Setter<GlassEffectContentMaskTag>(RSNGMaskBase::Create(glassEffectPara->GetContentMask()));
+    glassEffect->Setter<GlassEffectReflectionImageTag>(glassEffectPara->GetReflectionImage());
+    return glassEffect;
+}
 }
 
 static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertorLUT = {
@@ -298,6 +335,7 @@ static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertor
     { VisualEffectPara::ParaType::BORDER_LIGHT_EFFECT, ConvertBorderLightPara },
     { VisualEffectPara::ParaType::HARMONIUM_EFFECT, ConvertHarmoniumEffectPara },
     { VisualEffectPara::ParaType::FROSTED_GLASS_EFFECT, ConvertFrostedGlassEffectPara },
+    { VisualEffectPara::ParaType::GLASS_EFFECT, ConvertGlassEffectPara },
 };
 
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)

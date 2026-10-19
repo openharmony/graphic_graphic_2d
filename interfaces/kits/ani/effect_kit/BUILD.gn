@@ -43,7 +43,7 @@ config("graphic_ani_effect_kit_config") {
 ohos_shared_library("effectKit_ani") {
   shlib_type = "ani"
   branch_protector_ret = "pac_ret"
-
+  version_script = "libeffectkit_ani.map"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

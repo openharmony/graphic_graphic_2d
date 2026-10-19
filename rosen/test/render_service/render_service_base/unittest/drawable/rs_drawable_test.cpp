@@ -158,9 +158,10 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
     properties.clipRRect_ = std::make_unique<RRect>(rect, 1.0, 2.0);
     auto path = std::make_shared<RSPath>();
     properties.SetClipBounds(path);
-    properties.GetEffect().colorBlendMode_ = 1;
-    properties.GetEffect().fgBrightnessParams_ = std::make_optional<RSDynamicBrightnessPara>();
-    properties.GetEffect().fgBrightnessParams_->fraction_ = 0;
+    properties.GetEffectProperties().GetBlenderEffect().colorBlendMode_ = 1;
+    properties.GetEffectProperties().GetBlenderEffect().fgBrightnessParams_ =
+        std::make_optional<RSDynamicBrightnessPara>();
+    properties.GetEffectProperties().GetBlenderEffect().fgBrightnessParams_->fraction_ = 0;
 
     drawableVecStatus = 49;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);

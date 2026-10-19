@@ -150,12 +150,16 @@ RSInterfaces::Set/Add/RemoveVirtualScreenBlackList            (render_service_cl
 （全局黑名单语义寄生在虚拟屏接口之下）；具体屏幕则走 `RSScreen` 的单屏名单。
 全局黑名单变更经 `callbackMgr_->NotifyGlobalBlacklistChanged` 通知。
 
-族内接口形态约定（同类新增接口必须遵循）：Set 类为 fire-and-forget
-（`int32_t` 返回、无 `repCode`；客户端包装层返回的是传输层 `ERR_OK`，
-不是服务端状态）；Add/Remove 类为 `ErrCode` + `repCode` 出参
-（`TF_ASYNC` 下回读 repCode，见"已知模式风险"）。不得在同一组接口内混用两种形态。
+族内接口形态约定（同类新增接口必须遵循）：五个名单命令码（Set 类型黑名单、Add/Remove 黑/白名单）
+均为 `TF_ASYNC` fire-and-forget —— Proxy 统一 `repCode = SUCCESS`、Stub 不回写 reply，
+服务端状态码只落 RS 日志（Set 类 `RS_LOGE`，Add/Remove 类 `RS_LOGW`），调用方拿不到失败原因；
+接口签名仍保留 `repCode` 出参，勿据其判断服务端结果。确需感知结果时必须改 `TF_SYNC`
+并同步改 Stub 与 Proxy，不得只改单侧。
 
-权限：三个虚拟屏黑名单命令码均在 access verifier 中注册 `IsSystemCalling`。
+权限：三个虚拟屏黑名单命令码在 access verifier 中注册 `IsSystemCalling`
+（系统应用 / native / shell 均放行）；两个白名单命令码
+（`ADD/REMOVE_VIRTUAL_SCREEN_WHITELIST`）注册 `IsFoundationCalling`（仅 uid 5523），
+严于黑名单，同族策略不一致，新增接口前先确认调用方 uid。
 注意 `IsExclusiveVerificationPassed` 默认 `hasPermission = true`，
 **未注册的命令码默认放行**，敏感接口必须显式注册。
 
@@ -224,11 +228,14 @@ KB 对比实验中曾出现遗漏 stub token 校验注册（第 4 项）导致�
 
 已知模式风险：
 
-- 黑/白名单族 Proxy 在 `TF_ASYNC` 下仍 `reply.ReadInt32()` 读 repCode，
-  异步语义下回读可靠性依赖既有实现；新增接口沿用该模式时保持与同族接口一致即可，
-  不要在单个接口上混用不同的 reply 约定。
-- 客户端包装层（`RSRenderServiceClient`）Set 类接口单测断言返回 `0`，
-  断言的是传输层 `ERR_OK`，不代表服务端状态；
+- 黑/白名单族 Proxy 曾在 `TF_ASYNC` 下 `reply.ReadInt32()` 回读 repCode（异步 reply 为空，
+  读到的恒为 0 并刷 parcel 错误日志），Stub 侧的 `reply.WriteInt32(repCode)` 已同步移除，
+  服务端状态码现在只落日志；新增同族接口不要恢复回读，也不要在单个接口上混用 reply 约定。
+- 客户端包装层 `RSRenderServiceClient` 的 `int32_t repCode;` 未初始化即 `return repCode;`
+  属未定义行为，名单族五处已初始化为 `SUCCESS`；同文件 `GetPixelMapByProcessId` 与
+  `SetScreenActiveRect` 仍是历史遗留（后者另有一处 unreachable `return repCode;`），改动时留意。
+- 客户端包装层（`RSRenderServiceClient`）名单族接口单测断言返回 `0`，
+  断言的只是"异步请求已发出"（`repCode` 恒为 `SUCCESS`），不代表服务端状态；
   不要据此推断服务端分支行为，也不要在改造时误改这类断言的语义。
 
 ## 设计背景与决策理由

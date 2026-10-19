@@ -29,6 +29,7 @@
 #include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "aihdr_enhancer.h"
+#include "common_state.h"
 #include "render/rs_colorspace_convert.h"
 #include "render/rs_effect_luminance_manager.h"
 #endif
@@ -97,6 +98,10 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         return false;
     }
     auto& rsLuminance = RSLuminanceControl::Get();
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    Media::VideoProcessingEngine::VpeCommonState::UpdateBundleHdrStatus(surfaceNode.GetBundleName(),
+        static_cast<uint32_t>(surfaceNode.GetVideoHdrStatus()));
+#endif
     if (surfaceNode.GetVideoHdrStatus() == HdrStatus::NO_HDR) {
         surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
@@ -592,15 +597,9 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
     return false;
 }
 
-bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
+bool RSHdrUtil::NeedBackToFP16(bool hasDstAlphaBlendModeNode, RSScreenRenderParams* screenParams)
 {
     if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
-        return true;
-    }
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
-    if (!displayNode) {
-        RS_LOGE("RSHdrUtil::NeedBackToFP16 displayNode is nullptr");
         return true;
     }
     bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
@@ -609,8 +608,7 @@ bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
         hasHwcHdr || colorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
         return true;
     }
-    int dstAlphaCount = displayNode->GetDstAlphaBlendModeNodeCount();
-    return dstAlphaCount > 0;
+    return hasDstAlphaBlendModeNode;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

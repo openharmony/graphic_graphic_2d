@@ -452,7 +452,7 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
 
 /**
  * @tc.name: TryReleaseTextureForIdleThreadTest
- * @tc.desc: Test relase texture failed
+ * @tc.desc: Test release texture failed
  * @tc.type: FUNC
  * @tc.require: issue21071
  */
@@ -466,7 +466,7 @@ HWTEST_F(RsSubThreadManagerTest, TryReleaseTextureForIdleThreadTest001, TestSize
 
 /**
  * @tc.name: TryReleaseTextureForIdleThreadTest
- * @tc.desc: Test relase texture success
+ * @tc.desc: Test release texture success
  * @tc.type: FUNC
  * @tc.require: issue21071
  */

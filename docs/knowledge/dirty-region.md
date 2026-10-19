@@ -233,7 +233,11 @@ collector 是否经过 `OnSync()`，并按各字段的实际消费点执行 `Cle
 ### HWC 和 UIFirst
 
 - `MergeHwcDirtyRect()` 按默认类型写入 `hwcDirtyRegion_`，按具体 Surface 类型写入
-  `typeHwcDirtyRegion_`；它还会把 HWC 矩形并入 `advancedDirtyRegion_`。
+  `typeHwcDirtyRegion_`；不修改 `advancedDirtyRegion_`（后者只随 `MergeDirtyRect()` 路径和
+  `UpdateDirty()` 历史合并更新）。
+- 硬光标 surface 节点下树（`ResetParent()`）时不并入父节点 `removedChildrenRect_`，而是把
+  `GetOldDirty()` 记录到屏幕节点 `offTreeHwcRegions_`，由 `RSUniRenderVisitor::InitScreenInfo()`
+  在同帧遍历开始时按 Surface 类型合入 HWC dirty，避免触发 GPU 全局脏区。
 - `uifirstFrameDirtyRegion_` 单独保存 UIFirst 本帧结果，并在 OnSync 后清空源数据。
 - Layer partial render 还会使用独立的 `RSDirtyRegionManager`，不能默认所有 dirty 都属于
   Screen 或主 Surface 管理器。
@@ -256,8 +260,10 @@ collector 是否经过 `OnSync()`，并按各字段的实际消费点执行 `Cle
 `RSScreenRenderNode` 和 `RSSurfaceRenderNode` 持有主线程 `dirtyManager_`；对应 Drawable 持有
 `syncDirtyManager_`。`RSDirtyRegionManager::OnSync()` 当前会：
 
-- 复制 Surface 范围、当前帧结果、历史合并结果、advanced、HWC、UIFirst 和 `debugRect_`；
-  节点级 DFX map 与 `mergedDirtyRegions_` 只在 dirty debug 开启时复制。
+- 同步 Surface 范围、当前帧结果、历史合并结果、advanced、HWC、UIFirst 和 `debugRect_`；其中
+  容器类字段（advanced 列表、按类型 HWC map、当前帧 advanced rect）用 `std::move` 转移，源端随后
+  被 `Clear()` 清空，转移后不要继续读源端；节点级 DFX map 与 `mergedDirtyRegions_` 只在
+  dirty debug 开启时同步。
 - 调用 `filterCollector_.OnSync()`。
 - 清空目标的 Quick Reject 列表，等待渲染线程重建。
 - 调用源管理器的 `Clear()`；随后再单独清空源端 `uifirstFrameDirtyRegion_`。
@@ -341,7 +347,7 @@ collector 是否经过 `OnSync()`，并按各字段的实际消费点执行 `Cle
 - `MergeDirtyRect()` 同时更新普通 current-frame 和 advanced current-frame。
 - `MergeDirtyRectIfIntersect()` 当前只扩展普通包围矩形，不追加 advanced rect。
 - `MergeDirtyRectAfterMergeHistory()` 当前只扩展历史合并后的 `dirtyRegion_`。
-- `MergeHwcDirtyRect()` 会更新 HWC 字段，并把矩形合入 `advancedDirtyRegion_`。
+- `MergeHwcDirtyRect()` 只更新 HWC 字段，不追加 advanced rect，也不影响普通 current-frame。
 - `AdvancedDirtyRegionType::DISABLED`、矩形数量上限和无效 Buffer Age 都可能让多矩形退化。
 - `ClipDirtyRectWithinSurface()` 对普通包围矩形和 advanced rect 使用的裁剪范围当前不完全相同。
 

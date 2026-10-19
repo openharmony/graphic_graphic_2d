@@ -279,6 +279,11 @@ void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSCo
         }
         // Only infinite loop animations need to be rebuilt, normal animations will finish when going to background
         if (animation->GetRepeatCount() != infiniteRepeatCount) {
+            ROSEN_LOGW("RSAnimationManager::DestroyInRender, non-infinite animation[%{public}" PRIu64
+                "] finished via DestroyInRender", animation->GetAnimationId());
+            animation->Finish();
+            animation->RemoveFromGroupAnimator();
+            OnAnimationFinished(animation);
             continue;
         }
         bool isParticle = (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION);
@@ -298,8 +303,8 @@ void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSCo
             if (modifierNG != nullptr) {
                 target->RemoveModifierNG(modifierNG->GetId());
             }
-            animation->Detach();
         }
+        animation->Detach();
     }
     animations_.clear();
     particleAnimations_.clear();

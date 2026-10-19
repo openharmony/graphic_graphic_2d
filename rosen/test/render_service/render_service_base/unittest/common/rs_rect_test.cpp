@@ -296,6 +296,132 @@ HWTEST_F(RSRectTest, IntersectRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IntersectRect002
+ * @tc.desc: Verify IntersectRect returns exact intersection when rects overlap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect002, TestSize.Level1)
+{
+    RectF rect1(0.f, 0.f, 10.f, 10.f);
+    RectF rect2(5.f, 5.f, 10.f, 10.f);
+    RectF result = rect1.IntersectRect(rect2);
+    EXPECT_EQ(result.GetLeft(), 5.f);
+    EXPECT_EQ(result.GetTop(), 5.f);
+    EXPECT_EQ(result.GetWidth(), 5.f);
+    EXPECT_EQ(result.GetHeight(), 5.f);
+}
+
+/**
+ * @tc.name: IntersectRect003
+ * @tc.desc: Verify IntersectRect returns empty rect when rects have no horizontal overlap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect003, TestSize.Level1)
+{
+    RectF rect1(0.f, 0.f, 5.f, 5.f);
+    RectF rect2(10.f, 0.f, 5.f, 5.f);
+    RectF result = rect1.IntersectRect(rect2);
+    EXPECT_TRUE(result.IsEmpty());
+    EXPECT_EQ(result.GetWidth(), 0.f);
+}
+
+/**
+ * @tc.name: IntersectRect004
+ * @tc.desc: Verify IntersectRect returns empty rect when rects have no vertical overlap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect004, TestSize.Level1)
+{
+    RectF rect1(0.f, 0.f, 10.f, 10.f);
+    RectF rect2(2.f, 20.f, 10.f, 10.f);
+    RectF result = rect1.IntersectRect(rect2);
+    EXPECT_TRUE(result.IsEmpty());
+    EXPECT_EQ(result.GetHeight(), 0.f);
+}
+
+/**
+ * @tc.name: IntersectRect005
+ * @tc.desc: Verify IntersectRect returns empty rect when rect edges touch exactly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect005, TestSize.Level1)
+{
+    RectF rect1(0.f, 0.f, 5.f, 5.f);
+    RectF rect2(5.f, 0.f, 5.f, 5.f);
+    EXPECT_TRUE(rect1.IntersectRect(rect2).IsEmpty());
+
+    RectF rect3(0.f, 0.f, 5.f, 5.f);
+    RectF rect4(0.f, 5.f, 5.f, 5.f);
+    EXPECT_TRUE(rect3.IntersectRect(rect4).IsEmpty());
+}
+
+/**
+ * @tc.name: IntersectRect006
+ * @tc.desc: Verify IntersectRect of RectI returns exact intersection when one rect contains the other
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect006, TestSize.Level1)
+{
+    RectI rect1(0, 0, 100, 100);
+    RectI rect2(10, 20, 30, 40);
+    RectI result = rect1.IntersectRect(rect2);
+    EXPECT_EQ(result.GetLeft(), 10);
+    EXPECT_EQ(result.GetTop(), 20);
+    EXPECT_EQ(result.GetWidth(), 30);
+    EXPECT_EQ(result.GetHeight(), 40);
+}
+
+/**
+ * @tc.name: IntersectRect007
+ * @tc.desc: Verify IntersectRect of RectI returns empty rect when rects are disjoint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect007, TestSize.Level1)
+{
+    RectI rect1(0, 0, 5, 5);
+    RectI rect2(10, 10, 5, 5);
+    EXPECT_TRUE(rect1.IntersectRect(rect2).IsEmpty());
+
+    RectI rect3(0, 0, 5, 5);
+    RectI rect4(0, 20, 5, 5);
+    EXPECT_TRUE(rect3.IntersectRect(rect4).IsEmpty());
+}
+
+/**
+ * @tc.name: IntersectRect008
+ * @tc.desc: Verify IntersectRect of unsigned RectT returns empty rect when rects are disjoint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, IntersectRect008, TestSize.Level1)
+{
+    // without clamping, unsigned subtraction wraps to huge value and bypasses (width <= 0) check
+    RectT<uint32_t> rect1(0, 0, 5, 5);
+    RectT<uint32_t> rect2(10, 0, 5, 5);
+    RectT<uint32_t> horizontalResult = rect1.IntersectRect(rect2);
+    EXPECT_TRUE(horizontalResult.IsEmpty());
+    EXPECT_EQ(horizontalResult.GetWidth(), 0u);
+
+    RectT<uint32_t> rect3(0, 0, 5, 5);
+    RectT<uint32_t> rect4(0, 10, 5, 5);
+    RectT<uint32_t> verticalResult = rect3.IntersectRect(rect4);
+    EXPECT_TRUE(verticalResult.IsEmpty());
+    EXPECT_EQ(verticalResult.GetHeight(), 0u);
+
+    RectT<uint32_t> rect5(0, 0, 10, 10);
+    RectT<uint32_t> rect6(5, 5, 10, 10);
+    RectT<uint32_t> overlapResult = rect5.IntersectRect(rect6);
+    EXPECT_EQ(overlapResult.GetWidth(), 5u);
+    EXPECT_EQ(overlapResult.GetHeight(), 5u);
+}
+
+/**
  * @tc.name: JoinRect001
  * @tc.desc: test results of JoinRect
  * @tc.type: FUNC

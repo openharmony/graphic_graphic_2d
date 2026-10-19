@@ -33,6 +33,8 @@ const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the 
 const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
 const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
 const int32_t BUFFER_TIME_OUT = 500;
+const int32_t SCREEN_HEIGHT_UPPER = 1024 * 16; // Screen with 16K not exist yet.
+const int32_t SCREEN_STRIDE_UPPER = SCREEN_HEIGHT_UPPER * 4; // 4 channels
 } // namespace
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
@@ -294,12 +296,14 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         RS_LOGE("RSRcdSurfaceRenderNode buffer is nullptr");
         return false;
     }
+    int32_t stride = nodeBuffer->GetStride();
     if (cldLayerInfo.bufferSize < 0 || cldLayerInfo.cldWidth < 0 ||
-        cldLayerInfo.cldHeight < 0 || width < 0 || height < 0) {
+        cldLayerInfo.cldHeight < 0 || width < 0 || height < 0 ||
+        width > SCREEN_HEIGHT_UPPER || height > SCREEN_HEIGHT_UPPER ||
+        stride > SCREEN_STRIDE_UPPER) {
         RS_LOGE("RSRcdSurfaceRenderNode check cldLayerInfo and size failed");
         return false;
     }
-    int32_t stride = nodeBuffer->GetStride();
     int32_t offset = (height + 1) * stride;
     SetRCDInfo(cldLayerInfo, height, width, static_cast<uint32_t>(offset));
     int32_t offsetCldInfo = height * stride;
@@ -314,20 +318,47 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         RS_LOGE("[%{public}s] memcpy_s failed", __func__);
         return false;
     }
-    std::ifstream addBufferFile(cldLayerInfo.pathBin, std::ifstream::binary | std::ifstream::in);
-    if (addBufferFile) {
-        addBufferFile.seekg(0, addBufferFile.end);
-        int32_t addBufferSize = addBufferFile.tellg();
-        if (offset > static_cast<int32_t>(bufferSize) - addBufferSize) {
-            RS_LOGE("[%{public}s] hardware buffer overflow error", __func__);
-            addBufferFile.close();
-            return false;
-        }
-        addBufferFile.seekg(0, addBufferFile.beg);
-        addBufferFile.read(reinterpret_cast<char*>(img + offset), addBufferSize);
-        addBufferFile.close();
-    } else {
-        RS_LOGE("[%{public}s] hardware fopen error", __func__);
+    return WriteBinToBuffer(cldLayerInfo.pathBin, reinterpret_cast<char*>(img), offset, bufferSize);
+}
+
+bool RSRcdSurfaceRenderNode::WriteBinToBuffer(const std::filesystem::path& binPath, char* buffer,
+    int32_t offset, int32_t bufferSize)
+{
+    if (buffer == nullptr) {
+        RS_LOGE("[%{public}s] buffer null", __func__);
+        return false;
+    }
+    if (offset < 1 || bufferSize < 1) {
+        RS_LOGE("[%{public}s] buffer size error", __func__);
+        return false;
+    }
+    if (!std::filesystem::exists(binPath)) {
+        RS_LOGE("[%{public}s] file not exist", __func__);
+        return false;
+    }
+    std::ifstream addBufferFile(binPath, std::ifstream::binary | std::ifstream::in);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile fopen error", __func__);
+        return false;
+    }
+    addBufferFile.seekg(0, addBufferFile.end);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile seek end error", __func__);
+        return false;
+    }
+    int32_t addBufferSize = addBufferFile.tellg();
+    if (addBufferSize < 0 || offset > static_cast<int32_t>(bufferSize) - addBufferSize) {
+        RS_LOGE("[%{public}s] hardware buffer overflow error", __func__);
+        return false;
+    }
+    addBufferFile.seekg(0, addBufferFile.beg);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile seek beg error", __func__);
+        return false;
+    }
+    addBufferFile.read(reinterpret_cast<char*>(buffer + offset), addBufferSize);
+    if (!addBufferFile || addBufferFile.gcount() != addBufferSize) {
+        RS_LOGE("[%{public}s] binfile read error", __func__);
         return false;
     }
     return true;

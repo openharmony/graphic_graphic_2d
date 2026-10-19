@@ -402,8 +402,9 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size) const
 
 int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
 {
-    if (size < sizeof(Header)) {
-        LOGD("abandon, not enough room for cache header");
+    if (size < sizeof(Header) || size < sizeof(ShaderData)) {
+        LOGD("abandon, not enough room for cache header or shaderData");
+        return -EINVAL;
     }
 
     if (buffer == nullptr) {
@@ -416,18 +417,27 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
 
     const uint8_t *byteBuffer = reinterpret_cast<const uint8_t *>(buffer);
     for (size_t i = 0; i < numShaders; i++) {
-        if (byteOffset + sizeof(ShaderData) > size) {
+        if (byteOffset > size - sizeof(ShaderData)) {
             shaderPointers_.clear();
+            totalSize_ = 0;
             LOGD("abandon because of insufficient buffer space");
             return -EINVAL;
         }
         const ShaderData *shaderBuffer = reinterpret_cast<const ShaderData *>(&byteBuffer[byteOffset]);
         size_t keySize = shaderBuffer->keySize_;
         size_t valueSize = shaderBuffer->valueSize_;
+        if (keySize > maxKeySize_ || valueSize > maxValueSize_) {
+            shaderPointers_.clear();
+            totalSize_ = 0;
+            LOGD("abandon because of illegal key/value size");
+            return -EINVAL;
+        }
+
         size_t pairSize = sizeof(ShaderData) + keySize + valueSize;
         size_t alignedSize = Align4(pairSize);
-        if (byteOffset + alignedSize > size) {
+        if (alignedSize > size - byteOffset) {
             shaderPointers_.clear();
+            totalSize_ = 0;
             LOGD("abandon, not enough room for cache headers");
             return -EINVAL;
         }

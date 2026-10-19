@@ -160,6 +160,8 @@ private:
 
     ScreenId GetMainScreenId() override;
 
+    void SetThermalFrameRateLimit(uint32_t frameRate) override;
+
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;

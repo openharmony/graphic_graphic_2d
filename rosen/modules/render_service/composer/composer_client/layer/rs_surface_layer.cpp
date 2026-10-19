@@ -1170,6 +1170,12 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::PopBufferOwn
     return nullptr;
 }
 
+bool RSSurfaceLayer::HasBufferOwnerCountById(uint64_t bufferId) const
+{
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    return bufferOwnerCounts_.find(bufferId) != bufferOwnerCounts_.end();
+}
+
 std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwnerCount() const
 {
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);

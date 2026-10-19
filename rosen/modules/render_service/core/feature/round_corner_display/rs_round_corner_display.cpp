@@ -18,7 +18,6 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "platform/common/rs_system_properties.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/round_corner_display/rs_rcd_bitmap_utils.h"
 #include "rs_trace.h"
 
@@ -97,7 +96,7 @@ bool RoundCornerDisplay::SetHardwareLayerSize()
 
 bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
 {
-    std::shared_lock<std::shared_mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) !=
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) {
         return false;
@@ -115,7 +114,7 @@ bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
 
 bool RoundCornerDisplay::HandleBottomRcdDirty(RectI& dirtyRect)
 {
-    std::shared_lock<std::shared_mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) !=
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) {
         return false;

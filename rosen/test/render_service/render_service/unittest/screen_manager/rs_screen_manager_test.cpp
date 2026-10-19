@@ -3786,6 +3786,38 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: SetVirtualScreenTypeBlackList001
+ * @tc.desc: type blacklist only keeps CURSOR_NODE, other node types are dropped
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenTypeBlackList001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    auto screenId = screenManager_->CreateVirtualScreen(
+        "virtual_type_bl", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    auto screen = screenManager_->GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+
+    constexpr NodeType CURSOR_NODE_TYPE = static_cast<NodeType>(RSSurfaceNodeType::CURSOR_NODE);
+    std::vector<NodeType> mixedList = {static_cast<NodeType>(RSSurfaceNodeType::APP_WINDOW_NODE), CURSOR_NODE_TYPE};
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(screenId, mixedList), SUCCESS);
+    auto typeBlackList = screen->GetProperty()->GetTypeBlackList();
+    ASSERT_EQ(typeBlackList.size(), 1);
+    ASSERT_EQ(typeBlackList.count(CURSOR_NODE_TYPE), 1);
+
+    std::vector<NodeType> nonCursorList = {static_cast<NodeType>(RSSurfaceNodeType::APP_WINDOW_NODE),
+        static_cast<NodeType>(RSSurfaceNodeType::STARTING_WINDOW_NODE)};
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(screenId, nonCursorList), SUCCESS);
+    ASSERT_TRUE(screen->GetProperty()->GetTypeBlackList().empty());
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, mixedList), SCREEN_NOT_FOUND);
+
+    // restore
+    screenManager_->RemoveVirtualScreen(screenId);
+}
+
+/*
  * @tc.name: OnProcessDisconnectedTest001
  * @tc.desc: Test OnProcessDisconnected with empty screens list
  * @tc.type: FUNC

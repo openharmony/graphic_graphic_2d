@@ -211,8 +211,10 @@ public:
     {
         T left = std::max(left_, rect.left_);
         T top = std::max(top_, rect.top_);
-        T width = std::min(GetRight(), rect.GetRight()) - left;
-        T height = std::min(GetBottom(), rect.GetBottom()) - top;
+        T width = std::min(GetRight(), rect.GetRight()) > left ?
+            std::min(GetRight(), rect.GetRight()) - left : 0;
+        T height = std::min(GetBottom(), rect.GetBottom()) > top ?
+            std::min(GetBottom(), rect.GetBottom()) - top : 0;
         return ((width <= 0) || (height <= 0)) ? RectT<T>() : RectT<T>(left, top, width, height);
     }
     RectT<T> JoinRect(const RectT<T>& rect) const

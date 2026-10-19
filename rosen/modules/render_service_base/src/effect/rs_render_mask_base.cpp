@@ -88,6 +88,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSweepRefractionMask>();
         }
     },
+    {RSNGEffectType::ATLAS_FRAME_MASK, [] {
+            return std::make_shared<RSNGRenderAtlasFrameMask>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderMaskBase> RSNGRenderMaskBase::Create(RSNGEffectType type)

@@ -116,6 +116,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
+    void SetThermalFrameRateLimit(uint32_t frameRate) override;
+    
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) override;
 

@@ -27,8 +27,22 @@ constexpr int ENABLE_GLOBAL_BLACKLIST_PARAM_SIZE = 4;
 constexpr int SET_SCREEN_REFRESHRATE_PARAM_SIZE = 5;
 constexpr int SET_ROG_SCREEN_RESOLUTION_SIZE = 5;
 constexpr int DECIMAL_BASE = 10;
+// Keep aligned with RSInterfaceCodeAccessVerifierBase::IsFoundationCalling.
+constexpr uid_t FOUNDATION_UID = 5523;
 const char* GREP_PERSISTID_FROM_RSTREE = "hidumper -s 10 -a RSTree | grep persistId";
 const std::string POPEN_ERR = "popen failed";
+}
+
+bool ScreenSpecialLayerDemoUtils::SwitchToFoundationUid()
+{
+    if (getuid() == FOUNDATION_UID) {
+        return true;
+    }
+    if (setuid(FOUNDATION_UID) != 0) {
+        std::cerr << "switch to foundation uid failed" << std::endl;
+        return false;
+    }
+    return true;
 }
 
 void ScreenSpecialLayerDemoUtils::PrintPersistId()

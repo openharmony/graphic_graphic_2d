@@ -22,6 +22,7 @@
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/use_effect_mask_para.h"
 #include "ui_effect/mask/include/sweep_refraction_mask_para.h"
+#include "ui_effect/mask/include/atlas_frame_mask_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +36,7 @@ void Mask::RegisterUnmarshallingCallback()
     FractalGlassMaskPara::RegisterUnmarshallingCallback();
     BinocularMaskPara::RegisterUnmarshallingCallback();
     SweepRefractionMaskPara::RegisterUnmarshallingCallback();
+    AtlasFrameMaskPara::RegisterUnmarshallingCallback();
 }
 
 } // namespace Rosen

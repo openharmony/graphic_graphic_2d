@@ -713,6 +713,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
+    targetSurfaceParams->hasDstAlphaBlendModeNode_ = hasDstAlphaBlendModeNode_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
@@ -762,6 +763,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->glassFree3D_ = glassFree3D_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
+    targetSurfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap =
+        uifirstParams_.uifirstDisabledByAnimationOverlap;
     targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
     targetSurfaceParams->delegateDstRect_ = delegateDstRect_;
     targetSurfaceParams->delegateSrcRect_ = delegateSrcRect_;
@@ -777,7 +780,11 @@ bool RSSurfaceRenderParams::GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) 
     if (screenNode == nullptr) {
         return false;
     }
-    screenInfo = screenNode->GetScreenProperty().GetScreenInfo();
+    const auto& screenProperty = screenNode->GetScreenProperty();
+    if (ROSEN_LE(screenProperty.GetRogWidthRatio(), 0.f) || ROSEN_LE(screenProperty.GetRogHeightRatio(), 0.f)) {
+        return false;
+    }
+    screenInfo = screenProperty.GetScreenInfo();
     return screenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU;
 }
 
@@ -949,6 +956,20 @@ void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
 bool RSSurfaceRenderParams::IsPartialSynced() const
 {
     return uifirstParams_.isPartialSynced;
+}
+
+void RSSurfaceRenderParams::SetUifirstDisabledByAnimationOverlap(bool disabled)
+{
+    if (uifirstParams_.uifirstDisabledByAnimationOverlap == disabled) {
+        return;
+    }
+    uifirstParams_.uifirstDisabledByAnimationOverlap = disabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetUifirstDisabledByAnimationOverlap() const
+{
+    return uifirstParams_.uifirstDisabledByAnimationOverlap;
 }
 
 void RSSurfaceRenderParams::SetCompositionType(CompositionType type)

@@ -533,17 +533,19 @@ HWTEST_F(RSPropertiesTest, OnApplyModifiers001, TestSize.Level1)
     properties.OnApplyModifiers();
     EXPECT_TRUE(!properties.geoDirty_);
 
-    properties.GetEffect().greyCoefNeedUpdate_ = true;
+    properties.GetEffectProperties().GetFilterEffect().greyCoefNeedUpdate_ = true;
     properties.OnApplyModifiers();
-    EXPECT_TRUE(!properties.GetEffect().greyCoefNeedUpdate_);
+    EXPECT_TRUE(!properties.GetEffectProperties().GetFilterEffect().greyCoefNeedUpdate_);
 
-    properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
-    properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    properties.GetEffectProperties().GetFilterEffect().shadow_ = std::make_optional<RSShadow>();
+    properties.GetEffectProperties().GetFilterEffect().shadow_->colorStrategy_ =
+        SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().foregroundEffectRadius_ = 1.f;
+    properties.GetEffectProperties().GetFilterEffect().foregroundEffectRadius_ = 1.f;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
-    properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
+    properties.GetEffectProperties().GetFilterEffect().motionBlurPara_ =
+        std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.OnApplyModifiers();
     EXPECT_TRUE(properties.filter_ != nullptr);
 }
@@ -781,7 +783,7 @@ HWTEST_F(RSPropertiesTest, PixelStretchTest003, TestSize.Level1)
 {
     RSProperties properties;
     properties.geoDirty_ = true;
-    properties.GetEffect().useEffect_ = true;
+    properties.GetEffectProperties().GetNodesEffect().useEffect_ = true;
 
     properties.OnApplyModifiers();
 
@@ -822,7 +824,7 @@ HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
     EXPECT_EQ(properties.filterNeedUpdate_, false);
     RSShadow shadow;
     shadow.SetMask(true);
-    properties.GetEffect().shadow_ = shadow;
+    properties.GetEffectProperties().GetFilterEffect().shadow_ = shadow;
     properties.SetBounds(bounds);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
@@ -1011,19 +1013,19 @@ HWTEST_F(RSPropertiesTest, UpdateGeometryByParent003, TestSize.Level1)
     properties.lastRect_ = rect;
     {
         std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
-        properties.GetEffect().fgNGRenderFilter_ = nullptr;
+        properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = nullptr;
         properties.UpdateGeometryByParent(parentMatrix, offset);
         EXPECT_FALSE(properties.filterNeedUpdate_);
     }
     {
         std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
-        properties.GetEffect().fgNGRenderFilter_ = filter;
+        properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
         properties.UpdateGeometryByParent(parentMatrix, offset);
         EXPECT_FALSE(properties.filterNeedUpdate_);
     }
     {
         std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
-        properties.GetEffect().fgNGRenderFilter_ = filter;
+        properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
         properties.UpdateGeometryByParent(parentMatrix, offset);
         EXPECT_TRUE(properties.filterNeedUpdate_);
     }
@@ -1093,9 +1095,9 @@ HWTEST_F(RSPropertiesTest, SetParticles001, TestSize.Level1)
     RSRenderParticleVector particles;
     auto particleParams = std::make_shared<ParticleRenderParams>();
     std::shared_ptr<RSRenderParticle> newv = std::make_shared<RSRenderParticle>(particleParams);
-    properties.GetEffect().particles_.renderParticleVector_.push_back(newv);
+    properties.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.push_back(newv);
     properties.SetParticles(particles);
-    EXPECT_EQ(properties.GetEffect().particles_.renderParticleVector_.size(), 0);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.size(), 0);
 }
 
 /**
@@ -1339,7 +1341,7 @@ HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
     Vector4f corner = { 1.0, 1.0, 1.0, 1.0 };
     RSShadow shadow;
     shadow.SetMask(true);
-    properties.GetEffect().shadow_ = shadow;
+    properties.GetEffectProperties().GetFilterEffect().shadow_ = shadow;
     properties.SetCornerRadius(corner);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
 
@@ -1363,25 +1365,25 @@ HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
     RSProperties properties;
     std::vector<float> param = {0.5f, 0.5f};
     properties.SetComplexShaderParam(param);
-    properties.GetEffect().bgNGRenderShader_ = nullptr;
+    properties.GetEffectProperties().GetShaderEffect().bgNGRenderShader_ = nullptr;
     properties.UpdateBackgroundShader();
  
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
-    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.GetEffectProperties().GetShaderEffect().bgNGRenderShader_ = head;
     properties.UpdateBackgroundShader();
 
     head = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
-    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.GetEffectProperties().GetShaderEffect().bgNGRenderShader_ = head;
     properties.SetBackgroundNGShader(head);
     properties.UpdateBackgroundShader();
  
     head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
-    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.GetEffectProperties().GetShaderEffect().bgNGRenderShader_ = head;
     properties.UpdateBackgroundShader();
     EXPECT_FALSE(properties.bgShaderNeedUpdate_);
 
     head = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
-    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.GetEffectProperties().GetShaderEffect().bgNGRenderShader_ = head;
     properties.SetBackgroundNGShader(head);
     properties.UpdateBackgroundShader();
     EXPECT_FALSE(properties.bgShaderNeedUpdate_);
@@ -1399,17 +1401,17 @@ HWTEST_F(RSPropertiesTest, SetEmitterUpdater001, TestSize.Level1)
     RSProperties properties;
     std::vector<std::shared_ptr<EmitterUpdater>> para;
     properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), true);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().emitterUpdater_.empty(), true);
 
     auto emitter = std::make_shared<EmitterUpdater>(0);
     para.push_back(emitter);
     properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().emitterUpdater_.empty(), false);
 
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
     properties.backref_ = node;
     properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.GetEffect().emitterUpdater_.empty(), false);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().emitterUpdater_.empty(), false);
 }
 
 /**
@@ -1446,7 +1448,7 @@ HWTEST_F(RSPropertiesTest, SetNGetForegroundEffectRadius001, TestSize.Level1)
     RSProperties properties;
     properties.SetForegroundEffectRadius(1.f);
     EXPECT_EQ(properties.GetForegroundEffectRadius(), 1.f);
-    EXPECT_FALSE(properties.IsForegroundEffectRadiusValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundEffectRadiusValid());
 }
 
 /**
@@ -1465,10 +1467,11 @@ HWTEST_F(RSPropertiesTest, UpdateGeometry001, TestSize.Level1)
 
     properties.sandbox_ = std::make_unique<Sandbox>();
     properties.SetFramePositionY(1.0f);
-    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    properties.GetEffect().lightSourcePtr_->intensity_ = 1.f;
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->intensity_ = 1.f;
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ =
+        IlluminatedType::BLOOM_BORDER;
     res = properties.UpdateGeometry(parent, true, offset);
     EXPECT_EQ(res, true);
 
@@ -1554,7 +1557,7 @@ HWTEST_F(RSPropertiesTest, SetLinearGradientBlurPara001, TestSize.Level1)
     GradientDirection direction = GradientDirection::LEFT;
     auto para = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
     properties.SetLinearGradientBlurPara(para);
-    EXPECT_NE(properties.GetEffect().linearGradientBlurPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_, nullptr);
     EXPECT_EQ(properties.GetLinearGradientBlurPara(), para);
     properties.IfLinearGradientBlurInvalid();
 }
@@ -2011,7 +2014,7 @@ HWTEST_F(RSPropertiesTest, IfLinearGradientBlurInvalid001, TestSize.Level1)
     std::shared_ptr<RSLinearGradientBlurPara> para = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
     properties.SetLinearGradientBlurPara(para);
     properties.IfLinearGradientBlurInvalid();
-    EXPECT_EQ(properties.GetEffect().linearGradientBlurPara_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_, nullptr);
 }
 
 /**
@@ -2030,7 +2033,7 @@ HWTEST_F(RSPropertiesTest, SetShadowPath001, TestSize.Level1)
     EXPECT_EQ(properties.filterNeedUpdate_, false);
     RSShadow shadow;
     shadow.SetMask(true);
-    properties.GetEffect().shadow_ = shadow;
+    properties.GetEffectProperties().GetFilterEffect().shadow_ = shadow;
     properties.SetShadowPath(shadowPath);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
@@ -2105,11 +2108,11 @@ HWTEST_F(RSPropertiesTest, ComposeNGRenderFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
-    properties.GetEffect().fgNGRenderFilter_ = filter;
+    properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
     std::shared_ptr<RSFilter> originFilter = nullptr;
     properties.ComposeNGRenderFilter(originFilter, filter);
     filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
-    properties.GetEffect().fgNGRenderFilter_ = filter;
+    properties.GetEffectProperties().GetFilterEffect().fgNGRenderFilter_ = filter;
     properties.ComposeNGRenderFilter(originFilter, filter);
     EXPECT_NE(filter, nullptr);
 }
@@ -2288,7 +2291,7 @@ HWTEST_F(RSPropertiesTest, DisableHWCForFilter001, TestSize.Level1)
     RSProperties properties;
     EXPECT_FALSE(properties.DisableHWCForFilter());
 
-    properties.GetEffect().useEffect_ = true;
+    properties.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.DisableHWCForFilter());
 }
@@ -2305,7 +2308,7 @@ HWTEST_F(RSPropertiesTest, NeedBlurFuzed001, TestSize.Level1)
     EXPECT_EQ(properties.NeedBlurFuzed(), false);
     // 1.0f: valid mesa blur params
     Vector2f vectorValue = { 1.0f, 1.0f };
-    properties.GetEffect().greyCoef_ = vectorValue;
+    properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
     EXPECT_EQ(properties.NeedBlurFuzed(), true);
 }
 
@@ -2694,7 +2697,7 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundBlurFilter001, TestSize.Level1)
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().greyCoef_ = vectorValue;
+    properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
@@ -2718,12 +2721,12 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundMaterialBlurFilter001, TestSize.Lev
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().greyCoef_ = vectorValue;
+    properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
-    properties.GetEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
+    properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
+    properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
@@ -2741,7 +2744,7 @@ HWTEST_F(RSPropertiesTest, GenerateForegroundBlurFilter001, TestSize.Level1)
     properties.GenerateForegroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().greyCoef_ = vectorValue;
+    properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
     properties.GenerateForegroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
@@ -2759,12 +2762,12 @@ HWTEST_F(RSPropertiesTest, GenerateForegroundMaterialBlurFilter001, TestSize.Lev
     properties.GenerateForegroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().greyCoef_ = vectorValue;
+    properties.GetEffectProperties().GetFilterEffect().greyCoef_ = vectorValue;
     properties.GenerateForegroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
-    properties.GetEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
+    properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
+    properties.GetEffectProperties().GetFilterEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
     properties.GenerateForegroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
@@ -2811,38 +2814,39 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
 
     properties.SetBackgroundBlurRadiusX(2.f);
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusXValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusXValid());
 
     properties.SetBackgroundBlurRadiusY(2.f);
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusYValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusYValid());
 
     properties.SetBackgroundBlurRadius(2.f);
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusValid());
 
     properties.SetBackgroundBlurBrightness(0.f);
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.IsBackgroundBlurBrightnessValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurBrightnessValid());
 
     properties.SetBackgroundBlurSaturation(0.f);
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.IsBackgroundBlurSaturationValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurSaturationValid());
 
     Vector4f aiInvert = { 1.f, 1.f, 1.f, 1.f };
-    properties.GetEffect().aiInvert_ = aiInvert;
+    properties.GetEffectProperties().GetFilterEffect().aiInvert_ = aiInvert;
     properties.GenerateBackgroundFilter();
-    EXPECT_EQ(properties.GetEffect().aiInvert_.has_value(), true);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().aiInvert_.has_value(), true);
 
-    properties.GetEffect().systemBarEffect_ = true;
+    properties.GetEffectProperties().GetFilterEffect().systemBarEffect_ = true;
     properties.GenerateBackgroundFilter();
-    EXPECT_TRUE(properties.GetEffect().systemBarEffect_);
+    EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().systemBarEffect_);
 
-    properties.GetEffect().bgNGRenderFilter_ = std::make_shared<RSNGRenderEdgeLightFilter>();
+    properties.GetEffectProperties().GetFilterEffect().bgNGRenderFilter_ =
+        std::make_shared<RSNGRenderEdgeLightFilter>();
     properties.GenerateBackgroundFilter();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 
-    properties.GetEffect().waterRippleProgress_ = 0.1f;
+    properties.GetEffectProperties().GetFilterEffect().waterRippleProgress_ = 0.1f;
     uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
@@ -2853,7 +2857,8 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
         rippleCenterY,
         rippleMode
     };
-    properties.GetEffect().waterRippleParams_ =  std::optional<RSWaterRipplePara>(rs_water_ripple_param);
+    properties.GetEffectProperties().GetFilterEffect().waterRippleParams_ =
+        std::optional<RSWaterRipplePara>(rs_water_ripple_param);
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.IsWaterRippleValid());
 }
@@ -2872,22 +2877,22 @@ HWTEST_F(RSPropertiesTest, GenerateForegroundFilter001, TestSize.Level1)
 
     properties.SetForegroundBlurRadiusX(2.f);
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusXValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
 
     properties.SetForegroundBlurRadiusY(2.f);
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusYValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
 
     properties.SetForegroundBlurRadius(2.f);
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.IsForegroundMaterialFilterValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundMaterialFilterValid());
 
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction;
-    properties.GetEffect().linearGradientBlurPara_ =
+    properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_ =
         std::make_shared<RSLinearGradientBlurPara>(-1.f, fractionStops, direction);
     properties.GenerateForegroundFilter();
-    EXPECT_TRUE(properties.GetEffect().linearGradientBlurPara_ == nullptr);
+    EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().linearGradientBlurPara_ == nullptr);
 }
 
 /**
@@ -2949,7 +2954,7 @@ HWTEST_F(RSPropertiesTest, SetUnionSpacing001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetUseUnion002, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().nodesEffect_, nullptr);
     EXPECT_EQ(properties.GetUseUnion(), false);
 }
 
@@ -2962,9 +2967,9 @@ HWTEST_F(RSPropertiesTest, SetUseUnion002, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetUseUnion003, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().nodesEffect_, nullptr);
     properties.SetUseUnion(true);
-    EXPECT_NE(properties.effect_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().nodesEffect_, nullptr);
     EXPECT_EQ(properties.GetUseUnion(), true);
     EXPECT_EQ(properties.isDrawn_, true);
 }
@@ -2993,7 +2998,7 @@ HWTEST_F(RSPropertiesTest, SetUseUnion004, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetUnionSpacing002, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().nodesEffect_, nullptr);
     EXPECT_EQ(properties.GetUnionSpacing(), 0.f);
 }
 
@@ -3006,9 +3011,9 @@ HWTEST_F(RSPropertiesTest, SetUnionSpacing002, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetUnionSpacing003, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().nodesEffect_, nullptr);
     properties.SetUnionSpacing(1.5f);
-    EXPECT_NE(properties.effect_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().nodesEffect_, nullptr);
     EXPECT_EQ(properties.GetUnionSpacing(), 1.5f);
     EXPECT_EQ(properties.geoDirty_, true);
     EXPECT_EQ(properties.contentDirty_, true);
@@ -3064,11 +3069,11 @@ HWTEST_F(RSPropertiesTest, SetPixelStretch002, TestSize.Level1)
     Vector4f stretch = { 1.f, 1.f, 1.f, 1.f };
     std::optional<Vector4f> stretchSize;
     properties.SetPixelStretch(stretchSize);
-    EXPECT_TRUE(!properties.GetEffect().pixelStretchPara_);
+    EXPECT_TRUE(!properties.GetEffectProperties().GetFilterEffect().pixelStretchPara_);
 
     stretchSize = stretch;
     properties.SetPixelStretch(stretchSize);
-    EXPECT_TRUE(properties.GetEffect().pixelStretchPara_ != nullptr);
+    EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().pixelStretchPara_ != nullptr);
 
     Vector4f size = { 0.f, 0.f, 0.f, 0.f };
     stretchSize = size;
@@ -3275,16 +3280,16 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetLightIntensity(-1.f);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
 
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
     properties.backref_ = node;
     properties.SetLightIntensity(1.f);
     EXPECT_EQ(properties.contentDirty_, true);
 
-    properties.GetEffect().lightSourcePtr_->SetLightIntensity(1.f);
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->SetLightIntensity(1.f);
     properties.SetLightIntensity(0.f);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
 }
 
 /**
@@ -3297,7 +3302,7 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity002, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetLightIntensity(-1.f);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
     auto& instance = RSPointLightManager::Instance(0);
@@ -3317,11 +3322,11 @@ HWTEST_F(RSPropertiesTest, SetLightColor001, TestSize.Level1)
     RSProperties properties;
     Color lightColor;
     properties.SetLightColor(lightColor);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
 
-    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
     properties.SetLightColor(lightColor);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
 }
 
 /**
@@ -3335,7 +3340,7 @@ HWTEST_F(RSPropertiesTest, SetLightPosition001, TestSize.Level1)
     RSProperties properties;
     Vector4f lightPosition = {1.f, 1.f, 1.f, 1.f};
     properties.SetLightPosition(lightPosition);
-    EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_, nullptr);
 }
 
 /**
@@ -3348,11 +3353,11 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedBorderWidth001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetIlluminatedBorderWidth(1.f);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.SetIlluminatedBorderWidth(1.f);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 }
 
 /**
@@ -3365,7 +3370,7 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetIlluminatedType(-1);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
     properties.backref_ = node;
@@ -3373,11 +3378,11 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType001, TestSize.Level1)
     EXPECT_EQ(properties.isDrawn_, true);
 
     IlluminatedType illuminatedType = IlluminatedType::BORDER;
-    properties.GetEffect().illuminatedPtr_->SetIlluminatedType(illuminatedType);
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(illuminatedType);
     properties.SetIlluminatedType(0);
     EXPECT_EQ(properties.contentDirty_, true);
 
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.SetIlluminatedType(0);
     EXPECT_EQ(properties.contentDirty_, true);
 
@@ -3404,7 +3409,7 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType002, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetIlluminatedType(-1);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
@@ -3425,11 +3430,11 @@ HWTEST_F(RSPropertiesTest, SetBloom001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetBloom(1.f);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.SetBloom(1.f);
-    EXPECT_NE(properties.GetEffect().illuminatedPtr_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_, nullptr);
 }
 
 /**
@@ -3466,7 +3471,7 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter001, TestSize.Level1)
     Color color(255, 0, 0);
     std::optional<Color> colorBlend = color;
     properties.SetColorBlend(colorBlend);
-    properties.GetEffect().colorFilter_ = std::make_shared<Drawing::ColorFilter>();
+    properties.GetEffectProperties().GetFilterEffect().colorFilter_ = std::make_shared<Drawing::ColorFilter>();
     properties.GenerateColorFilter();
     EXPECT_EQ(properties.colorFilterNeedUpdate_, false);
 }
@@ -3510,7 +3515,7 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter002, TestSize.Level1)
 
     std::optional<float> invert = std::optional<float>(2.f);
     properties.SetInvert(invert);
-    properties.GetEffect().colorFilter_ = std::make_shared<Drawing::ColorFilter>();
+    properties.GetEffectProperties().GetFilterEffect().colorFilter_ = std::make_shared<Drawing::ColorFilter>();
     properties.GenerateColorFilter();
     EXPECT_EQ(properties.colorFilterNeedUpdate_, false);
 
@@ -3623,13 +3628,13 @@ HWTEST_F(RSPropertiesTest, SetHaveEffectRegion001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, CheckGreyCoef001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.CheckGreyCoef();
+    properties.GetEffectProperties().CheckGreyCoef();
 
     auto newVect = std::make_shared<Vector2f>(-1.f, -1.f);
     std::optional<Vector2f> parentPosition = *newVect;
     properties.SetGreyCoef(parentPosition);
-    properties.CheckGreyCoef();
-    EXPECT_EQ(properties.GetEffect().greyCoef_, std::nullopt);
+    properties.GetEffectProperties().CheckGreyCoef();
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().greyCoef_, std::nullopt);
 }
 
 /**
@@ -4425,27 +4430,27 @@ HWTEST_F(RSPropertiesTest, BackgroundBlurParaValidityAfterRefactor001, TestSize.
 {
     RSProperties properties;
     // Before setting anything
-    EXPECT_FALSE(properties.IsBackgroundBlurRadiusValid());
-    EXPECT_FALSE(properties.IsBackgroundBlurRadiusXValid());
-    EXPECT_FALSE(properties.IsBackgroundBlurRadiusYValid());
-    EXPECT_FALSE(properties.IsBackgroundBlurMaskColorValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsBackgroundBlurRadiusValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsBackgroundBlurRadiusXValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsBackgroundBlurRadiusYValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsBackgroundBlurMaskColorValid());
 
     // Set valid radius
     properties.SetBackgroundBlurRadius(2.f);
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusValid());
 
     // Set valid radiusX
     properties.SetBackgroundBlurRadiusX(2.f);
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusXValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusXValid());
 
     // Set valid radiusY
     properties.SetBackgroundBlurRadiusY(2.f);
-    EXPECT_TRUE(properties.IsBackgroundBlurRadiusYValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurRadiusYValid());
 
     // Set valid mask color
     Color maskColor(25, 51, 76, 255);
     properties.SetBackgroundBlurMaskColor(maskColor);
-    EXPECT_TRUE(properties.IsBackgroundBlurMaskColorValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurMaskColorValid());
 }
 
 /**
@@ -4456,23 +4461,23 @@ HWTEST_F(RSPropertiesTest, BackgroundBlurParaValidityAfterRefactor001, TestSize.
 HWTEST_F(RSPropertiesTest, ForegroundBlurParaValidityAfterRefactor001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusValid());
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusXValid());
-    EXPECT_FALSE(properties.IsForegroundBlurRadiusYValid());
-    EXPECT_FALSE(properties.IsForegroundBlurMaskColorValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
+    EXPECT_FALSE(properties.GetEffectProperties().IsForegroundBlurMaskColorValid());
 
     properties.SetForegroundBlurRadius(2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusValid());
 
     properties.SetForegroundBlurRadiusX(2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusXValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusXValid());
 
     properties.SetForegroundBlurRadiusY(2.f);
-    EXPECT_TRUE(properties.IsForegroundBlurRadiusYValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurRadiusYValid());
 
     Color maskColor(25, 51, 76, 255);
     properties.SetForegroundBlurMaskColor(maskColor);
-    EXPECT_TRUE(properties.IsForegroundBlurMaskColorValid());
+    EXPECT_TRUE(properties.GetEffectProperties().IsForegroundBlurMaskColorValid());
 }
 
 /**
@@ -4537,7 +4542,7 @@ HWTEST_F(RSPropertiesTest, SetDynamicLightUpDegreeNullopt001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GetDynamicLightUpRateNullEffect001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().filterEffect_, nullptr);
     EXPECT_EQ(properties.GetDynamicLightUpRate(), 0.f);
     EXPECT_EQ(properties.GetDynamicLightUpDegree(), 0.f);
 }
@@ -4552,8 +4557,8 @@ HWTEST_F(RSPropertiesTest, GetDynamicLightUpRateEffectNoPara001, TestSize.Level1
     RSProperties properties;
     // Allocate effect_ via another setter that doesn't allocate dynamicLightUpPara_
     properties.SetSpherize(0.5f);
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->dynamicLightUpPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetBlenderEffect().dynamicLightUpPara_, nullptr);
     EXPECT_EQ(properties.GetDynamicLightUpRate(), 0.f);
     EXPECT_EQ(properties.GetDynamicLightUpDegree(), 0.f);
 }
@@ -4566,7 +4571,7 @@ HWTEST_F(RSPropertiesTest, GetDynamicLightUpRateEffectNoPara001, TestSize.Level1
 HWTEST_F(RSPropertiesTest, IsDynamicLightUpValidNullEffect001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().filterEffect_, nullptr);
     EXPECT_FALSE(properties.IsDynamicLightUpValid());
 }
 
@@ -4579,8 +4584,8 @@ HWTEST_F(RSPropertiesTest, IsDynamicLightUpValidNullPara001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetSpherize(0.5f); // allocate effect_ but not dynamicLightUpPara_
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->dynamicLightUpPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetBlenderEffect().dynamicLightUpPara_, nullptr);
     EXPECT_FALSE(properties.IsDynamicLightUpValid());
 }
 
@@ -4700,8 +4705,8 @@ HWTEST_F(RSPropertiesTest, GetDistortionDirtyNullEffect001, TestSize.Level1)
 
     // effect_ allocated but no distortionPara_
     properties.SetSpherize(0.5f);
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->distortionPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
     EXPECT_FALSE(properties.GetDistortionDirty());
 }
 
@@ -4717,8 +4722,8 @@ HWTEST_F(RSPropertiesTest, GetDistortionKNullEffect001, TestSize.Level1)
 
     // effect_ allocated but no distortionPara_
     properties.SetSpherize(0.5f);
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->distortionPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
     EXPECT_EQ(properties.GetDistortionK(), std::nullopt);
 }
 
@@ -4782,8 +4787,8 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchNullPara001, TestSize.Level1)
 
     // effect_ exists but no pixelStretchPara_
     properties.SetSpherize(0.5f);
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->pixelStretchPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().pixelStretchPara_, nullptr);
     EXPECT_EQ(properties.GetPixelStretch(), Vector4f());
     EXPECT_EQ(properties.GetPixelStretchPercent(), Vector4f());
 }
@@ -4832,8 +4837,8 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchTileModeNullPara001, TestSize.Level1)
 
     // effect_ allocated but no pixelStretchPara_
     properties.SetSpherize(0.5f);
-    EXPECT_NE(properties.effect_, nullptr);
-    EXPECT_EQ(properties.effect_->pixelStretchPara_, nullptr);
+    EXPECT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().pixelStretchPara_, nullptr);
     EXPECT_EQ(properties.GetPixelStretchTileMode(), 0);
 }
 
@@ -4922,7 +4927,7 @@ HWTEST_F(RSPropertiesTest, SetUseUnionTrueToFalse001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, IsSpherizeValidNullEffect001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.effect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().filterEffect_, nullptr);
     EXPECT_FALSE(properties.IsSpherizeValid());
     EXPECT_EQ(properties.GetSpherize(), 0.f);
 }

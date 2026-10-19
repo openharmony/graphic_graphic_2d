@@ -18,6 +18,7 @@
 
 from ohos.graphics.uiEffect use BrightnessBlenderParam;
 from ohos.multimedia.image.image use PixelMap;
+from ohos.graphics.drawing use AtlasImage;
 
 @!sts_inject("""
 static { loadLibrary("uieffect_taihe_native.z"); }
@@ -220,6 +221,48 @@ struct SweepRefractionMaskOptions {
 function CreateSweepRefractionMask(param: SweepRefractionParam,
   @optional options: Optional<SweepRefractionMaskOptions>): Mask;
 
+@static("Mask")
+function CreateAtlasFrameMask(atlasImage: AtlasImage): Mask;
+
+struct GlassMarbleMaterialParam {
+  averageBgColor : Color;
+  opacity : f64;
+  shapeScale : f64;
+  shadowOffset : f64;
+  shadowRadius : f64;
+  shadowEdgeSoftness : f64;
+  shadowOpacity : f64;
+  causticOffset : f64;
+  causticRadius : f64;
+  causticEdgeSoftness : f64;
+  causticOpacity : f64;
+  @optional reflectionMap : Optional<PixelMap>;
+}
+
+@tuple
+struct GlassMarbleSphereCenter {
+  x: f64;
+  y: f64;
+}
+
+struct GlassMarbleSphereParam {
+  center : GlassMarbleSphereCenter;
+  radius : f64;
+}
+
+union GlassMarbleShell {
+  mask: Mask;
+  sphereParam: GlassMarbleSphereParam;
+}
+
+struct GlassMarbleContentParam {
+  @optional contentMask : Optional<Mask>;
+  contentTintColor : Color;
+  contentScale : f64;
+  contentSaturation : f64;
+  contentDispersion : f64;
+}
+
 interface VisualEffect {
   BackgroundColorBlender(blender: BrightnessBlender): VisualEffect;
   ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
@@ -228,6 +271,9 @@ interface VisualEffect {
     lightIntensity: f64, borderWidth: f64): VisualEffect;
   LiquidMaterial(param : LiquidMaterialEffectParam, useEffectMask: Mask, @optional distortMask: Optional<Mask>,
     @optional brightnessParam: Optional<BrightnessParam>): VisualEffect;
+  GlassMarbleEffect(material: GlassMarbleMaterialParam,
+    marbleShell: GlassMarbleShell,
+    @optional content: Optional<GlassMarbleContentParam>): VisualEffect;
   getNativePtr(): i64;
 }
 

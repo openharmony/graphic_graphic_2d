@@ -796,9 +796,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetCloneSourceDrawable().lock());
     auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
     if (cloneSourceParams) {
+        bool prevCrossNodeDraw = rscanvas->IsCrossNodeDraw();
         rscanvas->SetCrossNodeDraw(true);
         cloneSourceDrawable->OnDraw(*rscanvas);
-        rscanvas->SetCrossNodeDraw(false);
+        rscanvas->SetCrossNodeDraw(prevCrossNodeDraw);
         return;
     }
     if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, false)) {

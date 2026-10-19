@@ -15,6 +15,9 @@
 
 #include "pipeline/rs_effect_utils.h"
 
+#include "common/rs_optional_trace.h"
+#include "render/rs_filter_cache_manager.h"
+
 namespace OHOS {
 namespace Rosen {
 bool RSEffectUtils::AccumulateFilterRenderContext(RSRenderNode& node, const RSRenderNode& rootNode,
@@ -86,6 +89,61 @@ void RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode&
 bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
 {
     return properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow() || properties.GetMaterialFilter();
+}
+
+void RSEffectUtils::Sync(int64_t vsyncStartTime)
+{
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    RSFilterCacheManager::SetFrameTimestamp(vsyncStartTime);
+#endif
+}
+
+void RSEffectUtils::CheckRegionInsideForFilterCache(RSRenderNode& node,
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (filterDrawable == nullptr) {
+        return;
+    }
+    const auto& properties = node.GetRenderProperties();
+    auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(node.lastFilterRegion_);
+    bool regionChanged = ((!snapshotRegion.IsInsideOf(lastSnapshotRegion)) ||
+        (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
+        !node.IsForceClearOrUseFilterCache(filterDrawable);
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
+        " lastRect:%s, currRegion:%s", node.GetId(), lastSnapshotRegion.ToString().c_str(),
+        snapshotRegion.ToString().c_str());
+    if (regionChanged) {
+        node.MarkFilterStatusChanged(filterDrawable, false, true);
+    }
+#endif
+}
+
+void RSEffectUtils::CheckRegionChangeForFilterCache(RSRenderNode& node,
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable, bool isForeground)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (filterDrawable == nullptr) {
+        return;
+    }
+    auto currFilteredRegion = filterDrawable->GetVisibleDrawRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto currSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto lastFilteredRegion = filterDrawable->GetLastVisibleDrawRegion(node.lastFilterRegion_);
+    auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(node.lastFilterRegion_);
+
+    bool regionChanged = (currFilteredRegion != lastFilteredRegion || currSnapshotRegion != lastSnapshotRegion) &&
+        !node.IsForceClearOrUseFilterCache(filterDrawable);
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty"
+        " lastFilteredRect:%s, currFilteredRegion:%s, lastSnapshotRegion:%s, currSnapshotRegion:%s, regionChanged:%d",
+        node.GetId(),
+        lastFilteredRegion.ToString().c_str(), currFilteredRegion.ToString().c_str(),
+        lastSnapshotRegion.ToString().c_str(), currSnapshotRegion.ToString().c_str(),
+        static_cast<int>(regionChanged));
+    if (regionChanged) {
+        node.MarkFilterStatusChanged(filterDrawable, isForeground, true);
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

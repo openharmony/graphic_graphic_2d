@@ -36,4 +36,24 @@ void OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(bool 
 {
     intraAppControlsLevelOcclusionCullingEnable_ = isEnable;
 }
+
+bool OcclusionCullingParam::IsDynamicLayerSkipEnable()
+{
+    return dynamicLayerSkipEnable_;
+}
+
+void OcclusionCullingParam::SetDynamicLayerSkipEnable(bool isEnable)
+{
+    dynamicLayerSkipEnable_ = isEnable;
+}
+
+bool OcclusionCullingParam::IsVirtualSelfDrawOptEnable()
+{
+    return virtualSelfDrawOptEnable_;
+}
+
+void OcclusionCullingParam::SetVirtualSelfDrawOptEnable(bool isEnable)
+{
+    virtualSelfDrawOptEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

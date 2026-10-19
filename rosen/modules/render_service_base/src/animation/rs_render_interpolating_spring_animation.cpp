@@ -240,7 +240,11 @@ bool RSRenderInterpolatingSpringAnimation::IsStartConverging(float displacement)
 
 bool RSRenderInterpolatingSpringAnimation::IsConvergeCloseToTarget(float displacement) const
 {
-    return std::fabs(displacement - 1.0f) <= endThreshold_;
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return std::fabs(displacement - 1.0f) <= endThreshold_;
+    }
+    auto frameThreshold = GetFrameThreshold(prevMappedTime_);
+    return frameThreshold <= endThreshold_;
 }
 
 bool RSRenderInterpolatingSpringAnimation::IsConvergeEnd(float displacement) const

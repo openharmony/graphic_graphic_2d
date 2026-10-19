@@ -355,6 +355,9 @@ public:
     void SetPartialSynced(bool isPartialSynced);
     bool IsPartialSynced() const;
 
+    void SetUifirstDisabledByAnimationOverlap(bool disabled);
+    bool GetUifirstDisabledByAnimationOverlap() const;
+
     inline void UpdateLastCacheSize()
     {
         uifirstParams_.lastCacheSize = GetCacheSize();
@@ -617,6 +620,20 @@ public:
     bool GetHDRPresent() const
     {
         return hasHdrPresent_;
+    }
+
+    void SetHasDstAlphaBlendModeNode(bool hasDstAlphaBlendModeNode)
+    {
+        if (hasDstAlphaBlendModeNode_ == hasDstAlphaBlendModeNode) {
+            return;
+        }
+        hasDstAlphaBlendModeNode_ = hasDstAlphaBlendModeNode;
+        needSync_ = true;
+    }
+
+    bool GetHasDstAlphaBlendModeNode() const
+    {
+        return hasDstAlphaBlendModeNode_;
     }
 
     void SetSdrNit(float sdrNit)
@@ -1045,6 +1062,7 @@ private:
     bool hasFingerprint_ = false;
     // hdr
     bool hasHdrPresent_ = false;
+    bool hasDstAlphaBlendModeNode_ = false;
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.

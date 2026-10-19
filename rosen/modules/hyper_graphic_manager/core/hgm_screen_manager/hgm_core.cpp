@@ -508,6 +508,25 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
     return EXEC_SUCCESS;
 }
 
+int32_t HgmCore::UpdateScreenRenderResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    auto screen = GetScreen(id);
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
+        HGM_LOGW("failed to find screen: " PUBU64, id);
+        return HGM_NO_SCREEN;
+    }
+
+    if (!screen->UpdateRenderResolution(width, height)) {
+        return HGM_ERROR;
+    }
+
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenRenderResolutionChanged();
+    }
+
+    return EXEC_SUCCESS;
+}
+
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 {
     auto screen = GetScreen(id);

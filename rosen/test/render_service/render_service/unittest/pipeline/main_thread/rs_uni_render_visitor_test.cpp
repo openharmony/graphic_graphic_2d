@@ -1153,9 +1153,9 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_002, TestSize
     NodeId id = 1;
     auto filterNode1 = std::make_shared<RSRenderNode>(++id);
     auto filterNode2 = std::make_shared<RSRenderNode>(++id);
-    filterNode1->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    filterNode1->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     filterNode1->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
-    filterNode2->GetMutableRenderProperties().GetEffect().needDrawBehindWindow_ = true;
+    filterNode2->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = true;
     filterNode2->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
 
     // register filter node
@@ -4652,7 +4652,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     node->InitRenderParams();
     parent->InitRenderParams();
     parent->AddChild(node);
-    node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    node->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->ChildHasVisibleEffect());
 }
@@ -4681,9 +4681,9 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
     node->AddChild(child);
     parent->AddChild(node2);
     parent->AddChild(node);
-    child->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    child->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     child->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
-    node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    node->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     node2->childHasVisibleEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*child, RSUniHwcComputeUtil::IsBlendNeedFilter(*child));
     rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
@@ -5585,7 +5585,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty004, TestSize.Le
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     NodeId surfaceNodeId = 1;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    surfaceNode->renderProperties_.GetEffect().needDrawBehindWindow_ = true;
+    surfaceNode->renderProperties_.GetEffectProperties().GetNodesEffect().needDrawBehindWindow_ = true;
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
 
     auto dirtyManager = surfaceNode->GetDirtyManager();
@@ -7895,13 +7895,13 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(1);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode1);
-    canvasNode1->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    canvasNode1->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     canvasNode1->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode1);
     rsRootRenderNode->UpdateVisibleEffectChild(*canvasNode1);
 
     auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(2);
-    canvasNode2->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    canvasNode2->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     canvasNode2->GetMutableRenderProperties().needFilter_ = true;
     rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode2);
     rsRootRenderNode->UpdateVisibleEffectChild(*canvasNode1);

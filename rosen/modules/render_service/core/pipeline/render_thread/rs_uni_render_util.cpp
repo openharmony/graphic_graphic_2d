@@ -34,6 +34,7 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature_cfg/feature_param/performance_feature/occlusion_culling_param.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -1801,6 +1802,7 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams)
 {
     if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
+        !OcclusionCullingParam::IsVirtualSelfDrawOptEnable() ||
         !screenParams.GetLayerSkipContext().virtualScreenLayerInvalid_) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s disabled or screenLayer is invalid", __func__);
         return false;
@@ -1816,6 +1818,19 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     if (drawable == nullptr || drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
         RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s drawable is invalid", __func__);
         return false;
+    }
+    // Security display with a non-empty whitelist: only allow direct pass-through when the
+    // target surface's first-level leash node is in the whitelist. The leash persistent id
+    // is captured during prepare in RSDynamicLayerSkipController and synced via LayerSkipContext.
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    if (!whiteList.empty()) {
+        const LeashPersistentId rootLeashPersistId = screenParams.GetLayerSkipContext().rootLeashPersistId_;
+        if (whiteList.find(rootLeashPersistId) == whiteList.end()) {
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                " %{public}s target not in whitelist, rootLeashPersistId=%{public}" PRIu64,
+                __func__, rootLeashPersistId);
+            return false;
+        }
     }
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
@@ -1834,9 +1849,6 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& [_, __, hwDrawablePtr] : hardwareDrawables) {
-        if (hwDrawablePtr == nullptr) {
-            continue;
-        }
         auto hardwareDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(hwDrawablePtr.get());
         if (hardwareDrawable == nullptr) {
             continue;
@@ -1873,11 +1885,9 @@ bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     }
 
     //Not enabled for special layer nodes
-    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     const auto& specialLayerMgr = surfaceParams->GetSpecialLayerMgr();
     if (displayParams.IsSecurityDisplay() && (specialLayerMgr.Find(HAS_GENERAL_SPECIAL) ||
-        specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST) ||
-        (!whiteList.empty() && surfaceDrawable->IsWhiteListNode()))) {
+        specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST))) {
         return false;
     }
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

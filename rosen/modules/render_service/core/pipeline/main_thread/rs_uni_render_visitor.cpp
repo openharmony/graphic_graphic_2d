@@ -95,7 +95,6 @@
 
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_offline_processor.h"
@@ -2563,6 +2562,9 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
+    for (const auto& offTreeHwcRegion : node.TakeOffTreeHwcRegions()) {
+        curScreenDirtyManager_->MergeHwcDirtyRect(offTreeHwcRegion.second, offTreeHwcRegion.first);
+    }
     auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
     auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
@@ -2922,7 +2924,12 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
         bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
         auto hdrForceHwcNodes = curScreenNode_->GetHdrForceHwcNodes();
-        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() &&
+        bool isSnapshotRoationHdr = curScreenNode_->GetDisplayHdrStatus() != HdrStatus::NO_HDR &&
+            RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
+        // disable hwc for current node when either (1) snapshot rotation with hdr content or (2) unirender hdr surface
+        // but RGBA1010108Enabled, except current node is forced to use hwc
+        bool isDisableHwcForHdrSurface = (isSnapshotRoationHdr ||
+            (hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled())) &&
             hdrForceHwcNodes.find(hwcNodePtr->GetId()) == hdrForceHwcNodes.end();
         bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
         if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&

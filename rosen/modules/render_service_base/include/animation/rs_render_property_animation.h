@@ -76,6 +76,8 @@ protected:
 
     virtual void InitValueEstimator() {}
 
+    virtual void OnSetPropertyOnAdd() {}
+
     void DumpFraction(float fraction, int64_t time) override;
 
 protected:

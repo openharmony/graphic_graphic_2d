@@ -23,6 +23,7 @@
 #include "gpuComposition/rs_egl_image_manager.h"
 #include "platform/common/rs_system_properties.h"
 #include "render_context/new_render_context/render_context_gl.h"
+#include "pipeline/rs_uni_render_judgement.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,5 +43,11 @@ std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderCon
     }
     return imageManager;
 }
+
+RSImageManager::RSImageManager()
+{
+    isUniRender_ = RSUniRenderJudgement::IsUniRender();
+}
+
 } // namespace Rosen
 } // namespace OHOS

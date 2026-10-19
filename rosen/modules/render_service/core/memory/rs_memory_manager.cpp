@@ -408,6 +408,9 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, st
     gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPidSet);
     ErasePidInfo(exitedPidSet);
+    for (pid_t pid : exitedPidSet) {
+        gpuContext->RemoveAbnormalPid(pid);
+    }
 #endif
 }
 
@@ -1199,6 +1202,7 @@ bool MemoryManager::MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool
             DumpGpuCache(dfxLog, gpuContext.get(), &processTag, pidName);
             std::string unirenderName = "unirender";
             DumpGpuCache(dfxLog, gpuContext.get(), nullptr, unirenderName);
+            gpuContext->SetAbnormalPid(pid);
         }
     }
     bool quotaBetaStatus = ReadQuotaFile(TELEMETRY_QUOTA_PATH) || IS_BETA;

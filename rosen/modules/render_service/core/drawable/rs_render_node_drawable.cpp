@@ -153,6 +153,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    static_cast<RSPaintFilterCanvas&>(canvas).SetPid(ExtractPid(GetId()));
     // Skip nodes that were culled by the control-level occlusion.
     if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;

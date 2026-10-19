@@ -545,6 +545,21 @@ RSHdrDarkenBlenderPara RandomDataCustomizedType::GetRandomRSHdrDarkenBlenderPara
     return {RandomDataBasicType::GetRandomFloat(), RandomDataCustomizedType::GetRandomVector3f()};
 }
 
+AtlasInfo RandomDataCustomizedType::GetRandomAtlasInfo()
+{
+    AtlasInfo info;
+    info.mode = RandomDataBasicType::GetRandomInt32();
+    info.rows = RandomDataBasicType::GetRandomInt32();
+    info.cols = RandomDataBasicType::GetRandomInt32();
+    info.frameWidth = RandomDataBasicType::GetRandomFloat();
+    info.frameHeight = RandomDataBasicType::GetRandomFloat();
+    info.padding = RandomDataBasicType::GetRandomFloat();
+    info.totalFrame = RandomDataBasicType::GetRandomInt32();
+    info.pixelMap = nullptr;
+    info.frameIndex = RandomDataBasicType::GetRandomFloat();
+    return info;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut RandomDataCustomizedType::GetRandomGraphicColorGamut()
 {

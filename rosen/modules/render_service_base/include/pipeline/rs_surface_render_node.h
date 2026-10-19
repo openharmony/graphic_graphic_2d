@@ -1578,6 +1578,10 @@ public:
 
     void SetUifirstChildrenDirtyRectParam(RectI rect);
 
+    void SetUifirstDisabledByAnimationOverlap(bool disabled);
+
+    bool GetUifirstDisabledByAnimationOverlap() const;
+
     void SetUifirstStartTime(int64_t startTime)
     {
         uifirstState_.uifirstStartTime = startTime;

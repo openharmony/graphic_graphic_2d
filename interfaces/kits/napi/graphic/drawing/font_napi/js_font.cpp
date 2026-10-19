@@ -48,6 +48,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
     DECLARE_NAPI_FUNCTION("measureSingleCharacterWithFeatures", JsFont::MeasureSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
+    DECLARE_NAPI_FUNCTION("measureTextWithFallback", JsFont::MeasureTextWithFallback),
     DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
     DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
     DECLARE_NAPI_FUNCTION("setEdging", JsFont::SetEdging),
@@ -64,6 +65,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
     DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
     DECLARE_NAPI_FUNCTION("textToGlyphs", JsFont::TextToGlyphs),
+    DECLARE_NAPI_FUNCTION("textToGlyphsWithFallback", JsFont::TextToGlyphsWithFallback),
     DECLARE_NAPI_FUNCTION("createPathForGlyph", JsFont::CreatePathForGlyph),
     DECLARE_NAPI_FUNCTION("getBounds", JsFont::GetBounds),
     DECLARE_NAPI_FUNCTION("getTextPath", JsFont::CreatePathForText),
@@ -318,6 +320,12 @@ napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnMeasureText(env, info) : nullptr;
 }
 
+napi_value JsFont::MeasureTextWithFallback(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
+    return (me != nullptr) ? me->OnMeasureTextWithFallback(env, info) : nullptr;
+}
+
 napi_value JsFont::SetScaleX(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
@@ -394,6 +402,12 @@ napi_value JsFont::TextToGlyphs(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnTextToGlyphs(env, info) : nullptr;
+}
+
+napi_value JsFont::TextToGlyphsWithFallback(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
+    return (me != nullptr) ? me->OnTextToGlyphsWithFallback(env, info) : nullptr;
 }
 
 napi_value JsFont::CreatePathForGlyph(napi_env env, napi_callback_info info)
@@ -835,6 +849,37 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
     return GetDoubleAndConvertToJsValue(env, textSize);
 }
 
+napi_value JsFont::OnMeasureTextWithFallback(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnMeasureTextWithFallback font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The font object is invalid.");
+    }
+
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    std::string text = "";
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
+        ROSEN_LOGE("JsFont::OnMeasureTextWithFallback Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+
+    TextEncoding textEncoding = TextEncoding::UTF8;
+    if (!ConvertFromJsTextEncoding(env, textEncoding, argv[ARGC_ONE])) {
+        ROSEN_LOGE("JsFont::OnMeasureTextWithFallback ConvertFromJsTextEncoding failed");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The textEncoding input must be valid.");
+    }
+
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    double textSize = realFont->MeasureTextWithFallback(text.c_str(), text.length(), textEncoding);
+    return GetDoubleAndConvertToJsValue(env, textSize);
+}
+
 napi_value JsFont::OnSetScaleX(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
@@ -1044,6 +1089,105 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         napi_set_element(env, glyphJsArray, i, element);
     }
     return glyphJsArray;
+}
+
+static napi_value CreateJsFallbackInfo(napi_env env, const FontFallbackInfo& fallbackInfo,
+    const std::shared_ptr<Typeface>& fontTypeface)
+{
+    napi_value runObj = nullptr;
+    napi_status status = napi_create_object(env, &runObj);
+    if (status != napi_ok) {
+        ROSEN_LOGE("CreateJsFallbackInfo: failed to create run object");
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> typeface = fallbackInfo.typeface != nullptr ?
+        fallbackInfo.typeface : fontTypeface;
+    napi_value typefaceValue = JsTypeface::CreateJsTypeface(env, typeface);
+    if (typefaceValue == nullptr) {
+        ROSEN_LOGE("CreateJsFallbackInfo: jsTypeface is nullptr");
+        return nullptr;
+    }
+    status = napi_set_named_property(env, runObj, "typeface", typefaceValue);
+    if (status != napi_ok) {
+        ROSEN_LOGE("CreateJsFallbackInfo: failed to set typeface");
+        return nullptr;
+    }
+
+    napi_value glyphJsArray = nullptr;
+    status = napi_create_array_with_length(env, fallbackInfo.glyphIds.size(), &glyphJsArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("CreateJsFallbackInfo: failed to create glyph array");
+        return nullptr;
+    }
+    for (size_t i = 0; i < fallbackInfo.glyphIds.size(); i++) {
+        napi_value element = CreateJsValue(env, fallbackInfo.glyphIds[i]);
+        status = napi_set_element(env, glyphJsArray, static_cast<uint32_t>(i), element);
+        if (status != napi_ok) {
+            ROSEN_LOGE("CreateJsFallbackInfo: failed to set glyph element");
+            return nullptr;
+        }
+    }
+    status = napi_set_named_property(env, runObj, "glyphIds", glyphJsArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("CreateJsFallbackInfo: failed to set glyphIds");
+        return nullptr;
+    }
+    return runObj;
+}
+
+napi_value JsFont::OnTextToGlyphsWithFallback(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnTextToGlyphsWithFallback font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The font object is invalid.");
+    }
+
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
+
+    std::string text = "";
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
+        ROSEN_LOGE("JsFont::OnTextToGlyphsWithFallback Argv[ARGC_ZERO] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    uint32_t glyphCount = static_cast<uint32_t>(realFont->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
+    if (argc == ARGC_TWO) {
+        uint32_t inputCount = 0;
+        GET_UINT32_PARAM(ARGC_ONE, inputCount);
+        if (glyphCount != inputCount) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                "Parameter error. The glyphCount must be the same as the value obtained from [countText]");
+        }
+    }
+
+    std::vector<FontFallbackInfo> fallbacks =
+        realFont->TextToGlyphsWithFallback(text.c_str(), text.length(), TextEncoding::UTF8);
+    std::shared_ptr<Typeface> fontTypeface = realFont->GetTypeface();
+    napi_value resultArray = nullptr;
+    napi_status status = napi_create_array_with_length(env, fallbacks.size(), &resultArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsFont::OnTextToGlyphsWithFallback: failed to create array");
+        return nullptr;
+    }
+    for (size_t i = 0; i < fallbacks.size(); i++) {
+        napi_value runObj = CreateJsFallbackInfo(env, fallbacks[i], fontTypeface);
+        if (runObj == nullptr) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                "Parameter error. Create fallback info object failed.");
+        }
+        status = napi_set_element(env, resultArray, static_cast<uint32_t>(i), runObj);
+        if (status != napi_ok) {
+            ROSEN_LOGE("JsFont::OnTextToGlyphsWithFallback: failed to set run element");
+            return nullptr;
+        }
+    }
+    return resultArray;
 }
 
 napi_value JsFont::OnCreatePathForGlyph(napi_env env, napi_callback_info info)

@@ -15,14 +15,16 @@
  */
 
 #include "drawing_text_lineTypography.h"
+
 #include "array_mgr.h"
+#include "rosen_text/line_typography.h"
+#include "rosen_text/text_line_base.h"
 #include "rosen_text/typography_create.h"
-#include "skia_txt/text_line_base.h"
-#include "skia/txt/paragraph_line_fetcher.h"
+#include "text_line_entry.h"
+
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
-typedef OHOS::Rosen::AdapterTxt::TextLineBaseImpl LineImpl;
 
 OH_Drawing_LineTypography* OH_Drawing_CreateLineTypography(OH_Drawing_TypographyCreate* handler)
 {
@@ -74,29 +76,13 @@ OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypograp
         TEXT_LOGE("Invalid param");
         return nullptr;
     }
-    void* lineFetcher = innerlineTypography->GetLineFetcher();
-    if (lineFetcher == nullptr) {
-        TEXT_LOGE("Failed to get line fetcher");
-        return nullptr;
-    }
-    SPText::ParagraphLineFetcher* spLineFetcher = reinterpret_cast<SPText::ParagraphLineFetcher*>(lineFetcher);
-    auto line = spLineFetcher->CreateLine(startIndex, count);
+    auto line = innerlineTypography->CreateLine(startIndex, count);
     if (line == nullptr) {
         TEXT_LOGE("Failed to get line");
         return nullptr;
     }
-    LineImpl* lineImpl = new (std::nothrow) LineImpl(std::move(line));
-    if (lineImpl == nullptr) {
-        TEXT_LOGE("Failed to new text line");
-        return nullptr;
-    }
-    LineObject* lineObject = new (std::nothrow) LineObject();
-    if (lineObject == nullptr) {
-        TEXT_LOGE("Failed to new line object");
-        delete lineImpl;
-        return nullptr;
-    }
-    lineObject->line = reinterpret_cast<void*>(lineImpl);
+    LineObject* lineObject = new LineObject();
+    lineObject->line = new TextLineEntry { std::move(line) };
     lineObject->isArray = false;
     return reinterpret_cast<OH_Drawing_TextLine*>(lineObject);
 }

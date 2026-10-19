@@ -346,6 +346,11 @@ void RSInterfaces::SetRefreshRateMode(int32_t refreshRateMode)
     renderServiceClient_->SetRefreshRateMode(refreshRateMode);
 }
 
+void RSInterfaces::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    renderServiceClient_->SetThermalFrameRateLimit(frameRate);
+}
+
 void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
     int32_t animatorExpectedFrameRate)
 {

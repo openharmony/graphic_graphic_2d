@@ -53,6 +53,7 @@ public:
     static napi_value MeasureSingleCharacter(napi_env env, napi_callback_info info);
     static napi_value MeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value MeasureText(napi_env env, napi_callback_info info);
+    static napi_value MeasureTextWithFallback(napi_env env, napi_callback_info info);
     static napi_value SetScaleX(napi_env env, napi_callback_info info);
     static napi_value SetSkewX(napi_env env, napi_callback_info info);
     static napi_value SetEdging(napi_env env, napi_callback_info info);
@@ -66,6 +67,7 @@ public:
     static napi_value GetHinting(napi_env env, napi_callback_info info);
     static napi_value GetEdging(napi_env env, napi_callback_info info);
     static napi_value TextToGlyphs(napi_env env, napi_callback_info info);
+    static napi_value TextToGlyphsWithFallback(napi_env env, napi_callback_info info);
     static napi_value CreatePathForGlyph(napi_env env, napi_callback_info info);
     static napi_value GetBounds(napi_env env, napi_callback_info info);
     static napi_value CreatePathForText(napi_env env, napi_callback_info info);
@@ -99,6 +101,7 @@ private:
     napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnMeasureText(napi_env env, napi_callback_info info);
+    napi_value OnMeasureTextWithFallback(napi_env env, napi_callback_info info);
     napi_value OnSetScaleX(napi_env env, napi_callback_info info);
     napi_value OnSetSkewX(napi_env env, napi_callback_info info);
     napi_value OnSetEdging(napi_env env, napi_callback_info info);
@@ -112,6 +115,7 @@ private:
     napi_value OnGetHinting(napi_env env, napi_callback_info info);
     napi_value OnGetEdging(napi_env env, napi_callback_info info);
     napi_value OnTextToGlyphs(napi_env env, napi_callback_info info);
+    napi_value OnTextToGlyphsWithFallback(napi_env env, napi_callback_info info);
     napi_value OnCreatePathForGlyph(napi_env env, napi_callback_info info);
     napi_value OnGetBounds(napi_env env, napi_callback_info info);
     napi_value OnCreatePathForText(napi_env env, napi_callback_info info);

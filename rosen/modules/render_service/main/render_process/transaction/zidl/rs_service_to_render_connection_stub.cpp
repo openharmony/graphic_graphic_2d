@@ -1068,7 +1068,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetApsConfigParams(event, params);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA): {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER): {
             uint32_t typeIdVal;
             if (!data.ReadUint32(typeIdVal)) {
                 RS_LOGE("%{public}s: Read typeId failed", __func__);

@@ -27,6 +27,7 @@
 #include "effect/include/frosted_glass_effect_para.h"
 #include "effect/include/shadow_blender.h"
 #include "effect/include/hdr_darken_blender.h"
+#include "effect/include/glass_effect_para.h"
 #include "effect/include/colorful_brightness_blender.h"
 
 #include "effect/include/visual_effect.h"
@@ -92,6 +93,17 @@ private:
     static napi_value CreateDistortionCollapseEffect(napi_env env, napi_callback_info info);
     static bool ParseDistortionCollapseEffectPara(napi_env env, napi_value jsObject,
         DistortionCollapseEffectPara* para);
+    static napi_value CreateGlassEffect(napi_env env, napi_callback_info info);
+    static bool FillGlassMaterial(napi_env env, napi_value materialObj,
+        std::shared_ptr<GlassEffectPara>& para);
+    static bool FillGlassMaterialExtra(napi_env env, napi_value materialObj,
+        std::shared_ptr<GlassEffectPara>& para);
+    static bool FillSphereParam(napi_env env, napi_value sphereObj,
+        std::shared_ptr<GlassEffectPara>& para);
+    static bool FillGlassContent(napi_env env, napi_value contentObj,
+        std::shared_ptr<GlassEffectPara>& para);
+    static bool BuildGlassEffectPara(napi_env env, napi_value* argv,
+        std::shared_ptr<GlassEffectPara>& outPara);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
 } // namespace Rosen

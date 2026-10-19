@@ -199,6 +199,8 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void HandleScreenRenderResolutionChanged();
+
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
@@ -214,10 +216,13 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate);
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData,
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData,
+        int64_t controllerRate);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
+    uint32_t CalcRefreshRateForLtpoVote(const ScreenId id, const FrameRateRange& range) const;
 
     void HandleIdleEvent(bool isIdle);
     void HandleStylusSceneEvent(const std::string& sceneName);

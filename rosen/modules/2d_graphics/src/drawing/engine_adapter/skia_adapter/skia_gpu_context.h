@@ -132,10 +132,12 @@ public:
     void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
 
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) override;
-    
-    void SetAbnormalPid(pid_t pid) override;
 
     void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback) override;
+
+    void SetAbnormalPid(pid_t pid) override;
+
+    void RemoveAbnormalPid(pid_t pid) override;
 
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;

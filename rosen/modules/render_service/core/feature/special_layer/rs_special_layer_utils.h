@@ -45,6 +45,7 @@ public:
         RSLogicalDisplayRenderParams& displayParams, RSScreenRenderParams* screenParams);
     static void DumpScreenSpecialLayer(const std::string& funcName,
         SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
+    static void DumpGlobalBlackList(const std::string& funcName);
     static bool NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
         RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam);
     static bool HasMirrorDisplay(const RSRenderNodeMap& nodeMap);

@@ -26,6 +26,7 @@
 #include "drm/drm.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature_cfg/feature_param/performance_feature/occlusion_culling_param.h"
 #include "metadata_helper.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "params/rs_render_params.h"
@@ -1169,6 +1170,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     bool skipLayerCommit = RSSystemProperties::GetDynamicLayerSkipEnabled() &&
+                           OcclusionCullingParam::IsDynamicLayerSkipEnable() &&
                            screenParams && screenParams->GetLayerSkipContext().screenLayerInvalid_;
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
@@ -1226,8 +1228,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     }
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
     auto skipController = node.GetDynamicLayerSkipController();
-    bool skipLayerCommit =
-        RSSystemProperties::GetDynamicLayerSkipEnabled() && skipController && skipController->IsScreenLayerInvalid();
+    bool skipLayerCommit = RSSystemProperties::GetDynamicLayerSkipEnabled() &&
+        OcclusionCullingParam::IsDynamicLayerSkipEnable() && skipController && skipController->IsScreenLayerInvalid();
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);

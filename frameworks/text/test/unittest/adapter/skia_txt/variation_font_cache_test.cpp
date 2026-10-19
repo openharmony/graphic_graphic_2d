@@ -247,4 +247,50 @@ HWTEST_F(VariationFontCacheTest, FontArgumentsHash001, TestSize.Level0)
 
     EXPECT_NE(hash1, hash2);
 }
+
+/**
+ * @tc.name: RegisterVariationTypeface005
+ * @tc.desc: Non-variable font hits short-circuit branch, returns original typeface without cloning
+ * @tc.type: FUNC
+ */
+HWTEST_F(VariationFontCacheTest, RegisterVariationTypeface005, TestSize.Level0)
+{
+    // NotoSansLycian-Regular.ttf is a non-variable font (no fvar table),
+    // so GetVariationDesignPosition returns 0.
+    auto typeface = RSTypeface::MakeFromFile("/system/fonts/NotoSansLycian-Regular.ttf");
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetVariationDesignPosition(nullptr, 0), 0);
+
+    RSDrawing::Typeface::RegisterCallBackFunc(TestRegisterCallback);
+    EXPECT_EQ(g_registerCallbackCount, 0);
+
+    skia::textlayout::FontArguments fontArgs = GenerateFontArguments(100);
+    auto result = cache_->RegisterVariationTypeface(typeface, fontArgs);
+
+    // Short-circuit branch: non-variable font returns the original typeface directly,
+    // without creating a variation or triggering the register callback.
+    EXPECT_EQ(result, typeface);
+    EXPECT_EQ(g_registerCallbackCount, 0);
+}
+
+/**
+ * @tc.name: RegisterVariationTypeface006
+ * @tc.desc: Variable font skips short-circuit branch, clones normally and returns variation typeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(VariationFontCacheTest, RegisterVariationTypeface006, TestSize.Level0)
+{
+    // NotoSansLisu[wght].ttf is a variable font (has an fvar table),
+    // so GetVariationDesignPosition returns non-zero.
+    auto typeface = RSTypeface::MakeFromFile("/system/fonts/NotoSansLisu[wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_NE(typeface->GetVariationDesignPosition(nullptr, 0), 0);
+
+    skia::textlayout::FontArguments fontArgs = GenerateFontArguments(100);
+    auto result = cache_->RegisterVariationTypeface(typeface, fontArgs);
+
+    // Non-short-circuit branch: variable font clones normally and returns a variation typeface.
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result, typeface);
+}
 } // namespace txt

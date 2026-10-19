@@ -175,6 +175,8 @@ public:
     RectI GetVisibleTotalRegion(const RectI& defaultValue) const;
     RectI GetVisibleSnapshotRegion(const RectI& defaultValue) const;
     RectI GetLastVisibleSnapshotRegion(const RectI& defaultValue) const;
+    RectI GetVisibleDrawRegion(const RectI& defaultValue) const;
+    RectI GetLastVisibleDrawRegion(const RectI& defaultValue) const;
 
     void PostUpdate(const RSRenderNode& node);
     void OnSync() override;
@@ -206,6 +208,7 @@ protected:
     struct FilterVisibleRectInfo {
         RectI snapshotRect_;
         RectI totalRect_;
+        RectI drawRect_;
     };
 
     bool needSync_ = false;
@@ -234,6 +237,7 @@ protected:
     RectI stagingDrawBehindWindowRegion_;
 
     std::unique_ptr<RectI> lastStagingVisibleSnapshotRect_;
+    std::unique_ptr<RectI> lastStagingVisibleDrawRect_;
     std::unique_ptr<FilterVisibleRectInfo> stagingVisibleRectInfo_;
     std::unique_ptr<FilterRectInfo> stagingRelativeRectInfo_;
     std::unique_ptr<FilterRectInfo> renderRelativeRectInfo_;

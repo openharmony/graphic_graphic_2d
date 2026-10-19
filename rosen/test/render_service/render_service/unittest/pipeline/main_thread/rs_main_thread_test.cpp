@@ -7185,6 +7185,7 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask001, TestSize.Level1)
     ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
     auto& item = mainThread->pendingWindowCapTasks_[0];
     ASSERT_EQ(std::get<0>(item), nodeId);
+    EXPECT_EQ(std::get<3>(item), mainThread->vsyncId_);
     mainThread->pendingWindowCapTasks_.clear();
 }
 
@@ -7207,6 +7208,32 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask002, TestSize.Level1)
     mainThread->AddWindowCapTask(nodeId, task);
 
     ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: AddWindowCapTask003
+ * @tc.desc: Test AddWindowCapTask records vsyncId_ as startVsyncId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddWindowCapTask003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    uint64_t savedVsyncId = mainThread->vsyncId_;
+    constexpr uint64_t testVsyncId = 100;
+    mainThread->vsyncId_ = testVsyncId;
+    NodeId nodeId = 1;
+    std::function<void()> task = []() {};
+
+    mainThread->AddWindowCapTask(nodeId, task);
+
+    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    EXPECT_EQ(std::get<3>(mainThread->pendingWindowCapTasks_[0]), testVsyncId);
+    mainThread->vsyncId_ = savedVsyncId;
     mainThread->pendingWindowCapTasks_.clear();
 }
 
@@ -7455,7 +7482,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
 
 /**
  * @tc.name: CheckWindowCapTasks008
- * @tc.desc: Test CheckWindowCapTasks when node is in FOREGROUND state and stays in pending
+ * @tc.desc: Test CheckWindowCapTasks when node is in FOREGROUND state, proceeds to cache check
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -7485,11 +7512,86 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
 
     mainThread->CheckWindowCapTasks();
 
-    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
-    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
     mainThread->pendingWindowCapTasks_.clear();
     mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
     mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks009
+ * @tc.desc: Test IsSnapshotPendingThisFrame with pendingWindowCapTasks_ and windowCapTasks_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckWindowCapTasks009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    ASSERT_FALSE(mainThread->IsSnapshotPendingThisFrame());
+
+    NodeId nodeId = 1;
+    std::function<void()> task = []() {};
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, 0, 0, false);
+    ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_.emplace(nodeId, task);
+    ASSERT_TRUE(mainThread->IsSnapshotPendingThisFrame());
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+}
+
+/**
+ * @tc.name: UniRender_WindowCapPendingBlocksDirectComposition
+ * @tc.desc: Test pendingWindowCapTasks_ blocks willGoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UniRender_WindowCapPendingBlocksDirectComposition, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+
+    auto savedDoDirect = mainThread->doDirectComposition_;
+    auto savedIsDirty = mainThread->isDirty_.load();
+    auto savedIsAccessibility = mainThread->isAccessibilityConfigChanged_;
+    auto savedIsCached = mainThread->isCachedSurfaceUpdated_;
+    auto savedRenderParams = std::move(mainThread->renderThreadParams_);
+    auto savedHardwareBufferUpdatedScreens = mainThread->hardwareBufferUpdatedScreens_;
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto rootNode = rsContext->GetGlobalRootRenderNode();
+    rootNode->InitRenderParams();
+
+    mainThread->doDirectComposition_ = true;
+    mainThread->isDirty_ = false;
+    mainThread->isAccessibilityConfigChanged_ = false;
+    mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    std::function<void()> task = []() {};
+    mainThread->pendingWindowCapTasks_.emplace_back(1, task, 0, 0, false);
+    mainThread->UniRender(rootNode);
+    EXPECT_FALSE(mainThread->doDirectComposition_);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->doDirectComposition_ = savedDoDirect;
+    mainThread->isDirty_.store(savedIsDirty);
+    mainThread->isAccessibilityConfigChanged_ = savedIsAccessibility;
+    mainThread->isCachedSurfaceUpdated_ = savedIsCached;
+    mainThread->hardwareBufferUpdatedScreens_ = savedHardwareBufferUpdatedScreens;
+    mainThread->renderThreadParams_ = std::move(savedRenderParams);
 }
 
 /**
@@ -8857,6 +8959,113 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_Accumulates
     EXPECT_EQ(tunnelCount, 1u);
 
     RSTunnelRuntimeStore::Erase(tunnelNode->GetId());
+}
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback001
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node does not exist in nodeMap.
+ *           Covers the false branch of "if (node)" — the lambda is posted and executed,
+ *           but node lookup returns nullptr so SetDirtyFlag / SetForceUpdateUniRenderFlag /
+ *           node->SetDirty are all skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeNotExist");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    constexpr uint64_t nonExistentNodeId = 88888888;
+    mainThread->ColorPickerNoticedNodeDirtyCallback(nonExistentNodeId);
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_FALSE(mainThread->GetDirtyFlag());
+    EXPECT_FALSE(mainThread->forceUpdateUniRenderFlag_);
+
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback002
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node exists and VSync is not
+ *           requested. Covers the true branch of "if (node)" and the true branch of
+ *           "if (!IsRequestedNextVSync())". With receiver_ == nullptr,
+ *           IsRequestedNextVSync() returns false, so RequestNextVSync() is called (no-op).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeExistVSyncNotReq");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    mainThread->ColorPickerNoticedNodeDirtyCallback(node->GetId());
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_TRUE(mainThread->GetDirtyFlag());
+    EXPECT_TRUE(mainThread->forceUpdateUniRenderFlag_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback003
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node exists and VSync is already
+ *           requested. Covers the true branch of "if (node)" and the false branch of
+ *           "if (!IsRequestedNextVSync())". A VSyncReceiver with init_=true and
+ *           RNVFlag_=true makes IsRequestedNextVSync() return true, so RequestNextVSync()
+ *           is skipped while SetDirtyFlag / SetForceUpdateUniRenderFlag / node->SetDirty
+ *           still execute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeExistVSyncReq");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    auto receiver = std::make_shared<VSyncReceiver>(nullptr, nullptr, nullptr, "ColorPickerTestReceiver");
+    receiver->init_ = true;
+    receiver->listener_->SetRNVFlag(true);
+    mainThread->receiver_ = receiver;
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    mainThread->ColorPickerNoticedNodeDirtyCallback(node->GetId());
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_TRUE(mainThread->GetDirtyFlag());
+    EXPECT_TRUE(mainThread->forceUpdateUniRenderFlag_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+    EXPECT_TRUE(mainThread->IsRequestedNextVSync());
+
+    mainThread->receiver_ = nullptr;
+    mainThread->handler_ = nullptr;
 }
 } // namespace OHOS::Rosen
 #endif

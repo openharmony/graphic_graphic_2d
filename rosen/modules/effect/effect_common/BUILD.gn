@@ -65,6 +65,8 @@ ohos_shared_library("effect_common") {
     "src/filter_common.cpp",
   ]
 
+  version_script = "libeffect_common.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"

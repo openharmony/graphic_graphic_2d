@@ -23,6 +23,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_node_showing_command.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_atlas_info.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
@@ -95,6 +96,7 @@ public:
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
     static RSHdrDarkenBlenderPara GetRandomRSHdrDarkenBlenderPara();
+    static AtlasInfo GetRandomAtlasInfo();
 
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut GetRandomGraphicColorGamut();

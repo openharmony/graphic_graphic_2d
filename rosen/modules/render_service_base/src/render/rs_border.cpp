@@ -276,11 +276,17 @@ void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot
                 int segCount = static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + PARAM_DOUBLE);
                 if (segCount != 0) {
                     delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width / segCount;
+                } else if (dashWidth < 0.f) {
+                    pen.SetPathEffect(nullptr);
+                    return;
                 }
             } else {
                 int segCount = static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
                 if (segCount != 0) {
                     addLen = leftLen * width / segCount;
+                } else if (dashGap < 0.f) {
+                    pen.SetPathEffect(nullptr);
+                    return;
                 }
             }
         }

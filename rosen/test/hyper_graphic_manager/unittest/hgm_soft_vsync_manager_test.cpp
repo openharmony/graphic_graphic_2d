@@ -591,7 +591,6 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
     InitHgmSoftVSyncManager(mgr);
     FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
     FrameRateRange appExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_72_HZ };
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     std::shared_ptr<RSRenderFrameRateLinker> appFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     appFrameRateLinker->SetExpectedRange(appExpectedRange);
 
@@ -601,11 +600,17 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
     };
     auto controller = InitController(mgr);
     mgr.controller_ = controller;
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, 0), false);
+    auto& energyPolicy = HgmEnergyConsumptionPolicy::Instance();
+    bool oldRsFrameRateControlEnabled = energyPolicy.GetRsFrameRateControlEnabled();
+    // RS frame rate control disabled
+    energyPolicy.SetRsFrameRateControlEnabled(false);
+    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, appFrameRateLinkers, 0), false);
     EXPECT_GT(mgr.GetDrawingFrameRate(OLED_60_HZ, finalRange), 0);
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, OLED_60_HZ), true);
+    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, appFrameRateLinkers, OLED_60_HZ), true);
+    // Controller invalid
     controller = nullptr;
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, OLED_60_HZ), false);
+    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, appFrameRateLinkers, OLED_60_HZ), false);
+    energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
 }
 
 /**

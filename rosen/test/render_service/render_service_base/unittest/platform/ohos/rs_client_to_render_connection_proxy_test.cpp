@@ -839,5 +839,32 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestReplyNotClonableDirect,
     ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
     ASSERT_EQ(sendTid, callerTid);
 }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: SendRequestTimeoutExemptDirect
+ * @tc.desc: Sync calls exempt from timeout protection (e.g. SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER)
+ *           stay on the direct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SendRequestTimeoutExemptDirect, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    auto callerTid = std::this_thread::get_id();
+    std::thread::id sendTid;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel&, MessageOption&) {
+            sendTid = std::this_thread::get_id();
+            return NO_ERROR;
+        });
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    ASSERT_EQ(mockProxy->SendRequest(code, data, reply, option), NO_ERROR);
+    ASSERT_EQ(sendTid, callerTid);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

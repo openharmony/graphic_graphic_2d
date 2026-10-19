@@ -27,6 +27,7 @@ const std::string CLASS_NAME = "TextBlob";
 thread_local napi_ref JsTextBlob::constructor_ = nullptr;
 std::shared_ptr<TextBlob> drawingTextBlob;
 static constexpr size_t CHAR16_SIZE = 2;
+static napi_value CreateJsTextBlobArray(napi_env env, const std::vector<std::shared_ptr<TextBlob>>& textBlobs);
 napi_value JsTextBlob::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
@@ -34,6 +35,8 @@ napi_value JsTextBlob::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("makeFromString", JsTextBlob::MakeFromString),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRunBuffer", JsTextBlob::MakeFromRunBuffer),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromPosText", JsTextBlob::MakeFromPosText),
+        DECLARE_NAPI_STATIC_FUNCTION("makeFromStringWithFallback", JsTextBlob::MakeFromStringWithFallback),
+        DECLARE_NAPI_STATIC_FUNCTION("makeFromPosTextWithFallback", JsTextBlob::MakeFromPosTextWithFallback),
         DECLARE_NAPI_FUNCTION("uniqueID", JsTextBlob::UniqueID),
     };
 
@@ -250,6 +253,41 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     return jsTextBlob;
 }
 
+napi_value JsTextBlob::MakeFromStringWithFallback(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
+
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsTextBlob::MakeFromStringWithFallback font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The font object is invalid.");
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
+
+    // Chinese characters need to be encoded with UTF16
+    size_t len = 0;
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+    std::vector<char16_t> buffer(len + 1);
+    if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer.data(), len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+    std::vector<std::shared_ptr<TextBlob>> textBlobs =
+        TextBlob::MakeFromTextWithFallback(buffer.data(), CHAR16_SIZE * len, *font, TextEncoding::UTF16);
+    return CreateJsTextBlobArray(env, textBlobs);
+}
+
 napi_value JsTextBlob::UniqueID(napi_env env, napi_callback_info info)
 {
     JsTextBlob* me = CheckParamsAndGetThisWithTag<JsTextBlob>(env, info, &TEXT_BLOB_TYPE_TAG);
@@ -310,6 +348,30 @@ static napi_value getJsTextBlob(const char* buffer, size_t bufferLen, const Poin
         return nullptr;
     }
     return jsTextBlob;
+}
+
+static napi_value CreateJsTextBlobArray(napi_env env, const std::vector<std::shared_ptr<TextBlob>>& textBlobs)
+{
+    napi_value resultArray = nullptr;
+    napi_status status = napi_create_array_with_length(env, textBlobs.size(), &resultArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("CreateJsTextBlobArray: failed to create array");
+        return nullptr;
+    }
+    for (size_t i = 0; i < textBlobs.size(); i++) {
+        napi_value jsTextBlob = JsTextBlob::CreateJsTextBlob(env, textBlobs[i]);
+        if (jsTextBlob == nullptr) {
+            ROSEN_LOGE("CreateJsTextBlobArray: jsTextBlob is nullptr at index %{public}zu", i);
+            return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                "Parameter error. Create textblob object failed.");
+        }
+        status = napi_set_element(env, resultArray, static_cast<uint32_t>(i), jsTextBlob);
+        if (status != napi_ok) {
+            ROSEN_LOGE("CreateJsTextBlobArray: failed to set element");
+            return nullptr;
+        }
+    }
+    return resultArray;
 }
 
 napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
@@ -385,6 +447,77 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     delete[] buffer;
     delete[] points;
     return jsTextBlob;
+}
+
+static std::shared_ptr<Font> ResolveFontWithTheme(JsFont* jsFont)
+{
+    if (jsFont == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    return themeFont != nullptr ? themeFont : font;
+}
+
+napi_value JsTextBlob::MakeFromPosTextWithFallback(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_FOUR] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    uint32_t len = 0;
+    GET_UINT32_PARAM(ARGC_ONE, len);
+
+    size_t bufferLen = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &bufferLen) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+    std::vector<char> buffer(bufferLen + 1);
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], buffer.data(), bufferLen + 1, &bufferLen) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text input must be string.");
+    }
+
+    napi_value array = argv[ARGC_TWO];
+    uint32_t pointsSize = 0;
+    if (napi_get_array_length(env, array, &pointsSize) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The points input must be an array.");
+    }
+    if (pointsSize == 0 || bufferLen == 0) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The text or points input is empty.");
+    }
+    if (len != pointsSize) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "string length does not match points array length.");
+    }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM_S(ARGC_THREE, jsFont, &FONT_TYPE_TAG);
+    std::shared_ptr<Font> font = ResolveFontWithTheme(jsFont);
+    if (font == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The font object is invalid.");
+    }
+
+    if (font->CountText(buffer.data(), bufferLen, TextEncoding::UTF8) != static_cast<int>(pointsSize)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "Parameter error. String length does not match points array length.");
+    }
+
+    std::vector<Point> points(pointsSize);
+    if (!MakePoints(env, points.data(), pointsSize, array)) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosTextWithFallback: Argv[2] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The points input is invalid.");
+    }
+    std::vector<std::shared_ptr<TextBlob>> textBlobs =
+        TextBlob::MakeFromPosTextWithFallback(buffer.data(), bufferLen, points.data(), *font, TextEncoding::UTF8);
+    return CreateJsTextBlobArray(env, textBlobs);
 }
 
 napi_value JsTextBlob::CreateJsTextBlob(napi_env env, const std::shared_ptr<TextBlob> textBlob)

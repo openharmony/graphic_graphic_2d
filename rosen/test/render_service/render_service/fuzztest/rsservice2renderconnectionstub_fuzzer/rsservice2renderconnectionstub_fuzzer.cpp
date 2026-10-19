@@ -64,7 +64,7 @@ bool FuzzStubSendRenderProcessData(const uint8_t* data, size_t size)
     option.SetFlags(MessageOption::TF_SYNC);
     parcel.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
     parcel.WriteUnpadBuffer(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_RENDER_PROCESS_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER);
     stub->OnRemoteRequest(code, parcel, reply, option);
     return true;
 }

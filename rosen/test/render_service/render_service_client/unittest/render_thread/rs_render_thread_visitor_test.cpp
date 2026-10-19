@@ -1151,7 +1151,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessShadowFirst001, TestSize.Level1)
     visitor.ProcessShadowFirst(node);
     EXPECT_EQ(properties.GetUseShadowBatching(), false);
 
-    properties.GetEffect().useShadowBatching_ = true;
+    properties.GetEffectProperties().GetNodesEffect().useShadowBatching_ = true;
     visitor.ProcessShadowFirst(node);
     EXPECT_EQ(properties.GetUseShadowBatching(), true);
 

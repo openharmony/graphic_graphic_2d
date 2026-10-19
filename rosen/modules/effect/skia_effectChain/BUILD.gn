@@ -181,6 +181,9 @@ external_deps = [
 
     public_configs = [ ":effect_SKeffectChian_public_config" ]
 
+    if (current_os == "ohos") {
+      version_script = "libskeffectchain.map"
+    }
     cflags_cc = [ "-std=c++17" ]
 
     install_enable = true

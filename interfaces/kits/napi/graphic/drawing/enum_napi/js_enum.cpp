@@ -248,6 +248,11 @@ static const std::vector<struct JsEnumInt> g_vertexMode = {
     { "TRIANGLESFAN_VERTEXMODE", static_cast<int32_t>(VertexMode::TRIANGLEFAN_VERTEXMODE) },
 };
 
+static const std::vector<struct JsEnumInt> g_atlasInterpolationMode = {
+    { "NONE", 0 },        // No interpolation, each frame displayed independently
+    { "FRAME_BLEND", 1 }, // Inter-frame interpolation, smooth transition between adjacent frames
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -274,6 +279,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "CornerPos", g_cornerPos },
     { "PathIteratorVerb", g_pathiteratorVerb },
     { "VertexMode", g_vertexMode },
+    { "AtlasInterpolationMode", g_atlasInterpolationMode },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

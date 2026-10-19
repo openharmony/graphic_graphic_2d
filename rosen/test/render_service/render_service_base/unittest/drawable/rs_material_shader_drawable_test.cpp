@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "drawable/rs_material_shader_drawable.h"
+#include "drawable/rs_shader_drawable.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"

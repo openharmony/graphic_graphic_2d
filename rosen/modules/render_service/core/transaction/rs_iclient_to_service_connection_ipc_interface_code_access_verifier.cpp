@@ -257,11 +257,11 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_WHITELIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROG_SCREEN_RESOLUTION): {
@@ -604,6 +604,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_APS_CONFIG_PARAMS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_THERMAL_FRAME_RATE_LIMIT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_THERMAL_FRAME_RATE_LIMIT");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED):
