@@ -47,6 +47,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_base_node_command.h"
 #include "command_modifier/rs_node_command_modifier.h"
+#include "common/rs_rect_shape.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
@@ -1575,6 +1576,13 @@ public:
      * @param rrect A shared pointer to an RRect object that defines the clipping region.
      */
     void SetClipRRect(const std::shared_ptr<RRect>& rrect);
+
+    /**
+     * @brief Sets the clip shape for this node using a RectShape (animatable).
+     *
+     * @param shape A RectShape that defines width, height, and corner radius for clipping.
+     */
+    void SetClipShape(const RectShape& shape);
 
     /**
      * @brief Sets the clipping bounds for this node using the specified path.

@@ -49,6 +49,7 @@
 #include "common/rs_atlas_info.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "common/rs_rect_shape.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -2435,6 +2436,19 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AtlasInfo& val)
            Marshalling(parcel, val.frameIndex);
 }
 
+// RectShape
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RectShape& val)
+{
+    return Marshalling(parcel, val.width_) && Marshalling(parcel, val.height_) &&
+           Marshalling(parcel, val.cornerRadius_);
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RectShape& val)
+{
+    return Unmarshalling(parcel, val.width_) && Unmarshalling(parcel, val.height_) &&
+           Unmarshalling(parcel, val.cornerRadius_);
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AtlasInfo& val)
 {
     return Unmarshalling(parcel, val.mode) && Unmarshalling(parcel, val.rows) &&
@@ -3468,7 +3482,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, DepthCameraPara)                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, DepthLightPara)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RectShape)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 

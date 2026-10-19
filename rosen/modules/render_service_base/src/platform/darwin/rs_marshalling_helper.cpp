@@ -39,6 +39,7 @@
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
+#include "common/rs_rect_shape.h"
 #include "common/rs_vector4.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
@@ -467,6 +468,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
     return {};
 }
 
+// RectShape
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RectShape& val)
+{
+    return {};
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RectShape& val)
+{
+    return {};
+}
+
 // Drawing::DrawCmdList
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
     int32_t recordCmdDepth)
@@ -641,8 +653,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
-
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RectShape)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 
 #undef EXPLICIT_INSTANTIATION

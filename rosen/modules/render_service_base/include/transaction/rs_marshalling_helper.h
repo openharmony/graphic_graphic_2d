@@ -26,6 +26,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect_shape.h"
 
 #include "image/image.h"
 
@@ -318,6 +319,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
+    DECLARE_FUNCTION_OVERLOAD(RectShape)
     DECLARE_FUNCTION_OVERLOAD(DepthCameraPara)
     DECLARE_FUNCTION_OVERLOAD(DepthLightPara)
     DECLARE_FUNCTION_OVERLOAD(AtlasInfo)

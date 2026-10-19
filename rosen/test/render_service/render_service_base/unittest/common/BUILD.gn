@@ -30,6 +30,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_matrix3_test.cpp",
     "rs_obj_abs_geometry_test.cpp",
     "rs_occlusion_region_test.cpp",
+    "rs_rect_shape_test.cpp",
     "rs_rect_test.cpp",
     "rs_rectangles_merger_test.cpp",
     "rs_special_layer_manager_test.cpp",

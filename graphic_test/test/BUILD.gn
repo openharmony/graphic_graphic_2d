@@ -131,6 +131,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_bounds_test.cpp",
   "rs_display_effect/property_display/geom_cameradistance_test.cpp",
   "rs_display_effect/property_display/geom_clip_radius_test.cpp",
+  "rs_display_effect/property_display/geom_clip_shape_test.cpp",
   "rs_display_effect/property_display/geom_clip_test.cpp",
   "rs_display_effect/property_display/geom_cornerradius_test.cpp",
   "rs_display_effect/property_display/geom_frame_position_test.cpp",

@@ -24,6 +24,7 @@
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect_shape.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -72,6 +73,8 @@ struct supports_animatable_arithmetic<T,
     : std::true_type {};
 template<>
 struct supports_animatable_arithmetic<std::vector<float>> : std::true_type {};
+template<>
+struct supports_animatable_arithmetic<RectShape> : std::true_type {};
 
 enum PropertyUpdateType : uint8_t {
     UPDATE_TYPE_OVERWRITE = 0,   // overwrite by given value

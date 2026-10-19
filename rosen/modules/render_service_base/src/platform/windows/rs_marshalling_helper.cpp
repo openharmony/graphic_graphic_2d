@@ -38,6 +38,7 @@
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
+#include "common/rs_rect_shape.h"
 #include "common/rs_vector4.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
@@ -472,6 +473,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
     return {};
 }
 
+// RectShape
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RectShape& val)
+{
+    return {};
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RectShape& val)
+{
+    return {};
+}
+
 // Drawing::DrawCmdList
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
     int32_t recordCmdDepth)
@@ -629,7 +641,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector4f>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
+    EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)                                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RectShape)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
 #undef EXPLICIT_INSTANTIATION

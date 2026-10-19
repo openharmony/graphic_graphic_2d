@@ -24,6 +24,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_transition.h"
+#include "common/rs_rect_shape.h"
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
@@ -842,4 +843,62 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius003, TestSize.Level1)
     rsNode->SetOutlineRadius(floatData[3]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOutlineRadius().x_, floatData[3]));
 }
+
+/**
+ * @tc.name: SetClipShape001
+ * @tc.desc: test results of SetClipShape with a valid RectShape
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    constexpr float CLIP_WIDTH = 100.0f;
+    constexpr float CLIP_HEIGHT = 200.0f;
+    Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f); // for test
+    RectShape shape(CLIP_WIDTH, CLIP_HEIGHT, radius);
+    rsNode->SetClipShape(shape);
+    EXPECT_NE(rsNode, nullptr);
+}
+ 
+/**
+ * @tc.name: SetClipShape002
+ * @tc.desc: test results of SetClipShape with zero width/height RectShape
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape002, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    Vector4f zeroRadius(0.0f, 0.0f, 0.0f, 0.0f); // for test
+    RectShape shape(0.0f, 0.0f, zeroRadius);
+    rsNode->SetClipShape(shape);
+    EXPECT_NE(rsNode, nullptr);
+}
+ 
+/**
+ * @tc.name: SetClipShape003
+ * @tc.desc: test results of SetClipShape with consecutive different values
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape003, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    constexpr float FIRST_WIDTH = 50.0f;
+    constexpr float FIRST_HEIGHT = 60.0f;
+    constexpr float SECOND_WIDTH = 150.0f;
+    constexpr float SECOND_HEIGHT = 250.0f;
+    Vector4f firstRadius(1.0f, 2.0f, 3.0f, 4.0f); // for test
+    Vector4f secondRadius(5.0f, 6.0f, 7.0f, 8.0f); // for test
+    RectShape firstShape(FIRST_WIDTH, FIRST_HEIGHT, firstRadius);
+    rsNode->SetClipShape(firstShape);
+    RectShape secondShape(SECOND_WIDTH, SECOND_HEIGHT, secondRadius);
+    rsNode->SetClipShape(secondShape);
+    EXPECT_NE(rsNode, nullptr);
+}
+
 } // namespace OHOS::Rosen

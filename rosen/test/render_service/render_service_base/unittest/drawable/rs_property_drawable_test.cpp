@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_geometry.h"
+#include "common/rs_rect_shape.h"
 #include "drawable/rs_property_drawable.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
@@ -729,6 +730,118 @@ HWTEST_F(RSPropertyDrawableTest, GetAbsRenderEffectRect001, TestSize.Level1)
         drawingClipBound.GetWidth(), drawingClipBound.GetHeight()));
     EXPECT_EQ(absRenderEffectRect,
         Drawing::RectI(result.GetLeft(), result.GetTop(), result.GetRight(), result.GetBottom()));
+}
+
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnUpdateTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnUpdate with CLIP_SHAPE (highest priority)
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnUpdateTest, TestSize.Level1)
+{
+    // 1. CLIP_SHAPE has highest priority — should win over clipPath and clipRRect
+    RSRenderNode node(0);
+    Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f);
+    RectShape shape(100.0f, 200.0f, radius);
+    node.GetMutableRenderProperties().SetClipShape(shape);
+    // also set clipPath and clipRRect — CLIP_SHAPE should take priority
+    node.GetMutableRenderProperties().clipPath_ = std::make_shared<RSPath>();
+    RectT<float> rect(1.0f, 1.0f, 1.0f, 1.0f);
+    node.GetMutableRenderProperties().clipRRect_ = std::make_unique<RRect>(rect, 1.0f, 1.0f);
+ 
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    EXPECT_TRUE(drawable->OnUpdate(node));
+    EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_SHAPE);
+    EXPECT_TRUE(drawable->needSync_);
+}
+ 
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnUpdateOnlyTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnUpdate with only CLIP_SHAPE set
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnUpdateOnlyTest, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    Vector4f radius(50.0f, 50.0f, 50.0f, 50.0f);
+    RectShape shape(400.0f, 400.0f, radius);
+    node.GetMutableRenderProperties().SetClipShape(shape);
+ 
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    EXPECT_TRUE(drawable->OnUpdate(node));
+    EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_SHAPE);
+}
+ 
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnUpdateNotSetTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnUpdate when clipShape is not set (should not be CLIP_SHAPE)
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnUpdateNotSetTest, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    // no clipShape set, no other clip — should default to CLIP_RECT
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    EXPECT_TRUE(drawable->OnUpdate(node));
+    EXPECT_NE(drawable->stagingType_, RSClipToBoundsType::CLIP_SHAPE);
+}
+ 
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnDrawOptTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnDraw with CLIP_SHAPE and optimization enabled
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnDrawOptTest, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    drawable->type_ = RSClipToBoundsType::CLIP_SHAPE;
+    drawable->isClipRRectOptimization_ = true;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Canvas canvas;
+    drawable->OnDraw(&canvas, &rect);
+    // should not crash, same code path as CLIP_RRECT
+}
+ 
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnDrawNoOptTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnDraw with CLIP_SHAPE and optimization disabled
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnDrawNoOptTest, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    drawable->type_ = RSClipToBoundsType::CLIP_SHAPE;
+    drawable->isClipRRectOptimization_ = false;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Canvas canvas;
+    drawable->OnDraw(&canvas, &rect);
+    // should not crash, same code path as CLIP_RRECT
+}
+ 
+/**
+ * @tc.name: RSClipToBoundsDrawableClipShapeOnSyncTest
+ * @tc.desc: Test RSClipToBoundsDrawable OnSync after OnUpdate with CLIP_SHAPE
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnSyncTest, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    Vector4f radius(50.0f, 50.0f, 50.0f, 50.0f);
+    RectShape shape(400.0f, 400.0f, radius);
+    node.GetMutableRenderProperties().SetClipShape(shape);
+ 
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    drawable->OnUpdate(node);
+    EXPECT_TRUE(drawable->needSync_);
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_EQ(drawable->type_, RSClipToBoundsType::CLIP_SHAPE);
 }
 
 } // namespace OHOS::Rosen

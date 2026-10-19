@@ -50,6 +50,7 @@
 #include "modifier_ng/foreground/rs_foreground_color_render_modifier.h"
 #include "modifier_ng/foreground/rs_foreground_shader_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_render_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_clip_shape_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_render_modifier.h"
 #include "modifier_ng/geometry/rs_frame_render_modifier.h"
@@ -95,6 +96,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::MATERIAL_FILTER,          RSMaterialFilterRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_SHADER,          RSMaterialShaderRenderModifier::ResetProperties },
     { RSModifierType::OVERLAY_NG_SHADER,        RSOverlayNGShaderRenderModifier::ResetProperties },
+    { RSModifierType::CLIP_SHAPE,               RSBoundsClipShapeRenderModifier::ResetProperties },
 };
 
 std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier::ConstructorLUT_ = {
@@ -141,6 +143,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
     [] { return std::make_shared<RSUseUnionRenderModifier>(); },                                 // USE_UNION
     [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER
+    [] { return std::make_shared<RSBoundsClipShapeRenderModifier>(); },                          // CLIP_SHAPE
     nullptr,                                                                                     // CHILDREN
 };
 
