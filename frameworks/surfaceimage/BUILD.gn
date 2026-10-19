@@ -60,6 +60,8 @@ ohos_shared_library("libnative_image") {
 
   output_extension = "so"
 
+  version_script = "libnative_image.versionscript"
+
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",

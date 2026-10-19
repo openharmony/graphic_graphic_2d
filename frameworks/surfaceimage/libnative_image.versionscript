@@ -1,0 +1,28 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# libnative_image.so 符号隐藏黑名单。
+# 公开 API 仅为 NDK/inner 的 C 接口（native_image.h）：OH_NativeImage_* 与
+# OH_ConsumerSurface_*；SurfaceImageListener 为内部实现类。
+# 注意：SurfaceImage 不隐藏——本模块 test/unittest、test/systemtest 直接
+# 链接共享库 libnative_image.so 并使用该 C++ 类。
+# 原则：新增公开 API 无需改本文件。
+{
+  global:
+    *;
+  local:
+    # SurfaceImage 内部监听类（仅模块内使用，测试未引用）
+    _Z*4OHOS20SurfaceImageListener*;
+    # delegator/EGL 回调配置表（仅内部使用）
+    _Z*4OHOS21CALLBACK_FUNC_CONFIGS*;
+};

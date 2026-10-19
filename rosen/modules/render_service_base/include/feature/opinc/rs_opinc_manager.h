@@ -58,7 +58,7 @@ public:
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
     void QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-        bool isAccessibilityConfigChanged);
+        bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup = false);
     void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
     void QuickCheckOpincStable(
         RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode);

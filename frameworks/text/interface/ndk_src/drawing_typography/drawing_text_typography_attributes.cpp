@@ -17,6 +17,7 @@
 
 #include <unordered_map>
 
+#include "rosen_text/ref_count_holder.h"
 #include "rosen_text/typography.h"
 
 using namespace OHOS::Rosen;
@@ -58,7 +59,7 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyAttributeBool(OH_Drawing_Typography
     if (it == Text::g_typographyBoolSetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(reinterpret_cast<Typography*>(typography), value);
+    return it->second(reinterpret_cast<RefCountedHolder<Typography>*>(typography)->Get(), value);
 }
 
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyAttributeBool(const OH_Drawing_Typography* typography,
@@ -71,5 +72,5 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyAttributeBool(const OH_Drawing_Typo
     if (it == Text::g_typographyBoolGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(reinterpret_cast<const Typography*>(typography), value);
+    return it->second(reinterpret_cast<const RefCountedHolder<Typography>*>(typography)->Get(), value);
 }

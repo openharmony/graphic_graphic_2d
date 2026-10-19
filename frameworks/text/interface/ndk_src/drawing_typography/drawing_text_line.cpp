@@ -20,6 +20,7 @@
 
 #include "array_mgr.h"
 #include "drawing_rect.h"
+#include "rosen_text/ref_count_holder.h"
 #include "rosen_text/run.h"
 #include "rosen_text/text_line_base.h"
 #include "rosen_text/typography.h"
@@ -47,7 +48,7 @@ OH_Drawing_Array* OH_Drawing_TypographyGetTextLines(OH_Drawing_Typography* typog
         return nullptr;
     }
 
-    auto textLines = reinterpret_cast<Typography*>(typography)->GetTextLines();
+    auto textLines = reinterpret_cast<RefCountedHolder<Typography>*>(typography)->Get()->GetTextLines();
     if (textLines.size() == 0) {
         TEXT_LOGE("Failed to get text lines");
         return nullptr;

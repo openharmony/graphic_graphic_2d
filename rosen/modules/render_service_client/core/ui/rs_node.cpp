@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <limits>
 #include <numeric>
 #include <vector>
@@ -2115,7 +2116,7 @@ void ReportSetUIXXFilterCascade(SetUIXXFilterCascadeParams& params)
 
     std::lock_guard<std::mutex> lock(sRateMutex);
     int64_t nowMs =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
     if (sWindowStartMsHour == 0 || nowMs - sWindowStartMsHour >= kHourMs) {
         sWindowStartMsHour = nowMs;

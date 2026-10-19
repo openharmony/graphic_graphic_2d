@@ -377,7 +377,8 @@ void RSRenderNode::AddUIExtensionChild(SharedPtr child)
     if (!realParent) {
         return;
     }
-    realParent->AddChild(child, -1);
+    // realParent is an app window by construction, add it locally to avoid re-entering routing
+    realParent->AddChildInner(child, -1);
     RS_LOGI("RSRenderNode::AddUIExtensionChild parent:%{public}" PRIu64 ",child:%{public}" PRIu64 ".",
         realParent->GetId(), child->GetId());
     AddToPendingSyncList();
@@ -402,6 +403,11 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
         unobscuredUECChildrenNeedSync_ = true;
         return AddUIExtensionChild(child);
     }
+    AddChildInner(child, index);
+}
+
+void RSRenderNode::AddChildInner(SharedPtr child, int index)
+{
     // sanity check, avoid loop
     if (child == nullptr || child->GetId() == GetId()) {
         return;
@@ -456,7 +462,8 @@ void RSRenderNode::MoveUIExtensionChild(SharedPtr child)
     if (!parent) {
         return;
     }
-    parent->MoveChild(child, -1);
+    // operate on the actual parent directly; never call back into MoveChild to avoid mutual recursion
+    parent->MoveChildInner(child, -1);
 }
 
 void RSRenderNode::MoveChild(SharedPtr child, int index)
@@ -464,6 +471,11 @@ void RSRenderNode::MoveChild(SharedPtr child, int index)
     if (NeedRoutedBasedOnUIExtension(child)) {
         return MoveUIExtensionChild(child);
     }
+    MoveChildInner(child, index);
+}
+
+void RSRenderNode::MoveChildInner(SharedPtr child, int index)
+{
     if (child == nullptr || child->GetParent().lock().get() != this) {
         return;
     }
@@ -493,7 +505,8 @@ void RSRenderNode::RemoveUIExtensionChild(SharedPtr child)
     if (!parent) {
         return;
     }
-    parent->RemoveChild(child);
+    // operate on the actual parent directly; never call back into RemoveChild to avoid mutual recursion
+    parent->RemoveChildInner(child, false);
     RS_LOGI("RSRenderNode::RemoveUIExtensionChild parent:%{public}" PRIu64 ",child:%{public}" PRIu64 ".",
         parent->GetId(), child->GetId());
     AddToPendingSyncList();
@@ -506,6 +519,11 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
         unobscuredUECChildrenNeedSync_ = true;
         return RemoveUIExtensionChild(child);
     }
+    RemoveChildInner(child, skipTransition);
+}
+
+void RSRenderNode::RemoveChildInner(SharedPtr child, bool skipTransition)
+{
     if (child == nullptr) {
         return;
     }

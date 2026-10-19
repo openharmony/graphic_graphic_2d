@@ -238,7 +238,7 @@ if (is_arkui_x) {
     ]
 
     # arkui-x: include-only, same as text_ndk — engine symbols (2d_graphics /
-    # rosen_text) live in libarkui_android.so and are resolved at runtime
+    # rosen_text) live in libarkui_<platform>.so and are resolved at runtime
     # through its DT_NEEDED edge. Linking their sources here would duplicate
     # engine state (typeface registry, font collections) across DSOs.
     deps = [
