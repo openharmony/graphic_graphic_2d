@@ -52,6 +52,10 @@ public:
     static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
         const std::string& shapeTag);
+    // Draw ColorNGFilter (Binarization/LightUpEffect/DynamicDim) using GE image effect pipeline.
+    // Uses GetDeviceClipBounds() for snapshot region and image-local coordinates for GE context.
+    static void DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer);
 
 private:
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);

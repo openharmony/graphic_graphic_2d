@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_foreground.h"
 
 #include "ge_render.h"
@@ -94,57 +95,9 @@ void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     if (filter_) {
         RSPropertyDrawableUtils::DrawColorFilter(canvas, filter_);
     }
-    if (colorNGFilter_ && visualEffectContainer_ && rect) {
-        DrawColorNGFilter(canvas, rect);
+    if (colorNGFilter_ && visualEffectContainer_) {
+        DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(canvas, rect, visualEffectContainer_);
     }
-}
-
-void RSColorFilterDrawable::DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    if (canvas == nullptr || rect == nullptr) {
-        return;
-    }
-    auto surface = canvas->GetSurface();
-    if (surface == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter surface is nullptr");
-        return;
-    }
-    Drawing::Rect absRectf;
-    auto mat = canvas->GetTotalMatrix();
-    mat.MapRect(absRectf, *rect);
-    Drawing::RectI drawRect = absRectf.RoundOut();
-    Drawing::RectI surfaceRect(0, 0, surface->Width(), surface->Height());
-    drawRect.Intersect(surfaceRect);
-    auto image = surface->GetImageSnapshot(drawRect);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter image is nullptr");
-        return;
-    }
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    Drawing::Rect devRect(static_cast<float>(drawRect.GetLeft()), static_cast<float>(drawRect.GetTop()),
-        static_cast<float>(drawRect.GetLeft() + drawRect.GetWidth()),
-        static_cast<float>(drawRect.GetTop() + drawRect.GetHeight()));
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    GraphicsEffectEngine::GERender::ShaderFilterEffectContext geContext{image, devRect, devRect, nullptr};
-    auto resImage = geRender->ApplyImageEffect(*canvas, *visualEffectContainer_, geContext, samplingOptions);
-    if (resImage == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter resImage is nullptr");
-        return;
-    }
-    Drawing::Matrix identityMatrix;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*resImage, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, samplingOptions, identityMatrix);
-    if (imageShader == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::DrawColorNGFilter imageShader is nullptr");
-        return;
-    }
-    Drawing::Brush brush;
-    brush.SetShaderEffect(imageShader);
-    brush.SetAntiAlias(true);
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ResetMatrix();
-    canvas->Translate(static_cast<float>(drawRect.GetLeft()), static_cast<float>(drawRect.GetTop()));
-    canvas->DrawBackground(brush);
 }
 
 RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
