@@ -1151,7 +1151,7 @@ bool RSEffectProperties::GetDistortionDirty() const
 bool RSEffectProperties::IsDistortionKValid() const
 {
     const auto& distortionK = GetDistortionK();
-    // 0的时候无效，不创建filter
+    // Invalid when zero, skip filter creation
     return distortionK.has_value() && ROSEN_NE(*distortionK, 0.0f)
         && ROSEN_GE(*distortionK, -1.0f) && ROSEN_LE(*distortionK, 1.0f);
 }
