@@ -783,6 +783,11 @@ void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     renderServiceClient_->SetScreenFrameGravity(id, gravity);
 }
 
+void RSInterfaces::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    renderServiceClient_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
+}
+
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
     return renderServiceClient_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);

@@ -1369,6 +1369,15 @@ void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     clientToService->SetScreenFrameGravity(id, gravity);
 }
 
+void RSRenderServiceClient::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return;
+    }
+    clientToService->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
+}
+
 class CustomHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub
 {
 public:

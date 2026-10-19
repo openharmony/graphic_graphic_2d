@@ -340,6 +340,14 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSkipColorSpaceConversion(
+    bool skipColorSpaceConversion)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(skipColorSpaceConversion);
+    return { ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
 {
     UniqueLock lock(propertyMutex_);

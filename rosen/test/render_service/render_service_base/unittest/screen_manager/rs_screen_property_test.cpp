@@ -107,6 +107,7 @@ HWTEST_F(RSScreenPropertyTest, MarshallingTest002, TestSize.Level1)
     ADD_PROP(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, false);
     ADD_PROP(ScreenPropertyType::SCREEN_SWITCH_STATUS, false);
     ADD_PROP(ScreenPropertyType::SCREEN_FRAME_GRAVITY, static_cast<int32_t>(Gravity::DEFAULT));
+    ADD_PROP(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, true);
 
 #undef ADD_PROP
 

@@ -196,6 +196,16 @@ public:
         return hasHdrPresent_;
     }
 
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion)
+    {
+        skipColorSpaceConversion_ = skipColorSpaceConversion;
+    }
+
+    bool GetSkipColorSpaceConversion() const
+    {
+        return skipColorSpaceConversion_;
+    }
+
     int GetTotalProcessedSurfaceCount() const;
     void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
     void ClearTotalProcessedSurfaceCount();
@@ -362,6 +372,7 @@ private:
     bool hasHdrPresent_ = false;
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool skipColorSpaceConversion_ = false;
     uint32_t uifirstPostOrder_ = 0;
     static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
 

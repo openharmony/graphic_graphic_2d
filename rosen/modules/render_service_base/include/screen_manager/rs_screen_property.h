@@ -66,6 +66,7 @@ enum class ScreenPropertyType : uint32_t {
     IS_HDI_ROG_ENABLE,
     DUAL_SCREEN_STATE,
     SAMPLING_MODE,
+    SKIP_COLOR_SPACE_CONVERSION,
 
     SCREEN_PROPERTY_TYPE_SIZE,  // record num of property type
 };
@@ -137,6 +138,7 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
 // Multi-surface virtual screen: vector of surface+region configs
 #ifndef ROSEN_CROSS_PLATFORM
@@ -250,6 +252,7 @@ public:
     bool GetDisablePowerOffRenderControl() const;
     bool IsScreenSwitching() const;
     Gravity GetFrameGravity() const;
+    bool GetSkipColorSpaceConversion() const;
     bool IsMainScreen() const;
     bool IsRogResolution() const;
     bool GetHdiRogEnable() const;

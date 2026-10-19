@@ -1998,6 +1998,19 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetRefreshInfoByPidAndUniqueIdTes
 }
 
 /**
+ * @tc.name: SetSkipColorSpaceConversion Test
+ * @tc.desc: SetSkipColorSpaceConversion Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetSkipColorSpaceConversion, TestSize.Level1)
+{
+    ScreenId id = 100;
+    proxy->SetSkipColorSpaceConversion(id, false);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: ReportGameStateData Test
  * @tc.desc: ReportGameStateData Test
  * @tc.type.type:FUNC

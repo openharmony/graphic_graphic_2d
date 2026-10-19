@@ -69,6 +69,7 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+    ResType SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
     ResType SetAsMainScreen(bool isMainScreen);
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);

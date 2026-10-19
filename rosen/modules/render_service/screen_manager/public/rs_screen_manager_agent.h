@@ -141,6 +141,7 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenSwitchStatus(bool status);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
     int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
     ScreenId GetMainScreenId();

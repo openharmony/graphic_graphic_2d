@@ -888,6 +888,19 @@ HWTEST_F(RSScreenTest, SetScreenFrameGravityTest001, testing::ext::TestSize.Leve
 }
 
 /*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetSkipColorSpaceConversionTest001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->SetSkipColorSpaceConversion(true);
+}
+
+/*
  * @tc.name: SetActiveMode_001
  * @tc.desc: SetActiveMode Test
  * @tc.type: FUNC

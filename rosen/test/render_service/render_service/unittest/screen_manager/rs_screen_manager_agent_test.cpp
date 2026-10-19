@@ -1658,6 +1658,25 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenFrameGravity001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetSkipColorSpaceConversion001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetSkipColorSpaceConversion001, TestSize.Level1)
+{
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    bool skipColorSpaceConversion = true;
+    screenManagerAgent_->SetSkipColorSpaceConversion(screenId, skipColorSpaceConversion);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    screenManagerAgent_->SetSkipColorSpaceConversion(screenId, skipColorSpaceConversion);
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
  * @tc.name: SetDualScreenState001
  * @tc.desc: Test SetDualScreenState
  * @tc.type: FUNC

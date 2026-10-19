@@ -394,6 +394,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3) :
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
         }
+        if (GetSkipColorSpaceConversion()) {
+            colorSpace = nullptr;
+        }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
             width, height, ExtractPid(nodeDrawable->nodeId_), format);

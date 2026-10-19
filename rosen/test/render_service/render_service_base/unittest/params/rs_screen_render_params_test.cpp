@@ -142,6 +142,23 @@ HWTEST_F(RSScreenRenderParamsTest, SetNewColorSpace, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDstColorSpace
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetDstColorSpace, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[6];
+    RSScreenRenderParams params(id);
+    params.SetDstColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetDstColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    EXPECT_EQ(params.GetDstColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+}
+
+/**
  * @tc.name: SetNewPixelFormat
  * @tc.desc:
  * @tc.type:FUNC

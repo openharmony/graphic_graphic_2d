@@ -299,6 +299,11 @@ void RSScreen::SetScreenFrameGravity(int32_t gravity)
     UPDATE_PROPERTY(FrameGravity, gravity);
 }
 
+void RSScreen::SetSkipColorSpaceConversion(bool skipColorSpaceConversion)
+{
+    UPDATE_PROPERTY(SkipColorSpaceConversion, skipColorSpaceConversion);
+}
+
 bool RSScreen::IsVirtual() const
 {
     return property_.IsVirtual();

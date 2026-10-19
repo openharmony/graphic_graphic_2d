@@ -3417,6 +3417,19 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, SetSkipColorSpaceConversionTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+}
+
+/*
  * @tc.name: ProcessScreenDisConnectedTest
  * @tc.desc: Test ProcessScreenDisConnected
  * @tc.type: FUNC

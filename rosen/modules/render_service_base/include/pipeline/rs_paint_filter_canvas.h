@@ -470,6 +470,8 @@ public:
     void SetPid(::pid_t pid);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    bool GetSkipColorSpaceConversion() const;
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
     float GetHDRBrightness() const;
     void SetHDRBrightness(float hdrBrightness);
     float GetBrightnessRatio() const;
@@ -616,6 +618,7 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    bool skipColorSpaceConversion_ = false;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
     ScreenId screenId_ = INVALID_SCREEN_ID;
     ::pid_t pid_ = -1;

@@ -242,6 +242,8 @@ public:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) override;
+
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
