@@ -105,7 +105,17 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
             FromWhom fromWhom = static_cast<FromWhom>(fromWhomValue);
-            int32_t ret = SetUiDvsyncSwitch(dvsyncOn, fromWhom);
+            uint8_t disableReasonValue{0};
+            if (!data.ReadUint8(disableReasonValue)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Read disableReason failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            if (disableReasonValue > static_cast<uint8_t>(DvsyncDisableReason::UNFOCUS_DISABLE)) {
+                VLOGE("Invalid disableReason value: %{public}u", disableReasonValue);
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            DvsyncDisableReason disableReason = static_cast<DvsyncDisableReason>(disableReasonValue);
+            int32_t ret = SetUiDvsyncSwitch(dvsyncOn, fromWhom, disableReason);
             if (!reply.WriteInt32(ret)) {
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Write ret failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
