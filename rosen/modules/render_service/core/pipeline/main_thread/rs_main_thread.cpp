@@ -596,13 +596,15 @@ void RSMainThread::CheckDrawOpOverLimit()
         if (it != lastDrawOpReportTimeMap_.end() && (now - it->second) < REPORT_INTERVAL_MS) {
             continue;
         }
-        std::string bundleName = GetBundleNameByPid(pid);
-        RSHiSysEvent::EventWrite(RSEventName::RS_CMD_OVER_THRESHOLD, RSEventType::RS_STATISTIC,
-            "PID", pid, "BUNDLE_NAME", bundleName, "CMD_TYPE", "drawop",
-            "CMD_COUNT", static_cast<int32_t>(opCount), "THRESHOLD", DRAWOP_THRESHOLD);
         lastDrawOpReportTimeMap_[pid] = now;
-        RS_LOGE("CheckDrawOpOverLimit: pid=%{public}d bundleName=%{public}s drawopCount=%{public}zu "
-                "threshold=%{public}d", pid, bundleName.c_str(), opCount, DRAWOP_THRESHOLD);
+        RSBackgroundThread::Instance().PostTask([pid = pid, opCount = opCount]() {
+            std::string bundleName = GetBundleNameByPid(pid);
+            RSHiSysEvent::EventWrite(RSEventName::RS_CMD_OVER_THRESHOLD, RSEventType::RS_STATISTIC,
+                "PID", pid, "BUNDLE_NAME", bundleName, "CMD_TYPE", "drawop",
+                "CMD_COUNT", static_cast<int32_t>(opCount), "THRESHOLD", DRAWOP_THRESHOLD);
+            RS_LOGE("CheckDrawOpOverLimit: pid=%{public}d bundleName=%{public}s drawopCount=%{public}zu "
+                    "threshold=%{public}d", pid, bundleName.c_str(), opCount, DRAWOP_THRESHOLD);
+        });
     }
 }
 
@@ -626,13 +628,16 @@ void RSMainThread::CheckCommandOverLimit(const std::shared_ptr<TransactionDataMa
         if (it != lastCommandReportTimeMap_.end() && (now - it->second) < REPORT_INTERVAL_MS) {
             continue;
         }
-        std::string bundleName = GetBundleNameByPid(pid);
-        RSHiSysEvent::EventWrite(RSEventName::RS_CMD_OVER_THRESHOLD, RSEventType::RS_STATISTIC,
-            "PID", pid, "BUNDLE_NAME", bundleName, "CMD_TYPE", "command",
-            "CMD_COUNT", static_cast<int32_t>(commandCount), "THRESHOLD", COMMAND_THRESHOLD);
         lastCommandReportTimeMap_[pid] = now;
-        RS_LOGE("CheckCommandOverLimit: pid=%{public}d bundleName=%{public}s commandCount=%{public}lu "
-                "threshold=%{public}d", pid, bundleName.c_str(), commandCount, COMMAND_THRESHOLD);
+        RSBackgroundThread::Instance().PostTask([pid = pid, commandCount]() {
+            std::string bundleName = GetBundleNameByPid(pid);
+            RSHiSysEvent::EventWrite(RSEventName::RS_CMD_OVER_THRESHOLD, RSEventType::RS_STATISTIC,
+                "PID", pid, "BUNDLE_NAME", bundleName, "CMD_TYPE", "command",
+                "CMD_COUNT", static_cast<int32_t>(commandCount), "THRESHOLD", COMMAND_THRESHOLD);
+            RS_LOGE("CheckCommandOverLimit: pid=%{public}d bundleName=%{public}s commandCount=%{public}" PRIu64 " "
+                    "threshold=%{public}d", pid, bundleName.c_str(), static_cast<uint64_t>(commandCount),
+                    COMMAND_THRESHOLD);
+        });
     }
 }
 
