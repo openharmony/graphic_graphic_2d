@@ -17,6 +17,7 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_interpolator.h"
+#include "common/rs_atlas_info.h"
 #include "common/rs_color.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_rect.h"
@@ -245,6 +246,45 @@ HWTEST_F(RSAnimationTraceUtilsTest, AddKeyframeAnimationClientTraceEmptyKeyframe
     // Verify both paths completed without crash; debug flag unchanged
     EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
     RSAnimationTraceUtils::isDebugEnabled_ = prevDebug;
+}
+
+/**
+ * @tc.name: ParseRenderPropertyValueAtlasInfoAnimatable001
+ * @tc.desc: Verify ParseRenderPropertyValue prints AtlasInfo fields when property is animatable.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, ParseRenderPropertyValueAtlasInfoAnimatable001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    AtlasInfo info;
+    info.frameIndex = 5.0f;
+    info.mode = 1;
+    info.rows = 2;
+    info.cols = 3;
+    info.totalFrame = 6;
+    auto property = std::make_shared<RSRenderAnimatableProperty<AtlasInfo>>(info);
+    EXPECT_TRUE(property->IsAnimatable());
+    auto result = utils.ParseRenderPropertyValue(property);
+    EXPECT_NE(result.find("AtlasInfo:frameIndex:5"), std::string::npos);
+    EXPECT_NE(result.find("mode:1"), std::string::npos);
+    EXPECT_NE(result.find("rows:2"), std::string::npos);
+    EXPECT_NE(result.find("cols:3"), std::string::npos);
+    EXPECT_NE(result.find("totalFrame:6"), std::string::npos);
+    EXPECT_EQ(result.find("invalid"), std::string::npos);
+}
+
+/**
+ * @tc.name: ParseRenderPropertyValueAtlasInfoNotAnimatable001
+ * @tc.desc: Verify ParseRenderPropertyValue returns AtlasInfo:invalid when property is not animatable.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTraceUtilsTest, ParseRenderPropertyValueAtlasInfoNotAnimatable001, TestSize.Level1)
+{
+    auto& utils = RSAnimationTraceUtils::GetInstance();
+    auto nonAnimatable = std::make_shared<RSRenderProperty<AtlasInfo>>();
+    EXPECT_FALSE(nonAnimatable->IsAnimatable());
+    auto result = utils.ParseRenderPropertyValue(nonAnimatable);
+    EXPECT_EQ(result, "AtlasInfo:invalid");
 }
 
 } // namespace Rosen
