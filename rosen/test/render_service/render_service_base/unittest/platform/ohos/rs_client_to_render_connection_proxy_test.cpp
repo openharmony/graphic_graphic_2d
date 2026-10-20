@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -324,6 +324,80 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, GetPixelmap, TestSize.Level1)
     bool result;
     ASSERT_EQ(proxy->GetPixelmap(id, pixelmap, &rect, drawCmdList, result), ERR_INVALID_VALUE);
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy001
+ * @tc.desc: Test BlurPixelMap with nullptr remote object (WriteInterfaceToken fails)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy001, TestSize.Level1)
+{
+    auto nullProxy = std::make_shared<RSClientToRenderConnectionProxy>(nullptr);
+    ASSERT_NE(nullProxy, nullptr);
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = nullProxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy002
+ * @tc.desc: Test BlurPixelMap with mock remote returning SendRequest error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> mockRemote = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(mockRemote);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*mockRemote, SendRequest(_, _, _, _)).WillOnce(Return(1));
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = mockProxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy003
+ * @tc.desc: Test BlurPixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy003, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    proxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_FALSE(success);
 }
 
 /**
