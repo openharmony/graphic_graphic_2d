@@ -20,6 +20,7 @@
 
 #ifdef ENABLE_OHOS_ENHANCE
 #include "ashmem.h"
+#include <cerrno>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #endif
@@ -78,132 +79,88 @@ std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream>
 }
 
 #ifdef ENABLE_OHOS_ENHANCE
-#ifndef MFD_CLOEXEC
-#define MFD_CLOEXEC 0x0001U
-#endif
-#ifndef MFD_ALLOW_SEALING
-#define MFD_ALLOW_SEALING 0x0002U
-#endif
-#ifndef F_ADD_SEALS
-#define F_ADD_SEALS 1033
-#endif
-#ifndef F_SEAL_SEAL
-#define F_SEAL_SEAL 0x0001
-#endif
-#ifndef F_SEAL_SHRINK
-#define F_SEAL_SHRINK 0x0002
-#endif
-#ifndef F_SEAL_GROW
-#define F_SEAL_GROW 0x0004
-#endif
-#ifndef F_SEAL_WRITE
-#define F_SEAL_WRITE 0x0008
-#endif
-static constexpr int REQUIRED_MEMFD_SEALS = F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE;
-
-// RAII context for a sealed memfd private mapping.  When the MemoryStream that
-// owns it is destroyed, ReleasePrivateMapping munmaps the region, closes the
-// sealed memfd, and closes the source ashmem fd, matching the lifetime
-// semantics of the original Ashmem-based code (where Ashmem destructor closed
-// the source fd).
-struct PrivateMapping {
-    void* addr;
-    size_t len;
-    int32_t fd;      // sealed memfd
-    int32_t srcFd;   // source ashmem fd (-1 if not owned)
+// RAII context for a process-private font buffer copy.  When the MemoryStream
+// that owns it is destroyed, ReleasePrivateFontBuffer frees the heap buffer and
+// closes the source ashmem fd, matching the lifetime semantics of the original
+// Ashmem-based code (where the Ashmem destructor closed the source fd).
+struct PrivateFontBuffer {
+    uint8_t* data;
+    int32_t srcFd; // source ashmem fd (-1 if not owned)
 };
 
-static void ReleasePrivateMapping(const void* /*ptr*/, void* context)
+static void ReleasePrivateFontBuffer(const void* /*ptr*/, void* context)
 {
-    auto* pm = static_cast<PrivateMapping*>(context);
-    if (pm == nullptr) {
+    auto* pb = static_cast<PrivateFontBuffer*>(context);
+    if (pb == nullptr) {
         return;
     }
-    if (pm->addr != nullptr && pm->addr != MAP_FAILED) {
-        munmap(pm->addr, pm->len);
+    delete[] pb->data;
+    if (pb->srcFd >= 0) {
+        close(pb->srcFd);
     }
-    if (pm->fd >= 0) {
-        close(pm->fd);
-    }
-    if (pm->srcFd >= 0) {
-        close(pm->srcFd);
-    }
-    delete pm;
+    delete pb;
 }
 
 // Copy the contents of an externally-supplied ashmem fd into a process-private
-// sealed memfd that the original caller can no longer mutate.  This eliminates
+// heap buffer that the original caller can no longer mutate.  This eliminates
 // the TOCTOU window in which the caller could rewrite the MAP_SHARED backing
-// store while Skia/FreeType is parsing it.  The source fd is NOT closed; the
-// caller manages its lifetime.  Returns a PrivateMapping whose fd is the sealed
-// memfd, or nullptr on failure.
-static PrivateMapping* MakePrivateMemfdCopy(int32_t srcFd, uint32_t size)
+// store while Skia/FreeType is parsing it.  A sealed memfd is deliberately NOT
+// used here: some platforms forbid mapping a sealed memfd at all (mmap returns
+// EPERM), so the private copy is kept in a plain heap buffer instead.  The
+// source fd is NOT closed; the caller manages its lifetime.  Returns a
+// PrivateFontBuffer whose data is the private copy, or nullptr on failure.
+static PrivateFontBuffer* MakePrivateFontCopy(int32_t srcFd, uint32_t size)
 {
     if (srcFd < 0 || size == 0) {
+        LOGE("MakePrivateFontCopy: invalid args, fd:%{public}d, size:%{public}u", srcFd, size);
         return nullptr;
     }
 
     void* srcAddr = mmap(nullptr, size, PROT_READ, MAP_SHARED, srcFd, 0);
     if (srcAddr == MAP_FAILED) {
+        LOGE("MakePrivateFontCopy: mmap src failed, fd:%{public}d, size:%{public}u, errno:%{public}d",
+            srcFd, size, errno);
         return nullptr;
     }
 
-    int32_t memFd = memfd_create("rs_typeface_private", MFD_CLOEXEC | MFD_ALLOW_SEALING);
-    if (memFd < 0) {
+    auto* buffer = new (std::nothrow) uint8_t[size];
+    if (buffer == nullptr) {
+        LOGE("MakePrivateFontCopy: alloc buffer failed, fd:%{public}d, size:%{public}u", srcFd, size);
         munmap(srcAddr, size);
         return nullptr;
     }
 
-    if (ftruncate(memFd, static_cast<off_t>(size)) < 0) {
-        close(memFd);
-        munmap(srcAddr, size);
-        return nullptr;
-    }
-
-    void* dstAddr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, memFd, 0);
-    if (dstAddr == MAP_FAILED) {
-        close(memFd);
-        munmap(srcAddr, size);
-        return nullptr;
-    }
-    errno_t err = memcpy_s(dstAddr, size, srcAddr, size);
+    errno_t err = memcpy_s(buffer, size, srcAddr, size);
     munmap(srcAddr, size);
     if (err != EOK) {
-        munmap(dstAddr, size);
-        close(memFd);
+        LOGE("MakePrivateFontCopy: memcpy_s failed, err:%{public}d, fd:%{public}d, size:%{public}u",
+            err, srcFd, size);
+        delete[] buffer;
         return nullptr;
     }
 
-    // F_SEAL_WRITE requires no writable mapping exists, otherwise the kernel returns EBUSY.
-    munmap(dstAddr, size);
-
-    // F_SEAL_WRITE|SEAL|SHRINK|GROW: content is immutable for every holder afterwards.
-    if (fcntl(memFd, F_ADD_SEALS, REQUIRED_MEMFD_SEALS) < 0) {
-        close(memFd);
+    auto* pb = new (std::nothrow) PrivateFontBuffer{buffer, -1};
+    if (pb == nullptr) {
+        LOGE("MakePrivateFontCopy: alloc context failed, fd:%{public}d, size:%{public}u", srcFd, size);
+        delete[] buffer;
         return nullptr;
     }
-
-    void* roAddr = mmap(nullptr, size, PROT_READ, MAP_SHARED, memFd, 0);
-    if (roAddr == MAP_FAILED) {
-        close(memFd);
-        return nullptr;
-    }
-
-    return new PrivateMapping{roAddr, size, memFd, -1};
+    return pb;
 }
 #endif
 
 std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash, uint32_t index)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    PrivateMapping* pm = MakePrivateMemfdCopy(fd, size);
-    if (pm == nullptr) {
-        LOGE("Typeface::MakeFromAshmem: failed to create private memfd copy");
+    PrivateFontBuffer* pb = MakePrivateFontCopy(fd, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            fd, size);
         return nullptr;
     }
-    pm->srcFd = fd;
-    const void* ptr = pm->addr;
-    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateMapping, pm);
+    pb->srcFd = fd;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
         LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
@@ -226,14 +183,15 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     const FontArguments& fontArguments)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    PrivateMapping* pm = MakePrivateMemfdCopy(fd, size);
-    if (pm == nullptr) {
-        LOGE("Typeface::MakeFromAshmem: failed to create private memfd copy");
+    PrivateFontBuffer* pb = MakePrivateFontCopy(fd, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            fd, size);
         return nullptr;
     }
-    pm->srcFd = fd;
-    const void* ptr = pm->addr;
-    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateMapping, pm);
+    pb->srcFd = fd;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     auto tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
     if (tf == nullptr) {
         LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
@@ -256,14 +214,15 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(SharedTypeface& sharedTypefac
 {
 #ifdef ENABLE_OHOS_ENHANCE
     uint32_t size = sharedTypeface.size_;
-    PrivateMapping* pm = MakePrivateMemfdCopy(sharedTypeface.fd_, size);
-    if (pm == nullptr) {
-        LOGE("Typeface::MakeFromAshmem: failed to create private memfd copy");
+    PrivateFontBuffer* pb = MakePrivateFontCopy(sharedTypeface.fd_, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            sharedTypeface.fd_, size);
         return nullptr;
     }
-    pm->srcFd = sharedTypeface.fd_;
-    const void* ptr = pm->addr;
-    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateMapping, pm);
+    pb->srcFd = sharedTypeface.fd_;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     std::shared_ptr<Typeface> tf = nullptr;
     if (sharedTypeface.hasFontArgs_) {
         FontArguments fontArguments;
