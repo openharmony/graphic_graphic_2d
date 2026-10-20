@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "rs_blur_pixelmap.h"
- 
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <cmath>
 #include "draw/surface.h"
@@ -27,13 +27,13 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render/rs_hps_blur.h"
 #include "render/rs_render_mesa_blur_filter.h"
- 
+
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint8_t ASTC_HEADER_SIZE = 16;
 constexpr float MIN_VALID_BLUR_RADIUS = 1E-6f;
- 
+
 Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat format, bool isHdr)
 {
     switch (format) {
@@ -48,7 +48,7 @@ Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat format, b
             return Drawing::CompressedType::NoneType;
     }
 }
- 
+
 std::shared_ptr<Drawing::Image> CreateGpuImageFromPixelMap(
     const std::shared_ptr<Media::PixelMap>& pixelMap, Drawing::GPUContext* gpuContext)
 {
@@ -92,7 +92,7 @@ std::shared_ptr<Drawing::Image> CreateGpuImageFromPixelMap(
         nullptr, nullptr);
     return image;
 }
- 
+
 std::shared_ptr<Drawing::Surface> CreateGpuSurface(
     int32_t width, int32_t height, Drawing::GPUContext* gpuContext)
 {
@@ -103,7 +103,7 @@ std::shared_ptr<Drawing::Surface> CreateGpuSurface(
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
     return Drawing::Surface::MakeRenderTarget(gpuContext, false, info);
 }
- 
+
 void ApplyBlurOnCanvas(RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::Surface>& surface, float blurRadius)
 {
@@ -136,7 +136,7 @@ void ApplyBlurOnCanvas(RSPaintFilterCanvas& canvas,
         canvas.DrawImage(*outImage, 0, 0, Drawing::SamplingOptions());
     }
 }
- 
+
 std::shared_ptr<Media::PixelMap> ReadBackToPixelMap(
     const std::shared_ptr<Drawing::Surface>& surface, int32_t width, int32_t height)
 {
@@ -175,7 +175,7 @@ std::shared_ptr<Media::PixelMap> ReadBackToPixelMap(
     return pixelMap;
 }
 } // namespace
- 
+
 bool BlurPixelMapOnRenderThread(
     const std::shared_ptr<Media::PixelMap>& pixelMap, float blurRadius,
     std::shared_ptr<Media::PixelMap>& blurredPixelMap)
