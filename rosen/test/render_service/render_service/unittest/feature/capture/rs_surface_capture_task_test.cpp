@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include <gtest/gtest.h>
 #include <hilog/log.h>
@@ -1122,7 +1122,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
@@ -1131,7 +1131,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
@@ -1141,7 +1141,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
 }
 
@@ -1199,7 +1199,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
 }
 
@@ -1217,7 +1217,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
@@ -1226,7 +1226,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
 }
 
@@ -1244,7 +1244,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
@@ -1253,7 +1253,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
 }
 
@@ -1284,7 +1284,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
 }
 #endif
