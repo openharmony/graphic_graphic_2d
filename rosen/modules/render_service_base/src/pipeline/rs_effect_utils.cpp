@@ -127,17 +127,17 @@ void RSEffectUtils::CheckRegionChangeForFilterCache(RSRenderNode& node,
     if (filterDrawable == nullptr) {
         return;
     }
-    auto curFilteredRegion = filterDrawable->GetVisibleDrawRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto curDrawRegion = filterDrawable->GetVisibleDrawRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
     auto curSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
-    auto lastFilteredRegion = filterDrawable->GetLastVisibleDrawRegion(node.lastFilterRegion_);
+    auto lastDrawRegion = filterDrawable->GetLastVisibleDrawRegion(node.lastFilterRegion_);
     auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(node.lastFilterRegion_);
 
-    bool regionChanged = (curFilteredRegion != lastFilteredRegion || curSnapshotRegion != lastSnapshotRegion) &&
+    bool regionChanged = (curDrawRegion != lastDrawRegion || curSnapshotRegion != lastSnapshotRegion) &&
         !node.IsForceClearOrUseFilterCache(filterDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty"
-        " lastFilteredRect:%s, curFilteredRegion:%s, lastSnapshotRegion:%s, curSnapshotRegion:%s, regionChanged:%d",
+        " lastDrawRegion:%s, curDrawRegion:%s, lastSnapshotRegion:%s, curSnapshotRegion:%s, regionChanged:%d",
         node.GetId(),
-        lastFilteredRegion.ToString().c_str(), curFilteredRegion.ToString().c_str(),
+        lastDrawRegion.ToString().c_str(), curDrawRegion.ToString().c_str(),
         lastSnapshotRegion.ToString().c_str(), curSnapshotRegion.ToString().c_str(),
         static_cast<int>(regionChanged));
     if (regionChanged) {
