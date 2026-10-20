@@ -112,7 +112,7 @@ void RSEffectUtils::CheckRegionInsideForFilterCache(RSRenderNode& node,
         (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
         !node.IsForceClearOrUseFilterCache(filterDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
-        " lastRect:%s, currRegion:%s", node.GetId(), lastSnapshotRegion.ToString().c_str(),
+        " lastRect:%s, curRegion:%s", node.GetId(), lastSnapshotRegion.ToString().c_str(),
         snapshotRegion.ToString().c_str());
     if (regionChanged) {
         node.MarkFilterStatusChanged(filterDrawable, false, true);
@@ -127,18 +127,18 @@ void RSEffectUtils::CheckRegionChangeForFilterCache(RSRenderNode& node,
     if (filterDrawable == nullptr) {
         return;
     }
-    auto currFilteredRegion = filterDrawable->GetVisibleDrawRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
-    auto currSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto curFilteredRegion = filterDrawable->GetVisibleDrawRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
+    auto curSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(node.GetFilterRegionInfo().defaultFilterRegion_);
     auto lastFilteredRegion = filterDrawable->GetLastVisibleDrawRegion(node.lastFilterRegion_);
     auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(node.lastFilterRegion_);
 
-    bool regionChanged = (currFilteredRegion != lastFilteredRegion || currSnapshotRegion != lastSnapshotRegion) &&
+    bool regionChanged = (curFilteredRegion != lastFilteredRegion || curSnapshotRegion != lastSnapshotRegion) &&
         !node.IsForceClearOrUseFilterCache(filterDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty"
-        " lastFilteredRect:%s, currFilteredRegion:%s, lastSnapshotRegion:%s, currSnapshotRegion:%s, regionChanged:%d",
+        " lastFilteredRect:%s, curFilteredRegion:%s, lastSnapshotRegion:%s, curSnapshotRegion:%s, regionChanged:%d",
         node.GetId(),
-        lastFilteredRegion.ToString().c_str(), currFilteredRegion.ToString().c_str(),
-        lastSnapshotRegion.ToString().c_str(), currSnapshotRegion.ToString().c_str(),
+        lastFilteredRegion.ToString().c_str(), curFilteredRegion.ToString().c_str(),
+        lastSnapshotRegion.ToString().c_str(), curSnapshotRegion.ToString().c_str(),
         static_cast<int>(regionChanged));
     if (regionChanged) {
         node.MarkFilterStatusChanged(filterDrawable, isForeground, true);
