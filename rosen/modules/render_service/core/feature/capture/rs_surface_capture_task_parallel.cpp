@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
@@ -212,6 +212,12 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
 
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         surfaceNode_ = surfaceNode;
+        if (!surfaceNode->IsAppWindow() && !surfaceNode->IsLeashWindow()) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: surfaceNode is not appWindow or"
+                " leashWindow, nodeType:%{public}u nodeName:%{public}s",
+                static_cast<uint8_t>(surfaceNode->GetSurfaceNodeType()),
+                surfaceNode->GetNodeName().c_str());
+        }
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
@@ -226,7 +232,9 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             return false;
         }
         if (curNode->GetSortedChildren()->size() == 0) {
-            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+            RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+            errorCode_ = CaptureError::WINDOW_CAPTURE_NO_CHILD;
+            return false;
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
@@ -688,6 +696,7 @@ int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
 void RSSurfaceCaptureTaskParallel::AddBlur(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius)
 {
+    RS_LOGI("RSSurfaceCaptureTaskParallel::AddBlur");
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
     auto image = surface->GetImageSnapshot();
