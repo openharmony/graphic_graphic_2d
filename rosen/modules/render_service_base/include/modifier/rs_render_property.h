@@ -188,15 +188,6 @@ public:
         return std::static_pointer_cast<RSRenderProperty<T>>(shared_from_this());
     }
 
-    template<typename T>
-    std::shared_ptr<RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName)
-    {
-        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
-            return nullptr;
-        }
-        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(shared_from_this());
-    }
-
     PropertyId GetId() const
     {
         return id_;
