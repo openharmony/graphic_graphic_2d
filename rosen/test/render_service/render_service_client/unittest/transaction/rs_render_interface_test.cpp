@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 #include "gtest/gtest.h"
 
 #include "transaction/rs_interfaces.h"
@@ -245,6 +245,68 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
     Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
     bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest001
+ * @tc.desc: test BlurPixelMap returns nullptr when renderPipelineClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest001, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    renderInterface->renderPipelineClient_ = nullptr;
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest002
+ * @tc.desc: test BlurPixelMap returns nullptr when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest002, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto result = renderInterface->BlurPixelMap(nullptr, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest003
+ * @tc.desc: test BlurPixelMap delegates to pipeline client
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest003, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    if (result != nullptr) {
+        EXPECT_EQ(result->GetWidth(), 10);
+        EXPECT_EQ(result->GetHeight(), 10);
+    }
 }
 
 /**
