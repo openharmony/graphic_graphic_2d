@@ -203,6 +203,10 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
 
+    if (!IsEglContextReady()) {
+        LOGE("Egl context not ready !");
+        return false;
+    }
     mHandler_ = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     if (isUniRenderMode_) {
