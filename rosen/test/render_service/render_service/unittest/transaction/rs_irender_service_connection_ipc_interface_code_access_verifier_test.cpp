@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include <gtest/gtest.h>
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
@@ -396,6 +396,22 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
     auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
         RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
+
+/**
+ * @tc.name: BlurPixelMapVerifier
+ * @tc.desc: test BLUR_PIXEL_MAP permission checking is enforced via IsSystemCalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, BlurPixelMapVerifier,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }
