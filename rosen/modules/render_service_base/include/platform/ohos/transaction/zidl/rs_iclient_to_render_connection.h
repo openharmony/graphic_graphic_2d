@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_ICLIENT_TO_RENDER_CONNECTION_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_ICLIENT_TO_RENDER_CONNECTION_H
@@ -110,6 +110,9 @@ public:
 
     virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
+
+    virtual ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success) = 0;
 
     virtual ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) = 0;
