@@ -745,7 +745,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources007, TestSize.Level2)
     captureConfig.scaleX = 1.0f;
     captureConfig.scaleY = 1.0f;
     captureConfig.useCurWindow = true;
- 
+
     NodeId nodeId = 1000300;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
@@ -756,11 +756,11 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources007, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
- 
+
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     ASSERT_EQ(false, task.CreateResources());
     ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
- 
+
     nodeMap.UnregisterRenderNode(nodeId);
 }
 
