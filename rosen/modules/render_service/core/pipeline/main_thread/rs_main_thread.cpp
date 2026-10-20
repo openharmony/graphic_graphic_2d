@@ -1990,11 +1990,9 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     }
 
     // Defer normal transactions for a pid that is mid-rebuild, to avoid interleaving with rebuild commands.
-    pid_t callingPid = rsTransactionData->GetCallingPid();
-    pid_t rebuildPid = (callingPid > 0) ? callingPid : pid;
-    if (IsPidRebuilding(rebuildPid)) {
+    if (IsPidRebuilding(pid)) {
         RS_TRACE_NAME_FMT("ProcessRSTransactionData: cache transaction during rebuild");
-        pendingCommandsDuringRebuild_[rebuildPid].emplace_back(std::move(rsTransactionData));
+        pendingCommandsDuringRebuild_[pid].emplace_back(std::move(rsTransactionData));
         return;
     }
 
@@ -6303,8 +6301,7 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     }
     // Queue per pid; record the total-time start only when this pid's queue goes empty->non-empty,
     // so a later transaction in the same rebuild burst does not reset the budget.
-    pid_t callingPid = transaction->GetCallingPid();
-    pid_t pid = (callingPid > 0) ? callingPid : transaction->GetSendingPid();
+    pid_t pid = transaction->GetSendingPid();
     auto& state = pendingSplitTransactions_[pid];
     if (state.transactions.empty()) {
         state.startTimeMs = GetCurrentSteadyTimeMsFloat();

@@ -737,7 +737,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNotDefaultParams,
 HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNoScreenNode, TestSize.Level2)
 {
     RSSurfaceRenderParams params(DEFAULT_NODEID);
-
+ 
     ScreenInfo screenInfo;
     ASSERT_FALSE(params.GetScreenInfoIfNeedRogScale(screenInfo));
 }
@@ -753,7 +753,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetScreenInfoIfNeedRogScaleNotDeviceGpu, Tes
     RSSurfaceRenderParams params(DEFAULT_NODEID);
     auto screenNode = CreateScreenNodeWithSamplingMode(ScreenSamplingMode::OFFSCREEN);
     params.SetAncestorScreenNode(screenNode);
-
+ 
     ScreenInfo screenInfo;
     ASSERT_FALSE(params.GetScreenInfoIfNeedRogScale(screenInfo));
 }
@@ -834,7 +834,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, ClipAndScaleDirtyManager002, TestSize.Level2
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_RECT);
     params.ClipAndScaleDirtyManager(dirtyManager);
-
+ 
     RectI expectedRect(0, 0, DEFAULT_RECT.GetWidth() * ROG_RATIO, DEFAULT_RECT.GetHeight() * ROG_RATIO);
     ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), expectedRect);
 }
