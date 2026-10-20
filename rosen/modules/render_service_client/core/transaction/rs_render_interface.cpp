@@ -381,6 +381,20 @@ bool RSRenderInterface::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> 
     return renderPipelineClient_->GetPixelmap(id, pixelmap, rect, drawCmdList);
 }
 
+std::shared_ptr<Media::PixelMap> RSRenderInterface::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    if (renderPipelineClient_ == nullptr) {
+        RS_LOGE("RSRenderInterface::BlurPixelMap renderPipelineClient_ == nullptr!");
+        return nullptr;
+    }
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRenderInterface::BlurPixelMap pixelMap is nullptr!");
+        return nullptr;
+    }
+    return renderPipelineClient_->BlurPixelMap(pixelMap, blurRadius);
+}
+
 bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
     if (!node) {
