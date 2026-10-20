@@ -28,7 +28,7 @@ RSAtlasInfoAnimation::RSAtlasInfoAnimation(
     const std::shared_ptr<RSUIContext>& rsUIContext,
     const std::shared_ptr<RSPropertyBase>& property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
-    : RSAnimation(rsUIContext), startValue_(startValue), endValue_(endValue)
+    : RSAnimation(rsUIContext), property_(property), startValue_(startValue), endValue_(endValue)
 {
     if (property != nullptr) {
         propertyId_ = property->GetId();
@@ -60,6 +60,14 @@ void RSAtlasInfoAnimation::OnUpdateStagingValue(bool isFirstStart)
     if (!isFirstStart) {
         return;
     }
+    if (property_ == nullptr) {
+        return;
+    }
+    auto targetValue = endValue_;
+    if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+        targetValue = startValue_;
+    }
+    property_->SetValue(targetValue);
 }
 
 std::shared_ptr<RSRenderAtlasInfoAnimation> RSAtlasInfoAnimation::CreateRenderAnimation()

@@ -705,9 +705,28 @@ void RSProperty<DepthLightPara>::UpdateToRender(const DepthLightPara& value, Pro
     UPDATE_TO_RENDER(RSUpdatePropertyDepthLightPara, value, type);
 }
 
+namespace {
+// Per-property cache of the last AtlasInfo sent to render service.
+static thread_local std::unordered_map<PropertyId, AtlasInfo> g_lastSentAtlas;
+}
+
+template<>
+RSProperty<AtlasInfo>::~RSProperty()
+{
+    g_lastSentAtlas.erase(id_);
+}
+
 template<>
 void RSProperty<AtlasInfo>::UpdateToRender(const AtlasInfo& value, PropertyUpdateType type) const
 {
+    // Context unchanged: send only frameIndex via lightweight IPC.
+    auto it = g_lastSentAtlas.find(id_);
+    if (it != g_lastSentAtlas.end() && it->second.HasSameContext(value)) {
+        UPDATE_TO_RENDER(RSUpdateAtlasFrameIndex, value.frameIndex, type);
+        it->second.frameIndex = value.frameIndex;
+        return;
+    }
+    g_lastSentAtlas[id_] = value;
     UPDATE_TO_RENDER(RSUpdatePropertyAtlasInfo, value, type);
 }
 

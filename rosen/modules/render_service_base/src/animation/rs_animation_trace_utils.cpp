@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "common/rs_atlas_info.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -146,6 +147,19 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyValueInner(
         case RSPropertyType::RRECT: {
             auto property = value->CastToAnimatablePropertyOf<RRect>(__func__);
             property ? (oss << "RRECT " << property->Get().ToString()) : (oss << "RRECT:invalid");
+            break;
+        }
+        case RSPropertyType::ATLAS_INFO: {
+            if (auto property = value->CastToAnimatablePropertyOf<AtlasInfo>(__func__)) {
+                auto val = property->Get();
+                oss << "AtlasInfo:frameIndex:" << val.frameIndex
+                    << ",mode:" << val.mode
+                    << ",rows:" << val.rows
+                    << ",cols:" << val.cols
+                    << ",totalFrame:" << val.totalFrame;
+            } else {
+                oss << "AtlasInfo:invalid";
+            }
             break;
         }
         default: {

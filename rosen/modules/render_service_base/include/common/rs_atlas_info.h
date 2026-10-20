@@ -73,13 +73,18 @@ struct AtlasInfo {
 
     bool operator==(const AtlasInfo& other) const
     {
+        return HasSameContext(other) &&
+               std::abs(frameIndex - other.frameIndex) < 0.001f;
+    }
+
+    bool HasSameContext(const AtlasInfo& other) const
+    {
         return mode == other.mode && rows == other.rows && cols == other.cols &&
                std::abs(frameWidth - other.frameWidth) < 0.001f &&
                std::abs(frameHeight - other.frameHeight) < 0.001f &&
                std::abs(padding - other.padding) < 0.001f &&
                totalFrame == other.totalFrame &&
-               pixelMap == other.pixelMap &&
-               std::abs(frameIndex - other.frameIndex) < 0.001f;
+               pixelMap == other.pixelMap;
     }
 };
 

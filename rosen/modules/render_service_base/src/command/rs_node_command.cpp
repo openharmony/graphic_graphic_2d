@@ -30,6 +30,26 @@ RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = 
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
+void RSNodeCommandHelper::UpdateAtlasFrameIndex(RSContext& context, NodeId nodeId, float frameIndex, PropertyId id,
+    PropertyUpdateType type)
+{
+    (void)type;
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    if (auto property = node->GetProperty(id)) {
+        auto prop = property->CastToPropertyOf<AtlasInfo>(__func__);
+        if (!prop) {
+            return;
+        }
+        auto val = prop->Get();
+        val.frameIndex = frameIndex;
+        prop->Set(val, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+    }
+}
+
 void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
     RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList, PropertyId id, PropertyUpdateType type)
 {

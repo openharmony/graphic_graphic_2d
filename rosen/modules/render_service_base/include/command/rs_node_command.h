@@ -75,6 +75,7 @@ enum RSNodeCommandType : uint16_t {
     // 0x0130 deleted, do not use this value never
     UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
     UPDATE_MODIFIER_ATLAS_INFO = 0x0132,
+    UPDATE_MODIFIER_ATLAS_FRAME_INDEX = 0x0133,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -152,6 +153,9 @@ public:
             prop->Set(value, type);
         }
     }
+
+    static void UpdateAtlasFrameIndex(RSContext& context, NodeId nodeId, float frameIndex, PropertyId id,
+        PropertyUpdateType type);
 
     static void UpdatePropertyDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList, PropertyId id, PropertyUpdateType type);
@@ -493,6 +497,11 @@ ADD_COMMAND(RSUpdatePropertyAtlasInfo,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_ATLAS_INFO,
         RSNodeCommandHelper::UpdateProperty<AtlasInfo>,
         NodeId, AtlasInfo, PropertyId, PropertyUpdateType))
+
+ADD_COMMAND(RSUpdateAtlasFrameIndex,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_ATLAS_FRAME_INDEX,
+        RSNodeCommandHelper::UpdateAtlasFrameIndex,
+        NodeId, float, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSortChildrenByZIndex,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SORT_CHILDREN_BY_INDEX,
