@@ -23,6 +23,7 @@
 #include "rs_profiler_utils.h"
 
 #include "common/rs_obj_geometry.h"
+#include "effect/rs_render_filter_base.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_root_render_node.h"
@@ -503,7 +504,8 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
         out["GrayScale"] = *grayScale;
     }
     if (properties.GetColorNGFilter() != nullptr) {
-        out["ColorNGFilter"] = true;
+        out["ColorNGFilter"] = RSNGRenderEffectHelper::GetEffectTypeString(
+            properties.GetColorNGFilter()->GetType());
     }
     if (!ROSEN_EQ(properties.GetDynamicLightUpRate(), 0.f)) {
         out["DynamicLightUpRate"] = properties.GetDynamicLightUpRate();
