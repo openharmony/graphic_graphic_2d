@@ -12,26 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+#if defined(RS_ENABLE_UNI_RENDER)
 #include <gtest/gtest.h>
 #include <memory>
- 
+
 #include "pixel_map.h"
 #include "feature/capture/rs_blur_pixelmap.h"
- 
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "engine/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "render_context/render_context.h"
 #endif
- 
+
 using namespace testing;
 using namespace testing::ext;
- 
+
 namespace OHOS {
 namespace Rosen {
- 
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 class RSBlurPixelMapTest : public testing::Test {
 public:
@@ -44,7 +44,7 @@ public:
         int32_t width, int32_t height, Media::PixelFormat format = Media::PixelFormat::RGBA_8888);
     static inline std::shared_ptr<RSBaseRenderEngine> savedRenderEngine_ = nullptr;
 };
- 
+
 std::shared_ptr<Media::PixelMap> RSBlurPixelMapTest::CreateTestPixelMap(
     int32_t width, int32_t height, Media::PixelFormat format)
 {
@@ -57,27 +57,27 @@ std::shared_ptr<Media::PixelMap> RSBlurPixelMapTest::CreateTestPixelMap(
     auto pixelMap = Media::PixelMap::Create(opts);
     return std::shared_ptr<Media::PixelMap>(pixelMap.release());
 }
- 
+
 void RSBlurPixelMapTest::SetUpTestCase()
 {
     savedRenderEngine_ = RSUniRenderThread::Instance().uniRenderEngine_;
 }
- 
+
 void RSBlurPixelMapTest::TearDownTestCase()
 {
     RSUniRenderThread::Instance().uniRenderEngine_ = savedRenderEngine_;
 }
- 
+
 void RSBlurPixelMapTest::SetUp()
 {
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
- 
+
 void RSBlurPixelMapTest::TearDown()
 {
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
- 
+
 /**
  * @tc.name: BlurPixelMapOnRenderThread001
  * @tc.desc: Test BlurPixelMapOnRenderThread with renderEngine nullptr
@@ -92,7 +92,7 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread001, TestSize.Level1)
     EXPECT_FALSE(ret);
     EXPECT_EQ(blurredPixelMap, nullptr);
 }
- 
+
 /**
  * @tc.name: BlurPixelMapOnRenderThread002
  * @tc.desc: Test BlurPixelMapOnRenderThread with renderContext nullptr
@@ -109,7 +109,7 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread002, TestSize.Level1)
     EXPECT_FALSE(ret);
     EXPECT_EQ(blurredPixelMap, nullptr);
 }
- 
+
 /**
  * @tc.name: BlurPixelMapOnRenderThread003
  * @tc.desc: Test BlurPixelMapOnRenderThread with F16 pixelMap and renderEngine nullptr
@@ -124,7 +124,7 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread003, TestSize.Level1)
     EXPECT_FALSE(ret);
     EXPECT_EQ(blurredPixelMap, nullptr);
 }
- 
+
 /**
  * @tc.name: BlurPixelMapOnRenderThread004
  * @tc.desc: Test BlurPixelMapOnRenderThread with 1x1 pixelMap and renderEngine nullptr
@@ -139,7 +139,7 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread004, TestSize.Level1)
     EXPECT_FALSE(ret);
     EXPECT_EQ(blurredPixelMap, nullptr);
 }
- 
+
 /**
  * @tc.name: BlurPixelMapOnRenderThread005
  * @tc.desc: Test BlurPixelMapOnRenderThread with 100x100 pixelMap and renderEngine nullptr
@@ -155,6 +155,7 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread005, TestSize.Level1)
     EXPECT_EQ(blurredPixelMap, nullptr);
 }
 #endif // ROSEN_OHOS && (RS_ENABLE_GL || RS_ENABLE_VK)
- 
+
 } // namespace Rosen
 } // namespace OHOS
+#endif // RS_ENABLE_UNI_RENDER
