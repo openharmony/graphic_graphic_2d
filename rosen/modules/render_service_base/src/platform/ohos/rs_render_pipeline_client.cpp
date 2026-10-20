@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include "app_image_observer_manager.h"
 #include "transaction/rs_render_pipeline_client.h"
@@ -348,6 +348,24 @@ bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::Pixel
     bool success;
     clientToRenderConnection->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
     return success;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderPipelineClient::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::BlurPixelMap: clientToRenderConnection is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    clientToRenderConnection->BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success);
+    if (!success || blurredPixelMap == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::BlurPixelMap: BlurPixelMap failed");
+        return nullptr;
+    }
+    return blurredPixelMap;
 }
 
 bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
