@@ -10034,5 +10034,35 @@ HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined006, TestSize.Level1)
     EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
     EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
 }
+
+/**
+ * @tc.name: CleanResourcesReportTimeMap001
+ * @tc.desc: Test CleanResources erases per-pid entries in report time maps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesReportTimeMap001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr pid_t pidA = 2200;
+    constexpr pid_t pidB = 2300;
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_[pidA] = 1000;
+    mainThread->lastDrawOpReportTimeMap_[pidB] = 2000;
+    mainThread->lastCommandReportTimeMap_[pidA] = 1000;
+    mainThread->lastCommandReportTimeMap_[pidB] = 2000;
+    mainThread->CleanResources(pidA, false);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidB), 1u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidB), 1u);
+    mainThread->CleanResources(pidB, false);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidB), 0u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidB), 0u);
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+}
 } // namespace OHOS::Rosen
 #endif
