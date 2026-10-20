@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/common/rs_log.h"
@@ -86,6 +86,12 @@ bool RSRenderPipelineClient::GetPixelmap(NodeId id, const std::shared_ptr<Media:
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     return {};
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderPipelineClient::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    return nullptr;
 }
 
 bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
