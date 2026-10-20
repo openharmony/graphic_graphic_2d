@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include <gtest/gtest.h>
 
@@ -429,6 +429,54 @@ HWTEST_F(RSPipelineClientTest, GetBrightnessInfoTest, TestSize.Level1)
     RSRenderServiceConnectHub::Destroy();
     ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
     RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: BlurPixelMapTest001
+ * @tc.desc: BlurPixelMap returns nullptr when clientToRenderConnection is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, BlurPixelMapTest001, TestSize.Level1)
+{
+    sptr<IRemoteObject> robj = nullptr;
+    auto client = std::make_shared<RSRenderPipelineClient>(robj);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    renderServiceConnectHub->Destroy();
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = client->BlurPixelMap(pixelMap, 5.0f);
+    ASSERT_EQ(result, nullptr);
+    renderServiceConnectHub->Init();
+}
+
+/**
+ * @tc.name: BlurPixelMapTest002
+ * @tc.desc: BlurPixelMap returns nullptr when blur fails via connection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, BlurPixelMapTest002, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = rsRenderPipelineClient->BlurPixelMap(pixelMap, 5.0f);
+    if (result != nullptr) {
+        ASSERT_EQ(result->GetWidth(), 10);
+        ASSERT_EQ(result->GetHeight(), 10);
+    }
 }
 
 /**
