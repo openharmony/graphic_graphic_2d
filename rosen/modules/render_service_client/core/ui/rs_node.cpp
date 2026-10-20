@@ -3960,12 +3960,8 @@ void RSNode::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlaySh
 void RSNode::SetAiInvert(const Vector4f& aiInvert)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    ROSEN_LOGD("RSNode::SetAiInvert id=%{public}" PRIu64 " invert=(%{public}f, %{public}f, %{public}f, %{public}f)",
-        GetId(), aiInvert.x_, aiInvert.y_, aiInvert.z_, aiInvert.w_);
-    std::shared_ptr<RSNGFilterBase> filter = nullptr;
-    if (aiInvert != Vector4f(0.f, 0.f, 0.f, 0.f)) {
-        filter = RSNGFilterHelper::CreateNGBinarizationFilter(aiInvert.x_, aiInvert.y_, aiInvert.z_, aiInvert.w_);
-    }
+    auto filter = RSNGFilterHelper::CreateNGBinarizationFilter(
+        aiInvert.x_, aiInvert.y_, aiInvert.z_, aiInvert.w_);
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
         &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
@@ -4028,12 +4024,7 @@ void RSNode::SetColorBlend(uint32_t colorValue)
 void RSNode::SetLightUpEffectDegree(float lightUpEffectDegree)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    ROSEN_LOGD("RSNode::SetLightUpEffectDegree id=%{public}" PRIu64 " degree=%{public}f", GetId(),
-        lightUpEffectDegree);
-    std::shared_ptr<RSNGFilterBase> filter = nullptr;
-    if (lightUpEffectDegree > 0.f && lightUpEffectDegree < 1.0f) {
-        filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(lightUpEffectDegree);
-    }
+    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(lightUpEffectDegree);
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
         &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
@@ -4041,11 +4032,7 @@ void RSNode::SetLightUpEffectDegree(float lightUpEffectDegree)
 void RSNode::SetDynamicDimDegree(const float dimDegree)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    ROSEN_LOGD("RSNode::SetDynamicDimDegree id=%{public}" PRIu64 " dimDegree=%{public}f", GetId(), dimDegree);
-    std::shared_ptr<RSNGFilterBase> filter = nullptr;
-    if (dimDegree > 0.f && dimDegree < 1.0f) {
-        filter = RSNGFilterHelper::CreateNGDynamicDimFilter(dimDegree);
-    }
+    auto filter = RSNGFilterHelper::CreateNGDynamicDimFilter(dimDegree);
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
         &ModifierNG::RSCompositingFilterModifier::SetColorNGFilter>(filter);
 }
