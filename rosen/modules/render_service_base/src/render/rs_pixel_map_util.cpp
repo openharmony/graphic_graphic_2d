@@ -54,7 +54,7 @@ static const std::map<PixelFormat, GraphicPixelFormat> PIXELMAP_SURFACEBUFFER_FO
 #endif
 };
 
-static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
+Drawing::ColorType RSPixelMapUtil::PixelFormatToDrawingColorType(PixelFormat pixelFormat)
 {
     switch (pixelFormat) {
         case PixelFormat::RGB_565:

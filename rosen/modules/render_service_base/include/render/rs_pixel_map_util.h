@@ -48,6 +48,7 @@ public:
         std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
     static bool CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pixelMap);
     static Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
+    static Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
 };
 } // namespace Rosen
 } // namespace OHOS

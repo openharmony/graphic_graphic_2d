@@ -41,6 +41,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_pixel_map_util.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_client_to_service_connection.h"
@@ -196,7 +197,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
-    auto colorType = GetDrawingColorType(pixelmap->GetPixelFormat());
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSSurfaceCapture Data", size);
     if (fd < 0) {
@@ -272,8 +273,9 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
         return nullptr;
     }
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
-        GetDrawingColorType(pixelmap->GetPixelFormat()), Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
+        colorType, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
