@@ -2079,6 +2079,7 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
 {
     uint8_t captureType { 0 };
     uint32_t displayIntent { 0 };
+    uint32_t pixelFormat { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
@@ -2103,7 +2104,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
         !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
         !data.ReadBool(captureConfig.isSyncRender) ||
-        !data.ReadBool(captureConfig.windowSync)) {
+        !data.ReadBool(captureConfig.windowSync) ||
+        !data.ReadUint32(pixelFormat)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
@@ -2121,6 +2123,12 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         return false;
     }
     captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
+    if (pixelFormat >= static_cast<uint32_t>(Media::PixelFormat::EXTERNAL_MAX)) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read pixelFormat failed!"
+            "value=%{public}u", pixelFormat);
+        return false;
+    }
+    captureConfig.pixelFormat = static_cast<Media::PixelFormat>(pixelFormat);
     return true;
 }
 

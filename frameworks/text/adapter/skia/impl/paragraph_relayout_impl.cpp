@@ -468,9 +468,10 @@ namespace {
 
         [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
-            skiaTextStyle.setBackgroundRect({spTextStyle.backgroundRect.color, spTextStyle.backgroundRect.leftTopRadius,
-                spTextStyle.backgroundRect.rightTopRadius, spTextStyle.backgroundRect.rightBottomRadius,
-                spTextStyle.backgroundRect.leftBottomRadius});
+            skiaTextStyle.setBackgroundRect({ spTextStyle.backgroundRect.color,
+                spTextStyle.backgroundRect.leftTopRadius, spTextStyle.backgroundRect.rightTopRadius,
+                spTextStyle.backgroundRect.rightBottomRadius, spTextStyle.backgroundRect.leftBottomRadius,
+                spTextStyle.backgroundRect.borderColor, spTextStyle.backgroundRect.borderWidth });
             if (paragraph.isRunCombinated()) {
                 state = std::min(skt::InternalState::kIndexed, state);
                 return;

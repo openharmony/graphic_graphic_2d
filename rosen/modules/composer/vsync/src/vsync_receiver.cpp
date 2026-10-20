@@ -277,13 +277,13 @@ bool VSyncReceiver::IsRequestedNextVSync()
     return listener_->GetRNVFlag();
 }
 
-VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
+VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom, DvsyncDisableReason disableReason)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    return connection_->SetUiDvsyncSwitch(dvsyncSwitch, fromWhom);
+    return connection_->SetUiDvsyncSwitch(dvsyncSwitch, fromWhom, disableReason);
 }
 
 VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,

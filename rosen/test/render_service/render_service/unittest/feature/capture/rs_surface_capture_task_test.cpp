@@ -23,6 +23,8 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -392,12 +394,12 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run007, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode001
+ * @tc.name: CreatePixelMapByDisplayNodeTest001
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode
  * @tc.type: FUNC
  * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | SmallTest | Level2)
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
@@ -406,6 +408,173 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | Sm
     RSSurfaceCaptureTask task(id, captureConfig);
     std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with BGRA_8888 format
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest002, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::BGRA_8888;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest003
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with RGBA_8888 format
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest003, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::RGBA_8888;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest004
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format RGB_565
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest004, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::RGB_565;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest005
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with dma capture
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest005, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.useDma = true;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest006
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode with unsupported format UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNodeTest006, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::UNKNOWN;
+    RSSurfaceCaptureTask task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, false, colorSpace));
+}
+
+/*
+ * @tc.name: CopyDataToPixelMap001
+ * @tc.desc: Test CopyDataToPixelMap with RGBA_8888 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap001, Function | SmallTest | Level2)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_NE(img, nullptr);
+    ASSERT_FALSE(CopyDataToPixelMap(img, pixelmap));
+}
+
+/*
+ * @tc.name: CopyDataToPixelMap002
+ * @tc.desc: Test CopyDataToPixelMap with BGRA_8888 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap002, Function | SmallTest | Level2)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_NE(img, nullptr);
+    ASSERT_FALSE(CopyDataToPixelMap(img, pixelmap));
+}
+
+/*
+ * @tc.name: CopyDataToPixelMap003
+ * @tc.desc: Test CopyDataToPixelMap with RGBA_F16 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CopyDataToPixelMap003, Function | SmallTest | Level2)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::RGBA_F16;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_NE(img, nullptr);
+    ASSERT_FALSE(CopyDataToPixelMap(img, pixelmap));
 }
 
 /*

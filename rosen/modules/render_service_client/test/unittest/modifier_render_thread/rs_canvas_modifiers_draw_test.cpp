@@ -165,6 +165,12 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_WithValidSurfaceDifferentSi
     EXPECT_EQ(drawable.height_, 100);
     EXPECT_TRUE(drawable.needResetCanvas_);
     EXPECT_TRUE(drawable.forceFlushBuffer_);
+    drawable.hasDrawn_ = true;
+    drawable.ResetSurface(50, 50, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(drawable.width_, 50);
+    EXPECT_EQ(drawable.height_, 50);
+    EXPECT_TRUE(drawable.needResetCanvas_);
+    EXPECT_TRUE(drawable.forceFlushBuffer_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_SizeOutOfGpuLimit001, TestSize.Level1)

@@ -422,6 +422,37 @@ HWTEST_F(RSRenderServiceTest, HandlePowerStatus003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterRenderProcessConnection003
+ * @tc.desc: Test RegisterRenderProcessConnection returns non-null when pid is valid (true branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceTest, RegisterRenderProcessConnection003, TestSize.Level2)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto multiProcessManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    renderService->renderProcessManager_ = multiProcessManager;
+    pid_t childPid = fork();
+    ASSERT_GE(childPid, 0);
+    if (childPid == 0) {
+        pause();
+        _exit(0);
+    }
+    ProcessUniqueId childUid{childPid};
+    multiProcessManager->stateStore_.AddScreenOutputToProcess(childUid, TEST_SCREEN_ID, nullptr);
+    auto result = multiProcessManager->CreateRenderToServiceConnection(childPid);
+    EXPECT_NE(result, nullptr);
+    // Cleanup
+    multiProcessManager->stateStore_.RemoveScreenOutputFromProcess(childUid, TEST_SCREEN_ID);
+    kill(childPid, SIGKILL);
+    int status = 0;
+    waitpid(childPid, &status, 0);
+}
+
+/**
  * @tc.name: GetConnectionTest001
  * @tc.desc: branch 1 - token is nullptr, returns {nullptr, nullptr}
  * @tc.type: FUNC

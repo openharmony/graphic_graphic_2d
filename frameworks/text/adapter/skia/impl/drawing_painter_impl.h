@@ -39,6 +39,8 @@ public:
         SkScalar blurSigma) override;
     void drawRect(const SkRect& rect, const SkPaintOrID& paint) override;
     void drawRRect(const SkRRect& rrect, const SkColor color) override;
+    void drawRRectWithBorder(const SkRRect& rrect, const SkColor fillColor, const SkColor borderColor,
+        const SkScalar borderWidth) override;
     void drawFilledRect(const SkRect& rect, const DecorationStyle& decorStyle) override;
     void drawPath(const RSPath& path, const DecorationStyle& decorStyle) override;
     void drawLine(SkScalar x0, SkScalar y0, SkScalar x1, SkScalar y1, const DecorationStyle& decorStyle) override;

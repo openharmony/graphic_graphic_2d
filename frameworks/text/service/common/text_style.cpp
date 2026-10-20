@@ -115,7 +115,9 @@ bool RectStyle::operator ==(const RectStyle& rhs) const
     return color == rhs.color && leftTopRadius == rhs.leftTopRadius &&
         rightTopRadius == rhs.rightTopRadius &&
         rightBottomRadius == rhs.rightBottomRadius &&
-        leftBottomRadius == rhs.leftBottomRadius;
+        leftBottomRadius == rhs.leftBottomRadius &&
+        borderColor == rhs.borderColor &&
+        borderWidth == rhs.borderWidth;
 }
 
 bool RectStyle::operator !=(const RectStyle& rhs) const
