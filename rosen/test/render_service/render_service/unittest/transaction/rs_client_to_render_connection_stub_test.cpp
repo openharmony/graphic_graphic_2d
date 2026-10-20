@@ -1379,8 +1379,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub002, TestSize.Level
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, pixelMap));
     data.WriteFloat(5.0f);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    // In test env, BlurPixelMap will fail (renderEngine null), but the stub should still return ERR_OK
-    // because WriteBool(success) succeeds even when success=false
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_INVALID_REPLY);
 }
 
@@ -1439,7 +1437,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub004, TestSize.Level
     std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMap, nullptr);
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, pixelMap));
-    // Do not write blurRadius — ReadFloat will fail
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
