@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #ifndef RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_RENDER_CONNECTION_H
