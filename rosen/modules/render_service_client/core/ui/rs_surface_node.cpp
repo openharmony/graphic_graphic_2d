@@ -494,6 +494,7 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
     if (!isTextureExportNode_) {
         SetIsTextureExportNode(isTextureExportNode);
         DoFlushModifier();
+        SetUIContextToken();
         return;
     }
     CreateRenderNodeForTextureExportSwitch();

@@ -180,14 +180,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE &&
         modifierTypeNG_ == ModifierNG::RSModifierType::CONTENT_STYLE) {
         auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
-        auto& cmdLists = drawingNode.GetDrawCmdListsNG();
-        auto itr = cmdLists.find(modifierTypeNG_);
-        if (itr == cmdLists.end() || itr->second.empty()) {
-            return false;
-        }
-        for (auto& cmd : itr->second) {
-            stagingDrawCmdListVec_.emplace_back(cmd);
-        }
+        drawingNode.AddDrawCmdListTo(stagingDrawCmdListVec_, modifierTypeNG_);
     } else {
         RSRenderNode::ModifierNGContainer customModifiers(modifiers.begin(), modifiers.end());
         std::stable_sort(

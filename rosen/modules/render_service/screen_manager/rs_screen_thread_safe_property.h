@@ -75,6 +75,7 @@ public:
     ResType RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
     ResType SetIsRogResolution(bool isRogResolution);
     ResType SetHdiRogEnable(bool isHdiRogEnable);
+    ResType SetSamplingMode(ScreenSamplingMode samplingMode);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -125,6 +126,7 @@ public:
     bool IsMainScreen() const;
     bool IsRogResolution() const;
     bool GetHdiRogEnable() const;
+    ScreenSamplingMode GetSamplingMode() const;
 
     ScreenInfo GetScreenInfo() const;
 

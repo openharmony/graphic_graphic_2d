@@ -43,6 +43,11 @@ std::shared_ptr<FontCollection> FontCollection::Create()
     return instance;
 }
 
+std::unique_ptr<FontCollection> FontCollection::CreateStandalone()
+{
+    return std::make_unique<AdapterTxt::FontCollection>();
+}
+
 std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCollection> fontCollection)
 {
     return std::make_shared<AdapterTxt::FontCollection>(fontCollection);

@@ -94,24 +94,44 @@ HWTEST_F(RSTextureExportTest, DoTextureExport003, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateBufferInfo
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: UpdateBufferInfoTest001
+ * @tc.desc: Branch A - virtualRootNode_ is nullptr, function returns early
+ * @tc.type: FUNC
  */
-HWTEST_F(RSTextureExportTest, UpdateBufferInfo, TestSize.Level1)
+HWTEST_F(RSTextureExportTest, UpdateBufferInfoTest001, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
-    rootNode->isTextureExportNode_ = false;
     SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
-    float x = 1.0;
-    float y = 2.0;
-    float width = 3.0;
-    float height = 4.0;
+    text.virtualRootNode_ = nullptr;
+    text.UpdateBufferInfo(1.0f, 2.0f, 3.0f, 4.0f);
+    EXPECT_EQ(text.virtualRootNode_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest002
+ * @tc.desc: Branch B - virtualRootNode_ non-null, SetBounds/SetFrame with negated x,y
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTextureExportTest, UpdateBufferInfoTest002, TestSize.Level1)
+{
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    SurfaceId surfaceId = 0;
+    RSTextureExport text(rootNode, surfaceId);
     text.virtualRootNode_ = RSRootNode::Create(false, true);
+    ASSERT_NE(text.virtualRootNode_, nullptr);
+    float x = 1.0f;
+    float y = 2.0f;
+    float width = 3.0f;
+    float height = 4.0f;
     text.UpdateBufferInfo(x, y, width, height);
-    ASSERT_NE(rootNode, nullptr);
+    auto bounds = text.virtualRootNode_->GetStagingProperties().GetBounds();
+    EXPECT_FLOAT_EQ(bounds.x_, -x);
+    EXPECT_FLOAT_EQ(bounds.y_, -y);
+    EXPECT_FLOAT_EQ(bounds.z_, width);
+    EXPECT_FLOAT_EQ(bounds.w_, height);
 }
 
 /**

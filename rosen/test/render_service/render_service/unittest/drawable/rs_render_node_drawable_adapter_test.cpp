@@ -633,38 +633,71 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterRelativeRectTest, TestSize.Leve
  */
 HWTEST(RSRenderNodeDrawableAdapterTest, ClearResourceTest, TestSize.Level1)
 {
-    NodeId id = 16;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    using Adapter = DrawableV2::RSRenderNodeDrawableAdapter;
+    // Empty state: ClearResource returns early
+    EXPECT_TRUE(Adapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(Adapter::toClearCmdListVec_.empty());
+    Adapter::ClearResource();
+    EXPECT_TRUE(Adapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(Adapter::toClearCmdListVec_.empty());
 
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
-    adapter->ClearResource();
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+    // Drawable only: AddToClearDrawables sets needClearResource_=true
+    Adapter::DrawableVec drawableVec;
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    drawableVec.emplace_back(drawable);
+    Adapter::AddToClearDrawables(drawableVec);
+    EXPECT_TRUE(Adapter::NeedClearResource());
+    Adapter::ClearResource();
+    EXPECT_TRUE(Adapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(Adapter::toClearCmdListVec_.empty());
 
-    adapter->toClearDrawableVec_.emplace_back();
-    EXPECT_FALSE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
-    adapter->ClearResource();
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+    // CmdList only
+    Adapter::CmdListVec cmdListVec;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    cmdListVec.emplace_back(cmdList);
+    Adapter::AddToClearCmdList(cmdListVec);
+    EXPECT_TRUE(Adapter::NeedClearResource());
+    Adapter::ClearResource();
+    EXPECT_TRUE(Adapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(Adapter::toClearCmdListVec_.empty());
 
-    adapter->toClearDrawableVec_.clear();
-    adapter->toClearCmdListVec_.emplace_back();
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_FALSE(adapter->toClearCmdListVec_.empty());
-    adapter->ClearResource();
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+    // Both drawable and cmdList
+    Adapter::DrawableVec drawableVec2;
+    auto node2 = std::make_shared<RSRenderNode>(1);
+    auto drawable2 = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node2);
+    drawableVec2.emplace_back(drawable2);
+    Adapter::AddToClearDrawables(drawableVec2);
+    Adapter::CmdListVec cmdListVec2;
+    cmdListVec2.emplace_back(cmdList);
+    Adapter::AddToClearCmdList(cmdListVec2);
+    EXPECT_TRUE(Adapter::NeedClearResource());
+    Adapter::ClearResource();
+    EXPECT_TRUE(Adapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(Adapter::toClearCmdListVec_.empty());
+}
 
-    adapter->toClearDrawableVec_.emplace_back();
-    adapter->toClearCmdListVec_.emplace_back();
-    EXPECT_FALSE(adapter->toClearDrawableVec_.empty());
-    EXPECT_FALSE(adapter->toClearCmdListVec_.empty());
-    adapter->ClearResource();
-    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
-    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+/**
+ * @tc.name: ClearResource_WhenNeedClearResourceTrue
+ * @tc.desc: Test ClearResource when NeedClearResource returns true
+ * @tc.type: FUNC
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, ClearResource_WhenNeedClearResourceTrue, TestSize.Level1)
+{
+    // Use AddToClearDrawables to set needClearResource_=true and populate vectors
+    DrawableV2::RSRenderNodeDrawableAdapter::DrawableVec drawableVec;
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    drawableVec.emplace_back(drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::AddToClearDrawables(drawableVec);
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource());
+    ASSERT_FALSE(DrawableV2::RSRenderNodeDrawableAdapter::toClearDrawableVec_.empty());
+
+    // ClearResource should clear vectors and reset needClearResource_
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
+    EXPECT_FALSE(DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource());
+    EXPECT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
 }
 
 /**

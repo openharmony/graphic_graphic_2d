@@ -468,7 +468,7 @@ void TextureLevelInfo::Dump(const std::string& info, GLenum target, GLint level)
 
 const std::vector<GLenum>& WebGLTexture::GetSupportedInternalFormats()
 {
-    static std::vector<GLenum> supportedInternalFormats = {
+    static const std::vector<GLenum> supportedInternalFormats = {
         GL_R8,
         GL_R8_SNORM,
         GL_R16F,
@@ -522,30 +522,26 @@ const std::vector<GLenum>& WebGLTexture::GetSupportedInternalFormats()
         GL_DEPTH_COMPONENT24,
         GL_DEPTH_COMPONENT32F,
         GL_DEPTH24_STENCIL8,
+        GL_RGB,
+        GL_RGBA,
+        GL_LUMINANCE_ALPHA,
+        GL_LUMINANCE,
+        GL_ALPHA,
     };
-    // for es2
-    supportedInternalFormats.emplace_back(GL_RGB);
-    supportedInternalFormats.emplace_back(GL_RGBA);
-    supportedInternalFormats.emplace_back(GL_LUMINANCE_ALPHA);
-    supportedInternalFormats.emplace_back(GL_LUMINANCE);
-    supportedInternalFormats.emplace_back(GL_ALPHA);
     return supportedInternalFormats;
 }
 
 const std::vector<GLenum>& WebGLTexture::GetSupportedFormats()
 {
-    static std::vector<GLenum> supportedFormats = { GL_RED, GL_RED_INTEGER, GL_RG, GL_RG_INTEGER, GL_RGB,
-        GL_RGB_INTEGER, GL_RGBA, GL_RGBA_INTEGER, GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL };
-    // for es2
-    supportedFormats.emplace_back(GL_LUMINANCE_ALPHA);
-    supportedFormats.emplace_back(GL_LUMINANCE);
-    supportedFormats.emplace_back(GL_ALPHA);
+    static const std::vector<GLenum> supportedFormats = { GL_RED, GL_RED_INTEGER, GL_RG, GL_RG_INTEGER, GL_RGB,
+        GL_RGB_INTEGER, GL_RGBA, GL_RGBA_INTEGER, GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL, GL_LUMINANCE_ALPHA,
+        GL_LUMINANCE, GL_ALPHA };
     return supportedFormats;
 }
 
 const std::vector<GLenum>& WebGLTexture::GetSupportedTypes()
 {
-    static std::vector<GLenum> supportedTypes = {
+    static const std::vector<GLenum> supportedTypes = {
         GL_BYTE,
         GL_UNSIGNED_SHORT,
         GL_SHORT,
@@ -558,13 +554,11 @@ const std::vector<GLenum>& WebGLTexture::GetSupportedTypes()
         GL_UNSIGNED_INT_10F_11F_11F_REV,
         GL_UNSIGNED_INT_5_9_9_9_REV,
         GL_UNSIGNED_INT_24_8,
+        GL_UNSIGNED_BYTE,
+        GL_UNSIGNED_SHORT_5_6_5,
+        GL_UNSIGNED_SHORT_4_4_4_4,
+        GL_UNSIGNED_SHORT_5_5_5_1,
     };
-
-    // for es2
-    supportedTypes.emplace_back(GL_UNSIGNED_BYTE);
-    supportedTypes.emplace_back(GL_UNSIGNED_SHORT_5_6_5);
-    supportedTypes.emplace_back(GL_UNSIGNED_SHORT_4_4_4_4);
-    supportedTypes.emplace_back(GL_UNSIGNED_SHORT_5_5_5_1);
     return supportedTypes;
 }
 

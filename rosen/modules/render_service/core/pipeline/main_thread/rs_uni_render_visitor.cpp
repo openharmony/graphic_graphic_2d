@@ -2467,7 +2467,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     // set geometry properties here
     auto screenInfo = screenProperty.GetScreenInfo();
     node.SetScreenInfo(std::move(screenInfo));
-    RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
+    RSLayerSplitManager::GetInstance()->InitSplitSurface(node.GetScreenInfo());
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
     auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
@@ -3823,12 +3823,12 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
-    if (curSurfaceDirtyManager_) {
-        ScheduleColorPickIfCurrentSurfaceDirty(node, *curSurfaceDirtyManager_);
+    if (auto colorPicker = node.GetColorPickerDrawable()) {
+        if (curSurfaceDirtyManager_) {
+            ScheduleColorPickIfCurrentSurfaceDirty(node, *curSurfaceDirtyManager_, colorPicker);
+        }
+        HandleColorPickerHwcDisable(node, colorPicker);
     }
-
-    // Check if HWC should be disabled for ColorPicker node
-    HandleColorPickerHwcDisable(node);
 
     // add if node is dirty
     node.AddToPendingSyncList();
@@ -4620,6 +4620,12 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
     if (!colorPicker) {
         return;
     }
+    HandleColorPickerHwcDisable(node, colorPicker);
+}
+
+void RSUniRenderVisitor::HandleColorPickerHwcDisable(
+    RSRenderNode& node, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& colorPicker)
+{
     using State = DrawableV2::ColorPickerState;
     if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
         RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
@@ -4631,17 +4637,21 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
 void RSUniRenderVisitor::ScheduleColorPickIfCurrentSurfaceDirty(
     RSRenderNode& node, RSDirtyRegionManager& dirtyManager)
 {
+    auto drawable = node.GetColorPickerDrawable();
+    if (!drawable) {
+        return;
+    }
+    ScheduleColorPickIfCurrentSurfaceDirty(node, dirtyManager, drawable);
+}
+
+void RSUniRenderVisitor::ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node,
+    RSDirtyRegionManager& dirtyManager, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable)
+{
     if (!curSurfaceNode_) {
         return;
     }
 
-    if (!RSColorPickerUtils::DirtyInCurrentSurface(node, dirtyManager.GetCurrentFrameDirtyRegion())) {
-        return;
-    }
-
-    auto drawable = node.GetColorPickerDrawable();
-    if (!drawable) {
-        RS_LOGW("ScheduleColorPickIfCurrentSurfaceDirty: node %" PRIu64 " missing drawable", node.GetId());
+    if (!RSColorPickerUtils::DirtyInCurrentSurface(node, dirtyManager.GetCurrentFrameDirtyRegion(), drawable)) {
         return;
     }
 

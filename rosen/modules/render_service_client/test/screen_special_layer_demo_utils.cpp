@@ -25,6 +25,7 @@ constexpr size_t EXPECTED_MATCH_COUNT = 3;
 constexpr size_t BUFFER_SIZE = 4096;
 constexpr int ENABLE_GLOBAL_BLACKLIST_PARAM_SIZE = 4;
 constexpr int SET_SCREEN_REFRESHRATE_PARAM_SIZE = 5;
+constexpr int SET_ROG_SCREEN_RESOLUTION_SIZE = 5;
 constexpr int DECIMAL_BASE = 10;
 const char* GREP_PERSISTID_FROM_RSTREE = "hidumper -s 10 -a RSTree | grep persistId";
 const std::string POPEN_ERR = "popen failed";
@@ -202,6 +203,26 @@ void ScreenSpecialLayerDemoUtils::ModifySpecialLayerList(int argc, char* argv[])
     } else {
         std::cerr << "Invalid parameter.";
     }
+}
+
+void ScreenSpecialLayerDemoUtils::SetRogScreenResolution(int argc, char* argv[])
+{
+    if (argc != SET_ROG_SCREEN_RESOLUTION_SIZE) {
+        std::cerr << "Invalid parameter.";
+        return;
+    }
+
+    // argv[0]:file path, argv[1]:command, argv[2]:screenId, argv[3]:width, argv[4]:height
+    ScreenId screenId = std::strtoul(argv[2], nullptr, DECIMAL_BASE);
+    uint32_t width = 0;
+    if (!ParseUint32Param(argv[3], width)) {
+        return;
+    }
+    uint32_t height = 0;
+    if (!ParseUint32Param(argv[4], height)) {
+        return;
+    }
+    RSInterfaces::GetInstance().SetRogScreenResolution(screenId, width, height, ScreenSamplingMode::DEVICE_GPU);
 }
 } // namespace Rosen
 } // namespace OHOS

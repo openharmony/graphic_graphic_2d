@@ -947,8 +947,21 @@ void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // so this child will not remove from the old parent.
-    if (child == nullptr) {
+    if (child == nullptr || GetId() == child->GetId()) {
         return;
+    }
+    // The child node cannot be an ancestor of the current node
+    {
+        auto parent = parent_.lock();
+        auto childId = child->GetId();
+        while (parent != nullptr) {
+            if (parent->GetId() == childId) {
+                ROSEN_LOGE("RSRenderNode::AddCrossParentChild child is ancestor of current node, "
+                    "nodeId=%{public}" PRIu64 " childId=%{public}" PRIu64, GetId(), childId);
+                return;
+            }
+            parent = parent->GetParent().lock();
+        }
     }
     // Set parent-child relationship
     child->SetParent(weak_from_this());
@@ -2805,7 +2818,10 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
-    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+    if (!drawableVec_) {
+        return nullptr;
+    }
+    if (auto& drawable = findMapValueRef(*drawableVec_, static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER))) {
         return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
     }
     return nullptr;
@@ -4714,7 +4730,7 @@ void RSRenderNode::InitRenderParams()
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
 #ifndef ROSEN_ARKUI_X
-        RS_LOGE("RSRenderNode::InitRenderParams failed");
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::InitRenderParams failed, renderDrawable_ is null");
 #endif
         return;
     }

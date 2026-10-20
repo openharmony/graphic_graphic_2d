@@ -874,15 +874,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                            "size number is too large.");
                 break;
             }
+            bool shouldBreak = false;
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
                     ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
                                "pid failed");
                     ret = ERR_INVALID_REPLY;
+                    shouldBreak = true;
                     break;
                 }
                 constraint.pids.insert(pid);
+            }
+            if (shouldBreak) {
+                break;
             }
             if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
                 !data.ReadInt32(constraint.range.highLimit.width) ||

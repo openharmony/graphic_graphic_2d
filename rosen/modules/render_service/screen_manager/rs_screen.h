@@ -62,7 +62,8 @@ public:
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
 
-    void SetRogResolution(uint32_t width, uint32_t height);
+    void SetRogResolution(uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     int32_t GetRogResolution(uint32_t& width, uint32_t& height);
 
     int32_t SetResolution(uint32_t width, uint32_t height);

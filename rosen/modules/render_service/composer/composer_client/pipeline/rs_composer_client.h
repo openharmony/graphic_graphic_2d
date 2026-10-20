@@ -67,6 +67,7 @@ public:
     std::shared_ptr<HdiOutput> GetOutput() const;
     void SetOutput(const std::shared_ptr<HdiOutput>& output);
     void SetRemoveSurfaceFpsOpCallback(RemoveSurfaceFpsOpCB callback);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
 
 private:
     explicit RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);

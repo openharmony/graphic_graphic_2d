@@ -138,5 +138,16 @@ void RSRenderToComposerConnection::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
     }
     rsRenderComposerAgent_->MarkTunnelSurfaceInvalid(surfaceId);
 }
+
+void RSRenderToComposerConnection::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    RS_TRACE_NAME_FMT("%s screenId[%" PRIu64 "], flag[%d], rect %s", __func__, screenId_, flag,
+        activeRect.ToString().c_str());
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("%{public}s param illegal", __func__);
+        return;
+    }
+    rsRenderComposerAgent_->SetActiveRectSwitchStatus(flag, activeRect);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -36,7 +36,9 @@ void DoCreateNode(FuzzedDataProvider& fdp)
     RSDisplayNodeConfig displayNodeConfig = { .screenId = fdp.ConsumeIntegral<uint64_t>(),
         .isMirrored = fdp.ConsumeBool(),
         .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
-        .isSync = fdp.ConsumeBool() };
+        .isSync = fdp.ConsumeBool(),
+        .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>(),
+        .positionZ = fdp.ConsumeFloatingPoint<float>() };
     g_renderPipelineClient->CreateDisplayNode(displayNodeConfig, static_cast<NodeId>(nodeId));
 }
 

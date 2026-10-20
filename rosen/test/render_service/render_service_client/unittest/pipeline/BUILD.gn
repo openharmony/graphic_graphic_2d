@@ -23,6 +23,7 @@ ohos_unittest("RSRenderClientPipelineTest") {
 
   sources = [
     "rs_node_map_test.cpp",
+    "rs_node_map_v2_test.cpp",
     "rs_render_thread_test.cpp",
   ]
 

@@ -48,6 +48,10 @@ namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr float FLOAT_DATA_EPSILON = 1e-6f;
+constexpr int32_t ROG_RENDER_WIDTH = 1080;
+constexpr int32_t ROG_RENDER_HEIGHT = 2400;
+constexpr int32_t ROG_RATIO = 2;
+const RectI ROG_DAMAGE_RECT = { 200, 400, 100, 200 };
 }
 class RSLogicalDisplayRenderNodeDrawableTest : public testing::Test {
 public:
@@ -2984,6 +2988,69 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
 }
 
 /**
+ * @tc.name: MapDamageRegionRectsDeviceGpu
+ * @tc.desc: test MapDamageRegionRects maps damage rects with inverse rog ratio when main screen is DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    mainScreenInfo.phyWidth = ROG_RENDER_WIDTH * ROG_RATIO;
+    mainScreenInfo.phyHeight = ROG_RENDER_HEIGHT * ROG_RATIO;
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    // damage rects in physical resolution are pre-scaled by 1/rogRatio into render resolution
+    RectI expectedRect(ROG_DAMAGE_RECT.left_ / ROG_RATIO, ROG_DAMAGE_RECT.top_ / ROG_RATIO,
+        ROG_DAMAGE_RECT.width_ / ROG_RATIO, ROG_DAMAGE_RECT.height_ / ROG_RATIO);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), expectedRect);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsNotDeviceGpu
+ * @tc.desc: test MapDamageRegionRects keeps damage rects unchanged when sampling mode is not DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsNotDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsInvalidRatio
+ * @tc.desc: test MapDamageRegionRects skips rog pre-scale when rog ratio is invalid under DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsInvalidRatio, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    // phyWidth/phyHeight are zero so both rog ratios are 0, which is invalid and skips pre-scale
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
  * @tc.name: DrawWatermarkIfNeedGridTest
  * @tc.desc: Test DrawWatermarkIfNeed with grid watermark (rowCount > 0 && colCount > 0)
  * @tc.type: FUNC
@@ -3051,5 +3118,47 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSiz
     auto [_, screenParams] = displayDrawable_->GetScreenParams(*displayParams);
     ASSERT_EQ(_, nullptr);
     ASSERT_EQ(screenParams, nullptr);
+}
+/**
+ * @tc.name: OnDrawRogScale
+ * @tc.desc: Test OnDraw when SamplingMode is DEVICE_GPU, Scale is apply without crash
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawRogScale, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    renderParams->shouldPaint_ = true;
+    renderParams->contentEmpty_ = false;
+
+    renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
+    mirroredDisplayDrawable_->renderParams_ = nullptr;
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_MODE>(
+        static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU));
+    constexpr int32_t PHY_WIDTH = 200;
+    constexpr int32_t PHY_HEIGHT = 400;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({RENDER_WIDTH, RENDER_HEIGHT});
+    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {PHY_WIDTH, PHY_HEIGHT, 60});
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
+    uniParams->SetRSProcessor(processor);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    EXPECT_NO_FATAL_FAILURE(displayDrawable_->OnDraw(*drawingFilterCanvas_));
+    EXPECT_EQ(screenParams->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
+    EXPECT_NE(screenParams->screenProperty_.GetRogWidthRatio(), 1.0f);
+    EXPECT_NE(screenParams->screenProperty_.GetRogHeightRatio(), 1.0f);
 }
 }

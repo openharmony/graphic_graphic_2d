@@ -60,6 +60,9 @@ constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+// Max pixel dimension (width or height) for SetScreenSecurityMask,
+// enforced on both client and sever to prevent oversized-mask DoS via IPC.
+constexpr int32_t SECURITYMASK_IMAGE_SIZE_LIMIT = 4096;
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
@@ -678,6 +681,17 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
     bool isSync = false;
     uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
+    float positionZ = 0.0f;
+
+    std::string ToString() const
+    {
+        return std::string("Config[screenId:") + std::to_string(screenId) +
+               ", isMirrored:" + std::to_string(isMirrored) +
+               ", sourceDisplayNodeId:" + std::to_string(mirrorNodeId) +
+               ", isSync:" + std::to_string(isSync) +
+               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) +
+               ", positionZ:" + std::to_string(positionZ) + "]";
+    }
 };
 
 // ability state of surface node
@@ -828,6 +842,7 @@ enum class EnergyEvent : int32_t {
 
 enum class ApsEventType : uint32_t {
     SPLIT_LAYER = 0,
+    HVE = 1,
 };
 using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen

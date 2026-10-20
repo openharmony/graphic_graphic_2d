@@ -84,6 +84,7 @@ public:
     static bool GetIsCopybitSupported();
     static bool GetArsrPreEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
+    static bool GetCanvasDrawingNodeLockEnabled();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
     static bool GetDDGRSLREnabled();

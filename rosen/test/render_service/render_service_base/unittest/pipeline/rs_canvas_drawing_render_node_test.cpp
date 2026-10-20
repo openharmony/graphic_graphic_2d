@@ -504,6 +504,58 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
 }
 
 /**
+ * @tc.name: CheckCanvasDrawingPostPlaybackedWithContentTest
+ * @tc.desc: Test CheckCanvasDrawingPostPlaybacked with existing CONTENT_STYLE entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedWithContentTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(20);
+    node->isPostPlaybacked_ = true;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    node->CheckCanvasDrawingPostPlaybacked();
+    EXPECT_FALSE(node->isPostPlaybacked_);
+    auto& contentList = node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE];
+    EXPECT_EQ(contentList.size(), 2u);
+}
+
+/**
+ * @tc.name: AddDrawCmdListToEmptyTest
+ * @tc.desc: Test AddDrawCmdListTo when no matching entry or vector is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDrawCmdListToEmptyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(21);
+    // Case 1: key does not exist
+    std::vector<SimpleDrawCmdListPtr> targetVec;
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(targetVec.empty());
+    // Case 2: key exists but vector is empty
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE];
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(targetVec.empty());
+}
+
+/**
+ * @tc.name: AddDrawCmdListToNotEmptyTest
+ * @tc.desc: Test AddDrawCmdListTo when drawCmdListsNG_ has entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDrawCmdListToNotEmptyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(22);
+    auto cmd1 = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    auto cmd2 = std::make_shared<RSSimpleDrawCmdList>(200, 200);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmd1);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmd2);
+    std::vector<SimpleDrawCmdListPtr> targetVec;
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_EQ(targetVec.size(), 2u);
+}
+
+/**
  * @tc.name: ApplyCachedCmdListTest
  * @tc.desc: Test ApplyCachedCmdList
  * @tc.type: FUNC

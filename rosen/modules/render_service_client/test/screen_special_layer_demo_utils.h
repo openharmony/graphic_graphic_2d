@@ -64,6 +64,7 @@ public:
     static bool ParseBoolParam(char* input, bool& output);
     static bool ParseUint32Param(char* input, uint32_t& output);
     static void ModifySpecialLayerList(int argc, char* argv[]);
+    static void SetRogScreenResolution(int argc, char* argv[]);
 };
 } // namespace Rosen
 } // namespace OHOS

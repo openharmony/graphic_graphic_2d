@@ -85,7 +85,11 @@ public:
         }
 
         auto func = [callback](int64_t time, int64_t frameCount) {
-            callback.callbackWithId_(time, frameCount, callback.userData_);
+            if (callback.callbackWithId_ != nullptr) {
+                callback.callbackWithId_(time, frameCount, callback.userData_);
+            } else if (callback.callback_ != nullptr) {
+                callback.callback_(time, callback.userData_);
+            }
         };
         client_->SetVsyncCallback(func);
         client_->RequestNextVsync();
@@ -233,7 +237,8 @@ std::string RSRenderServiceClient::GetRefreshInfoByPidAndUniqueId(pid_t pid, uin
     return "";
 }
 
-int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     return 0;
 }

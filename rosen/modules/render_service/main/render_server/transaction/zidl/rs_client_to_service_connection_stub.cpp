@@ -720,6 +720,17 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (enable) {
                 securityMask = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             }
+            if (securityMask != nullptr) {
+                Media::ImageInfo imageInfo;
+                securityMask->GetImageInfo(imageInfo);
+                if (imageInfo.size.width > SECURITYMASK_IMAGE_SIZE_LIMIT ||
+                    imageInfo.size.height > SECURITYMASK_IMAGE_SIZE_LIMIT) {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SECURITY_MASK size out of limit, "
+                        "w=%{public}d h=%{public}d", imageInfo.size.width, imageInfo.size.height);
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+            }
             int32_t result = SetScreenSecurityMask(id, std::move(securityMask));
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SECURITY_MASK Write result failed!");
@@ -1130,12 +1141,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             ScreenId id{INVALID_SCREEN_ID};
             uint32_t width{0};
             uint32_t height{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+            uint32_t samplingMode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height) ||
+                !data.ReadUint32(samplingMode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetRogScreenResolution(id, width, height);
+            if (samplingMode >= static_cast<uint32_t>(ScreenSamplingMode::MAX)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Invalid parameter,"
+                    " samplingMode: %{public}u", samplingMode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = SetRogScreenResolution(id, width, height, static_cast<ScreenSamplingMode>(samplingMode));
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Write status failed!");
                 ret = ERR_INVALID_REPLY;

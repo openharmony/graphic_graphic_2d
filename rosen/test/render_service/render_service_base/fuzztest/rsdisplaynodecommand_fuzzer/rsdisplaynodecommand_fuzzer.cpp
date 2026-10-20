@@ -61,7 +61,10 @@ bool DoDisplayNode(const uint8_t* data, size_t size, RSContext& context)
     uint64_t screenId = GetData<uint64_t>();
     bool isMirrored = GetData<bool>();
     NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
+    bool isSync = GetData<bool>();
+    uint32_t mirrorSourceRotation = GetData<uint32_t>();
+    float positionZ = GetData<float>();
+    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId, isSync, mirrorSourceRotation, positionZ };
     bool isSecurityDisplay = GetData<bool>();
     bool isBootAnimation = GetData<bool>();
     NodeId id2 = GetData<NodeId>();

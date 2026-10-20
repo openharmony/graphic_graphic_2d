@@ -173,4 +173,69 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
 #endif
 }
 #endif
+/**
+ * @tc.name: TakeSurfaceCaptureForUIWithoutUniTest001
+ * @tc.desc: test TakeSurfaceCaptureForUIWithoutUni posts async offscreen task and returns true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, TakeSurfaceCaptureForUIWithoutUniTest001, TestSize.Level1)
+{
+    class TestCaptureCb : public SurfaceCaptureCallback {
+    public:
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+            std::shared_ptr<Media::PixelMap> pixelmapHDR) override {}
+    };
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto callback = std::make_shared<TestCaptureCb>();
+    bool result = renderInterface->TakeSurfaceCaptureForUIWithoutUni(1, callback, 1.0f, 1.0f);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest001
+ * @tc.desc: test GetPixelmap returns false when renderPipelineClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest001, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    renderInterface->renderPipelineClient_ = nullptr;
+    Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
+    bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest002
+ * @tc.desc: test GetPixelmap returns false when rect pointer is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest002, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    bool result = renderInterface->GetPixelmap(1, nullptr, nullptr, nullptr);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetPixelmapTest003
+ * @tc.desc: test GetPixelmap delegates to pipeline client when client and rect are valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
+    bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

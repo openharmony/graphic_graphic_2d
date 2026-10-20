@@ -393,6 +393,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetHdiRogEnable(
     return { ScreenPropertyType::IS_HDI_ROG_ENABLE, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingMode(ScreenSamplingMode samplingMode)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SAMPLING_MODE>(static_cast<uint32_t>(samplingMode));
+    return { ScreenPropertyType::SAMPLING_MODE, prop };
+}
+
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
     SharedLock lock(propertyMutex_);
@@ -685,6 +692,12 @@ bool RSScreenThreadSafeProperty::GetHdiRogEnable() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetHdiRogEnable();
+}
+
+ScreenSamplingMode RSScreenThreadSafeProperty::GetSamplingMode() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetSamplingMode();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

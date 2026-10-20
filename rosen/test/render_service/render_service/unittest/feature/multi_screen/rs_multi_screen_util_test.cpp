@@ -1720,4 +1720,42 @@ HWTEST_F(RSMultiScreenUtilTest, GetMultiScreenParamsTest001, TestSize.Level1)
     RSMultiScreenUtil::GetMultiScreenParams(*displayParams_);
     EXPECT_EQ(screenDrawable_, nullptr);
 }
+
+/**
+ * @tc.name: DrawVirtualMirrorFromCacheTest010
+ * @tc.desc: Test DrawVirtualMirrorFromCache when mirroredScreenProperty samplingMode is DEVICE_GPU or not
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorFromCacheTest010, TestSize.Level1)
+{
+    RSRenderThreadParams uniParam;
+    uniParam.isVirtualDirtyEnabled_ = false;
+
+    // Set physical and render resolution for mirrorSourceScreenParams so rog ratios are non-trivial
+    constexpr int32_t PHY_WIDTH = 200;
+    constexpr int32_t PHY_HEIGHT = 400;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    mirrorSourceScreenParams_->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>(
+        {RENDER_WIDTH, RENDER_HEIGHT});
+    mirrorSourceScreenParams_->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {PHY_WIDTH, PHY_HEIGHT, 60});
+
+    // Branch 1: SamplingMode is not DEVICE_GPU (default OFFSCREEN), the if-branch is false
+    EXPECT_NE(mirrorSourceScreenParams_->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
+    EXPECT_NO_FATAL_FAILURE(
+        RSMultiScreenUtil::DrawVirtualMirrorFromCache(
+            *displayDrawable_, *displayParams_, virtualProcessor_, uniParam));
+
+    // Branch 2: SamplingMode is DEVICE_GPU, the if-branch is true
+    mirrorSourceScreenParams_->screenProperty_.Set<ScreenPropertyType::SAMPLING_MODE>(
+        static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU));
+    EXPECT_EQ(mirrorSourceScreenParams_->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
+    EXPECT_NE(mirrorSourceScreenParams_->screenProperty_.GetRogWidthRatio(), 1.0f);
+    EXPECT_NE(mirrorSourceScreenParams_->screenProperty_.GetRogHeightRatio(), 1.0f);
+    EXPECT_NO_FATAL_FAILURE(
+        RSMultiScreenUtil::DrawVirtualMirrorFromCache(
+            *displayDrawable_, *displayParams_, virtualProcessor_, uniParam));
+}
 } // namespace OHOS::Rosen

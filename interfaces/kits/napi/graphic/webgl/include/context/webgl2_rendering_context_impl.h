@@ -140,6 +140,18 @@ public:
     napi_value GetFrameBufferAttachmentParameter(napi_env env, GLenum target, GLenum attachment, GLenum pname) override;
     void DoObjectDelete(int32_t type, WebGLObject *obj) override;
 private:
+    struct IndexedBufferBinding {
+        GLuint bufferId { 0 };
+        GLintptr offset { 0 };
+        GLsizeiptr size { 0 };
+        bool isRange { false };
+    };
+
+    struct VertexArrayState {
+        GLuint elementArrayBufferId { 0 };
+        std::vector<VertexAttribInfo> vertexAttribs {};
+    };
+
     WebGL2RenderingContextImpl(const WebGL2RenderingContextImpl&) = delete;
     WebGL2RenderingContextImpl& operator=(const WebGL2RenderingContextImpl&) = delete;
 
@@ -149,16 +161,25 @@ private:
     GLenum CheckTexImage3D(napi_env env, const TexImageArg& info);
     GLenum CheckTexStorage(napi_env env, const TexStorageArg& arg);
     GLenum CheckClearBuffer(napi_env env, GLenum buffer, const WebGLReadBufferArg& bufferData);
+    GLenum CheckDrawState(napi_env env) override;
+    bool CheckCompressedTexSubImageRange(napi_env env, const TexSubImage3DArg& imgArg);
+    bool GetCompressedTexSubImageData(napi_env env, const TexSubImage3DArg& imgArg, napi_value dataObj,
+        const BufferExt& sourceRange, WebGLReadBufferArg& readData, GLvoid*& data, GLsizei& length);
+    napi_value GetActiveUniformBlockIndices(napi_env env, GLuint programId, GLuint uniformBlockIndex);
 
     bool CheckGetFrameBufferAttachmentParameter(
         napi_env env, GLenum target, GLenum attachment, const WebGLFramebuffer* frameBuffer);
-    bool UpdateBaseTargetBoundBuffer(napi_env env, GLenum target, GLuint index, GLuint bufferId);
+    bool UpdateBaseTargetBoundBuffer(GLenum target, GLuint index, const IndexedBufferBinding& binding);
     bool CheckBufferTargetCompatibility(napi_env env, GLenum target, WebGLBuffer* buffer);
     bool CheckBufferBindTarget(GLenum target);
     bool CheckQueryTarget(napi_env env, GLenum target, uint32_t& index);
     bool CheckStorageInternalFormat(napi_env env, GLenum internalFormat);
     bool CheckTransformFeedbackBuffer(GLenum target, WebGLBuffer* buffer);
-    bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize, size_t bufferByteLen);
+    bool CheckTransformFeedbackBindings(napi_env env);
+    bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredElementCount, size_t elementSize,
+        size_t bufferByteLen, size_t& byteOffset);
+    void SaveBoundVertexArrayState();
+    void RestoreVertexArrayState(GLuint vertexArrayId);
     napi_value HandleFrameBufferPname(
         napi_env env, GLenum target, GLenum attachment, GLenum pname, WebGLAttachment* attachmentObject);
 
@@ -166,16 +187,19 @@ private:
     GLuint boundReadFrameBuffer_ { 0 };
     GLuint boundTransformFeedback_ { 0 };
     GLuint boundVertexArrayId_ { 0 };
+    std::map<GLuint, VertexArrayState> vertexArrayStates_ {};
 
     // TRANSFORM_FEEDBACK_BUFFER
-    std::map<GLint, GLuint> boundIndexedTransformFeedbackBuffers_ {};
+    std::map<GLint, IndexedBufferBinding> boundIndexedTransformFeedbackBuffers_ {};
     GLuint maxBoundTransformFeedbackBufferIndex_ { 0 };
     // UNIFORM_BUFFER
-    std::map<GLint, GLuint> boundIndexedUniformBuffers_ {};
+    std::map<GLint, IndexedBufferBinding> boundIndexedUniformBuffers_ {};
     GLuint maxBoundUniformBufferIndex_ { 0 };
 
     std::vector<GLuint> samplerUnits_ {};
     GLuint maxSamplerUnit_ {};
+    GLint max3DTextureSize_ { 0 };
+    GLint maxArrayTextureLayers_ { 0 };
 };
 } // namespace Impl
 } // namespace Rosen

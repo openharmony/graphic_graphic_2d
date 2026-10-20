@@ -89,6 +89,8 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
                 hasPermission = CheckNativePermission(tokenID, permission);
                 break;
             default:
+                // fail closed: an invalid/unknown token type must not bypass registered permission checks
+                hasPermission = false;
                 break;
         }
         if (!hasPermission) {

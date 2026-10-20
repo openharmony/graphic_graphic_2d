@@ -69,6 +69,9 @@ void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    // Set geometry properties before ApplyModifiers, so that valid geometry properties can be used in ApplyModifier
+    auto screenInfo = screenProperty_.GetScreenInfo();
+    SetScreenInfo(screenInfo);
     ApplyModifiers();
     visitor->QuickPrepareScreenRenderNode(*this, isParentPrepareInReverseOrder);
 }
@@ -161,12 +164,43 @@ void RSScreenRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
     screenParams->SetZoomed(curZoomState_);
     screenParams->SetNeedSync(true);
     RSRenderNode::OnSync();
 #endif
 }
 // LCOV_EXCL_STOP
+
+void RSScreenRenderNode::ScaleSyncDirtyManagerForRogIfNeed(
+    const std::shared_ptr<RSDirtyRegionManager>& syncDirtyManager) const
+{
+    if (syncDirtyManager == nullptr) {
+        RS_LOGW("%{public}s dirty manager is nullptr", __func__);
+        return;
+    }
+    const auto& screenProperty = GetScreenProperty();
+    if (screenProperty.GetSamplingMode() != ScreenSamplingMode::DEVICE_GPU) {
+        return;
+    }
+    const float widthRatio = screenProperty.GetRogWidthRatio();
+    const float heightRatio = screenProperty.GetRogHeightRatio();
+    if (ROSEN_LE(widthRatio, 0.f) || ROSEN_LE(heightRatio, 0.f)) {
+        RS_LOGW("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip rog dirty scale",
+            __func__, widthRatio, heightRatio);
+        return;
+    }
+
+    syncDirtyManager->Scale(widthRatio, heightRatio);
+    syncDirtyManager->SetSurfaceSize(screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight());
+    const auto& activeRect = screenProperty.GetActiveRect();
+    if (!activeRect.IsEmpty()) {
+        Drawing::Matrix rogScaleMatrix;
+        rogScaleMatrix.SetScale(widthRatio, heightRatio);
+        syncDirtyManager->SetActiveSurfaceRect(
+            RSObjAbsGeometry::MapRect(activeRect.ConvertTo<float>(), rogScaleMatrix));
+    }
+}
 
 // LCOV_EXCL_START
 void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()

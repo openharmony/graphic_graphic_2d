@@ -470,5 +470,25 @@ void RSRenderComposerAgent::DumpVKImageInfo(std::string& dumpString)
         }
     ).wait();
 }
+
+void RSRenderComposerAgent::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    if (rsRenderComposer_ == nullptr) {
+        RS_LOGE("%{public}s rsRenderComposer is nullptr", __func__);
+        return;
+    }
+
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, flag, activeRect]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                RS_LOGE("%{public}s renderComposerAgent is nullptr", __func__);
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetActiveRectSwitchStatus(flag, activeRect);
+        }
+    );
+}
 } // namespace Rosen
 } // namespace OHOS

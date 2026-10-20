@@ -1757,6 +1757,34 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayer_AllBranchesCoveredTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateLayer_NullSurfaceHandlerTest001
+ * @tc.desc: Test CreateLayer when surfaceHandler is nullptr
+ *           The if (surfaceHandler == nullptr) branch should be hit and return early
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateLayer_NullSurfaceHandlerTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        surfaceNode->surfaceHandler_.reset();
+        EXPECT_NO_FATAL_FAILURE(renderProcessor->CreateLayer(*surfaceNode, *params));
+        EXPECT_FALSE(params->GetLayerCreated());
+    }
+}
+
+/**
  * @tc.name: CreateLayerForRenderThread_NullBufferTest001
  * @tc.desc: Test CreateLayerForRenderThread when buffer is nullptr
  *           The if (buffer == nullptr || consumer == nullptr) branch at line 199 should be true
@@ -2662,6 +2690,24 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_SurfaceDrawableAsyncTest0
 }
 
 /**
+ * @tc.name: ProcessOfflineLayer_NullSurfaceDrawableTest001
+ * @tc.desc: Test ProcessOfflineLayer with null surfaceDrawable
+ *           The if (surfaceDrawable == nullptr) branch should be hit and return false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_NullSurfaceDrawableTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        ASSERT_NE(renderProcessor, nullptr);
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nullDrawable;
+        bool async = true;
+        bool result = renderProcessor->ProcessOfflineLayer(nullDrawable, async);
+        EXPECT_EQ(result, false);
+    }
+}
+
+/**
  * @tc.name: ProcessOfflineLayer_SurfaceDrawableSyncPostFailedTest001
  * @tc.desc: Test ProcessOfflineLayer with surfaceDrawable and async=false, PostProcessOfflineTask fails
  *           When async=false and PostProcessOfflineTask returns false, function should return false early
@@ -3035,5 +3081,108 @@ HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread005,
         }
         EXPECT_EQ(renderProcessor->layers_.size(), testRects.size());
     }
+}
+
+/**
+ * @tc.name: GetLayerInfo_PreBufferFromLayerBufferNoOfflineTest001
+ * @tc.desc: Test GetLayerInfo preBuffer handling when offlineResult is null
+ *           Covers the new true branch at line 383: if (!offlineResult && layerBuffer != buffer)
+ *           When offlineResult is null and the layer is freshly created, layerBuffer is nullptr.
+ *           Since buffer is non-null, the condition is true and SetPreBuffer(layerBuffer=nullptr) is
+ *           called, ignoring the preBuffer parameter. GetPreBuffer() should return nullptr, proving
+ *           the preBuffer parameter is NOT used on this path.
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_PreBufferFromLayerBufferNoOfflineTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    RSLayerInfo layerInfo;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
+    layerInfo.dstRect = {0, 0, 100, 100};
+    layerInfo.srcRect = {0, 0, 100, 100};
+    layerInfo.zOrder = 1;
+    layerInfo.alpha = 1.0f;
+    params.SetLayerInfo(layerInfo);
+    params.SetHwcGlobalPositionEnabled(false);
+
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test-prebuf-nolayer");
+    // Pass a non-null preBuffer to prove it is ignored on this branch.
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    ASSERT_EQ(preBuffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> acquireFence = nullptr;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    ASSERT_NE(result, nullptr);
+    // layerBuffer was nullptr for a fresh layer, so SetPreBuffer(nullptr) was called.
+    EXPECT_EQ(result->GetPreBuffer(), nullptr);
+    // New buffer is set on the layer.
+    EXPECT_EQ(result->GetBuffer(), buffer);
+}
+
+/**
+ * @tc.name: GetLayerInfo_PreBufferFromParamsWithOfflineTest001
+ * @tc.desc: Test GetLayerInfo preBuffer handling when offlineResult is non-null
+ *           Covers the new SetPreBuffer(preBuffer) call inside the if (offlineResult) block at
+ *           line 389. On this path the outer if (!offlineResult) is skipped and the inner
+ *           if (offlineResult) calls SetPreBuffer(preBuffer) with the parameter value.
+ *           GetPreBuffer() should return the preBuffer passed in.
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_PreBufferFromParamsWithOfflineTest001, TestSize.Level2)
+{
+    ASSERT_NE(renderProcessor, nullptr);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    renderProcessor->composerClient_ = composerClient;
+
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSSurfaceRenderParams params(0);
+    RSLayerInfo layerInfo;
+    layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
+    layerInfo.dstRect = {0, 0, 100, 100};
+    layerInfo.srcRect = {0, 0, 100, 100};
+    layerInfo.zOrder = 1;
+    layerInfo.alpha = 1.0f;
+    params.SetLayerInfo(layerInfo);
+    params.SetHwcGlobalPositionEnabled(false);
+
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test-prebuf-offline");
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    ASSERT_EQ(preBuffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> acquireFence = nullptr;
+
+    auto offlineResult = std::make_shared<ProcessOfflineResult>();
+    offlineResult->buffer = buffer;
+    offlineResult->consumer = consumer;
+    offlineResult->damageRect = {0, 0, 50, 50};
+    offlineResult->bufferRect = {0, 0, 100, 100};
+    offlineResult->taskSuccess = true;
+
+    RSLayerPtr result = renderProcessor->GetLayerInfo(
+        params, buffer, preBuffer, consumer, acquireFence, offlineResult);
+    ASSERT_NE(result, nullptr);
+    // With offlineResult, SetPreBuffer(preBuffer) is called inside the if (offlineResult) block.
+    EXPECT_EQ(result->GetPreBuffer(), preBuffer);
+    EXPECT_EQ(result->GetBuffer(), buffer);
 }
 }

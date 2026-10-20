@@ -532,6 +532,7 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
 {
+    currentOpCount_ = 0;
     auto& drawCmdLists = drawCmdListsNG_[type];
     auto originCmdListSize = drawCmdLists.size();
     if (originCmdListSize == 0) {
@@ -564,6 +565,7 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierTyp
         }
     }
     lastOverflowStatus_ = overflow;
+    currentOpCount_ = opCount;
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifierType)
@@ -750,9 +752,17 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
     opCountAfterReset_ = 0;
 }
 
-const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRenderNode::GetDrawCmdListsNG() const
+void RSCanvasDrawingRenderNode::AddDrawCmdListTo(
+    std::vector<SimpleDrawCmdListPtr>& targetVec, ModifierNG::RSModifierType modifierType) const
 {
-    return drawCmdListsNG_;
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    auto itr = drawCmdListsNG_.find(modifierType);
+    if (itr == drawCmdListsNG_.end() || itr->second.empty()) {
+        return;
+    }
+    for (auto& cmd : itr->second) {
+        targetVec.emplace_back(cmd);
+    }
 }
 
 void RSCanvasDrawingRenderNode::OnApplyModifiers()
@@ -771,6 +781,7 @@ void RSCanvasDrawingRenderNode::AfterSync()
     if (waitSync_) {
         renderDrawable_->SetNeedDraw(true);
     }
+    currentOpCount_ = 0;
     waitSync_ = false;
 }
 
@@ -803,6 +814,7 @@ void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
     RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node [%" PRIu64 "] CheckCanvasDrawingPostPlaybacked", GetId());
     // add empty drawop, only used in unirender mode
     dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     auto contentCmdList = drawCmdListsNG_.find(ModifierNG::RSModifierType::CONTENT_STYLE);
     if (contentCmdList != drawCmdListsNG_.end()) {
         auto cmd = std::make_shared<RSSimpleDrawCmdList>();
@@ -834,6 +846,11 @@ bool RSCanvasDrawingRenderNode::CheckCachedOp()
 bool RSCanvasDrawingRenderNode::HasCachedOp() const
 {
     return cachedOpCount_ > 0;
+}
+
+size_t RSCanvasDrawingRenderNode::GetCurrentOpCount() const
+{
+    return currentOpCount_;
 }
 
 bool RSCanvasDrawingRenderNode::IsNodeMemClearEnable()

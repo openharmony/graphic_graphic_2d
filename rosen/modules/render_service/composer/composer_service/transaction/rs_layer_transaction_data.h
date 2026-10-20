@@ -23,6 +23,7 @@
 #include "message_parcel.h"
 #include "params/rs_render_params.h"
 #include "rs_layer_parcel.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
 class RSComposerContext;
@@ -38,6 +39,7 @@ struct ComposerScreenInfo {
     float samplingTranslateX = 0.f;
     float samplingTranslateY = 0.f;
     float samplingScale = 1.f;
+    ScreenSamplingMode samplingMode = ScreenSamplingMode::DEVICE_DSS;
     RectI activeRect;
     RectI maskRect;
     RectI reviseRect;

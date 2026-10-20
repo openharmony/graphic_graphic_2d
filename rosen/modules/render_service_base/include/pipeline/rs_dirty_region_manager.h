@@ -150,6 +150,7 @@ public:
     // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
+    void Scale(float scaleX, float scaleY);
 
     // uifirst dirty
     const RectI GetUiLatestHistoryDirtyRegions(const int historyIndex = 4) const; // 4 means default history index

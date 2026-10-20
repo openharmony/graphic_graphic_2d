@@ -291,7 +291,7 @@ void TestScreenResolution(InterfaceClientFrameTest &testFrame)
     auto screenId = rsInterfaces.GetDefaultScreenId();
 
     // Normal call
-    rsInterfaces.SetRogScreenResolution(screenId, 1920, 1080);
+    rsInterfaces.SetRogScreenResolution(screenId, 1920, 1080, ScreenSamplingMode::DEVICE_DSS);
     rsInterfaces.SetPhysicalScreenResolution(screenId, 1920, 1080);
     rsInterfaces.SetVirtualScreenResolution(screenId, 1920, 1080);
     rsInterfaces.ResizeVirtualScreen(screenId, 1920, 1080);
@@ -302,20 +302,20 @@ void TestScreenResolution(InterfaceClientFrameTest &testFrame)
     auto virtualRes = rsInterfaces.GetVirtualScreenResolution(screenId);
 
     // Boundary value - minimum
-    rsInterfaces.SetRogScreenResolution(screenId, 0, 0);
+    rsInterfaces.SetRogScreenResolution(screenId, 0, 0, ScreenSamplingMode::DEVICE_DSS);
     rsInterfaces.SetPhysicalScreenResolution(screenId, 0, 0);
     rsInterfaces.SetVirtualScreenResolution(screenId, 0, 0);
     rsInterfaces.ResizeVirtualScreen(screenId, 0, 0);
 
     // Boundary value - maximum
-    rsInterfaces.SetRogScreenResolution(screenId, UINT32_MAX, UINT32_MAX);
+    rsInterfaces.SetRogScreenResolution(screenId, UINT32_MAX, UINT32_MAX, ScreenSamplingMode::DEVICE_DSS);
     rsInterfaces.SetPhysicalScreenResolution(screenId, UINT32_MAX, UINT32_MAX);
     rsInterfaces.SetVirtualScreenResolution(screenId, UINT32_MAX, UINT32_MAX);
     rsInterfaces.ResizeVirtualScreen(screenId, UINT32_MAX, UINT32_MAX);
 
     // Abnormal call - invalid screenId
-    rsInterfaces.SetRogScreenResolution(0, 1920, 1080);
-    rsInterfaces.SetRogScreenResolution(-1, 1920, 1080);
+    rsInterfaces.SetRogScreenResolution(0, 1920, 1080, ScreenSamplingMode::DEVICE_DSS);
+    rsInterfaces.SetRogScreenResolution(-1, 1920, 1080, ScreenSamplingMode::DEVICE_DSS);
 }
 
 // ============================================================================

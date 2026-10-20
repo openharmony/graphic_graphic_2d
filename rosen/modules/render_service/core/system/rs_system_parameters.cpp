@@ -205,7 +205,7 @@ bool RSSystemParameters::GetHpaeBlurEnabled()
 
 bool RSSystemParameters::GetHveBlurEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.hve.blur.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hve.blur.enabled", "0");
     int changed = 0;
     const char* enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -264,6 +264,14 @@ bool RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.canvas_drawing_node.region.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetCanvasDrawingNodeLockEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.canvas_drawing_node.lock.enabled", "1");
+    int changed = 0;
+    const char* enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
 

@@ -64,6 +64,7 @@ enum class ScreenPropertyType : uint32_t {
     IS_MAIN_SCREEN,
     IS_ROG_RESOLUTION,
     IS_HDI_ROG_ENABLE,
+    SAMPLING_MODE,
 
     SCREEN_PROPERTY_TYPE_SIZE,  // record num of property type
 };
@@ -145,6 +146,8 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, void*, nullptr)
 #endif
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_ROG_RESOLUTION, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_HDI_ROG_ENABLE, bool, false);
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::SAMPLING_MODE,
+    uint32_t, static_cast<uint32_t>(ScreenSamplingMode::DEVICE_DSS));
 
 class ScreenPropertyBase : public Parcelable {
 public:
@@ -246,6 +249,10 @@ public:
     bool IsMainScreen() const;
     bool IsRogResolution() const;
     bool GetHdiRogEnable() const;
+    ScreenSamplingMode GetSamplingMode() const
+    {
+        return static_cast<ScreenSamplingMode>(Get<ScreenPropertyType::SAMPLING_MODE>());
+    }
 
     ScreenInfo GetScreenInfo() const;
 

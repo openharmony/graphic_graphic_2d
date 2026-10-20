@@ -940,12 +940,20 @@ int32_t RSClientToServiceConnection::SetVirtualScreenResolution(ScreenId id, uin
     return screenManagerAgent_->SetVirtualScreenResolution(id, width, height);
 }
 
-int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        RS_LOGE("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return RS_CONNECTION_ERROR;
     }
-    return screenManagerAgent_->SetRogScreenResolution(id, width, height);
+    int32_t res = screenManagerAgent_->SetRogScreenResolution(id, width, height, samplingMode);
+    if (res != ERR_OK) {
+        RS_LOGE("%{public}s screenManagerAgent_->SetRogScreenResolution failed, res:%{public}d, "
+            "screenId:%{public}" PRIu64 ", width:%{public}" PRIu32 ", height:%{public}" PRIu32,
+            __func__, res, id, width, height);
+    }
+    return res;
 }
 
 int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)

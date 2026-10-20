@@ -268,5 +268,15 @@ void RSComposerContext::SetScreenLinearMatrix(const std::vector<float>& matrix)
     }
     rsComposerConnection_->SetScreenLinearMatrix(matrix);
 }
+
+void RSComposerContext::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->SetActiveRectSwitchStatus(flag, activeRect);
+}
 } // namespace Rosen
 } // namespace OHOS

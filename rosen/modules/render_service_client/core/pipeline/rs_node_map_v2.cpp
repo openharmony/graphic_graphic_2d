@@ -59,6 +59,7 @@ void RSNodeMapV2::UnregisterNode(NodeId id)
 
 void RSNodeMapV2::TraversalNodes(std::function<void(const std::shared_ptr<RSBaseNode>&)> func) const
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [_, node] : nodeMapNew_) {
         if (auto nodeShared = node.lock()) {
             func(nodeShared);

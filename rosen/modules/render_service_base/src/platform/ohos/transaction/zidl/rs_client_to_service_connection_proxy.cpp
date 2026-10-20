@@ -1552,7 +1552,8 @@ ErrCode RSClientToServiceConnectionProxy::GetRefreshInfoByPidAndUniqueId(
     return ERR_OK;
 }
 
-int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1571,6 +1572,10 @@ int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, ui
     }
     if (!data.WriteUint32(height)) {
         ROSEN_LOGE("SetRogScreenResolution: WriteUint32 height err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(samplingMode))) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint32 samplingMode err.");
         return WRITE_PARCEL_ERR;
     }
     auto code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);

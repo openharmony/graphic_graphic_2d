@@ -28,6 +28,28 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t ROG_TEST_WIDTH = 1080;
+constexpr uint32_t ROG_TEST_HEIGHT = 2400;
+// 2 means physical resolution is twice of render resolution
+constexpr uint32_t ROG_TEST_RATIO = 2;
+constexpr uint32_t ROG_TEST_REFRESH_RATE = 60;
+const RectI ROG_DIRTY_RECT = { 10, 20, 100, 200 };
+ 
+void SetupRogScreenProperty(const std::shared_ptr<RSScreenRenderNode>& node, ScreenSamplingMode samplingMode,
+    uint32_t phyWidth, uint32_t phyHeight, const RectI& activeRect = RectI())
+{
+    node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION,
+        sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolutionValType(ROG_TEST_WIDTH, ROG_TEST_HEIGHT)));
+    node->UpdateScreenProperty(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE,
+        sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(
+            phyResolutionValType(phyWidth, phyHeight, ROG_TEST_REFRESH_RATE)));
+    node->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(samplingMode)));
+    node->UpdateScreenProperty(ScreenPropertyType::ACTIVE_RECT_OPTION,
+        sptr<ScreenProperty<activeRectValType>>::MakeSptr(activeRectValType(activeRect, RectI(), RectI())));
+}
+}
 class RSScreenRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1545,5 +1567,107 @@ HWTEST_F(RSScreenRenderNodeTest, SetUIMode3D_003, TestSize.Level1)
 
     node->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     EXPECT_EQ(node->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: ScaleSyncDirtyManagerForRogNotDeviceGpu
+ * @tc.desc: test ScaleSyncDirtyManagerForRogIfNeed skips scaling when sampling mode is not DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogNotDeviceGpu, TestSize.Level2)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    SetupRogScreenProperty(node, ScreenSamplingMode::OFFSCREEN,
+        ROG_TEST_WIDTH * ROG_TEST_RATIO, ROG_TEST_HEIGHT * ROG_TEST_RATIO);
+    auto syncDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    syncDirtyManager->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+
+    node->ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
+    ASSERT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), ROG_DIRTY_RECT);
+}
+
+/**
+ * @tc.name: ScaleSyncDirtyManagerForRogInvalidWidthRatio
+ * @tc.desc: test ScaleSyncDirtyManagerForRogIfNeed skips scaling when rog width ratio is invalid
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogInvalidWidthRatio, TestSize.Level2)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    // phyWidth is zero so width ratio is zero, which is invalid
+    SetupRogScreenProperty(node, ScreenSamplingMode::DEVICE_GPU, 0, ROG_TEST_HEIGHT * ROG_TEST_RATIO);
+    auto syncDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    syncDirtyManager->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+
+    node->ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
+    ASSERT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), ROG_DIRTY_RECT);
+}
+
+/**
+ * @tc.name: ScaleSyncDirtyManagerForRogInvalidHeightRatio
+ * @tc.desc: test ScaleSyncDirtyManagerForRogIfNeed skips scaling when rog height ratio is invalid
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogInvalidHeightRatio, TestSize.Level2)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    // phyheight is zero so height ratio is zero, which is invalid
+    SetupRogScreenProperty(node, ScreenSamplingMode::DEVICE_GPU, ROG_TEST_WIDTH * ROG_TEST_RATIO, 0);
+    auto syncDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    syncDirtyManager->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+
+    node->ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
+    ASSERT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), ROG_DIRTY_RECT);
+}
+
+/**
+ * @tc.name: ScaleSyncDirtyManagerForRogEmptyActiveRect
+ * @tc.desc: test ScaleSyncDirtyManagerForRogIfNeed scales dirty and surface size without active rect
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogEmptyActiveRect, TestSize.Level2)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    SetupRogScreenProperty(node, ScreenSamplingMode::DEVICE_GPU,
+        ROG_TEST_WIDTH * ROG_TEST_RATIO, ROG_TEST_HEIGHT * ROG_TEST_RATIO);
+
+    auto syncDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    syncDirtyManager->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+    node->ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
+
+    RectI expectedDirty(ROG_DIRTY_RECT.left_ * ROG_TEST_RATIO, ROG_DIRTY_RECT.top_ * ROG_TEST_RATIO,
+        ROG_DIRTY_RECT.width_ * ROG_TEST_RATIO, ROG_DIRTY_RECT.height_ * ROG_TEST_RATIO);
+    ASSERT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), expectedDirty);
+}
+
+/**
+ * @tc.name: ScaleSyncDirtyManagerForRogWithActiveRect
+ * @tc.desc: test ScaleSyncDirtyManagerForRogIfNeed scales dirty, surface size and active rect together
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogWithActiveRect, TestSize.Level2)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    RectI activeRect(0, 0, ROG_TEST_WIDTH, ROG_TEST_HEIGHT);
+    SetupRogScreenProperty(node, ScreenSamplingMode::DEVICE_GPU,
+        ROG_TEST_WIDTH * ROG_TEST_RATIO, ROG_TEST_HEIGHT * ROG_TEST_RATIO, activeRect);
+
+    auto syncDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    syncDirtyManager->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+    node->ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
+
+    RectI expectedDirty(ROG_DIRTY_RECT.left_ * ROG_TEST_RATIO, ROG_DIRTY_RECT.top_ * ROG_TEST_RATIO,
+        ROG_DIRTY_RECT.width_ * ROG_TEST_RATIO, ROG_DIRTY_RECT.height_ * ROG_TEST_RATIO);
+    EXPECT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), expectedDirty);
 }
 } // namespace OHOS::Rosen
