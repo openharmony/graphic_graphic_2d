@@ -2339,7 +2339,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(leashNode);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     leashNode->SetFirstLevelCrossNode(false);
-    leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    leashNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     auto needUpdated = uifirstManager_.UifirstCacheUpdated(leashNode);
     EXPECT_TRUE(needUpdated);
 
@@ -2354,7 +2354,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(appNode);
     appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     appNode->SetFirstLevelCrossNode(false);
-    appNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    appNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
     auto checkUpdated = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_FALSE(checkUpdated);
@@ -2380,7 +2380,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated004, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(appWindowNode);
     appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     appWindowNode->SetFirstLevelCrossNode(false);
-    appWindowNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    appWindowNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::NONE;
     appWindowNode->SetParent(leashNode);
 
     auto result = uifirstManager_.UifirstCacheUpdated(appWindowNode);
@@ -2406,13 +2406,13 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(leashNode);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     leashNode->SetFirstLevelCrossNode(false);
-    leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    leashNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     auto appWindowNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appWindowNode, nullptr);
     mainThread_->context_->nodeMap.RegisterRenderNode(appWindowNode);
     appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     appWindowNode->SetFirstLevelCrossNode(false);
-    appWindowNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    appWindowNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::NONE;
     appWindowNode->SetParent(leashNode);
 
     auto isUIFirstFrameControlEnable = uifirstManager_.isUIFirstFrameControlEnable_;
@@ -2440,20 +2440,20 @@ HWTEST_F(RSUifirstManagerTest, UifirstCacheUpdated005, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(appNode);
     appNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     appNode->SetFirstLevelCrossNode(false);
-    appNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    appNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::NONE;
     leashNode->AddChild(appNode, -1);
     auto result2 = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(result2);
 
     leashNode->MoveChild(appNode, -1);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    leashNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
     leashNode->AddChild(appNode, -1);
     auto result3 = uifirstManager_.UifirstCacheUpdated(appNode);
     EXPECT_TRUE(result3);
 
     leashNode->RemoveChild(appNode);
-    leashNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    leashNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     leashNode->AddChild(appNode, -1);
 
     uifirstManager_.subthreadProcessDoneNodeAhead_.clear();
