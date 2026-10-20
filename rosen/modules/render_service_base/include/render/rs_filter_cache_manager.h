@@ -149,6 +149,7 @@ public:
 
     void MarkDebugEnabled();
     bool IsFilterCacheMemExceedThreshold() const;
+
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect, NodeId filterId = INVALID_NODEID);
