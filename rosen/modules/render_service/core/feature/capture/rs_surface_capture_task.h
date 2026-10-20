@@ -33,6 +33,18 @@
 namespace OHOS {
 namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+
+static inline Drawing::ColorType GetDrawingColorType(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
+        case Media::PixelFormat::BGRA_8888:
+            return Drawing::ColorType::COLORTYPE_BGRA_8888;
+        default:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+    }
+}
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender);
@@ -102,6 +114,8 @@ private:
     NodeId nodeId_ = INVALID_NODEID;
 
     const RSSurfaceCaptureConfig captureConfig_ = {};
+
+    CaptureError errorCode_ = CaptureError::CAPTURE_OK;
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };
