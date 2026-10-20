@@ -99,6 +99,43 @@ void RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, co
     geRender->DrawShaderEffect(*canvas, *geContainer, *rect);
 }
 
+// Apply GE image effect to the snapshot and return the processed image.
+static std::shared_ptr<Drawing::Image> ApplyColorNGFilterEffect(
+    Drawing::Canvas* canvas, const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
+    const Drawing::RectI& drawRect, const std::shared_ptr<Drawing::Image>& image)
+{
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Rect localRect(0.f, 0.f,
+        static_cast<float>(drawRect.GetWidth()), static_cast<float>(drawRect.GetHeight()));
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    GraphicsEffectEngine::GERender::ShaderFilterEffectContext geContext {image, localRect, localRect, nullptr};
+    auto resImage = geRender->ApplyImageEffect(*canvas, *visualEffectContainer, geContext, samplingOptions);
+    if (resImage == nullptr) {
+        ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter ApplyImageEffect failed");
+    }
+    return resImage;
+}
+
+// Create shader from the processed image and draw it onto the canvas.
+static void DrawColorNGFilterResult(
+    Drawing::Canvas* canvas, const Drawing::RectI& drawRect, const std::shared_ptr<Drawing::Image>& resImage)
+{
+    Drawing::Matrix identityMatrix;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*resImage, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), identityMatrix);
+    if (imageShader == nullptr) {
+        ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter imageShader is nullptr");
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetShaderEffect(imageShader);
+    brush.SetAntiAlias(true);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    canvas->ResetMatrix();
+    canvas->Translate(static_cast<float>(drawRect.GetLeft()), static_cast<float>(drawRect.GetTop()));
+    canvas->DrawBackground(brush);
+}
+
 void RSEffectDrawableUtils::DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer)
 {
@@ -106,82 +143,26 @@ void RSEffectDrawableUtils::DrawColorNGFilter(Drawing::Canvas* canvas, const Dra
         ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter invalid input param");
         return;
     }
-
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter surface is nullptr");
         return;
     }
-
     Drawing::RectI drawRect = canvas->GetDeviceClipBounds();
-
     if (drawRect.IsEmpty()) {
         ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter drawRect is empty");
         return;
     }
-
     auto image = surface->GetImageSnapshot(drawRect);
     if (image == nullptr) {
         ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter image snapshot is nullptr");
         return;
     }
-
-    Drawing::SamplingOptions samplingOptions(
-        Drawing::FilterMode::LINEAR,
-        Drawing::MipmapMode::NONE);
-
-    Drawing::Rect localRect(
-        0.f,
-        0.f,
-        static_cast<float>(drawRect.GetWidth()),
-        static_cast<float>(drawRect.GetHeight()));
-
-    auto geRender =
-        std::make_shared<GraphicsEffectEngine::GERender>();
-
-    GraphicsEffectEngine::GERender::ShaderFilterEffectContext geContext {
-        image,
-        localRect,
-        localRect,
-        nullptr
-    };
-
-    auto resImage = geRender->ApplyImageEffect(
-        *canvas,
-        *visualEffectContainer,
-        geContext,
-        samplingOptions);
-
+    auto resImage = ApplyColorNGFilterEffect(canvas, visualEffectContainer, drawRect, image);
     if (resImage == nullptr) {
-        ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter ApplyImageEffect failed");
         return;
     }
-
-    Drawing::Matrix identityMatrix;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-        *resImage,
-        Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP,
-        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR),
-        identityMatrix);
-
-    if (imageShader == nullptr) {
-        ROSEN_LOGE("RSEffectDrawableUtils::DrawColorNGFilter imageShader is nullptr");
-        return;
-    }
-
-    Drawing::Brush brush;
-    brush.SetShaderEffect(imageShader);
-    brush.SetAntiAlias(true);
-
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-
-    canvas->ResetMatrix();
-    canvas->Translate(
-        static_cast<float>(drawRect.GetLeft()),
-        static_cast<float>(drawRect.GetTop()));
-
-    canvas->DrawBackground(brush);
+    DrawColorNGFilterResult(canvas, drawRect, resImage);
 }
 
 RectF RSEffectDrawableUtils::CalcShaderDrawRect(
