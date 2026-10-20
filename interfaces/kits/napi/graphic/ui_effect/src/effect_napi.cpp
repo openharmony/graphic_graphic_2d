@@ -227,13 +227,6 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
 
 napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("CreateHdrBrightnessBlender failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateHdrBrightnessBlender failed, is not system app");
-        return nullptr;
-    }
-
     const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_value argv[NUM_1];
@@ -273,12 +266,6 @@ napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_in
 
 napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateBorderLight failed, is not system app");
-        return nullptr;
-    }
-
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -640,13 +627,6 @@ bool ParseHarmoniumSelectablePara(napi_env env, napi_value jsObject, HarmoniumEf
 
 napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("CreateShadowBlender failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateShadowBlender failed, is not system app");
-        return nullptr;
-    }
-
     const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_value argv[NUM_1];
@@ -859,12 +839,6 @@ bool EffectNapi::ParseShadowBlender(napi_env env, napi_value jsObject, ShadowBle
 
 napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::IsFormRenderServiceCall()) {
-        UIEFFECT_LOG_E("SetBackgroundColorBlender failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi SetBackgroundColorBlender failed, is not system app or frs call");
-        return nullptr;
-    }
     const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_status status;
@@ -934,12 +908,6 @@ bool EffectNapi::GetColorGradientArray(napi_env env, napi_value* argValue,
 
 napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateColorGradientEffect failed, is not system app");
-        return nullptr;
-    }
-
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -1188,12 +1156,6 @@ bool EffectNapi::BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
 
 napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("CreateFrostedGlassEffect failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateFrostedGlassEffect failed, is not system app");
-        return nullptr;
-    }
     constexpr size_t minArgc = NUM_25;
     constexpr size_t maxArgc = NUM_27;
 
@@ -1235,12 +1197,6 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
 
 napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("CreateHarmoniumEffect failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateHarmoniumEffect failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_2;
     static const size_t requireArgc = NUM_4;

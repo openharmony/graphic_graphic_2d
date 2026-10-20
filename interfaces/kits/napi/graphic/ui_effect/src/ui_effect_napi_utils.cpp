@@ -18,11 +18,7 @@
 
 #ifdef ENABLE_IPC_SECURITY
 #include "accesstoken_kit.h"
-#include "bundlemgr/bundle_mgr_interface.h"
-#include "hap_module_info.h"
 #include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
 #endif
 
 namespace OHOS {
@@ -284,54 +280,6 @@ napi_valuetype UIEffectNapiUtils::GetType(napi_env env, napi_value root)
     return res;
 }
 
-bool UIEffectNapiUtils::IsSystemApp()
-{
-#ifdef ENABLE_IPC_SECURITY
-    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-    return Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
-#else
-    return true;
-#endif
-}
-
-std::string UIEffectNapiUtils::GetBundleName()
-{
-#ifdef ENABLE_IPC_SECURITY
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        UTIL_LOG_E("Failed to get system ability manager");
-        return "";
-    }
-
-    sptr<IRemoteObject> remoteObject =
-        systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        UTIL_LOG_E("Failed to get remote object");
-        return "";
-    }
-
-    sptr<AppExecFwk::IBundleMgr> bundleMgr =
-        iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (bundleMgr == nullptr) {
-        UTIL_LOG_E("Failed to get bundle manager");
-        return "";
-    }
-
-    AppExecFwk::BundleInfo bundleInfo;
-    ErrCode errCode = bundleMgr->GetBundleInfoForSelf(
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo);
-    if (errCode != ERR_OK) {
-        UTIL_LOG_E("Failed to get bundle info, errcode: %{public}x", errCode);
-        return "";
-    }
-
-    return bundleInfo.applicationInfo.bundleName;
-#else
-    return "";
-#endif
-}
-
 bool UIEffectNapiUtils::CheckPermission(const std::string& permission)
 {
 #ifdef ENABLE_IPC_SECURITY
@@ -342,13 +290,6 @@ bool UIEffectNapiUtils::CheckPermission(const std::string& permission)
 #else
     return true;
 #endif
-}
-
-bool UIEffectNapiUtils::IsFormRenderServiceCall()
-{
-    static const std::string frsBundleName = "com.ohos.formrenderservice";
-    static const std::string bundleName = GetBundleName();
-    return bundleName == frsBundleName;
 }
 
 bool UIEffectNapiUtils::CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName)

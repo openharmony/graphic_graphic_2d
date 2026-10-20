@@ -143,7 +143,6 @@ constexpr uint32_t NUM_29 = 29;
 constexpr uint32_t NUM_30 = 30;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NO_PERMISSION = 201;
-constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 constexpr int32_t ERR_INVALID_PARAM = 401;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);
@@ -167,12 +166,8 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 class UIEffectNapiUtils {
 public:
     static napi_valuetype GetType(napi_env env, napi_value root);
-    static bool IsSystemApp();
-    static bool IsFormRenderServiceCall();
     static bool CheckPermission(const std::string& permission);
     static bool CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName);
-private:
-    static std::string GetBundleName();
 };
 } // namespace Rosen
 } // namespace OHOS
