@@ -12,3 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+#ifndef RENDER_SERVICE_FEATURE_CAPTURE_RS_BLUR_PIXELMAP_H
+#define RENDER_SERVICE_FEATURE_CAPTURE_RS_BLUR_PIXELMAP_H
+ 
+#include <memory>
+#include "pixel_map.h"
+ 
+namespace OHOS {
+namespace Rosen {
+ 
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+bool BlurPixelMapOnRenderThread(
+    const std::shared_ptr<Media::PixelMap>& pixelMap, float blurRadius,
+    std::shared_ptr<Media::PixelMap>& blurredPixelMap);
+#endif
+ 
+} // namespace Rosen
+} // namespace OHOS
+ 
+#endif // RENDER_SERVICE_FEATURE_CAPTURE_RS_BLUR_PIXELMAP_H
