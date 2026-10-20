@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #ifndef RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
@@ -233,6 +233,15 @@ public:
 
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+
+    /**
+     * @brief Add blur to the input pixelmap.
+     * @param pixelMap The input pixelmap.
+     * @param blurRadius The input radius of blur.
+     * @return Returns a shared pointer of the blurred pixelmap .
+     */
+    std::shared_ptr<Media::PixelMap> BlurPixelMap(
+        std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius);
 
     /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
