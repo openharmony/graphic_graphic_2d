@@ -189,7 +189,7 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     }
     node.SetRSLayer(screenInfo_.id, layer);
     layer->SetNodeId(node.GetId());
-    layer->SetDelegateMode(node.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : node.GetDelegateMode());
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
@@ -217,7 +217,9 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
         cropRect.x, cropRect.y, cropRect.w, cropRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
         buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(), layer->GetTransform());
-    HandleDelegateComposerLayer(layer, params);
+    if (!offlineResult) {
+        HandleDelegateComposerLayer(layer, params);
+    }
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s ScreenId:%{public}" PRIu64 " zorder:%{public}d layerRect:[%{public}d, %{public}d, "
         "%{public}d, %{public}d] cropRect:[%{public}d, %{public}d, %{public}d, %{public}d] "
@@ -266,7 +268,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix((offlineResult && offlineResult->isGPUOffline) ?
         offlineResult->linearMatrix : renderParams.GetLayerLinearMatrix());
-    layer->SetDelegateMode(params.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : node.GetDelegateMode());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
@@ -284,7 +286,9 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(),
         uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
         uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
-    HandleDelegateComposerLayer(layer, params);
+    if (!offlineResult) {
+        HandleDelegateComposerLayer(layer, params);
+    }
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
@@ -762,70 +766,14 @@ std::vector<RSLayerPtr> RSUniRenderProcessor::GetLayers() const
 }
 #endif
 
-RectI RSUniRenderProcessor::GetDelegateDstRectByTranXY(RSSurfaceRenderParams& params)
-{
-    auto tranX = params.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X);
-    auto tranY = params.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y);
-    RectI delegateDstRectNew = params.GetDelegateDstRect();
-    if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_90) {
-        delegateDstRectNew.SetAll((screenInfoForDelegateMode_.GetRotatedPhyWidth() - tranY), tranX,
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_270) {
-        delegateDstRectNew.SetAll(tranY, (screenInfoForDelegateMode_.GetRotatedPhyHeight() - tranX),
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_0) {
-        delegateDstRectNew.SetAll(tranX, tranY,
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_180) {
-        delegateDstRectNew.SetAll(
-            (screenInfoForDelegateMode_.GetRotatedPhyWidth() - tranX),
-            (screenInfoForDelegateMode_.GetRotatedPhyHeight() - tranY),
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    }
-    return delegateDstRectNew;
-}
-
 void RSUniRenderProcessor::HandleDelegateComposerLayer(RSLayerPtr& layer, RSSurfaceRenderParams& params)
 {
     if (!params.GetDelegateMode()) {
         return;
     }
-    if (params.GetDelegateDstRect().GetHeight() <= 0) {
-        RS_LOGE("HandleDelegateComposerLayer fail, delegateDstRect is invalid: %s",
-            params.GetDelegateDstRect().ToString().c_str());
-        return;
-    }
-    auto cropRect = layer->GetCropRect();
-    auto cropRectForWeb = cropRect;
-    auto layerRect = layer->GetLayerSize();
-    layer->SetDelegateModeCropRect(cropRectForWeb); // init CropRectForWeb
-    RectI delegateDstRectNew = GetDelegateDstRectByTranXY(params);
-    auto matrix = params.GetTotalMatrix();
-    RS_TRACE_NAME_FMT("HandleDelegateComposerLayer:[tranX=%.2f, tranY=%.2f,],"
-        " screenInfo:{rotation=%u, rotatedPhyWidth=%u, rotatedPhyHeight=%u }"
-        ", srcRect:%s, dstRect:%s, dstRectNew:%s",
-        matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::TRANS_Y),
-        screenInfoForDelegateMode_.rotation, screenInfoForDelegateMode_.GetRotatedPhyWidth(),
-        screenInfoForDelegateMode_.GetRotatedPhyHeight(), params.GetDelegateSrcRect().ToString().c_str(),
-        params.GetDelegateDstRect().ToString().c_str(), delegateDstRectNew.ToString().c_str());
-    scalar scalarTmp =
-        (scalar)params.GetDelegateSrcRect().GetHeight() / (scalar)params.GetDelegateDstRect().GetHeight();
-    if (delegateDstRectNew.GetLeft() < 0) {
-        int32_t offset = delegateDstRectNew.GetLeft();
-        offset = static_cast<int32_t>(offset * scalarTmp);
-        cropRectForWeb.x -= offset;
-        cropRectForWeb.x = cropRectForWeb.x > cropRectForWeb.w ? cropRectForWeb.w : cropRectForWeb.x;
-        cropRectForWeb.w = cropRectForWeb.w > 0 ? cropRectForWeb.w + offset : 0;
-    } else if (delegateDstRectNew.GetLeft() > 0) {
-        scalar endX = delegateDstRectNew.GetLeft() + delegateDstRectNew.GetWidth();
-        cropRectForWeb.w = endX <= screenInfoForDelegateMode_.GetRotatedPhyWidth() ?
-            cropRectForWeb.w : cropRectForWeb.w - (endX - screenInfoForDelegateMode_.GetRotatedPhyWidth()) * scalarTmp;
-    }
-    cropRectForWeb.w = cropRectForWeb.w >= 0 ? cropRectForWeb.w : 0;
-    RS_TRACE_NAME_FMT("CropRectForWeb:[%d, %d, %d, %d], CropRect:[%d, %d, %d, %d], layerSize:[%d, %d, %d, %d]",
-        cropRectForWeb.x, cropRectForWeb.y, cropRectForWeb.w, cropRectForWeb.h,
-        cropRect.x, cropRect.y, cropRect.w, cropRect.h, layerRect.x, layerRect.y, layerRect.w, layerRect.h);
-    layer->SetDelegateModeCropRect(cropRectForWeb);
+    auto delegateSrcRect = params.GetDelegateSrcRect();
+    layer->SetDelegateSrcRect({delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
+        delegateSrcRect.GetWidth(), delegateSrcRect.GetHeight()});
 }
 } // namespace Rosen
 } // namespace OHOS

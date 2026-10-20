@@ -1863,14 +1863,14 @@ void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
     if (node == nullptr) {
         return;
     }
-    const Vector4f& delegateSrcRect = node->GetDelegateSrcRect();
-    const Vector4f& delegateDstRect = node->GetDelegateDstRect();
+    auto delegateSrcRect = node->GetDelegateSrcRect();
+    auto delegateDstRect = node->GetDelegateDstRect();
     auto& properties = node->GetMutableRenderProperties();
-    RS_TRACE_NAME_FMT("UpdateNodeInfoForDelegateMode(node:%" PRId64 ") delegateDstRect{%.2f, %.2f, %.2f, %.2f},"
-        " delegateSrcRect{%.2f, %.2f, %.2f, %.2f}",
-        rsNodeId, delegateDstRect.x_, delegateDstRect.y_, delegateDstRect.z_, delegateDstRect.w_,
-        delegateSrcRect.x_, delegateSrcRect.y_, delegateSrcRect.z_, delegateSrcRect.w_);
-    properties.SetBounds({delegateDstRect.x_, delegateDstRect.y_, delegateDstRect.z_, delegateDstRect.w_});
+    RS_TRACE_NAME_FMT("UpdateNodeInfoForDelegateMode(node:%" PRId64 ") delegateSrcRect{%.2f, %.2f, %.2f, %.2f},"
+        " delegateDstRect{%.2f, %.2f, %.2f, %.2f}",
+        rsNodeId, delegateSrcRect.ToString().c_str(), delegateDstRect.ToString().c_str());
+    properties.SetBounds({delegateDstRect.GetTop(), delegateDstRect.GetLeft(), delegateDstRect.GetWidth(),
+        delegateDstRect.GetHeight()});
     node->SetDirty();
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
     node->AddDirtyType(ModifierNG::RSModifierType::FRAME);

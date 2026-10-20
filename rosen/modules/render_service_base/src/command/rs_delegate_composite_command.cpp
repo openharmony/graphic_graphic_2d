@@ -276,7 +276,7 @@ TransactionBufferCommand::TransactionBufferCommand(std::vector<RSTransactionConf
 
 TransactionBufferCommand::TransactionBufferCommand() {}
 
-TransactionBufferCommand::TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId)
+TransactionBufferCommand::TransactionBufferCommand(OHOS::Rosen::RectF rect, bool isSrcRect, NodeId nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("TransactionBufferCommand::TransactionBufferCommand in,"
         "rect=%s, isSrcRect=%d, nodeId=%llu", rect.ToString().c_str(), isSrcRect, nodeId);
@@ -298,9 +298,9 @@ void TransactionBufferCommand::ProcessCmdTypeSetRect(RSContext& context)
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
         nodeMap.GetRenderNode<RSRenderNode>(nodeId_))) {
         if (isSrcRect_) {
-            node->SetDelegateSrcRect(rect_.GetTop(), rect_.GetLeft(), rect_.GetWidth(), rect_.GetHeight());
+            node->SetDelegateSrcRect(rect_);
         } else {
-            node->SetDelegateDstRect(rect_.GetTop(), rect_.GetLeft(), rect_.GetWidth(), rect_.GetHeight());
+            node->SetDelegateDstRect(rect_);
         }
         webNodeIds.emplace(nodeId_);
     } else {
@@ -318,8 +318,8 @@ RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetRect(MessageParcel* 
     NodeId nodeId = 0;
 
     bool ret =
-        messageParcel->ReadFloat(top) &&
         messageParcel->ReadFloat(left) &&
+        messageParcel->ReadFloat(top) &&
         messageParcel->ReadFloat(width) &&
         messageParcel->ReadFloat(height) &&
         messageParcel->ReadBool(isSrcRect) &&
@@ -329,7 +329,7 @@ RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetRect(MessageParcel* 
         return nullptr;
     }
 
-    RectF rect(top, left, width, height);
+    RectF rect(left, top, width, height);
     auto command = new TransactionBufferCommand(rect, isSrcRect, nodeId);
     return command;
 }
@@ -341,8 +341,8 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetRect(MessageParcel* messageP
         return false;
     }
     bool ret =
-        messageParcel->WriteFloat(rect_.GetTop()) &&
         messageParcel->WriteFloat(rect_.GetLeft()) &&
+        messageParcel->WriteFloat(rect_.GetTop()) &&
         messageParcel->WriteFloat(rect_.GetWidth()) &&
         messageParcel->WriteFloat(rect_.GetHeight()) &&
         messageParcel->WriteBool(isSrcRect_) &&

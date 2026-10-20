@@ -2082,10 +2082,10 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
-    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateDstRect();
-    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateSrcRect();
+    void SetDelegateDstRect(const RectF& delegateDstRect);
+    RectF GetDelegateDstRect();
+    void SetDelegateSrcRect(const RectF& delegateSrcRect);
+    RectF GetDelegateSrcRect();
     void SetDelegateMode(bool isSetDelegateMode);
     bool IsDelegateModeNodeWithBuffer();
     bool GetDelegateMode() override;

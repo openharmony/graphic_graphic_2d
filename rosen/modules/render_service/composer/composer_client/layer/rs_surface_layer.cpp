@@ -335,22 +335,22 @@ const GraphicIRect& RSSurfaceLayer::GetCropRect() const
     return cropRect_;
 }
 
-void RSSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
+void RSSurfaceLayer::SetDelegateSrcRect(const GraphicIRect& crop)
 {
-    if (delegateModeCropRect_ == crop) {
+    if (delegateSrcRect_ == crop) {
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("SetDelegateSrcRect in layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, crop.x, crop.y, crop.w, crop.h);
-    delegateModeCropRect_ = crop;
-    SetRSLayerCmd<RSRenderLayerDelegateModeCropRectCmd>(crop);
+    delegateSrcRect_ = crop;
+    SetRSLayerCmd<RSRenderLayerDelegateSrcRectCmd>(crop);
 }
 
-GraphicIRect RSSurfaceLayer::GetDelegateModeCropRect()
+GraphicIRect RSSurfaceLayer::GetDelegateSrcRect()
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
-        rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
-    return delegateModeCropRect_;
+    RS_OPTIONAL_TRACE_NAME_FMT("GetDelegateSrcRect in layerId=%" PRIu64 ", %d %d %d %d",
+        rsLayerId_, delegateSrcRect_.x, delegateSrcRect_.y, delegateSrcRect_.w, delegateSrcRect_.h);
+    return delegateSrcRect_;
 }
 
 void RSSurfaceLayer::SetPreMulti(bool preMulti)

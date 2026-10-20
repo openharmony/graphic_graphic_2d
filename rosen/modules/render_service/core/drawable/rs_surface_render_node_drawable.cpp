@@ -1934,15 +1934,14 @@ void RSSurfaceRenderNodeDrawable::UpdateRectForDelegateMode(const RSSurfaceRende
     BufferDrawParam& params)
 {
     if (surfaceParams.GetDelegateMode()) {
-        auto& nodeParams = GetRenderParams();
-        if (nodeParams) {
-            const GraphicIRect srcRect = nodeParams->GetLayerInfo().srcRect;
-            params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
-            params.dstRect = Drawing::Rect(0, 0, nodeParams->GetBounds().GetWidth(),
-                nodeParams->GetBounds().GetHeight());
-            RS_TRACE_NAME_FMT("update rect for delegate mode: src=[%s], dst=[%s]",
-                params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
-        }
+        auto oldSrcRect = params.srcRect;
+        auto delegateSrcRect = surfaceParams.GetDelegateSrcRect();
+        params.srcRect = Drawing::Rect(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
+            delegateSrcRect.GetRight(), delegateSrcRect.GetBottom());
+        RS_TRACE_NAME_FMT("update rect for delegate mode: oldSrcRect=[%s], newSrcRect=[%s], dstRect=[%s],"
+            "delegateSrcRect=[%s], delegateDstRect=%d",
+            oldSrcRect.ToString().c_str(), params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str(),
+            delegateSrcRect.ToString().c_str(), surfaceParams.GetDelegateDstRect().ToString().c_str());
     }
 }
 } // namespace OHOS::Rosen::DrawableV2
