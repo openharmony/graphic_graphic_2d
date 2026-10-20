@@ -12,3 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+{
+    global:
+        _ZN13ScopedBytrace3EndEv;
+        _ZN13ScopedBytraceC1ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN13ScopedBytraceC2ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN13ScopedBytraceD1Ev;
+        _ZN13ScopedBytraceD2Ev;
+        _ZN16ScopedDebugTrace18debugTraceEnabled_E;
+        _ZN16ScopedDebugTraceC1ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN16ScopedDebugTraceC2ERKNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE;
+        _ZN16ScopedDebugTraceD1Ev;
+        _ZN16ScopedDebugTraceD2Ev;
+        _fini;
+        _init;
+    local:
+        *;
+};
