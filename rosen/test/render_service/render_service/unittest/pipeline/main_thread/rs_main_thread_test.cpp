@@ -8968,5 +8968,112 @@ HWTEST_F(RSMainThreadTest, GetAllLayerAndTunnelLayerCount_MixedNodes_Accumulates
     EXPECT_EQ(presentCount, 2u);
     EXPECT_EQ(tunnelCount, 1u);
 }
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback001
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node does not exist in nodeMap.
+ *           Covers the false branch of "if (node)" — the lambda is posted and executed,
+ *           but node lookup returns nullptr so SetDirtyFlag / SetForceUpdateUniRenderFlag /
+ *           node->SetDirty are all skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeNotExist");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    constexpr uint64_t nonExistentNodeId = 88888888;
+    mainThread->ColorPickerNoticedNodeDirtyCallback(nonExistentNodeId);
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_FALSE(mainThread->GetDirtyFlag());
+    EXPECT_FALSE(mainThread->forceUpdateUniRenderFlag_);
+
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback002
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node exists and VSync is not
+ *           requested. Covers the true branch of "if (node)" and the true branch of
+ *           "if (!IsRequestedNextVSync())". With receiver_ == nullptr,
+ *           IsRequestedNextVSync() returns false, so RequestNextVSync() is called (no-op).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeExistVSyncNotReq");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    mainThread->ColorPickerNoticedNodeDirtyCallback(node->GetId());
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_TRUE(mainThread->GetDirtyFlag());
+    EXPECT_TRUE(mainThread->forceUpdateUniRenderFlag_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: ColorPickerNoticedNodeDirtyCallback003
+ * @tc.desc: Test ColorPickerNoticedNodeDirtyCallback when node exists and VSync is already
+ *           requested. Covers the true branch of "if (node)" and the false branch of
+ *           "if (!IsRequestedNextVSync())". A VSyncReceiver with init_=true and
+ *           RNVFlag_=true makes IsRequestedNextVSync() return true, so RequestNextVSync()
+ *           is skipped while SetDirtyFlag / SetForceUpdateUniRenderFlag / node->SetDirty
+ *           still execute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create("ColorPickerNodeExistVSyncReq");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
+
+    auto receiver = std::make_shared<VSyncReceiver>(nullptr, nullptr, nullptr, "ColorPickerTestReceiver");
+    receiver->init_ = true;
+    receiver->listener_->SetRNVFlag(true);
+    mainThread->receiver_ = receiver;
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(GenerateUniqueNodeIdForRS(), mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
+
+    mainThread->SetDirtyFlag(false);
+    mainThread->SetForceUpdateUniRenderFlag(false);
+
+    mainThread->ColorPickerNoticedNodeDirtyCallback(node->GetId());
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_HANDLER_TIME / 1000));
+
+    EXPECT_TRUE(mainThread->GetDirtyFlag());
+    EXPECT_TRUE(mainThread->forceUpdateUniRenderFlag_);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+    EXPECT_TRUE(mainThread->IsRequestedNextVSync());
+
+    mainThread->receiver_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
 } // namespace OHOS::Rosen
 #endif

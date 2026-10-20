@@ -315,7 +315,8 @@ void RSFilterDrawable::OnSync()
 
     lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
         std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
-
+    lastStagingVisibleDrawRect_ = stagingVisibleRectInfo_ != nullptr ?
+        std::make_unique<RectI>(stagingVisibleRectInfo_->drawRect_) : nullptr;
     stagingVisibleRectInfo_ = nullptr;
     stagingIntersectWithDRM_ = false;
     stagingIsDarkColorMode_ = false;
@@ -701,12 +702,14 @@ void RSFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
     stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
     stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
         GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
-    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
-        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->drawRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::DRAW, defaultRelativeRect), absMatrix);
     if (clipRect.has_value()) {
         stagingVisibleRectInfo_->snapshotRect_ = stagingVisibleRectInfo_->snapshotRect_.IntersectRect(*clipRect);
-        stagingVisibleRectInfo_->totalRect_ = stagingVisibleRectInfo_->totalRect_.IntersectRect(*clipRect);
+        stagingVisibleRectInfo_->drawRect_ = stagingVisibleRectInfo_->drawRect_.IntersectRect(*clipRect);
     }
+    stagingVisibleRectInfo_->totalRect_ =
+        stagingVisibleRectInfo_->snapshotRect_.JoinRect(stagingVisibleRectInfo_->drawRect_);
 }
 
 RectI RSFilterDrawable::GetVisibleTotalRegion(const RectI& defaultValue) const
@@ -722,6 +725,16 @@ RectI RSFilterDrawable::GetVisibleSnapshotRegion(const RectI& defaultValue) cons
 RectI RSFilterDrawable::GetLastVisibleSnapshotRegion(const RectI& defaultValue) const
 {
     return lastStagingVisibleSnapshotRect_ != nullptr ? *lastStagingVisibleSnapshotRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return stagingVisibleRectInfo_ != nullptr ? stagingVisibleRectInfo_->drawRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetLastVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return lastStagingVisibleDrawRect_ != nullptr ? *lastStagingVisibleDrawRect_ : defaultValue;
 }
 
 RectF RSFilterDrawable::GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const
