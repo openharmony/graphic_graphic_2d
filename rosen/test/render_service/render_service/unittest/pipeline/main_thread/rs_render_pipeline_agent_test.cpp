@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include <memory>
 #include <unordered_set>
@@ -1562,6 +1562,87 @@ HWTEST_F(RSRenderPipelineAgentTest, GetBitmap001, TestSize.Level1)
     bool success = false;
     auto ret = agent->GetBitmap(0, bitmap, success);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BlurPixelMap001
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap002
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pipeline is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap003
+ * @tc.desc: Verify BlurPixelMap posts task to render thread and returns ERR_OK
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+ 
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    // In test env, renderEngine is null so BlurPixelMapOnRenderThread returns false
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
 }
 
 /**
