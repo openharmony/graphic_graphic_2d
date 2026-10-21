@@ -258,7 +258,7 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
             errno_t status = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
             if (status != EOK) {
                 WLOGE("memcpy_s failed");
-                return 0;
+                return ret;
             }
             auto moveblob = it->first;
             moveblob->prev_->next_ = moveblob->next_;
@@ -417,7 +417,6 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
     int fd = open(realPath.c_str(), O_RDONLY, 0);
     if (fd == -1) {
         WLOGE("open failed, errno:%{public}d", errno);
-        close(fd);
         return;
     }
     fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
