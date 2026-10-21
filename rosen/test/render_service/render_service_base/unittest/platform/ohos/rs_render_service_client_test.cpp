@@ -849,6 +849,19 @@ HWTEST_F(RSServiceClientTest, SetScreenPowerStatus001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSkipColorSpaceConversion Test
+ * @tc.desc: SetSkipColorSpaceConversion Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, SetSkipColorSpaceConversion, TestSize.Level1)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    rsClient->SetSkipColorSpaceConversion(screenId, true);
+}
+
+/**
  * @tc.name: GetPanelPowerStatus001
  * @tc.desc: Test GetPanelPowerStatus
  * @tc.type:FUNC

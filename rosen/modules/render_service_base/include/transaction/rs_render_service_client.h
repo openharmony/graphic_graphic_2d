@@ -326,6 +326,8 @@ public:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
+
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);

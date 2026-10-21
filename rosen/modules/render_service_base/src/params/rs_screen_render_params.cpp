@@ -179,6 +179,20 @@ GraphicColorGamut RSScreenRenderParams::GetNewColorSpace() const
     return newColorSpace_;
 }
 
+void RSScreenRenderParams::SetDstColorSpace(const GraphicColorGamut& dstColorSpace)
+{
+    if (dstColorSpace_ == dstColorSpace) {
+        return;
+    }
+    needSync_ = true;
+    dstColorSpace_ = dstColorSpace;
+}
+
+GraphicColorGamut RSScreenRenderParams::GetDstColorSpace() const
+{
+    return dstColorSpace_;
+}
+
 void RSScreenRenderParams::SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat)
 {
     if (newPixelFormat_ == newPixelFormat) {

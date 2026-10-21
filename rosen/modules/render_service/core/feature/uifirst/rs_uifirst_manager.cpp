@@ -647,6 +647,8 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = screenParams->GetScreenId();
     auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
     rsSubThreadCache.SetHDRPresent(isHdrOn);
+    bool skipColorSpaceConversion = screenParams->GetScreenProperty().GetSkipColorSpaceConversion();
+    rsSubThreadCache.SetSkipColorSpaceConversion(skipColorSpaceConversion);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
         GetUiFirstSwitch();
     GraphicColorGamut effectiveColorGamut = colorGamut;
@@ -658,8 +660,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         rsSubThreadCache.SetScreenId(id);
         rsSubThreadCache.SetTargetColorGamut(effectiveColorGamut);
     }
-    RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", rsSubThreadCache.GetHDRPresent(),
-        surfaceParams->GetBrightnessRatio());
+    RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f, screenId: %{public}"
+        PRIu64 ", SkipColorSpaceConversion:%{public}d", rsSubThreadCache.GetHDRPresent(),
+        surfaceParams->GetBrightnessRatio(), id, rsSubThreadCache.GetSkipColorSpaceConversion());
 #endif
 }
 

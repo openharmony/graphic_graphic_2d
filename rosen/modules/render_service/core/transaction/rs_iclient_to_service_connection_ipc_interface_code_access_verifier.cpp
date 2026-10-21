@@ -642,6 +642,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = true;
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SKIP_COLOR_SPACE_CONVERSION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SKIP_COLOR_SPACE_CONVERSION");
+            break;
+        }
         default: {
             hasPermission = false;
             break;

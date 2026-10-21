@@ -531,6 +531,10 @@ void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
 {
 }
 
+void RSRenderServiceClient::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+}
+
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return {};

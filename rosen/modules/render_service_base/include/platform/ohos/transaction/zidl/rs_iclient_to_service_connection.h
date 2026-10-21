@@ -294,6 +294,8 @@ public:
 
     virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
 
+    virtual void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) = 0;
+
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
     virtual int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;

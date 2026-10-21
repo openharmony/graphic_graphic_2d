@@ -178,6 +178,7 @@ public:
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(int32_t gravity);
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
 
     void SetDisablePowerOffRenderControl(bool disable);
     void SetScreenSwitchStatus(bool status);

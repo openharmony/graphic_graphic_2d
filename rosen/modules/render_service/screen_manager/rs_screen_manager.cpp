@@ -1654,6 +1654,16 @@ void RSScreenManager::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     screen->SetScreenFrameGravity(gravity);
 }
 
+void RSScreenManager::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return;
+    }
+    screen->SetSkipColorSpaceConversion(skipColorSpaceConversion);
+}
+
 bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);

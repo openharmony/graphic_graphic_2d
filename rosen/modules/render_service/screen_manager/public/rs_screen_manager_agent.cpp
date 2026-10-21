@@ -814,6 +814,14 @@ void RSScreenManagerAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     screenManager_->SetScreenFrameGravity(id, gravity);
 }
 
+void RSScreenManagerAgent::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    if (!screenManager_) {
+        return;
+    }
+    screenManager_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
+}
+
 int32_t RSScreenManagerAgent::SetDualScreenState(ScreenId id, DualScreenStatus status)
 {
     if (!screenManager_) {

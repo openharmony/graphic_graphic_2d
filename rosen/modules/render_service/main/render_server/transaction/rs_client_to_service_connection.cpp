@@ -1693,6 +1693,14 @@ void RSClientToServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gra
     screenManagerAgent_->SetScreenFrameGravity(id, gravity);
 }
 
+void RSClientToServiceConnection::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    if (!screenManagerAgent_) {
+        return;
+    }
+    screenManagerAgent_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
+}
+
 int32_t RSClientToServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)
 {
     if (hgmContext_ == nullptr) {

@@ -981,6 +981,13 @@ public:
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     /**
+     * @brief Set whether to skip color space conversion on the screen.
+     * @param id Indicates the screen id.
+     * @param skipColorSpaceConversion Indicates whether to skip color space conversion.
+     */
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
+
+    /**
      * @brief Create a VsyncReceiver instance.
      * @param name Indicates the name of the VsyncReceiver instance.
      * @param looper Indicates the pointer of a eventHandle instance.

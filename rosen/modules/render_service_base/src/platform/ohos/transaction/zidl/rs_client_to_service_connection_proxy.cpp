@@ -3507,6 +3507,29 @@ void RSClientToServiceConnectionProxy::SetScreenFrameGravity(ScreenId id, int32_
     }
 }
 
+void RSClientToServiceConnectionProxy::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (!data.WriteUint64(id) || !data.WriteBool(skipColorSpaceConversion)) {
+        ROSEN_LOGE("%{public}s: write error.", __func__);
+        return;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
+    }
+}
+
 int32_t RSClientToServiceConnectionProxy::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)
 {
     MessageParcel data;

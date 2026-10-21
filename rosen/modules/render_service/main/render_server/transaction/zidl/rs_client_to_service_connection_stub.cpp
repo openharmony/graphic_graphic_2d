@@ -234,6 +234,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION),
 };
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -1911,6 +1912,17 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetScreenFrameGravity(id, gravity);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION): {
+            ScreenId id = INVALID_SCREEN_ID;
+            bool skipColorSpaceConversion = false;
+            if (!data.ReadUint64(id) || !data.ReadBool(skipColorSpaceConversion)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SKIP_COLOR_SPACE_CONVERSION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY): {
