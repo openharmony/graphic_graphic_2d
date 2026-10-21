@@ -1864,6 +1864,12 @@ bool RSProperties::GetFgBrightnessEnableEDR() const
     return GetEffectProperties().GetFgBrightnessEnableEDR();
 }
 
+bool RSProperties::GetColorfulBrightnessBlenderEnableEDR() const
+{
+    const auto* params = GetColorfulBrightnessBlenderParams();
+    return params != nullptr && params->hdrEnabled_;
+}
+
 void RSProperties::SetBgBrightnessRates(const Vector4f& rates)
 {
     GetEffectProperties().SetBgBrightnessRates(rates);
