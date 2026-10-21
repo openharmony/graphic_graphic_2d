@@ -2485,12 +2485,16 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
             }
 
-            if (surfaceHandler->GetBuffer() != nullptr) {
+            if (surfaceHandler->GetBuffer() != nullptr || surfaceNode->GetSolidLayerEnabled()) {
                 // collect hwc nodes vector, used for display node skip and direct composition cases
                 surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
                 hardwareEnabledDrwawables_.emplace_back(std::make_tuple(surfaceNode->GetScreenNodeId(),
                     surfaceNode->GetLogicalDisplayNodeId(), surfaceNode->GetRenderDrawable()));
+                if (surfaceHandler->GetBuffer() == nullptr && surfaceNode->GetSolidLayerEnabled()) {
+                    RS_OPTIONAL_TRACE_NAME_FMT("solidLayer: collect no-buffer SolidLayerEnabled node, "
+                        "name:%s id:%" PRIu64, surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                }
             }
 
             // set content dirty for hwc node if needed
@@ -3497,6 +3501,15 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
             if (!surfaceNode->IsHardwareForcedDisabled()) {
                 auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+                // SolidLayerEnabled node without buffer: create solid color layer directly, skip buffer logic
+                if (params->GetSolidLayerEnabled() && surfaceHandler && !surfaceHandler->GetBuffer()) {
+                    if (ProcessSolidLayerInDirectComposition(*surfaceNode, *surfaceHandler, *processor)) {
+                        continue;
+                    }
+                }
+                if (surfaceHandler == nullptr) {
+                    continue;
+                }
                 bool isCurrentFrameBufferConsumed = surfaceHandler->IsCurrentFrameBufferConsumed();
                 if (isCurrentFrameBufferConsumed) {
                     auto preBufferOwnerCount = params->GetPreBufferOwnerCount();
@@ -3563,6 +3576,24 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #endif
 
     RS_LOGD_IF(DEBUG_PIPELINE, "DoDirectComposition end");
+    return true;
+}
+
+bool RSMainThread::ProcessSolidLayerInDirectComposition(
+    RSSurfaceRenderNode& surfaceNode, RSSurfaceHandler& surfaceHandler, RSProcessor& processor)
+{
+    auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode.GetStagingRenderParams().get());
+    if (params == nullptr) {
+        return false;
+    }
+    // SolidLayerEnabled node without buffer: create solid color layer directly, skip buffer logic
+    if (!params->GetSolidLayerEnabled() || surfaceHandler.GetBuffer() != nullptr) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("solidLayer: DoDirectComposition create solid color layer, "
+        "name:%s id:%" PRIu64, surfaceNode.GetName().c_str(), surfaceNode.GetId());
+    processor.CreateSolidColorLayerDirect(surfaceNode, *params);
+    params->SetBufferSynced(true);
     return true;
 }
 

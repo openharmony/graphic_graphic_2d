@@ -35,6 +35,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_track.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_interface.h"
@@ -311,6 +312,22 @@ public:
         selfDrawingType_ = selfDrawingType;
         dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
+
+    void SetSolidLayerEnabled(bool isEnabled)
+    {
+        isSolidLayerEnabled_ = isEnabled;
+    }
+
+    bool GetSolidLayerEnabled() const
+    {
+        return isSolidLayerEnabled_;
+    }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    // Calculate src/dst rects for SolidLayer: src uses bounds size, dst uses absRect (absolute position)
+    void CalcSolidLayerRects(GraphicIRect& src, GraphicIRect& dst) const;
+    void UpdateSolidLayerRects(RSLayerInfo& layer, const sptr<SurfaceBuffer>& buffer);
+#endif
 
     void SetForceHardwareAndFixRotation(bool flag);
     bool GetFixRotationByUser() const
@@ -2194,6 +2211,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isSolidLayerEnabled_ = false;
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;

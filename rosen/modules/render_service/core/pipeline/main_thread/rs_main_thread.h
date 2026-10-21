@@ -73,6 +73,8 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
+class RSProcessor;
+class RSSurfaceRenderNode;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -658,6 +660,10 @@ private:
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    // SolidLayerEnabled node without buffer: create solid color layer directly and return true;
+    // Otherwise return false to fall through to the buffer-based path.
+    bool ProcessSolidLayerInDirectComposition(
+        RSSurfaceRenderNode& surfaceNode, RSSurfaceHandler& surfaceHandler, RSProcessor& processor);
     bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,

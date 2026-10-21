@@ -1549,6 +1549,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", colorSpace: " + std::to_string(surfaceNode->GetColorSpace());
         out += ", uifirstColorGamut: " + std::to_string(surfaceNode->GetFirstLevelNodeColorGamut());
         out += ", isSurfaceBufferOpaque: " + std::to_string(surfaceNode->GetSurfaceBufferOpaque());
+        out += ", isSolidLayerEnabled: " + std::to_string(surfaceNode->GetSolidLayerEnabled());
         if (surfaceNode->IsCloneNode()) {
             out += ", isCloneNode: " + std::to_string(surfaceNode->IsCloneNode());
             out += ", isRelated: " + std::to_string(surfaceNode->IsRelated());

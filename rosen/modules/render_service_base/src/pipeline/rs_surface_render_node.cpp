@@ -2077,14 +2077,36 @@ bool RSSurfaceRenderNode::IsSCBNode() const
     return !IS_SCB_WINDOW_TYPE(surfaceWindowType_);
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceRenderNode::CalcSolidLayerRects(GraphicIRect& src, GraphicIRect& dst) const
+{
+    const auto& props = GetRenderProperties();
+    int32_t boundsW = static_cast<int32_t>(std::ceil(props.GetBoundsWidth()));
+    int32_t boundsH = static_cast<int32_t>(std::ceil(props.GetBoundsHeight()));
+    const auto& absRect = props.GetBoundsGeometry()->GetAbsRect();
+    src = {0, 0, boundsW, boundsH};
+    dst = {absRect.left_, absRect.top_, absRect.width_, absRect.height_};
+}
+
+void RSSurfaceRenderNode::UpdateSolidLayerRects(RSLayerInfo& layer, const sptr<SurfaceBuffer>& buffer)
+{
+    if (isSolidLayerEnabled_ && buffer == nullptr) {
+        CalcSolidLayerRects(layer.srcRect, layer.dstRect);
+    } else {
+        layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
+        layer.dstRect = {dstRect_.left_, dstRect_.top_, dstRect_.width_, dstRect_.height_};
+    }
+}
+#endif
+
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
 {
 #ifdef RS_ENABLE_GPU
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     auto layer = surfaceParams->GetLayerInfo();
-    layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
-    layer.dstRect = {dstRect_.left_, dstRect_.top_, dstRect_.width_, dstRect_.height_};
+    auto buffer = surfaceHandler_->GetBuffer();
+    UpdateSolidLayerRects(layer, buffer);
     const auto& properties = GetRenderProperties();
     layer.boundRect = {0, 0,
         static_cast<uint32_t>(properties.GetBoundsWidth()),
@@ -2109,7 +2131,6 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     isHardwareForcedDisabled_ = specialLayerManager_.Find(SpecialLayerType::PROTECTED) ?
         false : isHardwareForcedDisabled_;
 #ifndef ROSEN_CROSS_PLATFORM
-    auto buffer = surfaceHandler_->GetBuffer();
     RS_LOGD_IF(DEBUG_NODE, "RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: name:%{public}s id:%{public}" PRIu64
         ", bufferFormat:%d, src:%{public}s, dst:%{public}s, bounds:[%{public}d, %{public}d] "
         "buffer:[%{public}d, %{public}d] transform:%{public}d, zOrder:%{public}d, cur:%{public}d, last:%{public}d",
@@ -2129,7 +2150,10 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
         transform, layer.zOrder, !IsHardwareForcedDisabled(), isLastFrameHwcEnabled_);
 #endif
     surfaceParams->SetLayerInfo(layer);
-    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    // SolidLayer node without buffer: force hardware enabled to allow solid color layer creation
+    bool isSolidLayerNoBuffer = isSolidLayerEnabled_ && buffer == nullptr;
+    surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled() || isSolidLayerNoBuffer);
+    surfaceParams->SetSolidLayerEnabled(isSolidLayerEnabled_);
     surfaceParams->SetNeedMakeImage(IsHardwareNeedMakeImage());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
     surfaceParams->SetInFixedRotation(isInFixedRotation_);
