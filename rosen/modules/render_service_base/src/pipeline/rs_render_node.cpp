@@ -2984,39 +2984,9 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
         return;
     }
 
-    const auto& properties = GetRenderProperties();
-    auto checkRegionInsideFunc = [&properties, this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
-        if (filterDrawable != nullptr) {
-            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-            bool regionChanged = ((!snapshotRegion.IsInsideOf(lastSnapshotRegion)) ||
-                (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
-                !IsForceClearOrUseFilterCache(filterDrawable);
-            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
-                " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
-                snapshotRegion.ToString().c_str());
-            if (regionChanged) {
-                MarkFilterStatusChanged(filterDrawable, false, true);
-            }
-        }
-    };
-    bool isForeground = false;
-    auto checkRegionChangeFunc = [&isForeground, this](std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
-        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-        bool regionChanged = snapshotRegion != lastSnapshotRegion &&
-            !IsForceClearOrUseFilterCache(filterDrawable);
-        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty"
-            " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
-            snapshotRegion.ToString().c_str());
-        if (regionChanged) {
-            MarkFilterStatusChanged(filterDrawable, isForeground, true);
-        }
-    };
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, checkRegionChangeFunc);
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, checkRegionInsideFunc);
-    isForeground = true;
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER, checkRegionChangeFunc);
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER), false);
+    RSEffectUtils::CheckRegionInsideForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER));
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER), true);
 #endif
 }
 

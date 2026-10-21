@@ -330,12 +330,6 @@ static bool GetStretchPercent(napi_env env, napi_value param, std::shared_ptr<Pi
 
 napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetPixelStretch failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetPixelStretch failed, is not system app");
-        return nullptr;
-    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -401,12 +395,6 @@ static bool GetBezierControlPoints(napi_env env, napi_value param, std::shared_p
 
 napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetBezierWarp failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetBezierWarp failed, is not system app");
-        return nullptr;
-    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -459,13 +447,6 @@ static bool GetContentLight(napi_env env, napi_value* param, size_t length, std:
 
 napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetContentLight failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi contentLight failed, is not system app");
-        return nullptr;
-    }
-
     static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_3;
     size_t argCount = maxArgc;
@@ -501,13 +482,6 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetHeatDistortion failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi heatDistortion failed, is not system app");
-        return nullptr;
-    }
-
     static const size_t expectArgc = NUM_1;
     size_t argCount = expectArgc;
     napi_status status;
@@ -568,13 +542,6 @@ napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetBlurBubblesRise failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi blurBubblesRise failed, is not system app");
-        return nullptr;
-    }
-
     static const size_t expectArgc = NUM_1;
     size_t argCount = expectArgc;
     napi_status status;
@@ -702,12 +669,6 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
 
 napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetRadiusGradientBlurPara failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetRadiusGradientBlurPara failed, is not system app");
-        return nullptr;
-    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -791,12 +752,6 @@ bool FilterNapi::GetSpecialBoolValue(napi_env env, napi_value argValue, bool def
 
 napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetWaterRipple failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetWaterRipple failed, is not system app");
-        return nullptr;
-    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -845,12 +800,6 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetFlyOut failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetFlyOut failed, is not system app");
-        return nullptr;
-    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -926,13 +875,6 @@ bool FilterNapi::GetColorGradientArray(napi_env env, napi_value* argValue, std::
 
 napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetColorGradient failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi colorGradient failed, is not system app");
-        return nullptr;
-    }
-
     napi_status status;
     napi_value thisVar = nullptr;
 
@@ -1061,12 +1003,6 @@ napi_value FilterNapi::SetHaloBloom(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetDistort failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetDistort failed, is not system app");
-        return nullptr;
-    }
     const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_value result = nullptr;
@@ -1098,12 +1034,6 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetDisplacementDistort failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetDisplacementDistort failed, is not system app");
-        return nullptr;
-    }
     const size_t requireArgc = NUM_2;
     const size_t minArgc = NUM_1;
     size_t realArgc = NUM_2;
@@ -1139,12 +1069,6 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
 
 napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetEdgeLight failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetEdgeLight failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_1;
     size_t realArgc = maxArgc;
@@ -1192,12 +1116,6 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetMaskDirectionLight failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetMaskDirectionLight failed, is not system app");
-        return nullptr;
-    }
     static const size_t minArgc = NUM_3;
     static const size_t maxArgc = NUM_5;
     size_t realArgc = maxArgc;
@@ -1251,8 +1169,8 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
 
 napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
-        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio caller is not system app or lacks the required permission.");
+    if (!UIEffectNapiUtils::CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio caller lacks the required permission.");
         napi_throw_error(env, std::to_string(ERR_NO_PERMISSION).c_str(),
             "The SetHDRBrightnessRatio is only accessible to applications which have HDR_BRIGHTNESS permission.");
         return nullptr;
@@ -1305,13 +1223,6 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
 
 napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetMaskTransition failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi transition failed, is not system app");
-        return nullptr;
-    }
-
     static const size_t maxArgc = NUM_3;
     static const size_t minArgc = NUM_1;
     size_t realArgc = maxArgc;
@@ -1381,12 +1292,6 @@ Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 
 napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetMaskDispersion failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetMaskDispersion failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_5;
     static const size_t minArgc = NUM_2;
     size_t realArgc = maxArgc;
@@ -1438,13 +1343,6 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("SetVariableRadiusBlur failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "FilterNapi SetVariableRadiusBlur failed, is not system app");
-        return nullptr;
-    }
-
     static const size_t requireArgc = NUM_2;
     size_t realArgc = NUM_2;
     napi_value result = nullptr;

@@ -15,11 +15,14 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 ohos_source_set("mlb_utils") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
+  if (platform_is_ohos) {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
   }
   sources = [
     "src/error_code.cpp",

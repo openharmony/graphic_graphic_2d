@@ -75,6 +75,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
+class RSEffectUtils;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -1519,6 +1520,7 @@ private:
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
     friend class RSDynamicLayerSkipController;
+    friend class RSEffectUtils;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

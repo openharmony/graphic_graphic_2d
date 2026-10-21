@@ -395,6 +395,24 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     IncreaseSolidLayerHwcEnableCount();
 }
 
+void RSUniHwcVisitor::DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& node)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
+    if (stagingSurfaceParams == nullptr || !stagingSurfaceParams->GetIsHwcEnabledBySolidLayer()) {
+        return;
+    }
+    // Disable solidLayer when dstRect (self-drawing area) is smaller than boundsRect (hole area)
+    if (!node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().IsInsideOf(node.GetDstRect())) {
+        node.SetHardwareForcedDisabledState(true);
+        stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(false);
+        DecreaseSolidLayerHwcEnableCount();
+        RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: disabled by dstRect smaller than boundsRect, name: %{public}s",
+            node.GetName().c_str());
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solidLayer and "
+            "dstRect smaller than boundsRect", node.GetName().c_str(), node.GetId());
+    }
+}
+
 bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
 {
     const std::string& bundleName = node.GetBundleName();
@@ -1441,6 +1459,8 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     UpdateHwcNodeEnableByGlobalPosition(node);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
+    // Must be after UpdateHwcNodeByTransform and before UpdateDstRectByGlobalPosition.
+    DisableSolidLayerByDstRectNEBounds(node);
     // dstRect transform to global position after UpdateHwcNodeByTransform
     UpdateDstRectByGlobalPosition(node);
     UpdateHwcNodeEnableByBufferSize(node);

@@ -39,6 +39,7 @@ public:
         const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor, bool isSplitEnabled = false);
     void ProcessSolidLayerDisabled(RSSurfaceRenderNode& node);
     void ProcessSolidLayerEnabled(RSSurfaceRenderNode& node);
+    void DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& node);
 
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
@@ -95,6 +96,7 @@ public:
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
+    void DecreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_--; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
 
 private:

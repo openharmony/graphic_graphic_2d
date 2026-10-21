@@ -434,12 +434,6 @@ napi_value MaskNapi::Create(napi_env env, std::shared_ptr<MaskPara> maskPara)
 
 napi_value MaskNapi::CreateWaveDisturbanceMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateWaveDisturbanceMask failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateWaveDisturbanceMask failed, is not system app");
-        return nullptr;
-    }
     const size_t requireArgc = NUM_4;
     size_t realArgc = NUM_4;
     napi_value argv[requireArgc];
@@ -458,12 +452,6 @@ napi_value MaskNapi::CreateWaveDisturbanceMask(napi_env env, napi_callback_info 
 
 napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateWaveGradientMask failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateWaveGradientMask failed, is not system app");
-        return nullptr;
-    }
     const size_t requireMinArgc = NUM_4;
     const size_t requireMaxArgc = NUM_5;
     size_t realArgc = NUM_5;
@@ -484,12 +472,6 @@ napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info inf
 
 napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateRippleMask failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateRippleMask failed, is not system app");
-        return nullptr;
-    }
     const size_t requireMinArgc = NUM_3;
     const size_t requireMaxArgc = NUM_4;
     size_t realArgc = NUM_4;
@@ -527,12 +509,6 @@ napi_value MaskNapi::CreateWarpedRingMask(napi_env env, napi_callback_info info)
 
 napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateRadialGradientMask failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateRadialGradientMask failed, is not system app");
-        return nullptr;
-    }
     const size_t requireArgc = NUM_4;
     size_t realArgc = NUM_4;
     napi_value argv[requireArgc];
@@ -595,12 +571,6 @@ static bool ParsePixelMapMask(napi_env env, napi_value* argv, size_t realArgc, s
 
 napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreatePixelMapMask failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreatePixelMapMask failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_3;
     size_t realArgc = maxArgc;
@@ -649,12 +619,6 @@ static bool ParseImageMask(napi_env env, napi_value* argv,
 
 napi_value MaskNapi::CreateImageMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateImageMask failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateImageMask failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_1;
     size_t realArgc = maxArgc;
     napi_value result = nullptr;
@@ -693,12 +657,6 @@ static bool ParseUseEffectMask(napi_env env, napi_value* argv,
 
 napi_value MaskNapi::CreateUseEffectMask(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateUseEffectpMask failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateUseEffectpMask failed, is not system app");
-        return nullptr;
-    }
     static const size_t maxArgc = NUM_1;
     size_t realArgc = maxArgc;
     napi_value result = nullptr;
