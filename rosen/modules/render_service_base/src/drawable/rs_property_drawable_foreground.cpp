@@ -95,7 +95,6 @@ void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     const bool hasNGFilter = colorNGFilter_ && visualEffectContainer_;
     const bool binarizationFirst = hasNGFilter &&
         colorNGFilter_->ContainsType(RSNGEffectType::BINARIZATION);
-
     if (binarizationFirst) {
         DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(
             canvas, rect, visualEffectContainer_);
