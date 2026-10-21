@@ -1096,17 +1096,17 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixByDegree(int degree, const RectF& boun
     switch (degree) {
         case 90: { // get matrix by 90 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(0, -boundsWidth);
+            matrix.PreTranslate(0, -boundsHeight);
             break;
         }
         case 180: { // get matrix by 180 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(-boundsHeight, -boundsWidth);
+            matrix.PreTranslate(-boundsWidth, -boundsHeight);
             break;
         }
         case -90: { // get matrix by -90 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(-boundsHeight, 0);
+            matrix.PreTranslate(-boundsWidth, 0);
             break;
         }
         default:

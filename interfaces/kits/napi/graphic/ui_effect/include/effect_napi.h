@@ -24,7 +24,6 @@
 #include "effect/include/brightness_blender.h"
 #include "effect/include/color_gradient_effect_para.h"
 #include "effect/include/distortion_collapse_effect_para.h"
-#include "effect/include/frosted_glass_effect_para.h"
 #include "effect/include/shadow_blender.h"
 #include "effect/include/hdr_darken_blender.h"
 #include "effect/include/glass_effect_para.h"
@@ -82,14 +81,6 @@ private:
         std::shared_ptr<ColorGradientEffectPara>& para, uint32_t arraySize);
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static napi_value CreateHarmoniumEffect(napi_env env, napi_callback_info info);
-    static napi_value CreateFrostedGlassEffect(napi_env env, napi_callback_info info);
-    static bool FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
-    static bool FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
-    static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
-    static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
-    static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
-    static bool BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
-        std::shared_ptr<FrostedGlassEffectPara>& outPara);
     static napi_value CreateDistortionCollapseEffect(napi_env env, napi_callback_info info);
     static bool ParseDistortionCollapseEffectPara(napi_env env, napi_value jsObject,
         DistortionCollapseEffectPara* para);

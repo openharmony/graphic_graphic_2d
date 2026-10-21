@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,6 +174,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, LumaParams, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColorFraction, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SamplingScale, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, SkipFrameEnable, bool);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, AntiAlias, Vector2f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint0, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint1, Vector2f);
