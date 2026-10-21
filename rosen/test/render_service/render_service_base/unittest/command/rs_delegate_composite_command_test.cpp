@@ -508,21 +508,21 @@ HWTEST_F(RSDelegateCompositeCommandTest, TransactionBufferCommandProcess003, Tes
     auto context = CreateContextWithSurfaceNode(SET_RECT_NODE_ID, true);
     auto node = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(SET_RECT_NODE_ID);
     ASSERT_NE(node, nullptr);
-    node->SetDelegateSrcRect(0, 0, 0, 0);
-    node->SetDelegateDstRect(0, 0, 0, 0);
+    node->SetDelegateSrcRect(RectF{0, 0, 0, 0});
+    node->SetDelegateDstRect(RectF{0, 0, 0, 0});
 
     RectF srcRect(SRC_RECT_TOP, SRC_RECT_LEFT, SRC_RECT_WIDTH, SRC_RECT_HEIGHT);
     TransactionBufferCommand srcCmd(srcRect, true, SET_RECT_NODE_ID);
     srcCmd.Process(*context);
     // ProcessCmdTypeSetRect passes (GetTop, GetLeft, GetWidth, GetHeight) to the node
     EXPECT_EQ(node->GetDelegateSrcRect(),
-        Vector4f(srcRect.GetTop(), srcRect.GetLeft(), srcRect.GetWidth(), srcRect.GetHeight()));
+        RectF(srcRect.GetTop(), srcRect.GetLeft(), srcRect.GetWidth(), srcRect.GetHeight()));
 
     RectF dstRect(DST_RECT_TOP, DST_RECT_LEFT, DST_RECT_WIDTH, DST_RECT_HEIGHT);
     TransactionBufferCommand dstCmd(dstRect, false, SET_RECT_NODE_ID);
     dstCmd.Process(*context);
     EXPECT_EQ(node->GetDelegateDstRect(),
-        Vector4f(dstRect.GetTop(), dstRect.GetLeft(), dstRect.GetWidth(), dstRect.GetHeight()));
+        RectF(dstRect.GetTop(), dstRect.GetLeft(), dstRect.GetWidth(), dstRect.GetHeight()));
     context->GetMutableNodeMap().UnregisterRenderNode(SET_RECT_NODE_ID);
 }
 

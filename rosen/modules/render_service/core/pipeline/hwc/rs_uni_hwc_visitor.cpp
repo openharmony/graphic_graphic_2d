@@ -1474,5 +1474,28 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
         node.SetDstRect(dstRect);
     }
 }
+
+void RSUniHwcVisitor::UpdateRectInfoForDelegateMode(RSSurfaceRenderNode& node,
+    int32_t& bufferWidth, int32_t& bufferHeight, float& boundsWidth, float& boundsHeight)
+{
+    if (node.GetDelegateMode()) {
+        auto delegateDstRect = node.GetDelegateDstRect();
+        auto delegateSrcRect = node.GetDelegateSrcRect();
+        bufferWidth = delegateSrcRect.GetWidth();
+        bufferHeight = delegateSrcRect.GetHeight();
+        boundsWidth = delegateDstRect.GetWidth();
+        boundsHeight = delegateDstRect.GetHeight();
+    }
+}
+
+void RSUniHwcVisitor::UpdateLeftAndTopForDelegateMode(RSSurfaceRenderNode& node, Drawing::Rect& srcRect)
+{
+    if(node.GetDelegateMode()) {
+        auto delegateSrcRect = node.GetDelegateSrcRect();
+        Drawing::Matrix delegateModeTranslateMatrix;
+        delegateModeTranslateMatrix.PostTranslate(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop());
+        delegateModeTranslateMatrix.MapRect(srcRect, srcRect);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
