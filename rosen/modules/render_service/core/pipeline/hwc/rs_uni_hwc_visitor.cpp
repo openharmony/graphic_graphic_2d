@@ -71,14 +71,15 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
     const auto& property = node.GetRenderProperties();
     auto bufferWidth = buffer->GetSurfaceBufferWidth();
     auto bufferHeight = buffer->GetSurfaceBufferHeight();
-    const auto boundsWidth = property.GetBoundsWidth();
-    const auto boundsHeight = property.GetBoundsHeight();
+    auto boundsWidth = property.GetBoundsWidth();
+    auto boundsHeight = property.GetBoundsHeight();
     const auto frameGravity = Gravity::RESIZE;
     const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
         RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(node, consumer) :
         RSUniHwcComputeUtil::GetConsumerTransform(node, buffer, consumer);
     const auto dstRect = node.GetDstRect();
     Drawing::Rect dst(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
+    UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(bufferWidth, bufferHeight);
@@ -96,6 +97,7 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
     Drawing::Rect srcRect;
     inverseTotalMatrix.MapRect(srcRect, dst);
     inverseGravityMatrix.MapRect(srcRect, srcRect);
+    UpdateLeftAndTopForDelegateMode(node, srcRect);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(srcRect.left_, srcRect.top_);

@@ -189,7 +189,7 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     }
     node.SetRSLayer(screenInfo_.id, layer);
     layer->SetNodeId(node.GetId());
-    layer->SetDelegateMode(offlineResult ? false : node.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : params.GetDelegateMode());
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
@@ -268,7 +268,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix((offlineResult && offlineResult->isGPUOffline) ?
         offlineResult->linearMatrix : renderParams.GetLayerLinearMatrix());
-    layer->SetDelegateMode(offlineResult ? false : renderParams.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : params.GetDelegateMode());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
