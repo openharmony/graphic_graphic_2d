@@ -92,17 +92,10 @@ void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
 #endif
-    const bool hasNGFilter = colorNGFilter_ && visualEffectContainer_;
-    const bool binarizationFirst = hasNGFilter &&
-        colorNGFilter_->ContainsType(RSNGEffectType::BINARIZATION);
-    if (binarizationFirst) {
-        DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(
-            canvas, rect, visualEffectContainer_);
-    }
     if (filter_) {
         RSPropertyDrawableUtils::DrawColorFilter(canvas, filter_);
     }
-    if (hasNGFilter && !binarizationFirst) {
+    if (colorNGFilter_ && visualEffectContainer_) {
         DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(
             canvas, rect, visualEffectContainer_);
     }
