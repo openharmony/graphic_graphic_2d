@@ -18,6 +18,7 @@
 #include "app_mgr_client.h"
 #include "engine/rs_base_render_util.h"
 #include "ffrt_inner.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -167,6 +168,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             }
         }
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transData);
+#endif
         if (transData && transData->GetDVSyncUpdate()) {
             RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());
         }
