@@ -71,6 +71,13 @@ ohos_shared_library("text_napi") {
 
 ohos_shared_library("text_napi_impl") {
   branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   sources = [
     "enum_napi/text_enum_napi.cpp",
     "fontcollection_napi/js_fontcollection.cpp",
@@ -89,19 +96,11 @@ ohos_shared_library("text_napi_impl") {
   configs = [ ":local_text" ]
   public_configs = [ ":text_config" ]
 
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
     "$rosen_root/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",
     "$rosen_text_root/interface/mlb/utils:mlb_utils",
-    "$rosen_text_root/service/texgine:libtexgine_source",
   ]
 
   external_deps = [
