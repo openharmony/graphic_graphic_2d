@@ -503,7 +503,9 @@ protected:
     friend class RSNGEffectUtils;
 };
 
-template<> RSProperty<AtlasInfo>::~RSProperty();
+// Out-of-line destructor specialization (defined in rs_property.cpp).
+template<>
+RSProperty<AtlasInfo>::~RSProperty();
 
 /**
  * @class RSAnimatableProperty

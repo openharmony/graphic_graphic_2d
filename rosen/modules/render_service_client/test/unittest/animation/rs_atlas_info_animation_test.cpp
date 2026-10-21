@@ -178,7 +178,7 @@ HWTEST_F(RSAtlasInfoAnimationTest, UpdateToRenderAtlasInfoContextChanged001, Tes
 
 /**
  * @tc.name: RSPropertyAtlasInfoDestructorNoCrash001
- * @tc.desc: RSProperty<AtlasInfo> destructor erases g_lastSentAtlas entry without crash.
+ * @tc.desc: RSProperty<AtlasInfo> destructor erases global cache entry under lock without crash.
  * @tc.type: FUNC
  */
 HWTEST_F(RSAtlasInfoAnimationTest, RSPropertyAtlasInfoDestructorNoCrash001, TestSize.Level1)
@@ -186,7 +186,7 @@ HWTEST_F(RSAtlasInfoAnimationTest, RSPropertyAtlasInfoDestructorNoCrash001, Test
     {
         auto property = std::make_shared<RSAnimatableProperty<AtlasInfo>>(START_INFO);
         property->UpdateToRender(START_INFO, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-    } // destructor runs here, should erase g_lastSentAtlas[id_] without crash.
+    } // destructor runs here, erases g_lastSentAtlas[id_] under mutex (any thread safe).
     EXPECT_TRUE(true);
 }
 } // namespace Rosen

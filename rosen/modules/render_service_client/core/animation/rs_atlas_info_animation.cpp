@@ -24,6 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 
+static constexpr int NUMBER_FOR_HALF = 2;
+
 RSAtlasInfoAnimation::RSAtlasInfoAnimation(
     const std::shared_ptr<RSUIContext>& rsUIContext,
     const std::shared_ptr<RSPropertyBase>& property,
@@ -64,7 +66,7 @@ void RSAtlasInfoAnimation::OnUpdateStagingValue(bool isFirstStart)
         return;
     }
     auto targetValue = endValue_;
-    if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
+    if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
         targetValue = startValue_;
     }
     property_->SetValue(targetValue);
