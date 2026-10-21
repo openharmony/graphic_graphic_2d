@@ -120,8 +120,6 @@ private:
 
     // Sourcetuning
     bool IsTargetSourceTuning(RSSurfaceRenderNode& node);
-    
-    bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

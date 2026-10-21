@@ -1144,11 +1144,9 @@ private:
     ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
     int32_t rotationCorrectionDegree_ = 0;
 
-#ifdef RS_ENABLE_DELEGATE_COMPOSITE
     RectF delegateDstRect_;
     RectF delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
-#endif
 
     // for layer splitter
     bool splitLayerTag_ = false;

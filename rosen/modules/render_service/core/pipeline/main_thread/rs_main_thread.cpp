@@ -1866,8 +1866,7 @@ void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
     auto delegateSrcRect = node->GetDelegateSrcRect();
     auto delegateDstRect = node->GetDelegateDstRect();
     auto& properties = node->GetMutableRenderProperties();
-    RS_TRACE_NAME_FMT("UpdateNodeInfoForDelegateMode(node:%" PRId64 ") delegateSrcRect{%.2f, %.2f, %.2f, %.2f},"
-        " delegateDstRect{%.2f, %.2f, %.2f, %.2f}",
+    RS_TRACE_NAME_FMT("UpdateNodeInfoForDelegateMode(node:%" PRId64 ") delegateSrcRect=%s, delegateDstRect=%s",
         rsNodeId, delegateSrcRect.ToString().c_str(), delegateDstRect.ToString().c_str());
     properties.SetBounds({delegateDstRect.GetTop(), delegateDstRect.GetLeft(), delegateDstRect.GetWidth(),
         delegateDstRect.GetHeight()});

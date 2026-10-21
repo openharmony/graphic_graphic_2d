@@ -1040,7 +1040,7 @@ bool RSSurfaceRenderParams::GetDelegateMode() const
     return isWebProxyComposerNode_;
 }
 
-void RSSurfaceRenderParams::SetDelegateDstRect(const RectI& rect)
+void RSSurfaceRenderParams::SetDelegateDstRect(const RectF& rect)
 {
     if (delegateDstRect_ == rect) {
         return;
@@ -1049,12 +1049,12 @@ void RSSurfaceRenderParams::SetDelegateDstRect(const RectI& rect)
     needSync_ = true;
 }
 
-const RectI& RSSurfaceRenderParams::GetDelegateDstRect() const
+const RectF& RSSurfaceRenderParams::GetDelegateDstRect() const
 {
     return delegateDstRect_;
 }
 
-void RSSurfaceRenderParams::SetDelegateSrcRect(const RectI& rect)
+void RSSurfaceRenderParams::SetDelegateSrcRect(const RectF& rect)
 {
     if (delegateSrcRect_ == rect) {
         return;
@@ -1063,7 +1063,7 @@ void RSSurfaceRenderParams::SetDelegateSrcRect(const RectI& rect)
     needSync_ = true;
 }
 
-const RectI& RSSurfaceRenderParams::GetDelegateSrcRect() const
+const RectF& RSSurfaceRenderParams::GetDelegateSrcRect() const
 {
     return delegateSrcRect_;
 }

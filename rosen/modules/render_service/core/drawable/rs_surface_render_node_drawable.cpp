@@ -1939,7 +1939,7 @@ void RSSurfaceRenderNodeDrawable::UpdateRectForDelegateMode(const RSSurfaceRende
         params.srcRect = Drawing::Rect(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
             delegateSrcRect.GetRight(), delegateSrcRect.GetBottom());
         RS_TRACE_NAME_FMT("update rect for delegate mode: oldSrcRect=[%s], newSrcRect=[%s], dstRect=[%s],"
-            "delegateSrcRect=[%s], delegateDstRect=%d",
+            "delegateSrcRect=[%s], delegateDstRect=%s",
             oldSrcRect.ToString().c_str(), params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str(),
             delegateSrcRect.ToString().c_str(), surfaceParams.GetDelegateDstRect().ToString().c_str());
     }

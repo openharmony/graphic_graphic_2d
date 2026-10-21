@@ -108,11 +108,6 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
 void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (node.GetDelegateMode() && IsRectIsInsideOfScreenRect(dstRect)) {
-        node.SetDstRect(dstRect);
-        node.SetDstRectWithoutRenderFit(dstRect);
-        return;
-    }
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, uniRenderVisitor_.curScreenNode_->GetScreenInfo().width,
@@ -1478,36 +1473,6 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
             node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
         node.SetDstRect(dstRect);
     }
-}
-
-bool RSUniHwcVisitor::IsRectIsInsideOfScreenRect(const RectI& rect) const
-{
-    if (!uniRenderVisitor_.curScreenNode_) {
-        return false;
-    }
-    auto children = uniRenderVisitor_.curScreenNode_->GetChildrenList();
-    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
-    for (const auto& child : children) {
-        if (auto childNode = child.lock()) {
-            if (childNode->GetBootAnimation()) {
-                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
-                break;
-            } else if (!displayNode) {
-                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
-            }
-        }
-    }
-    if (!displayNode) {
-        return false;
-    }
-
-    ScreenInfo screenInfo = uniRenderVisitor_.curScreenNode_->GetScreenInfo();
-    screenInfo.rotation = displayNode->GetRotation();
-    RectI screenRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "IsRectIsInsideOfScreenRect: IsInsideOf=%{public}d, rect=%{public}s, screenRect=%{public}s",
-        rect.IsInsideOf(screenRect), rect.ToString().c_str(), screenRect.ToString().c_str());
-    return rect.IsInsideOf(screenRect);
 }
 } // namespace Rosen
 } // namespace OHOS
