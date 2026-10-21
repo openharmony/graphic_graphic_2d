@@ -587,10 +587,13 @@ void RSMainThread::CheckDrawOpOverLimit()
     if (canvasDrawingNodeOpCountMap_.empty()) {
         return;
     }
-    auto now = GetCurrentSteadyTimeMs();
+    int64_t now = 0;
     for (const auto& [pid, opCount] : canvasDrawingNodeOpCountMap_) {
         if (opCount <= DRAWOP_THRESHOLD) {
             continue;
+        }
+        if (now == 0) {
+            now = GetCurrentSteadyTimeMs();
         }
         auto it = lastDrawOpReportTimeMap_.find(pid);
         if (it != lastDrawOpReportTimeMap_.end() && (now - it->second) < REPORT_INTERVAL_MS) {
@@ -613,7 +616,7 @@ void RSMainThread::CheckCommandOverLimit(const std::shared_ptr<TransactionDataMa
     if (transactionDataEffective == nullptr || transactionDataEffective->empty()) {
         return;
     }
-    auto now = GetCurrentSteadyTimeMs();
+    int64_t now = 0;
     for (const auto& [pid, transactionVec] : *transactionDataEffective) {
         unsigned long commandCount = 0;
         for (const auto& transaction : transactionVec) {
@@ -623,6 +626,9 @@ void RSMainThread::CheckCommandOverLimit(const std::shared_ptr<TransactionDataMa
         }
         if (commandCount <= COMMAND_THRESHOLD) {
             continue;
+        }
+        if (now == 0) {
+            now = GetCurrentSteadyTimeMs();
         }
         auto it = lastCommandReportTimeMap_.find(pid);
         if (it != lastCommandReportTimeMap_.end() && (now - it->second) < REPORT_INTERVAL_MS) {
