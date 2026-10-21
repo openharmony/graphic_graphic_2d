@@ -24,6 +24,7 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
@@ -1081,6 +1082,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     }
     RSLuminanceControl::Get().UpdateScreenStatus(id, status);
     RSColorTemperature::Get().UpdateScreenStatus(id, status);
+    RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(id, status);
     std::lock_guard<std::mutex> lock(powerStatusMutex_);
     screenPowerStatus_[id] = status;
 }
