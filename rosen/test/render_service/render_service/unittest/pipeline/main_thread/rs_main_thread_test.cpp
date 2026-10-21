@@ -5091,6 +5091,7 @@ HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrameTest, TestSize.Lev
 
     mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::ACTIVE_RECT_OPTION);
     mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::MULTI_SURFACE_CONFIGS);
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE);
 }
 
 /**

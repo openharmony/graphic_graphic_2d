@@ -30,7 +30,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
-#include "screen_manager/rs_screen.h"
 #include "system/rs_system_parameters.h"
 #include "utils/system_properties.h"
 #include "v2_2/buffer_handle_meta_key_type.h"
@@ -67,13 +66,18 @@ public:
     }
 };
 
+static void SetVirtualScreenHDRMode(RSScreenRenderNode& node, HDRMode mode)
+{
+    node.UpdateScreenProperty(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(mode)));
+}
+
 class RSHdrUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 };
 
 void RSHdrUtilTest::SetUpTestCase()
@@ -882,12 +886,12 @@ HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateHDRCastPropertiesTest
- * @tc.desc: Test UpdateHDRCastProperties
+ * @tc.name: UpdateVirtualScreenHDRPropertiesTest
+ * @tc.desc: Test UpdateVirtualScreenHDRProperties
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST_F(RSHdrUtilTest, UpdateHDRCastPropertiesTest, TestSize.Level1)
+HWTEST_F(RSHdrUtilTest, UpdateVirtualScreenHDRPropertiesTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
@@ -895,9 +899,9 @@ HWTEST_F(RSHdrUtilTest, UpdateHDRCastPropertiesTest, TestSize.Level1)
     auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
     ASSERT_NE(param, nullptr);
     screenNode->SetFixVirtualBuffer10Bit(false);
-    RSHdrUtil::UpdateHDRCastProperties(*screenNode, true, true);
+    RSHdrUtil::UpdateVirtualScreenHDRProperties(*screenNode, true, true);
     screenNode->SetFixVirtualBuffer10Bit(true);
-    RSHdrUtil::UpdateHDRCastProperties(*screenNode, true, true);
+    RSHdrUtil::UpdateVirtualScreenHDRProperties(*screenNode, true, true);
     EXPECT_EQ(param->GetHDRPresent(), true);
 }
 
@@ -936,71 +940,66 @@ HWTEST_F(RSHdrUtilTest, NeedUseF16CaptureTest, TestSize.Level1)
 
 /**
  * @tc.name: HandleVirtualScreenHDRStatus
- * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.desc: Test HandleVirtualScreenHDRStatus with HDR_DYNAMIC and a mirror composite screen
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
 {
-    ASSERT_NE(screenManager_, nullptr);
-    screenManager_->Init(nullptr);
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
-
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
-    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_DYNAMIC);
 
-    screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
-    // COLOR_GAMUT_BT2100_HLG index in supportedVirtualColorGamuts_ is 4
-    screenManager_->SetScreenColorGamut(virtualScreenId, 4);
+    // with HDR_DYNAMIC, a missing mirror source skips the frame without consuming the first
+    // frame flag, so the 10bit decision is re-evaluated on the next frame.
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // mirror node is null
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), true);
 
-    screenNode->SetIsMirrorScreen(true);
     NodeId id = 1;
     auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id, 0);
+    // the render params are not created by the node constructor, set them before collecting the
+    // HDR status of the mirror source screen.
+    mirrorSourceNode->stagingRenderParams_ =
+        std::make_unique<RSScreenRenderParams>(mirrorSourceNode->GetId());
+    // SetMirrorSource is a no-op unless the screen is marked as a mirror screen first.
+    screenNode->SetIsMirrorScreen(true);
     screenNode->SetMirrorSource(mirrorSourceNode);
-    mirrorSourceNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO);
-    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // mirror node is not null
-
-    ScreenColorGamut colorGamut;
-    EXPECT_EQ(screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
+    mirrorSourceNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // mirror has HDR content
+    // no HDR on the mirror source screen in UT environment, the cast goes the SDR path.
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
     EXPECT_NE(screenNode->GetMirrorSource().lock(), nullptr);
-    EXPECT_EQ(static_cast<GraphicColorGamut>(colorGamut), GRAPHIC_COLOR_GAMUT_BT2100_HLG);
 }
 
 /**
- * @tc.name: HandleVirtualScreenHDRStatus
- * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.name: HandleVirtualScreenHDRStatusTest002
+ * @tc.desc: With HDR_DYNAMIC, a composite type that is not a virtual screen does not update the
+ *           HDR properties, a virtual expand screen updates them.
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
 HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
 {
-    ASSERT_NE(screenManager_, nullptr);
-    screenManager_->Init(nullptr);
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
-    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_DYNAMIC);
 
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
-    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
-    ScreenColorGamut colorGamut;
-    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), true);
 
-    screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
-    // COLOR_GAMUT_BT2100_HLG index in supportedVirtualColorGamuts_ is 4
-    screenManager_->SetScreenColorGamut(virtualScreenId, 4);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    // no HDR on the screen in UT environment, the cast goes the SDR path.
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
-    EXPECT_EQ(screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
-    EXPECT_EQ(static_cast<GraphicColorGamut>(colorGamut), GRAPHIC_COLOR_GAMUT_BT2100_HLG);
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
 }
 
 /**
  * @tc.name: HandleVirtualScreenHDRStatusTest003
- * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.desc: With the default HDR mode NONE, the HDR properties are updated for all composite
+ *           types, the HDR switch does not depend on the composite type.
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
@@ -1009,6 +1008,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest003, TestSize.Level1)
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false); // NONE goes the SDR path
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
@@ -1016,6 +1016,165 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest003, TestSize.Level1)
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
     EXPECT_EQ(screenNode->GetCompositeType(), CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest004
+ * @tc.desc: With HDR_DYNAMIC, the HDR output dynamically follows the HDR status of the screen,
+ *           and the virtual buffer is fixed to 10bit from the first frame.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_DYNAMIC);
+    screenNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // screen has HDR content
+
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // HDR on
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), true);
+    EXPECT_EQ(param->GetHDRPresent(), true);
+
+    // screen switches to SDR: the cast HDR state follows the screen dynamically.
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), true);
+    EXPECT_EQ(param->GetHDRPresent(), false);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest005
+ * @tc.desc: With the default HDR mode NONE, the virtual screen goes the SDR path even if the
+ *           screen has HDR content, and the virtual buffer is not fixed to 10bit.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest005, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    screenNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // screen has HDR content
+
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // HDR mode NONE by default
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), false);
+    EXPECT_EQ(param->GetHDRPresent(), false);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest006
+ * @tc.desc: Switching the HDR mode to NONE stops HDR casting even if the buffer is already
+ *           fixed to 10bit.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest006, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_DYNAMIC);
+    screenNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // screen has HDR content
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // HDR on
+    EXPECT_EQ(param->GetHDRPresent(), true);
+
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::NONE); // HDR off
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    EXPECT_EQ(param->GetHDRPresent(), false);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest007
+ * @tc.desc: With HDR_STATIC, the HDR output keeps unchanged when the screen content switches
+ *           HDR/SDR, and the virtual buffer is fixed to 10bit from the first frame.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest007, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_STATIC);
+    screenNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // screen has HDR content
+
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // HDR on
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), true);
+    EXPECT_EQ(param->GetHDRPresent(), true);
+
+    // screen switches to SDR: the HDR output keeps unchanged, the color gamut does not switch.
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), true);
+    EXPECT_EQ(param->GetHDRPresent(), true);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest008
+ * @tc.desc: HDR_DYNAMIC on after the first frame does not fix the virtual buffer to 10bit: the
+ *           10bit decision is made only at the first frame of the virtual screen.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest008, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    screenNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO); // screen has HDR content
+
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // first frame, HDR mode NONE by default
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), false);
+
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_DYNAMIC); // HDR on after the first frame
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), false);
+    EXPECT_EQ(param->GetHDRPresent(), false);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest009
+ * @tc.desc: With HDR_STATIC, the mode dispatch does not depend on the mirror source, the HDR
+ *           properties are updated even if the mirror source is missing.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest009, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
+    SetVirtualScreenHDRMode(*screenNode, HDRMode::HDR_STATIC);
+
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // mirror node is null
+    EXPECT_EQ(screenNode->GetFirstFrameVirtualScreenInit(), false);
+    EXPECT_EQ(screenNode->GetFixVirtualBuffer10Bit(), true);
+    EXPECT_EQ(param->GetHDRPresent(), true);
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

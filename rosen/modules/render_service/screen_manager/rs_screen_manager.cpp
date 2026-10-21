@@ -1363,6 +1363,28 @@ int32_t RSScreenManager::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return screen->SetScreenColorGamut(modeIdx);
 }
 
+int32_t RSScreenManager::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
+    return screen->SetVirtualScreenHDRMode(mode);
+}
+
+int32_t RSScreenManager::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
+    return screen->GetVirtualScreenHDRMode(mode);
+}
+
 int32_t RSScreenManager::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     auto screen = GetScreen(id);

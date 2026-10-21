@@ -577,6 +577,24 @@ int32_t RSScreenManagerAgent::GetScreenColorGamut(ScreenId id, ScreenColorGamut&
     return screenManager_->GetScreenColorGamut(id, mode);
 }
 
+int32_t RSScreenManagerAgent::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSScreenManagerAgent::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSScreenManagerAgent::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     if (!screenManager_) {

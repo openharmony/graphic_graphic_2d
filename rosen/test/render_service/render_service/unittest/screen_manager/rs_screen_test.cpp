@@ -1766,6 +1766,35 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_006, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: SetVirtualScreenHDRMode Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetVirtualScreenHDRMode_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
+    // invalid HDR mode
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_MODE_BUTT), StatusCode::INVALID_ARGUMENTS);
+
+    // physical screen does not support HDR mode
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_EQ(rsScreen->SetVirtualScreenHDRMode(HDRMode::HDR_DYNAMIC), StatusCode::SCREEN_TYPE_ERROR);
+    HDRMode physicalMode = HDRMode::HDR_STATIC;
+    ASSERT_EQ(rsScreen->GetVirtualScreenHDRMode(physicalMode), StatusCode::SCREEN_TYPE_ERROR);
+    ASSERT_EQ(physicalMode, HDRMode::HDR_STATIC); // mode keeps unchanged on failure
+
+    // virtual screen: set and get
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_STATIC), StatusCode::SUCCESS);
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(virtualScreen->GetVirtualScreenHDRMode(mode), StatusCode::SUCCESS);
+    ASSERT_EQ(mode, HDRMode::HDR_STATIC);
+}
+
+/*
  * @tc.name: SetScreenColorGamut_007
  * @tc.desc: SetScreenColorGamut Test, not virtual, expect SUCCESS
  * @tc.type: FUNC

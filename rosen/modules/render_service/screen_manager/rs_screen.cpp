@@ -1119,6 +1119,32 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreen::SetVirtualScreenHDRMode(HDRMode mode)
+{
+    if (mode >= HDRMode::HDR_MODE_BUTT) {
+        RS_LOGW("%{public}s: invalid HDR mode: %{public}u.", __func__, static_cast<uint32_t>(mode));
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (!IsVirtual()) {
+        RS_LOGW("%{public}s: physical screen(id %{public}" PRIu64 ") not support HDR mode.", __func__,
+            property_.GetId());
+        return StatusCode::SCREEN_TYPE_ERROR;
+    }
+    UPDATE_PROPERTY(VirtualScreenHDRMode, mode);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetVirtualScreenHDRMode(HDRMode& mode) const
+{
+    if (!IsVirtual()) {
+        RS_LOGW("%{public}s: physical screen(id %{public}" PRIu64 ") not support HDR mode.", __func__,
+            property_.GetId());
+        return StatusCode::SCREEN_TYPE_ERROR;
+    }
+    mode = property_.GetVirtualScreenHDRMode();
+    return StatusCode::SUCCESS;
+}
+
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), ScreenRotation: %{public}u.", __func__,

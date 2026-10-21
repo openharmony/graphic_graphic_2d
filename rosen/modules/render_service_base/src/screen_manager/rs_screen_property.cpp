@@ -105,6 +105,11 @@ ScreenColorGamut RSScreenProperty::GetScreenColorGamut() const
     return static_cast<ScreenColorGamut>(Get<ScreenPropertyType::COLOR_GAMUT>());
 }
 
+HDRMode RSScreenProperty::GetVirtualScreenHDRMode() const
+{
+    return static_cast<HDRMode>(Get<ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE>());
+}
+
 ScreenGamutMap RSScreenProperty::GetScreenGamutMap() const
 {
     return static_cast<ScreenGamutMap>(Get<ScreenPropertyType::GAMUT_MAP>());
@@ -399,6 +404,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
         UNMARSHALL_CASE(ScreenPropertyType::DUAL_SCREEN_STATE)
         UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_MODE)
+        UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE)
         UNMARSHALL_CASE(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));

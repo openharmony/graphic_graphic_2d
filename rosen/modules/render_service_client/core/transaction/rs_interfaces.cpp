@@ -659,6 +659,16 @@ int32_t RSInterfaces::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return renderServiceClient_->SetScreenColorGamut(id, modeIdx);
 }
 
+int32_t RSInterfaces::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    return renderServiceClient_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSInterfaces::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    return renderServiceClient_->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     return renderServiceClient_->SetScreenGamutMap(id, mode);

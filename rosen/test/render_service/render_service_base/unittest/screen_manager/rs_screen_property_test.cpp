@@ -102,6 +102,7 @@ HWTEST_F(RSScreenPropertyTest, MarshallingTest002, TestSize.Level1)
     ADD_PROP(ScreenPropertyType::SCALE_MODE, static_cast<uint32_t>(ScreenScaleMode::UNISCALE_MODE));
     ADD_PROP(ScreenPropertyType::SCREEN_STATUS, static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
     ADD_PROP(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION, 0);
+    ADD_PROP(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE, static_cast<uint32_t>(HDRMode::HDR_DYNAMIC));
     ADD_PROP(ScreenPropertyType::IS_HARD_CURSOR_SUPPORT, false);
     ADD_PROP(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS, std::vector<ScreenColorGamut>());
     ADD_PROP(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, false);
@@ -117,6 +118,23 @@ HWTEST_F(RSScreenPropertyTest, MarshallingTest002, TestSize.Level1)
 
     auto dstProperty = sptr<RSScreenProperty>(RSScreenProperty::Unmarshalling(parcel));
     ASSERT_NE(dstProperty, nullptr);
+}
+
+/**
+ * @tc.name: GetVirtualScreenHDRModeTest001
+ * @tc.desc: Test RSScreenProperty GetVirtualScreenHDRMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, GetVirtualScreenHDRModeTest001, TestSize.Level1)
+{
+    RSScreenProperty property;
+    // default value when the property is not set
+    ASSERT_EQ(property.GetVirtualScreenHDRMode(), HDRMode::NONE);
+    // set and get
+    auto prop = sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(HDRMode::HDR_STATIC));
+    property.Set(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE, prop);
+    ASSERT_EQ(property.GetVirtualScreenHDRMode(), HDRMode::HDR_STATIC);
 }
 
 /**

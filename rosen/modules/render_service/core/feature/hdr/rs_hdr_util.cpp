@@ -48,6 +48,7 @@ const std::vector<uint8_t> HDR_VIVID_METADATA = {
     81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0,
     0, 72, 85, 65, 87, 0, 8, 1, 67, 65, 83, 84, 0, 1, 1
 };
+
 }
 
 HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
@@ -539,7 +540,20 @@ bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawin
 
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
-    ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
+    HDRMode virtualScreenHDRMode = node.GetScreenProperty().GetVirtualScreenHDRMode();
+    if (virtualScreenHDRMode == HDRMode::NONE) {
+        // NONE: HDR off, the virtual screen goes the SDR path.
+        UpdateVirtualScreenHDRProperties(node, false, false);
+        return;
+    }
+    if (virtualScreenHDRMode == HDRMode::HDR_STATIC) {
+        // HDR_STATIC: the HDR output keeps unchanged during recording, HDR/SDR switches of the
+        // screen content do not change the color gamut of the virtual screen output.
+        UpdateVirtualScreenHDRProperties(node, true, true);
+        return;
+    }
+    // HDR_DYNAMIC: the HDR output follows the HDR status of the screen content dynamically, the
+    // color gamut of the virtual screen output switches when the content switches HDR/SDR.
     if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
@@ -548,29 +562,27 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
         }
         bool mirrorNodeIsHDROn = RSLuminanceControl::Get().IsHdrOn(mirrorNode->GetScreenId()) &&
             mirrorNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR;
-        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        bool isNeedHDRCast = mirrorNodeIsHDROn && hdrCastColorGamut;
         RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast mirrorNodeIsHDROn: %{public}d, "
-            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
-            mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
-        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
+            "HDRMode: %{public}u, GetFirstFrameVirtualScreenInit: %{public}d",
+            mirrorNodeIsHDROn, static_cast<uint32_t>(virtualScreenHDRMode),
+            node.GetFirstFrameVirtualScreenInit());
+        UpdateVirtualScreenHDRProperties(node, mirrorNodeIsHDROn, true);
     } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
                node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
-        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;
         RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast expandIsHDROn: %{public}d, "
-            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
-            expandIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
-        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
+            "HDRMode: %{public}u, GetFirstFrameVirtualScreenInit: %{public}d",
+            expandIsHDROn, static_cast<uint32_t>(virtualScreenHDRMode),
+            node.GetFirstFrameVirtualScreenInit());
+        UpdateVirtualScreenHDRProperties(node, expandIsHDROn, true);
     }
 }
 
-void RSHdrUtil::UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut)
+void RSHdrUtil::UpdateVirtualScreenHDRProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool enableHdr)
 {
     if (node.GetFirstFrameVirtualScreenInit()) {
         node.SetFirstFrameVirtualScreenInit(false);
-        if (hdrCastColorGamut) {
+        if (enableHdr) {
             node.SetFixVirtualBuffer10Bit(true);
         }
     }

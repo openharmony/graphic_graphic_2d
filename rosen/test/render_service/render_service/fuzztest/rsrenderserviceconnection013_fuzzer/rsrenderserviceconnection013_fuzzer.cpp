@@ -73,6 +73,8 @@ const uint8_t DO_SET_SCREEN_GAMUT_MAP = 17;
 const uint8_t DO_GET_SCREEN_GAMUT_MAP = 18;
 const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
+const uint8_t DO_SET_VIRTUAL_SCREEN_HDR_MODE = 21;
+const uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 23;
 
 constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
 
@@ -409,6 +411,32 @@ void DoSetScreenColorGamut(FuzzedDataProvider& fdp)
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
 }
 
+void DoSetVirtualScreenHDRMode(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataP;
+    MessageParcel reply;
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint32_t mode = fdp.ConsumeIntegral<uint32_t>();
+    dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataP.WriteUint64(id);
+    dataP.WriteUint32(mode);
+    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoGetVirtualScreenHDRMode(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataP;
+    MessageParcel reply;
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataP.WriteUint64(id);
+    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+}
+
 void DoSetScreenGamutMap(FuzzedDataProvider& fdp)
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
@@ -688,6 +716,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_RESIZE_VIRTUAL_SCREEN:
             OHOS::Rosen::DoResizeVirtualScreen(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoSetVirtualScreenHDRMode(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoGetVirtualScreenHDRMode(fdp);
             break;
         case OHOS::Rosen::DO_SET_ROG_SCREEN_RESOLUTION:
             OHOS::Rosen::DoSetRogScreenResolution(fdp);

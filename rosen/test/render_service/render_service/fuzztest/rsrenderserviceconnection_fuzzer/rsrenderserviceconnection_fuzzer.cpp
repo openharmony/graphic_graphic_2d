@@ -989,6 +989,19 @@ bool DOGetScreenSupportedHDRFormats()
     return true;
 }
 
+bool DOVirtualScreenHDRMode()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t mode = GetData<uint32_t>();
+    rsToServiceConn_->SetVirtualScreenHDRMode(id, static_cast<HDRMode>(mode));
+    HDRMode mode1 = HDRMode::NONE;
+    rsToServiceConn_->GetVirtualScreenHDRMode(id, mode1);
+    return true;
+}
+
 bool DOGetScreenSupportedColorSpaces()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1694,6 +1707,7 @@ void DoFuzzerTest2()
     DoSetGlobalDarkColorMode();
     DoSetPixelFormat();
     DOGetScreenSupportedHDRFormats();
+    DOVirtualScreenHDRMode();
     DOGetScreenSupportedColorSpaces();
     DOSetVirtualScreenRefreshRate();
     DOSetSystemAnimatedScenes();

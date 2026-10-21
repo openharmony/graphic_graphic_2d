@@ -277,6 +277,10 @@ public:
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
 
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode);
+
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);

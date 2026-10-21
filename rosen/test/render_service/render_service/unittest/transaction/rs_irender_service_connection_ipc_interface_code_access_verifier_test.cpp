@@ -62,6 +62,24 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfa
 }
 
 /**
+ * @tc.name: IsInterfaceCodeAccessibleVirtualScreenHDRModeTest001
+ * @tc.desc: verify SET_VIRTUAL_SCREEN_HDR_MODE and GET_VIRTUAL_SCREEN_HDR_MODE are system-calling codes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsInterfaceCodeAccessibleVirtualScreenHDRModeTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+}
+
+/**
  * @tc.name: IsSystemCallingTest001
  * @tc.desc: test
  * @tc.type: FUNC

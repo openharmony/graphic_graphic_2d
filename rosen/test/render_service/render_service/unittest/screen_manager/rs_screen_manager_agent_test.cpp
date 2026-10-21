@@ -1103,6 +1103,52 @@ HWTEST_F(RSScreenManagerAgentTest, GetScreenColorGamut001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenHDRMode001
+ * @tc.desc: Test SetVirtualScreenHDRMode and GetVirtualScreenHDRMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenHDRMode001, TestSize.Level1)
+{
+    // no screen for the id
+    ScreenId screenId = GenerateScreenId();
+    auto ret = screenManagerAgent_->SetVirtualScreenHDRMode(screenId, HDRMode::HDR_DYNAMIC);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    HDRMode mode = HDRMode::NONE;
+    ret = screenManagerAgent_->GetVirtualScreenHDRMode(screenId, mode);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    // screenManager_ is nullptr
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    screenManagerAgent_->SetVirtualScreenHDRMode(screenId, HDRMode::HDR_DYNAMIC);
+    screenManagerAgent_->GetVirtualScreenHDRMode(screenId, mode);
+    screenManagerAgent_->screenManager_ = screenManager;
+
+    // virtual screen: set and get
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    GetGlobalPreprocessor();
+    ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
+    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+        "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    ret = screenManagerAgent_->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_STATIC);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    ret = screenManagerAgent_->GetVirtualScreenHDRMode(virtualScreenId, mode);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_EQ(mode, HDRMode::HDR_STATIC);
+
+    screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
  * @tc.name: GetScreenSupportedColorGamuts001
  * @tc.desc: Test GetScreenSupportedColorGamuts
  * @tc.type: FUNC

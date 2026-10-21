@@ -113,6 +113,8 @@ public:
 
     int32_t SetScreenColorGamut(int32_t modeIdx);
     int32_t GetScreenColorGamut(ScreenColorGamut& mode) const;
+    int32_t SetVirtualScreenHDRMode(HDRMode mode);
+    int32_t GetVirtualScreenHDRMode(HDRMode& mode) const;
     int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut>& mode) const;
     int32_t SetScreenGamutMap(ScreenGamutMap mode);
     int32_t GetScreenGamutMap(ScreenGamutMap& mode) const;

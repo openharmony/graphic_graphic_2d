@@ -6260,6 +6260,7 @@ static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
         case ScreenPropertyType::SCREEN_SWITCH_STATUS:
         case ScreenPropertyType::DUAL_SCREEN_STATE:
         case ScreenPropertyType::WHITE_LIST:
+        case ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE:
             return true;
         default:
             return false;
