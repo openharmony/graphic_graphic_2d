@@ -15,13 +15,20 @@
 
 #include "text/typeface.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #ifdef ENABLE_OHOS_ENHANCE
 #include "ashmem.h"
+#include <cerrno>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #endif
 #include "static_factory.h"
 
 #include "impl_interface/typeface_impl.h"
 #include "static_factory.h"
+#include "securec.h"
 #include "utils/log.h"
 
 #ifdef USE_M133_SKIA
@@ -71,17 +78,89 @@ std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream>
     return StaticFactory::MakeFromStream(std::move(memoryStream), fontArguments);
 }
 
+#ifdef ENABLE_OHOS_ENHANCE
+// RAII context for a process-private font buffer copy.  When the MemoryStream
+// that owns it is destroyed, ReleasePrivateFontBuffer frees the heap buffer and
+// closes the source ashmem fd, matching the lifetime semantics of the original
+// Ashmem-based code (where the Ashmem destructor closed the source fd).
+struct PrivateFontBuffer {
+    uint8_t* data;
+    int32_t srcFd; // source ashmem fd (-1 if not owned)
+};
+
+static void ReleasePrivateFontBuffer(const void* /*ptr*/, void* context)
+{
+    auto* pb = static_cast<PrivateFontBuffer*>(context);
+    if (pb == nullptr) {
+        return;
+    }
+    delete[] pb->data;
+    if (pb->srcFd >= 0) {
+        close(pb->srcFd);
+    }
+    delete pb;
+}
+
+// Copy the contents of an externally-supplied ashmem fd into a process-private
+// heap buffer that the original caller can no longer mutate.  This eliminates
+// the TOCTOU window in which the caller could rewrite the MAP_SHARED backing
+// store while Skia/FreeType is parsing it.  A sealed memfd is deliberately NOT
+// used here: some platforms forbid mapping a sealed memfd at all (mmap returns
+// EPERM), so the private copy is kept in a plain heap buffer instead.  The
+// source fd is NOT closed; the caller manages its lifetime.  Returns a
+// PrivateFontBuffer whose data is the private copy, or nullptr on failure.
+static PrivateFontBuffer* MakePrivateFontCopy(int32_t srcFd, uint32_t size)
+{
+    if (srcFd < 0 || size == 0) {
+        LOGE("MakePrivateFontCopy: invalid args, fd:%{public}d, size:%{public}u", srcFd, size);
+        return nullptr;
+    }
+
+    void* srcAddr = mmap(nullptr, size, PROT_READ, MAP_SHARED, srcFd, 0);
+    if (srcAddr == MAP_FAILED) {
+        LOGE("MakePrivateFontCopy: mmap src failed, fd:%{public}d, size:%{public}u, errno:%{public}d",
+            srcFd, size, errno);
+        return nullptr;
+    }
+
+    auto* buffer = new (std::nothrow) uint8_t[size];
+    if (buffer == nullptr) {
+        LOGE("MakePrivateFontCopy: alloc buffer failed, fd:%{public}d, size:%{public}u", srcFd, size);
+        munmap(srcAddr, size);
+        return nullptr;
+    }
+
+    errno_t err = memcpy_s(buffer, size, srcAddr, size);
+    munmap(srcAddr, size);
+    if (err != EOK) {
+        LOGE("MakePrivateFontCopy: memcpy_s failed, err:%{public}d, fd:%{public}d, size:%{public}u",
+            err, srcFd, size);
+        delete[] buffer;
+        return nullptr;
+    }
+
+    auto* pb = new (std::nothrow) PrivateFontBuffer{buffer, -1};
+    if (pb == nullptr) {
+        LOGE("MakePrivateFontCopy: alloc context failed, fd:%{public}d, size:%{public}u", srcFd, size);
+        delete[] buffer;
+        return nullptr;
+    }
+    return pb;
+}
+#endif
+
 std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash, uint32_t index)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    auto ashmem = std::make_unique<Ashmem>(fd, size);
-    bool mapResult = ashmem->MapReadOnlyAshmem();
-    const void* ptr = ashmem->ReadFromAshmem(size, 0);
-    if (!mapResult || ptr == nullptr) {
+    PrivateFontBuffer* pb = MakePrivateFontCopy(fd, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            fd, size);
         return nullptr;
     }
-    auto stream = std::make_unique<MemoryStream>(
-        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    pb->srcFd = fd;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
         LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
@@ -104,14 +183,15 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     const FontArguments& fontArguments)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    auto ashmem = std::make_unique<Ashmem>(fd, size);
-    bool mapResult = ashmem->MapReadOnlyAshmem();
-    const void* ptr = ashmem->ReadFromAshmem(size, 0);
-    if (!mapResult || ptr == nullptr) {
+    PrivateFontBuffer* pb = MakePrivateFontCopy(fd, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            fd, size);
         return nullptr;
     }
-    auto stream = std::make_unique<MemoryStream>(
-        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    pb->srcFd = fd;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     auto tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
     if (tf == nullptr) {
         LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
@@ -134,14 +214,15 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(SharedTypeface& sharedTypefac
 {
 #ifdef ENABLE_OHOS_ENHANCE
     uint32_t size = sharedTypeface.size_;
-    auto ashmem = std::make_unique<Ashmem>(sharedTypeface.fd_, size);
-    bool mapResult = ashmem->MapReadOnlyAshmem();
-    const void* ptr = ashmem->ReadFromAshmem(size, 0);
-    if (!mapResult || ptr == nullptr) {
+    PrivateFontBuffer* pb = MakePrivateFontCopy(sharedTypeface.fd_, size);
+    if (pb == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: failed to create private font copy, fd:%{public}d, size:%{public}u",
+            sharedTypeface.fd_, size);
         return nullptr;
     }
-    auto stream = std::make_unique<MemoryStream>(
-        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    pb->srcFd = sharedTypeface.fd_;
+    const void* ptr = pb->data;
+    auto stream = std::make_unique<MemoryStream>(ptr, size, ReleasePrivateFontBuffer, pb);
     std::shared_ptr<Typeface> tf = nullptr;
     if (sharedTypeface.hasFontArgs_) {
         FontArguments fontArguments;
