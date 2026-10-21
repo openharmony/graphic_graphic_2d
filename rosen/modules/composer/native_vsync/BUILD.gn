@@ -25,7 +25,7 @@ config("native_vsync_config") {
     "-g3",
   ]
 
-  if (target_cpu == "arm64" && defined(build_ext_path)) {
+  if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
     libnative_vsync_version_script =
       rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync/libnative_vsync.versionscript",
                   root_build_dir)
