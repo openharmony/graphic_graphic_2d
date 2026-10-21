@@ -35,7 +35,12 @@ RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColo
 #endif
     hash_ = hashFunc(&type_, sizeof(type_), 0);
     hash_ = hashFunc(&colorMode_, sizeof(colorMode_), hash_);
-    hash_ = hashFunc(&maskColor_, sizeof(maskColor_), hash_);
+    uint32_t maskColorArgb = maskColor_.AsArgbInt();
+    hash_ = hashFunc(&maskColorArgb, sizeof(maskColorArgb), hash_);
+    // AsArgbInt() clamps alpha to [0,255]; GetPostProcessAlpha/CaclMaskColor use raw GetAlpha().
+    // Hash separately to cover the full int16_t range.
+    int16_t maskColorAlpha = maskColor_.GetAlpha();
+    hash_ = hashFunc(&maskColorAlpha, sizeof(maskColorAlpha), hash_);
 }
 
 RSMaskColorShaderFilter::~RSMaskColorShaderFilter() = default;
