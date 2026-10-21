@@ -86,6 +86,28 @@ constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 constexpr uint32_t WAIT_HANDLER_TIME = 10000;
 constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
+constexpr int32_t DRAWOP_THRESHOLD_TEST = 10000;
+constexpr int32_t COMMAND_THRESHOLD_TEST = 50000;
+constexpr int64_t REPORT_INTERVAL_MS_TEST = 10 * 60 * 1000; // 10 minutes
+constexpr pid_t TEST_PID_1 = 1001;
+constexpr pid_t TEST_PID_2 = 1002;
+
+static int64_t GetSteadyTimeMs()
+{
+    auto curTime = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+}
+
+static std::shared_ptr<TransactionDataMap> BuildTransactionDataMap(pid_t pid, unsigned long commandCount)
+{
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec;
+    auto data = std::make_unique<RSTransactionData>();
+    data->payload_.resize(commandCount);
+    vec.emplace_back(std::move(data));
+    dataMap->emplace(pid, std::move(vec));
+    return dataMap;
+}
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 
 public:
@@ -9074,6 +9096,973 @@ HWTEST_F(RSMainThreadTest, ColorPickerNoticedNodeDirtyCallback003, TestSize.Leve
 
     mainThread->receiver_ = nullptr;
     mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit001
+ * @tc.desc: Test CheckDrawOpOverLimit reports when opCount exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit002
+ * @tc.desc: Test CheckDrawOpOverLimit does not report twice within interval
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t firstTime = mainThread->lastDrawOpReportTimeMap_[TEST_PID_1];
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], firstTime);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit003
+ * @tc.desc: Test CheckDrawOpOverLimit reports again after interval expires
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t expiredTime = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    mainThread->lastDrawOpReportTimeMap_[TEST_PID_1] = expiredTime;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_GT(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], expiredTime);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit004
+ * @tc.desc: Test CheckDrawOpOverLimit does not report when opCount is under threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST - 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit005
+ * @tc.desc: Test CheckDrawOpOverLimit with empty map does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.empty());
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit_MultiPid_001
+ * @tc.desc: Test CheckDrawOpOverLimit only reports for exceeding pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit_MultiPid_001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST - 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit001
+ * @tc.desc: Test CheckCommandOverLimit reports when commandCount exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit002
+ * @tc.desc: Test CheckCommandOverLimit does not report twice within interval
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t firstTime = mainThread->lastCommandReportTimeMap_[TEST_PID_1];
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_[TEST_PID_1], firstTime);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit003
+ * @tc.desc: Test CheckCommandOverLimit reports again after interval expires
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t expiredTime = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    mainThread->lastCommandReportTimeMap_[TEST_PID_1] = expiredTime;
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_GT(mainThread->lastCommandReportTimeMap_[TEST_PID_1], expiredTime);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit004
+ * @tc.desc: Test CheckCommandOverLimit does not report when commandCount is under threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST - 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit005
+ * @tc.desc: Test CheckCommandOverLimit with nullptr and empty map does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->CheckCommandOverLimit(nullptr);
+    auto emptyMap = std::make_shared<TransactionDataMap>();
+    mainThread->CheckCommandOverLimit(emptyMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.empty());
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit_MultiPid_001
+ * @tc.desc: Test CheckCommandOverLimit only reports for exceeding pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit_MultiPid_001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec1;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST - 1);
+    vec1.emplace_back(std::move(data1));
+    dataMap->emplace(TEST_PID_1, std::move(vec1));
+
+    std::vector<std::unique_ptr<RSTransactionData>> vec2;
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec2.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_2, std::move(vec2));
+
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit006
+ * @tc.desc: Test opCount exactly at threshold does not report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit007
+ * @tc.desc: Test opCount exactly threshold+1 does report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit008
+ * @tc.desc: Test very large opCount does not overflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = 100000000;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit009
+ * @tc.desc: Test opCount=1 does not report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit010
+ * @tc.desc: Test opCount=0 does not report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = 0;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit011
+ * @tc.desc: Test two pids both exceeding both report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit011, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST + 100;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit012
+ * @tc.desc: Test three pids with mixed exceeding states
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit012, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST - 1;
+    constexpr pid_t TEST_PID_3 = 1003;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_3] = DRAWOP_THRESHOLD_TEST + 50;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) == 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_3) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit013
+ * @tc.desc: Test pid exceeds then drops below threshold on second call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit013, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST - 1;
+    int64_t firstTime = mainThread->lastDrawOpReportTimeMap_[TEST_PID_1];
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], firstTime);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit014
+ * @tc.desc: Test opCount changes between calls but both exceed, interval dedup
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit014, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t firstTime = mainThread->lastDrawOpReportTimeMap_[TEST_PID_1];
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 500;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_[TEST_PID_1], firstTime);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit015
+ * @tc.desc: Test map cleared then same pid exceeds again reports
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit015, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit016
+ * @tc.desc: Test two pids, second exceeds only on second call after interval
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit016, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST - 1;
+    mainThread->CheckDrawOpOverLimit();
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    ASSERT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) == 0);
+    mainThread->lastDrawOpReportTimeMap_[TEST_PID_1] = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit017
+ * @tc.desc: Test three pids all exceeding all report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit017, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    constexpr pid_t TEST_PID_3 = 1003;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST + 10;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_3] = DRAWOP_THRESHOLD_TEST + 100;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.size(), 3u);
+}
+
+/**
+ * @tc.name: CheckDrawOpOverLimit020
+ * @tc.desc: Test large number of pids, some exceeding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckDrawOpOverLimit020, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    for (pid_t pid = 2000; pid < 2010; pid++) {
+        mainThread->canvasDrawingNodeOpCountMap_[pid] = DRAWOP_THRESHOLD_TEST - 1;
+    }
+    mainThread->canvasDrawingNodeOpCountMap_[2010] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.size(), 1u);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(2010) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit006
+ * @tc.desc: Test commandCount exactly at threshold does not report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit007
+ * @tc.desc: Test commandCount exactly threshold+1 does report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit008
+ * @tc.desc: Test multiple transactions for same pid sum exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST / 2);
+    vec.emplace_back(std::move(data1));
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST / 2 + 1);
+    vec.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_1, std::move(vec));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit009
+ * @tc.desc: Test multiple transactions for same pid sum does not exceed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST / 2);
+    vec.emplace_back(std::move(data1));
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST / 2 - 1);
+    vec.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_1, std::move(vec));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit010
+ * @tc.desc: Test transaction with empty payload (0 commands)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, 0);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit011
+ * @tc.desc: Test null transaction in vector is skipped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit011, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec.emplace_back(std::move(data1));
+    vec.emplace_back(nullptr);
+    dataMap->emplace(TEST_PID_1, std::move(vec));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit012
+ * @tc.desc: Test two pids both exceeding both report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit012, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec1;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec1.emplace_back(std::move(data1));
+    dataMap->emplace(TEST_PID_1, std::move(vec1));
+    std::vector<std::unique_ptr<RSTransactionData>> vec2;
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST + 100);
+    vec2.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_2, std::move(vec2));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit013
+ * @tc.desc: Test three pids with mixed exceeding states
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit013, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec1;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec1.emplace_back(std::move(data1));
+    dataMap->emplace(TEST_PID_1, std::move(vec1));
+    std::vector<std::unique_ptr<RSTransactionData>> vec2;
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST - 1);
+    vec2.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_2, std::move(vec2));
+    constexpr pid_t TEST_PID_3 = 1003;
+    std::vector<std::unique_ptr<RSTransactionData>> vec3;
+    auto data3 = std::make_unique<RSTransactionData>();
+    data3->payload_.resize(COMMAND_THRESHOLD_TEST + 50);
+    vec3.emplace_back(std::move(data3));
+    dataMap->emplace(TEST_PID_3, std::move(vec3));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) == 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_3) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit014
+ * @tc.desc: Test pid exceeds then drops below threshold on second call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit014, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMapExceed = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMapExceed);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    int64_t firstTime = mainThread->lastCommandReportTimeMap_[TEST_PID_1];
+    auto dataMapUnder = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST - 1);
+    mainThread->CheckCommandOverLimit(dataMapUnder);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_[TEST_PID_1], firstTime);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit015
+ * @tc.desc: Test large commandCount does not overflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit015, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, 500000);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit016
+ * @tc.desc: Test map cleared then same pid exceeds again reports
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit016, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit017
+ * @tc.desc: Test two pids, second exceeds only on second call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit017, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap1 = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec1a;
+    auto data1a = std::make_unique<RSTransactionData>();
+    data1a->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec1a.emplace_back(std::move(data1a));
+    dataMap1->emplace(TEST_PID_1, std::move(vec1a));
+    std::vector<std::unique_ptr<RSTransactionData>> vec2a;
+    auto data2a = std::make_unique<RSTransactionData>();
+    data2a->payload_.resize(COMMAND_THRESHOLD_TEST - 1);
+    vec2a.emplace_back(std::move(data2a));
+    dataMap1->emplace(TEST_PID_2, std::move(vec2a));
+    mainThread->CheckCommandOverLimit(dataMap1);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+    ASSERT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) == 0);
+    mainThread->lastCommandReportTimeMap_[TEST_PID_1] = GetSteadyTimeMs() - REPORT_INTERVAL_MS_TEST - 1;
+    auto dataMap2 = BuildTransactionDataMap(TEST_PID_2, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap2);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit018
+ * @tc.desc: Test three pids all exceeding all report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit018, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    constexpr pid_t TEST_PID_3 = 1003;
+    for (pid_t pid : {TEST_PID_1, TEST_PID_2, TEST_PID_3}) {
+        std::vector<std::unique_ptr<RSTransactionData>> vec;
+        auto data = std::make_unique<RSTransactionData>();
+        data->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+        vec.emplace_back(std::move(data));
+        dataMap->emplace(pid, std::move(vec));
+    }
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.size(), 3u);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit020
+ * @tc.desc: Test empty vector for a pid does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit020, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> emptyVec;
+    dataMap->emplace(TEST_PID_1, std::move(emptyVec));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCommandOverLimit025
+ * @tc.desc: Test large number of pids, some exceeding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCommandOverLimit025, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastCommandReportTimeMap_.clear();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    for (pid_t pid = 3000; pid < 3010; pid++) {
+        std::vector<std::unique_ptr<RSTransactionData>> vec;
+        auto data = std::make_unique<RSTransactionData>();
+        data->payload_.resize(COMMAND_THRESHOLD_TEST - 1);
+        vec.emplace_back(std::move(data));
+        dataMap->emplace(pid, std::move(vec));
+    }
+    std::vector<std::unique_ptr<RSTransactionData>> vec;
+    auto data = std::make_unique<RSTransactionData>();
+    data->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec.emplace_back(std::move(data));
+    dataMap->emplace(3010, std::move(vec));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.size(), 1u);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(3010) > 0);
+}
+
+/**
+ * @tc.name: CheckCmdOverThreshold_Combined001
+ * @tc.desc: Test both drawop and command exceed for same pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCmdOverThreshold_Combined002
+ * @tc.desc: Test both exceed for different pids
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_2, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CheckCmdOverThreshold_Combined003
+ * @tc.desc: Test drawop exceeds but command does not
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->CheckDrawOpOverLimit();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST - 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+}
+
+/**
+ * @tc.name: CheckCmdOverThreshold_Combined004
+ * @tc.desc: Test command exceeds but drawop does not
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST - 1;
+    mainThread->CheckDrawOpOverLimit();
+    auto dataMap = BuildTransactionDataMap(TEST_PID_1, COMMAND_THRESHOLD_TEST + 1);
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) == 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) > 0);
+}
+
+/**
+ * @tc.name: CheckCmdOverThreshold_Combined006
+ * @tc.desc: Test both exceed for multiple pids, verify correct pids in each map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->canvasDrawingNodeOpCountMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_1] = DRAWOP_THRESHOLD_TEST + 1;
+    mainThread->canvasDrawingNodeOpCountMap_[TEST_PID_2] = DRAWOP_THRESHOLD_TEST - 1;
+    mainThread->CheckDrawOpOverLimit();
+    auto dataMap = std::make_shared<TransactionDataMap>();
+    std::vector<std::unique_ptr<RSTransactionData>> vec1;
+    auto data1 = std::make_unique<RSTransactionData>();
+    data1->payload_.resize(COMMAND_THRESHOLD_TEST - 1);
+    vec1.emplace_back(std::move(data1));
+    dataMap->emplace(TEST_PID_1, std::move(vec1));
+    std::vector<std::unique_ptr<RSTransactionData>> vec2;
+    auto data2 = std::make_unique<RSTransactionData>();
+    data2->payload_.resize(COMMAND_THRESHOLD_TEST + 1);
+    vec2.emplace_back(std::move(data2));
+    dataMap->emplace(TEST_PID_2, std::move(vec2));
+    mainThread->CheckCommandOverLimit(dataMap);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_1) > 0);
+    EXPECT_TRUE(mainThread->lastDrawOpReportTimeMap_.count(TEST_PID_2) == 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_1) == 0);
+    EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
+}
+
+/**
+ * @tc.name: CleanResourcesReportTimeMap001
+ * @tc.desc: Test CleanResources erases per-pid entries in report time maps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesReportTimeMap001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr pid_t pidA = 2200;
+    constexpr pid_t pidB = 2300;
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
+    mainThread->lastDrawOpReportTimeMap_[pidA] = 1000;
+    mainThread->lastDrawOpReportTimeMap_[pidB] = 2000;
+    mainThread->lastCommandReportTimeMap_[pidA] = 1000;
+    mainThread->lastCommandReportTimeMap_[pidB] = 2000;
+    mainThread->CleanResources(pidA, false);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidB), 1u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidB), 1u);
+    mainThread->CleanResources(pidB, false);
+    EXPECT_EQ(mainThread->lastDrawOpReportTimeMap_.count(pidB), 0u);
+    EXPECT_EQ(mainThread->lastCommandReportTimeMap_.count(pidB), 0u);
+    mainThread->lastDrawOpReportTimeMap_.clear();
+    mainThread->lastCommandReportTimeMap_.clear();
 }
 } // namespace OHOS::Rosen
 #endif

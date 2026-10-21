@@ -604,6 +604,8 @@ private:
     uint32_t GetForceCommitReason() const;
 
     void TraverseCanvasDrawingNodes();
+    void CheckDrawOpOverLimit();
+    void CheckCommandOverLimit(const std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool CheckIfNeedSplitTransaction();
 
     void SetFocusLeashWindowId();
@@ -909,6 +911,8 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
 
     std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+    std::unordered_map<pid_t, int64_t> lastDrawOpReportTimeMap_;
+    std::unordered_map<pid_t, int64_t> lastCommandReportTimeMap_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
