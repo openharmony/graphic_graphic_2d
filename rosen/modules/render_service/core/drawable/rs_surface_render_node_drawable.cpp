@@ -165,6 +165,10 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
             SetNeedCacheRelatedSourceNode(true);
             return true;
         }
+        if (surfaceParams.IsCrossNode()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s crossNode not needCacheSurface, need clearCache", __func__);
+            subThreadCache_.GetRSDrawWindowCache().ClearCache();
+        }
         return false;
     }
 
@@ -176,6 +180,7 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
     }
+    subThreadCache_.GetRSDrawWindowCache().ClearCache();
     return false;
 }
 
