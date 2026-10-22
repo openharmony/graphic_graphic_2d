@@ -417,7 +417,6 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
     int fd = open(realPath.c_str(), O_RDONLY, 0);
     if (fd == -1) {
         WLOGE("open failed, errno:%{public}d", errno);
-        close(fd);
         return;
     }
     fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
