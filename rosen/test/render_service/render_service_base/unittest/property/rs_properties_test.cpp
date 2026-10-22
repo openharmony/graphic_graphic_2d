@@ -4980,8 +4980,8 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
-    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ClipType::BOUNDS_SHAPE));
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
 }
  
 /**
@@ -4992,7 +4992,7 @@ HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ClipType::DEFAULT_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
  
 /**
@@ -5004,10 +5004,10 @@ HWTEST_F(RSPropertiesTest, SetShadowClipTypeContentDirty001, TestSize.Level1)
 {
     RSProperties properties;
     EXPECT_FALSE(properties.IsContentDirty());
-    properties.SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     EXPECT_TRUE(properties.IsContentDirty());
 }
- 
+
 /**
  * @tc.name: DumpShadowClipType001
  * @tc.desc: Dump output includes ShadowClipType for both default and set values
@@ -5019,7 +5019,7 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
     properties.SetShadowRadius(1.0f);
     std::string dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[0]") != std::string::npos);
-    properties.SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
 }

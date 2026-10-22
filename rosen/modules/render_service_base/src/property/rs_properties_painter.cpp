@@ -342,8 +342,8 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
         if (properties.GetShadowIsFilled()) {
             return;
         }
-        auto clipType = static_cast<ClipType>(properties.GetShadowClipType());
-        if (clipType == ClipType::BOUNDS_SHAPE) {
+        auto clipType = static_cast<ShadowClipType>(properties.GetShadowClipType());
+        if (clipType == ShadowClipType::BOUNDS_SHAPE) {
             canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()),
                 Drawing::ClipOp::DIFFERENCE, true);
         } else {

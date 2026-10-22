@@ -336,9 +336,9 @@ HWTEST_F(RSShadowTest, TestRSShadow006, TestSize.Level1)
 HWTEST_F(RSShadowTest, SetClipTypeTest001, TestSize.Level1)
 {
     auto rsShadow = std::make_shared<RSShadow>();
-    rsShadow->SetClipType(ClipType::DEFAULT_SHAPE);
-    EXPECT_EQ(rsShadow->GetClipType(), ClipType::DEFAULT_SHAPE);
-    EXPECT_EQ(rsShadow->clipType_, ClipType::DEFAULT_SHAPE);
+    rsShadow->SetClipType(ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(rsShadow->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(rsShadow->clipType_, ShadowClipType::DEFAULT_SHAPE);
 }
  
 /**
@@ -349,9 +349,9 @@ HWTEST_F(RSShadowTest, SetClipTypeTest001, TestSize.Level1)
 HWTEST_F(RSShadowTest, SetClipTypeTest002, TestSize.Level1)
 {
     auto rsShadow = std::make_shared<RSShadow>();
-    rsShadow->SetClipType(ClipType::BOUNDS_SHAPE);
-    EXPECT_EQ(rsShadow->GetClipType(), ClipType::BOUNDS_SHAPE);
-    EXPECT_EQ(rsShadow->clipType_, ClipType::BOUNDS_SHAPE);
+    rsShadow->SetClipType(ShadowClipType::BOUNDS_SHAPE);
+    EXPECT_EQ(rsShadow->GetClipType(), ShadowClipType::BOUNDS_SHAPE);
+    EXPECT_EQ(rsShadow->clipType_, ShadowClipType::BOUNDS_SHAPE);
 }
  
 /**
@@ -362,7 +362,7 @@ HWTEST_F(RSShadowTest, SetClipTypeTest002, TestSize.Level1)
 HWTEST_F(RSShadowTest, GetClipTypeTest001, TestSize.Level1)
 {
     RSShadow shadow;
-    EXPECT_EQ(shadow.GetClipType(), ClipType::DEFAULT_SHAPE);
-    EXPECT_EQ(shadow.clipType_, ClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(shadow.GetClipType(), ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(shadow.clipType_, ShadowClipType::DEFAULT_SHAPE);
 }
 } // namespace OHOS::Rosen

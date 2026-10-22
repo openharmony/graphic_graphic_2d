@@ -67,12 +67,12 @@ HWTEST_F(RSShadowRenderModifierNGTypeTest, RSShadowRenderModifierTest, TestSize.
     EXPECT_EQ(properties.GetShadowIsFilled(), false);
     EXPECT_EQ(properties.GetShadowDisableSDFBlur(), false);
     EXPECT_EQ(properties.GetUseShadowBatching(), false);
-    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ClipType::DEFAULT_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
     
     // ResetProperties should reset clipType from BOUNDS_SHAPE back to DEFAULT_SHAPE
-    properties.SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
-    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ClipType::BOUNDS_SHAPE));
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ClipType::DEFAULT_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen

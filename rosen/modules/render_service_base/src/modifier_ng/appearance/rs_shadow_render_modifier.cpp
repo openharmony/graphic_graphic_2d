@@ -52,6 +52,6 @@ void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetShadowIsFilled(false);
     properties.SetShadowDisableSDFBlur(false);
     properties.SetUseShadowBatching(false);
-    properties.SetShadowClipType(static_cast<int>(ClipType::DEFAULT_SHAPE));
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen::ModifierNG

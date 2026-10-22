@@ -1363,10 +1363,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateTest, Tes
  
     node.GetMutableRenderProperties().SetShadowColor(Color());
     node.GetMutableRenderProperties().SetShadowRadius(1.0f);
-    node.GetMutableRenderProperties().SetShadowClipType(static_cast<int>(ClipType::BOUNDS_SHAPE));
+    node.GetMutableRenderProperties().SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
  
     shadowDrawable->OnUpdate(node);
-    EXPECT_EQ(shadowDrawable->stagingClipType_, static_cast<int>(ClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(shadowDrawable->stagingClipType_, static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     EXPECT_TRUE(shadowDrawable->needSync_);
 }
  
@@ -1379,11 +1379,11 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncTest, TestS
 {
     auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
     drawable->needSync_ = true;
-    drawable->stagingClipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
-    drawable->clipType_ = static_cast<int>(ClipType::DEFAULT_SHAPE);
+    drawable->stagingClipType_ = static_cast<int>(ShadowClipType::BOUNDS_SHAPE);
+    drawable->clipType_ = static_cast<int>(ShadowClipType::DEFAULT_SHAPE);
  
     drawable->OnSync();
-    EXPECT_EQ(drawable->clipType_, static_cast<int>(ClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(drawable->clipType_, static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     EXPECT_FALSE(drawable->needSync_);
 }
  
@@ -1408,10 +1408,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->color_ = Color(0, 0, 0, 255);
         drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
         drawable->isFilled_ = false;
-        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->clipType_ = static_cast<int>(ShadowClipType::BOUNDS_SHAPE);
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
- 
+
     // DEFAULT_SHAPE + isFilled=false + elevation (DrawShadow path, useBoundsClip=false)
     {
         auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
@@ -1422,10 +1422,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->color_ = Color(0, 0, 0, 255);
         drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
         drawable->isFilled_ = false;
-        drawable->clipType_ = static_cast<int>(ClipType::DEFAULT_SHAPE);
+        drawable->clipType_ = static_cast<int>(ShadowClipType::DEFAULT_SHAPE);
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
- 
+
     // BOUNDS_SHAPE + isFilled=true (useBoundsClip=false, clip not applied)
     {
         auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
@@ -1436,10 +1436,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->color_ = Color(0, 0, 0, 255);
         drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
         drawable->isFilled_ = true;
-        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->clipType_ = static_cast<int>(ShadowClipType::BOUNDS_SHAPE);
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
- 
+
     // BOUNDS_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path, useBoundsClip=true)
     {
         auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
@@ -1453,7 +1453,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->clipType_ = static_cast<int>(ShadowClipType::BOUNDS_SHAPE);
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
- 
+
     // DEFAULT_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path, useBoundsClip=false)
     {
         auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
@@ -1480,16 +1480,16 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateRRectTest
     NodeId id = 3;
     RSRenderNode node(id);
     auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
- 
+
     node.GetMutableRenderProperties().SetShadowColor(Color());
     node.GetMutableRenderProperties().SetShadowRadius(1.0f);
     node.GetMutableRenderProperties().SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
- 
+
     shadowDrawable->OnUpdate(node);
     EXPECT_EQ(shadowDrawable->stagingRRect_, node.GetRenderProperties().GetRRect());
     EXPECT_TRUE(shadowDrawable->needSync_);
 }
- 
+
 /**
  * @tc.name: RSShadowDrawableClipTypeOnSyncRRectTest
  * @tc.desc: Test OnSync syncs stagingRRect_ to rRect_
@@ -1502,7 +1502,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncRRectTest, 
     RectF rect(1.0f, 2.0f, 100.0f, 200.0f);
     RRect expectedRRect(rect, 10.0f, 20.0f);
     drawable->stagingRRect_ = expectedRRect;
- 
+
     drawable->OnSync();
     EXPECT_EQ(drawable->rRect_.rect_.left_, expectedRRect.rect_.left_);
     EXPECT_EQ(drawable->rRect_.rect_.top_, expectedRRect.rect_.top_);

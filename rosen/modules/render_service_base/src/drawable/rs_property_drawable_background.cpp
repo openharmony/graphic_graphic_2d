@@ -165,7 +165,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
-    bool useBoundsClip = !isFilled_ && clipType_ == ClipType::BOUNDS_SHAPE;
+    bool useBoundsClip = !isFilled_ && clipType_ == ShadowClipType::BOUNDS_SHAPE;
     if (geContainer_) {
         geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),

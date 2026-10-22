@@ -46,7 +46,7 @@ enum SHADOW_MASK_STRATEGY : int {
     MASK_COLOR_BLUR = 2,     // use BlenMode SRC_IN set color on image, then to blur
 };
 
-enum ClipType : int {
+enum ShadowClipType : int {
     DEFAULT_SHAPE = 0,
     BOUNDS_SHAPE = 1,
 };
@@ -66,7 +66,7 @@ public:
     void SetIsFilled(bool isFilled);
     void SetColorStrategy(int colorStrategy);
     void SetDisableSDFBlur(bool disable);
-    void SetClipType(ClipType clipType);
+    void SetClipType(ShadowClipType clipType);
 
     const Color& GetColor() const;
     float GetOffsetX() const;
@@ -79,7 +79,7 @@ public:
     bool GetIsFilled() const;
     int GetColorStrategy() const;
     bool GetDisableSDFBlur() const;
-    ClipType GetClipType() const;
+    ShadowClipType GetClipType() const;
 
     bool IsValid() const;
 
@@ -97,7 +97,7 @@ private:
     // SDFBlur approximates Gaussian blur with optimized performance (default: false = SDFBlur enabled for performance).
     // Set to true only if higher visual quality or better consistency is required.
     bool disableSDFBlur_ = false;
-    ClipType clipType_ = ClipType::DEFAULT_SHAPE;
+    ShadowClipType clipType_ = ShadowClipType::DEFAULT_SHAPE;
 };
 } // namespace Rosen
 } // namespace OHOS

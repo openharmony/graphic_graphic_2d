@@ -152,6 +152,6 @@ void RSShadowModifier::SetClipType(int clipType)
  
 int RSShadowModifier::GetClipType() const
 {
-    return Getter(RSPropertyType::SHADOW_CLIP_TYPE, static_cast<int>(ClipType::DEFAULT_SHAPE));
+    return Getter(RSPropertyType::SHADOW_CLIP_TYPE, static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen::ModifierNG

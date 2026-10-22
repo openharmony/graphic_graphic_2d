@@ -1451,7 +1451,7 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 }
 
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor
+    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor,
     const bool& useBoundsClip, const RRect& rRect_)
 {
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,

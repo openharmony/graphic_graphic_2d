@@ -78,7 +78,7 @@ void RSShadow::SetDisableSDFBlur(bool disable)
     disableSDFBlur_ = disable;
 }
 
-void RSShadow::SetClipType(ClipType clipType)
+void RSShadow::SetClipType(ShadowClipType clipType)
 {
     clipType_ = clipType;
 }
@@ -138,7 +138,7 @@ bool RSShadow::GetDisableSDFBlur() const
     return disableSDFBlur_;
 }
 
-ClipType RSShadow::GetClipType() const
+ShadowClipType RSShadow::GetClipType() const
 {
     return clipType_;
 }

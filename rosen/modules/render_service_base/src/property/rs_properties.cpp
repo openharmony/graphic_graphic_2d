@@ -2485,15 +2485,15 @@ bool RSProperties::GetShadowDisableSDFBlur() const
 
 void RSProperties::SetShadowClipType(int clipType)
 {
-    GetEffectProperties().SetShadowClipType(static_cast<ClipType>(clipType));
+    GetEffectProperties().SetShadowClipType(static_cast<ShadowClipType>(clipType));
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 int RSProperties::GetShadowClipType() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetClipType() : static_cast<int>(ClipType::DEFAULT_SHAPE);
+    return shadow ? shadow->GetClipType() : static_cast<int>(ShadowClipType::DEFAULT_SHAPE);
 }
 
 const Color& RSProperties::GetShadowColor() const

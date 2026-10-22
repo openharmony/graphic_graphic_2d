@@ -1505,12 +1505,12 @@ HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
     RSEffectProperties properties;
     EXPECT_FALSE(properties.GetShadow().has_value());
     // lazily creates shadow_ and sets clipType
-    properties.SetShadowClipType(ClipType::BOUNDS_SHAPE);
+    properties.SetShadowClipType(ShadowClipType::BOUNDS_SHAPE);
     EXPECT_TRUE(properties.GetShadow().has_value());
-    EXPECT_EQ(properties.GetShadow()->GetClipType(), ClipType::BOUNDS_SHAPE);
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::BOUNDS_SHAPE);
     // update on existing shadow_ does not recreate it
-    properties.SetShadowClipType(ClipType::DEFAULT_SHAPE);
-    EXPECT_EQ(properties.GetShadow()->GetClipType(), ClipType::DEFAULT_SHAPE);
+    properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
 }
 } // namespace Rosen
 } // namespace OHOS
