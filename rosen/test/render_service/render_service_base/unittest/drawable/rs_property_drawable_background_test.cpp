@@ -1440,7 +1440,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
  
-    // BOUNDS_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path)
+    // BOUNDS_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path, useBoundsClip=true)
     {
         auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
         drawable->elevation_ = 0.f;
@@ -1450,7 +1450,21 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->color_ = Color(0, 0, 0, 255);
         drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
         drawable->isFilled_ = false;
-        drawable->clipType_ = static_cast<int>(ClipType::BOUNDS_SHAPE);
+        drawable->clipType_ = static_cast<int>(ShadowClipType::BOUNDS_SHAPE);
+        drawable->OnDraw(filterCanvas.get(), rect.get());
+    }
+ 
+    // DEFAULT_SHAPE + isFilled=false + radius>0 (DrawShadowMaskFilter path, useBoundsClip=false)
+    {
+        auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+        drawable->elevation_ = 0.f;
+        drawable->radius_ = 10.0f;
+        drawable->offsetX_ = 5.f;
+        drawable->offsetY_ = 5.f;
+        drawable->color_ = Color(0, 0, 0, 255);
+        drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+        drawable->isFilled_ = false;
+        drawable->clipType_ = static_cast<int>(ShadowClipType::DEFAULT_SHAPE);
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
     ASSERT_TRUE(true);
