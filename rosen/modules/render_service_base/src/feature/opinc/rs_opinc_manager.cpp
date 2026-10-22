@@ -175,9 +175,10 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
 }
 
 void RSOpincManager::QuickCheckOpincStable(
-    RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode)
+    RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+    bool& hasUnstableOpincNode, bool hasAncestorRenderGroup)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s, nodeId:" PRIu64, __func__, node.GetId());
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s, nodeId:%" PRIu64, __func__, node.GetId());
     const auto* nodeOpincRootCache = node.TryGetOpincRootCachePtr();
     if (!GetOPIncSwitch() || !node.GetOpincCache().HasUnstableOpincNode()) {
         RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -193,14 +194,16 @@ void RSOpincManager::QuickCheckOpincStable(
 
         if (childOpincRootCache == nullptr || !childOpincRootCache->IsSuggestOpincNode()
             || childOpincRootCache->IsOpincUnchangeState()) {
-            QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+            QuickCheckOpincStable(
+                *child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode, hasAncestorRenderGroup);
             opincCache.SetHasUnstableOpincNode(childHasUnstableOpincNode);
             allChildHasUnstableOpincNode |= childHasUnstableOpincNode;
             continue;
         }
 
-        QuickMarkStableNode(*child, unchangeMarkInApp, unchangeMarkEnable, false);
-        QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+        QuickMarkStableNode(*child, unchangeMarkInApp, unchangeMarkEnable, false, hasAncestorRenderGroup);
+        QuickCheckOpincStable(
+            *child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode, hasAncestorRenderGroup);
         UpdateRootFlag(*child, unchangeMarkEnable);
         child->AddToPendingSyncList();
 

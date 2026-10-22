@@ -3830,7 +3830,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         }
         bool hasUnstableOpincNode = false;
         RSOpincManager::Instance().QuickCheckOpincStable(
-            node, unchangeMarkInApp_, unchangeMarkEnable_, hasUnstableOpincNode);
+            node, unchangeMarkInApp_, unchangeMarkEnable_, hasUnstableOpincNode, HasAncestorRenderGroup(node.GetId()));
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
