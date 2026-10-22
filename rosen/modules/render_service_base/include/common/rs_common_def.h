@@ -175,6 +175,7 @@ enum class RSSurfaceFrameType : uint8_t {
     RS_SURFACE_FRAME_OHOS_GL = 5,
     RS_SURFACE_FRAME_OHOS_RASTER = 6,
     RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+    RS_SURFACE_FRAME_LINUX = 8,
 };
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
