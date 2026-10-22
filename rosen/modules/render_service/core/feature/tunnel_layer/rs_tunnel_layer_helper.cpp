@@ -211,8 +211,13 @@ bool RSTunnelLayerHelper::TryCommitBufferDirect(const std::shared_ptr<RSSurfaceR
 
 std::mutex RSTunnelLayerHelper::screenPowerStatusMutex_;
 std::unordered_map<ScreenId, ScreenPowerStatus> RSTunnelLayerHelper::screenPowerStatusMap_;
-void RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(ScreenId screenId, ScreenPowerStatus status)
+void RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(ScreenId screenId, const sptr<ScreenPropertyBase>& property)
 {
+    auto prop = static_cast<ScreenProperty<uint32_t>*>(property.GetRefPtr());
+    if (!prop) {
+        return;
+    }
+    auto status = static_cast<ScreenPowerStatus>(prop->Get());
     std::lock_guard<std::mutex> lock(screenPowerStatusMutex_);
     screenPowerStatusMap_[screenId] = status;
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s screenId=%" PRIu64 ", status=%u",

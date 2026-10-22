@@ -53,6 +53,27 @@ void ClearUiCaptureTasks(RSMainThread& mainThread)
         mainThread.systemUiCaptureTasks_.pop();
     }
 }
+
+sptr<ScreenPropertyBase> MakePowerStatusProperty(ScreenPowerStatus status)
+{
+    return sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(status));
+}
+
+class ScopedScreenPowerStatus {
+public:
+    ScopedScreenPowerStatus(ScreenId screenId, ScreenPowerStatus status) : screenId_(screenId)
+    {
+        RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(screenId_, MakePowerStatusProperty(status));
+    }
+    ~ScopedScreenPowerStatus()
+    {
+        RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(
+            screenId_, MakePowerStatusProperty(ScreenPowerStatus::POWER_STATUS_ON));
+    }
+
+private:
+    ScreenId screenId_;
+};
 } // namespace
 
 class RSTunnelLayerHelperTest : public testing::Test {
@@ -1273,6 +1294,139 @@ HWTEST_F(RSTunnelLayerHelperTest, CanCommitBufferDirect_RejectsWhenHandlerNull, 
         context.node, composerClientManager, false, tunnelRuntime));
     EXPECT_FALSE(connection->commitTunnelCalled);
     context.node->surfaceHandler_ = savedHandler;
+}
+
+/**
+ * @tc.name: TryCommitPendingBuffer_CommitsWhenScreenPowerNotOff
+ * @tc.desc: Cover the true branch of `if (!IsScreenPowerOff(powerStatus))` in TryCommitPendingBuffer.
+ *           When the cached screen power status is a non-off state (POWER_STATUS_ON), the helper must
+ *           proceed to CommitBuffer so the recording connection observes the commit call.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_CommitsWhenScreenPowerNotOff, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    ScopedScreenPowerStatus scopedPower(0, ScreenPowerStatus::POWER_STATUS_ON);
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
+    tunnelRuntime.SetLayerInfo(state.tunnelLayerId, state.property);
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, false, tunnelRuntime));
+    EXPECT_TRUE(connection->commitTunnelCalled);
+}
+
+/**
+ * @tc.name: TryCommitPendingBuffer_SkipsCommitWhenScreenPowerOff
+ * @tc.desc: Cover the false branch of `if (!IsScreenPowerOff(powerStatus))` in TryCommitPendingBuffer.
+ *           When the cached screen power status is an off state (OFF/SUSPEND/OFF_ADVANCED), the helper
+ *           must skip CommitBuffer (no tunnel IPC) while still completing the success path so the buffer
+ *           is consumed normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_SkipsCommitWhenScreenPowerOff, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    const std::vector<ScreenPowerStatus> offStates = {
+        ScreenPowerStatus::POWER_STATUS_OFF,
+        ScreenPowerStatus::POWER_STATUS_SUSPEND,
+        ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED,
+    };
+
+    for (const auto& powerStatus : offStates) {
+        SCOPED_TRACE(testing::Message() << "powerStatus=" << static_cast<uint32_t>(powerStatus));
+        ScopedScreenPowerStatus scopedPower(0, powerStatus);
+        RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+        auto context = CreateTunnelTestContext(true);
+        ASSERT_TRUE(context.IsProducerReady());
+
+        context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+        TunnelLayerState state;
+        ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+        auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
+        tunnelRuntime.SetLayerInfo(state.tunnelLayerId, state.property);
+        tunnelRuntime.SetBuilding();
+        ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+        ScopedRegisteredSurfaceNode registeredNode(context.node);
+        ASSERT_TRUE(registeredNode.IsRegistered());
+
+        auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+        connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+        auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+        ASSERT_NE(composerClientManager, nullptr);
+
+        ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+        context.surfaceHandler->SetAvailableBufferCount(1);
+        RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
+        RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+        EXPECT_TRUE(
+            RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, false, tunnelRuntime));
+        EXPECT_FALSE(connection->commitTunnelCalled);
+    }
+}
+
+/**
+ * @tc.name: NotifyScreenPowerStatusChanged_NullProperty_KeepsPreviousStatus
+ * @tc.desc: Cover the true branch of `if (!prop)` in NotifyScreenPowerStatusChanged. When a null
+ *           property is passed, the helper must early-return without touching the cached map, so the
+ *           previously cached off status stays in effect and the subsequent tunnel commit is skipped.
+ *           The false branch (non-null property) is covered by the two TryCommitPendingBuffer cases
+ *           above, which prove a valid property updates the cache and drives IsScreenPowerOff.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, NotifyScreenPowerStatusChanged_NullProperty_KeepsPreviousStatus, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    ScopedScreenPowerStatus scopedPower(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    sptr<ScreenPropertyBase> nullProperty = nullptr;
+    RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(0, nullProperty);
+
+    RSTunnelRouteArbiter::SetTunnelSolePresentLayer(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
+    tunnelRuntime.SetLayerInfo(state.tunnelLayerId, state.property);
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSTunnelRouteArbiter::consecutiveSolePresentCount_.store(TUNNEL_STABLE_THRESHOLD, std::memory_order_release);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, false, tunnelRuntime));
+    EXPECT_FALSE(connection->commitTunnelCalled);
 }
 
 } // namespace OHOS::Rosen
