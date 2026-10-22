@@ -188,6 +188,34 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
 }
 
+/**
+ * @tc.name: RecvParcelWaitUnmarshallingTrue
+ * @tc.desc: Test RecvParcel with waitUnmarshalling=true does not increment noNeedWaitTaskNum_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelWaitUnmarshallingTrue, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    instance.noNeedWaitTaskNum_.store(0);
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success, true);
+
+    instance.RecvParcel(data, false, 0, nullptr, nullptr, 0, true);
+
+    EXPECT_EQ(instance.noNeedWaitTaskNum_.load(), 0);
+
+    usleep(USLEEP_TIME);
+
+    EXPECT_EQ(instance.noNeedWaitTaskNum_.load(), 0);
+}
+
 #ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: RecvParcelSetSendingPid
