@@ -2523,6 +2523,77 @@ int32_t RSClientToServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32
     return result;
 }
 
+int32_t RSClientToServiceConnectionProxy::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(mode))) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteUint32 mode err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenHDRMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetVirtualScreenHDRMode: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("GetVirtualScreenHDRMode: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    if (result == SUCCESS) {
+        uint32_t readMode{0};
+        if (!reply.ReadUint32(readMode)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode Read mode failed");
+            return READ_PARCEL_ERR;
+        }
+        if (readMode >= static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode mode out of range: %{public}u",
+                readMode);
+            return READ_PARCEL_ERR;
+        }
+        mode = static_cast<HDRMode>(readMode);
+    }
+    return result;
+}
+
 int32_t RSClientToServiceConnectionProxy::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     MessageParcel data;

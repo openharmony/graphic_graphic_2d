@@ -237,6 +237,10 @@ private:
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) override;
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) override;
+
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
