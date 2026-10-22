@@ -732,6 +732,101 @@ void RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread(DrawableV2:
     layers_.emplace_back(layer);
 }
 
+void RSUniRenderProcessor::ConfigureSolidColorLayer(RSLayerPtr& layer, NodeId nodeId,
+    RSSurfaceRenderParams& params, const GraphicIRect& boundsDst, const GraphicIRect& boundsSrc)
+{
+    auto& layerInfo = params.GetLayerInfo();
+    auto solidColor = params.GetSolidLayerColor();
+    layer->SetNodeId(nodeId);
+    layer->SetRSLayerId(nodeId);
+    layer->SetSurfaceName("solidcolor_" + params.GetName());
+    layer->SetZorder(layerInfo.zOrder);
+    GraphicLayerAlpha layerAlpha = {0};
+    layerAlpha.enGlobalAlpha = true;
+    layerAlpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
+    layer->SetAlpha(layerAlpha);
+    layer->SetLayerSize(boundsDst);
+    layer->SetCropRect(boundsSrc);
+    std::vector<GraphicIRect> visibleRegions;
+    visibleRegions.emplace_back(boundsDst);
+    layer->SetVisibleRegions(visibleRegions);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    GraphicLayerColor layerColor = {
+        static_cast<uint8_t>(solidColor.GetRed()), static_cast<uint8_t>(solidColor.GetGreen()),
+        static_cast<uint8_t>(solidColor.GetBlue()), static_cast<uint8_t>(solidColor.GetAlpha())
+    };
+    layer->SetLayerColor(layerColor);
+    layer->SetBuffer(nullptr, nullptr);
+    layer->SetIsNeedComposition(true);
+    layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::CreateSolidColorLayerDirect(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirect composerClient is nullptr");
+        return;
+    }
+    NodeId nodeId = node.GetId();
+    RSLayerPtr layer = RSSurfaceLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirect failed to create layer");
+        return;
+    }
+    node.SetRSLayer(screenInfo_.id, layer);
+    GraphicIRect boundsSrc = {0, 0, 0, 0};
+    GraphicIRect boundsDst = {0, 0, 0, 0};
+    node.CalcSolidLayerRects(boundsSrc, boundsDst);
+    auto& layerInfo = params.GetLayerInfo();
+    auto solidColor = params.GetSolidLayerColor();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayerDirect nodeId[%" PRIu64 "] name:%s "
+        "dst[%d %d %d %d] src[%d %d %d %d] alpha[%.2f] zOrder[%d] color[%08x]",
+        nodeId, node.GetName().c_str(),
+        boundsDst.x, boundsDst.y, boundsDst.w, boundsDst.h,
+        boundsSrc.x, boundsSrc.y, boundsSrc.w, boundsSrc.h,
+        layerInfo.alpha, layerInfo.zOrder, solidColor.AsArgbInt());
+    ConfigureSolidColorLayer(layer, nodeId, params, boundsDst, boundsSrc);
+}
+
+void RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread(
+    DrawableV2::RSSurfaceRenderNodeDrawable& drawable)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread composerClient is nullptr");
+        return;
+    }
+    auto& paramsSp = drawable.GetRenderParams();
+    if (paramsSp == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread params is nullptr");
+        return;
+    }
+    auto& params = *(static_cast<RSSurfaceRenderParams*>(paramsSp.get()));
+    NodeId nodeId = drawable.GetId();
+    RSLayerPtr layer = RSSurfaceLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread failed to create layer");
+        return;
+    }
+    drawable.SetRSLayer(screenInfo_.id, layer);
+    auto& layerInfo = params.GetLayerInfo();
+    // srcRect/dstRect are calculated by RSSurfaceRenderNode::CalcSolidLayerRects in MT side
+    // and synced to render params via UpdateSolidLayerRects.
+    GraphicIRect boundsDst = {
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h
+    };
+    GraphicIRect boundsSrc = {
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h
+    };
+    auto solidColor = params.GetSolidLayerColor();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayerDirectForRenderThread nodeId[%" PRIu64 "] name:%s "
+        "dst[%d %d %d %d] src[%d %d %d %d] alpha[%.2f] zOrder[%d] color[%08x]",
+        nodeId, drawable.GetName().c_str(),
+        boundsDst.x, boundsDst.y, boundsDst.w, boundsDst.h,
+        boundsSrc.x, boundsSrc.y, boundsSrc.w, boundsSrc.h,
+        layerInfo.alpha, layerInfo.zOrder, solidColor.AsArgbInt());
+    ConfigureSolidColorLayer(layer, nodeId, params, boundsDst, boundsSrc);
+}
+
 void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
 {
     if (layer == nullptr || layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {

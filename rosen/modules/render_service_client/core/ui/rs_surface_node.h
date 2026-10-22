@@ -234,6 +234,7 @@ public:
     void SetStaticCached(bool isFreeze);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
+    void SetSolidLayerEnabled(bool isEnabled);
 
     /**
      * @brief Enable Camera Rotation Unchanged

@@ -912,6 +912,15 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     });
 }
 
+void RSSurfaceNode::SetSolidLayerEnabled(bool isEnabled)
+{
+    RS_TRACE_NAME_FMT("SetSolidLayerEnabled id:%" PRIu64 " enabled:%d", GetId(), isEnabled);
+    ROSEN_LOGI("SetSolidLayerEnabled id:%{public}" PRIu64 " enabled:%{public}d", GetId(), isEnabled);
+    SetRSCmdProperty<SolidLayerEnabledCmdModifier>(SolidLayerEnabledCmdParam{
+        isEnabled
+    });
+}
+
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     SetRSCmdProperty<ForceHardwareAndFixRotationCmdModifier>(ForceHardwareAndFixRotationCmdParam{
