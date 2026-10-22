@@ -1492,7 +1492,7 @@ void RSUniHwcVisitor::UpdateRectInfoForDelegateMode(RSSurfaceRenderNode& node,
 
 void RSUniHwcVisitor::UpdateLeftAndTopForDelegateMode(RSSurfaceRenderNode& node, Drawing::Rect& srcRect)
 {
-    if(node.GetDelegateMode()) {
+    if (node.GetDelegateMode()) {
         auto delegateSrcRect = node.GetDelegateSrcRect();
         Drawing::Matrix delegateModeTranslateMatrix;
         delegateModeTranslateMatrix.PostTranslate(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop());
