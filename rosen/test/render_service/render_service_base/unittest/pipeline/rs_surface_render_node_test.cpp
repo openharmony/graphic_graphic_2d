@@ -3849,5 +3849,44 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
 
     EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
 }
+
+/**
+ * @tc.name: UpdateDelegateRectToSurfaceParamsCoverage001
+ * @tc.desc: cover both edges of the newly added `if (!surfaceParams) return;` inside
+ *           RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams; also exercise the
+ *           existing `if (!GetDelegateMode()) return;` guard so gcov reports the whole
+ *           function at 100% branch coverage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateDelegateRectToSurfaceParamsCoverage001, TestSize.Level1)
+{
+    // Edge A: delegate=false hits the outer early-return; params state is left untouched (we do not
+    // assert on delegateDstRect_/SrcRect_ because those members are not explicitly initialized).
+    RSSurfaceRenderNode n1(id);
+    n1.SetDelegateMode(false);
+    auto p1 = std::make_unique<RSSurfaceRenderParams>(id);
+    n1.stagingRenderParams_ = std::move(p1);
+    EXPECT_NO_FATAL_FAILURE(n1.UpdateDelegateRectToSurfaceParams());
+
+    // Edge B: delegate=true but stagingRenderParams_ is nullptr -> `!surfaceParams` true, early return
+    RSSurfaceRenderNode n2(id);
+    n2.SetDelegateMode(true);
+    n2.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n2.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    n2.stagingRenderParams_ = nullptr;
+    EXPECT_NO_FATAL_FAILURE(n2.UpdateDelegateRectToSurfaceParams());
+
+    // Edge C: delegate=true and valid staging params -> both guards fall through, rects are pushed
+    RSSurfaceRenderNode n3(id);
+    n3.SetDelegateMode(true);
+    n3.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n3.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    auto p3 = std::make_unique<RSSurfaceRenderParams>(id);
+    auto* p3Raw = p3.get();
+    n3.stagingRenderParams_ = std::move(p3);
+    n3.UpdateDelegateRectToSurfaceParams();
+    EXPECT_EQ(p3Raw->GetDelegateDstRect(), RectF(1.f, 2.f, 3.f, 4.f));
+    EXPECT_EQ(p3Raw->GetDelegateSrcRect(), RectF(5.f, 6.f, 7.f, 8.f));
+}
 } // namespace Rosen
 } // namespace OHOS
