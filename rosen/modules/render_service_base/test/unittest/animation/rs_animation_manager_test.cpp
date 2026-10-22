@@ -15,8 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include <thread>
-
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -619,25 +617,6 @@ HWTEST_F(RSAnimationManagerTest, AddAnimation005, TestSize.Level1)
     EXPECT_TRUE(result);
     EXPECT_TRUE(animationManager.GetAnimation(animationId) == renderCurveAnimation);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation005 end";
-}
-
-/**
- * @tc.name: DestructorOnCreationThread001
- * @tc.desc: Verify creationTid_ is set at construction and destructor checks thread mismatch
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestructorOnCreationThread001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestructorOnCreationThread001 start";
-    {
-        RSAnimationManager animationManager;
-        EXPECT_EQ(animationManager.creationTid_, std::this_thread::get_id());
-    }
-    {
-        RSAnimationManager animationManager;
-        animationManager.creationTid_ = std::thread::id();
-    }
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestructorOnCreationThread001 end";
 }
 
 } // namespace Rosen

@@ -20,8 +20,6 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <sstream>
-#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -1865,11 +1863,6 @@ void RSRenderNode::FallbackAnimationsToRoot()
 {
     if (!HasAnimation()) {
         return;
-    }
-    if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {
-        std::ostringstream oss;
-        oss << "creationTid=" << animationManager_->creationTid_ << ", currentTid=" << currentTid;
-        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
     }
 
     auto context = GetContext().lock();
