@@ -170,6 +170,7 @@ void TransactionBufferCommand::ProcessCmdTypeSetBufferwithAttach(sptr<Transactio
         }
     }
     sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
+    producer->SetTransform(buffer->GetSurfaceBufferTransform());
     sptr<SyncFence> fence = transaction->GetFence() ? transaction->GetFence() : SyncFence::InvalidFence();
     GSError ret = producer->FlushBuffer(buffer->GetSeqNum(), bedata, fence, configDamages);
     if (ret != GSERROR_OK) {
