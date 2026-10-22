@@ -42,7 +42,14 @@ public:
 };
 
 void RSUnmarshalThreadTest::SetUpTestCase() {}
-void RSUnmarshalThreadTest::TearDownTestCase() {}
+void RSUnmarshalThreadTest::TearDownTestCase()
+{
+    auto& instance = RSUnmarshalThread::Instance();
+    instance.WaitUntilParallelTasksFinished();
+    instance.parallelQueue_ = nullptr;
+    instance.queue_ = nullptr;
+    usleep(USLEEP_TIME);
+}
 void RSUnmarshalThreadTest::SetUp() {}
 void RSUnmarshalThreadTest::TearDown()
 {
