@@ -32,6 +32,7 @@
 #include "modifier_ng/custom/rs_node_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_shadow.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_node.h"
@@ -841,5 +842,18 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius003, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetOutlineRadius(floatData[3]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOutlineRadius().x_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowClipType001
+ * @tc.desc: Test setting shadow clip type with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowClipType001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen

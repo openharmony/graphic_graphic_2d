@@ -54,8 +54,6 @@ public:
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
-    void DrawSDFShadow(Drawing::Canvas* canvas, const Drawing::Rect* rect,
-        Drawing::Path& path, const Color& shadowColor, bool sdfFilled) const;
     bool needSync_ = false;
     bool isFilled_ = false;
     bool stagingIsFilled_ = false;

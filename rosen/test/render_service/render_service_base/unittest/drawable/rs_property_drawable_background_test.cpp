@@ -1354,7 +1354,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw004, TestSi
  * @tc.name: RSShadowDrawableClipTypeOnUpdateTest
  * @tc.desc: Test OnUpdate syncs stagingClipType_ from properties
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateTest, TestSize.Level1)
 {
@@ -1375,7 +1374,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateTest, Tes
  * @tc.name: RSShadowDrawableClipTypeOnSyncTest
  * @tc.desc: Test OnSync syncs stagingClipType_ to clipType_
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncTest, TestSize.Level1)
 {
@@ -1393,7 +1391,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncTest, TestS
  * @tc.name: RSShadowDrawableClipTypeOnDrawTest
  * @tc.desc: Test OnDraw with various clipType_, isFilled_, and shadow path combinations
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestSize.Level1)
 {
@@ -1457,5 +1454,46 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnDrawTest, TestS
         drawable->OnDraw(filterCanvas.get(), rect.get());
     }
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSShadowDrawableClipTypeOnUpdateRRectTest
+ * @tc.desc: Test OnUpdate syncs stagingRRect_ from properties.GetRRect()
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnUpdateRRectTest, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+ 
+    node.GetMutableRenderProperties().SetShadowColor(Color());
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    node.GetMutableRenderProperties().SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+ 
+    shadowDrawable->OnUpdate(node);
+    EXPECT_EQ(shadowDrawable->stagingRRect_, node.GetRenderProperties().GetRRect());
+    EXPECT_TRUE(shadowDrawable->needSync_);
+}
+ 
+/**
+ * @tc.name: RSShadowDrawableClipTypeOnSyncRRectTest
+ * @tc.desc: Test OnSync syncs stagingRRect_ to rRect_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawableClipTypeOnSyncRRectTest, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    drawable->needSync_ = true;
+    RectF rect(1.0f, 2.0f, 100.0f, 200.0f);
+    RRect expectedRRect(rect, 10.0f, 20.0f);
+    drawable->stagingRRect_ = expectedRRect;
+ 
+    drawable->OnSync();
+    EXPECT_EQ(drawable->rRect_.rect_.left_, expectedRRect.rect_.left_);
+    EXPECT_EQ(drawable->rRect_.rect_.top_, expectedRRect.rect_.top_);
+    EXPECT_EQ(drawable->rRect_.rect_.width_, expectedRRect.rect_.width_);
+    EXPECT_EQ(drawable->rRect_.rect_.height_, expectedRRect.rect_.height_);
+    EXPECT_FALSE(drawable->needSync_);
 }
 } // namespace OHOS::Rosen
