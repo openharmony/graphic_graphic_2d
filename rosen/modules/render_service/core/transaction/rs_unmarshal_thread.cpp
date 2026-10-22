@@ -133,6 +133,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
     bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
                              parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
+    if (!waitUnmarshalling) {
+        noNeedWaitTaskNum_++;
+    }
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() mutable {
         RSMarshallingHelper::SetCallingPid(callingPid);
@@ -200,9 +203,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
-    }
-    if (!waitUnmarshalling) {
-        noNeedWaitTaskNum_++;
     }
 }
 
