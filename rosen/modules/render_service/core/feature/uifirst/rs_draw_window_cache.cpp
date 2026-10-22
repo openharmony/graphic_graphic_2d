@@ -29,8 +29,8 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    constexpr float SCALE_DIFF = 0.01f;
-}
+constexpr float SCALE_DIFF = 0.01f;
+} // namespace
 
 RSDrawWindowCache::~RSDrawWindowCache()
 {
