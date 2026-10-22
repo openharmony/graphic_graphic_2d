@@ -670,7 +670,9 @@ public:
             return true;
         }
 
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(task->GetProperty());
+        auto baseProperty = task->GetProperty();
+        auto renderProperty = baseProperty ?
+            baseProperty->template CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (!renderProperty) {
             return false;
         }

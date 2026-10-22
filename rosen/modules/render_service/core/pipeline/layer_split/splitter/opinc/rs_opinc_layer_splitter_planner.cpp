@@ -137,7 +137,10 @@ std::pair<bool, Vector4f> RSOpincLayerSplitterPlanner::GetBoundsFromModifier(con
         if (prop == nullptr) {
             continue;
         }
-        auto boundsProp = std::static_pointer_cast<RSRenderProperty<Vector4f>>(prop);
+        auto boundsProp = prop->CastToPropertyOf<Vector4f>(__func__);
+        if (!boundsProp) {
+            continue;
+        }
         Vector4f bounds = boundsProp->GetRef();
         return { true, bounds };
     }
