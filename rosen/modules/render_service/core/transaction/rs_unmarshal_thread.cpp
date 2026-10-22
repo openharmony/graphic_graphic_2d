@@ -154,6 +154,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             ashmemFdWorker.reset();
         }
         if (!transData) {
+            if (noNeedWaitTaskNum_ > 0) {
+                noNeedWaitTaskNum_--;
+            }
             return;
         }
         transData->SetCallingPid(callingPid);
@@ -166,6 +169,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {
                 RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
+                if (noNeedWaitTaskNum_ > 0) {
+                    noNeedWaitTaskNum_--;
+                }
                 return;
             }
         }
