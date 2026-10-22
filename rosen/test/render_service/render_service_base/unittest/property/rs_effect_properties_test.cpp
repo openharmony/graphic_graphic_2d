@@ -1499,7 +1499,6 @@ HWTEST_F(RSEffectPropertiesTest, ColorBlend001, TestSize.Level1)
  * @tc.name: SetShadowClipType001
  * @tc.desc: test SetShadowClipType lazily creates shadow_, sets clipType, and updates on existing shadow_
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
 {

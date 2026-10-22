@@ -619,7 +619,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
  * @tc.name: DrawShadow009
  * @tc.desc: DrawShadow with shadowPath + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow009, TestSize.Level1)
 {
@@ -643,7 +642,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow009, TestSize.Level1)
  * @tc.name: DrawShadow010
  * @tc.desc: DrawShadow with clipBounds + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow010, TestSize.Level1)
 {
@@ -667,7 +665,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow010, TestSize.Level1)
  * @tc.name: DrawShadow011
  * @tc.desc: DrawShadow with rrect != nullptr + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow011, TestSize.Level1)
 {
@@ -686,7 +683,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow011, TestSize.Level1)
  * @tc.name: DrawShadow012
  * @tc.desc: DrawShadow with rrect == nullptr + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow012, TestSize.Level1)
 {
@@ -703,7 +699,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow012, TestSize.Level1)
  * @tc.name: DrawShadow013
  * @tc.desc: DrawShadow with BOUNDS_SHAPE + isFilled=true (clipForShadow early return, no clip applied)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesPainterTest, DrawShadow013, TestSize.Level1)
 {

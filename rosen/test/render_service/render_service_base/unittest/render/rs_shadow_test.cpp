@@ -332,7 +332,6 @@ HWTEST_F(RSShadowTest, TestRSShadow006, TestSize.Level1)
  * @tc.name: SetClipTypeTest001
  * @tc.desc: Verify SetClipType with DEFAULT_SHAPE
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSShadowTest, SetClipTypeTest001, TestSize.Level1)
 {
@@ -346,7 +345,6 @@ HWTEST_F(RSShadowTest, SetClipTypeTest001, TestSize.Level1)
  * @tc.name: SetClipTypeTest002
  * @tc.desc: Verify SetClipType with BOUNDS_SHAPE
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSShadowTest, SetClipTypeTest002, TestSize.Level1)
 {
@@ -360,7 +358,6 @@ HWTEST_F(RSShadowTest, SetClipTypeTest002, TestSize.Level1)
  * @tc.name: GetClipTypeTest001
  * @tc.desc: Verify default clipType_ is DEFAULT_SHAPE on construction
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSShadowTest, GetClipTypeTest001, TestSize.Level1)
 {

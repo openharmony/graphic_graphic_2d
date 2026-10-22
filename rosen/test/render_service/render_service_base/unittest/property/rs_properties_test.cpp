@@ -4976,7 +4976,6 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
  * @tc.name: SetShadowClipType001
  * @tc.desc: test results of SetShadowClipType with BOUNDS_SHAPE
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
 {
@@ -4989,7 +4988,6 @@ HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
  * @tc.name: GetShadowClipType001
  * @tc.desc: default GetShadowClipType returns DEFAULT_SHAPE
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
 {
@@ -5001,7 +4999,6 @@ HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
  * @tc.name: SetShadowClipTypeContentDirty001
  * @tc.desc: SetShadowClipType sets contentDirty_ to true
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesTest, SetShadowClipTypeContentDirty001, TestSize.Level1)
 {
@@ -5015,7 +5012,6 @@ HWTEST_F(RSPropertiesTest, SetShadowClipTypeContentDirty001, TestSize.Level1)
  * @tc.name: DumpShadowClipType001
  * @tc.desc: Dump output includes ShadowClipType for both default and set values
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
 {

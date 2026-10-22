@@ -782,7 +782,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest021, testing::ext:
  * @tc.name: DrawShadowUseBoundsClipTest
  * @tc.desc: DrawShadow with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowUseBoundsClipTest, testing::ext::TestSize.Level1)
 {
@@ -803,7 +802,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowUseBoundsClipTest, testing::ext:
  * @tc.name: DrawShadowMaskFilterUseBoundsClipTest
  * @tc.desc: DrawShadowMaskFilter with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
  * @tc.type: FUNC
- * @tc.require: SR20260812035796
  */
 HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterUseBoundsClipTest, testing::ext::TestSize.Level1)
 {
