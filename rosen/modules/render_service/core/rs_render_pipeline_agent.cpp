@@ -1292,7 +1292,7 @@ void RSRenderPipelineAgent::PostBlurTaskToBackground(
     }
     auto bgBlurTask = [pixelMap, blurRadius, blurredResult, promise,
                           bgGpuContext, bgRenderContext]() {
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         bool ret = BlurPixelMapImpl(pixelMap, blurRadius, *blurredResult,
             bgGpuContext.get(), bgRenderContext.get());
 #else
@@ -1309,7 +1309,7 @@ void RSRenderPipelineAgent::PostBlurTaskToRenderThread(
     std::shared_ptr<std::promise<bool>> promise, RSUniRenderThread* renderThread)
 {
     auto blurTask = [pixelMap, blurRadius, blurredResult, promise]() {
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         bool ret = BlurPixelMapOnRenderThread(pixelMap, blurRadius, *blurredResult);
 #else
         bool ret = false;
@@ -1338,7 +1338,7 @@ ErrCode RSRenderPipelineAgent::BlurPixelMap(std::shared_ptr<Media::PixelMap> pix
     std::future<bool> future = promise->get_future();
     auto blurredResult = std::make_shared<std::shared_ptr<Media::PixelMap>>();
     bool useBackground = false;
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto bgRenderContext = RSBackgroundThread::Instance().GetRenderContext();
     auto bgGpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
     useBackground = (bgRenderContext != nullptr && bgGpuContext != nullptr);
