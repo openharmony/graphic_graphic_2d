@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 #include "gmock/gmock.h"
 #include <gtest/gtest.h>
@@ -2276,6 +2276,76 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003, TestSize.Level1)
     child2->SetParentTreeStateChangeDirty(true);
     EXPECT_TRUE(child1->IsTreeStateChangeDirty());
     EXPECT_TRUE(parent->IsTreeStateChangeDirty());
+}
+
+/**
+ * @tc.name: RSRenderNodeDirtyTest003a
+ * @tc.desc: SetParentTreeStateChangeDirty cycle guard test - parent chain cycle with
+ *           isUpdateAllParentNode=true must terminate instead of infinite recursion
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003a, TestSize.Level1)
+{
+    // Construct a 2-node parent-chain cycle: A.parent_ = B, B.parent_ = A
+    std::shared_ptr<RSRenderNode> nodeA = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(nodeA, nullptr);
+    std::shared_ptr<RSRenderNode> nodeB = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(nodeB, nullptr);
+    nodeA->parent_ = nodeB;
+    nodeB->parent_ = nodeA;
+
+    // With isUpdateAllParentNode=true, the dirty-flag termination is short-circuited;
+    // the cycle guard must detect the cycle and return early (no crash / stack overflow)
+    nodeA->SetParentTreeStateChangeDirty(true);
+    // Both nodes on the cycle should still be marked dirty before the guard fires
+    EXPECT_TRUE(nodeA->IsTreeStateChangeDirty());
+    EXPECT_TRUE(nodeB->IsTreeStateChangeDirty());
+    // Guard flags must be restored to false after unwinding
+    EXPECT_FALSE(nodeA->inParentChainTraversal_);
+    EXPECT_FALSE(nodeB->inParentChainTraversal_);
+}
+
+/**
+ * @tc.name: RSRenderNodeDirtyTest003b
+ * @tc.desc: SetParentTreeStateChangeDirty with no parent should return early
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003b, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    // No parent set; parentNode.lock() returns nullptr -> early return, no crash
+    node->SetParentTreeStateChangeDirty(true);
+    EXPECT_FALSE(node->IsTreeStateChangeDirty());
+}
+
+/**
+ * @tc.name: RSRenderNodeDirtyTest003c
+ * @tc.desc: SetParentTreeStateChangeDirty with isUpdateAllParentNode=false stops at
+ *           already-dirty parent (dirty-flag termination branch)
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003c, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> root = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(root, nullptr);
+    std::shared_ptr<RSRenderNode> mid = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(mid, nullptr);
+    std::shared_ptr<RSRenderNode> leaf = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(leaf, nullptr);
+    mid->parent_ = root;
+    leaf->parent_ = mid;
+
+    // Pre-mark root as dirty so the dirty-flag termination condition triggers at mid->root
+    root->SetTreeStateChangeDirty(true);
+    leaf->SetParentTreeStateChangeDirty(false);
+    // mid should be marked dirty (propagated from leaf)
+    EXPECT_TRUE(mid->IsTreeStateChangeDirty());
+    // root was already dirty; the recursion should stop at root (no crash)
+    EXPECT_TRUE(root->IsTreeStateChangeDirty());
 }
 
 /**
