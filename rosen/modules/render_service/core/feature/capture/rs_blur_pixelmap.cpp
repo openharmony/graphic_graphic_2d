@@ -232,7 +232,7 @@ public:
         const std::shared_ptr<Media::PixelMap>& pixelMap);
     std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(
         sptr<SurfaceBuffer> surfaceBuffer, Drawing::GPUContext* gpuContext,
-        RenderContext* renderContext);
+        RenderContext* renderContext, Drawing::ColorType colorType);
     void ReleaseDmaMemory();
 
 private:
@@ -268,7 +268,7 @@ std::shared_ptr<Media::PixelMap> BlurPixelMapWithDma(
         RS_LOGE("BlurPixelMapWithDma: DmaMemAlloc failed");
         return nullptr;
     }
-    auto surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, gpuContext, renderContext);
+    auto surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, gpuContext, renderContext, colorType);
     if (surface == nullptr) {
         RS_LOGE("BlurPixelMapWithDma: GetSurfaceFromSurfaceBuffer failed");
         return nullptr;
@@ -327,7 +327,7 @@ sptr<SurfaceBuffer> BlurPixelMapDmaMem::DmaMemAlloc(const Drawing::ImageInfo& ds
 
 std::shared_ptr<Drawing::Surface> BlurPixelMapDmaMem::GetSurfaceFromSurfaceBuffer(
     sptr<SurfaceBuffer> surfaceBuffer, Drawing::GPUContext* gpuContext,
-    RenderContext* renderContext)
+    RenderContext* renderContext, Drawing::ColorType colorType)
 {
     if (surfaceBuffer == nullptr || gpuContext == nullptr || renderContext == nullptr) {
         RS_LOGE("BlurPixelMapDmaMem::GetSurfaceFromSurfaceBuffer: null input");
@@ -367,8 +367,13 @@ std::shared_ptr<Drawing::Surface> BlurPixelMapDmaMem::GetSurfaceFromSurfaceBuffe
         gpuContext,
         backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
-        1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+        1, colorType, nullptr,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
+    if (drawingSurface == nullptr) {
+        RS_LOGE("BlurPixelMapDmaMem::GetSurfaceFromSurfaceBuffer: MakeFromBackendTexture failed");
+        delete cleanUpHelper;
+        return nullptr;
+    }
     return drawingSurface;
 }
 
