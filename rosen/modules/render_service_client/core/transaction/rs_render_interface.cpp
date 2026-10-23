@@ -130,6 +130,7 @@ bool RSRenderInterface::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
+    captureConfig.windowSync = true;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     PrepareSyncCaptureIfNeeded(node, captureConfig);
 #endif // RS_MODIFIERS_DRAW_ENABLE
