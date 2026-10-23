@@ -697,6 +697,7 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius)
 {
     RS_LOGI("RSSurfaceCaptureTaskParallel::AddBlur");
+    RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::AddBlur");
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
     auto image = surface->GetImageSnapshot();
