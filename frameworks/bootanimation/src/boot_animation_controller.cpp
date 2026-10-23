@@ -46,6 +46,9 @@ void BootAnimationController::Start()
     if (powerState == NORMAL_COLD_BOOT) {
         LOGI("normal cold boot, play boot animation");
     } else if (powerState == SCHEDULED_REBOOT_COLD_BOOT) {
+        if (!system::GetBoolParameter(BOOT_ANIMATION_READY, false)) {
+            system::SetParameter(BOOT_ANIMATION_READY, "true");
+        }
         if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
             system::SetParameter(BOOT_ANIMATION_STARTED, "true");
         }
