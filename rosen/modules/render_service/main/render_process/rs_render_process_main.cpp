@@ -14,7 +14,9 @@
  */
 
 #include <csignal>
-
+#include <sched.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include "platform/common/rs_log.h"
 #include "rs_render_process.h"
 
@@ -24,6 +26,16 @@ using namespace OHOS::Rosen;
 int main(int argc, const char* argv[])
 {
     signal(SIGPIPE, SIG_IGN);
+
+    setpriority(PRIO_PROCESS, 0, -8);
+ 
+    struct sched_param param = {0};
+    param.sched_priority = 1;
+    if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+        RS_LOGE("RSRenderProcess Couldn't set SCHED_FIFO.");
+    } else {
+        RS_LOGE("RSRenderProcess set SCHED_FIFO succeed.");
+    }
 
     auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
     if (!renderProcess->Init()) {
