@@ -396,12 +396,12 @@ void BootCompileProgress::SetFrameForRog()
     currentRadius_ = TranslateVp2Pixel(rogMin, RADIUS);
 
     float frameHeight = rogHeight_ * HEIGHT_PERCENT;
-    rsCanvasNode_->SetFrame(posX, posY, rogWidth_, frameHeight);
-    frameWidth_ = rogWidth_;
+    rsCanvasNode_->SetFrame(posX, posY, windowWidth_, frameHeight);
+    frameWidth_ = windowWidth_;
     frameHeight_ = frameHeight;
     LOGI("SetFrame ROG Rect:[%{public}f, %{public}f, %{public}d, %{public}f], fontSize: %{public}d, "
          "currentRadius: %{public}f",
-        posX, posY, rogWidth_, frameHeight, fontSize_, currentRadius_);
+        posX, posY, windowWidth_, frameHeight, fontSize_, currentRadius_);
 }
 
 Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
