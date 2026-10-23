@@ -1284,6 +1284,7 @@ void RSRenderPipelineAgent::PostBlurTaskToBackground(
     std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
     std::shared_ptr<std::promise<bool>> promise)
 {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto& bgThread = RSBackgroundThread::Instance();
     auto bgRenderContext = bgThread.GetRenderContext();
     auto bgGpuContext = bgThread.GetShareGPUContext();
@@ -1301,6 +1302,9 @@ void RSRenderPipelineAgent::PostBlurTaskToBackground(
         promise->set_value(ret);
     };
     bgThread.PostTask(bgBlurTask);
+#else
+    promise->set_value(false);
+#endif
 }
 
 void RSRenderPipelineAgent::PostBlurTaskToRenderThread(
