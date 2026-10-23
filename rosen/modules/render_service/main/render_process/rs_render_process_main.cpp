@@ -37,7 +37,7 @@ int main(int argc, const char* argv[])
     if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
         RS_LOGE("RSRenderProcess Couldn't set SCHED_FIFO.");
     } else {
-        RS_LOGE("RSRenderProcess set SCHED_FIFO succeed.");
+        RS_LOGI("RSRenderProcess set SCHED_FIFO succeed.");
     }
 
     auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
