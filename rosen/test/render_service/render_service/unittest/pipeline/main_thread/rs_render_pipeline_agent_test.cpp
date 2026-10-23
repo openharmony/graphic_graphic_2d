@@ -1646,6 +1646,86 @@ HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BlurPixelMap004
+ * @tc.desc: Verify BlurPixelMap with zero blurRadius (too small, skip blur)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap004, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 0.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
+ * @tc.name: BlurPixelMap005
+ * @tc.desc: Verify BlurPixelMap with negative blurRadius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, -5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
  * @tc.name: ReportJankStats001
  * @tc.desc: Verify ReportJankStats when pipeline is null
  * @tc.type: FUNC
