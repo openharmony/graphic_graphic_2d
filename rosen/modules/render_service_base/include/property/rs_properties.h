@@ -764,6 +764,7 @@ public:
 
     void SetColorfulBrightnessBlenderParams(std::unique_ptr<RSColorfulBrightnessBlenderPara> params);
     const RSColorfulBrightnessBlenderPara* GetColorfulBrightnessBlenderParams() const;
+    bool GetColorfulBrightnessBlenderEnableEDR() const;
     bool IsColorfulBrightnessBlenderValid() const;
     std::string GetColorfulBrightnessBlenderDescription() const;
     template <typename T>

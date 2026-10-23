@@ -341,9 +341,11 @@ void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node)
 
 void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
 {
+    bool skipColorSpaceConversion = true;
     RSScreenType screenType = node.GetScreenProperty().GetScreenType();
     if (screenType == VIRTUAL_TYPE_SCREEN) {
         HandleVirtualScreenColorGamut(node);
+        skipColorSpaceConversion = false;
     } else if (IsWiredMirrorScreen(node)) {
         HandleWiredMirrorScreenColorGamut(node);
     } else if (IsWiredExtendedScreen(node)) {
@@ -351,6 +353,22 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
     } else {
         HandleMainScreenColorGamut(node);
     }
+    HandleSkipColorSpaceConversion(node, skipColorSpaceConversion);
+}
+
+void RSUniRenderVisitor::HandleSkipColorSpaceConversion(RSScreenRenderNode& node, bool skipColorSpaceConversion)
+{
+    if (!skipColorSpaceConversion || !node.GetScreenProperty().GetSkipColorSpaceConversion()) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(node.GetStagingRenderParams().get());
+    if (screenParams != nullptr) {
+        screenParams->SetDstColorSpace(node.GetColorSpace());
+    }
+    RS_LOGD("set screen %{public}" PRIu64 " skip colorspace conversion, original colorspace: %{public}d",
+        node.GetScreenId(), node.GetColorSpace());
+    // set color gamut native according to screenId in order to skip color space conversion
+    node.SetColorSpace(GRAPHIC_COLOR_GAMUT_NATIVE);
 }
 
 void RSUniRenderVisitor::HandleVirtualScreenColorGamut(RSScreenRenderNode& node)
@@ -2223,7 +2241,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
-        isAccessibilityConfigChanged);
+        isAccessibilityConfigChanged,
+        node.TryGetOpincRootCachePtr() != nullptr ? HasAncestorRenderGroup(node.GetId()) : false);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 

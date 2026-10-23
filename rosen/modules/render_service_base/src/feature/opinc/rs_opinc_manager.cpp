@@ -130,7 +130,7 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 }
 
 void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-    bool isAccessibilityConfigChanged)
+    bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup)
 {
     const auto* opincRootCache = node.TryGetOpincRootCachePtr();
     // The opinc state needs to be reset in the following cases:
@@ -143,7 +143,13 @@ void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkI
         (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged);
     if (opincRootCache != nullptr) {
         auto& mutableOpincRootCache = node.GetOpincRootCache();
-        mutableOpincRootCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
+        RS_OPTIONAL_TRACE_FMT("QuickMarkStableNode id:%" PRIu64 ", isSelfDirty:%d, subD:%d, conD:%d, group:%d, "
+                              "acc:%d, ancRG:%d",
+            node.GetId(), isSelfDirty, node.IsSubTreeDirty(), node.IsContentDirty(),
+            node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE,
+            (mutableOpincRootCache.OpincGetRootFlag() && isAccessibilityConfigChanged), hasAncestorRenderGroup);
+        mutableOpincRootCache.OpincQuickMarkStableNode(
+            unchangeMarkInApp, unchangeMarkEnable, isSelfDirty || hasAncestorRenderGroup);
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (unchangeMarkEnable && stagingRenderParams) {

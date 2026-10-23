@@ -120,7 +120,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
@@ -234,6 +236,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION),
 };
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -1632,6 +1635,51 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_VIRTUAL_SCREEN_HDR_MODE Read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HDRMode mode = HDRMode::NONE;
+            int32_t result = GetVirtualScreenHDRMode(id, mode);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_VIRTUAL_SCREEN_HDR_MODE Write result failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
+                break;
+            }
+            if (!reply.WriteUint32(static_cast<uint32_t>(mode))) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_VIRTUAL_SCREEN_HDR_MODE Write mode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint32_t mode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(mode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_HDR_MODE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode >= static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_HDR_MODE invalid mode: %{public}u!",
+                    mode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetVirtualScreenHDRMode(id, static_cast<HDRMode>(mode));
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_HDR_MODE Write result failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
             ScreenId id{INVALID_SCREEN_ID};
             uint32_t mode{0};
@@ -1911,6 +1959,17 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetScreenFrameGravity(id, gravity);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION): {
+            ScreenId id = INVALID_SCREEN_ID;
+            bool skipColorSpaceConversion = false;
+            if (!data.ReadUint64(id) || !data.ReadBool(skipColorSpaceConversion)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SKIP_COLOR_SPACE_CONVERSION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY): {

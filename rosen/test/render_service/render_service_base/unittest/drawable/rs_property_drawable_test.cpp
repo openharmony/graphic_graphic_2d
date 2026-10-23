@@ -19,6 +19,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -296,6 +297,43 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     filterDrawable->OnDraw(&canvas, &rect);
     filterDrawable->MarkEffectNode();
+}
+
+/**
+ * @tc.name: RSFilterDrawableTest007
+ * @tc.desc: class RSFilterDrawable and filter cache invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest007, TestSize.Level1)
+{
+    // disable filter cache
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+    EXPECT_EQ(drawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(drawable->cacheManager_, nullptr);
+    EXPECT_EQ(drawable->filter_, nullptr);
+    drawable->OnSync();
+
+    // re-enable
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
+    drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = std::make_shared<RSFilter>();
+    ASSERT_NE(drawable->filter_, nullptr);
+
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
+    EXPECT_NE(drawable->stagingCacheManager_, nullptr);
+    EXPECT_NE(drawable->cacheManager_, nullptr);
+    drawable->OnSync();
+    drawable->stagingCacheManager_ = nullptr;
+    drawable->OnSync();
+    drawable->cacheManager_ = nullptr;
+    drawable->OnSync();
+    drawable->filter_ = nullptr;
+    drawable->OnSync();
 }
 
 /**

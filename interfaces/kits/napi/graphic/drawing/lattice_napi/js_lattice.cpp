@@ -185,11 +185,11 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
     Lattice lat;
     if (!GetLatticeDividers(env, argv[ARGC_ZERO], xCount, lat.fXDivs)) {
         ROSEN_LOGE("JsLattice::CreateImageLattice xDividers are invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. xDdividers array invalid");
     }
     if (!GetLatticeDividers(env, argv[ARGC_ONE], yCount, lat.fYDivs)) {
         ROSEN_LOGE("JsLattice::CreateImageLattice yDividers are invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. yDividers array invalid");
     }
     lat.fXCount = xCount;
     lat.fYCount = yCount;
@@ -199,13 +199,13 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
         if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
             (valueType != napi_null && valueType != napi_object)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect CreateImageLattice parameter5 type.");
+                BuildParamTypeMismatchMsg(ARGC_FOUR, "object or null", env, argv[ARGC_FOUR]));
         }
         if (valueType == napi_object) {
             int32_t ltrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsIRect(env, argv[ARGC_FOUR], ltrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Incorrect parameter5 type. The type of left, top, right and bottom must be number.");
+                    "Parameter error. param[4] type mismatch. The type of left, top, right and bottom must be number.");
             }
             lat.fBounds.push_back(Drawing::RectI(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]));
         }

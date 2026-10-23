@@ -36,6 +36,7 @@
 #include "ohos/init_data.h"
 #endif
 #include "rosen_text/font_collection_mgr.h"
+#include "rosen_text/ref_count_holder.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "txt/text_bundle_config_parser.h"
@@ -98,6 +99,13 @@ template<typename T1, typename T2>
 inline T1* ConvertToNDKText(T2* ptr)
 {
     return reinterpret_cast<T1*>(ptr);
+}
+
+// OH_Drawing_Typography is a reference-counted holder: unwrap it before use.
+static Typography* GetTypography(OH_Drawing_Typography* typography)
+{
+    auto* holder = ConvertToOriginalText<RefCountedHolder<Typography>>(typography);
+    return holder != nullptr ? holder->Get() : nullptr;
 }
 
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
@@ -510,12 +518,19 @@ OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* 
     }
     TypographyCreate* rosenHandler = ConvertToOriginalText<TypographyCreate>(handler);
     std::unique_ptr<Typography> typography = rosenHandler->CreateTypography();
-    return ConvertToNDKText<OH_Drawing_Typography>(typography.release());
+    if (typography == nullptr) {
+        TEXT_LOGE("Failed to create typography: engine returned null typography");
+        return nullptr;
+    }
+    return ConvertToNDKText<OH_Drawing_Typography>(new RefCountedHolder<Typography>(std::move(typography)));
 }
 
 void OH_Drawing_DestroyTypography(OH_Drawing_Typography* typography)
 {
-    delete ConvertToOriginalText<Typography>(typography);
+    if (typography == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<RefCountedHolder<Typography>>(typography)->Release();
 }
 
 void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWidth)
@@ -523,7 +538,7 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWi
     if (!typography) {
         return;
     }
-    ConvertToOriginalText<Typography>(typography)->Layout(maxWidth);
+    GetTypography(typography)->Layout(maxWidth);
 }
 
 OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(OH_Drawing_Typography* typography,
@@ -535,7 +550,7 @@ OH_Drawing_RectSize OH_Drawing_TypographyLayoutWithConstraintsWithBuffer(OH_Draw
     }
 
     TextLayoutResult result =
-        ConvertToOriginalText<Typography>(typography)->LayoutWithConstraints({size.width, size.height});
+        GetTypography(typography)->LayoutWithConstraints({size.width, size.height});
     *fitStrRangeArrayLen = result.fitStrRange.size();
     RangeObject* data = new RangeObject[*fitStrRangeArrayLen];
     for (size_t rangeIndex = 0; rangeIndex < *fitStrRangeArrayLen; ++rangeIndex) {
@@ -632,7 +647,7 @@ void OH_Drawing_TypographyPaint(
     if (!typography || !canvas) {
         return;
     }
-    ConvertToOriginalText<Typography>(typography)
+    GetTypography(typography)
         ->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas), potisionX, potisionY);
 }
 
@@ -650,7 +665,7 @@ void OH_Drawing_TypographyPaintOnPath(
     if (drawingCanvas && drawingCanvas->GetDrawingType() == OHOS::Rosen::Drawing::DrawingType::RECORDING) {
         (static_cast<OHOS::Rosen::Drawing::RecordingCanvas*>(drawingCanvas))->SetIsCustomTypeface(true);
     }
-    ConvertToOriginalText<Typography>(typography)->Paint(drawingCanvas, drawingpath, hOffset, vOffset);
+    GetTypography(typography)->Paint(drawingCanvas, drawingpath, hOffset, vOffset);
 }
 
 double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)
@@ -658,7 +673,7 @@ double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+    return GetTypography(typography)->GetMaxWidth();
 }
 
 double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography* typography)
@@ -666,7 +681,7 @@ double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography* typography)
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetHeight();
+    return GetTypography(typography)->GetHeight();
 }
 
 double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
@@ -674,7 +689,7 @@ double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetActualWidth();
+    return GetTypography(typography)->GetActualWidth();
 }
 
 double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography* typography)
@@ -682,7 +697,7 @@ double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography* typo
     if (typography == nullptr) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetLongestLineWithIndent();
+    return GetTypography(typography)->GetLongestLineWithIndent();
 }
 
 double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typography)
@@ -690,7 +705,7 @@ double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typograp
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetMinIntrinsicWidth();
+    return GetTypography(typography)->GetMinIntrinsicWidth();
 }
 
 double OH_Drawing_TypographyGetMaxIntrinsicWidth(OH_Drawing_Typography* typography)
@@ -698,7 +713,7 @@ double OH_Drawing_TypographyGetMaxIntrinsicWidth(OH_Drawing_Typography* typograp
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetMaxIntrinsicWidth();
+    return GetTypography(typography)->GetMaxIntrinsicWidth();
 }
 
 double OH_Drawing_TypographyGetAlphabeticBaseline(OH_Drawing_Typography* typography)
@@ -706,7 +721,7 @@ double OH_Drawing_TypographyGetAlphabeticBaseline(OH_Drawing_Typography* typogra
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetAlphabeticBaseline();
+    return GetTypography(typography)->GetAlphabeticBaseline();
 }
 
 double OH_Drawing_TypographyGetIdeographicBaseline(OH_Drawing_Typography* typography)
@@ -714,7 +729,7 @@ double OH_Drawing_TypographyGetIdeographicBaseline(OH_Drawing_Typography* typogr
     if (!typography) {
         return 0.0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetIdeographicBaseline();
+    return GetTypography(typography)->GetIdeographicBaseline();
 }
 
 void OH_Drawing_TypographyHandlerAddPlaceholder(OH_Drawing_TypographyCreate* handler, OH_Drawing_PlaceholderSpan* span)
@@ -731,7 +746,7 @@ bool OH_Drawing_TypographyDidExceedMaxLines(OH_Drawing_Typography* typography)
     if (!typography) {
         return false;
     }
-    return ConvertToOriginalText<Typography>(typography)->DidExceedMaxLines();
+    return GetTypography(typography)->DidExceedMaxLines();
 }
 
 OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography* typography, size_t start, size_t end,
@@ -746,7 +761,7 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     }
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)
+    *originalVector = GetTypography(typography)
                           ->GetTextRectsByBoundary(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
     return (OH_Drawing_TextBox*)originalVector;
 }
@@ -760,7 +775,7 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForPlaceholders(OH_Drawing_Typo
     if (originalVector == nullptr) {
         return nullptr;
     }
-    *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsOfPlaceholders();
+    *originalVector = GetTypography(typography)->GetTextRectsOfPlaceholders();
     return (OH_Drawing_TextBox*)originalVector;
 }
 
@@ -872,7 +887,7 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinat
     if (originalPositionAndAffinity == nullptr) {
         return nullptr;
     }
-    *originalPositionAndAffinity = ConvertToOriginalText<Typography>(typography)->GetGlyphIndexByCoordinate(dx, dy);
+    *originalPositionAndAffinity = GetTypography(typography)->GetGlyphIndexByCoordinate(dx, dy);
     return (OH_Drawing_PositionAndAffinity*)originalPositionAndAffinity;
 }
 
@@ -913,7 +928,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetWordBoundary(OH_Drawing_Typography* ty
     if (originalRange == nullptr) {
         return nullptr;
     }
-    *originalRange = ConvertToOriginalText<Typography>(typography)->GetWordBoundaryByIndex(offset);
+    *originalRange = GetTypography(typography)->GetWordBoundaryByIndex(offset);
     return (OH_Drawing_Range*)originalRange;
 }
 
@@ -940,7 +955,7 @@ size_t OH_Drawing_TypographyGetLineCount(OH_Drawing_Typography* typography)
     if (!typography) {
         return 0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetLineCount();
+    return GetTypography(typography)->GetLineCount();
 }
 
 void OH_Drawing_SetTextStyleDecorationStyle(OH_Drawing_TextStyle* style, int decorationStyle)
@@ -1149,7 +1164,7 @@ double OH_Drawing_TypographyGetLineHeight(OH_Drawing_Typography* typography, int
     if (!typography) {
         return 0.0;
     }
-    Typography* typographyInner = ConvertToOriginalText<Typography>(typography);
+    Typography* typographyInner = GetTypography(typography);
     return typographyInner->GetLineHeight(lineNumber);
 }
 
@@ -1158,7 +1173,7 @@ double OH_Drawing_TypographyGetLineWidth(OH_Drawing_Typography* typography, int 
     if (!typography) {
         return 0.0;
     }
-    Typography* typographyInner = ConvertToOriginalText<Typography>(typography);
+    Typography* typographyInner = GetTypography(typography);
     return typographyInner->GetLineWidth(lineNumber);
 }
 
@@ -1172,7 +1187,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(
     if (originalRange == nullptr) {
         return nullptr;
     }
-    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
+    *originalRange = GetTypography(typography)->GetActualTextRange(lineNumber, includeSpaces);
     return (OH_Drawing_Range*)originalRange;
 }
 
@@ -1215,7 +1230,7 @@ static void ConvertLineMetrics(const LineMetrics& lineMetrics, OH_Drawing_LineMe
 bool OH_Drawing_TypographyGetLineInfo(OH_Drawing_Typography* typography, int lineNumber, bool oneLine,
     bool includeWhitespace, OH_Drawing_LineMetrics* drawingLineMetrics)
 {
-    Typography* typographyInner = ConvertToOriginalText<Typography>(typography);
+    Typography* typographyInner = GetTypography(typography);
     if (typographyInner == nullptr || drawingLineMetrics == nullptr) {
         return false;
     }
@@ -1462,7 +1477,7 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     if (typography == nullptr) {
         return nullptr;
     }
-    auto lineMetrics = ConvertToOriginalText<Typography>(typography)->GetLineMetrics();
+    auto lineMetrics = GetTypography(typography)->GetLineMetrics();
     if (lineMetrics.size() == 0) {
         return nullptr;
     }
@@ -1501,7 +1516,7 @@ bool OH_Drawing_TypographyGetLineMetricsAt(
         return false;
     }
     LineMetrics metric;
-    if (ConvertToOriginalText<Typography>(typography)->GetLineMetricsAt(lineNumber, &metric)) {
+    if (GetTypography(typography)->GetLineMetricsAt(lineNumber, &metric)) {
         ConvertLineMetrics(metric, *lineMetric);
         return true;
     }
@@ -1513,7 +1528,7 @@ float OH_Drawing_TypographyGetIndentsWithIndex(OH_Drawing_Typography* typography
     if (typography == nullptr || index < 0) {
         return 0.0;
     }
-    Typography* innerTypography = ConvertToOriginalText<Typography>(typography);
+    Typography* innerTypography = GetTypography(typography);
     if (innerTypography == nullptr) {
         return 0.0;
     }
@@ -1529,7 +1544,7 @@ void OH_Drawing_TypographySetIndents(OH_Drawing_Typography* typography, int inde
     for (int i = 0; i < indentsNumber; i++) {
         rosenIndents.emplace_back(indents[i]);
     }
-    ConvertToOriginalText<Typography>(typography)->SetIndents(rosenIndents);
+    GetTypography(typography)->SetIndents(rosenIndents);
 }
 
 OH_Drawing_TextShadow* OH_Drawing_CreateTextShadow(void)
@@ -1871,7 +1886,7 @@ bool OH_Drawing_TextStyleGetFontMetrics(
         return false;
     }
     auto textstyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
-    auto txtSKTypograph = ConvertToOriginalText<Typography>(typography);
+    auto txtSKTypograph = GetTypography(typography);
     const OHOS::Rosen::Drawing::FontMetrics fontmetricsResult = txtSKTypograph->GetFontMetrics(*textstyle);
     ConvertFontMetrics(fontmetricsResult, *fontmetrics);
     startGetMetrics = true;
@@ -2312,26 +2327,26 @@ OH_Drawing_TextHeightBehavior OH_Drawing_TypographyTextGetHeightBehavior(OH_Draw
 
 void OH_Drawing_TypographyMarkDirty(OH_Drawing_Typography* typography)
 {
-    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+    if (typography == nullptr || GetTypography(typography) == nullptr) {
         return;
     }
-    ConvertToOriginalText<Typography>(typography)->MarkDirty();
+    GetTypography(typography)->MarkDirty();
 }
 
 int32_t OH_Drawing_TypographyGetUnresolvedGlyphsCount(OH_Drawing_Typography* typography)
 {
-    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+    if (typography == nullptr || GetTypography(typography) == nullptr) {
         return 0;
     }
-    return ConvertToOriginalText<Typography>(typography)->GetUnresolvedGlyphsCount();
+    return GetTypography(typography)->GetUnresolvedGlyphsCount();
 }
 
 void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size_t from, size_t to, float fontSize)
 {
-    if (typography == nullptr || ConvertToOriginalText<Typography>(typography) == nullptr) {
+    if (typography == nullptr || GetTypography(typography) == nullptr) {
         return;
     }
-    ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
+    GetTypography(typography)->UpdateFontSize(from, to, fontSize);
 }
 
 void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color)
@@ -2343,7 +2358,7 @@ void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uin
     TextStyle textStyleTemplate;
     textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
     textStyleTemplate.color.SetColorQuad(color);
-    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+    GetTypography(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration)
@@ -2357,7 +2372,7 @@ void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH
     TextStyle textStyleTemplate;
     textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
     textStyleTemplate.decoration = static_cast<TextDecoration>(decoration);
-    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+    GetTypography(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
@@ -2371,7 +2386,7 @@ void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* 
     textStyleTemplate.relayoutChangeBitmap.set(
         static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
     textStyleTemplate.decorationThicknessScale = decorationThicknessScale;
-    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+    GetTypography(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
@@ -2412,7 +2427,7 @@ void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typograph
     TextStyle textStyleTemplate;
     textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
     textStyleTemplate.decorationStyle = textDecorationStyle;
-    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+    GetTypography(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecorationColor(OH_Drawing_Typography* typography, uint32_t color)
@@ -2424,7 +2439,7 @@ void OH_Drawing_TypographyUpdateDecorationColor(OH_Drawing_Typography* typograph
     TextStyle textStyleTemplate;
     textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_COLOR));
     textStyleTemplate.decorationColor.SetColorQuad(color);
-    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+    GetTypography(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
@@ -3451,7 +3466,7 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(
         return nullptr;
     }
 
-    auto txtSKTypograph = ConvertToOriginalText<Typography>(typography);
+    auto txtSKTypograph = GetTypography(typography);
     std::vector<Drawing::FontMetrics> grabFontMetrics;
     if (!txtSKTypograph->GetLineFontMetrics(lineNumber, *fontMetricsSize, grabFontMetrics)) {
         return nullptr;
@@ -3841,7 +3856,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
 
     // Use stack memory for temporary variable
     Boundary tempActualGlyphRange{0, 0};
-    Boundary characterRange = ConvertToOriginalText<Typography>(typography)->GetCharacterRangeForGlyphRange(
+    Boundary characterRange = GetTypography(typography)->GetCharacterRangeForGlyphRange(
         glyphRangeStart, glyphRangeEnd, &tempActualGlyphRange, static_cast<TextEncoding>(textEncodingType));
 
     // Only allocate on heap for return values
@@ -3878,7 +3893,7 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetCharacterPositionAtCoord
         return nullptr;
     }
 
-    IndexAndAffinity charPosAndAffinity = ConvertToOriginalText<Typography>(typography)->GetCharacterIndexByCoordinate(
+    IndexAndAffinity charPosAndAffinity = GetTypography(typography)->GetCharacterIndexByCoordinate(
         dx, dy, static_cast<TextEncoding>(textEncodingType));
     IndexAndAffinity* charPosAndAffinityResult = new (std::nothrow) IndexAndAffinity(
         charPosAndAffinity.index, charPosAndAffinity.affinity);
@@ -3909,7 +3924,7 @@ OH_Drawing_Range* OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
 
     // Use stack memory for temporary variable
     Boundary tempActualCharacterRange{0, 0};
-    Boundary glyphRange = ConvertToOriginalText<Typography>(typography)->GetGlyphRangeForCharacterRange(
+    Boundary glyphRange = GetTypography(typography)->GetGlyphRangeForCharacterRange(
         characterRangeStart, characterRangeEnd, &tempActualCharacterRange, static_cast<TextEncoding>(textEncodingType));
 
     // Only allocate on heap for return values

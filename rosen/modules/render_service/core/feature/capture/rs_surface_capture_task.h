@@ -33,6 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender);
@@ -102,6 +103,8 @@ private:
     NodeId nodeId_ = INVALID_NODEID;
 
     const RSSurfaceCaptureConfig captureConfig_ = {};
+
+    CaptureError errorCode_ = CaptureError::CAPTURE_OK;
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };

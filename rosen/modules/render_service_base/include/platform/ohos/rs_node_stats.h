@@ -69,7 +69,6 @@ private:
     static constexpr int RS_NODE_LIMIT_PROPERTY_MAX = 1000;
     static constexpr float RS_NODE_LIMIT_REPORT_RATIO = 1.5f;
 
-    int64_t lastReportTime_ = TIMESTAMP_INITIAL;
     int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;
     std::mutex mutex_;
     std::vector<RSNodeStatsType> rsNodeStatsVec_;

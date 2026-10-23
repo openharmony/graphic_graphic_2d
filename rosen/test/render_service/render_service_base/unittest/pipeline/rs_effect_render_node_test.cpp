@@ -248,6 +248,12 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize
     } else {
         EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
     }
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**
@@ -308,6 +314,13 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterHasEffectChildrenTest, TestSize.Level
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
     rsEffectRenderNode.MarkFilterHasEffectChildren();
     EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**

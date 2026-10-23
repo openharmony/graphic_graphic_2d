@@ -432,7 +432,8 @@ napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnEnableSubpixel font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -449,7 +450,8 @@ napi_value JsFont::OnEnableEmbolden(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnEnableEmbolden font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -466,7 +468,8 @@ napi_value JsFont::OnEnableLinearMetrics(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnEnableLinearMetrics font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -483,7 +486,8 @@ napi_value JsFont::OnSetBaselineSnap(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetBaselineSnap font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -500,7 +504,8 @@ napi_value JsFont::OnIsBaselineSnap(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsBaselineSnap font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool baselineSnap = m_font->IsBaselineSnap();
@@ -511,7 +516,8 @@ napi_value JsFont::OnSetEmbeddedBitmaps(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetEmbeddedBitmaps font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -528,7 +534,8 @@ napi_value JsFont::OnIsEmbeddedBitmaps(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsEmbeddedBitmaps font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool embeddedBitmaps = m_font->IsEmbeddedBitmaps();
@@ -539,7 +546,8 @@ napi_value JsFont::OnSetForceAutoHinting(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetForceAutoHinting font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -556,7 +564,8 @@ napi_value JsFont::OnIsForceAutoHinting(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsForceAutoHinting font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool isForceAutoHinting = m_font->IsForceAutoHinting();
@@ -587,7 +596,8 @@ napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetWidths font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = { nullptr };
@@ -629,7 +639,8 @@ napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetSize font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -646,7 +657,8 @@ napi_value JsFont::OnGetSize(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetSize font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     double textSize = m_font->GetSize();
@@ -657,7 +669,8 @@ napi_value JsFont::OnGetMetrics(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetMetrics font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
     FontMetrics metrics;
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
@@ -670,7 +683,8 @@ napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetTypeface font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -687,7 +701,8 @@ napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetTypeface font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     std::shared_ptr<Typeface> typeface = m_font->GetTypeface();
@@ -698,7 +713,8 @@ napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetBounds font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
     napi_value argv[ARGC_ONE] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
@@ -706,7 +722,8 @@ napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
     napi_status status = napi_get_array_length(env, argv[ARGC_ZERO], &glyphscnt);
     if (status != napi_ok || glyphscnt == 0) {
         ROSEN_LOGE("Failed to get size of glyph array %u", glyphscnt);
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "Array object", env, argv[ARGC_ZERO]));
     }
     if (glyphscnt > MAX_ELEMENTSIZE) {
         ROSEN_LOGE("JsFont::OnGetBounds size of glyph array exceeds the upper limit");
@@ -741,7 +758,8 @@ napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info inf
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnMeasureSingleCharacter font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -749,23 +767,25 @@ napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info inf
 
     size_t len = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the length of the string.");
     }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. Input parameter0 should be single character.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect Param[0] "
+            "string length. Expected: length(0, 4], Actual: " + std::to_string(len));
     }
     char str[len + 1];
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], str, len + 1, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the string character.");
     }
 
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     size_t byteLen = currentStr - str;
     if (byteLen != len) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. Input parameter0 should be single character.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect currentStr "
+            "length. Expected: byteLen = " + std::to_string(len) + ", Actual: " + std::to_string(byteLen));
     }
     std::shared_ptr<Font> themeFont = MatchThemeFont(m_font, unicode);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
@@ -776,7 +796,8 @@ napi_value JsFont::OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callb
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnMeasureSingleCharacterWithFeatures font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -784,7 +805,8 @@ napi_value JsFont::OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callb
 
     size_t len = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the length of the string.");
     }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
@@ -792,7 +814,8 @@ napi_value JsFont::OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callb
     }
     std::vector<char> strBuffer(len + 1);
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], strBuffer.data(), len + 1, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the string character.");
     }
 
     strBuffer[len] = 0;
@@ -811,7 +834,8 @@ napi_value JsFont::OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callb
     napi_value array = argv[ARGC_ONE];
     uint32_t size = 0;
     if (napi_get_array_length(env, array, &size) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the length of the array.");
     }
     std::shared_ptr<DrawingFontFeatures> featuresPtr = std::make_shared<DrawingFontFeatures>();
     MakeFontFeaturesFromJsArray(env, featuresPtr, size, array);
@@ -823,7 +847,8 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnMeasureText font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -833,14 +858,14 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnMeasureText Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The text input must be string.");
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "string", env, argv[ARGC_ZERO]));
     }
 
     TextEncoding TextEncoding = TextEncoding::UTF8;
     if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[1])) {
         ROSEN_LOGE("JsFont::OnMeasureText ConvertFromJsTextEncoding failed");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The TextEncoding input must be valid.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect TextEncoding "
+            "value. Expected: UTF8 or UTF16 or UTF32 or GLYPH_ID, Actual: nullptr");
     }
 
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
@@ -854,7 +879,7 @@ napi_value JsFont::OnMeasureTextWithFallback(napi_env env, napi_callback_info in
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnMeasureTextWithFallback font is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The font object is invalid.");
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = { nullptr };
@@ -864,14 +889,14 @@ napi_value JsFont::OnMeasureTextWithFallback(napi_env env, napi_callback_info in
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnMeasureTextWithFallback Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The text input must be string.");
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "string", env, argv[ARGC_ZERO]));
     }
 
     TextEncoding textEncoding = TextEncoding::UTF8;
     if (!ConvertFromJsTextEncoding(env, textEncoding, argv[ARGC_ONE])) {
         ROSEN_LOGE("JsFont::OnMeasureTextWithFallback ConvertFromJsTextEncoding failed");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The textEncoding input must be valid.");
+            BuildParamTypeMismatchMsg(ARGC_ONE, "TextEncoding object", env, argv[ARGC_ONE]));
     }
 
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
@@ -884,7 +909,8 @@ napi_value JsFont::OnSetScaleX(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetScaleX font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -901,7 +927,8 @@ napi_value JsFont::OnSetSkewX(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetSkewX font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -918,7 +945,8 @@ napi_value JsFont::OnSetEdging(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetEdging font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -935,7 +963,8 @@ napi_value JsFont::OnSetHinting(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetHinting font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -952,7 +981,8 @@ napi_value JsFont::OnCountText(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnCountText font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -974,7 +1004,8 @@ napi_value JsFont::OnIsSubpixel(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsSubpixel font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool subpixel = m_font->IsSubpixel();
@@ -985,7 +1016,8 @@ napi_value JsFont::OnIsLinearMetrics(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsLinearMetrics font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool linear = m_font->IsLinearMetrics();
@@ -996,7 +1028,8 @@ napi_value JsFont::OnGetSkewX(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetSkewX font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     double skewX = m_font->GetSkewX();
@@ -1007,7 +1040,8 @@ napi_value JsFont::OnIsEmbolden(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsEmbolden font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool fakeBoldText = m_font->IsEmbolden();
@@ -1018,7 +1052,8 @@ napi_value JsFont::OnGetScaleX(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetScaleX font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     double scaleX = m_font->GetScaleX();
@@ -1029,7 +1064,8 @@ napi_value JsFont::OnGetHinting(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetHinting font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     FontHinting hinting = m_font->GetHinting();
@@ -1040,7 +1076,8 @@ napi_value JsFont::OnGetEdging(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnGetEdging font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     FontEdging edging = m_font->GetEdging();
@@ -1051,7 +1088,8 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnTextToGlyphs font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     size_t argc = ARGC_TWO;
@@ -1071,7 +1109,8 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         uint32_t inputCount = 0;
         GET_UINT32_PARAM(ARGC_ONE, inputCount);
         if (glyphCount != inputCount) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter error. The glyphCount must be the same as the value obtained from [countText]");
         }
     }
 
@@ -1151,7 +1190,7 @@ napi_value JsFont::OnTextToGlyphsWithFallback(napi_env env, napi_callback_info i
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
         ROSEN_LOGE("JsFont::OnTextToGlyphsWithFallback Argv[ARGC_ZERO] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter error. The text input must be string.");
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "string", env, argv[ARGC_ZERO]));
     }
 
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
@@ -1194,7 +1233,8 @@ napi_value JsFont::OnCreatePathForGlyph(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnCreatePathForGlyph font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -1219,7 +1259,8 @@ void JsFont::SetFont(std::shared_ptr<Font> font)
 napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -1227,22 +1268,26 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
 
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the first parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "string", env, argv[ARGC_ZERO]));
     }
 
     uint32_t byteLength = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ONE], byteLength)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the second parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ONE, "number", env, argv[ARGC_ONE]));
     }
 
     double x = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_TWO], x)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the third parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_TWO, "number", env, argv[ARGC_TWO]));
     }
 
     double y = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_THREE], y)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the fourth parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_THREE, "number", env, argv[ARGC_THREE]));
     }
 
     std::shared_ptr<Path> path = std::make_shared<Path>();
@@ -1256,7 +1301,8 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
 napi_value JsFont::OnCreatePathForTextWithFallback(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -1264,22 +1310,26 @@ napi_value JsFont::OnCreatePathForTextWithFallback(napi_env env, napi_callback_i
 
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the first parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ZERO, "string", env, argv[ARGC_ZERO]));
     }
 
     uint32_t byteLength = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ONE], byteLength)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the second parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ONE, "number", env, argv[ARGC_ONE]));
     }
 
     double x = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_TWO], x)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the third parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_TWO, "number", env, argv[ARGC_TWO]));
     }
 
     double y = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_THREE], y)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the fourth parameter");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_THREE, "number", env, argv[ARGC_THREE]));
     }
 
     std::shared_ptr<Path> path = std::make_shared<Path>();
@@ -1293,7 +1343,8 @@ napi_value JsFont::OnSetThemeFontFollowed(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnSetThemeFontFollowed font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -1310,7 +1361,8 @@ napi_value JsFont::OnIsThemeFontFollowed(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
         ROSEN_LOGE("JsFont::OnIsThemeFontFollowed font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
 
     bool followed = m_font->IsThemeFontFollowed();

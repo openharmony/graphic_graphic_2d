@@ -357,12 +357,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode_NegativeS
 #endif
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode001
+ * @tc.name: CreatePixelMapByDisplayNodeTest001
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode while node is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode001, TestSize.Level2)
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
@@ -370,12 +370,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode001, TestS
 }
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode002
+ * @tc.name: CreatePixelMapByDisplayNodeTest002
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestSize.Level2)
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest002, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
@@ -385,12 +385,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
 }
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode003
+ * @tc.name: CreatePixelMapByDisplayNodeTest003
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with pixelmap not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestSize.Level2)
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest003, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
@@ -402,9 +402,93 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->AddChild(node);
+    node->SetParent(screenNode);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, true));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest004
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with BGRA_8888 format
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest004, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::BGRA_8888;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest005
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with unsupported format RGB_565
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest005, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::RGB_565;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest006
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with dma capture
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest006, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.useDma = true;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNodeTest007
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with format RGBA_8888
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNodeTest007, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.pixelFormat = Media::PixelFormat::RGBA_8888;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(0, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetParent(screenNode);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
 }
 
 /*
@@ -412,13 +496,70 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with pixelmap is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
-*/
+ */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
     std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
     ASSERT_EQ(nullptr, task.CreateSurface(pixelmap));
+}
+
+/*
+ * @tc.name: CreateSurface002
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with RGBA_8888 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface002, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    task.CreateSurface(pixelmap);
+}
+
+/*
+ * @tc.name: CreateSurface003
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with BGRA_8888 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface003, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    task.CreateSurface(pixelmap);
+}
+
+/*
+ * @tc.name: CreateSurface004
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateSurface with RGBA_F16 pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface004, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    Media::InitializationOptions opts;
+    opts.size.width = 4;
+    opts.size.height = 4;
+    opts.pixelFormat = Media::PixelFormat::RGBA_F16;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    task.CreateSurface(pixelmap);
 }
 
 /*

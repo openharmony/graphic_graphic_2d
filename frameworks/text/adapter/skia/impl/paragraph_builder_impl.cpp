@@ -229,7 +229,8 @@ void SetPaintProperties(skt::TextStyle& skStyle, const TextStyle& txt)
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
     skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
-        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius, txt.backgroundRect.leftBottomRadius });
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius, txt.backgroundRect.leftBottomRadius,
+        txt.backgroundRect.borderColor, txt.backgroundRect.borderWidth });
     skStyle.resetShadows();
     for (const TextShadow& txtShadow : txt.textShadows) {
         skStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));

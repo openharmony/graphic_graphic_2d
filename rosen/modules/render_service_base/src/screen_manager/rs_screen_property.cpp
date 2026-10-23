@@ -105,6 +105,11 @@ ScreenColorGamut RSScreenProperty::GetScreenColorGamut() const
     return static_cast<ScreenColorGamut>(Get<ScreenPropertyType::COLOR_GAMUT>());
 }
 
+HDRMode RSScreenProperty::GetVirtualScreenHDRMode() const
+{
+    return static_cast<HDRMode>(Get<ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE>());
+}
+
 ScreenGamutMap RSScreenProperty::GetScreenGamutMap() const
 {
     return static_cast<ScreenGamutMap>(Get<ScreenPropertyType::GAMUT_MAP>());
@@ -286,6 +291,11 @@ Gravity RSScreenProperty::GetFrameGravity() const
     return static_cast<Gravity>(Get<ScreenPropertyType::SCREEN_FRAME_GRAVITY>());
 }
 
+bool RSScreenProperty::GetSkipColorSpaceConversion() const
+{
+    return Get<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>();
+}
+
 bool RSScreenProperty::IsMainScreen() const
 {
     return Get<ScreenPropertyType::IS_MAIN_SCREEN>();
@@ -342,7 +352,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
 #define UNMARSHALL_CASE(ENUM_TYPE)                                                                      \
     case ENUM_TYPE: {                                                                                   \
         using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
-        property = sptr<ScreenProperty<T>>(ScreenProperty<T>::Unmarshalling(data));                     \
+        property = sptr<ScreenProperty<T> >(ScreenProperty<T>::Unmarshalling(data));                    \
         if (!property) {                                                                                \
             RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
             return false;                                                                               \
@@ -394,6 +404,8 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
         UNMARSHALL_CASE(ScreenPropertyType::DUAL_SCREEN_STATE)
         UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_MODE)
+        UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE)
+        UNMARSHALL_CASE(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
             return false;

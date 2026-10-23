@@ -121,6 +121,8 @@ public:
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const;
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const;
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) const;
@@ -191,6 +193,7 @@ public:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
     void OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     bool UpdateVsyncEnabledScreenId(ScreenId screenId);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(

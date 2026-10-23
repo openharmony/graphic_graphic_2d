@@ -156,7 +156,8 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetColor pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     size_t argc = ARGC_FOUR;
@@ -169,7 +170,7 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
         if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
             ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The range of color channels must be [0, 255].");
+                "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
         }
         drawingColor.SetColorQuad(color);
     } else if (argc == ARGC_FOUR) {
@@ -183,7 +184,8 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
         GET_COLOR_PARAM(ARGC_THREE, blue);
         drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamCountRangeMsg(ARGC_ONE, ARGC_FOUR, argc));
     }
     pen->SetColor(drawingColor);
     return nullptr;
@@ -198,7 +200,8 @@ napi_value JsPen::SetStrokeWidth(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetStrokeWidth pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -221,7 +224,8 @@ napi_value JsPen::SetAntiAlias(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAntiAlias pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -243,7 +247,8 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetAlpha pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -253,7 +258,7 @@ napi_value JsPen::SetAlpha(napi_env env, napi_callback_info info)
     if (!ConvertFromJsNumber(env, argv[ARGC_ZERO], alpha, 0, Color::RGB_MAX)) {
         ROSEN_LOGE("JsPen::SetAlpha Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The alpha range must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
 
     pen->SetAlpha(alpha);
@@ -269,7 +274,8 @@ napi_value JsPen::SetBlendMode(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetBlendMode pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -291,7 +297,8 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetColorFilter pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -311,12 +318,14 @@ napi_value JsPen::GetColorFilter(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetColorFilter jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetColorFilter pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     if (pen->HasFilter()) {
         return JsColorFilter::Create(env, pen->GetFilter().GetColorFilter());
@@ -329,12 +338,14 @@ napi_value JsPen::SetImageFilter(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetImageFilter jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetImageFilter pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -354,12 +365,14 @@ napi_value JsPen::SetMaskFilter(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetMaskFilter jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetMaskFilter pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -389,12 +402,14 @@ napi_value JsPen::SetJoinStyle(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetJoinStyle jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetJoinStyle pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -412,12 +427,14 @@ napi_value JsPen::GetJoinStyle(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetJoinStyle jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetJoinStyle pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     return CreateJsNumber(env, static_cast<int32_t>(pen->GetJoinStyle()));
 }
@@ -465,12 +482,14 @@ napi_value JsPen::SetCapStyle(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetCapStyle jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetCapStyle pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -488,12 +507,14 @@ napi_value JsPen::GetCapStyle(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetCapStyle jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetCapStyle pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     Pen::CapStyle capStyle = pen->GetCapStyle();
@@ -505,12 +526,14 @@ napi_value JsPen::SetPathEffect(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetPathEffect jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetPathEffect pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -528,12 +551,14 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetShadowLayer jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetShadowLayer pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -551,12 +576,14 @@ napi_value JsPen::SetShaderEffect(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetShaderEffect jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetShaderEffect pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = { nullptr };
@@ -574,12 +601,14 @@ napi_value JsPen::GetFillPath(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetFillPath jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetFillPath pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
@@ -606,12 +635,14 @@ napi_value JsPen::IsAntiAlias(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::IsAntiAlias jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::IsAntiAlias pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     return CreateJsValue(env, pen->IsAntiAlias());
@@ -622,12 +653,14 @@ napi_value JsPen::GetAlpha(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetAlpha jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetAlpha pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     uint32_t alpha = pen->GetAlpha();
@@ -639,12 +672,14 @@ napi_value JsPen::GetWidth(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetWidth jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetWidth pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     scalar width = pen->GetWidth();
@@ -656,12 +691,14 @@ napi_value JsPen::SetMiterLimit(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::SetMiterLimit jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetMiterLimit pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -679,12 +716,14 @@ napi_value JsPen::GetMiterLimit(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetMiterLimit jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetMiterLimit pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     scalar miterLimit = pen->GetMiterLimit();
@@ -696,12 +735,14 @@ napi_value JsPen::Reset(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::Reset jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::Reset pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     pen->Reset();
@@ -713,12 +754,14 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetColor jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetColor pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     Color color = pen->GetColor();
@@ -735,7 +778,8 @@ napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::SetColor4f pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     napi_value argv[ARGC_TWO] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
@@ -743,7 +787,8 @@ napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
     Drawing::Color4f drawingColor4f;
     if (!ConvertFromAdaptJsColor4F(env, argv[ARGC_ZERO], drawingColor4f)) {
         ROSEN_LOGE("JsPen::SetColor4f Argv[0] is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter verification failed.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the length of the array.");
     }
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     ColorManager::JsColorSpace* jsColorSpace = nullptr;
@@ -767,12 +812,14 @@ napi_value JsPen::GetColor4f(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetColor4f jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetColor4f pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     const Color4f& color4f = pen->GetColor4f();
@@ -784,12 +831,14 @@ napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)
     JsPen* jsPen = CheckParamsAndGetThisWithTag<JsPen>(env, info, &PEN_TYPE_TAG);
     if (jsPen == nullptr) {
         ROSEN_LOGE("JsPen::GetHexColor jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
     std::shared_ptr<Pen> pen = jsPen->GetPen();
     if (pen == nullptr) {
         ROSEN_LOGE("JsPen::GetHexColor pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Pen object is invalid.");
     }
 
     Color color = pen->GetColor();

@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "draw_cmd.h"
 #include "drawing_painter_impl.h"
 #include "recording_canvas.h"
 #include "text_blob_builder.h"
@@ -26,6 +27,30 @@ using namespace OHOS::Rosen::TextEngine;
 using namespace skia::textlayout;
 
 namespace txt {
+namespace {
+constexpr int32_t CANVAS_WIDTH = 200;   // 200 just for test
+constexpr int32_t CANVAS_HEIGHT = 100;  // 100 just for test
+constexpr SkScalar RECT_WIDTH = 100.0f; // 100 just for test
+constexpr SkScalar RECT_HEIGHT = 50.0f; // 50 just for test
+constexpr SkColor COLOR_FILL_GREEN = 0xFF00FF00;
+constexpr SkColor COLOR_BORDER_RED = 0xFFFF0000;
+constexpr SkColor COLOR_TRANSPARENT = 0;
+constexpr SkScalar BORDER_WIDTH = 2.0f; // 2.0 just for test
+constexpr int EXPECTED_ROUND_RECT_OPS_ONE = 1;
+constexpr int EXPECTED_ROUND_RECT_OPS_TWO = 2;
+
+int CountRoundRectOps(const std::shared_ptr<RecordingCanvas>& canvas)
+{
+    int count = 0;
+    for (const auto& opItem : canvas->GetDrawCmdList()->GetDrawOpItems()) {
+        if (opItem->GetType() == DrawOpItem::ROUND_RECT_OPITEM) {
+            ++count;
+        }
+    }
+    return count;
+}
+} // namespace
+
 class RSCanvasParagraphPainterTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -463,6 +488,72 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest025, TestSize
     paint.emplace<ParagraphPainter::PaintID>(paintID);
     SkRect rect = SkRect::MakeEmpty();
     canvasParagraphPainterWithoutPenBrush_->drawRect(rect, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest026
+ * @tc.desc: test for drawRRectWithBorder draws both fill and border
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest026, TestSize.Level0)
+{
+    auto canvas = std::make_shared<RecordingCanvas>(CANVAS_WIDTH, CANVAS_HEIGHT, false);
+    ASSERT_NE(canvas, nullptr);
+    std::vector<PaintRecord> paints; // empty paints: drawRRectWithBorder only uses the canvas
+    RSCanvasParagraphPainter painter(canvas.get(), paints);
+    SkRRect rrect = SkRRect::MakeRect(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT));
+    painter.drawRRectWithBorder(rrect, COLOR_FILL_GREEN, COLOR_BORDER_RED, BORDER_WIDTH);
+    EXPECT_EQ(CountRoundRectOps(canvas), EXPECTED_ROUND_RECT_OPS_TWO); // one fill op plus one border op
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest027
+ * @tc.desc: test for drawRRectWithBorder skips transparent fill and draws border only
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest027, TestSize.Level0)
+{
+    auto canvas = std::make_shared<RecordingCanvas>(CANVAS_WIDTH, CANVAS_HEIGHT, false);
+    ASSERT_NE(canvas, nullptr);
+    std::vector<PaintRecord> paints; // empty paints: drawRRectWithBorder only uses the canvas
+    RSCanvasParagraphPainter painter(canvas.get(), paints);
+    SkRRect rrect = SkRRect::MakeRect(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT));
+    painter.drawRRectWithBorder(rrect, COLOR_TRANSPARENT, COLOR_BORDER_RED, BORDER_WIDTH);
+    EXPECT_EQ(CountRoundRectOps(canvas), EXPECTED_ROUND_RECT_OPS_ONE); // border only, fill skipped
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest028
+ * @tc.desc: test for drawRRectWithBorder skips border when borderColor is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest028, TestSize.Level0)
+{
+    auto canvas = std::make_shared<RecordingCanvas>(CANVAS_WIDTH, CANVAS_HEIGHT, false);
+    ASSERT_NE(canvas, nullptr);
+    std::vector<PaintRecord> paints; // empty paints: drawRRectWithBorder only uses the canvas
+    RSCanvasParagraphPainter painter(canvas.get(), paints);
+    SkRRect rrect = SkRRect::MakeRect(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT));
+    painter.drawRRectWithBorder(rrect, COLOR_FILL_GREEN, COLOR_TRANSPARENT, BORDER_WIDTH);
+    EXPECT_EQ(CountRoundRectOps(canvas), EXPECTED_ROUND_RECT_OPS_ONE); // fill only, border skipped
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest029
+ * @tc.desc: test for drawRRectWithBorder skips border when borderWidth is not positive
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest029, TestSize.Level0)
+{
+    auto canvas = std::make_shared<RecordingCanvas>(CANVAS_WIDTH, CANVAS_HEIGHT, false);
+    ASSERT_NE(canvas, nullptr);
+    std::vector<PaintRecord> paints; // empty paints: drawRRectWithBorder only uses the canvas
+    RSCanvasParagraphPainter painter(canvas.get(), paints);
+    SkRRect rrect = SkRRect::MakeRect(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT));
+    painter.drawRRectWithBorder(rrect, COLOR_FILL_GREEN, COLOR_BORDER_RED, 0.0f);
+    EXPECT_EQ(CountRoundRectOps(canvas), EXPECTED_ROUND_RECT_OPS_ONE); // fill only, zero-width border skipped
+    painter.drawRRectWithBorder(rrect, COLOR_FILL_GREEN, COLOR_BORDER_RED, -BORDER_WIDTH);
+    EXPECT_EQ(CountRoundRectOps(canvas), EXPECTED_ROUND_RECT_OPS_TWO); // fill again, border skipped
 }
 
 } // namespace txt

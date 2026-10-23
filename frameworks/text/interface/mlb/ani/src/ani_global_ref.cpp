@@ -235,6 +235,10 @@ constexpr CacheKey RECT_STYLE_LEFT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<ge
 constexpr CacheKey RECT_STYLE_RIGHT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>rightTopRadius", ":d"};
 constexpr CacheKey RECT_STYLE_RIGHT_BOTTOM_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>rightBottomRadius", ":d"};
 constexpr CacheKey RECT_STYLE_LEFT_BOTTOM_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>leftBottomRadius", ":d"};
+constexpr CacheKey RECT_STYLE_BORDER_COLOR_KEY{
+    ANI_INTERFACE_RECT_STYLE, "<get>borderColor", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
+constexpr CacheKey RECT_STYLE_BORDER_WIDTH_KEY{
+    ANI_INTERFACE_RECT_STYLE, "<get>borderWidth", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
 
 constexpr std::string_view TEXT_STYLE_SIGN =
     "C{" ANI_INTERFACE_DECORATION "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_FONT_WEIGHT "}E{" ANI_ENUM_FONT_STYLE
@@ -251,7 +255,8 @@ constexpr std::string_view DECORATION_SIGN =
     "E{" ANI_ENUM_TEXT_DECORATION_TYPE "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_TEXT_DECORATION_STYLE "}d:";
 constexpr CacheKey DECORATION_KEY{ANI_CLASS_DECORATION, "<ctor>", DECORATION_SIGN};
 
-constexpr CacheKey RECT_STYLE_KEY{ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}dddd:"};
+constexpr CacheKey RECT_STYLE_KEY{
+    ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}ddddC{" ANI_INTERFACE_COLOR "}C{" ANI_DOUBLE "}:"};
 
 constexpr CacheKey FONT_FEATURE_KEY{ANI_CLASS_FONT_FEATURE, "<ctor>", "C{" ANI_STRING "}i:"};
 constexpr CacheKey FONT_VARIATION_KEY{ANI_CLASS_FONT_VARIATION, "<ctor>", "C{" ANI_STRING "}dC{" ANI_BOOLEAN "}:"};
@@ -655,6 +660,10 @@ void AniGlobalMethod::InitRectStyleMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().rectStyle, RECT_STYLE_RIGHT_BOTTOM_RADIUS_KEY);
     rectStyleLeftBottomRadius =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().rectStyle, RECT_STYLE_LEFT_BOTTOM_RADIUS_KEY);
+    rectStyleBorderColor =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().rectStyle, RECT_STYLE_BORDER_COLOR_KEY);
+    rectStyleBorderWidth =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().rectStyle, RECT_STYLE_BORDER_WIDTH_KEY);
 }
 
 void AniGlobalMethod::InitPlaceholderMethod(ani_env* env)

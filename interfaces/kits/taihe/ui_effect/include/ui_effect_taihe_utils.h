@@ -48,6 +48,7 @@ constexpr uint32_t NUM_0 = 0;
 constexpr uint32_t NUM_1 = 1;
 constexpr uint32_t NUM_2 = 2;
 constexpr uint32_t NUM_3 = 3;
+constexpr uint32_t NUM_4 = 4;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_12 = 12;
 constexpr uint32_t NUM_1000 = 1000;

@@ -4601,6 +4601,33 @@ HWTEST_F(RSPropertiesTest, SetDistortionKNullopt001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDistortionKNulloptReset001
+ * @tc.desc: SetDistortionK with nullopt resets existing distortionPara_ to nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetDistortionKNulloptReset001, TestSize.Level1)
+{
+    RSProperties properties;
+    // Allocate distortionPara_ by setting a valid K
+    properties.SetDistortionK(0.5f);
+    ASSERT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    ASSERT_NE(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+    EXPECT_TRUE(properties.GetDistortionDirty());
+    ASSERT_NE(properties.GetDistortionK(), std::nullopt);
+    EXPECT_EQ(properties.isDrawn_, true);
+
+    // Reset by passing nullopt; distortionPara_ should be released
+    properties.SetDistortionK(std::nullopt);
+    ASSERT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+    EXPECT_EQ(properties.GetDistortionK(), std::nullopt);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+    // isDrawn_ is not reset by the nullopt branch; stays as previous true
+    EXPECT_EQ(properties.isDrawn_, true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+}
+
+/**
  * @tc.name: SetDistortionKDirtyCalc001
  * @tc.desc: SetDistortionK calculates dirty flag: K in (0,1] -> dirty=true, K outside -> dirty=false
  * @tc.type: FUNC
@@ -4620,9 +4647,17 @@ HWTEST_F(RSPropertiesTest, SetDistortionKDirtyCalc001, TestSize.Level1)
     properties.SetDistortionK(-1.0f);
     EXPECT_FALSE(properties.GetDistortionDirty());
 
+    // K=-0.5: ROSEN_GNE(-0.5, 0.0)=false => dirty=false
+    properties.SetDistortionK(-0.5f);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+
     // K=1.0: ROSEN_GNE(1.0, 0.0)=true, ROSEN_LE(1.0, 1.0)=true => dirty=true
     properties.SetDistortionK(1.0f);
     EXPECT_TRUE(properties.GetDistortionDirty());
+
+    // K=0.0: ROSEN_GNE(0.0, 0.0)=false => dirty=false
+    properties.SetDistortionK(0.0f);
+    EXPECT_FALSE(properties.GetDistortionDirty());
 }
 
 /**
@@ -4642,6 +4677,42 @@ HWTEST_F(RSPropertiesTest, SetDistortionDirty001, TestSize.Level1)
 
     properties.SetDistortionDirty(true);
     EXPECT_TRUE(properties.GetDistortionDirty());
+}
+
+/**
+ * @tc.name: SetDistortionDirtyNullPara001
+ * @tc.desc: SetDistortionDirty is a no-op when distortionPara_ is null (early-return guard)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetDistortionDirtyNullPara001, TestSize.Level1)
+{
+    // Case 1: default-constructed RSProperties; filterEffect_ and distortionPara_ both null
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffectProperties().filterEffect_, nullptr);
+
+    // Early-return guard must prevent the write and avoid crashing
+    properties.SetDistortionDirty(true);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+    ASSERT_NE(properties.GetEffectProperties().filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+
+    properties.SetDistortionDirty(false);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+
+    // Case 2: filterEffect_ allocated (via unrelated setter) but distortionPara_ still null
+    RSProperties properties2;
+    properties2.SetSpherize(0.5f);
+    ASSERT_NE(properties2.GetEffectProperties().filterEffect_, nullptr);
+    ASSERT_EQ(properties2.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+
+    properties2.SetDistortionDirty(true);
+    EXPECT_FALSE(properties2.GetDistortionDirty());
+    EXPECT_EQ(properties2.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
+
+    properties2.SetDistortionDirty(false);
+    EXPECT_FALSE(properties2.GetDistortionDirty());
+    EXPECT_EQ(properties2.GetEffectProperties().GetFilterEffect().distortionPara_, nullptr);
 }
 
 /**
@@ -4681,29 +4752,37 @@ HWTEST_F(RSPropertiesTest, GetDistortionKNullEffect001, TestSize.Level1)
 
 /**
  * @tc.name: IsDistortionKValidBoundary001
- * @tc.desc: IsDistortionKValid boundary tests at K=1.0 and K=-1.0
+ * @tc.desc: IsDistortionKValid boundary tests for valid range [-1.0, 0) U (0, 1.0]
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertiesTest, IsDistortionKValidBoundary001, TestSize.Level1)
 {
     RSProperties properties;
-    // K=1.0: ROSEN_GE(1.0, -1.0)=true, ROSEN_LE(1.0, 1.0)=true => valid
+    // K=1.0: upper boundary, in (0,1] => valid
     properties.SetDistortionK(1.0f);
     EXPECT_TRUE(properties.IsDistortionKValid());
 
-    // K=-1.0: ROSEN_GE(-1.0, -1.0)=true, ROSEN_LE(-1.0, 1.0)=true => valid
+    // K=-1.0: lower boundary, in [-1,0) => valid
     properties.SetDistortionK(-1.0f);
     EXPECT_TRUE(properties.IsDistortionKValid());
 
-    // K=0.0: ROSEN_GE(0.0, -1.0)=true, ROSEN_LE(0.0, 1.0)=true => valid
-    properties.SetDistortionK(0.0f);
+    // K=0.5: middle of (0,1] => valid
+    properties.SetDistortionK(0.5f);
     EXPECT_TRUE(properties.IsDistortionKValid());
 
-    // K=2.0: ROSEN_LE(2.0, 1.0)=false => invalid
+    // K=-0.5: middle of [-1,0) => valid
+    properties.SetDistortionK(-0.5f);
+    EXPECT_TRUE(properties.IsDistortionKValid());
+
+    // K=0.0: equals to 0 (within epsilon) => invalid
+    properties.SetDistortionK(0.0f);
+    EXPECT_FALSE(properties.IsDistortionKValid());
+
+    // K=2.0: > 1 => invalid
     properties.SetDistortionK(2.0f);
     EXPECT_FALSE(properties.IsDistortionKValid());
 
-    // K=-2.0: ROSEN_GE(-2.0, -1.0)=false => invalid
+    // K=-2.0: < -1 => invalid
     properties.SetDistortionK(-2.0f);
     EXPECT_FALSE(properties.IsDistortionKValid());
 }

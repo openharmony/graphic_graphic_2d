@@ -565,7 +565,7 @@ HWTEST_F(RSUifirstManagerTest2, CheckHwcChildrenType, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     SurfaceHwcNodeType enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
-    
+
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode->AddChildHardwareEnabledNode(surfaceNode1);
@@ -1747,7 +1747,7 @@ HWTEST_F(RSUifirstManagerTest2, IsExceededWindowsThresholdTest, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     uifirstManager_.uifirstWindowsNumThreshold_ = 0;
     ASSERT_FALSE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
-    
+
     uifirstManager_.uifirstWindowsNumThreshold_ = 1;
     mainThread->focusNodeId_ = surfaceNode->GetId();
     ASSERT_FALSE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
@@ -2817,7 +2817,7 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable001, TestSize.Level1)
     EXPECT_FALSE(mainThread->IsPidRebuilding(rebuildPid));
     EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
 }
- 
+
 /**
  * @tc.name: IsRebuildForceDisable002
  * @tc.desc: Test IsRebuildForceDisable returns false for non-leash node whose pid is not rebuilding
@@ -2834,18 +2834,18 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable002, TestSize.Level1)
     config.id = MakeNodeId(3400, 1); // node's pid differs from rebuilding pid
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
     ASSERT_NE(surfaceNode, nullptr);
- 
+
     auto txn = std::make_unique<RSTransactionData>();
     txn->SetSendingPid(otherPid);
     txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
     mainThread->AddSplitTransaction(std::move(txn));
     ASSERT_TRUE(mainThread->IsPidRebuilding(otherPid));
- 
+
     // non-leash node, own pid not rebuilding: false
     EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
     mainThread->ProcessSplitTransactionCommands();
 }
- 
+
 /**
  * @tc.name: IsRebuildForceDisable003
  * @tc.desc: Test IsRebuildForceDisable returns true for leash window when child belongs to rebuilding pid
@@ -2859,23 +2859,23 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable003, TestSize.Level1)
     mainThread->ProcessSplitTransactionCommands();
     constexpr pid_t systemPid = 100;
     constexpr pid_t rebuildPid = 200;
- 
+
     RSSurfaceRenderNodeConfig leashConfig;
     leashConfig.id = MakeNodeId(systemPid, 1);
     auto leashNode = RSTestUtil::CreateSurfaceNode(leashConfig);
     ASSERT_NE(leashNode, nullptr);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
- 
+
     RSSurfaceRenderNodeConfig appConfig;
     appConfig.id = MakeNodeId(rebuildPid, 2);
     auto appNode = RSTestUtil::CreateSurfaceNode(appConfig);
     ASSERT_NE(appNode, nullptr);
     leashNode->AddChild(appNode);
     leashNode->GenerateFullChildrenList();
- 
+
     // no rebuild: false
     EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
- 
+
     // start rebuild for the child's pid: true
     auto txn = std::make_unique<RSTransactionData>();
     txn->SetSendingPid(rebuildPid);
@@ -2883,13 +2883,13 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable003, TestSize.Level1)
     mainThread->AddSplitTransaction(std::move(txn));
     ASSERT_TRUE(mainThread->IsPidRebuilding(rebuildPid));
     EXPECT_TRUE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
- 
+
     // rebuild done: false again
     mainThread->ProcessSplitTransactionCommands();
     EXPECT_FALSE(mainThread->IsPidRebuilding(rebuildPid));
     EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
 }
- 
+
 /**
  * @tc.name: IsRebuildForceDisable004
  * @tc.desc: Test IsRebuildForceDisable returns false for leash when child pid is not rebuilding
@@ -2904,20 +2904,20 @@ HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable004, TestSize.Level1)
     constexpr pid_t systemPid = 100;
     constexpr pid_t appPid = 200;
     constexpr pid_t otherPid = 300; // this one is rebuilding, not the leash's child
- 
+
     RSSurfaceRenderNodeConfig leashConfig;
     leashConfig.id = MakeNodeId(systemPid, 1);
     auto leashNode = RSTestUtil::CreateSurfaceNode(leashConfig);
     ASSERT_NE(leashNode, nullptr);
     leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
- 
+
     RSSurfaceRenderNodeConfig appConfig;
     appConfig.id = MakeNodeId(appPid, 2);
     auto appNode = RSTestUtil::CreateSurfaceNode(appConfig);
     ASSERT_NE(appNode, nullptr);
     leashNode->AddChild(appNode);
     leashNode->GenerateFullChildrenList();
- 
+
     // rebuild for otherPid (not the leash's child pid): false
     auto txn = std::make_unique<RSTransactionData>();
     txn->SetSendingPid(otherPid);

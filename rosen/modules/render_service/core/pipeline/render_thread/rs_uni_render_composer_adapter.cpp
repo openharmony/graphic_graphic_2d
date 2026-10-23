@@ -30,6 +30,7 @@
 #include "metadata_helper.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "params/rs_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -331,6 +332,11 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSScreenRenderN
     };
 
     GraphicColorGamut rsColorSpace = rsSurface->GetColorSpace();
+    // set buffer colorspace as same as screen colorspace when skip colorspace conversion
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    if (screenParams != nullptr && screenParams->GetScreenProperty().GetSkipColorSpaceConversion()) {
+        rsColorSpace = screenParams->GetDstColorSpace();
+    }
     CM_ColorSpaceType colorSpace;
     auto it = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(rsColorSpace);
     if (it != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {

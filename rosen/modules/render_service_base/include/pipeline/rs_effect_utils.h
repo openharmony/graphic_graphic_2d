@@ -19,6 +19,7 @@
 #include "effect/rs_render_effect_common_def.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "property/rs_properties.h"
 
 namespace OHOS {
 
@@ -47,6 +48,24 @@ public:
     // 2. Updates pending purge filter dirty rect for cache management
     static void UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
+
+    // true: has filter that only depends on background
+    static bool HasBackgroundDependentFilter(const RSProperties& properties);
+
+    // Check if the current snapshot region is still inside the last snapshot region.
+    // If the current region is no longer inside the last one (or the region changed
+    // while needing to draw behind window), the filter cache is invalidated by
+    // marking the filter status as changed. Used for background filter cache validation.
+    static void CheckRegionInsideForFilterCache(RSRenderNode& node,
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable);
+
+    // Check if the snapshot or draw region has changed compared to the last frame.
+    // For FILTERED_SNAPSHOT cache type, the draw region is compared; otherwise the
+    // snapshot region is compared. If the region changed, the filter cache is invalidated.
+    // isForeground distinguishes foreground (compositing) filters from background
+    // (material) filters when marking the status change.
+    static void CheckRegionChangeForFilterCache(RSRenderNode& node,
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable, bool isForeground);
 
     // Called once per frame during sync phase (RSDrawFrame::Sync).
     // Sets the current vsync start time for RSFilterCacheManager to tag

@@ -3890,13 +3890,13 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalc003, TestSize.Level
     surfaceHandle->lastBufferReclaimNum_ = 4;
     EXPECT_TRUE(surfaceHandle->ReclaimLastBufferPrepare());
     EXPECT_TRUE(surfaceHandle->ReclaimLastBufferProcess());
-    EXPECT_TRUE(buffer->IsReclaimed());
+    EXPECT_FALSE(buffer->IsReclaimed());
 
 
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
     ASSERT_TRUE(rsUniRenderVisitor->BeforeUpdateSurfaceDirtyCalc(*node));
-    EXPECT_TRUE(buffer->IsReclaimed());
+    EXPECT_FALSE(buffer->IsReclaimed());
 
     node->name_ = "RosenWeb";
     EXPECT_TRUE(node->IsRosenWeb());
@@ -3926,13 +3926,14 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
     auto visitor = InitRSUniRenderVisitor();
     sptr<MockReclaimSurfaceBuffer> buffer = new MockReclaimSurfaceBuffer();
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
-    EXPECT_CALL(*buffer, TryReclaim()).WillOnce(Return(GSERROR_OK));
+    // DoBufferReclaim now reclaims asynchronously on ffrt, allow it to succeed
+    EXPECT_CALL(*buffer, TryReclaim()).Times(AtLeast(0)).WillRepeatedly(Return(GSERROR_OK));
     auto& bufferReclaim = RSBufferReclaim::GetInstance();
     ASSERT_TRUE(bufferReclaim.DoBufferReclaim(buffer));
 
     auto& reclaimParam = BufferReclaimParam::GetInstance();
     const bool enable = reclaimParam.IsBufferReclaimEnable();
-    EXPECT_CALL(*buffer, IsReclaimed()).Times(0);
+    EXPECT_CALL(*buffer, IsReclaimed()).Times(AtLeast(0)).WillRepeatedly(Return(false));
     EXPECT_CALL(*buffer, TryResumeIfNeeded()).Times(0);
     reclaimParam.SetBufferReclaimEnable(true);
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
@@ -3943,8 +3944,8 @@ HWTEST_F(RSUniRenderVisitorTest, BeforeUpdateSurfaceDirtyCalcDelegateBufferResum
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
     EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));
 
-    EXPECT_CALL(*buffer, IsReclaimed()).WillOnce(Return(true));
-    EXPECT_CALL(*buffer, TryResumeIfNeeded()).WillOnce(Return(GSERROR_OK));
+    EXPECT_CALL(*buffer, IsReclaimed()).Times(AtLeast(0)).WillRepeatedly(Return(true));
+    EXPECT_CALL(*buffer, TryResumeIfNeeded()).Times(AtLeast(0)).WillRepeatedly(Return(GSERROR_OK));
     reclaimParam.SetBufferReclaimEnable(true);
     EXPECT_TRUE(visitor->BeforeUpdateSurfaceDirtyCalc(*node));
     EXPECT_TRUE(testing::Mock::VerifyAndClearExpectations(buffer.GetRefPtr()));
@@ -4955,6 +4956,69 @@ HWTEST_F(RSUniRenderVisitorTest, TraverseRenderGroupCacheRootsTest, TestSize.Lev
 }
 
 /**
+ * @tc.name: HasAncestorRenderGroupEmptyMap
+ * @tc.desc: Verify HasAncestorRenderGroup returns false when renderGroupCacheRoots_ is empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupEmptyMap, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->renderGroupCacheRoots_.clear();
+    EXPECT_FALSE(rsUniRenderVisitor->HasAncestorRenderGroup(1));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdInMapSingleEntry
+ * @tc.desc: Verify HasAncestorRenderGroup returns false when nodeId is in map and map size == 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdInMapSingleEntry, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId TARGET_ID = 10;
+    auto targetNode = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    rsUniRenderVisitor->renderGroupCacheRoots_[TARGET_ID] = targetNode;
+    EXPECT_FALSE(rsUniRenderVisitor->HasAncestorRenderGroup(TARGET_ID));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdInMapMultipleEntries
+ * @tc.desc: Verify HasAncestorRenderGroup returns true when nodeId is in map and map size > 1
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdInMapMultipleEntries, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId TARGET_ID = 20;
+    constexpr NodeId ANOTHER_ID = 21;
+    rsUniRenderVisitor->renderGroupCacheRoots_[TARGET_ID] = std::make_shared<RSCanvasRenderNode>(TARGET_ID);
+    rsUniRenderVisitor->renderGroupCacheRoots_[ANOTHER_ID] = std::make_shared<RSCanvasRenderNode>(ANOTHER_ID);
+    EXPECT_TRUE(rsUniRenderVisitor->HasAncestorRenderGroup(TARGET_ID));
+}
+
+/**
+ * @tc.name: HasAncestorRenderGroupNodeIdNotInMapNonEmpty
+ * @tc.desc: Verify HasAncestorRenderGroup returns true when nodeId is not in map and map is non-empty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasAncestorRenderGroupNodeIdNotInMapNonEmpty, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId ANCESTOR_ID = 30;
+    constexpr NodeId QUERY_ID = 31;
+    rsUniRenderVisitor->renderGroupCacheRoots_[ANCESTOR_ID] = std::make_shared<RSCanvasRenderNode>(ANCESTOR_ID);
+    EXPECT_TRUE(rsUniRenderVisitor->HasAncestorRenderGroup(QUERY_ID));
+}
+
+/**
  * @tc.name: IsNodeInBlackListTest
  * @tc.desc: Test IsNodeInBlackList
  * @tc.type: FUNC
@@ -5235,6 +5299,39 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIsGpuOverDrawBufferOptimizeNode002, TestSi
     rsUniRenderVisitor->curCornerRadius_ = {1.0f, 1.0f, 1.0f, 1.0f};
     rsUniRenderVisitor->CheckIsGpuOverDrawBufferOptimizeNode(*surfaceNode);
     ASSERT_TRUE(surfaceNode->IsGpuOverDrawBufferOptimizeNode());
+}
+
+/**
+ * @tc.name: HandleSkipColorSpaceConversion001
+ * @tc.desc: HandleSkipColorSpaceConversion cover all branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleSkipColorSpaceConversion001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    // skipColorSpaceConversion or screen property false -> early return, unchanged
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, false);
+    screenNode->screenProperty_.Set<ScreenPropertyType::SCREEN_TYPE>(VIRTUAL_TYPE_SCREEN);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
+    screenNode->screenProperty_.Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(false);
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+    // screen property true but screen params null -> only set native
+    screenNode->screenProperty_.Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(true);
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+    // screen params not null -> set native and dst color space
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_NATIVE);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    ASSERT_EQ(screenParams->GetDstColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /*

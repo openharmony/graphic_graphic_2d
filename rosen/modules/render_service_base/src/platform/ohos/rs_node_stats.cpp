@@ -78,9 +78,8 @@ void RSNodeStats::ReportRSNodeLimitExceeded()
     }
     int64_t curSysTime = GetCurrentSystimeMs();
     int64_t curSteadyTime = GetCurrentSteadyTimeMs();
-    if (lastReportTime_ != TIMESTAMP_INITIAL && lastReportTimeSteady_ != TIMESTAMP_INITIAL &&
-        (curSysTime - lastReportTime_ <= REPORT_INTERVAL_LIMIT ||
-        curSteadyTime - lastReportTimeSteady_ <= REPORT_INTERVAL_LIMIT)) {
+    if (lastReportTimeSteady_ != TIMESTAMP_INITIAL &&
+        curSteadyTime - lastReportTimeSteady_ <= REPORT_INTERVAL_LIMIT) {
         return;
     }
     SortNodeStats();
@@ -107,7 +106,6 @@ void RSNodeStats::ReportRSNodeLimitExceeded()
             "RS_TOP3_APP_NAME", nodeInfoTop3.first,
             "RS_TOP3_APP_NODE", nodeInfoTop3.second);
     });
-    lastReportTime_ = curSysTime;
     lastReportTimeSteady_ = curSteadyTime;
 }
 

@@ -225,7 +225,7 @@ private:
 
     bool debugEnabled_ = false;
 
-    static std::atomic<bool> effectMergeEnabled_;
+    static std::atomic<bool> ccmEffectMergeEnable_;
     static std::atomic<bool> filterCacheEnabled_;
 public:
     // Called once per frame during sync (RSDrawFrame::Sync) to set the current vsync start time.

@@ -390,8 +390,10 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired003, TestSize.Level1)
     RSEffectRenderParams params(nodeId);
 
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    bool originalCCMEffectMergeEnable = RSFilterCacheManager::IsEffectMergeEnabled();
     RSFilterCacheManager::SetEffectMergeEnabledByCCM(false);
     EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(originalCCMEffectMergeEnable);
 }
 
 /**

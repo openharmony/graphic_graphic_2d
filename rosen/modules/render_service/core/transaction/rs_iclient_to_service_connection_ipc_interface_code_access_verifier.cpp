@@ -210,6 +210,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_HDR_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_HDR_MODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_VIRTUAL_SCREEN_HDR_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_VIRTUAL_SCREEN_HDR_MODE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_WATERMARK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WATERMARK");
             break;
@@ -640,6 +648,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
             hasPermission = true;
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SKIP_COLOR_SPACE_CONVERSION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SKIP_COLOR_SPACE_CONVERSION");
             break;
         }
         default: {

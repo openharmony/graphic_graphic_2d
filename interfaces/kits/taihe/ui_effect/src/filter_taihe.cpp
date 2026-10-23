@@ -601,6 +601,58 @@ Filter FilterImpl::HaloBloom(::ohos::graphics::uiEffect::uiEffect::Color const& 
     return make_holder<FilterImpl, Filter>(std::move(filter));
 }
 
+Filter FilterImpl::MapColorByBrightness(
+    taihe::array_view<::ohos::graphics::uiEffect::uiEffect::Color> colors,
+    taihe::array_view<double> positions)
+{
+    if (!IsFilterValid()) {
+        UIEFFECT_LOG_E("FilterImpl::MapColorByBrightness failed, filter is invalid");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
+
+    size_t colorCount = colors.size();
+    size_t posCount = positions.size();
+    if (colorCount < NUM_1 || posCount != colorCount) {
+        UIEFFECT_LOG_E("FilterImpl::MapColorByBrightness param error");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
+
+    constexpr uint32_t maxColorCount = 5;
+    uint32_t effectiveCount = std::min(static_cast<uint32_t>(colorCount), maxColorCount);
+
+    auto para = std::make_shared<OHOS::Rosen::MapColorByBrightnessPara>();
+    std::vector<OHOS::Rosen::Vector4f> colorVec;
+    std::vector<float> posVec;
+    colorVec.reserve(effectiveCount);
+    posVec.reserve(effectiveCount);
+
+    for (uint32_t i = 0; i < effectiveCount; ++i) {
+        OHOS::Rosen::Vector4f color(
+            static_cast<float>(colors[i].red),
+            static_cast<float>(colors[i].green),
+            static_cast<float>(colors[i].blue),
+            static_cast<float>(colors[i].alpha));
+        for (uint32_t j = 0; j < NUM_4; ++j) {
+            if (color[j] < 0.0f) {
+                UIEFFECT_LOG_D("FilterImpl::MapColorByBrightness param error, color is less than 0.0");
+                return make_holder<FilterImpl, Filter>(nativeFilter_);
+            }
+            color[j] = std::clamp(color[j], 0.0f, 1.0f);
+        }
+        colorVec.push_back(color);
+
+        float pos = std::clamp(static_cast<float>(positions[i]), 0.0f, 1.0f);
+        posVec.push_back(pos);
+    }
+
+    para->SetColors(colorVec);
+    para->SetPositions(posVec);
+
+    nativeFilter_->AddPara(para);
+    auto filter = nativeFilter_;
+    return make_holder<FilterImpl, Filter>(std::move(filter));
+}
+
 bool FilterImpl::IsFilterValid() const
 {
     return nativeFilter_ != nullptr;

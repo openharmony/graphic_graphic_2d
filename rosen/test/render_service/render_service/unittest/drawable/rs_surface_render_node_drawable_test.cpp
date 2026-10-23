@@ -1836,6 +1836,55 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
 }
 
 /**
+ * @tc.name: CheckDrawAndCacheWindowContentClearCacheTest
+ * @tc.desc: Test CheckDrawAndCacheWindowContent clears RSDrawWindowCache for cross node
+ * @tc.type: FUNC
+ * @tc.require: issueB2YOV
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentClearCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    ASSERT_NE(uniParams, nullptr);
+
+    bool tmpSnapshot = RSUniRenderThread::GetCaptureParam().isSnapshot_;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    uniParams->SetIsMirrorScreen(false);
+
+    auto& drawWindowCache = surfaceDrawable_->GetRsSubThreadCache().GetRSDrawWindowCache();
+
+    // Case 1: cross node + !NeedCacheSurface -> clear cache
+    surfaceParams->SetNeedCacheSurface(false);
+    surfaceParams->isCrossNode_ = true;
+    surfaceParams->isRelatedSourceNode_ = false;
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(drawWindowCache.HasCache());
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+    ASSERT_FALSE(drawWindowCache.HasCache());
+
+    // Case 2: non-cross node + !NeedCacheSurface -> cache NOT cleared
+    surfaceParams->isCrossNode_ = false;
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(drawWindowCache.HasCache());
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.HasCache());
+
+    // Case 3: cross node + not first visit -> clear cache
+    surfaceParams->SetNeedCacheSurface(true);
+    surfaceParams->isCrossNode_ = true;
+    uniParams->SetIsFirstVisitCrossNodeDisplay(false);
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(drawWindowCache.HasCache());
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+    ASSERT_FALSE(drawWindowCache.HasCache());
+
+    drawWindowCache.ClearCache();
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = tmpSnapshot;
+}
+
+/**
  * @tc.name: OnGeneralProcessAndCache
  * @tc.desc: Test OnGeneralProcessAndCache
  * @tc.type: FUNC

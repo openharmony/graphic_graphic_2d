@@ -18,6 +18,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -765,6 +766,14 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, Test
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
+
+    // disable filter cache
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+    EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
+    // re-enable
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
 }
 
@@ -781,12 +790,15 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, T
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
-    bool defaultSysProp = RSFilterCacheManager::IsFilterCacheEnabled();
+
+    // disable filter cache
     RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
-
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
-
-    RSFilterCacheManager::SetFilterCacheEnabledByCCM(defaultSysProp);
+    // re-enable
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /**

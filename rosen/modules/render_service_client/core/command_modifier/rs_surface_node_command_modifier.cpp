@@ -556,6 +556,22 @@ void ForceHardwareAndFixRotationCmdModifier::DumpParam(std::string& out) const
     out += "{flag:" + std::string(param_.flag_ ? "true" : "false") + "}";
 }
 
+void SolidLayerEnabledCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (node == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetSolidLayerEnabled>(
+        node->GetId(), param_.isSolidLayerEnabled_);
+    AddCommand(command, true);
+}
+
+void SolidLayerEnabledCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isSolidLayerEnabled:" + std::string(param_.isSolidLayerEnabled_ ? "true" : "false") + "}";
+}
+
 void AppRotationCorrectionCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "rosen_text/ref_count_holder.h"
 #include "text_typography_test_common.h"
 
 namespace OHOS {
@@ -112,7 +113,8 @@ OH_Drawing_Typography* LayoutForSplitRunsEllipsisSample(
 
 skia::textlayout::ParagraphImpl* GetSkiaParagraphByDrawingTypography(OH_Drawing_Typography* typography)
 {
-    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::Typography* rosenTypography =
+        reinterpret_cast<OHOS::Rosen::RefCountedHolder<OHOS::Rosen::Typography>*>(typography)->Get();
     OHOS::Rosen::SPText::ParagraphImpl* paragraph =
         reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
     return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());

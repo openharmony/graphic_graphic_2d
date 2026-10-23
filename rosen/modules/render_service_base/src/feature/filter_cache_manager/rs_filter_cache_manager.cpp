@@ -50,17 +50,17 @@ constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
 int64_t RSFilterCacheManager::frameTimestamp_ = 0;
 
-std::atomic<bool> RSFilterCacheManager::effectMergeEnabled_ = RSSystemProperties::GetEffectMergeEnabled();
-std::atomic<bool> RSFilterCacheManager::filterCacheEnabled_ =
-    RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
+std::atomic<bool> RSFilterCacheManager::ccmEffectMergeEnable_ = RSSystemProperties::GetEffectMergeEnabled();
 void RSFilterCacheManager::SetEffectMergeEnabledByCCM(bool ccmEnable)
 {
-    effectMergeEnabled_.store(ccmEnable && RSSystemProperties::GetEffectMergeEnabled());
+    ccmEffectMergeEnable_.store(ccmEnable);
 }
 bool RSFilterCacheManager::IsEffectMergeEnabled()
 {
-    return effectMergeEnabled_.load();
+    return ccmEffectMergeEnable_.load() && RSSystemProperties::GetEffectMergeEnabled();
 }
+std::atomic<bool> RSFilterCacheManager::filterCacheEnabled_ =
+    RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 void RSFilterCacheManager::SetFilterCacheEnabledByCCM(bool ccmEnable)
 {
     filterCacheEnabled_.store(
@@ -806,9 +806,6 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
 
 FilterCacheType RSFilterCacheManager::GetCachedType() const
 {
-    if (cachedSnapshot_ == nullptr && cachedFilteredSnapshot_ == nullptr) {
-        return FilterCacheType::NONE;
-    }
     if (cachedSnapshot_ != nullptr) {
         return FilterCacheType::SNAPSHOT;
     }
@@ -816,7 +813,7 @@ FilterCacheType RSFilterCacheManager::GetCachedType() const
     if (cachedFilteredSnapshot_ != nullptr) {
         return FilterCacheType::FILTERED_SNAPSHOT;
     }
-    return FilterCacheType::BOTH;
+    return FilterCacheType::NONE;
 }
 
 const RectI& RSFilterCacheManager::GetCachedImageRegion() const

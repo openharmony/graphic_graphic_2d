@@ -612,7 +612,7 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer001, TestSize.Level1)
     rSSurfaceHandlerPtr_->lastBufferReclaimNum_ = 4;
     EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferPrepare());
     EXPECT_TRUE(rSSurfaceHandlerPtr_->ReclaimLastBufferProcess());
-    EXPECT_TRUE(buffer->IsReclaimed());
+    EXPECT_FALSE(buffer->IsReclaimed());
     rSSurfaceHandlerPtr_->TryResumeLastBuffer();
     EXPECT_FALSE(buffer->IsReclaimed());
 }

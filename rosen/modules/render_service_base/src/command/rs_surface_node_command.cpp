@@ -538,6 +538,15 @@ void SurfaceNodeCommandHelper::SetHardwareEnabled(RSContext& context, NodeId nod
     }
 }
 
+void SurfaceNodeCommandHelper::SetSolidLayerEnabled(RSContext& context, NodeId nodeId, bool isSolidLayerEnabled)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        RS_TRACE_NAME_FMT("SetSolidLayerEnabled id:%" PRIu64 " enabled:%d", nodeId, isSolidLayerEnabled);
+        ROSEN_LOGI("SetSolidLayerEnabled id:%{public}" PRIu64 " enabled:%{public}d", nodeId, isSolidLayerEnabled);
+        node->SetSolidLayerEnabled(isSolidLayerEnabled);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent)
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {

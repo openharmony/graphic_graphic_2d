@@ -317,11 +317,13 @@ bool Network::PopCommand(std::vector<std::string>& args)
 
 void Network::ProcessCommand(const char* data, size_t size)
 {
-    const std::vector<std::string> args = Utils::Split({ data, size });
+    const std::string command(data, size);
+    const std::vector<std::string> args = Utils::Split(command);
     if (args.empty()) {
         return;
     }
 
+    HRPI("%s", command.data());
     PushCommand(args);
     AwakeRenderServiceThread();
 }

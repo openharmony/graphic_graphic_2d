@@ -48,6 +48,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
+#include "render/rs_pixel_map_util.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_skia_filter.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -58,6 +59,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t ALPHA_MASK = 0xFF000000;
+
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
@@ -143,7 +145,6 @@ void RSSurfaceCaptureTaskParallel::Capture(
             "RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", captureParam.id);
         return;
     }
-
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(captureParam.id, captureParam.config);
     if (!captureHandle->CreateResources()) {
@@ -189,7 +190,6 @@ void RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(NodeId id)
         RSUniRenderThread::Instance().PostTask(clearCacheTask);
     }
 }
-
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
@@ -552,14 +552,17 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = static_cast<uint32_t>(node->GetFixedWidth());
     uint32_t pixmapHeight = static_cast<uint32_t>(node->GetFixedHeight());
-    auto bounds = node->GetRenderProperties().GetBoundsGeometry();
-    boundsX_ = bounds->GetX();
-    boundsY_ = bounds->GetY();
     const Rect& contentRect = node->GetDisplayContentRect();
     if (contentRect.w > 0 && contentRect.h > 0) {
+        RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: contentRect valid,"
+            "width: %{public}d, height: %{public}d", contentRect.w, contentRect.h);
         pixmapWidth = static_cast<uint32_t>(contentRect.w);
         pixmapHeight = static_cast<uint32_t>(contentRect.h);
     }
+
+    auto bounds = node->GetRenderProperties().GetBoundsGeometry();
+    boundsX_ = bounds->GetX();
+    boundsY_ = bounds->GetY();
 
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     float rectWidth = rect.GetWidth();
@@ -571,17 +574,35 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
 
     Media::InitializationOptions opts;
     if (isHDRCapture) {
+        // The HDR map is always RGBA_F16; the caller decides when to capture it.
         opts.pixelFormat = Media::PixelFormat::RGBA_F16;
+    } else if (captureConfig_.useDma) {
+        // DMA capture keeps the default RGBA_8888, ignoring the requested format.
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    } else if (captureConfig_.pixelFormat == Media::PixelFormat::BGRA_8888) {
+        opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    } else if (captureConfig_.pixelFormat == Media::PixelFormat::RGBA_8888) {
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    } else if (captureConfig_.pixelFormat != Media::PixelFormat::UNKNOWN) {
+        errorCode_ = CaptureError::CAPTURE_UNSUPPORTED_FORMAT;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        RS_LOGW("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode pixelFormat"
+            " %{public}u not support, fallback to RGBA_8888",
+            static_cast<uint32_t>(captureConfig_.pixelFormat));
+    } else {
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
     }
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("%{public}s NodeId[%{public}" PRIu64 "], size[%{public}u, %{public}u],"
         " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f],"
         " dma[%{public}d], rot[%{public}d], corr[%{public}d],"
-        " blackList[%{public}zu], isHDR[%{public}d]",
-        __func__, node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        " blackList[%{public}zu], isHDR[%{public}d]"
+        " contentRect[%{public}d, %{public}d, %{public}d, %{public}d]", __func__,
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
-        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture);
+        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture,
+        contentRect.x, contentRect.y, contentRect.w, contentRect.h);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = isHDRCapture ?
@@ -607,9 +628,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     }
     OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
     auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
-    auto colorType = pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16 ?
-        Drawing::ColorType::COLORTYPE_RGBA_F16 :
-        Drawing::ColorType::COLORTYPE_RGBA_8888;
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         colorType, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 

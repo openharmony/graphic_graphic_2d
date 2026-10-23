@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSCanvasRenderNode;
+class RSSurfaceRenderParams;
 class RSUniHwcVisitor {
 public:
     explicit RSUniHwcVisitor(RSUniRenderVisitor& visitor);
@@ -39,6 +40,8 @@ public:
         const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor, bool isSplitEnabled = false);
     void ProcessSolidLayerDisabled(RSSurfaceRenderNode& node);
     void ProcessSolidLayerEnabled(RSSurfaceRenderNode& node);
+    void DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& node);
+    bool ProcessSolidLayerEnabledByTag(RSSurfaceRenderNode& node, RSSurfaceRenderParams* stagingSurfaceParams);
 
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
@@ -47,6 +50,7 @@ public:
     void UpdateHwcNodeEnableByForceDisableHdr(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
+    void UpdateHwcNodeEnableByFrameTimeInterval(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -94,6 +98,7 @@ public:
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
+    void DecreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_--; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
 
 private:
@@ -114,6 +119,8 @@ private:
     // Solid Layer
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
+    bool IsSolidLayerEnabledNoBuffer(RSSurfaceRenderNode& node, bool hasBuffer);
+    bool GetHwcNodeHdrEnabled() const;
 
     // Sourcetuning
     bool IsTargetSourceTuning(RSSurfaceRenderNode& node);

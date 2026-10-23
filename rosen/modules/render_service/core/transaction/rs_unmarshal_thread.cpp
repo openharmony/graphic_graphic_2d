@@ -18,6 +18,7 @@
 #include "app_mgr_client.h"
 #include "engine/rs_base_render_util.h"
 #include "ffrt_inner.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -26,7 +27,6 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 #include "rs_frame_report.h"
-#include "rs_profiler.h"
 #include "command/rs_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "rs_trace.h"
@@ -134,6 +134,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
     bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
                              parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
+    if (!waitUnmarshalling) {
+        noNeedWaitTaskNum_++;
+    }
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() mutable {
         RSMarshallingHelper::SetCallingPid(callingPid);
@@ -155,7 +158,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             return;
         }
         transData->SetCallingPid(callingPid);
-        RS_PROFILER_SET_TRANSACTION_SENDING_PID(*transData, *parcel, callingPid);
+        transData->SetSendingPid(callingPid);
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
             if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
@@ -168,6 +171,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             }
         }
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transData);
+#endif
         if (transData && transData->GetDVSyncUpdate()) {
             RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());
         }
@@ -201,9 +207,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
-    }
-    if (!waitUnmarshalling) {
-        noNeedWaitTaskNum_++;
     }
 }
 

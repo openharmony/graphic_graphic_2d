@@ -676,6 +676,43 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: Test SetVirtualScreenHDRMode and GetVirtualScreenHDRMode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenHDRMode_001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    // no screen for the id
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->SetVirtualScreenHDRMode(SCREEN_ID, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->GetVirtualScreenHDRMode(SCREEN_ID, mode));
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    // invalid HDR mode
+    ASSERT_EQ(INVALID_ARGUMENTS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_MODE_BUTT));
+    ASSERT_EQ(SUCCESS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SUCCESS, screenManager_->GetVirtualScreenHDRMode(id, mode));
+    ASSERT_EQ(HDRMode::HDR_DYNAMIC, mode);
+
+    screenManager_->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
  * @tc.name: GetScreenType_001
  * @tc.desc: Test GetScreenType
  * @tc.type: FUNC
@@ -3414,6 +3451,19 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
     screenManager_->SetScreenFrameGravity(0, 0);
     screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
     screenManager_->SetScreenFrameGravity(0, 0);
+}
+
+/*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, SetSkipColorSpaceConversionTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
 }
 
 /*

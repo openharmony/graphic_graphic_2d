@@ -98,6 +98,8 @@ constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
 constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 320;
 constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 20;
+constexpr uint32_t MAX_SWITCH_INTERVAL = 4;
+constexpr uint32_t MIN_SWITCH_INTERVAL = 2;
 // Threshold for abnormal time in the composer pipeline
 constexpr int COMPOSER_TIMEOUT = 800;
 // The number of exceptions in the composer pipeline required to achieve render_service reset
@@ -164,6 +166,12 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
         return this->Redraw(surface, layers, output);
     };
     hgmHardwareUtils_ = std::make_shared<HgmHardwareUtils>();
+    // if composer autoswitch param enabled set the inteval
+    int autoSwitchInterval = std::atoi((system::GetParameter("rs.composer.autoswitch.interval", "0")).c_str());
+    if (autoSwitchInterval >= MIN_SWITCH_INTERVAL && autoSwitchInterval <= MAX_SWITCH_INTERVAL) {
+        RSUniRenderUtil::SetComposerAutoSwitch(true);
+        RSUniRenderUtil::SetAutoSwitchInterval(autoSwitchInterval);
+    }
 
     if (handler_) {
         ScheduleTask([this]() {
@@ -285,6 +293,7 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
 void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const PipelineParam& pipelineParam)
 {
     RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
+    int64_t idealPeriod = OHOS::Rosen::HgmCore::Instance().GetIdealPeriod(currentRate);
     std::string threadName = "CompThread_" + std::to_string(screenId_);
     RSTimer timer(threadName.c_str(), COMPOSER_TIMEOUT);
     auto layers = rsRenderComposerContext_->GetNeedCompositionLayersVec();
@@ -372,12 +381,24 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     }
     PrintHiperfSurfaceLog(TAG_VSYNC_ID_E, pipelineParam.vsyncId);
     EndCheck(timer);
+    if (RSUniRenderUtil::GetComposerAutoSwitch()) {
+        SetFrameTimeInterval(idealPeriod, pipelineParam.actualTimestamp);
+    }
     if (isDisconnected_ && unExecuteTaskNum_ == 0) {
         RS_TRACE_NAME_FMT("Clear output, screenId : %" PRIu64, screenId_);
         std::lock_guard<std::mutex> lock(hdiOutputMutex_);
         ClearFrameBuffersInner();
         rsRenderComposerContext_ = nullptr;
         hdiOutput_ = nullptr;
+    }
+}
+
+void RSRenderComposer::SetFrameTimeInterval(const int64_t idealPeriod, const int64_t actualTimestamp)
+{
+    if (idealPeriod != 0) {
+        RSUniRenderUtil::SetFrameTimeInterval(static_cast<int32_t>((SystemTime() - actualTimestamp) / idealPeriod));
+    } else {
+        RSUniRenderUtil::SetFrameTimeInterval(0);
     }
 }
 

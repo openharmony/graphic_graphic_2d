@@ -17,6 +17,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 ohos_source_set("text_ndk") {
   if (platform_is_ohos) {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -59,7 +60,7 @@ ohos_source_set("text_ndk") {
 
   if (is_arkui_x) {
     # arkui-x ships exactly two shared libraries; engine symbols live in
-    # libarkui_android and are resolved at runtime through its DT_NEEDED edge.
+    # libarkui_<platform> and are resolved at runtime through its DT_NEEDED edge.
     # Never link rosen_text/2d_graphics here: merging their sources would
     # duplicate engine state (typeface registry, font collections) across DSOs.
     configs += [ "$rosen_root/modules/2d_graphics:export_config" ]

@@ -22,6 +22,21 @@ config("socketpair_config") {
     "-Werror",
     "-g3",
   ]
+
+  if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
+    socketpair_version_script =
+      rebase_path("//foundation/graphic/graphic_2d/utils/socketpair/socketpair.versionscript",
+                  root_build_dir)
+    ldflags = [
+      "-Wl,--version-script=${socketpair_version_script}",
+      "-Wl,--emit-relocs",
+      "-Wl,--no-relax",
+      "-mno-fix-cortex-a53-843419",
+      "-Wl,--exclude-libs=libunwind.a",
+      "-Wl,--exclude-libs=libunwind_llvm.a",
+      "-Wl,--exclude-libs=libc++_static.a"
+    ]
+  }
 }
 
 config("socketpair_public_config") {

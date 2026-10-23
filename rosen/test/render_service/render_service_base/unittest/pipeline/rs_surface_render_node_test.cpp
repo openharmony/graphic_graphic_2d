@@ -2621,6 +2621,86 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = true;
+    node->vcldInfo_.enable = true;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = true;
+    node->vcldInfo_.enable = false;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = false;
+    node->vcldInfo_.enable = true;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_TRUE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo004, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = false;
+    node->vcldInfo_.enable = false;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+
+/**
  * @tc.name: BufferClearCallbackProxy
  * @tc.desc: test results of BufferClearCallbackProxy
  * @tc.type: FUNC

@@ -60,6 +60,8 @@ ohos_shared_library("libnative_image") {
 
   output_extension = "so"
 
+  version_script = "libnative_image.versionscript"
+
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -69,6 +71,7 @@ ohos_shared_library("libnative_image") {
     "ipc:ipc_single",
     "egl:libEGL",
     "opengles:libGLES",
+    "bounds_checking_function:libsec_shared",
   ]
 
   part_name = "graphic_2d"

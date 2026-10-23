@@ -822,6 +822,22 @@ public:
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
 
     /**
+     * @brief Set the HDR mode of the virtual screen.
+     * @param id Id of the virtual screen.
+     * @param mode HDR mode to set for the virtual screen, see HDRMode.
+     * @return 0 success, others failed.
+     */
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+
+    /**
+     * @brief Get the HDR mode of the virtual screen.
+     * @param id Id of the virtual screen.
+     * @param mode Output parameter, HDR mode of the virtual screen, see HDRMode.
+     * @return 0 success, others failed.
+     */
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode);
+
+    /**
      * @brief Set screen's gamut map mode.
      * @param id Id of the screen.
      * @param mode Gamut map mode to set for the screen.
@@ -979,6 +995,13 @@ public:
      * @param gravity The gravity value of the screen node.
      */
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
+    /**
+     * @brief Set whether to skip color space conversion on the screen.
+     * @param id Indicates the screen id.
+     * @param skipColorSpaceConversion Indicates whether to skip color space conversion.
+     */
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
 
     /**
      * @brief Create a VsyncReceiver instance.

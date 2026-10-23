@@ -13,9 +13,17 @@
  * limitations under the License.
  */
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <future>
+#include <gmock/gmock.h>
+#include <mutex>
+#include <thread>
 #include "gtest/gtest.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "surface_buffer_impl.h"
+#include "ffrt.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -23,343 +31,615 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 #ifndef ROSEN_CROSS_PLATFORM
 constexpr uint32_t ADD_SAME_NODE_NUMS = 5;
+constexpr uint64_t TEST_BUFFER_ID_BASE = 10000;
+constexpr uint32_t MAX_RECLAIM_NUMS = 50;
+constexpr int32_t RECLAIM_TIMEOUT1 = 1000;
+constexpr int32_t RECLAIM_TIMEOUT2 = 50;
+
+class MockSurfaceBuffer : public SurfaceBufferImpl {
+public:
+    MockSurfaceBuffer() : SurfaceBufferImpl() {}
+    ~MockSurfaceBuffer() override = default;
+
+    MOCK_METHOD0(TryReclaim, GSError());
+    MOCK_METHOD0(TryResumeIfNeeded, GSError());
+    MOCK_METHOD0(IsReclaimed, bool());
+    MOCK_METHOD1(RegisterBufferDestructorCallbackFunc, bool(void (*)(uint64_t)));
+    MOCK_METHOD1(UnRegisterBufferDestructorCallbackFunc, bool(void (*)(uint64_t)));
+
+    void SetBufferId(uint64_t id) { customBufferId_ = id; }
+    uint64_t GetBufferId() const override
+    {
+        if (customBufferId_ != 0) {
+            return customBufferId_;
+        }
+        return SurfaceBufferImpl::GetBufferId();
+    }
+
+    void SetSeqNum(uint32_t seq) { customSeqNum_ = seq; }
+    uint32_t GetSeqNum() const override
+    {
+        if (customSeqNum_ != 0) {
+            return customSeqNum_;
+        }
+        return SurfaceBufferImpl::GetSeqNum();
+    }
+
+private:
+    uint64_t customBufferId_ = 0;
+    uint32_t customSeqNum_ = 0;
+};
+
 class RSBufferReclaimTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    RSBufferReclaim& GetReclaim() { return RSBufferReclaim::GetInstance(); }
 private:
-    std::shared_ptr<RSBufferReclaim> rsBufferReclaim_ = nullptr;
-    sptr<SurfaceBuffer> CreateSurfaceBuffer();
-    void RemoveUICaptureNodeForTestCaseAddUICaptureNode004(NodeId nodeId);
-    const uint32_t MAX_BUFFER_RECLAIM_NUMS = 50;
+    sptr<MockSurfaceBuffer> CreateMockSurfaceBuffer(uint64_t bufferId = 0);
+    void ClearReclaimMap();
+    void TestReclaimBufferOnFfrtWrongState(uint64_t bufferId, ReclaimState state);
+    void TestReclaimBufferOnFfrtRegisterFail(uint64_t bufferId);
+    void TestReclaimBufferOnFfrtTryReclaimFail(uint64_t bufferId);
+    void TestReclaimBufferOnFfrtEntryErasedDuringReclaim(uint64_t bufferId, GSError reclaimResult);
+    void TestDoBufferResumeReclaimingResumeSuccess();
+    void TestDoBufferResumeReclaimingTimeout();
+    void TestDoBufferResumeAlreadyReclaimingResumeTimeout();
+    static uint64_t nextBufferId_;
 };
 
-void RSBufferReclaimTest::RemoveUICaptureNodeForTestCaseAddUICaptureNode004(NodeId nodeId)
+uint64_t RSBufferReclaimTest::nextBufferId_ = TEST_BUFFER_ID_BASE;
+
+void RSBufferReclaimTest::ClearReclaimMap()
 {
-    auto& nodeIdCountMap5 = rsBufferReclaim_->uiCaptureNodeMap_[ExtractPid(nodeId)];
-    for (uint32_t i = 0; i < ADD_SAME_NODE_NUMS; i++) {
-        rsBufferReclaim_->RemoveUICaptureNode(nodeId);
-        bool hasNode = (nodeIdCountMap5.find(nodeId) != nodeIdCountMap5.end());
-        if (hasNode) {
-            EXPECT_EQ(nodeIdCountMap5[nodeId], ADD_SAME_NODE_NUMS - i - 1);
-        } else {
-            EXPECT_EQ(i, ADD_SAME_NODE_NUMS - 1);
-        }
-    }
+    auto& reclaim = GetReclaim();
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    reclaim.bufferReclaimMap_.clear();
 }
 
-sptr<SurfaceBuffer> RSBufferReclaimTest::CreateSurfaceBuffer()
+sptr<MockSurfaceBuffer> RSBufferReclaimTest::CreateMockSurfaceBuffer(uint64_t bufferId)
 {
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
-    };
-    if (buffer->Alloc(requestConfig) != GSERROR_OK) {
-        return nullptr;
+    auto buffer = new MockSurfaceBuffer();
+    if (bufferId == 0) {
+        bufferId = nextBufferId_++;
     }
-    return buffer;
+    buffer->SetBufferId(bufferId);
+    buffer->SetSeqNum(static_cast<uint32_t>(bufferId));
+    return sptr<MockSurfaceBuffer>(buffer);
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtWrongState(uint64_t bufferId, ReclaimState state)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = state;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtRegisterFail(uint64_t bufferId)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = ReclaimState::PENDING;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(false));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtTryReclaimFail(uint64_t bufferId)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[id] = ReclaimState::PENDING;
+    }
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_API_FAILED));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    reclaim.ReclaimBufferOnFfrt(buffer);
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestReclaimBufferOnFfrtEntryErasedDuringReclaim(uint64_t bufferId, GSError reclaimResult)
+{
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    uint64_t id = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([&reclaim, id, reclaimResult]() {
+            reclaim.RemoveBufferReclaim(id);
+            return reclaimResult;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    ffrt::wait();
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(id) != reclaim.bufferReclaimMap_.end());
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeReclaimingResumeSuccess()
+{
+    const uint64_t bufferId = 5040;
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    std::atomic<bool> reclaimDone(false);
+    std::condition_variable reclaimCv;
+    std::mutex reclaimMtx;
+
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([&reclaimMtx, &reclaimCv, &reclaimDone]() {
+            std::unique_lock<std::mutex> lk(reclaimMtx);
+            const int32_t timeout1 = 200;
+            reclaimCv.wait_for(lk, std::chrono::milliseconds(timeout1),
+                [&reclaimDone]() { return reclaimDone.load(); });
+            return GSERROR_OK;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+        std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
+    auto resumeFuture = std::async(std::launch::async, [&reclaim, &buffer]() {
+        return reclaim.DoBufferResume(buffer);
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
+    reclaimDone.store(true);
+    reclaimCv.notify_all();
+    ffrt::wait();
+    EXPECT_TRUE(resumeFuture.get());
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeReclaimingTimeout()
+{
+    const uint64_t bufferId = 5041;
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    ON_CALL(*buffer, TryReclaim())
+        .WillByDefault(Invoke([]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT1));
+            return GSERROR_OK;
+        }));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECLAIM_TIMEOUT2));
+    EXPECT_FALSE(reclaim.DoBufferResume(buffer));
+    ffrt::wait();
+}
+
+void RSBufferReclaimTest::TestDoBufferResumeAlreadyReclaimingResumeTimeout()
+{
+    uint64_t bufferId = 5042;
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    bufferId = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING_RESUME;
+    }
+    EXPECT_FALSE(reclaim.DoBufferResume(buffer));
 }
 
 void RSBufferReclaimTest::SetUp()
 {
-    rsBufferReclaim_ = std::make_shared<RSBufferReclaim>();
-    ASSERT_NE(rsBufferReclaim_, nullptr);
+    nextBufferId_ = TEST_BUFFER_ID_BASE;
+    ffrt::wait();
+    ClearReclaimMap();
 }
 
 void RSBufferReclaimTest::TearDown()
 {
-    rsBufferReclaim_ = nullptr;
+    ffrt::wait();
+    ClearReclaimMap();
+    auto& reclaim = GetReclaim();
+    std::lock_guard<std::mutex> uiLock(reclaim.uiCaptureNodeMapMutex_);
+    reclaim.uiCaptureNodeMap_.clear();
 }
 void RSBufferReclaimTest::SetUpTestCase() {}
 void RSBufferReclaimTest::TearDownTestCase() {}
 
 /**
- * @tc.name:  BufferReclaimAndResumeTest001
- * @tc.desc: test DoBufferReclaim And DoBufferResume
+ * @tc.name:  DoBufferReclaimAndResumeTest001
+ * @tc.desc: test DoBufferReclaim + DoBufferResume full lifecycle (reclaim→RECLAIMED→resume)
+ *           and duplicate reclaim/resume, null buffer, RemoveBufferReclaim, CheckBufferReclaim
  * @tc.type: FUNC
  * @tc.require: issue#913
  */
-HWTEST_F(RSBufferReclaimTest, BufferReclaimAndResumeTest001, TestSize.Level2)
+HWTEST_F(RSBufferReclaimTest, DoBufferReclaimAndResumeTest001, TestSize.Level2)
 {
-    auto buffer = CreateSurfaceBuffer();
-    EXPECT_TRUE(buffer != nullptr);
-    if (buffer) {
-        EXPECT_TRUE(rsBufferReclaim_->DoBufferReclaim(buffer));
-        // double DoBufferReclaim, should fail
-        EXPECT_FALSE(rsBufferReclaim_->DoBufferReclaim(buffer));
-        EXPECT_TRUE(rsBufferReclaim_->DoBufferResume(buffer));
-        // double DoBufferResume, should fail
-        EXPECT_FALSE(rsBufferReclaim_->DoBufferResume(buffer));
+    auto& reclaim = GetReclaim();
+    // null buffer
+    sptr<SurfaceBuffer> nullBuffer = nullptr;
+    EXPECT_FALSE(reclaim.DoBufferReclaim(nullBuffer));
+    EXPECT_FALSE(reclaim.DoBufferResume(nullBuffer));
 
-        EXPECT_TRUE(buffer->TryReclaim() == GSERROR_OK);
-        // buffer has reclaimed, do DoBufferReclaim should fail
-        EXPECT_FALSE(rsBufferReclaim_->DoBufferReclaim(buffer));
+    // normal reclaim → resume lifecycle
+    auto buffer = CreateMockSurfaceBuffer();
+    EXPECT_NE(buffer, nullptr);
+    uint64_t bufferId = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
 
-        EXPECT_TRUE(buffer->TryResumeIfNeeded() == GSERROR_OK);
-        // buffer has Resumed, do DoBufferReclaim should ok
-        EXPECT_TRUE(rsBufferReclaim_->DoBufferReclaim(buffer));
-
-        EXPECT_TRUE(buffer->TryResumeIfNeeded() == GSERROR_OK);
-        // buffer has Resumed, do DoBufferResume should fail
-        EXPECT_FALSE(rsBufferReclaim_->DoBufferResume(buffer));
+    EXPECT_TRUE(reclaim.CheckBufferReclaim());
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    ffrt::wait();
+    // state should be RECLAIMED
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        auto iter = reclaim.bufferReclaimMap_.find(bufferId);
+        ASSERT_NE(iter, reclaim.bufferReclaimMap_.end());
+        EXPECT_EQ(iter->second, ReclaimState::RECLAIMED);
     }
+    // duplicate DoBufferReclaim — should fail (bufferId already in map)
+    EXPECT_FALSE(reclaim.DoBufferReclaim(buffer));
+    // resume should succeed
+    EXPECT_TRUE(reclaim.DoBufferResume(buffer));
+    // double resume — should fail (entry was erased)
+    EXPECT_FALSE(reclaim.DoBufferResume(buffer));
+
+    // RemoveBufferReclaim: add then remove then remove-nonexistent
+    auto buffer2 = CreateMockSurfaceBuffer();
+    EXPECT_NE(buffer2, nullptr);
+    uint64_t bufferId2 = buffer2->GetBufferId();
+    ON_CALL(*buffer2, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer2, IsReclaimed()).WillByDefault(Return(false));
+    ON_CALL(*buffer2, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer2));
+    ffrt::wait();
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_TRUE(reclaim.bufferReclaimMap_.find(bufferId2) != reclaim.bufferReclaimMap_.end());
+    }
+    reclaim.RemoveBufferReclaim(bufferId2);
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId2) != reclaim.bufferReclaimMap_.end());
+    }
+    // remove non-existent — should not crash
+    reclaim.RemoveBufferReclaim(bufferId2);
 }
 
 /**
- * @tc.name:  BufferReclaimAndResumeTest002
- * @tc.desc: test DoBufferReclaim And DoBufferResume
+ * @tc.name:  DoBufferReclaimMaxCapacityTest001
+ * @tc.desc: test DoBufferReclaim max capacity and CheckBufferReclaim boundary
  * @tc.type: FUNC
  * @tc.require: issue#913
  */
-HWTEST_F(RSBufferReclaimTest, BufferReclaimAndResumeTest002, TestSize.Level2)
+HWTEST_F(RSBufferReclaimTest, DoBufferReclaimMaxCapacityTest001, TestSize.Level2)
 {
-    auto buffer = CreateSurfaceBuffer();
-    EXPECT_TRUE(buffer != nullptr);
-    uint64_t bufferId = 0;
-    if (buffer) {
+    auto& reclaim = GetReclaim();
+    for (uint32_t i = 0; i < MAX_RECLAIM_NUMS; i++) {
+        auto buffer = CreateMockSurfaceBuffer();
+        EXPECT_NE(buffer, nullptr);
+        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+        EXPECT_TRUE(reclaim.CheckBufferReclaim());
+        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    }
+    ffrt::wait();
+    EXPECT_FALSE(reclaim.CheckBufferReclaim());
+    auto buffer = CreateMockSurfaceBuffer();
+    EXPECT_NE(buffer, nullptr);
+    EXPECT_FALSE(reclaim.DoBufferReclaim(buffer));
+}
+
+/**
+ * @tc.name:  ReclaimBufferOnFfrtStateAndFailTest001
+ * @tc.desc: test ReclaimBufferOnFfrt: not-PENDING erase, RegisterFail, TryReclaim fail,
+ *           and entry erased during TryReclaim (success & fail paths)
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtStateAndFailTest001, TestSize.Level2)
+{
+    uint64_t bufferId = 5001;
+    // 1. state not PENDING (RECLAIMING) — should erase and return
+    TestReclaimBufferOnFfrtWrongState(bufferId, ReclaimState::RECLAIMING);
+    // 2. state not PENDING (RECLAIMED) — should erase and return
+    TestReclaimBufferOnFfrtWrongState(++bufferId, ReclaimState::RECLAIMED);
+    // 3. RegisterBufferDestructorCallbackFunc fails — entry erased
+    TestReclaimBufferOnFfrtRegisterFail(++bufferId);
+    // 4. TryReclaim fails — entry erased, UnRegister called
+    TestReclaimBufferOnFfrtTryReclaimFail(++bufferId);
+    // 5. TryReclaim succeeds but entry erased during execution (L66 false)
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(++bufferId, GSERROR_OK);
+    // 6. TryReclaim fails and entry erased during execution (L76 false)
+    TestReclaimBufferOnFfrtEntryErasedDuringReclaim(++bufferId, GSERROR_API_FAILED);
+}
+
+/**
+ * @tc.name:  ReclaimBufferOnFfrtCancelledByRemoveTest001
+ * @tc.desc: test ReclaimBufferOnFfrt when entry removed before ffrt runs
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSBufferReclaimTest, ReclaimBufferOnFfrtCancelledByRemoveTest001, TestSize.Level2)
+{
+    uint64_t bufferId = 5010;
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    bufferId = buffer->GetBufferId();
+    ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+
+    EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+    reclaim.RemoveBufferReclaim(bufferId);
+    ffrt::wait();
+    std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+    EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
+}
+
+/**
+ * @tc.name:  DoBufferResumeTest001
+ * @tc.desc: test DoBufferResume: not-in-map, PENDING cancel, RECLAIMED resume,
+ *           resume fail, unregister fail
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSBufferReclaimTest, DoBufferResumeTest001, TestSize.Level2)
+{
+    uint64_t bufferId = 5020;
+    auto& reclaim = GetReclaim();
+
+    // 1. not in map — false
+    {
+        auto buffer = CreateMockSurfaceBuffer(bufferId);
+        EXPECT_FALSE(reclaim.DoBufferResume(buffer));
+    }
+
+    // 2. PENDING — cancel and return true
+    {
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
         bufferId = buffer->GetBufferId();
-        EXPECT_TRUE(rsBufferReclaim_->DoBufferReclaim(buffer));
-        EXPECT_TRUE(rsBufferReclaim_->bufferReclaimNumsSet_.find(bufferId) != rsBufferReclaim_->bufferReclaimNumsSet_.end());
-        rsBufferReclaim_->RemoveBufferReclaim(bufferId);
-    }
-    EXPECT_FALSE(rsBufferReclaim_->bufferReclaimNumsSet_.find(bufferId) != rsBufferReclaim_->bufferReclaimNumsSet_.end());
-}
-
-/**
- * @tc.name:  BufferReclaimAndResumeTest003
- * @tc.desc: test DoBufferReclaim And DoBufferResume
- * @tc.type: FUNC
- * @tc.require: issue#913
- */
-HWTEST_F(RSBufferReclaimTest, BufferReclaimAndResumeTest003, TestSize.Level2)
-{
-    for (uint32_t i = 0; i <= MAX_BUFFER_RECLAIM_NUMS; i++) {
-        auto buffer = CreateSurfaceBuffer();
-        EXPECT_TRUE(buffer != nullptr);
-        if (buffer) {
-            if (i < MAX_BUFFER_RECLAIM_NUMS) {
-                EXPECT_TRUE(rsBufferReclaim_->CheckBufferReclaim());
-                EXPECT_TRUE(rsBufferReclaim_->DoBufferReclaim(buffer));
-            } else {
-                EXPECT_FALSE(rsBufferReclaim_->CheckBufferReclaim());
-                EXPECT_FALSE(rsBufferReclaim_->DoBufferReclaim(buffer));
-            }
+        {
+            std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+            reclaim.bufferReclaimMap_[bufferId] = ReclaimState::PENDING;
         }
+        EXPECT_TRUE(reclaim.DoBufferResume(buffer));
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
+    }
+
+    // 3. RECLAIMED + TryResumeIfNeeded fail — false, entry stays
+    {
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
+        bufferId = buffer->GetBufferId();
+        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+        ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_API_FAILED));
+        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+        ffrt::wait();
+        EXPECT_FALSE(reclaim.DoBufferResume(buffer));
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_TRUE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
+    }
+
+    // 4. RECLAIMED + UnRegister fail — resume still succeeds (just warns)
+    {
+        auto buffer = CreateMockSurfaceBuffer(++bufferId);
+        ON_CALL(*buffer, TryReclaim()).WillByDefault(Return(GSERROR_OK));
+        ON_CALL(*buffer, IsReclaimed()).WillByDefault(Return(false));
+        ON_CALL(*buffer, RegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
+        ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(false));
+        ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+        EXPECT_TRUE(reclaim.DoBufferReclaim(buffer));
+        ffrt::wait();
+        EXPECT_TRUE(reclaim.DoBufferResume(buffer));
     }
 }
 
 /**
- * @tc.name:  AddUICaptureNode001
- * @tc.desc: test AddUICaptureNode
+ * @tc.name:  TryResumeBufferDirectTest001
+ * @tc.desc: test TryResumeBuffer directly: not-in-map, PENDING, RECLAIMING,
+ *           RECLAIMING_RESUME, RECLAIMED+success, RECLAIMED+fail
  * @tc.type: FUNC
- * @tc.require: issue#913
+ * @tc.require: issue#26422
  */
-HWTEST_F(RSBufferReclaimTest, AddUICaptureNode001, TestSize.Level1)
+HWTEST_F(RSBufferReclaimTest, TryResumeBufferDirectTest001, TestSize.Level2)
 {
-    rsBufferReclaim_->uiCaptureNodeMap_.clear();
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
+    uint64_t bufferId = 5030;
+    auto& reclaim = GetReclaim();
+    auto buffer = CreateMockSurfaceBuffer(bufferId);
+    bufferId = buffer->GetBufferId();
+    ON_CALL(*buffer, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_OK));
+    ON_CALL(*buffer, UnRegisterBufferDestructorCallbackFunc(_)).WillByDefault(Return(true));
 
-    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
-    rsBufferReclaim_->AddUICaptureNode(id1);
-    EXPECT_TRUE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id1));
+    // not in map
+    EXPECT_FALSE(reclaim.TryResumeBuffer(buffer, bufferId));
 
-    rsBufferReclaim_->RemoveUICaptureNode(id1);
-    EXPECT_TRUE(rsBufferReclaim_->uiCaptureNodeMap_.empty());
-    EXPECT_FALSE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id1));
+    // PENDING
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::PENDING;
+    }
+    EXPECT_FALSE(reclaim.TryResumeBuffer(buffer, bufferId));
+
+    // RECLAIMING
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING;
+    }
+    EXPECT_FALSE(reclaim.TryResumeBuffer(buffer, bufferId));
+
+    // RECLAIMING_RESUME
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMING_RESUME;
+    }
+    EXPECT_FALSE(reclaim.TryResumeBuffer(buffer, bufferId));
+
+    // RECLAIMED + success
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId] = ReclaimState::RECLAIMED;
+    }
+    EXPECT_TRUE(reclaim.TryResumeBuffer(buffer, bufferId));
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_FALSE(reclaim.bufferReclaimMap_.find(bufferId) != reclaim.bufferReclaimMap_.end());
+    }
+
+    // RECLAIMED + fail
+    auto buffer2 = CreateMockSurfaceBuffer(++bufferId);
+    uint64_t bufferId2 = buffer2->GetBufferId();
+    ON_CALL(*buffer2, TryResumeIfNeeded()).WillByDefault(Return(GSERROR_API_FAILED));
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        reclaim.bufferReclaimMap_[bufferId2] = ReclaimState::RECLAIMED;
+    }
+    EXPECT_FALSE(reclaim.TryResumeBuffer(buffer2, bufferId2));
+    {
+        std::lock_guard<std::mutex> lock(reclaim.bufferReclaimMapMutex_);
+        EXPECT_TRUE(reclaim.bufferReclaimMap_.find(bufferId2) != reclaim.bufferReclaimMap_.end());
+    }
 }
 
 /**
- * @tc.name:  AddUICaptureNode002
- * @tc.desc: test AddUICaptureNode
+ * @tc.name:  DoBufferResumeReclaimingResumeTest001
+ * @tc.desc: test DoBufferResume RECLAIMING_RESUME: success path and timeout path
  * @tc.type: FUNC
- * @tc.require: issue#913
+ * @tc.require: issue#26422
  */
-HWTEST_F(RSBufferReclaimTest, AddUICaptureNode002, TestSize.Level1)
+HWTEST_F(RSBufferReclaimTest, DoBufferResumeReclaimingResumeTest001, TestSize.Level2)
 {
-    rsBufferReclaim_->uiCaptureNodeMap_.clear();
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
-
-    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
-    rsBufferReclaim_->AddUICaptureNode(id1);
-
-    NodeId id2 = MakeNodeId(testPidBase, uidBase++);
-    rsBufferReclaim_->AddUICaptureNode(id2);
-
-    NodeId id3 = MakeNodeId(testPidBase, uidBase++);
-    rsBufferReclaim_->AddUICaptureNode(id3);
-
-    bool check = (rsBufferReclaim_->uiCaptureNodeMap_.size() == 1);
-    EXPECT_TRUE(check);
-    if (check) {
-        auto& nodeIdCountMap = rsBufferReclaim_->uiCaptureNodeMap_[testPidBase];
-        EXPECT_EQ(nodeIdCountMap.size(), 3);
-    }
-
-    rsBufferReclaim_->RemoveUICaptureNode(id1);
-    check = (rsBufferReclaim_->uiCaptureNodeMap_.size() == 1);
-    EXPECT_TRUE(check);
-    if (check) {
-        auto& nodeIdCountMap = rsBufferReclaim_->uiCaptureNodeMap_[testPidBase];
-        EXPECT_EQ(nodeIdCountMap.size(), 2);
-    }
-
-    rsBufferReclaim_->RemoveUICaptureNode(id2);
-    check = (rsBufferReclaim_->uiCaptureNodeMap_.size() == 1);
-    EXPECT_TRUE(check);
-    if (check) {
-        auto& nodeIdCountMap = rsBufferReclaim_->uiCaptureNodeMap_[testPidBase];
-        EXPECT_EQ(nodeIdCountMap.size(), 1);
-    }
-
-    rsBufferReclaim_->RemoveUICaptureNode(id3);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 0);
+    // 1. RECLAIMING → RECLAIMING_RESUME → reclaim done → resume succeeds
+    TestDoBufferResumeReclaimingResumeSuccess();
+    // 2. RECLAIMING → timeout (TryReclaim hangs beyond RECLAIM_TIMEOUT_MS)
+    TestDoBufferResumeReclaimingTimeout();
+    // 3. already RECLAIMING_RESUME (no ffrt running) → timeout
+    TestDoBufferResumeAlreadyReclaimingResumeTimeout();
 }
 
 /**
- * @tc.name:  AddUICaptureNode003
- * @tc.desc: test AddUICaptureNode
+ * @tc.name:  UICaptureNodeTest001
+ * @tc.desc: test AddUICaptureNode/RemoveUICaptureNode/CheckSameProcessUICaptureNode:
+ *           single node, same-pid multi-node, same-node count, multi-pid,
+ *           invalid pid/nodeId removal
  * @tc.type: FUNC
  * @tc.require: issue#913
  */
-HWTEST_F(RSBufferReclaimTest, AddUICaptureNode003, TestSize.Level1)
+HWTEST_F(RSBufferReclaimTest, UICaptureNodeTest001, TestSize.Level1)
 {
-    rsBufferReclaim_->uiCaptureNodeMap_.clear();
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
+    auto& reclaim = GetReclaim();
+    reclaim.uiCaptureNodeMap_.clear();
+    pid_t pid1 = 1234;
+    pid_t pid2 = 5678;
+    uint32_t uid = 1000;
 
-    NodeId id1 = MakeNodeId(testPidBase, uidBase++);
+    // remove from empty map — no crash
+    NodeId id0 = MakeNodeId(pid1, uid);
+    reclaim.RemoveUICaptureNode(id0);
+    EXPECT_TRUE(reclaim.uiCaptureNodeMap_.empty());
+
+    // new pid + node
+    NodeId id1 = MakeNodeId(pid1, uid++);
+    reclaim.AddUICaptureNode(id1);
+    EXPECT_TRUE(reclaim.CheckSameProcessUICaptureNode(id1));
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_.size(), 1u);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1].size(), 1u);
+
+    // same pid, new node
+    NodeId id2 = MakeNodeId(pid1, uid++);
+    reclaim.AddUICaptureNode(id2);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1].size(), 2u);
+
+    // same pid, same node — count increments
+    reclaim.AddUICaptureNode(id1);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1].size(), 2u);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1][id1], 2u);
+
+    // different pid
+    NodeId id3 = MakeNodeId(pid2, uid++);
+    reclaim.AddUICaptureNode(id3);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_.size(), 2u);
+    EXPECT_TRUE(reclaim.CheckSameProcessUICaptureNode(id3));
+    EXPECT_FALSE(reclaim.CheckSameProcessUICaptureNode(MakeNodeId(9999, uid)));
+
+    // remove same node (count 2→1, not erased)
+    reclaim.RemoveUICaptureNode(id1);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1][id1], 1u);
+
+    // remove same node again (count 1→0, node erased from map)
+    reclaim.RemoveUICaptureNode(id1);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1].size(), 1u);
+
+    // remove invalid nodeId (pid in map, node not in map)
+    NodeId idInvalid = MakeNodeId(pid1, uid++);
+    reclaim.RemoveUICaptureNode(idInvalid);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid1].size(), 1u);
+
+    // remove remaining nodes — pid map shrinks
+    reclaim.RemoveUICaptureNode(id2);
+    EXPECT_EQ(reclaim.uiCaptureNodeMap_.size(), 1u);
+    reclaim.RemoveUICaptureNode(id3);
+    EXPECT_TRUE(reclaim.uiCaptureNodeMap_.empty());
+}
+
+/**
+ * @tc.name:  UICaptureNodeSameNodeCountTest001
+ * @tc.desc: test AddUICaptureNode/RemoveUICaptureNode with same node added N times
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSBufferReclaimTest, UICaptureNodeSameNodeCountTest001, TestSize.Level1)
+{
+    auto& reclaim = GetReclaim();
+    reclaim.uiCaptureNodeMap_.clear();
+    pid_t pid = 1234;
+    NodeId id = MakeNodeId(pid, 1000);
+
     for (uint32_t i = 1; i <= ADD_SAME_NODE_NUMS; i++) {
-        rsBufferReclaim_->AddUICaptureNode(id1);
-        bool check = (rsBufferReclaim_->uiCaptureNodeMap_.size() == 1);
-        EXPECT_TRUE(check);
-        if (check) {
-            auto& nodeIdCountMap = rsBufferReclaim_->uiCaptureNodeMap_[testPidBase];
-            EXPECT_EQ(nodeIdCountMap.size(), 1);
-            auto iter = nodeIdCountMap.begin();
-            EXPECT_EQ(iter->first, id1);
-            EXPECT_EQ(iter->second, i);
-        }
+        reclaim.AddUICaptureNode(id);
+        EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid][id], i);
     }
     for (uint32_t i = 1; i <= ADD_SAME_NODE_NUMS; i++) {
-        rsBufferReclaim_->RemoveUICaptureNode(id1);
+        reclaim.RemoveUICaptureNode(id);
         if (i != ADD_SAME_NODE_NUMS) {
-            bool check = (rsBufferReclaim_->uiCaptureNodeMap_.size() == 1);
-            EXPECT_TRUE(check);
-            if (check) {
-                auto& nodeIdCountMap = rsBufferReclaim_->uiCaptureNodeMap_[testPidBase];
-                EXPECT_EQ(nodeIdCountMap.size(), 1);
-                auto iter = nodeIdCountMap.begin();
-                EXPECT_EQ(iter->first, id1);
-                EXPECT_EQ(iter->second, ADD_SAME_NODE_NUMS - i);
-            }
+            EXPECT_EQ(reclaim.uiCaptureNodeMap_[pid][id], ADD_SAME_NODE_NUMS - i);
         } else {
-            EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 0);
+            EXPECT_TRUE(reclaim.uiCaptureNodeMap_.empty());
         }
     }
-    EXPECT_TRUE(rsBufferReclaim_->uiCaptureNodeMap_.empty());
-}
-
-/**
- * @tc.name:  AddUICaptureNode004
- * @tc.desc: test AddUICaptureNode
- * @tc.type: FUNC
- * @tc.require: issue#913
- */
-HWTEST_F(RSBufferReclaimTest, AddUICaptureNode004, TestSize.Level1)
-{
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
-
-    NodeId id1 = MakeNodeId(testPidBase++, uidBase++);
-    NodeId id2 = MakeNodeId(testPidBase++, uidBase++);
-    NodeId id3 = MakeNodeId(testPidBase, uidBase++);
-    NodeId id4 = MakeNodeId(testPidBase, uidBase++);
-    NodeId id5 = MakeNodeId(testPidBase++, uidBase++);
-    NodeId id6 = MakeNodeId(testPidBase, uidBase++);
-
-    rsBufferReclaim_->AddUICaptureNode(id1);
-    rsBufferReclaim_->AddUICaptureNode(id2);
-    rsBufferReclaim_->AddUICaptureNode(id3);
-    rsBufferReclaim_->AddUICaptureNode(id4);
-    rsBufferReclaim_->AddUICaptureNode(id5);
-    for (uint32_t i = 0; i < ADD_SAME_NODE_NUMS; i++) {
-        rsBufferReclaim_->AddUICaptureNode(id6);
-    }
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 4);
-
-    auto& nodeIdCountMap1 = rsBufferReclaim_->uiCaptureNodeMap_[ExtractPid(id1)];
-    EXPECT_EQ(nodeIdCountMap1.size(), 1);
-    EXPECT_EQ(nodeIdCountMap1[id1], 1);
-
-    auto& nodeIdCountMap2 = rsBufferReclaim_->uiCaptureNodeMap_[ExtractPid(id2)];
-    EXPECT_EQ(nodeIdCountMap2.size(), 1);
-    EXPECT_EQ(nodeIdCountMap2[id2], 1);
-
-    auto& nodeIdCountMap3 = rsBufferReclaim_->uiCaptureNodeMap_[ExtractPid(id3)];
-    EXPECT_EQ(nodeIdCountMap3.size(), 3);
-    EXPECT_EQ(nodeIdCountMap3[id3], 1);
-    EXPECT_EQ(nodeIdCountMap3[id4], 1);
-    EXPECT_EQ(nodeIdCountMap3[id5], 1);
-
-    auto& nodeIdCountMap4 = rsBufferReclaim_->uiCaptureNodeMap_[ExtractPid(id6)];
-    EXPECT_EQ(nodeIdCountMap4.size(), 1);
-    EXPECT_EQ(nodeIdCountMap4[id6], ADD_SAME_NODE_NUMS);
-
-    rsBufferReclaim_->RemoveUICaptureNode(id1);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 3);
-    rsBufferReclaim_->RemoveUICaptureNode(id2);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 2);
-    rsBufferReclaim_->RemoveUICaptureNode(id3);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 2);
-    rsBufferReclaim_->RemoveUICaptureNode(id4);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 2);
-    rsBufferReclaim_->RemoveUICaptureNode(id5);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 1);
-    RemoveUICaptureNodeForTestCaseAddUICaptureNode004(id6);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 0);
-}
-
-/**
- * @tc.name:  AddUICaptureNode005
- * @tc.desc: test AddUICaptureNode
- * @tc.type: FUNC
- * @tc.require: issue#913
- */
-HWTEST_F(RSBufferReclaimTest, AddUICaptureNode005, TestSize.Level1)
-{
-    rsBufferReclaim_->uiCaptureNodeMap_.clear();
-    pid_t testPidBase = 1234;
-    uint32_t uidBase = 5678;
-
-    NodeId id1 = MakeNodeId(testPidBase, uidBase);
-    NodeId id2 = MakeNodeId(testPidBase, ++uidBase);
-    NodeId id3 = MakeNodeId(++testPidBase, uidBase++);
-    NodeId id4 = MakeNodeId(testPidBase++, uidBase++);
-    rsBufferReclaim_->AddUICaptureNode(id1);
-    EXPECT_TRUE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id1));
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 1);
-
-    EXPECT_TRUE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id2));
-    EXPECT_FALSE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id3));
-    EXPECT_FALSE(rsBufferReclaim_->CheckSameProcessUICaptureNode(id4));
-    rsBufferReclaim_->RemoveUICaptureNode(id2);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 1);
-    rsBufferReclaim_->RemoveUICaptureNode(id3);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 1);
-    rsBufferReclaim_->RemoveUICaptureNode(id4);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 1);
-    rsBufferReclaim_->RemoveUICaptureNode(id1);
-    EXPECT_EQ(rsBufferReclaim_->uiCaptureNodeMap_.size(), 0);
 }
 #endif
 } // namespace OHOS::Rosen

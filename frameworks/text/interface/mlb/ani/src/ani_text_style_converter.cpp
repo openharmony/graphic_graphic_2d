@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cmath>
+
 #include "ani_text_style_converter.h"
 
 #include "ani_common.h"
@@ -316,6 +318,18 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
             rectObj, AniGlobalMethod::GetInstance().rectStyleRightBottomRadius, &rectStyle.rightBottomRadius);
         env->Object_CallMethod_Double(
             rectObj, AniGlobalMethod::GetInstance().rectStyleLeftBottomRadius, &rectStyle.leftBottomRadius);
+        Drawing::Color borderColor;
+        ret = ParseDrawingColorToNative(env, rectObj, true, AniGlobalMethod::GetInstance().rectStyleBorderColor,
+            borderColor);
+        if (ret == ANI_OK) {
+            rectStyle.borderColor = borderColor.CastToColorQuad();
+        }
+        double borderWidth = 0.0;
+        AniTextUtils::ReadOptionalDoubleField(
+            env, rectObj, AniGlobalMethod::GetInstance().rectStyleBorderWidth, borderWidth);
+        if (std::isfinite(borderWidth) && borderWidth > 0.0) {
+            rectStyle.borderWidth = borderWidth;
+        }
     }
 }
 
@@ -414,9 +428,17 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
         TEXT_LOGE("Failed to parse color, ret %{public}d", status);
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
+    OHOS::Rosen::Drawing::Color borderColor = OHOS::Rosen::Drawing::Color(rectStyle.borderColor);
+    ani_object aniBorderColorObj = nullptr;
+    status = OHOS::Rosen::Drawing::CreateColorObj(env, borderColor, aniBorderColorObj);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to parse borderColor, ret %{public}d", status);
+        aniBorderColorObj = AniTextUtils::CreateAniUndefined(env);
+    }
     ani_object aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().rectStyle,
         AniGlobalMethod::GetInstance().rectStyleCtor, aniColorObj, rectStyle.leftTopRadius, rectStyle.rightTopRadius,
-        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius);
+        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius, aniBorderColorObj,
+        AniTextUtils::CreateAniDoubleObj(env, rectStyle.borderWidth));
     return aniObj;
 }
 

@@ -43,6 +43,9 @@ constexpr uint32_t COLOR_BG_BLUE_OPAQUE = 0xFF0000FF;
 
 // Background rect radius
 constexpr double BACKGROUND_RECT_RADIUS = 5.0;
+constexpr uint32_t COLOR_BORDER_RED_OPAQUE = 0xFFFF0000;
+constexpr uint32_t COLOR_BORDER_DEFAULT_WHITE = 0xFFFFFFFF;
+constexpr double BACKGROUND_RECT_BORDER_WIDTH = 2.0;
 
 class RunGetTextStyleTest : public testing::Test {
 public:
@@ -798,5 +801,75 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest020, TestSize.Level0)
     EXPECT_FLOAT_EQ(axisValues.at("wdth").first, 75.0f);
     EXPECT_TRUE(axisValues.at("wght").second);
     EXPECT_FALSE(axisValues.at("wdth").second);
+}
+
+/*
+ * @tc.name: RunGetTextStyleTest021
+ * @tc.desc: Test GetTextStyle with backgroundRect borderColor and borderWidth properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest021, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle paragraphStyle;
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+
+    TextStyle textStyle;
+    textStyle.backgroundRect = { COLOR_BG_BLUE_OPAQUE, BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS,
+        BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS, COLOR_BORDER_RED_OPAQUE, BACKGROUND_RECT_BORDER_WIDTH };
+
+    typographyCreate_->PushStyle(textStyle);
+
+    std::u16string text = u"BorderTest";
+    typographyCreate_->AppendText(text);
+
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
+
+    auto textLines = typography_->GetTextLines();
+    spRuns_ = textLines[0]->GetGlyphRuns();
+
+    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
+
+    EXPECT_EQ(resultStyle.backgroundRect.color, COLOR_BG_BLUE_OPAQUE);
+    EXPECT_EQ(resultStyle.backgroundRect.borderColor, COLOR_BORDER_RED_OPAQUE);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.borderWidth, BACKGROUND_RECT_BORDER_WIDTH);
+}
+
+/*
+ * @tc.name: RunGetTextStyleTest022
+ * @tc.desc: Test GetTextStyle keeps default border values when backgroundRect omits them
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest022, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle paragraphStyle;
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+
+    TextStyle textStyle;
+    textStyle.backgroundRect = { COLOR_BG_BLUE_OPAQUE, BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS,
+        BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS };
+
+    typographyCreate_->PushStyle(textStyle);
+
+    std::u16string text = u"DefaultBorder";
+    typographyCreate_->AppendText(text);
+
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
+
+    auto textLines = typography_->GetTextLines();
+    spRuns_ = textLines[0]->GetGlyphRuns();
+
+    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
+
+    EXPECT_EQ(resultStyle.backgroundRect.color, COLOR_BG_BLUE_OPAQUE);
+    EXPECT_EQ(resultStyle.backgroundRect.borderColor, COLOR_BORDER_DEFAULT_WHITE);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.borderWidth, 0.0);
 }
 } // namespace

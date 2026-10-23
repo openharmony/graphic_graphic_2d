@@ -75,6 +75,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
+class RSEffectUtils;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -1188,6 +1189,12 @@ protected:
     void MoveUIExtensionChild(SharedPtr child);
     void RemoveUIExtensionChild(SharedPtr child);
     bool NeedRoutedBasedOnUIExtension(SharedPtr child);
+    // Inner child list operations without UIExtension routing. AddChild/MoveChild/RemoveChild make the
+    // routing decision only once, and the *UIExtensionChild helpers must call these inner versions
+    // instead of the public ones, otherwise the two sides can recurse into each other infinitely.
+    void AddChildInner(SharedPtr child, int index);
+    void MoveChildInner(SharedPtr child, int index);
+    void RemoveChildInner(SharedPtr child, bool skipTransition);
 
     bool IsNodeParentHasUIFirstCache();
 
@@ -1513,6 +1520,7 @@ private:
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
     friend class RSDynamicLayerSkipController;
+    friend class RSEffectUtils;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

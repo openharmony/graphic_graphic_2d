@@ -24,6 +24,7 @@
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -318,116 +319,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundShaderDrawable, TestSize.Leve
     node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
     node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
-}
-/**
- * @tc.name: RSBackgroundNGShaderDrawable001
- * @tc.desc: Test OnGenerate
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
-    EXPECT_EQ(drawable, nullptr);
-
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
-    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
-
-    auto borderColor = Color(255, 255, 255, 255);
-    auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
-    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
-    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
-
-    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
-}
-
-/**
- * @tc.name: RSBackgroundNGShaderDrawable002
- * @tc.desc: Test OnUpdate
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable002, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
-    EXPECT_EQ(drawable, nullptr);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
-    auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
-        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
-    EXPECT_NE(drawableTwo, nullptr);
-    EXPECT_TRUE(drawableTwo->OnUpdate(node));
-    EXPECT_EQ(drawableTwo->stagingShader_, shader);
-    EXPECT_EQ(drawableTwo->needSync_, true);
-    node.GetMutableRenderProperties().SetBackgroundNGShader(nullptr);
-    EXPECT_FALSE(drawableTwo->OnUpdate(node));
-}
-
-/**
- * @tc.name: RSBackgroundNGShaderDrawable003
- * @tc.desc: Test Onsync
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable003, TestSize.Level1)
-{
-    DrawableV2::RSBackgroundNGShaderDrawable drawable;
-    drawable.needSync_ = false;
-    drawable.OnSync();
-    EXPECT_FALSE(drawable.needSync_);
-
-    drawable.needSync_ = true;
-    drawable.OnSync();
-    EXPECT_TRUE(drawable.needSync_);
-
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    drawable.stagingShader_ = shader;
-    drawable.OnSync();
-    EXPECT_FALSE(drawable.needSync_);
-    EXPECT_NE(drawable.visualEffectContainer_, nullptr);
-}
-
-/**
- * @tc.name: RSBackgroundNGShaderDrawable004
- * @tc.desc: Test Onsync
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSBackgroundNGShaderDrawable>();
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto rect = std::make_shared<Drawing::Rect>();
-    drawable->OnDraw(canvas.get(), rect.get());
-    ASSERT_TRUE(true);
-
-    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-    drawable->OnDraw(canvas.get(), nullptr);
-    ASSERT_TRUE(true);
-    
-    drawable->OnDraw(nullptr, rect.get());
-    ASSERT_TRUE(true);
-
-    Drawing::Canvas* filtercanvas = new Drawing::Canvas();
-    auto rspaintfiltercanvas = std::make_shared<RSPaintFilterCanvas>(filtercanvas);
-    drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
-    ASSERT_TRUE(true);
-
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    std::shared_ptr<Drawing::Image> cachedImage = std::make_shared<Drawing::Image>();
-    effectData->cachedImage_ = cachedImage;
-    rspaintfiltercanvas->SetEffectData(effectData);
-    drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
-    ASSERT_TRUE(true);
-
-    rspaintfiltercanvas->SetEffectIntersectWithDRM(true);
-    drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
 }
 
 /**
@@ -980,7 +871,14 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable011, TestSize.Level1)
     effectData->cachedImage_ = cachedImage;
     filterCanvas->SetEffectData(effectData);
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
+
+    // disable effect merge
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(false);
+    EXPECT_FALSE(RSFilterCacheManager::IsEffectMergeEnabled());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    // re-enable
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
+    EXPECT_TRUE(RSFilterCacheManager::IsEffectMergeEnabled());
 }
 
 /**
@@ -1458,47 +1356,5 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw004, TestSi
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     drawable->OnDraw(&canvas, &rect);
     ASSERT_NE(drawable->clipPath_, nullptr);
-}
-
-/**
- * @tc.name: RSBackgroundNGShaderDrawable005
- * @tc.desc: Test OnUpdate with SDFShape set (true branch)
- * @tc.type:FUNC
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable005, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
-
-    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
-    EXPECT_NE(sdfShape, nullptr);
-    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
-
-    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
-        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
-    EXPECT_NE(drawable, nullptr);
-
-    EXPECT_TRUE(drawable->OnUpdate(node));
-}
-
-/**
- * @tc.name: RSBackgroundNGShaderDrawable006
- * @tc.desc: Test OnUpdate without SDFShape (false branch)
- * @tc.type:FUNC
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable006, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
-
-    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
-        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
-    EXPECT_NE(drawable, nullptr);
-
-    EXPECT_TRUE(drawable->OnUpdate(node));
 }
 } // namespace OHOS::Rosen

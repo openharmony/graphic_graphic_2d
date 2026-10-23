@@ -157,7 +157,8 @@ napi_value JsMatrix::OnGetValue(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnGetValue matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -168,7 +169,8 @@ napi_value JsMatrix::OnGetValue(napi_env env, napi_callback_info info)
 
     if (index < 0 || index >= Matrix::MATRIX_SIZE) {
         ROSEN_LOGE("JsMatrix::OnGetValue index is out of range");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The index ranges from 0 to 8 inclusive");
     }
 
     double value = m_matrix->Get(index);
@@ -185,7 +187,8 @@ napi_value JsMatrix::OnPostConcat(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPostConcat matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -213,7 +216,8 @@ napi_value JsMatrix::OnPostRotate(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPostRotate matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -241,7 +245,8 @@ napi_value JsMatrix::OnPostSkew(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPostSkew matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -270,7 +275,8 @@ napi_value JsMatrix::OnPostTranslate(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPostTranslate matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -295,7 +301,8 @@ napi_value JsMatrix::OnPreRotate(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreRotate matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -323,7 +330,8 @@ napi_value JsMatrix::OnPreScale(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreScale matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -353,7 +361,8 @@ napi_value JsMatrix::OnPreSkew(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreSkew matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -382,7 +391,8 @@ napi_value JsMatrix::OnPreTranslate(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreTranslate matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -408,7 +418,8 @@ napi_value JsMatrix::OnSetConcat(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetConcat matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -440,7 +451,8 @@ napi_value JsMatrix::OnSetRotation(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetRotation matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -467,7 +479,8 @@ napi_value JsMatrix::OnSetScale(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetScale matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -496,7 +509,8 @@ napi_value JsMatrix::OnSetSinCos(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetSinCos matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -525,7 +539,8 @@ napi_value JsMatrix::OnSetSkew(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetSkew matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -554,7 +569,8 @@ napi_value JsMatrix::OnSetTranslation(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetTranslation matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -579,7 +595,8 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetMatrix matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -604,7 +621,8 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
     if (arrayLength != ARGC_NINE) { // arrayLength must be an nine number
         ROSEN_LOGE("JsMatrix::OnSetMatrix count of array is not nine : %{public}u", arrayLength);
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "parameter array length verification failed.");
+            "Parameter error. Param[0] type mismatch. Expected: Array<number> with length 9, "
+            "Actual: Array with length " + std::to_string(arrayLength) + ".");
     }
 
     scalar matrixPara[arrayLength];
@@ -641,7 +659,8 @@ napi_value JsMatrix::OnPreConcat(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreConcat matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -669,7 +688,8 @@ napi_value JsMatrix::OnIsAffine(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnIsAffine matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     return CreateJsValue(env, m_matrix->IsAffine());
@@ -685,7 +705,8 @@ napi_value JsMatrix::OnIsEqual(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnIsEqual matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -713,7 +734,8 @@ napi_value JsMatrix::OnInvert(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnInvert matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -740,7 +762,8 @@ napi_value JsMatrix::OnIsIdentity(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnIsIdentity matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     return CreateJsValue(env, m_matrix->IsIdentity());
@@ -756,7 +779,8 @@ napi_value JsMatrix::OnMapPoints(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnMapPoints matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -774,7 +798,7 @@ napi_value JsMatrix::OnMapPoints(napi_env env, napi_callback_info info)
     std::vector<Point> srcPoints(srcPointsSize);
     /* Fill vector with data from input array */
     if (!ConvertFromJsPointsArray(env, srcArray, srcPoints.data(), srcPointsSize)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array data.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect source array data.");
     }
 
     JS_CALL_DRAWING_FUNC(m_matrix->MapPoints(dstPoints, srcPoints, srcPointsSize));
@@ -801,7 +825,8 @@ napi_value JsMatrix::OnMapRadius(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnMapRadius matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -823,7 +848,8 @@ napi_value JsMatrix::OnPostScale(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPostScale matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -853,7 +879,8 @@ napi_value JsMatrix::OnRectStaysRect(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnRectStaysRect matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     return CreateJsValue(env, m_matrix->RectStaysRect());
@@ -869,7 +896,8 @@ napi_value JsMatrix::OnReset(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnReset matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     m_matrix->Reset();
@@ -886,7 +914,8 @@ napi_value JsMatrix::OnGetAll(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnGetAll matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     Matrix::Buffer matrData;
@@ -910,7 +939,8 @@ napi_value JsMatrix::OnSetPolyToPoly(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetPolyToPoly matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -920,19 +950,16 @@ napi_value JsMatrix::OnSetPolyToPoly(napi_env env, napi_callback_info info)
     GET_UINT32_PARAM(ARGC_TWO, count);
 
     if (count > POLY_POINT_COUNT_MAX) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Invalid param 'count' > 4");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param 'count' > 4");
     }
 
     Drawing::Point srcPoints[POLY_POINT_COUNT_MAX];
     if (!ConvertFromJsPointsArray(env, argv[ARGC_ZERO], srcPoints, count)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Invalid 'src' Array<Point> type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid 'src' Array<Point> type.");
     }
     Drawing::Point dstPoints[POLY_POINT_COUNT_MAX];
     if (!ConvertFromJsPointsArray(env, argv[ARGC_ONE], dstPoints, count)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Invalid 'dst' Array<Point> type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid 'dst' Array<Point> type.");
     }
 
     bool result = m_matrix->SetPolyToPoly(srcPoints, dstPoints, count);
@@ -949,7 +976,8 @@ napi_value JsMatrix::OnSetRectToRect(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnSetRectToRect matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -984,7 +1012,8 @@ napi_value JsMatrix::OnMapRect(napi_env env, napi_callback_info info)
 {
     if (m_matrix == nullptr) {
         ROSEN_LOGE("JsMatrix::OnMapRect matrix is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Matrix object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
