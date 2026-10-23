@@ -21,11 +21,21 @@
 
 namespace OHOS {
 namespace Rosen {
+class RenderContext;
+namespace Drawing {
+class GPUContext;
+} // namespace Drawing
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 bool BlurPixelMapOnRenderThread(
     const std::shared_ptr<Media::PixelMap>& pixelMap, float blurRadius,
     std::shared_ptr<Media::PixelMap>& blurredPixelMap);
+
+// Thread-agnostic blur entry: caller supplies the GPU context and render context.
+bool BlurPixelMapImpl(
+    const std::shared_ptr<Media::PixelMap>& pixelMap, float blurRadius,
+    std::shared_ptr<Media::PixelMap>& blurredPixelMap,
+    Drawing::GPUContext* gpuContext, RenderContext* renderContext);
 #endif
 
 } // namespace Rosen
