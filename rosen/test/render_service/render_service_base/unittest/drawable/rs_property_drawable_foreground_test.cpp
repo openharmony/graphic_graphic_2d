@@ -1745,4 +1745,144 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDr
     EXPECT_TRUE(drawable->OnUpdate(renderNode));
     EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
 }
+
+/**
+ * @tc.name: ColorNGFilterOnUpdateOnlyNGFilter
+ * @tc.desc: OnUpdate with only ColorNGFilter set (no traditional ColorFilter)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnUpdateOnlyNGFilter, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(filter, nullptr);
+    node.GetMutableRenderProperties().SetColorNGFilter(filter);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().colorFilter_ = nullptr;
+
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+    EXPECT_TRUE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: ColorNGFilterOnUpdateBothFilters
+ * @tc.desc: OnUpdate with both traditional ColorFilter and ColorNGFilter set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnUpdateBothFilters, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>();
+    ASSERT_NE(colorFilter, nullptr);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().colorFilter_ = colorFilter;
+    auto ngFilter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    ASSERT_NE(ngFilter, nullptr);
+    node.GetMutableRenderProperties().SetColorNGFilter(ngFilter);
+
+    auto drawable = DrawableV2::RSColorFilterDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+    EXPECT_TRUE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: ColorNGFilterOnUpdateBothNull
+ * @tc.desc: OnUpdate returns false when both colorFilter and colorNGFilter are null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnUpdateBothNull, TestSize.Level1)
+{
+    RSRenderNode node(0);
+    node.GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().colorFilter_ = nullptr;
+    node.GetMutableRenderProperties().SetColorNGFilter(nullptr);
+
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    EXPECT_FALSE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: ColorNGFilterOnSyncWithFilter
+ * @tc.desc: OnSync with stagingColorNGFilter_ set generates visualEffectContainer_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnSyncWithFilter, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->needSync_ = true;
+    drawable->stagingColorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    ASSERT_NE(drawable->stagingColorNGFilter_, nullptr);
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_NE(drawable->colorNGFilter_, nullptr);
+    EXPECT_NE(drawable->visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: ColorNGFilterOnSyncNullFilter
+ * @tc.desc: OnSync with null stagingColorNGFilter_ clears visualEffectContainer_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnSyncNullFilter, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->needSync_ = true;
+    drawable->stagingColorNGFilter_ = nullptr;
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_EQ(drawable->colorNGFilter_, nullptr);
+    EXPECT_EQ(drawable->visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawWithNGFilterOnly
+ * @tc.desc: OnDraw with only ColorNGFilter (no traditional ColorFilter) does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawWithNGFilterOnly, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = nullptr;
+    drawable->colorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawBothFilters
+ * @tc.desc: OnDraw with both ColorFilter and ColorNGFilter draws ColorFilter first then ColorNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawBothFilters, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = std::make_shared<Drawing::ColorFilter>();
+    drawable->colorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawNoNGFilter
+ * @tc.desc: OnDraw with only traditional ColorFilter (no ColorNGFilter) does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawNoNGFilter, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = std::make_shared<Drawing::ColorFilter>();
+    drawable->colorNGFilter_ = nullptr;
+    drawable->visualEffectContainer_ = nullptr;
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+}
 } // namespace OHOS::Rosen

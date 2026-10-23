@@ -2485,4 +2485,40 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape008, testing::ext::Test
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
 }
+
+/**
+ * @tc.name: DrawColorNGFilterNullCanvas
+ * @tc.desc: DrawColorNGFilter with null canvas returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullCanvas, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(nullptr, &rect, container);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterNullRect
+ * @tc.desc: DrawColorNGFilter with null rect returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullRect, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, nullptr, container);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterNullContainer
+ * @tc.desc: DrawColorNGFilter with null visualEffectContainer returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullContainer, testing::ext::TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, &rect, nullptr);
+}
 } // namespace OHOS::Rosen
