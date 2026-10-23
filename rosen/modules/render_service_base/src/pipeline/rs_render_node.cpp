@@ -2517,7 +2517,12 @@ void RSRenderNode::SetParentSubTreeDirty()
 
 void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
-    RSRenderNodeCycleGuard
+    RSRenderNodeCycleGuard guard(inParentChainTraversal_);
+    if (guard.HasCycle()) {
+        ROSEN_LOGE("RSRenderNode::SetParentTreeStateChangeDirty cycle detected, skip node[id:%{public}"
+            PRIu64 "]", GetId());
+        return;
+    }
     auto parentNode = parent_.lock();
     if (!parentNode) {
         return;
