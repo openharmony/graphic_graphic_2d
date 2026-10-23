@@ -14,6 +14,7 @@
  */
 #if defined(RS_ENABLE_UNI_RENDER)
 #include <gtest/gtest.h>
+#include <cmath>
 #include <memory>
 
 #include "pixel_map.h"
@@ -24,6 +25,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "render_context/render_context.h"
+#include "image/gpu_context.h"
 #endif
 
 using namespace testing;
@@ -153,6 +155,117 @@ HWTEST_F(RSBlurPixelMapTest, BlurPixelMapOnRenderThread005, TestSize.Level1)
     bool ret = BlurPixelMapOnRenderThread(pixelMap, 5.0f, blurredPixelMap);
     EXPECT_FALSE(ret);
     EXPECT_EQ(blurredPixelMap, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapImpl001
+ * @tc.desc: Test BlurPixelMapImpl with pixelMap nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, 5.0f, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl002
+ * @tc.desc: Test BlurPixelMapImpl with gpuContext nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl002, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool ret = BlurPixelMapImpl(pixelMap, 5.0f, blurredPixelMap,
+        nullptr, nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl003
+ * @tc.desc: Test BlurPixelMapImpl with NaN blurRadius
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl003, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, NAN, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl004
+ * @tc.desc: Test BlurPixelMapImpl with negative blurRadius
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl004, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, -1.0f, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl005
+ * @tc.desc: Test BlurPixelMapImpl with very small blurRadius, should skip blur and return original
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl005, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, 1E-7f, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(blurredPixelMap, pixelMap);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl006
+ * @tc.desc: Test BlurPixelMapImpl with valid params but no real GPU context (CreateGpuImageFromPixelMap fails)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl006, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, 5.0f, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: BlurPixelMapImpl007
+ * @tc.desc: Test BlurPixelMapImpl with Inf blurRadius
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBlurPixelMapTest, BlurPixelMapImpl007, TestSize.Level1)
+{
+    auto pixelMap = CreateTestPixelMap(10, 10);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    bool ret = BlurPixelMapImpl(pixelMap, INFINITY, blurredPixelMap,
+        gpuContext.get(), nullptr);
+    EXPECT_FALSE(ret);
 }
 #endif // ROSEN_OHOS && (RS_ENABLE_GL || RS_ENABLE_VK)
 
