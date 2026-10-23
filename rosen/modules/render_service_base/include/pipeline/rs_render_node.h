@@ -1331,7 +1331,7 @@ private:
     // marks the node as "on the traversal path"
     bool inTraversalPath_ = false;
     // marks the node as "on the parent chain traversal path" to detect cycles
-    bool inParentChainTraversal_ = false;
+    mutable bool inParentChainTraversal_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
