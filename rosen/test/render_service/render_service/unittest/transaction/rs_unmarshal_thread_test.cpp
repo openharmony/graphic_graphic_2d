@@ -223,6 +223,44 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcelWaitUnmarshallingTrue, TestSize.Level1
     EXPECT_EQ(instance.noNeedWaitTaskNum_.load(), 0);
 }
 
+/**
+ * @tc.name: RecvParcelInvalidParcelNoWaitTaskNum
+ * @tc.desc: Test RecvParcel decrements noNeedWaitTaskNum_ on the early-return path when parsing fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelInvalidParcelNoWaitTaskNum, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    std::promise<void> probe;
+    auto probeFuture = probe.get_future();
+    instance.PostTask([&probe]() { probe.set_value(); }, "probe");
+    if (probeFuture.wait_for(std::chrono::seconds(1)) != std::future_status::ready) {
+        GTEST_SKIP() << "unmarshal queue does not run tasks in this environment";
+    }
+
+    instance.noNeedWaitTaskNum_.store(0);
+
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    instance.RecvParcel(data, false, 0, nullptr, nullptr, 0, false);
+
+    constexpr int maxWaitMs = 1000;
+    constexpr int pollIntervalMs = 10;
+    constexpr int msPerSecond = 1000;
+    bool drained = false;
+    for (int waitedMs = 0; waitedMs < maxWaitMs; waitedMs += pollIntervalMs) {
+        if (instance.noNeedWaitTaskNum_.load() == 0) {
+            drained = true;
+            break;
+        }
+        usleep(pollIntervalMs * msPerSecond);
+    }
+    EXPECT_TRUE(drained);
+}
+
 #ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: RecvParcelSetSendingPid
