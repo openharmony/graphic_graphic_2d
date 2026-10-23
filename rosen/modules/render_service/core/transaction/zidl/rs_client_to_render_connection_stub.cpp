@@ -794,7 +794,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             if (success && blurredPixelMap != nullptr) {
-                RSMarshallingHelper::Marshalling(reply, blurredPixelMap);
+                if (!RSMarshallingHelper::Marshalling(reply, blurredPixelMap)) {
+                    RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP Marshalling failed");
+                    ret = ERR_INVALID_REPLY;
+                }
             }
             break;
         }
