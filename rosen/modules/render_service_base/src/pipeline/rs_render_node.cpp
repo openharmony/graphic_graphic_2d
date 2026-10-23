@@ -2517,6 +2517,7 @@ void RSRenderNode::SetParentSubTreeDirty()
 
 void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
+    RSRenderNodeCycleGuard
     auto parentNode = parent_.lock();
     if (!parentNode) {
         return;
