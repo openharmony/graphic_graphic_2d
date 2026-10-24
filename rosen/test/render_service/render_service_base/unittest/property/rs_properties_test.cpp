@@ -5050,5 +5050,57 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
     properties.SetPixelStretchPercent(nulloptPercent);
     EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
 }
+
+/**
+ * @tc.name: SetShadowClipType001
+ * @tc.desc: test results of SetShadowClipType with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+ 
+/**
+ * @tc.name: GetShadowClipType001
+ * @tc.desc: default GetShadowClipType returns DEFAULT_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
+}
+ 
+/**
+ * @tc.name: SetShadowClipTypeContentDirty001
+ * @tc.desc: SetShadowClipType sets contentDirty_ to true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetShadowClipTypeContentDirty001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsContentDirty());
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_TRUE(properties.IsContentDirty());
+}
+
+/**
+ * @tc.name: DumpShadowClipType001
+ * @tc.desc: Dump output includes ShadowClipType for both default and set values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(1.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowClipType[0]") != std::string::npos);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -616,6 +616,105 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawShadow009
+ * @tc.desc: DrawShadow with shadowPath + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow009, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    rsPath->SetDrawingPath(path);
+    properties.SetShadowPath(rsPath);
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowPath());
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+
+/**
+ * @tc.name: DrawShadow010
+ * @tc.desc: DrawShadow with clipBounds + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow010, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    std::shared_ptr<RSPath> clipPath = std::make_shared<RSPath>();
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    clipPath->SetDrawingPath(path);
+    properties.SetClipBounds(clipPath);
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetClipBounds());
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+
+/**
+ * @tc.name: DrawShadow011
+ * @tc.desc: DrawShadow with rrect != nullptr + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow011, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    RectF rect(0.0f, 0.0f, 100.0f, 100.0f);
+    RRect rrect(rect, 10.0f, 10.0f);
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+
+/**
+ * @tc.name: DrawShadow012
+ * @tc.desc: DrawShadow with rrect == nullptr + BOUNDS_SHAPE + isFilled=false (clipForShadow ClipRoundRect branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow012, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+
+/**
+ * @tc.name: DrawShadow013
+ * @tc.desc: DrawShadow with BOUNDS_SHAPE + isFilled=true (clipForShadow early return, no clip applied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow013, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    properties.SetShadowIsFilled(true);
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowIsFilled());
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+
+/**
  * @tc.name: GetForegroundEffectDirtyRect001
  * @tc.desc: test results of GetForegroundEffectDirtyRect
  * @tc.type: FUNC
