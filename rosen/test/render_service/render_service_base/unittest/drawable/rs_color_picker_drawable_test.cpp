@@ -701,4 +701,148 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable025, TestSize.Level1)
     auto mode = drawable->GetLastContrastColorScheme();
     EXPECT_EQ(mode, ContrastColorScheme::INVALID);
 }
+/**
+ * @tc.name: RSColorPickerDrawable026
+ * @tc.desc: Test OnPrepare returns false when nothing changes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable026, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->stagingNeedColorPick_ = false;
+    drawable->stagingIsSystemDarkColorMode_ = false;
+    bool needSync = drawable->OnPrepare(false);
+    EXPECT_FALSE(needSync);
+    EXPECT_FALSE(drawable->stagingNeedColorPick_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable027
+ * @tc.desc: Test OnUpdate returns false when strategy is NONE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable027, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(
+        static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::NONE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    bool result = drawable->OnUpdate(node);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(drawable->needSync_);
+    ASSERT_NE(drawable->stagingColorPicker_, nullptr);
+    EXPECT_EQ(drawable->stagingColorPicker_->strategy, ColorPickStrategyType::NONE);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable028
+ * @tc.desc: Test OnSync with null colorPickerManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable028, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(
+        static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    drawable->colorPickerManager_ = nullptr;
+    drawable->needSync_ = true;
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    EXPECT_EQ(drawable->params_.strategy, ColorPickStrategyType::AVERAGE);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable029
+ * @tc.desc: Test GetLastContrastColorScheme with valid manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable029, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_NE(drawable->colorPickerManager_, nullptr);
+    auto mode = drawable->GetLastContrastColorScheme();
+    EXPECT_EQ(mode, ContrastColorScheme::INVALID);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable030
+ * @tc.desc: Test ResetColorMemory with null colorPickerManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable030, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    drawable->colorPickerManager_ = nullptr;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->stagingNeedColorPick_ = true;
+    drawable->ResetColorMemory();
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
+    EXPECT_FALSE(drawable->stagingNeedColorPick_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable031
+ * @tc.desc: Test SetState invalid transition from COLOR_PICK_THIS_FRAME to SCHEDULED
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable031, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->SetState(DrawableV2::ColorPickerState::SCHEDULED);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable032
+ * @tc.desc: Test SetState invalid transition from COLOR_PICK_THIS_FRAME to COLOR_PICK_THIS_FRAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable032, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->SetState(DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable033
+ * @tc.desc: Test OnPrepare dark mode unchanged but needColorPick changed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable033, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+    drawable->stagingIsSystemDarkColorMode_ = true;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->stagingNeedColorPick_ = false;
+    bool needSync = drawable->OnPrepare(true);
+    EXPECT_TRUE(needSync);
+    EXPECT_TRUE(drawable->stagingNeedColorPick_);
+}
 } // namespace OHOS::Rosen
