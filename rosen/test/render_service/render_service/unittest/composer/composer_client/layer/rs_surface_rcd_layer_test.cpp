@@ -1140,8 +1140,8 @@ HWTEST_F(RSSurfaceRCDLayerTest, RCDLayer_Inherited_SetDelegateModeCropRect, Test
     ASSERT_NE(layer, nullptr);
 
     GraphicIRect rect = {5, 10, 200, 300};
-    layer->SetDelegateModeCropRect(rect);
-    EXPECT_EQ(layer->GetDelegateModeCropRect().x, rect.x);
-    EXPECT_EQ(layer->GetDelegateModeCropRect().w, rect.w);
+    layer->SetDelegateSrcRect(rect);
+    EXPECT_EQ(layer->GetDelegateSrcRect().x, rect.x);
+    EXPECT_EQ(layer->GetDelegateSrcRect().w, rect.w);
 }
 } // namespace OHOS::Rosen

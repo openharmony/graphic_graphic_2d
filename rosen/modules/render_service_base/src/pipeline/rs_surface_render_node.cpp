@@ -4466,15 +4466,15 @@ void RSSurfaceRenderNode::OnTransformChange()
     SetDoDirectComposition(false);
 }
 
-void RSSurfaceRenderNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceRenderNode::SetDelegateDstRect(const RectF& delegateDstRect)
 {
     if (!delegateCompositeParams_) {
         return;
     }
-    delegateCompositeParams_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeParams_->SetDelegateDstRect(delegateDstRect);
 }
 
-Vector4f RSSurfaceRenderNode::GetDelegateDstRect()
+RectF RSSurfaceRenderNode::GetDelegateDstRect()
 {
     if (!delegateCompositeParams_) {
         return { 0, 0, 0, 0 };
@@ -4482,15 +4482,15 @@ Vector4f RSSurfaceRenderNode::GetDelegateDstRect()
     return delegateCompositeParams_->GetDelegateDstRect();
 }
 
-void RSSurfaceRenderNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceRenderNode::SetDelegateSrcRect(const RectF& delegateSrcRect)
 {
     if (!delegateCompositeParams_) {
         return;
     }
-    delegateCompositeParams_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeParams_->SetDelegateSrcRect(delegateSrcRect);
 }
 
-Vector4f RSSurfaceRenderNode::GetDelegateSrcRect()
+RectF RSSurfaceRenderNode::GetDelegateSrcRect()
 {
     if (!delegateCompositeParams_) {
         return { 0, 0, 0, 0 };
@@ -4555,10 +4555,11 @@ void RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams()
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    const Vector4f& boundRect = GetDelegateDstRect();
-    const Vector4f& frameRect = GetDelegateSrcRect();
-    surfaceParams->SetDelegateDstRect({boundRect.x_, boundRect.y_, boundRect.z_, boundRect.w_});
-    surfaceParams->SetDelegateSrcRect({frameRect.x_, frameRect.y_, frameRect.z_, frameRect.w_});
+    if (!surfaceParams) {
+        return;
+    }
+    surfaceParams->SetDelegateDstRect(GetDelegateDstRect());
+    surfaceParams->SetDelegateSrcRect(GetDelegateSrcRect());
 }
 } // namespace Rosen
 } // namespace OHOS

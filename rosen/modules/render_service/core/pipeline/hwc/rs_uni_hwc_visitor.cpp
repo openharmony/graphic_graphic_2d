@@ -71,14 +71,15 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
     const auto& property = node.GetRenderProperties();
     auto bufferWidth = buffer->GetSurfaceBufferWidth();
     auto bufferHeight = buffer->GetSurfaceBufferHeight();
-    const auto boundsWidth = property.GetBoundsWidth();
-    const auto boundsHeight = property.GetBoundsHeight();
+    auto boundsWidth = property.GetBoundsWidth();
+    auto boundsHeight = property.GetBoundsHeight();
     const auto frameGravity = Gravity::RESIZE;
     const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
         RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(node, consumer) :
         RSUniHwcComputeUtil::GetConsumerTransform(node, buffer, consumer);
     const auto dstRect = node.GetDstRect();
     Drawing::Rect dst(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
+    UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(bufferWidth, bufferHeight);
@@ -96,6 +97,7 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
     Drawing::Rect srcRect;
     inverseTotalMatrix.MapRect(srcRect, dst);
     inverseGravityMatrix.MapRect(srcRect, srcRect);
+    UpdateLeftAndTopForDelegateMode(node, srcRect);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(srcRect.left_, srcRect.top_);
@@ -108,11 +110,6 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
 void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (node.GetDelegateMode() && IsRectIsInsideOfScreenRect(dstRect)) {
-        node.SetDstRect(dstRect);
-        node.SetDstRectWithoutRenderFit(dstRect);
-        return;
-    }
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, uniRenderVisitor_.curScreenNode_->GetScreenInfo().width,
@@ -1542,34 +1539,27 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
     }
 }
 
-bool RSUniHwcVisitor::IsRectIsInsideOfScreenRect(const RectI& rect) const
+void RSUniHwcVisitor::UpdateRectInfoForDelegateMode(RSSurfaceRenderNode& node,
+    int32_t& bufferWidth, int32_t& bufferHeight, float& boundsWidth, float& boundsHeight)
 {
-    if (!uniRenderVisitor_.curScreenNode_) {
-        return false;
+    if (node.GetDelegateMode()) {
+        auto delegateDstRect = node.GetDelegateDstRect();
+        auto delegateSrcRect = node.GetDelegateSrcRect();
+        bufferWidth = delegateSrcRect.GetWidth();
+        bufferHeight = delegateSrcRect.GetHeight();
+        boundsWidth = delegateDstRect.GetWidth();
+        boundsHeight = delegateDstRect.GetHeight();
     }
-    auto children = uniRenderVisitor_.curScreenNode_->GetChildrenList();
-    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
-    for (const auto& child : children) {
-        if (auto childNode = child.lock()) {
-            if (childNode->GetBootAnimation()) {
-                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
-                break;
-            } else if (!displayNode) {
-                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
-            }
-        }
-    }
-    if (!displayNode) {
-        return false;
-    }
+}
 
-    ScreenInfo screenInfo = uniRenderVisitor_.curScreenNode_->GetScreenInfo();
-    screenInfo.rotation = displayNode->GetRotation();
-    RectI screenRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "IsRectIsInsideOfScreenRect: IsInsideOf=%{public}d, rect=%{public}s, screenRect=%{public}s",
-        rect.IsInsideOf(screenRect), rect.ToString().c_str(), screenRect.ToString().c_str());
-    return rect.IsInsideOf(screenRect);
+void RSUniHwcVisitor::UpdateLeftAndTopForDelegateMode(RSSurfaceRenderNode& node, Drawing::Rect& srcRect)
+{
+    if (node.GetDelegateMode()) {
+        auto delegateSrcRect = node.GetDelegateSrcRect();
+        Drawing::Matrix delegateModeTranslateMatrix;
+        delegateModeTranslateMatrix.PostTranslate(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop());
+        delegateModeTranslateMatrix.MapRect(srcRect, srcRect);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
