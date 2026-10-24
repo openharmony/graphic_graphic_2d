@@ -416,6 +416,117 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
 }
 
 /*
+ * @tc.name: ParagraphHyphenTest003
+ * @tc.desc: test for hyphen glyph painted on every hyphenated line when verticalAlignment is enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphHyphenTest003, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = 50;
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = 10;
+    paragraphStyle.locale = "en-gb";
+    paragraphStyle.wordBreakType = OHOS::Rosen::SPText::WordBreakType::BREAK_HYPHEN;
+    paragraphStyle.verticalAlignment = TextVerticalAlign::BOTTOM;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    std::u16string text = u"British English is the official language of the United Kingdom. It has some differences in "
+                          u"spelling, pronunciation, and vocabulary compared to American English.";
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(text);
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(687);
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    // Vertical alignment does not affect line breaking: still 6 lines, lines 2,3,4 hyphenated
+    ASSERT_EQ(textLines.size(), 6);
+    size_t breakArr[3] = {2, 3, 4};
+    for (std::size_t i = 0; i < 3; i++) {
+        ASSERT_NE(textLines.at(breakArr[i]), nullptr);
+        // The hyphen must be painted on every hyphenated line, not only on the first one
+        std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(breakArr[i])->GetGlyphRuns();
+        ASSERT_NE(runs.back(), nullptr);
+        std::vector<uint16_t> glyphs = runs.back()->GetGlyphs();
+        // The last character of each hyphenated line to have a hyphen glyphid of 800
+        EXPECT_EQ(glyphs.back(), 800);
+    }
+    // The hyphen run index must be remapped to a run that belongs to the line,
+    // otherwise the hyphen is never emitted while iterating runs in visual order
+    auto* skiaImpl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(skiaImpl, nullptr);
+    for (int i = 0; i < skiaImpl->lines().size(); i++) {
+        auto& line = skiaImpl->lines()[i];
+        if (!line.fBreakWithHyphen) {
+            continue;
+        }
+        ASSERT_NE(line.fHyphenRun, nullptr);
+        auto lineRuns = line.getLineAllRuns();
+        bool hyphenIndexInLine = false;
+        for (auto runIndex : lineRuns) {
+            hyphenIndexInLine = hyphenIndexInLine || runIndex == line.fHyphenIndex;
+        }
+        EXPECT_TRUE(hyphenIndexInLine);
+    }
+}
+
+/*
+ * @tc.name: ParagraphHyphenTest004
+ * @tc.desc: test for hyphen glyph position following vertical alignment shift on mixed-height lines.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphHyphenTest004, TestSize.Level0)
+{
+    OHOS::Rosen::SPText::TextStyle bigStyle;
+    bigStyle.fontSize = 60;
+    OHOS::Rosen::SPText::TextStyle smallStyle;
+    smallStyle.fontSize = 20;
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = 10;
+    paragraphStyle.locale = "en-gb";
+    paragraphStyle.wordBreakType = OHOS::Rosen::SPText::WordBreakType::BREAK_HYPHEN;
+    paragraphStyle.verticalAlignment = TextVerticalAlign::BOTTOM;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    paragraphBuilder->PushStyle(bigStyle);
+    paragraphBuilder->AddText(u"Ab ");
+    paragraphBuilder->PushStyle(smallStyle);
+    paragraphBuilder->AddText(u"internationalization internationalization internationalization internationalization");
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(150);
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    ASSERT_GT(textLines.size(), 1);
+    auto* skiaImpl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(skiaImpl, nullptr);
+    size_t hyphenLineCount = 0;
+    for (int i = 0; i < skiaImpl->lines().size(); i++) {
+        auto& line = skiaImpl->lines()[i];
+        if (!line.fBreakWithHyphen) {
+            continue;
+        }
+        hyphenLineCount++;
+        ASSERT_NE(line.fHyphenRun, nullptr);
+        // The hyphen must be painted at the end of every hyphenated line
+        std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(i)->GetGlyphRuns();
+        ASSERT_NE(runs.back(), nullptr);
+        std::vector<uint16_t> glyphs = runs.back()->GetGlyphs();
+        EXPECT_EQ(glyphs.back(), 800);
+        // The hyphen run must follow the vertical alignment shift of the text run it attaches to
+        const auto& attachedRun = skiaImpl->run(line.fHyphenIndex);
+        EXPECT_FLOAT_EQ(line.fHyphenRun->getVerticalAlignShift(), attachedRun.getVerticalAlignShift());
+    }
+    // The long words cannot fit the narrow width, hyphenation must happen
+    EXPECT_GE(hyphenLineCount, 1);
+}
+
+/*
  * @tc.name: ParagraphTest016
  * @tc.desc: test for combin follow liga
  * @tc.type: FUNC
