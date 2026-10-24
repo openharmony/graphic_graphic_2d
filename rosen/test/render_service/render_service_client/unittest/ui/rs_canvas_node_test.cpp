@@ -3843,4 +3843,56 @@ HWTEST_F(RSCanvasNodeTest, FlushCachedModifiers_EmptyModifiers_NoCrash001, TestS
     EXPECT_FALSE(result);
     EXPECT_TRUE(node->modifiersNG_.empty());
 }
+
+// CreateRenderNode series: cover RSCanvasNode::CreateRenderNode branches.
+// IsTextureExportNode controls RSCanvasNodeCreate arg, IsRenderServiceNode
+// controls AddCommand flag.
+
+/**
+ * @tc.name: CreateRenderNode001
+ * @tc.desc: Default create — not texture export, IsRenderServiceNode true under uni-render.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode001, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode002
+ * @tc.desc: isRenderServiceNode=true — IsRenderServiceNode true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode002, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode003
+ * @tc.desc: isTextureExportNode=true — IsRenderServiceNode false, texture export in command.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode003, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(false, true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode004
+ * @tc.desc: isRenderServiceNode=true + isTextureExportNode=true — IsRenderServiceNode false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode004, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(true, true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
 } // namespace OHOS::Rosen

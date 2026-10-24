@@ -723,6 +723,36 @@ void RSSurfaceRenderNodeDrawable::SyncUifirstDrawCmds()
     renderParams_->OnSync(GetUifirstRenderParams());
 }
 
+// RAII guard: enforce atlas-based text cache rendering under perspective to avoid
+// slow per-glyph path. No-op when GPU context is unavailable. Used via std::optional.
+class AutoTextCacheRestore {
+public:
+    explicit AutoTextCacheRestore(RSPaintFilterCanvas& canvas) : canvas_(canvas)
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(true);
+    }
+    ~AutoTextCacheRestore()
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(false);
+    }
+
+    AutoTextCacheRestore(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore(const AutoTextCacheRestore&) = delete;
+    AutoTextCacheRestore& operator=(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore& operator=(const AutoTextCacheRestore&) = delete;
+
+private:
+    RSPaintFilterCanvas& canvas_;
+};
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -797,8 +827,23 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
         return;
     }
-    auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        surfaceParams->GetCloneSourceDrawable().lock());
+    // Enforce text cache when animation-overlap-blocked surface is drawn under perspective.
+    // baseMatrix = (sandbox ? parent matrix : canvas matrix) concat with surface matrix.
+    std::optional<AutoTextCacheRestore> textCacheRestore;
+
+    if (surfaceParams->GetUifirstDisabledByAnimationOverlap()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw GetUifirstDisabledByAnimationOverlap() is true");
+        Drawing::Matrix baseMatrix =
+            surfaceParams->HasSandBox() ? RSRenderParams::GetParentSurfaceMatrix() : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (baseMatrix.HasPerspective()) {
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw baseMatrix.HasPerspective() is true");
+            textCacheRestore.emplace(*rscanvas);
+        }
+    }
+
+    auto cloneSourceDrawable =
+        std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceParams->GetCloneSourceDrawable().lock());
     auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
     if (cloneSourceParams) {
         bool prevCrossNodeDraw = rscanvas->IsCrossNodeDraw();
