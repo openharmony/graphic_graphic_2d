@@ -403,6 +403,105 @@ HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableRootExprTrue, TestSize.Level1)
 }
 
 /**
+ * @tc.name: QuickCheckOpincStableAncestorRenderGroupForcesSelfDirty
+ * @tc.desc: Verify hasAncestorRenderGroup=true is forwarded into QuickMarkStableNode on a
+ *           suggest-opinc changed child, forcing SELF_DIRTY (unchangeCount_ stays 0) instead
+ *           of accumulating via KEEP_UNCHANGE; contrasted with the default false path.
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableAncestorRenderGroupForcesSelfDirty, TestSize.Level1)
+{
+    NodeId id = 600;
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto childNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    opincManager_.SetOPIncSwitch(true);
+
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->push_back(childNode);
+    parentNode->fullChildrenList_ = fullChildrenList;
+    EXPECT_FALSE(parentNode->GetSortedChildren()->empty());
+
+    // hasAncestorRenderGroup=true forces a non-self-dirty suggest-opinc changed child to
+    // SELF_DIRTY: unchangeCount_ is reset to 0 rather than growing via KEEP_UNCHANGE.
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->MarkSuggestOpincNode(true, true);
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode, true);
+    EXPECT_EQ(childNode->GetOpincRootCache().unchangeCount_, 0);
+    EXPECT_EQ(childNode->GetOpincRootCache().GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+    EXPECT_TRUE(childNode->GetOpincRootCache().GetCacheChangeFlag());
+
+    // Contrast: default hasAncestorRenderGroup=false lets the non-self-dirty changed child
+    // accumulate unchangeCount_ via KEEP_UNCHANGE.
+    childNode->MarkSuggestOpincNode(true, true);
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    unchangeMarkInApp = true;
+    unchangeMarkEnable = false;
+    hasUnstableOpincNode = false;
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_EQ(childNode->GetOpincRootCache().unchangeCount_, 1);
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
+ * @tc.name: QuickCheckOpincStableAncestorRenderGroupPropagatesThroughRecursion
+ * @tc.desc: Verify hasAncestorRenderGroup=true is forwarded through the recursive
+ *           QuickCheckOpincStable call (first branch) and reaches a deeper suggest-opinc
+ *           changed grandchild, forcing SELF_DIRTY so unchangeCount_ stays 0.
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableAncestorRenderGroupPropagatesThroughRecursion, TestSize.Level1)
+{
+    NodeId id = 700;
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto middleNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    auto grandchildNode = std::make_shared<RSCanvasRenderNode>(id + 2);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(middleNode, nullptr);
+    ASSERT_NE(grandchildNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    opincManager_.SetOPIncSwitch(true);
+
+    auto parentChildren = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    parentChildren->push_back(middleNode);
+    parentNode->fullChildrenList_ = parentChildren;
+    auto middleChildren = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    middleChildren->push_back(grandchildNode);
+    middleNode->fullChildrenList_ = middleChildren;
+    EXPECT_FALSE(parentNode->GetSortedChildren()->empty());
+    EXPECT_FALSE(middleNode->GetSortedChildren()->empty());
+
+    // middleNode keeps a null opincRootCache so it takes the recursion (first) branch;
+    // hasAncestorRenderGroup must be forwarded down to the suggest-opinc changed grandchild.
+    ASSERT_EQ(middleNode->TryGetOpincRootCachePtr(), nullptr);
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    middleNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    grandchildNode->MarkSuggestOpincNode(true, true);
+    ASSERT_NE(grandchildNode->TryGetOpincRootCachePtr(), nullptr);
+
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode, true);
+    EXPECT_EQ(grandchildNode->GetOpincRootCache().unchangeCount_, 0);
+    EXPECT_EQ(grandchildNode->GetOpincRootCache().GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+    EXPECT_TRUE(grandchildNode->GetOpincRootCache().GetCacheChangeFlag());
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
  * @tc.name: GetUnsupportReason
  * @tc.desc: Verify the GetUnsupportReason function
  * @tc.type: FUNC
