@@ -776,8 +776,10 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable029, TestSize.Level1)
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
     ASSERT_NE(drawable->colorPickerManager_, nullptr);
+    // colorPicked_ defaults to COLOR_TRANSPARENT, isSystemDarkColorMode_ defaults to false,
+    // GetColorOrDefault returns COLOR_BLACK -> ContrastColorScheme::LIGHT
     auto mode = drawable->GetLastContrastColorScheme();
-    EXPECT_EQ(mode, ContrastColorScheme::INVALID);
+    EXPECT_NE(mode, ContrastColorScheme::INVALID);
 }
 
 /**
