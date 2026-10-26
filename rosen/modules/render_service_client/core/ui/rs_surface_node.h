@@ -396,8 +396,8 @@ public:
     void SetDesiredPresentTime(int64_t desiredPresentTime);
     void SetDamageRegion(std::vector<Rect> rects);
     void SetBufferTransform(GraphicTransformType transform);
-    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
+    void SetDelegateDstRect(float x, float y, float w, float h);
+    void SetDelegateSrcRect(float x, float y, float w, float h);
     bool SetDelegateMode(bool isDelegateMode);
 #endif
 

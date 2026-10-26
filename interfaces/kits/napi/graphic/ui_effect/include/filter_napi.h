@@ -30,8 +30,6 @@
 #include "filter/include/filter_distort_para.h"
 #include "filter/include/filter_edge_light_para.h"
 #include "filter/include/filter_fly_out_para.h"
-#include "filter/include/filter_frosted_glass_para.h"
-#include "filter/include/filter_frosted_glass_blur_para.h"
 #include "filter/include/filter_halo_bloom_para.h"
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_motion_blur_para.h"
@@ -94,8 +92,6 @@ private:
     static napi_value SetBlurBubblesRise(napi_env env, napi_callback_info info);
     static napi_value SetMaskTransition(napi_env env, napi_callback_info info);
     static napi_value SetVariableRadiusBlur(napi_env env, napi_callback_info info);
-    static napi_value SetFrostedGlass(napi_env env, napi_callback_info info);
-    static napi_value SetFrostedGlassBlur(napi_env env, napi_callback_info info);
     static napi_value SetMotionBlur(napi_env env, napi_callback_info info);
     static napi_value SetMapColorByBrightness(napi_env env, napi_callback_info info);
 
@@ -103,12 +99,6 @@ private:
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);
-    static bool BuildFrostedGlassPara(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& outPara);
-    static bool FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
     static bool GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue);
     static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
         uint32_t arraySize);

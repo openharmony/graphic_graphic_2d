@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -612,6 +612,7 @@ public:
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowDisableSDFBlur(bool disable);
+    void SetShadowClipType(int clipType);
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowMaskValid() const;
     bool IsShadowValid() const;
@@ -625,6 +626,7 @@ public:
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
     bool GetShadowDisableSDFBlur() const;
+    int GetShadowClipType() const;
 
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 

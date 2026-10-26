@@ -1574,20 +1574,20 @@ GSError RSSurfaceNode::ReleaseBuffer(uint32_t sequence, sptr<SyncFence> fence)
     return delegateCompositeBufMgr_->ReleaseBuffer(sequence, fence);
 }
 
-void RSSurfaceNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateDstRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateDstRect(x, y, w, h);
 }
 
-void RSSurfaceNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateSrcRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateSrcRect(x, y, w, h);
 }
 
 bool RSSurfaceNode::SetDelegateMode(bool isDelegateMode)

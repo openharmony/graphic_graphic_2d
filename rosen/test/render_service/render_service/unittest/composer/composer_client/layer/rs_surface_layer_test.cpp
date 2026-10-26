@@ -968,5 +968,30 @@ HWTEST_F(RSSurfaceLayerTest, HasBufferOwnerCountById_ReturnsFalse_AfterPop, Func
     ASSERT_NE(popped, nullptr);
     EXPECT_FALSE(lyr->HasBufferOwnerCountById(50u));
 }
+
+/**
+ * @tc.name: SetDelegateSrcRectCoverage001
+ * @tc.desc: cover both edges of `if (delegateSrcRect_ == crop)` in RSSurfaceLayer::SetDelegateSrcRect
+ *           (the newly added early-return branch introduced by this PR).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, SetDelegateSrcRectCoverage001, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+    GraphicIRect v {10, 20, 30, 40};
+    // not-equal edge: initial delegateSrcRect_ is {0} != v, setter proceeds and pushes cmd
+    lyr->SetDelegateSrcRect(v);
+    auto got = lyr->GetDelegateSrcRect();
+    EXPECT_EQ(got.x, v.x);
+    EXPECT_EQ(got.y, v.y);
+    EXPECT_EQ(got.w, v.w);
+    EXPECT_EQ(got.h, v.h);
+    // equal edge: same value triggers early return without state change
+    lyr->SetDelegateSrcRect(v);
+    got = lyr->GetDelegateSrcRect();
+    EXPECT_EQ(got.x, v.x);
+    EXPECT_EQ(got.y, v.y);
+}
 } // namespace Rosen
 } // namespace OHOS

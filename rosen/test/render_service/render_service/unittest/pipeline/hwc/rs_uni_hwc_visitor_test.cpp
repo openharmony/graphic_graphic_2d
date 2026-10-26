@@ -4786,4 +4786,40 @@ HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds005, TestSize.Le
     rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
     EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
 }
+
+/**
+ * @tc.name: UpdateRectInfoAndLeftTopForDelegateModeCoverage001
+ * @tc.desc: cover the delegate-mode=true edges of RSUniHwcVisitor::UpdateRectInfoForDelegateMode and
+ *           UpdateLeftAndTopForDelegateMode in one test (delegate-mode=false edges are already
+ *           exercised by the existing UpdateSrcRect001/002/003 tests).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateRectInfoAndLeftTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.SetDelegateMode(true);
+    node1.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node1.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // UpdateRectInfoForDelegateMode true edge: int32 buffer sizes take truncated delegate width/height,
+    // float bounds sizes take exact delegate dst width/height.
+    int32_t bufferWidth = 100;
+    int32_t bufferHeight = 200;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    rsUniHwcVisitor->UpdateRectInfoForDelegateMode(node1, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_EQ(bufferWidth, 10);
+    EXPECT_EQ(bufferHeight, 20);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+    // UpdateLeftAndTopForDelegateMode true edge: srcRect translated by (delegateSrcRect.left, top) = (1, 2)
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f);
+    rsUniHwcVisitor->UpdateLeftAndTopForDelegateMode(node1, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
+}
 } // namespace OHOS::Rosen

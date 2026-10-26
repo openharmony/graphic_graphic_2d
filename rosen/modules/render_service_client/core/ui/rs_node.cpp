@@ -2956,6 +2956,12 @@ void RSNode::SetShadowDisableSDFBlur(bool option)
         &ModifierNG::RSShadowModifier::SetShadowDisableSDFBlur>(option);
 }
 
+void RSNode::SetShadowClipType(int clipType)
+{
+    SetPropertyNG<ModifierNG::RSShadowModifier,
+        &ModifierNG::RSShadowModifier::SetClipType>(clipType);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetFrameGravity>(gravity);

@@ -2153,6 +2153,14 @@ void RSEffectProperties::SetShadowDisableSDFBlur(bool disable)
     GetFilterEffect().shadow_->SetDisableSDFBlur(disable);
 }
 
+void RSEffectProperties::SetShadowClipType(ShadowClipType clipType)
+{
+    if (!GetShadow().has_value()) {
+        GetFilterEffect().shadow_ = std::make_optional<RSShadow>();
+    }
+    GetFilterEffect().shadow_->SetClipType(clipType);
+}
+
 bool RSEffectProperties::GetShadowDisableSDFBlur() const
 {
     const auto& shadow = GetShadow();

@@ -132,6 +132,8 @@ void DoShadowModifier(FuzzedDataProvider& fdp)
     modifier->GetShadowDisableSDFBlur();
     modifier->SetUseShadowBatching(randomBool);
     modifier->GetUseShadowBatching();
+    modifier->SetClipType(fdp.ConsumeIntegral<int>());
+    modifier->GetClipType();
 }
 
 void DoUseEffectModifier(FuzzedDataProvider& fdp)
