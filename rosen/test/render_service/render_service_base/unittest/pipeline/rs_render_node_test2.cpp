@@ -1176,12 +1176,12 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty003, TestSize.Level1)
     ASSERT_NE(rsDirtyManager, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()),
         RSDrawableSlot::COMPOSITING_FILTER);
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()),
         RSDrawableSlot::COMPOSITING_FILTER);
@@ -1274,11 +1274,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty004, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithSelfDirty();
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithSelfDirty();
 }
@@ -1521,11 +1521,11 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode003, TestSize.Level1)
     ASSERT_NE(rsDirtyManager, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->PostPrepareForBlurFilterNode(*rsDirtyManager, false);
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->PostPrepareForBlurFilterNode(*rsDirtyManager, false);
 }
@@ -3653,11 +3653,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBackgroundDirtyTest3, TestSize.
     auto node = std::make_shared<RSRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithBackgroundDirty();
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     node->UpdateFilterCacheWithBackgroundDirty();
 }
@@ -4281,11 +4281,11 @@ HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(node->IsFilterCacheValid());
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
 
     auto& properties = node->GetMutableRenderProperties();
@@ -4308,11 +4308,11 @@ HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(node->IsAIBarFilter());
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
 
     auto& properties = node->GetMutableRenderProperties();
@@ -4333,12 +4333,12 @@ HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(node->CheckAndUpdateAIBarCacheStatus(false));
     EXPECT_FALSE(node->CheckAndUpdateAIBarCacheStatus(true));
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
 
     auto& properties = node->GetMutableRenderProperties();
@@ -4360,12 +4360,12 @@ HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     // disable filter cache
-    RSFilterCacheManager::SetFilterCacheEnabled(false);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
     EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_FALSE(node->ForceReduceAIBarCacheInterval(false));
     EXPECT_FALSE(node->ForceReduceAIBarCacheInterval(true));
     // re-enable
-    RSFilterCacheManager::SetFilterCacheEnabled(true);
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
     EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
 
     auto& properties = node->GetMutableRenderProperties();
