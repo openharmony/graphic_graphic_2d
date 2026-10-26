@@ -42,7 +42,7 @@ namespace OHOS {
 namespace Rosen {
 
 // Mock implementation of IGECacheProvider for testing
-class MockGECacheProvider : public GECacheProvider {
+class MockGECacheProvider : public GECacheProvider<MockGECacheProvider> {
 public:
     const IGECache* GetFirst() const override { return nullptr; }
     bool Store(const IGECache& cache) override { return true; }
@@ -2486,7 +2486,7 @@ HWTEST_F(RSFilterCacheManagerTest, ReplaceCachedEffectData_WithCacheProvider, Te
     Drawing::RectI testRect(0, 0, 100, 100);
 
     // Create a mock cache provider
-    auto cacheProvider = std::make_shared<MockCacheProvider>();
+    auto cacheProvider = std::make_shared<MockGECacheProvider>();
     ASSERT_NE(cacheProvider, nullptr);
 
     constexpr uint64_t testTimestamp = 12345;
@@ -2506,12 +2506,12 @@ HWTEST_F(RSFilterCacheManagerTest, GenerateFilteredSnapshot_NonFrostedGlassBlur,
     auto manager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    std::shared_ptr<Drawing::ImagerFilter> imageFilter = std::make_shared<Drawing::ImagerFilter>();
+    std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
     std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(imageFilter, 0);
-    filter->visualEffectContainer_ = std::make_shared<RSVisualEffectContainer>();
+    filter->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
 
     auto surface = Drawing::Surface::MakeRaster(
-        Drawing::ImageInfo(200, 200, Drawing::COLORTYPE_RGBA_N32, Drawing::ALPHATYPE_OPAQUE));
+        Drawing::ImageInfo(200, 200, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE));
     canvas.surface_ = surface.get();
 
     manager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
@@ -2537,7 +2537,7 @@ HWTEST_F(RSFilterCacheManagerTest, GenerateCachedEffectData_SurfaceValidForSnaps
     NodeId id = 1;
 
     auto surface = Drawing::Surface::MakeRaster(
-        Drawing::ImageInfo(100, 100, Drawing::COLORTYPE_RGBA_N32, Drawing::ALPHATYPE_OPAQUE));
+        Drawing::ImageInfo(100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE));
     filterCanvas.surface_ = surface.get();
 
     std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
@@ -2549,7 +2549,7 @@ HWTEST_F(RSFilterCacheManagerTest, GenerateCachedEffectData_SurfaceValidForSnaps
     EXPECT_NE(rsFilterCacheManager->cachedSnapshot_->cachedImage_, nullptr);
     rsFilterCacheManager->isFilterCacheValid_ = true;
     rsFilterCacheManager->snapshotNeedUpdate_ = true;
-    rsFilterCacheManager->GenerateCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
 }
 } // namespace Rosen
 } // namespace OHOS
