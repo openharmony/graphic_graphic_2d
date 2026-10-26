@@ -25,6 +25,7 @@
 #include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "effect/rs_render_filter_base.h"
 #include "ge_cache_provider.h"
+#include "ge_visual_effect_container.h"
 #include "render/rs_filter.h"
 #include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_render_aibar_filter.h"
