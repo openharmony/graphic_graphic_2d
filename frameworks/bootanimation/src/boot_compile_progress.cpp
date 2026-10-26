@@ -72,6 +72,7 @@ namespace {
     constexpr const int32_t LOADING_FPS = 30;
     constexpr const int32_t PERIOD_FPS = 10;
     constexpr const int32_t CHANGE_FREQ = 4;
+    constexpr const int32_t BASE_REFRESH_RATE = 60;
     constexpr const float TEN_FRAME_TIMES = 10.0f;
     constexpr const float SHARP_CURVE_CTLX1 = 0.33f;
     constexpr const float SHARP_CURVE_CTLY1 = 0.0f;
@@ -115,6 +116,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+    refreshRate_ = modeInfo.GetScreenRefreshRate();
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -227,7 +229,9 @@ bool BootCompileProgress::RegisterVsyncCallback()
         .userData_ = this,
         .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
-    ret = receiver_->SetVSyncRate(fcb, CHANGE_FREQ);
+    uint32_t baseRefreshRate = (refreshRate_ > 0) ? refreshRate_ : BASE_REFRESH_RATE;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(baseRefreshRate * CHANGE_FREQ / BASE_REFRESH_RATE));
+    ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         compileRunner_->Stop();
         LOGE("set vsync rate failed");
@@ -237,7 +241,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
     startTimeMs_ = GetSystemCurrentTime();
     endTimePredictMs_ = startTimeMs_ + timeLimitSec_ * SEC_MS;
 
-    LOGI("RegisterVsyncCallback success");
+    LOGI("RegisterVsyncCallback success, rate: %{public}u, freq: %{public}d", baseRefreshRate, changeFreq);
     return true;
 }
 

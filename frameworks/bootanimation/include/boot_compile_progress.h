@@ -84,6 +84,7 @@ private:
     std::string displayInfo_ = "";
     float currentRadius_ = 0.0f;
     int32_t screenStatus_ = -1;
+    uint32_t refreshRate_ = 0;
 
     std::atomic<bool> isUpdateOptEnd_{false};
     bool isWearable_ = false;

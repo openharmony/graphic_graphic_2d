@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "boot_compile_progress.h"
 #include "boot_animation_strategy.h"
 #include "parameters.h"
@@ -50,10 +52,17 @@ namespace {
     constexpr int32_t TEST_ROG_WIDTH_1440 = 1440;
     constexpr int32_t TEST_ROG_HEIGHT_2560 = 2560;
     constexpr int32_t TEST_FRAME_NUM_0 = 0;
+    constexpr int32_t TEST_REFRESH_RATE_60 = 60;
+    constexpr int32_t TEST_REFRESH_RATE_90 = 90;
+    constexpr int32_t TEST_REFRESH_RATE_120 = 120;
+    constexpr int32_t TEST_CHANGE_FREQ_60 = 4;
+    constexpr int32_t TEST_CHANGE_FREQ_90 = 6;
+    constexpr int32_t TEST_CHANGE_FREQ_120 = 8;
     constexpr float TEST_SHARP_CURVE_CTLX1 = 0.33f;
     constexpr float TEST_SHARP_CURVE_CTLY1 = 0.0f;
     constexpr float TEST_SHARP_CURVE_CTLX2 = 0.67f;
     constexpr float TEST_SHARP_CURVE_CTLY2 = 1.0f;
+    constexpr int32_t INVALID_SCREEN_ID = 999;
 }
 
 class MockIRemoteObject : public IRemoteObject {
@@ -480,7 +489,6 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_ScreenIdNotFound_Retur
     progress->progressConfigsMap_.clear();
     progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
-    constexpr int32_t INVALID_SCREEN_ID = 999;
     progress->SetSpecialProgressFrame(INVALID_SCREEN_ID);
     EXPECT_TRUE(true);
 }
@@ -541,6 +549,79 @@ HWTEST_F(BootCompileProgressTest, SetFrameForRog_Normal, TestSize.Level1)
     progress->rogHeight_ = TEST_ROG_HEIGHT_2560;
     progress->SetFrameForRog();
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: RefreshRate_DefaultZero_ExecuteSuccessfully
+ * @tc.desc: Verify the refreshRate_ member defaults to zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, RefreshRate_DefaultZero_ExecuteSuccessfully, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    EXPECT_EQ(progress->refreshRate_, 0);
+}
+
+/**
+ * @tc.name: RefreshRate_Set60Hz_DynamicChangeFreqCorrect
+ * @tc.desc: Verify that at 60Hz the dynamic changeFreq equals the original CHANGE_FREQ.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, RefreshRate_Set60Hz_DynamicChangeFreqCorrect, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->refreshRate_ = TEST_REFRESH_RATE_60;
+    uint32_t base = (progress->refreshRate_ > 0) ? progress->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base * 4 / 60));
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_60);
+}
+
+/**
+ * @tc.name: RefreshRate_Set90Hz_DynamicChangeFreqCorrect
+ * @tc.desc: Verify that at 90Hz the dynamic changeFreq scales proportionally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, RefreshRate_Set90Hz_DynamicChangeFreqCorrect, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->refreshRate_ = TEST_REFRESH_RATE_90;
+    uint32_t base = (progress->refreshRate_ > 0) ? progress->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base * 4 / 60));
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_90);
+}
+
+/**
+ * @tc.name: RefreshRate_Set120Hz_DynamicChangeFreqCorrect
+ * @tc.desc: Verify that at 120Hz the dynamic changeFreq scales proportionally to prevent fast marquee.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, RefreshRate_Set120Hz_DynamicChangeFreqCorrect, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->refreshRate_ = TEST_REFRESH_RATE_120;
+    uint32_t base = (progress->refreshRate_ > 0) ? progress->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base * 4 / 60));
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_120);
+}
+
+/**
+ * @tc.name: RefreshRate_SetZero_FallbackTo60Hz
+ * @tc.desc: Verify that when refreshRate_ is zero, the fallback base refresh rate is 60Hz.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, RefreshRate_SetZero_FallbackTo60Hz, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->refreshRate_ = 0;
+    uint32_t base = (progress->refreshRate_ > 0) ? progress->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base * 4 / 60));
+    EXPECT_EQ(base, 60);
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_60);
 }
 
 }

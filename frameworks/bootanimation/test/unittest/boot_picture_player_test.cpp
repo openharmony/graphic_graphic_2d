@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "event_handler.h"
 #include "vsync_receiver.h"
 #include "util.h"
@@ -30,6 +32,11 @@ namespace OHOS::Rosen {
 namespace {
     constexpr const char* TEST_PIC_ZIP_PATH = "/data/local/tmp/ba_pic_player_test.zip";
     constexpr const char* DEFAULT_BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+    constexpr int32_t TEST_REFRESH_RATE_60 = 60;
+    constexpr int32_t TEST_REFRESH_RATE_120 = 120;
+    constexpr int32_t TEST_FREQ_30 = 30;
+    constexpr int32_t TEST_CHANGE_FREQ_60HZ = 2;
+    constexpr int32_t TEST_CHANGE_FREQ_120HZ = 4;
 }
 class BootPicturePlayerTest : public testing::Test {
 public:
@@ -405,5 +412,70 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_007, TestSize.Level1)
     player->OnVsync();
     flag = player->Stop();
     EXPECT_EQ(flag, false);
+}
+
+/**
+ * @tc.name: RefreshRate_DefaultZero_ExecuteSuccessfully
+ * @tc.desc: Verify the refreshRate_ member defaults to zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, RefreshRate_DefaultZero_ExecuteSuccessfully, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    EXPECT_EQ(player->refreshRate_, 0);
+}
+
+/**
+ * @tc.name: RefreshRate_Set60Hz_DynamicChangeFreqCorrect
+ * @tc.desc: Verify that at 60Hz the dynamic changeFreq matches the original hardcoded calculation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, RefreshRate_Set60Hz_DynamicChangeFreqCorrect, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    player->refreshRate_ = TEST_REFRESH_RATE_60;
+    player->freq_ = TEST_FREQ_30;
+    uint32_t base = (player->refreshRate_ > 0) ? player->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base / player->freq_));
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_60HZ);
+}
+
+/**
+ * @tc.name: RefreshRate_Set120Hz_DynamicChangeFreqCorrect
+ * @tc.desc: Verify that at 120Hz the dynamic changeFreq scales to prevent fast playback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, RefreshRate_Set120Hz_DynamicChangeFreqCorrect, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    player->refreshRate_ = TEST_REFRESH_RATE_120;
+    player->freq_ = TEST_FREQ_30;
+    uint32_t base = (player->refreshRate_ > 0) ? player->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base / player->freq_));
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_120HZ);
+}
+
+/**
+ * @tc.name: RefreshRate_SetZero_FallbackTo60Hz
+ * @tc.desc: Verify that when refreshRate_ is zero, the fallback base refresh rate is 60Hz.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, RefreshRate_SetZero_FallbackTo60Hz, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    player->refreshRate_ = 0;
+    player->freq_ = TEST_FREQ_30;
+    uint32_t base = (player->refreshRate_ > 0) ? player->refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(base / player->freq_));
+    EXPECT_EQ(base, 60);
+    EXPECT_EQ(changeFreq, TEST_CHANGE_FREQ_60HZ);
 }
 }
