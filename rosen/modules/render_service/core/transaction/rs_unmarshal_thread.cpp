@@ -134,6 +134,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
     bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
                              parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
+    if (!waitUnmarshalling) {
+        noNeedWaitTaskNum_++;
+    }
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
         RSMarshallingHelper::SetCallingPid(callingPid);
@@ -151,6 +154,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             ashmemFdWorker->EnableManualCloseFds();
         }
         if (!transData) {
+            if (noNeedWaitTaskNum_ > 0) {
+                noNeedWaitTaskNum_--;
+            }
             return;
         }
         if (isNonSystemAppCalling) {
@@ -161,6 +167,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {
                 RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
+                if (noNeedWaitTaskNum_ > 0) {
+                    noNeedWaitTaskNum_--;
+                }
                 return;
             }
         }
@@ -199,9 +208,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
-    }
-    if (!waitUnmarshalling) {
-        noNeedWaitTaskNum_++;
     }
 }
 
