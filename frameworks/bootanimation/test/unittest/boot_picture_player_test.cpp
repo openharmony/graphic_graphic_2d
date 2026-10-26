@@ -415,16 +415,18 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_007, TestSize.Level1)
 }
 
 /**
- * @tc.name: RefreshRate_DefaultZero_ExecuteSuccessfully
- * @tc.desc: Verify the refreshRate_ member defaults to zero.
+ * @tc.name: RefreshRate_InitializedAfterConstruction_ExecuteSuccessfully
+ * @tc.desc: Verify the refreshRate_ member is initialized to screen refresh rate after construction.
  * @tc.type: FUNC
  */
-HWTEST_F(BootPicturePlayerTest, RefreshRate_DefaultZero_ExecuteSuccessfully, TestSize.Level1)
+HWTEST_F(BootPicturePlayerTest, RefreshRate_InitializedAfterConstruction_ExecuteSuccessfully, TestSize.Level1)
 {
     PlayerParams params;
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
     ASSERT_NE(player, nullptr);
-    EXPECT_EQ(player->refreshRate_, 0);
+    // refreshRate_ is initialized in constructor via InitPicCoordinates
+    // Value depends on actual screen refresh rate, should be > 0
+    EXPECT_GT(player->refreshRate_, 0u);
 }
 
 /**
