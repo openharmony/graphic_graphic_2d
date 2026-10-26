@@ -531,6 +531,8 @@ void RSRenderNode::RemoveChildInner(SharedPtr child, bool skipTransition)
     if (it == children_.end()) {
         return;
     }
+    uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
+    children_.erase(it);
     // avoid duplicate entry in disappearingChildren_ (this should not happen)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
@@ -538,12 +540,10 @@ void RSRenderNode::RemoveChildInner(SharedPtr child, bool skipTransition)
         ROSEN_LOGD("RSRenderNode::RemoveChild %{public}" PRIu64 " move child(id %{public}" PRIu64 ") into"
             " disappearingChildren", GetId(), child->GetId());
         // keep shared_ptr alive for transition
-        uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
     } else {
         child->ResetParent();
     }
-    children_.erase(it);
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
@@ -1113,8 +1113,9 @@ void RSRenderNode::RemoveCrossScreenChild(const std::shared_ptr<RSSurfaceRenderN
             "(id %{public}" PRIu64 ")", GetId(), child->GetId());
         return;
     }
-    RemoveChild(*cloneIt, true);
+    auto cloneNode = *cloneIt;
     child->cloneCrossNodeVec_.erase(cloneIt);
+    RemoveChild(cloneNode, true);
 }
 
 void RSRenderNode::RemoveFromTree(bool skipTransition)
