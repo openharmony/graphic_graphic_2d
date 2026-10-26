@@ -1123,7 +1123,8 @@ HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate011, TestS
     DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
     node->renderDrawable_ = nullptr;
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
-=======
+}
+
 /**
  * @tc.name: RSCustomModifierDrawable_OnPurge001
  * @tc.desc: Test OnPurge with empty drawCmdListVec
