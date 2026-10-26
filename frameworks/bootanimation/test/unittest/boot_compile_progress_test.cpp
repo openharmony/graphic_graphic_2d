@@ -34,8 +34,6 @@ namespace {
     constexpr int32_t TEST_WINDOW_HEIGHT_480 = 480;
     constexpr int32_t TEST_PROGRESS_50 = 50;
     constexpr int32_t TEST_PROGRESS_100 = 100;
-    constexpr int64_t TEST_TIME_STAGE_1_MS = 667;
-    constexpr int64_t TEST_TIME_STAGE_2_MS = 1334;
     constexpr int32_t TEST_START_TIME_MS = 1000;
     constexpr int64_t TEST_END_TIME_PREDICT_MS = 100000;
     constexpr int32_t TEST_TIME_LIMIT_SEC = 100;
