@@ -596,10 +596,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHD
     constexpr ScreenId virtualScreenId = 0xFFFFFFFF;
     VirtualScreenConfigs configs;
     configs.id = virtualScreenId;
-    config.name = "hdr_mode_ut";
-    config.width = 0;
-    config.height = 0;
-    config.associatedScreenId = INVALID_SCREEN_ID;
+    configs.name = "hdr_mode_ut";
+    configs.width = 0;
+    configs.height = 0;
+    configs.associatedScreenId = INVALID_SCREEN_ID;
     auto virtualScreen = std::make_shared<RSScreen>(configs);
     ASSERT_NE(virtualScreen, nullptr);
     ASSERT_TRUE(virtualScreen->IsVirtual());
