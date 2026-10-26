@@ -748,6 +748,175 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawableClearDrawableVec002, TestSize
 }
 
 /**
+ * @tc.name: RSCustomModifierDrawable_OnPurge001
+ * @tc.desc: Test OnPurge with empty drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    drawable->OnPurge();
+    EXPECT_TRUE(drawable->drawCmdListVec_.empty());
+}
+
+/**
+ * @tc.name: RSCustomModifierDrawable_OnPurge002
+ * @tc.desc: Test OnPurge with non-empty drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    auto drawCmdList1 = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    auto drawCmdList2 = std::make_shared<RSSimpleDrawCmdList>(2, 2);
+    drawable->drawCmdListVec_.push_back(drawCmdList1);
+    drawable->drawCmdListVec_.push_back(drawCmdList2);
+    drawable->OnPurge();
+    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
+}
+
+/**
+ * @tc.name: RSCustomModifierDrawable_OnPurge003
+ * @tc.desc: Test OnPurge with nullptr entries in drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge003, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    drawable->drawCmdListVec_.push_back(drawCmdList);
+    drawable->drawCmdListVec_.push_back(nullptr);
+    drawable->OnPurge();
+    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate001
+ * @tc.desc: Test PostUpdate sets enableEDREffect via FgBrightnessEnableEDR
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.screenNodeId_ = 42;
+    std::optional<RSDynamicBrightnessPara> params = { RSDynamicBrightnessPara() };
+    node.GetMutableRenderProperties().SetFgBrightnessParams(params);
+    node.GetMutableRenderProperties().SetFgBrightnessFract(0.0f);
+    node.GetMutableRenderProperties().SetFgBrightnessHdr(true);
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_TRUE(drawable->enableEDREffect_);
+    EXPECT_EQ(drawable->screenNodeId_, 42u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate002
+ * @tc.desc: Test PostUpdate with ColorfulBrightnessBlenderEnableEDR
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.screenNodeId_ = 99;
+    auto paramValue = RSColorfulBrightnessBlenderPara(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
+        Vector3f(0.6f, 0.7f, 0.8f), Vector3f(0.9f, 0.1f, 0.2f), 0.33f, 0.88f, true);
+    node.GetMutableRenderProperties().SetColorfulBrightnessBlenderParams(
+        std::make_unique<RSColorfulBrightnessBlenderPara>(paramValue));
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_TRUE(drawable->enableEDREffect_);
+    EXPECT_EQ(drawable->screenNodeId_, 99u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate003
+ * @tc.desc: Test PostUpdate without EDR effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_FALSE(drawable->enableEDREffect_);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_OnDraw001
+ * @tc.desc: Test OnDraw returns early when canvas is not PaintFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_OnDraw001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorBlendMode(12);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    drawable->OnSync();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    EXPECT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: RSEndBlenderDrawable_OnUpdate001
+ * @tc.desc: Test OnUpdate returns false when blendMode is NONE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSEndBlenderDrawable_OnUpdate002
+ * @tc.desc: Test OnUpdate returns false when blendApplyType is FAST
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorBlendMode(12);
+    node.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::FAST));
+    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable_OnGenerate001
+ * @tc.desc: Test OnGenerate returns nullptr when modifier is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnGenerate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable_OnSync001
+ * @tc.desc: Test OnSync when needSync_ is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnSync001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomClipToFrameDrawable>();
+    drawable->needSync_ = false;
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needSync_);
+}
+
+/**
  * @tc.name: RSRenderNodeDrawableAdapterOnGenerate001
  * @tc.desc: Test OnGenerate cache hit when cached drawable holds the same node object;
  *           should return the cached drawable without regeneration.
@@ -1123,174 +1292,5 @@ HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate011, TestS
     DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
     node->renderDrawable_ = nullptr;
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
-}
-
-/**
- * @tc.name: RSCustomModifierDrawable_OnPurge001
- * @tc.desc: Test OnPurge with empty drawCmdListVec
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge001, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
-    drawable->OnPurge();
-    EXPECT_TRUE(drawable->drawCmdListVec_.empty());
-}
-
-/**
- * @tc.name: RSCustomModifierDrawable_OnPurge002
- * @tc.desc: Test OnPurge with non-empty drawCmdListVec
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge002, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
-    auto drawCmdList1 = std::make_shared<RSSimpleDrawCmdList>(1, 1);
-    auto drawCmdList2 = std::make_shared<RSSimpleDrawCmdList>(2, 2);
-    drawable->drawCmdListVec_.push_back(drawCmdList1);
-    drawable->drawCmdListVec_.push_back(drawCmdList2);
-    drawable->OnPurge();
-    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
-}
-
-/**
- * @tc.name: RSCustomModifierDrawable_OnPurge003
- * @tc.desc: Test OnPurge with nullptr entries in drawCmdListVec
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge003, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
-    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
-    drawable->drawCmdListVec_.push_back(drawCmdList);
-    drawable->drawCmdListVec_.push_back(nullptr);
-    drawable->OnPurge();
-    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
-}
-
-/**
- * @tc.name: RSBeginBlenderDrawable_PostUpdate001
- * @tc.desc: Test PostUpdate sets enableEDREffect via FgBrightnessEnableEDR
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    node.screenNodeId_ = 42;
-    std::optional<RSDynamicBrightnessPara> params = { RSDynamicBrightnessPara() };
-    node.GetMutableRenderProperties().SetFgBrightnessParams(params);
-    node.GetMutableRenderProperties().SetFgBrightnessFract(0.0f);
-    node.GetMutableRenderProperties().SetFgBrightnessHdr(true);
-    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
-    drawable->PostUpdate(node);
-    EXPECT_TRUE(drawable->enableEDREffect_);
-    EXPECT_EQ(drawable->screenNodeId_, 42u);
-}
-
-/**
- * @tc.name: RSBeginBlenderDrawable_PostUpdate002
- * @tc.desc: Test PostUpdate with ColorfulBrightnessBlenderEnableEDR
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate002, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    node.screenNodeId_ = 99;
-    auto paramValue = RSColorfulBrightnessBlenderPara(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
-        Vector3f(0.6f, 0.7f, 0.8f), Vector3f(0.9f, 0.1f, 0.2f), 0.33f, 0.88f, true);
-    node.GetMutableRenderProperties().SetColorfulBrightnessBlenderParams(
-        std::make_unique<RSColorfulBrightnessBlenderPara>(paramValue));
-    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
-    drawable->PostUpdate(node);
-    EXPECT_TRUE(drawable->enableEDREffect_);
-    EXPECT_EQ(drawable->screenNodeId_, 99u);
-}
-
-/**
- * @tc.name: RSBeginBlenderDrawable_PostUpdate003
- * @tc.desc: Test PostUpdate without EDR effect
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate003, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
-    drawable->PostUpdate(node);
-    EXPECT_FALSE(drawable->enableEDREffect_);
-}
-
-/**
- * @tc.name: RSBeginBlenderDrawable_OnDraw001
- * @tc.desc: Test OnDraw returns early when canvas is not PaintFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_OnDraw001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    node.GetMutableRenderProperties().SetColorBlendMode(12);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
-        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
-    ASSERT_NE(drawable, nullptr);
-    drawable->OnSync();
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto rect = std::make_shared<Drawing::Rect>();
-    drawable->OnDraw(canvas.get(), rect.get());
-    EXPECT_NE(canvas, nullptr);
-}
-
-/**
- * @tc.name: RSEndBlenderDrawable_OnUpdate001
- * @tc.desc: Test OnUpdate returns false when blendMode is NONE
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
-}
-
-/**
- * @tc.name: RSEndBlenderDrawable_OnUpdate002
- * @tc.desc: Test OnUpdate returns false when blendApplyType is FAST
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate002, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    node.GetMutableRenderProperties().SetColorBlendMode(12);
-    node.GetMutableRenderProperties().SetColorBlendApplyType(
-        static_cast<int>(RSColorBlendApplyType::FAST));
-    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
-}
-
-/**
- * @tc.name: RSCustomClipToFrameDrawable_OnGenerate001
- * @tc.desc: Test OnGenerate returns nullptr when modifier is null
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnGenerate001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
-}
-
-/**
- * @tc.name: RSCustomClipToFrameDrawable_OnSync001
- * @tc.desc: Test OnSync when needSync_ is false
- * @tc.type: FUNC
- */
-HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnSync001, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSCustomClipToFrameDrawable>();
-    drawable->needSync_ = false;
-    drawable->OnSync();
-    EXPECT_FALSE(drawable->needSync_);
 }
 } // namespace OHOS::Rosen
