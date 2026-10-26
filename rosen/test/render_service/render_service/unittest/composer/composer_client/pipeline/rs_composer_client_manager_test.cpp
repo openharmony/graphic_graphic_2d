@@ -58,6 +58,8 @@ public:
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override {}
     void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override {}
 
+    void SetSkipDelay(bool skipDelay) override {}
+
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;
@@ -116,6 +118,11 @@ public:
         activeRectSwitchCalled = true;
         lastActiveRectFlag = flag;
         lastActiveRect = activeRect;
+    }
+
+    void SetSkipDelay(bool skipDelay) override
+    {
+        (void)skipDelay;
     }
 
     bool commitTunnelCalled = false;
@@ -1081,6 +1088,36 @@ HWTEST_F(RSComposerClientManagerTest, ComposerClient_SetActiveRectSwitchStatus_F
     EXPECT_EQ(conn->lastActiveRect.top_, activeRect.top_);
     EXPECT_EQ(conn->lastActiveRect.width_, activeRect.width_);
     EXPECT_EQ(conn->lastActiveRect.height_, activeRect.height_);
+}
+
+/**
+ * @tc.name: SetSkipDelay_NoClient_NoCrash
+ * @tc.desc: Test SetSkipDelay with no client for screenId returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, SetSkipDelay_NoClient_NoCrash, TestSize.Level1)
+{
+    RSComposerClientManager mgr;
+    constexpr ScreenId screenId = 8400;
+    EXPECT_NO_FATAL_FAILURE(mgr.SetSkipDelay(screenId, true));
+    EXPECT_EQ(mgr.GetComposerClient(screenId), nullptr);
+}
+
+/**
+ * @tc.name: ComposerContext_SetSkipDelay_NullConnection_NoCrash
+ * @tc.desc: Test RSComposerContext::SetSkipDelay with null connection returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerClientManagerTest, ComposerContext_SetSkipDelay_NullConnection_NoCrash, TestSize.Level1)
+{
+    sptr<IRSRenderToComposerConnection> nullConn = nullptr;
+    auto client = RSComposerClient::Create(nullConn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    auto ctx = client->GetComposerContext();
+    ASSERT_NE(ctx, nullptr);
+
+    EXPECT_NO_FATAL_FAILURE(ctx->SetSkipDelay(true));
 }
 
 } // namespace OHOS::Rosen
