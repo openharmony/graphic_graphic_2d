@@ -34,8 +34,8 @@ namespace {
     constexpr int32_t TEST_WINDOW_HEIGHT_480 = 480;
     constexpr int32_t TEST_PROGRESS_50 = 50;
     constexpr int32_t TEST_PROGRESS_100 = 100;
-    constexpr int32_t TEST_TIMES_10 = 10;
-    constexpr int32_t TEST_TIMES_20 = 20;
+    constexpr int64_t TEST_TIME_STAGE_1_MS = 667;
+    constexpr int64_t TEST_TIME_STAGE_2_MS = 1334;
     constexpr int32_t TEST_START_TIME_MS = 1000;
     constexpr int64_t TEST_END_TIME_PREDICT_MS = 100000;
     constexpr int32_t TEST_TIME_LIMIT_SEC = 100;
@@ -47,8 +47,8 @@ namespace {
     constexpr int32_t TEST_PROGRESS_RADIUS_SIZE = 5;
     constexpr int32_t TEST_SCREEN_STATUS_NEGATIVE = -1;
     constexpr int32_t TEST_SCREEN_STATUS_1 = 1;
-    constexpr int32_t TEST_FRAME_NUM_15 = 15;
-    constexpr int32_t TEST_FRAME_NUM_25 = 25;
+    constexpr int64_t TEST_TIME_MID_STAGE_MS = 1000;
+    constexpr int64_t TEST_TIME_LATE_STAGE_MS = 1800;
     constexpr int32_t TEST_ROG_WIDTH_1440 = 1440;
     constexpr int32_t TEST_ROG_HEIGHT_2560 = 2560;
     constexpr int32_t TEST_FRAME_NUM_0 = 0;
@@ -212,14 +212,13 @@ HWTEST_F(BootCompileProgressTest, GetFirmwareUpdateState_Normal_ReturnCorrectSta
 }
 
 /**
- * @tc.name: DrawProgressPoint_TimesZero_ReturnCorrectBrush
- * @tc.desc: Verify the DrawProgressPoint function returns correct brush when times is zero.
+ * @tc.name: DrawProgressPoint_TimeZero_ReturnCorrectBrush
+ * @tc.desc: Verify the DrawProgressPoint function returns correct brush at time zero (stage 0).
  * @tc.type: FUNC
  */
-HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimesZero_ReturnCorrectBrush, TestSize.Level0)
+HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimeZero_ReturnCorrectBrush, TestSize.Level0)
 {
     std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
-    progress->times_ = 0;
     progress->sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
         TEST_SHARP_CURVE_CTLX1, TEST_SHARP_CURVE_CTLY1, TEST_SHARP_CURVE_CTLX2, TEST_SHARP_CURVE_CTLY2);
     Rosen::Drawing::Brush brush = progress->DrawProgressPoint(0, 0);
@@ -227,32 +226,30 @@ HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimesZero_ReturnCorrectBrush
 }
 
 /**
- * @tc.name: DrawProgressPoint_TimesTen_ReturnCorrectBrush
- * @tc.desc: Verify the DrawProgressPoint function returns correct brush when times is ten.
+ * @tc.name: DrawProgressPoint_TimeStageOne_ReturnCorrectBrush
+ * @tc.desc: Verify the DrawProgressPoint function returns correct brush at stage 1 boundary.
  * @tc.type: FUNC
  */
-HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimesTen_ReturnCorrectBrush, TestSize.Level0)
+HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimeStageOne_ReturnCorrectBrush, TestSize.Level0)
 {
     std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
-    progress->times_ = TEST_TIMES_10;
     progress->sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
         TEST_SHARP_CURVE_CTLX1, TEST_SHARP_CURVE_CTLY1, TEST_SHARP_CURVE_CTLX2, TEST_SHARP_CURVE_CTLY2);
-    Rosen::Drawing::Brush brush = progress->DrawProgressPoint(1, TEST_FRAME_NUM_15);
+    Rosen::Drawing::Brush brush = progress->DrawProgressPoint(1, TEST_TIME_MID_STAGE_MS);
     EXPECT_NE(brush.GetColor(), 0);
 }
 
 /**
- * @tc.name: DrawProgressPoint_TimesTwenty_ReturnCorrectBrush
- * @tc.desc: Verify the DrawProgressPoint function returns correct brush when times is twenty.
+ * @tc.name: DrawProgressPoint_TimeStageTwo_ReturnCorrectBrush
+ * @tc.desc: Verify the DrawProgressPoint function returns correct brush at stage 2.
  * @tc.type: FUNC
  */
-HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimesTwenty_ReturnCorrectBrush, TestSize.Level0)
+HWTEST_F(BootCompileProgressTest, DrawProgressPoint_TimeStageTwo_ReturnCorrectBrush, TestSize.Level0)
 {
     std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
-    progress->times_ = TEST_TIMES_20;
     progress->sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
         TEST_SHARP_CURVE_CTLX1, TEST_SHARP_CURVE_CTLY1, TEST_SHARP_CURVE_CTLX2, TEST_SHARP_CURVE_CTLY2);
-    Rosen::Drawing::Brush brush = progress->DrawProgressPoint(2, TEST_FRAME_NUM_25);
+    Rosen::Drawing::Brush brush = progress->DrawProgressPoint(2, TEST_TIME_LATE_STAGE_MS);
     EXPECT_NE(brush.GetColor(), 0);
 }
 

@@ -69,11 +69,11 @@ namespace {
     constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t LOADING_FPS = 30;
-    constexpr const int32_t PERIOD_FPS = 10;
+    constexpr const int32_t STAGE_DURATION_MS = 667;
+    constexpr const int32_t NUM_STAGES = 3;
+    constexpr const int32_t CYCLE_DURATION_MS = STAGE_DURATION_MS * NUM_STAGES;
     constexpr const int32_t CHANGE_FREQ = 4;
     constexpr const int32_t BASE_REFRESH_RATE = 60;
-    constexpr const float TEN_FRAME_TIMES = 10.0f;
     constexpr const float SHARP_CURVE_CTLX1 = 0.33f;
     constexpr const float SHARP_CURVE_CTLY1 = 0.0f;
     constexpr const float SHARP_CURVE_CTLX2 = 0.67f;
@@ -327,9 +327,9 @@ void BootCompileProgress::DrawCompileProgress()
 
 void BootCompileProgress::DrawCircle(Rosen::Drawing::RecordingCanvas* canvas)
 {
-    int32_t freqNum = times_++;
+    int64_t now = GetSystemCurrentTime();
     for (int i = 0; i < CIRCLE_NUM; i++) {
-        canvas->AttachBrush(DrawProgressPoint(i, freqNum));
+        canvas->AttachBrush(DrawProgressPoint(i, now));
         int pointX = frameWidth_ / 2.0f + 4 * currentRadius_ * (i - 1);
         int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius_;
         canvas->DrawCircle({ pointX, pointY }, currentRadius_);
@@ -408,14 +408,14 @@ void BootCompileProgress::SetFrameForRog()
         posX, posY, rogWidth_, frameHeight, fontSize_, currentRadius_);
 }
 
-Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
+Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int64_t timeMs)
 {
-    int32_t fpsNo = frameNum % LOADING_FPS;
-    int32_t fpsStage = fpsNo / PERIOD_FPS;
-    float input  = fpsNo % PERIOD_FPS / TEN_FRAME_TIMES;
+    int32_t cyclePos = static_cast<int32_t>(timeMs % CYCLE_DURATION_MS);
+    int32_t stage = cyclePos / STAGE_DURATION_MS;
+    float input = static_cast<float>(cyclePos % STAGE_DURATION_MS) / static_cast<float>(STAGE_DURATION_MS);
 
-    float startOpaCity = OPACITY_ARR[idx][fpsStage][0];
-    float endOpaCity = OPACITY_ARR[idx][fpsStage][1];
+    float startOpaCity = OPACITY_ARR[idx][stage][0];
+    float endOpaCity = OPACITY_ARR[idx][stage][1];
 
     float fraction = sharpCurve_->Interpolate(input);
     float opacity = startOpaCity + (endOpaCity - startOpaCity) * fraction;
