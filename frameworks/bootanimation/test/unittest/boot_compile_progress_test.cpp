@@ -62,7 +62,7 @@ namespace {
     constexpr float TEST_SHARP_CURVE_CTLY1 = 0.0f;
     constexpr float TEST_SHARP_CURVE_CTLX2 = 0.67f;
     constexpr float TEST_SHARP_CURVE_CTLY2 = 1.0f;
-    constexpr int32_t INVALID_SCREEN_ID = 999;
+    constexpr int32_t TEST_INVALID_SCREEN_ID = 999;
 }
 
 class MockIRemoteObject : public IRemoteObject {
@@ -486,7 +486,7 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_ScreenIdNotFound_Retur
     progress->progressConfigsMap_.clear();
     progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
-    progress->SetSpecialProgressFrame(INVALID_SCREEN_ID);
+    progress->SetSpecialProgressFrame(TEST_INVALID_SCREEN_ID);
     EXPECT_TRUE(true);
 }
 
