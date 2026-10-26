@@ -1572,7 +1572,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     // 5. Create canvas with valid surface
     Drawing::Canvas canvasTest(400, 400);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    std::shared_ptrDrawing::Surface surfacePtr = std::make_sharedDrawing::Surface();
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     paintFilterCanvas.surface_ = surfacePtr.get();
     EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
@@ -1627,7 +1627,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     // Create canvas with valid surface and set up cache properly
     Drawing::Canvas canvasTest(200, 200);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    std::shared_ptrDrawing::Surface surfacePtr = std::make_sharedDrawing::Surface();
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     paintFilterCanvas.surface_ = surfacePtr.get();
     EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
@@ -1672,7 +1672,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    std::shared_ptrDrawing::Surface surfacePtr = std::make_sharedDrawing::Surface();
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     paintFilterCanvas.surface_ = surfacePtr.get();
     EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
@@ -1803,7 +1803,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest008, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    std::shared_ptrDrawing::Surface surfacePtr = std::make_sharedDrawing::Surface();
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     paintFilterCanvas.surface_ = surfacePtr.get();
     EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
@@ -1843,7 +1843,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
 
     Drawing::Canvas canvasTest(400, 400);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    std::shared_ptrDrawing::Surface surfacePtr = std::make_sharedDrawing::Surface();
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     paintFilterCanvas.surface_ = surfacePtr.get();
     EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
