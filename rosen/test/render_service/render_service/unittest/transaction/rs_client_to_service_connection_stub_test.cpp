@@ -593,12 +593,23 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHD
     replyWriteModeFail.SetMaxCapacity(PARCEL_CAPACITY);
     ASSERT_TRUE(replyWriteModeFail.WriteBuffer(fillBuffer.data(), fillBuffer.size()));
     dataWriteModeFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    ScreenId virtualScreenId = connectionStub_->CreateVirtualScreen("hdr_mode_ut", 0, 0, nullptr,
-        INVALID_SCREEN_ID, 0);
-    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    constexpr ScreenId virtualScreenId = 0xFFFFFFFF;
+    VirtualScreenConfigs configs;
+    configs.id = virtualScreenId;
+    config.name = "hdr_mode_ut";
+    config.width = 0;
+    config.height = 0;
+    config.associatedScreenId = INVALID_SCREEN_ID;
+    auto virtualScreen = std::make_shared<RSScreen>(configs);
+    ASSERT_NE(virtualScreen, nullptr);
+    ASSERT_TRUE(virtualScreen->IsVirtual());
+    screenManager_->MockHdiScreenConnected(virtualScreen);
+    screenManagerAgent_->screenManager_ = screenManager_;
+    static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr())->screenManagerAgent_ = screenManagerAgent_;
     dataWriteModeFail.WriteUint64(virtualScreenId);
     res = connectionStub_->OnRemoteRequest(code, dataWriteModeFail, replyWriteModeFail, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
+    screenManager_->screens_.erase(virtualScreenId);
 }
 
 /**
