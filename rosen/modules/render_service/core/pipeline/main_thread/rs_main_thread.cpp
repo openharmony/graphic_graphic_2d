@@ -1843,10 +1843,17 @@ void RSMainThread::TraverseNodeForDelegateMode()
         return;
     }
     RS_TRACE_NAME("TraverseNodeForDelegateMode");
+    std::set<NodeId> quickPrepareNodeIds;
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->InitForDelegateMode(*screenNode, GetRenderEngine());
     for (const auto& nodeId : webNodeIds) {
-        UpdateNodeInfoForDelegateMode(nodeId, uniVisitor);
+        UpdateNodeInfoForDelegateMode(nodeId, uniVisitor, quickPrepareNodeIds);
+    }
+    for (const auto& nodeId : quickPrepareNodeIds) {
+        auto instanceRootNode = GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (instanceRootNode != nullptr) {
+            instanceRootNode->QuickPrepare(uniVisitor);
+        }
     }
 
     UpdateZorderForDelegateMode();
@@ -1854,7 +1861,7 @@ void RSMainThread::TraverseNodeForDelegateMode()
 }
 
 void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
-    const std::shared_ptr<RSNodeVisitor> &uniVisitor)
+    const std::shared_ptr<RSNodeVisitor> &uniVisitor, std::set<NodeId>& quickPrepareNodeIds)
 {
     if (rsNodeId <= 0) {
         return;
@@ -1874,7 +1881,7 @@ void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
     node->AddDirtyType(ModifierNG::RSModifierType::FRAME);
     RSUniHwcComputeUtil::UpdateHwcNodeProperty(node);
-    node->QuickPrepare(uniVisitor);
+    quickPrepareNodeIds.emplace(node->GetInstanceRootNodeId());
 }
 
 void RSMainThread::ProcessCommandForUniRender()
@@ -1895,6 +1902,11 @@ void RSMainThread::ProcessCommandForUniRender()
     bool splitLayerFlag = doDirectComposition_ ? true : false;
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         delegateModeFlag &= UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
+    } else {
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        isWebCommandOnly_ = RsDelegateCompositeCallbackManager::GetInstance().QueryAndResetCommandProcessFlag();
+        RS_OPTIONAL_TRACE_NAME_FMT("invalid TransactionDataMap, isWebCommandOnly=%d", isWebCommandOnly_);
+#endif
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
