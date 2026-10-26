@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
@@ -2585,7 +2586,8 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 bool RSRenderNode::IsFilterCacheValid() const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2604,7 +2606,8 @@ bool RSRenderNode::IsFilterCacheValid() const
 
 bool RSRenderNode::IsAIBarFilter() const
 {
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2619,7 +2622,8 @@ bool RSRenderNode::IsAIBarFilter() const
 bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2636,7 +2640,8 @@ return false;
 bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2928,7 +2933,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         return;
     }
     auto filterDrawable = GetFilterDrawable(false);
@@ -2953,7 +2958,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, RSDrawableSlot slot)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
 #ifndef ROSEN_ARKUI_X
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
 #endif
@@ -2979,7 +2984,7 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 void RSRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
@@ -3037,7 +3042,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
 {
 #ifdef RS_ENABLE_GPU
     MarkFilterHasEffectChildren();
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::PostPrepareForBlurFilterNode filter cache is disabled.");
         return;
     }

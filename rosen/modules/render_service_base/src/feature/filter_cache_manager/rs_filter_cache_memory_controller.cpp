@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "render/rs_filter_cache_memory_controller.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"

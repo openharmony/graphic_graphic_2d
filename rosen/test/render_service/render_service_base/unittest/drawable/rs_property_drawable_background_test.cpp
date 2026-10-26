@@ -24,6 +24,7 @@
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -870,7 +871,14 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable011, TestSize.Level1)
     effectData->cachedImage_ = cachedImage;
     filterCanvas->SetEffectData(effectData);
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
+
+    // disable effect merge
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(false);
+    EXPECT_FALSE(RSFilterCacheManager::IsEffectMergeEnabled());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    // re-enable
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
+    EXPECT_TRUE(RSFilterCacheManager::IsEffectMergeEnabled());
 }
 
 /**

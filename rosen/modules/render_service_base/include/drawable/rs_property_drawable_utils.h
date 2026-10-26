@@ -47,6 +47,9 @@ namespace Drawing {
 class GEVisualEffectContainer;
 }
 
+class RSDrawingFilter;
+class RSFilterCacheManager;
+
 class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);

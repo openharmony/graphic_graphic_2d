@@ -24,6 +24,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -88,7 +89,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 2. Background filter is null
     // 3. Canvas is offscreen
     if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
-        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
+        !RSFilterCacheManager::IsEffectMergeEnabled() ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
         return;
@@ -168,7 +169,7 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #ifdef RS_ENABLE_GPU
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
@@ -297,7 +298,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
     effectParams->SetHasEffectChildrenWithoutEmptyRect(ChildHasVisibleEffectWithoutEmptyRect());
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
 #endif

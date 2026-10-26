@@ -76,7 +76,7 @@
 #include "rs_frame_report.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
-#include "render/rs_filter_cache_memory_controller.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "render/rs_pixel_map_util.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"

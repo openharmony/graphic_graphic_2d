@@ -585,23 +585,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
 
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
-        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
-        if (rsShaderFilter != nullptr) {
-            auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
-            tmpFilter->IsOffscreenCanvas(true);
-            tmpFilter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
-        }
-        // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
-        // (see RSPropertyDrawableUtils::DrawFilter())
-        cacheManager->DrawFilter(canvas, filter, 0, true, false);
-        return;
-    }
-#endif
-
     auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
@@ -639,21 +622,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_FUNC();
-
-    // Optional use cacheManager to draw filter, cache is valid, skip drawing background image
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    auto boundsRect = properties.GetBoundsRect();
-    if (auto& cacheManager = properties.GetFilterCacheManager(false);
-        cacheManager != nullptr && !canvas.GetDisableFilterCache() && cacheManager->IsCacheValid()) {
-        // no need to validate parameters, the caller already do it
-        canvas.ClipRect(RSPropertiesPainter::Rect2DrawingRect(boundsRect));
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(properties.GetBackgroundFilter());
-        // extract cache data from cacheManager
-        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, properties.GetRenderNodeId());
-        canvas.SetEffectData(data);
-        return;
-    }
-#endif
 
     auto surface = canvas.GetSurface();
     if (!surface) {
@@ -705,27 +673,6 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     auto bounds = canvas.GetRoundInDeviceClipBounds();
     canvas.Restore();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
-
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.GetFilterCacheManager(false);
-        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        auto node = properties.backref_.lock();
-        if (node == nullptr) {
-            ROSEN_LOGE("DrawBackgroundEffect::node is null");
-            return;
-        }
-        auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>();
-        if (effectNode == nullptr) {
-            ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
-            return;
-        }
-        auto&& data = cacheManager->GeneratedCachedEffectData(
-            canvas, filter, properties.GetRenderNodeId(), bounds, bounds);
-        canvas.SetEffectData(data);
-        return;
-    }
-#endif
 
     auto imageRect = bounds;
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);

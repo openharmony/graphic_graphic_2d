@@ -35,6 +35,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -795,8 +796,7 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
 
 bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForPartialRender() const
 {
-    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSSystemProperties::GetFilterCacheEnabled()
-        && RSFilterCacheManager::isCCMFilterCacheEnable_ && RSUniRenderJudgement::IsUniRender();
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
     if (!sysPropEnable) {
         return false;
     }
