@@ -192,4 +192,83 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopInvalidModeTest, 
     RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
 }
 
+/**
+ * @tc.name: UIDirectorCommandHelperSetSceneBoardTest
+ * @tc.desc: Test SetSceneBoard updates the flag on an existing director only.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 700;
+    constexpr uint64_t token = 701;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    EXPECT_FALSE(director->IsSceneBoard());
+
+    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    EXPECT_TRUE(director->IsSceneBoard());
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
+
+    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, false);
+    EXPECT_FALSE(director->IsSceneBoard());
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, token));
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperSetSceneBoardNoCreateTest
+ * @tc.desc: Test SetSceneBoard never creates a director when it is missing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardNoCreateTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 710;
+    constexpr uint64_t token = 711;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    // Out-of-order (before GoCreate): update-only, no director is created.
+    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+
+    // Late (after GoDestroy): must not resurrect a destroyed director.
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+}
+
+/**
+ * @tc.name: RSContextIsSceneBoardTokenTest
+ * @tc.desc: Test IsSceneBoardToken hit/miss/pid-mismatch paths.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, RSContextIsSceneBoardTokenTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 720;
+    constexpr uint64_t token = 721;
+    constexpr uint64_t otherToken = 722;
+    constexpr pid_t otherPid = 723;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, token));
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
+    // same pid, unknown token
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, otherToken));
+    // known token value under another pid must not match (double-dimension query)
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(otherPid, token));
+    // zero token never matches
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, 0));
+}
+
 } // namespace OHOS::Rosen

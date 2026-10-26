@@ -31,12 +31,12 @@ enum RSUnionNodeCommandType : uint16_t {
 
 class RSB_EXPORT UnionNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false, uint64_t token = 0);
 };
 
 ADD_COMMAND(RSUnionNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, UNION_NODE, UNION_NODE_CREATE,
-        UnionNodeCommandHelper::Create, NodeId, bool))
+        UnionNodeCommandHelper::Create, NodeId, bool, uint64_t))
 
 } // namespace Rosen
 } // namespace OHOS

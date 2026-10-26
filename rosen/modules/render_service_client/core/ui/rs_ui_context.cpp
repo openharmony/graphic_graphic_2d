@@ -15,15 +15,39 @@
 
 #include "ui/rs_ui_context.h"
 
+#include <unistd.h>
+
 #include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int SCENE_BOARD_COMMAND_NODE_ID = 1; // same pid-slot convention as RSUIDirector::NODE_ID
+} // namespace
+
+void RSUIContext::SetIsSceneBoard(bool isSceneBoard)
+{
+    if (isSceneBoard_.load(std::memory_order_relaxed) == isSceneBoard) {
+        return;
+    }
+    isSceneBoard_.store(isSceneBoard, std::memory_order_relaxed);
+    if (rsTransactionHandler_ == nullptr) {
+        ROSEN_LOGE("RSUIContext::SetIsSceneBoard transaction handler is null, token:%{public}" PRIu64, token_);
+        return;
+    }
+    // Synthetic node id keeps the same pid slot as RSUIDirector::AddUIDirectorCommand;
+    // PERMISSION_SYSTEM commands are not validated against nodeId pid.
+    NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | SCENE_BOARD_COMMAND_NODE_ID;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUIDirectorSetSceneBoard>(nodeId, token_, isSceneBoard);
+    rsTransactionHandler_->AddCommand(command, true);
+}
+
 RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote) : token_(token)
 {
     connectToRenderRemote_ = connectToRenderRemote;

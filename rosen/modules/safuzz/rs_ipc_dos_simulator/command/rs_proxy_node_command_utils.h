@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSProxyNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSProxyNodeCreate, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSProxyNodeCreate, Uint64, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSProxyNodeResetContextVariableCache, Uint64);
 };
 } // namespace Rosen

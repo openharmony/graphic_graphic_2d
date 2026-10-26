@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSDisplayNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeCreate, Uint64, RSDisplayNodeConfig);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSDisplayNodeCreate, Uint64, RSDisplayNodeConfig, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetScreenId, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetDisplayContentRect, Uint64, Rect);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetSecurityDisplay, Uint64, Bool);

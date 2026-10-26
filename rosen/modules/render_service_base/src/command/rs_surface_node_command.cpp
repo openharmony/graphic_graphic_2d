@@ -32,7 +32,8 @@
 namespace OHOS {
 namespace Rosen {
 
-void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
+void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type,
+    bool isTextureExportNode, uint64_t token)
 {
     if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(id))) {
@@ -47,13 +48,15 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
+        context.MarkSceneBoardNode(id, token, *node);
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
     }
 }
 
 void SurfaceNodeCommandHelper::CreateWithConfig(
-    RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType windowType)
+    RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType windowType,
+    uint64_t token)
 {
     RSSurfaceRenderNodeConfig config = {
         .id = nodeId, .name = name,
@@ -70,6 +73,7 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
     }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    context.MarkSceneBoardNode(nodeId, token, *node);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

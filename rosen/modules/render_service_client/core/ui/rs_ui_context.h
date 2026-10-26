@@ -29,6 +29,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_H
 
+#include <atomic>
 #include <functional>
 #include <iremote_object.h>
 #include <memory>
@@ -162,12 +163,33 @@ public:
 
     /**
      * @brief Gets the token associated with the current context.
-     * 
+     *
      * @return The token as a 64-bit unsigned integer.
      */
     inline uint64_t GetToken() const
     {
         return token_;
+    }
+
+    /**
+     * @brief Marks this context as belonging to SceneBoard and syncs the flag to the
+     *        render service. Idempotent one-shot identity declaration: repeated calls
+     *        with the same value do not resend the command; a changed value updates the
+     *        server-side director flag but does not retroactively mark created nodes.
+     *        Callers (WM) must call this before creating the first node of this context.
+     *
+     * @param isSceneBoard Whether this context belongs to SceneBoard.
+     */
+    void SetIsSceneBoard(bool isSceneBoard);
+
+    /**
+     * @brief Checks whether this context is marked as SceneBoard.
+     *
+     * @return True if this context is marked as SceneBoard.
+     */
+    bool IsSceneBoard() const
+    {
+        return isSceneBoard_.load(std::memory_order_relaxed);
     }
 
     /**
@@ -294,6 +316,9 @@ private:
 
     uint64_t token_;
     NodeId rootNodeId_ = 0;
+    // Written by WM (possibly off the UI thread) and read from dump paths that may run on
+    // another instance's runner; atomic relaxes that race without ordering requirements.
+    std::atomic<bool> isSceneBoard_{false};
 
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;

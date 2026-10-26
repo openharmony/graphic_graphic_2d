@@ -34,7 +34,8 @@ RSUnionNode::SharedPtr RSUnionNode::Create(
     } else {
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUnionNodeCreate>(node->GetId(), isTextureExportNode);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUnionNodeCreate>(node->GetId(), isTextureExportNode,
+        GetContextToken(rsUIContext));
     auto transaction = node->GetRSTransaction();
     if (transaction == nullptr) {
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -51,7 +52,8 @@ RSUnionNode::SharedPtr RSUnionNode::Create(
 
 void RSUnionNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUnionNodeCreate>(GetId(), isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUnionNodeCreate>(GetId(), isTextureExportNode_,
+        GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
 }
 

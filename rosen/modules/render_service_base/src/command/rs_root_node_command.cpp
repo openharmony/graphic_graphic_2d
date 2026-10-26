@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -36,6 +36,7 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
     }
     auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    context.MarkSceneBoardNode(id, token, *node);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         RS_LOGE("RootNodeCommandHelper::Create after add, id:%{public}" PRIu64, id);
         RS_TRACE_NAME_FMT("RootNodeCommandHelper::Create after add, id:%" PRIu64, id);

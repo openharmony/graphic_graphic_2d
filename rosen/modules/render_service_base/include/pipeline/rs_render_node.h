@@ -159,6 +159,17 @@ public:
     {
         return uiContextTokenList_;
     }
+    // Birth identity: whether this node was created under a SceneBoard instance. Unlike
+    // uiContextToken_ (current owner, updated on migration), it is set once at creation
+    // and never changes afterwards.
+    void SetIsSceneBoard(bool isSceneBoard)
+    {
+        isSceneBoard_ = isSceneBoard;
+    }
+    bool IsSceneBoard() const
+    {
+        return isSceneBoard_;
+    }
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -1340,6 +1351,7 @@ private:
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     uint64_t uiContextToken_ = 0;
     std::vector<uint64_t> uiContextTokenList_;
+    bool isSceneBoard_ = false;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;

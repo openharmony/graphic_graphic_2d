@@ -144,6 +144,33 @@ void RSContext::DestroyUIRenderDirector(pid_t pid, uint64_t token)
     }
 }
 
+bool RSContext::IsSceneBoardToken(pid_t pid, uint64_t token)
+{
+    std::lock_guard<std::mutex> lock(uiRenderDirectorsMutex_);
+    auto pidIt = uiRenderDirectors_.find(pid);
+    if (pidIt == uiRenderDirectors_.end()) {
+        return false;
+    }
+    auto tokenIt = pidIt->second.find(token);
+    if (tokenIt == pidIt->second.end()) {
+        return false;
+    }
+    return tokenIt->second->IsSceneBoard();
+}
+
+void RSContext::MarkSceneBoardNode(NodeId nodeId, uint64_t token, RSRenderNode& node)
+{
+    if (token == 0) {
+        return;
+    }
+    if (IsSceneBoardToken(ExtractPid(nodeId), token)) {
+        node.SetIsSceneBoard(true);
+        return;
+    }
+    ROSEN_LOGD("RSContext::MarkSceneBoardNode sceneboard check miss, nodeId:%{public}" PRIu64
+        ", token:%{public}" PRIu64, nodeId, token);
+}
+
 void RSContext::SetClearMoment(ClearMemoryMoment moment)
 {
     clearMoment_ = moment;

@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId targetId)
+void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId targetId, uint64_t token)
 {
     pid_t callingPid = ExtractPid(id);
     pid_t targetPid = ExtractPid(targetId);
@@ -37,6 +37,7 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
     auto targetNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(targetId);
     auto node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,
         targetNode, targetId, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    context.MarkSceneBoardNode(id, token, *node);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

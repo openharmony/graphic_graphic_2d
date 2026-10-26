@@ -1960,6 +1960,23 @@ public:
     }
 
     /**
+     * @brief Gets the token of the given RSUIContext, or 0 for the context-less legacy
+     *        single-instance path. Single source of the "null context fills 0" rule for
+     *        Create commands.
+     *
+     * @param context The RSUIContext, may be null.
+     * @return The token, or 0 when context is null.
+     */
+    static uint64_t GetContextToken(const std::shared_ptr<RSUIContext>& context);
+
+    /**
+     * @brief Gets the token of this node's RSUIContext, or 0 for the context-less path.
+     *
+     * @return The token, or 0 when this node has no context.
+     */
+    uint64_t GetUIContextTokenValue() const;
+
+    /**
      * @brief Gets the current state of the node.
      *
      * @return The current RSNodeState.

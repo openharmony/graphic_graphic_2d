@@ -41,7 +41,8 @@ std::shared_ptr<RSNode> RSRootNode::Create(
             rsUIContext->GetToken());
         RS_TRACE_NAME_FMT(
             "RSRootNode::Create, Node:%" PRIu64 ", Token:%" PRIu64, node->GetId(), rsUIContext->GetToken());
-        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode,
+            GetContextToken(rsUIContext));
         transaction->AddCommand(command, node->IsRenderServiceNode());
     } else {
         RSNodeMap::MutableInstance().RegisterNode(node);
@@ -51,7 +52,8 @@ std::shared_ptr<RSNode> RSRootNode::Create(
         }
         RS_LOGI("RSRootNode::Create, Node:%{public}" PRIu64, node->GetId());
         RS_TRACE_NAME_FMT("RSRootNode::Create, Node:%" PRIu64, node->GetId());
-        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode, 0);
         transactionProxy->AddCommand(command, node->IsRenderServiceNode());
     }
     node->SetUIContextToken();
@@ -60,7 +62,8 @@ std::shared_ptr<RSNode> RSRootNode::Create(
 
 void RSRootNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(GetId(), isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(GetId(), isTextureExportNode_,
+        GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
 }
 

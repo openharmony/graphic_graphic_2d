@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void UnionNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void UnionNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -32,6 +32,7 @@ void UnionNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextur
     }
     auto node = std::shared_ptr<RSUnionRenderNode>(new RSUnionRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    context.MarkSceneBoardNode(id, token, *node);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

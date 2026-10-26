@@ -46,7 +46,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
     }
 
     if (LIKELY(!displayNodeConfig.isSync)) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig,
+            GetContextToken(rsUIContext));
         if (node->GetRSUIContext() != nullptr) {
             auto transaction = node->GetRSUIContext()->GetRSTransaction();
             if (transaction != nullptr) {

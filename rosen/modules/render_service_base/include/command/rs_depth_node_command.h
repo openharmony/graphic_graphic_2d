@@ -30,13 +30,13 @@ enum RSDepthNodeCommandType : uint16_t {
 
 class RSB_EXPORT RSDepthNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false, uint64_t token = 0);
     static void SetType(RSContext& context, NodeId id, DepthSpaceType depthSpaceType);
 };
 
 ADD_COMMAND(RSDepthNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, DEPTH_NODE, DEPTH_NODE_CREATE, RSDepthNodeCommandHelper::Create,
-        NodeId, bool))
+        NodeId, bool, uint64_t))
 ADD_COMMAND(RSDepthNodeSetType,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, DEPTH_NODE, DEPTH_NODE_SET_TYPE, RSDepthNodeCommandHelper::SetType,
         NodeId, DepthSpaceType))

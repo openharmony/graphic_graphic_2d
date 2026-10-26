@@ -174,8 +174,8 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
 #endif
     }
 
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode,
+        GetContextToken(rsUIContext));
     node->AddCommand(command, node->IsRenderServiceNode());
     node->SetUIContextToken();
     return node;
@@ -212,7 +212,7 @@ void RSCanvasDrawingNode::OnCreate()
 void RSCanvasDrawingNode::CreateRenderNode()
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_);
+        std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_, GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
 }
 
@@ -368,7 +368,8 @@ void RSCanvasDrawingNode::OnSurfaceBufferChanged(sptr<SurfaceBuffer> buffer, uin
 
 void RSCanvasDrawingNode::CreateRenderNodeForTextureExportSwitch()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_,
+        GetUIContextTokenValue());
     if (IsRenderServiceNode()) {
         hasCreateRenderNodeInRS_ = true;
     } else {

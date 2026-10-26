@@ -22,7 +22,8 @@
 namespace OHOS {
 namespace Rosen {
 
-void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode,
+    uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -32,6 +33,7 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
     }
     auto node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    context.MarkSceneBoardNode(id, token, *node);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

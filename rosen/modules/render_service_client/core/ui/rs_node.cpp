@@ -4962,6 +4962,8 @@ void RSNode::Dump(std::string& out) const
     out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
     out += "], instanceId[" + std::to_string(instanceId_);
     out += "], UIContext[" + (rsUIContextPtr ? std::to_string(rsUIContextPtr->GetToken()) : "null");
+    // Client-side mirror of the SceneBoard mark; may differ from UIContext after migration.
+    out += "], isSceneBoard[" + std::string(rsUIContextPtr && rsUIContextPtr->IsSceneBoard() ? "true" : "false");
     if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
         out += "], name[" + node->GetName();
     } else if (!nodeName_.empty()) {
@@ -5113,6 +5115,16 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
         }
     }
     return AddCommandInner(command, isRenderServiceCommand, followType, nodeId);
+}
+
+uint64_t RSNode::GetContextToken(const std::shared_ptr<RSUIContext>& context)
+{
+    return context ? context->GetToken() : 0;
+}
+
+uint64_t RSNode::GetUIContextTokenValue() const
+{
+    return GetContextToken(rsUIContext_);
 }
 
 void RSNode::SetUIContextToken()

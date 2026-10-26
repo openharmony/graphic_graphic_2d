@@ -33,7 +33,8 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
     } else {
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(node->GetId(), isTextureExportNode);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(node->GetId(), isTextureExportNode,
+        GetContextToken(rsUIContext));
     auto transaction = node->GetRSTransaction();
     if (transaction == nullptr) {
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -50,7 +51,8 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
 
 void RSEffectNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(GetId(), isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(GetId(), isTextureExportNode_,
+        GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
 }
 

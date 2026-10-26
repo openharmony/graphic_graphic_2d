@@ -35,7 +35,7 @@ enum RSRootNodeCommandType : uint16_t {
 
 class RSB_EXPORT RootNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false, uint64_t token = 0);
     static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId, uint64_t token = 0);
     static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void SetEnableRender(RSContext& context, NodeId id, bool flag);
@@ -44,7 +44,7 @@ public:
 
 ADD_COMMAND(RSRootNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, ROOT_NODE, ROOT_NODE_CREATE,
-        RootNodeCommandHelper::Create, NodeId, bool))
+        RootNodeCommandHelper::Create, NodeId, bool, uint64_t))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
     ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, ROOT_NODE, ROOT_NODE_ATTACH,
         RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId, uint64_t))

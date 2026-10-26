@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -36,6 +36,7 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     }
     auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
         context.weak_from_this(), isTextureExportNode);
+    context.MarkSceneBoardNode(id, token, *node);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         HILOG_COMM_ERROR("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);

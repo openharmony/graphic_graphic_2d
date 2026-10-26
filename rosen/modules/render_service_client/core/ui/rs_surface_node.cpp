@@ -112,8 +112,8 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     RS_LOGD("RSSurfaceNode::SendDataToRender name: %{public}s type: %{public}hhu, id: %{public}" PRIu64, name_.c_str(),
         config.nodeType, GetId());
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(config.id, config.name,
+            static_cast<uint8_t>(config.nodeType), config.surfaceWindowType, GetUIContextTokenValue());
         AddCommand(command, isWindow);
     } else {
 #ifndef SCREENLESS_DEVICE
@@ -128,8 +128,8 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     // create node in RT if is TextureExport node
     if (!IsRenderServiceNode()) {
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSSurfaceNodeCreate>(GetId(), config.nodeType, surfaceNodeConfig.isTextureExportNode);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(), config.nodeType,
+            surfaceNodeConfig.isTextureExportNode, GetUIContextTokenValue());
         if (surfaceNodeConfig.isTextureExportNode) {
             AddCommand(command, false);
             SetSurfaceIdToRenderNode();
@@ -218,8 +218,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         config.nodeType, node->GetId());
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(config.id, config.name,
+            static_cast<uint8_t>(config.nodeType), config.surfaceWindowType, GetContextToken(rsUIContext));
         node->AddCommand(command, isWindow);
     } else {
 #ifndef SCREENLESS_DEVICE
@@ -265,7 +265,8 @@ void RSSurfaceNode::CreateNodeInRenderThread()
 
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!IsRenderServiceNode()) {
-        command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE, false);
+        command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE, false,
+            GetUIContextTokenValue());
         AddCommand(command, false);
 
 #ifdef ROSEN_OHOS
@@ -449,7 +450,7 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
 void RSSurfaceNode::CreateRenderNodeForTextureExportSwitch()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
-        RSSurfaceNodeType::SELF_DRAWING_NODE, isTextureExportNode_);
+        RSSurfaceNodeType::SELF_DRAWING_NODE, isTextureExportNode_, GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
     if (!IsRenderServiceNode()) {
         hasCreateRenderNodeInRT_ = true;
@@ -1394,7 +1395,8 @@ void RSSurfaceNode::CreateRenderNode()
 
     if (creationType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(creationConfig_.id,
-            creationConfig_.name, static_cast<uint8_t>(creationConfig_.nodeType), creationConfig_.surfaceWindowType);
+            creationConfig_.name, static_cast<uint8_t>(creationConfig_.nodeType), creationConfig_.surfaceWindowType,
+            GetUIContextTokenValue());
         node->AddCommand(command, isWindow);
     } else {
 #ifndef SCREENLESS_DEVICE
@@ -1488,7 +1490,8 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
 
 void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(), type, isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(), type, isTextureExportNode_,
+        GetUIContextTokenValue());
     if (isTextureExportNode_) {
         AddCommand(command, false);
         SetSurfaceIdToRenderNode();

@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CORE_UI_RS_UI_RENDER_DIRECTOR_H
 #define RENDER_SERVICE_CORE_UI_RS_UI_RENDER_DIRECTOR_H
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -63,6 +64,24 @@ public:
     uint64_t GetToken() const;
 
     /**
+     * @brief Sets the SceneBoard flag synced from client.
+     * @param isSceneBoard Whether this instance belongs to SceneBoard.
+     */
+    void SetSceneBoardFlag(bool isSceneBoard)
+    {
+        isSceneBoard_.store(isSceneBoard, std::memory_order_relaxed);
+    }
+
+    /**
+     * @brief Gets the SceneBoard flag.
+     * @return True if this instance belongs to SceneBoard.
+     */
+    bool IsSceneBoard() const
+    {
+        return isSceneBoard_.load(std::memory_order_relaxed);
+    }
+
+    /**
      * @brief Registers a render node to this director.
      * @param id The node id.
      * @param node The render node.
@@ -92,6 +111,9 @@ private:
     std::shared_ptr<RSSurfaceRenderNode> appWindowNode_;
     RSUIDirectorLifecycleState currentState_;
     mutable std::mutex stateMutex_;
+    // Read-mostly (written once per lifecycle), atomic to avoid nested locking
+    // when queried under RSContext::uiRenderDirectorsMutex_.
+    std::atomic<bool> isSceneBoard_{false};
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodes_;
     mutable std::mutex nodeMutex_;
 };

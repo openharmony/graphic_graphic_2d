@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSCanvasNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasNodeCreate, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSCanvasNodeCreate, Uint64, Bool, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSCanvasNodeUpdateRecording, Uint64, DrawingDrawCmdListPtr, Uint16);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSCanvasNodeClearRecording, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasNodeSetHDRPresent, Uint64, Bool);
