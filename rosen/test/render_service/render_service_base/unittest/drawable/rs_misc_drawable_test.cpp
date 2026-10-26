@@ -746,7 +746,6 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawableClearDrawableVec002, TestSize
     childrenDrawable.OnDraw(canvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
-
 /**
  * @tc.name: RSCustomModifierDrawable_OnPurge001
  * @tc.desc: Test OnPurge with empty drawCmdListVec
