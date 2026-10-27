@@ -543,7 +543,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 
 /**
  * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test001
- * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE with valid parcel, existing screen and failed reply
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE with an existing physical screen
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -564,14 +564,39 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHD
     int32_t result = StatusCode::SUCCESS;
     ASSERT_TRUE(reply.ReadInt32(result));
     ASSERT_EQ(result, StatusCode::SCREEN_TYPE_ERROR);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test002
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE with a nonexistent screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test002, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
 
     // screen not found: result is written and ret is ERR_UNKNOWN_REASON
     MessageParcel dataNotFound;
     MessageParcel replyNotFound;
     dataNotFound.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataNotFound.WriteUint64(INVALID_SCREEN_ID);
-    res = connectionStub_->OnRemoteRequest(code, dataNotFound, replyNotFound, option);
-    ASSERT_EQ(res, ERR_UNKNOWN_REASON);
+    ASSERT_EQ(ERR_UNKNOWN_REASON, connectionStub_->OnRemoteRequest(code, dataNotFound, replyNotFound, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test003
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE when writing the result to the reply fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test003, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
 
     // reply write failed
     MessageParcel dataWriteFail;
@@ -580,8 +605,20 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHD
     replyWriteFail.data_ = nullptr;
     dataWriteFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataWriteFail.WriteUint64(screenId_);
-    res = connectionStub_->OnRemoteRequest(code, dataWriteFail, replyWriteFail, option);
-    ASSERT_EQ(res, ERR_INVALID_REPLY);
+    ASSERT_EQ(ERR_INVALID_REPLY, connectionStub_->OnRemoteRequest(code, dataWriteFail, replyWriteFail, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test004
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE when the reply has room for the result but not the mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test004, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
 
     // reply has room for the result but not for mode: fill the parcel leaving exactly 4 bytes
     // (WriteUint32 writes 4 bytes). A virtual screen is required here: a physical screen is
@@ -593,12 +630,23 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHD
     replyWriteModeFail.SetMaxCapacity(PARCEL_CAPACITY);
     ASSERT_TRUE(replyWriteModeFail.WriteBuffer(fillBuffer.data(), fillBuffer.size()));
     dataWriteModeFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    ScreenId virtualScreenId = connectionStub_->CreateVirtualScreen("hdr_mode_ut", 0, 0, nullptr,
-        INVALID_SCREEN_ID, 0);
-    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    constexpr ScreenId virtualScreenId = 0xFFFFFFFF;
+    VirtualScreenConfigs configs;
+    configs.id = virtualScreenId;
+    configs.name = "hdr_mode_ut";
+    configs.width = 0;
+    configs.height = 0;
+    configs.associatedScreenId = INVALID_SCREEN_ID;
+    auto virtualScreen = std::make_shared<RSScreen>(configs);
+    ASSERT_NE(virtualScreen, nullptr);
+    ASSERT_TRUE(virtualScreen->IsVirtual());
+    screenManager_->MockHdiScreenConnected(virtualScreen);
+    screenManagerAgent_->screenManager_ = screenManager_;
+    static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr())->screenManagerAgent_ = screenManagerAgent_;
     dataWriteModeFail.WriteUint64(virtualScreenId);
-    res = connectionStub_->OnRemoteRequest(code, dataWriteModeFail, replyWriteModeFail, option);
+    int res = connectionStub_->OnRemoteRequest(code, dataWriteModeFail, replyWriteModeFail, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
+    screenManager_->screens_.erase(virtualScreenId);
 }
 
 /**
