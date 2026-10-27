@@ -1930,4 +1930,49 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawNGFilterNullContai
     drawable->OnDraw(&canvas, &rect);
     SUCCEED();
 }
+
+/**
+ * @tc.name: ColorNGFilterOnDrawSurfaceNullptr
+ * @tc.desc: OnDraw calls DrawColorNGFilter with CPU canvas (no surface)
+ *          (branch: surface == nullptr → true, drawRect/image/resImage/imageShader
+ *           not reached)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawSurfaceNullptr, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = nullptr;
+    drawable->colorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawEmptyClipBounds
+ * @tc.desc: OnDraw calls DrawColorNGFilter with empty device clip bounds
+ *          (branch: surface != nullptr → false, drawRect.IsEmpty() → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawEmptyClipBounds, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = nullptr;
+    drawable->colorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(1, 1, format);
+    auto surface = Drawing::Surface::MakeRaster(bmp.GetImageInfo());
+    ASSERT_NE(surface, nullptr);
+    auto canvas = surface->GetCanvas();
+    ASSERT_NE(canvas, nullptr);
+    Drawing::Rect rect(0.0f, 0.0f, 0.0f, 0.0f);
+    drawable->OnDraw(canvas, &rect);
+    SUCCEED();
+}
 } // namespace OHOS::Rosen
