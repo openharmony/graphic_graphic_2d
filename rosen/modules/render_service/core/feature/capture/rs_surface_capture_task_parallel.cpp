@@ -38,6 +38,7 @@
 #include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
+#include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -59,6 +60,35 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t ALPHA_MASK = 0xFF000000;
+
+// Flag ancestor cache roots of each blacklisted surface (NodeGroupHasChildInBlacklist)
+// so CheckCacheTypeAndDraw(isInCapture) invalidates them and OnCapture re-traverses the
+// subtree, letting CheckIfSurfaceSkipInMirrorOrScreenshot apply. Flag self-clears via OnSync.
+void MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& blackList)
+{
+    if (blackList.empty()) {
+        return;
+    }
+    for (NodeId blackId : blackList) {
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(blackId);
+        if (node == nullptr) {
+            continue;
+        }
+        for (auto cur = node; cur != nullptr; cur = cur->GetParent().lock()) {
+            auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(cur->GetId());
+            if (drawable == nullptr) {
+                continue;
+            }
+            const auto& params = drawable->GetRenderParams();
+            // Gate on HasRenderGroupCache: SetNodeGroupHasChildInBlacklist lazily creates
+            // renderGroupCache_, which OnSync won't clear on non-cache-roots (staging has
+            // none), leaving a stale flag.
+            if (params != nullptr && params->HasRenderGroupCache()) {
+                params->SetNodeGroupHasChildInBlacklist(true);
+            }
+        }
+    }
+}
 
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
@@ -956,6 +986,8 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
     RSUniRenderThread::Instance().SetBlackList(blackList);
+    // Invalidate caches whose subtree contains a blacklisted surface.
+    MarkCaptureBlacklistAncestorCacheRoots(blackList);
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
     displayNodeDrawable.OnCapture(canvas);
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
