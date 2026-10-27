@@ -70,7 +70,6 @@ struct FilterEffectParams {
     std::unique_ptr<RSCompositingBlurPara> compositingBlurPara_ = nullptr;
     bool ctBlurDisableSystemAdaptation = true;
 
-    // color NG filter (Binarization / LightUpEffect / DynamicDim — Last Setter Wins)
     std::shared_ptr<RSNGRenderFilterBase> colorNGRenderFilter_ = nullptr;
 
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
@@ -395,7 +394,6 @@ public:
     float GetCompositingBlurRadiusY() const;
     bool IsCompositingBlurRadiusYValid() const;
 
-    // colorNGRenderFilter_
     void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter);
     const std::shared_ptr<RSNGRenderFilterBase>& GetColorNGFilter() const;
 

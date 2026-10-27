@@ -45,8 +45,6 @@ constexpr int PARAM_TWO = 2;
 
 const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
 
-// ====================================
-// ColorFilter (handles both traditional ColorFilter and ColorNGFilter)
 RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSColorFilterDrawable>(); ret->OnUpdate(node)) {
