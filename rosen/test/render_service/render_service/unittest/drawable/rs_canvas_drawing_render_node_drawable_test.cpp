@@ -22,13 +22,15 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
+#include "iconsumer_surface.h"
+#include "recording/draw_cmd_list.h"
+
 #include "common/rs_background_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
-#include "recording/draw_cmd_list.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1650,5 +1652,346 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateBufferDrawParamCanvasDrawi
     BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(*drawable, forceCPU, threadIndex);
     ASSERT_TRUE(params.useBilinearInterpolation);
 }
-#endif
+
+/**
+ * @tc.name: DrawCustomContentHybridDisabledTest
+ * @tc.desc: Test DrawCustomContent returns early when hybrid is disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentHybridDisabledTest, TestSize.Level1)
+{
+    // Branch 1: IsHybridEnabled() == false -> immediate return.
+    // Force the static flag off for the duration of the test.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = false;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    drawable->DrawCustomContent(canvas);
+    // surface_ must NOT be reset because we returned before the ResetSurface() call.
+    ASSERT_NE(drawable->surface_, nullptr);
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
 }
+
+/**
+ * @tc.name: DrawCustomContentRenderParamsNullTest
+ * @tc.desc: Test DrawCustomContent returns early when renderParams_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentRenderParamsNullTest, TestSize.Level1)
+{
+    // Branch 2: renderParams_ == nullptr -> return.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = nullptr;
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    drawable->DrawCustomContent(canvas);
+    // Should return before ResetSurface, surface_ remains.
+    ASSERT_NE(drawable->surface_, nullptr);
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentResetSurfaceBranchTest
+ * @tc.desc: Test DrawCustomContent resets surface_ when surface_ is not null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentResetSurfaceBranchTest, TestSize.Level1)
+{
+    // Branch 3: surface_ != nullptr -> ResetSurface().
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    drawable->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
+    ASSERT_NE(drawable->surface_, nullptr);
+    drawable->DrawCustomContent(canvas);
+    // ResetSurface should have cleared surface_ (buffer is null -> early return after ResetSurface).
+    ASSERT_EQ(drawable->surface_, nullptr);
+    ASSERT_FALSE(drawable->IsNeedDraw());
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentNullBufferTest
+ * @tc.desc: Test DrawCustomContent returns when GetBuffer() is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentNullBufferTest, TestSize.Level1)
+{
+    // Branch 5: renderParams_->GetBuffer() == nullptr -> return.
+    // Covers both the no-gravity-matrix path and the gravity-matrix path.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+
+    // Case A: frameRect matches bounds -> GetGravityMatrix returns false (no ConcatMatrix).
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->renderParams_->frameRect_ = { 0.f, 0.f, 1.f, 1.f };
+    drawable->renderParams_->boundsRect_ = { 0.f, 0.f, 1.f, 1.f };
+    drawable->renderParams_->frameGravity_ = Gravity::TOP_LEFT;
+    ASSERT_EQ(drawable->renderParams_->GetBuffer(), nullptr);
+    drawable->DrawCustomContent(canvas);
+    ASSERT_FALSE(drawable->IsNeedDraw());
+
+    // Case B: frameRect differs from bounds with CENTER gravity -> GetGravityMatrix returns true -> ConcatMatrix.
+    drawable->renderParams_->frameRect_ = { 0.f, 0.f, 10.f, 10.f };
+    drawable->renderParams_->boundsRect_ = { 0.f, 0.f, 1.f, 1.f };
+    drawable->renderParams_->frameGravity_ = Gravity::CENTER;
+    drawable->DrawCustomContent(canvas);
+    ASSERT_FALSE(drawable->IsNeedDraw());
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentBufferOwnerCountTest
+ * @tc.desc: Test DrawCustomContent AddRef/DecRef branch when bufferOwnerCount is non-null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentBufferOwnerCountTest, TestSize.Level1)
+{
+    // Branch 6: bufferOwnerCount != nullptr -> AddRef() / DecRef().
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    int32_t refBefore = bufferOwnerCount->refCount_.load();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    Rect damageRect = { 0, 0, 0, 0 };
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBuffer(buffer, bufferOwnerCount, damageRect);
+    ASSERT_NE(params->GetBuffer(), nullptr);
+    ASSERT_NE(params->GetBufferOwnerCount(), nullptr);
+
+    // No render engine set up -> DrawCanvasDrawingNodeWithParams path will no-op,
+    // but AddRef/DecRef must balance.
+    drawable->DrawCustomContent(canvas);
+    int32_t refAfter = bufferOwnerCount->refCount_.load();
+    ASSERT_EQ(refAfter, refBefore);
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentNullBufferOwnerCountTest
+ * @tc.desc: Test DrawCustomContent skips AddRef/DecRef when bufferOwnerCount is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentNullBufferOwnerCountTest002, TestSize.Level1)
+{
+    // Branch 7: bufferOwnerCount == nullptr -> skip AddRef/DecRef.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    Rect damageRect = { 0, 0, 0, 0 };
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBuffer(buffer, nullptr, damageRect);
+    ASSERT_NE(params->GetBuffer(), nullptr);
+    ASSERT_EQ(params->GetBufferOwnerCount(), nullptr);
+    // Should not crash on null bufferOwnerCount.
+    drawable->DrawCustomContent(canvas);
+    ASSERT_FALSE(drawable->IsNeedDraw());
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentFullDrawPathTest
+ * @tc.desc: Test DrawCustomContent full path with render engine and consumer surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentFullDrawPathTest, TestSize.Level1)
+{
+    // Full path: hybrid enabled, renderParams valid, surface_ null, buffer non-null,
+    // bufferOwnerCount non-null, render engine available. Reaches DrawCanvasDrawingNodeWithParams.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->renderParams_->frameRect_ = { 0.f, 0.f, 10.f, 10.f };
+    drawable->renderParams_->boundsRect_ = { 0.f, 0.f, 5.f, 5.f };
+    drawable->renderParams_->frameGravity_ = Gravity::CENTER;
+
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    Rect damageRect = { 0, 0, 0, 0 };
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBuffer(buffer, bufferOwnerCount, damageRect);
+    auto consumerSurface = IConsumerSurface::Create("TestCanvasDrawingConsumer");
+    params->SetConsumerSurface(consumerSurface);
+
+    int32_t refBefore = bufferOwnerCount->refCount_.load();
+    // Set up render engine so the final DrawCanvasDrawingNodeWithParams call is reachable.
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    bool needRestoreEngine = (uniRenderThread.uniRenderEngine_ == nullptr);
+    if (needRestoreEngine) {
+        uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    // DrawCanvasDrawingNodeWithParams -> CreateImageFromBuffer returns nullptr for a plain
+    // SurfaceBuffer (no real GPU backing) -> returns early, but AddRef/DecRef still balance.
+    drawable->DrawCustomContent(canvas);
+    ASSERT_EQ(bufferOwnerCount->refCount_.load(), refBefore);
+    if (needRestoreEngine) {
+        uniRenderThread.uniRenderEngine_ = nullptr;
+    }
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentAllGravitiesTest
+ * @tc.desc: Test DrawCustomContent with each Gravity branch in GetGravityMatrix
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentAllGravitiesTest, TestSize.Level1)
+{
+    // Exercise every Gravity case inside RSPropertiesPainter::GetGravityMatrix via DrawCustomContent.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    // frameRect != bounds so GetGravityMatrix does not short-circuit on equal sizes.
+    drawable->renderParams_->frameRect_ = { 0.f, 0.f, 10.f, 10.f };
+    drawable->renderParams_->boundsRect_ = { 0.f, 0.f, 4.f, 4.f };
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBuffer(buffer, nullptr, { 0, 0, 0, 0 });
+
+    const std::vector<Gravity> gravities = {
+        Gravity::CENTER,
+        Gravity::TOP,
+        Gravity::BOTTOM,
+        Gravity::LEFT,
+        Gravity::RIGHT,
+        Gravity::TOP_LEFT,
+        Gravity::TOP_RIGHT,
+        Gravity::BOTTOM_LEFT,
+        Gravity::BOTTOM_RIGHT,
+    };
+    for (auto gravity : gravities) {
+        drawable->renderParams_->frameGravity_ = gravity;
+        drawable->surface_ = nullptr;
+        drawable->DrawCustomContent(canvas);
+        ASSERT_FALSE(drawable->IsNeedDraw());
+    }
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentNeedDrawFlagTest
+ * @tc.desc: Test DrawCustomContent always sets needDraw_ to false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentNeedDrawFlagTest, TestSize.Level1)
+{
+    // Verify SetNeedDraw(false) is invoked regardless of the early-return at GetBuffer() == nullptr.
+    bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    RSPaintFilterCanvas canvas(drawingCanvas.get());
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->SetNeedDraw(true);
+    ASSERT_TRUE(drawable->IsNeedDraw());
+    // No buffer set -> early return, but SetNeedDraw(false) runs before the return.
+    drawable->DrawCustomContent(canvas);
+    ASSERT_FALSE(drawable->IsNeedDraw());
+    RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
+}
+
+/**
+ * @tc.name: DrawCustomContentForCaptureTest
+ * @tc.desc: Test DrawCustomContentForCapture with null and non-null buffer image
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentForCaptureTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(10, 10);
+    const Drawing::Rect rect(0.f, 0.f, 5.f, 5.f);
+
+    // Case 1: renderParams_ is null -> CreateImageFromBuffer reads nullptr buffer -> returns nullptr.
+    drawable->renderParams_ = nullptr;
+    drawable->DrawCustomContentForCapture(canvas, rect);
+
+    // Case 2: renderParams_ set, buffer null -> CreateImageFromBuffer returns nullptr.
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    drawable->DrawCustomContentForCapture(canvas, rect);
+
+    // Case 3: renderParams_ set, buffer non-null but no GPU context -> image nullptr.
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    params->SetBuffer(buffer, nullptr, { 0, 0, 0, 0 });
+    drawable->DrawCustomContentForCapture(canvas, rect);
+    // No crash, no image produced (GPU context unavailable in unit test).
+    ASSERT_NE(params->GetBuffer(), nullptr);
+}
+
+/**
+ * @tc.name: CreateImageFromBufferBranchesTest
+ * @tc.desc: Test CreateImageFromBuffer all early-return branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateImageFromBufferBranchesTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+
+    // Branch 1: buffer == nullptr -> return nullptr.
+    ASSERT_EQ(drawable->CreateImageFromBuffer(nullptr), nullptr);
+
+    // Branch 2: buffer non-null, no GPU context -> return nullptr.
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    auto image = drawable->CreateImageFromBuffer(buffer);
+    ASSERT_EQ(image, nullptr);
+
+    // Branch 3: with renderParams_ set but still no GPU context.
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBuffer(buffer, nullptr, { 0, 0, 0, 0 });
+    image = drawable->CreateImageFromBuffer(params->GetBuffer());
+    ASSERT_EQ(image, nullptr);
+}
+#endif
+} // namespace OHOS::Rosen
