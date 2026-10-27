@@ -30,13 +30,13 @@ enum RSWindowKeyFrameNodeCommandType : uint16_t {
 
 class RSB_EXPORT RSWindowKeyFrameNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id, bool isTextureExportNode);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false, uint64_t token = 0);
     static void LinkNode(RSContext& context, NodeId nodeId, NodeId linkNodeId);
 };
 
 ADD_COMMAND(RSWindowKeyFrameNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, WINDOW_KEYFRAME_NODE, WINDOW_KEYFRAME_NODE_CREATE,
-        RSWindowKeyFrameNodeCommandHelper::Create, NodeId, bool))
+        RSWindowKeyFrameNodeCommandHelper::Create, NodeId, bool, uint64_t))
 ADD_COMMAND(RSWindowKeyFrameNodeLinkNode,
     ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, WINDOW_KEYFRAME_NODE, WINDOW_KEYFRAME_NODE_LINK_NODE,
         RSWindowKeyFrameNodeCommandHelper::LinkNode, NodeId, NodeId))

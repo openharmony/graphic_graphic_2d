@@ -53,7 +53,7 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::Create(bool isRenderServic
     RS_LOGI("RSWindowKeyFrameNode created, id: %{public}" PRIu64 "", node->GetId());
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSWindowKeyFrameNodeCreate>(
-        node->GetId(), isTextureExportNode);
+        node->GetId(), isTextureExportNode, GetContextToken(rsUIContext));
     node->AddCommand(command, node->IsRenderServiceNode());
     node->SetUIContextToken();
     return node;
@@ -148,7 +148,8 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::ReadFromParcel(Parcel& par
 
 void RSWindowKeyFrameNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSWindowKeyFrameNodeCreate>(GetId(), IsTextureExportNode());
+    std::unique_ptr<RSCommand> command = std::make_unique<RSWindowKeyFrameNodeCreate>(GetId(), IsTextureExportNode(),
+        GetUIContextTokenValue());
     AddCommand(command, IsRenderServiceNode());
 }
 } // namespace Rosen

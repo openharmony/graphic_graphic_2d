@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 
 void RSWindowKeyFrameNodeCommandHelper::Create(
-    RSContext& context, NodeId id, bool isTextureExportNode)
+    RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -38,6 +38,7 @@ void RSWindowKeyFrameNodeCommandHelper::Create(
         return;
     }
 
+    context.MarkSceneBoardNode(id, token, *node);
     context.GetMutableNodeMap().RegisterRenderNode(node);
     RS_LOGI("RSWindowKeyFrameNodeCommand node[%{public}" PRIu64 "] created", id);
 }
