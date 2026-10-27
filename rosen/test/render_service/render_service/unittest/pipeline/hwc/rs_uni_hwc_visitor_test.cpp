@@ -4354,8 +4354,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_002, TestSi
 
 /**
  * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_003
- * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize >= DEFAULT_QUEUE_SIZE
- *           and frameTimeInterval < autoSwitchInterval
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize < DEFAULT_QUEUE_SIZE,
+ *           hardware composer should not be forced disabled
  * @tc.type: FUNC
  * @tc.require: issueIAJY2P
  */
@@ -4368,7 +4368,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_003, TestSi
     ASSERT_NE(consumer, nullptr);
     auto producer = consumer->GetProducer();
     auto psurf = Surface::CreateSurfaceAsProducer(producer);
-    psurf->SetQueueSize(5);
+    psurf->SetQueueSize(3);
 
     auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
     auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
@@ -4545,6 +4545,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, T
     hwcNodePtr->SetHardwareForcedDisabledState(false);
     hwcNodePtr->SetIsOnTheTree(true);
     ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    auto hwcConsumer = hwcNodePtr->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(hwcConsumer, nullptr);
+    auto hwcProducer = hwcConsumer->GetProducer();
+    auto hwcPsurf = Surface::CreateSurfaceAsProducer(hwcProducer);
+    hwcPsurf->SetQueueSize(5);
     // Push directly into childHwcNodes_ to make GetChildHwcNodes return it
     displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
     displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
@@ -4559,6 +4564,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, T
     RSUniRenderUtil::SetAutoSwitchInterval(5);
 
     rsUniHwcVisitor->UpdateHwcNodeEnable();
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(hwcNodePtr);
     EXPECT_TRUE(hwcNodePtr->IsHardwareForcedDisabled());
 
     RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
