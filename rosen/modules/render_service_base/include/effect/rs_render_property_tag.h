@@ -98,9 +98,6 @@ enum class RSNGEffectType : int16_t {
     DISTORTION_COLLAPSE,
     HEAT_DISTORTION,
     BLUR_BUBBLES_RISE,
-    BINARIZATION,
-    LIGHT_UP_EFFECT,
-    DYNAMIC_DIM,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
@@ -167,6 +164,9 @@ enum class RSNGEffectType : int16_t {
     ATLAS_FRAME_MASK,
     DISTORT_LIGHT,
     COSMOS_RING_SHADOW,
+    BINARIZATION,
+    LIGHT_UP_EFFECT,
+    DYNAMIC_DIM,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
