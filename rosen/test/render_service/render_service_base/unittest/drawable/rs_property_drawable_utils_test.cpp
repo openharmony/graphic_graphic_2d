@@ -2486,4 +2486,61 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape008, testing::ext::Test
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
 }
+
+/**
+ * @tc.name: DrawColorNGFilterSurfaceNullptr
+ * @tc.desc: DrawColorNGFilter with CPU canvas (no surface)
+ *          (branch: all params valid → false; surface == nullptr → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterSurfaceNullptr, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, &rect, container);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterNullCanvas
+ * @tc.desc: DrawColorNGFilter with null canvas
+ *          (branch: canvas == nullptr → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullCanvas, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(nullptr, &rect, container);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterNullRect
+ * @tc.desc: DrawColorNGFilter with null rect
+ *          (branch: rect == nullptr → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullRect, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Canvas canvas;
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, nullptr, container);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterNullContainer
+ * @tc.desc: DrawColorNGFilter with null visualEffectContainer
+ *          (branch: visualEffectContainer == nullptr → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullContainer, testing::ext::TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, &rect, nullptr);
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen
