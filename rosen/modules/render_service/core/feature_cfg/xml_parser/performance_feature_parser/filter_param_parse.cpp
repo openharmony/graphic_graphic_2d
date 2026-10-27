@@ -20,6 +20,7 @@
 #include "ge_render.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "system/rs_system_parameters.h"
 
 #define XML_KEY_NAME "name"
@@ -95,9 +96,8 @@ int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
 
 void FilterParamParse::FilterCCMInit()
 {
-    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(FilterParam::IsEffectMergeEnable());
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(FilterParam::IsFilterCacheEnable());
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
     GraphicsEffectEngine::GERender::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());

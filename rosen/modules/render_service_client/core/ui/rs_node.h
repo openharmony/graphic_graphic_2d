@@ -1554,6 +1554,13 @@ public:
     void SetShadowDisableSDFBlur(bool disable);
 
     /**
+     * @brief Sets the clip type of the shadow.
+     *
+     * @param clipType Indicates the clip type of the shadow.
+     */
+    void SetShadowClipType(int clipType);
+    
+    /**
      * @brief Sets the gravity for the frame of this node.
      *
      * @param gravity The gravity value to apply.

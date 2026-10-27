@@ -73,5 +73,6 @@
         _ZTCN4OHOS11IRemoteStubINS_5Rosen21VSyncIConnectionTokenEEE128_NS_10ParcelableE;
         _ZTVN4OHOS11IRemoteStubINS_5Rosen18RSIConnectionTokenEEE;
         _ZTVN4OHOS11IRemoteStubINS_5Rosen21VSyncIConnectionTokenEEE;
+        _ZNSt3__h12__hash_tableINS_4hashTiEENS_8equal_toTiEENS_9allocatorIiEEE11__do_rehashILb1EEEvm;
         _ZZN4OHOS5Rosen7RSTimerD1EvE10hilogFmt48;
 };

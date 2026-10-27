@@ -61,7 +61,8 @@ public:
         bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup = false);
     void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
     void QuickCheckOpincStable(
-        RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode);
+        RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+        bool& hasUnstableOpincNode, bool hasAncestorRenderGroup = false);
     OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
     std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 

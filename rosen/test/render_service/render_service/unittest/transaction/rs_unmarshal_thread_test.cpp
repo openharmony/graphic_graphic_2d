@@ -42,7 +42,14 @@ public:
 };
 
 void RSUnmarshalThreadTest::SetUpTestCase() {}
-void RSUnmarshalThreadTest::TearDownTestCase() {}
+void RSUnmarshalThreadTest::TearDownTestCase()
+{
+    auto& instance = RSUnmarshalThread::Instance();
+    instance.WaitUntilParallelTasksFinished();
+    instance.parallelQueue_ = nullptr;
+    instance.queue_ = nullptr;
+    usleep(USLEEP_TIME);
+}
 void RSUnmarshalThreadTest::SetUp() {}
 void RSUnmarshalThreadTest::TearDown()
 {
@@ -186,6 +193,131 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
     bool isNonSystemAppCalling = true;
     pid_t callingPid = 1111;
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
+}
+
+/**
+ * @tc.name: RecvParcelWaitUnmarshallingTrue
+ * @tc.desc: Test RecvParcel with waitUnmarshalling=true does not increment noNeedWaitTaskNum_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelWaitUnmarshallingTrue, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    instance.noNeedWaitTaskNum_.store(0);
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success, true);
+
+    instance.RecvParcel(data, false, 0, nullptr, nullptr, 0, true);
+
+    EXPECT_EQ(instance.noNeedWaitTaskNum_.load(), 0);
+
+    usleep(USLEEP_TIME);
+
+    EXPECT_EQ(instance.noNeedWaitTaskNum_.load(), 0);
+}
+
+/**
+ * @tc.name: RecvParcelNoNeedWaitTaskNumOwnership
+ * @tc.desc: Test tasks only decrement their own no-need-wait count on normal and early-return paths
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelNoNeedWaitTaskNumOwnership, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    auto waitForTasks = [&instance]() {
+        instance.WaitUntilParallelTasksFinished();
+        auto taskDone = std::make_shared<std::promise<void>>();
+        auto taskDoneFuture = taskDone->get_future();
+        instance.PostTask([taskDone]() { taskDone->set_value(); }, "taskNumProbe");
+        return taskDoneFuture.wait_for(std::chrono::seconds(1)) == std::future_status::ready;
+    };
+    if (!waitForTasks()) {
+        GTEST_SKIP() << "unmarshal queue does not run tasks in this environment";
+    }
+
+    auto transactionData = std::make_shared<RSTransactionData>();
+    auto waitData = std::make_shared<MessageParcel>();
+    auto noWaitData = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(waitData->WriteParcelable(transactionData.get()));
+    ASSERT_TRUE(noWaitData->WriteParcelable(transactionData.get()));
+    auto invalidData = std::make_shared<MessageParcel>();
+    instance.GetCachedTransactionData();
+
+    // Simulate an unrelated pending no-need-wait task. A normal wait task must not consume its count.
+    instance.noNeedWaitTaskNum_.store(1);
+    instance.RecvParcel(waitData, false, 0, nullptr, nullptr, 0, true);
+    bool waitTaskFinished = waitForTasks();
+    int waitTaskNum = instance.noNeedWaitTaskNum_.load();
+    instance.noNeedWaitTaskNum_.store(0);
+    instance.GetCachedTransactionData();
+    ASSERT_TRUE(waitTaskFinished);
+    EXPECT_EQ(waitTaskNum, 1);
+
+    instance.noNeedWaitTaskNum_.store(1);
+    instance.RecvParcel(invalidData, false, 0, nullptr, nullptr, 0, true);
+    bool invalidWaitTaskFinished = waitForTasks();
+    int invalidWaitTaskNum = instance.noNeedWaitTaskNum_.load();
+    instance.noNeedWaitTaskNum_.store(0);
+    instance.GetCachedTransactionData();
+    ASSERT_TRUE(invalidWaitTaskFinished);
+    EXPECT_EQ(invalidWaitTaskNum, 1);
+
+    instance.RecvParcel(noWaitData, false, 0, nullptr, nullptr, 0, false);
+    bool noWaitTaskFinished = waitForTasks();
+    int noWaitTaskNum = instance.noNeedWaitTaskNum_.load();
+    instance.GetCachedTransactionData();
+    ASSERT_TRUE(noWaitTaskFinished);
+    instance.noNeedWaitTaskNum_.store(0);
+    EXPECT_EQ(noWaitTaskNum, 0);
+}
+
+/**
+ * @tc.name: RecvParcelInvalidParcelNoWaitTaskNum
+ * @tc.desc: Test RecvParcel decrements noNeedWaitTaskNum_ on the early-return path when parsing fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelInvalidParcelNoWaitTaskNum, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    std::promise<void> probe;
+    auto probeFuture = probe.get_future();
+    instance.PostTask([&probe]() { probe.set_value(); }, "probe");
+    if (probeFuture.wait_for(std::chrono::seconds(1)) != std::future_status::ready) {
+        GTEST_SKIP() << "unmarshal queue does not run tasks in this environment";
+    }
+
+    instance.noNeedWaitTaskNum_.store(0);
+
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    instance.RecvParcel(data, false, 0, nullptr, nullptr, 0, false);
+
+    constexpr int maxWaitMs = 1000;
+    constexpr int pollIntervalMs = 10;
+    constexpr int msPerSecond = 1000;
+    bool drained = false;
+    for (int waitedMs = 0; waitedMs < maxWaitMs; waitedMs += pollIntervalMs) {
+        if (instance.noNeedWaitTaskNum_.load() == 0) {
+            drained = true;
+            break;
+        }
+        usleep(pollIntervalMs * msPerSecond);
+    }
+    EXPECT_TRUE(drained);
 }
 
 #ifdef RS_ENABLE_UNI_RENDER

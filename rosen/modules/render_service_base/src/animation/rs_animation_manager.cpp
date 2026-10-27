@@ -16,9 +16,7 @@
 #include "animation/rs_animation_manager.h"
 
 #include <algorithm>
-#include <sstream>
 #include <string>
-#include <thread>
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
@@ -37,18 +35,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSRootRenderNode;
-
-RSAnimationManager::RSAnimationManager() : creationTid_(std::this_thread::get_id()) {}
-
-RSAnimationManager::~RSAnimationManager()
-{
-    if (auto currentTid = std::this_thread::get_id(); currentTid != creationTid_) {
-        std::ostringstream oss;
-        oss << "creationTid=" << creationTid_ << ", currentTid=" << currentTid;
-        ROSEN_LOGE(
-            "RSAnimationManager::~RSAnimationManager, destroyed on non-main thread, %{public}s", oss.str().c_str());
-    }
-}
 
 void RSAnimationManager::DumpAnimations(std::string& out) const
 {

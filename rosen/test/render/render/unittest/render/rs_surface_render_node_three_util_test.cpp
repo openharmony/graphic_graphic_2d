@@ -151,57 +151,6 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateDrawingCacheNodes, TestSize.Lev
 }
 
 /**
- * @tc.name: UpdateFilterCacheStatusWithVisible
- * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateFilterCacheStatusWithVisible, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    bool visible = true;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    ASSERT_TRUE(renderNode->prevVisible_);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusIfNodeStatic
- * @tc.desc: test results of UpdateFilterCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
-    auto mockNode1 = std::make_shared<RSEffectRenderNode>(id + 1);
-    node->filterNodes_.emplace_back(mockNode1);
-    auto mockNode2 = std::make_shared<RSRenderNode>(id + 2);
-    node->filterNodes_.emplace_back(mockNode2);
-    auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
-    mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode3);
-    auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
-    mockNode4->isOnTheTree_ = true;
-    mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode4);
-    std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
-    node->filterNodes_.emplace_back(mockNode5);
-    node->dirtyManager_->UpdateCacheableFilterRect({0, 0, 100, 100});
-    node->oldDirtyInSurface_ = {0, 0, 10, 10};
-    std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
-    mockNode6->isOnTheTree_ = true;
-    mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode6);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
-    ASSERT_NE(node->filterNodes_.size(), 0);
-}
-
-/**
  * @tc.name: ResetOpaqueRegion
  * @tc.desc: test results of ResetOpaqueRegion
  * @tc.type: FUNC

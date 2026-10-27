@@ -246,6 +246,21 @@ typedef enum : uint32_t {
     VIRTUAL_SCREEN_INVALID_STATUS,
 } VirtualScreenStatus;
 
+/*
+ * @brief Enumerates the HDR mode of a virtual screen.
+ * NONE: HDR off, the virtual screen goes the SDR path.
+ * HDR_DYNAMIC: the HDR output follows the HDR status of the screen content dynamically, the color
+ *              gamut of the virtual screen output switches when the content switches HDR/SDR.
+ * HDR_STATIC: the HDR output keeps unchanged during recording, the color gamut of the virtual
+ *             screen output does not switch when the content switches HDR/SDR.
+ */
+enum class HDRMode : uint32_t {
+    NONE = 0,
+    HDR_DYNAMIC,
+    HDR_STATIC,
+    HDR_MODE_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
+};
+
 enum class DualScreenStatus : uint64_t {
     DUAL_SCREEN_EXIT = 0,
     DUAL_SCREEN_ENTER,

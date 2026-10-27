@@ -298,7 +298,9 @@ RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
 
 void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 {
-    enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
+    const auto& properties = node.GetRenderProperties();
+    enableEDREffect_ = properties.GetFgBrightnessEnableEDR() ||
+        properties.GetColorfulBrightnessBlenderEnableEDR();
     if (enableEDREffect_) {
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSBeginBlenderDrawable:PostUpdate node[%" PRIu64 "] has edr brightness", node.GetId());

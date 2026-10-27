@@ -16,7 +16,7 @@
 #include "pipeline/rs_effect_utils.h"
 
 #include "common/rs_optional_trace.h"
-#include "render/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {

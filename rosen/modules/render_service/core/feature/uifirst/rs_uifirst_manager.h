@@ -199,7 +199,7 @@ public:
     {
         return systemDoWindowAnimate_;
     }
-    
+
     void SetTopLeashWindowId(NodeId id)
     {
         topLeashWindowId_ = id;
@@ -377,7 +377,7 @@ private:
     std::atomic<bool> isMissionCenterScene_ = false;
     std::atomic<bool> isSplitScreenScene_ = false;
     std::atomic<bool> isSnapshotRotationScene_ = false;
-    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;
     // Minimum frame drop time in behind window condition
     static constexpr int BEHIND_WINDOW_RELEASE_TIME = 33;

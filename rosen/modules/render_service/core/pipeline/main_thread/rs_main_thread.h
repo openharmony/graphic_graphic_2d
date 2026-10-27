@@ -73,6 +73,8 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
+class RSProcessor;
+class RSSurfaceRenderNode;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -603,6 +605,8 @@ private:
     uint32_t GetForceCommitReason() const;
 
     void TraverseCanvasDrawingNodes();
+    void CheckDrawOpOverLimit();
+    void CheckCommandOverLimit(const std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool CheckIfNeedSplitTransaction();
 
     void SetFocusLeashWindowId();
@@ -655,6 +659,10 @@ private:
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    // SolidLayerEnabled node without buffer: create solid color layer directly and return true;
+    // Otherwise return false to fall through to the buffer-based path.
+    bool ProcessSolidLayerInDirectComposition(
+        RSSurfaceRenderNode& surfaceNode, RSSurfaceHandler& surfaceHandler, RSProcessor& processor);
     bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
@@ -908,6 +916,8 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
 
     std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+    std::unordered_map<pid_t, int64_t> lastDrawOpReportTimeMap_;
+    std::unordered_map<pid_t, int64_t> lastCommandReportTimeMap_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

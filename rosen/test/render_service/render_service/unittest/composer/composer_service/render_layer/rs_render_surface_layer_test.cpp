@@ -758,19 +758,19 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_DelegateModeTrue_UpdatesCropRect,
     auto src = std::make_shared<RSRenderSurfaceLayer>();
     src->SetDelegateMode(true);
     GraphicIRect expectedCrop{1, 2, 3, 4};
-    src->SetDelegateModeCropRect(expectedCrop);
+    src->SetDelegateSrcRect(expectedCrop);
 
     auto dst = std::make_shared<RSRenderSurfaceLayer>();
     dst->SetDelegateMode(false);
-    dst->SetDelegateModeCropRect({99, 99, 99, 99});
+    dst->SetDelegateSrcRect({99, 99, 99, 99});
 
     dst->CopyLayerInfo(src);
 
     EXPECT_TRUE(dst->GetDelegateMode());
-    EXPECT_EQ(dst->GetDelegateModeCropRect().x, expectedCrop.x);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().y, expectedCrop.y);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().w, expectedCrop.w);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().h, expectedCrop.h);
+    EXPECT_EQ(dst->GetDelegateSrcRect().x, expectedCrop.x);
+    EXPECT_EQ(dst->GetDelegateSrcRect().y, expectedCrop.y);
+    EXPECT_EQ(dst->GetDelegateSrcRect().w, expectedCrop.w);
+    EXPECT_EQ(dst->GetDelegateSrcRect().h, expectedCrop.h);
 }
 
 /**
@@ -785,20 +785,20 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_DelegateModeFalse_PreservesCropRe
 {
     auto src = std::make_shared<RSRenderSurfaceLayer>();
     src->SetDelegateMode(false);
-    src->SetDelegateModeCropRect({1, 2, 3, 4});
+    src->SetDelegateSrcRect({1, 2, 3, 4});
 
     auto dst = std::make_shared<RSRenderSurfaceLayer>();
     dst->SetDelegateMode(true);
     GraphicIRect preservedCrop{9, 9, 9, 9};
-    dst->SetDelegateModeCropRect(preservedCrop);
+    dst->SetDelegateSrcRect(preservedCrop);
 
     dst->CopyLayerInfo(src);
 
     EXPECT_FALSE(dst->GetDelegateMode());
-    EXPECT_EQ(dst->GetDelegateModeCropRect().x, preservedCrop.x);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().y, preservedCrop.y);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().w, preservedCrop.w);
-    EXPECT_EQ(dst->GetDelegateModeCropRect().h, preservedCrop.h);
+    EXPECT_EQ(dst->GetDelegateSrcRect().x, preservedCrop.x);
+    EXPECT_EQ(dst->GetDelegateSrcRect().y, preservedCrop.y);
+    EXPECT_EQ(dst->GetDelegateSrcRect().w, preservedCrop.w);
+    EXPECT_EQ(dst->GetDelegateSrcRect().h, preservedCrop.h);
 }
 
 /**

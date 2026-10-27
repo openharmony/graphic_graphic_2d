@@ -258,20 +258,18 @@ GSError RSDelegateCompositeBufferManager::ReleaseBuffer(uint32_t sequence, sptr<
     return GSERROR_OK;
 }
 
-void RSDelegateCompositeBufferManager::SetDelegateDstRect(float positionX, float positionY,
-    float positionZ, float positionW)
+void RSDelegateCompositeBufferManager::SetDelegateDstRect(float x, float y, float w, float h)
 {
-    RectF rect(positionX, positionY, positionZ, positionW);
+    OHOS::Rosen::RectF rect(x, y, w, h);
     std::unique_ptr<RSCommand> command = std::make_unique<TransactionBufferCommand>(rect, false, nodeId_);
     if (rsTransactionHandle_) {
         rsTransactionHandle_->AddCommand(command, true, FollowType::NONE, 0);
     }
 }
 
-void RSDelegateCompositeBufferManager::SetDelegateSrcRect(float positionX, float positionY,
-    float positionZ, float positionW)
+void RSDelegateCompositeBufferManager::SetDelegateSrcRect(float x, float y, float w, float h)
 {
-    RectF rect(positionX, positionY, positionZ, positionW);
+    OHOS::Rosen::RectF rect(x, y, w, h);
     std::unique_ptr<RSCommand> command = std::make_unique<TransactionBufferCommand>(rect, true, nodeId_);
     if (rsTransactionHandle_) {
         rsTransactionHandle_->AddCommand(command, true, FollowType::NONE, 0);

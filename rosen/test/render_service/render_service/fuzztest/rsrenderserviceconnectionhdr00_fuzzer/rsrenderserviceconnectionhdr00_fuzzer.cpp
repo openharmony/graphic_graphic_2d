@@ -56,8 +56,10 @@ const uint8_t DO_SET_LAYER_TOP = 9;
 const uint8_t DO_SET_FORCE_REFRESH = 10;
 const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
-const uint8_t TARGET_SIZE = 13;
+const uint8_t TARGET_SIZE = 17;
 const uint8_t DO_SET_HDR_FORCE_HWC_ENABLED = 14;
+const uint8_t DO_SET_VIRTUAL_SCREEN_HDR_MODE = 15;
+const uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 16;
 } // namespace
 class MockRenderProcessManager : public RSRenderProcessManager {
 public:
@@ -198,6 +200,34 @@ void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(modeIdx);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+/* Fuzzer test SetVirtualScreenHDRMode */
+void DoSetVirtualScreenHDRMode(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint32_t mode = fdp.ConsumeIntegral<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(mode);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+/* Fuzzer test GetVirtualScreenHDRMode */
+void DoGetVirtualScreenHDRMode(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -591,6 +621,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::DoSetHdrForceHwcEnabled(fdp);
     } else if (tarPos == OHOS::Rosen::DO_SET_FORCE_REFRESH) {
         OHOS::Rosen::DoSetForceRefresh(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_HDR_MODE) {
+        OHOS::Rosen::DoSetVirtualScreenHDRMode(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE) {
+        OHOS::Rosen::DoGetVirtualScreenHDRMode(fdp);
     } else {
         // do nothing
     }

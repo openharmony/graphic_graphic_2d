@@ -1138,6 +1138,20 @@ void SkiaCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
 #endif
 }
 
+// clipOp from deserialized cmd list may be out of range, fallback to kDifference at the adapter boundary
+static SkClipOp ConvertToSkClipOp(ClipOp op)
+{
+    switch (op) {
+        case ClipOp::DIFFERENCE:
+            return SkClipOp::kDifference;
+        case ClipOp::INTERSECT:
+            return SkClipOp::kIntersect;
+        default:
+            LOGE("SkiaCanvas invalid clipOp %{public}d, fallback to DIFFERENCE", static_cast<int>(op));
+            return SkClipOp::kDifference;
+    }
+}
+
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     if (!skCanvas_) {
@@ -1145,7 +1159,7 @@ void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
         return;
     }
     const SkRect* clipRect = reinterpret_cast<const SkRect*>(&rect);
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRect(*clipRect, clipOp, doAntiAlias);
 }
 
@@ -1156,7 +1170,7 @@ void SkiaCanvas::ClipIRect(const RectI& rect, ClipOp op)
         return;
     }
     SkRect clipRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRect(clipRect, clipOp, false);
 }
 
@@ -1168,7 +1182,7 @@ void SkiaCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAnt
     }
     SkRRect rRect;
     RoundRectCastToSkRRect(roundRect, rRect);
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRRect(rRect, clipOp, doAntiAlias);
 }
 
@@ -1192,7 +1206,7 @@ void SkiaCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
     }
     auto skPathImpl = path.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
-        SkClipOp clipOp = static_cast<SkClipOp>(op);
+        SkClipOp clipOp = ConvertToSkClipOp(op);
         skCanvas_->clipPath(skPathImpl->GetPath(), clipOp, doAntiAlias);
     }
 }
@@ -1205,7 +1219,7 @@ void SkiaCanvas::ClipRegion(const Region& region, ClipOp op)
     }
     auto skRegionImpl = region.GetImpl<SkiaRegion>();
     if (skRegionImpl != nullptr) {
-        SkClipOp clipOp = static_cast<SkClipOp>(op);
+        SkClipOp clipOp = ConvertToSkClipOp(op);
         skCanvas_->clipRegion(*(skRegionImpl->GetSkRegion()), clipOp);
     }
 }

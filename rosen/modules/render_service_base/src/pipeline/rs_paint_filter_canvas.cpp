@@ -2014,6 +2014,16 @@ void RSPaintFilterCanvas::SetTargetColorGamut(GraphicColorGamut colorGamut)
     targetColorGamut_ = colorGamut;
 }
 
+bool RSPaintFilterCanvas::GetSkipColorSpaceConversion() const
+{
+    return skipColorSpaceConversion_;
+}
+
+void RSPaintFilterCanvas::SetSkipColorSpaceConversion(bool skipColorSpaceConversion)
+{
+    skipColorSpaceConversion_ = skipColorSpaceConversion;
+}
+
 float RSPaintFilterCanvas::GetBrightnessRatio() const
 {
     return brightnessRatio_;
