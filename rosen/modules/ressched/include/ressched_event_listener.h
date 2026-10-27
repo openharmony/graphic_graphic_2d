@@ -16,14 +16,23 @@
 #ifndef VSYNC_RES_EVENT_LISTENER_H
 #define VSYNC_RES_EVENT_LISTENER_H
 
+#include <atomic>
 #include <cstdint>
+#include <memory>
 #include <mutex>
+#include <unordered_map>
 
 #include "ffrt.h"
 #include "res_sched_event_listener.h"
 
 namespace OHOS {
 namespace Rosen {
+struct ScreenReportContext {
+    std::atomic<bool> isNeedReport {false};
+    std::atomic<bool> isFirstReport {false};
+    std::atomic<uint64_t> lastReportTime {0};
+};
+
 class ResschedEventListener : public ResourceSchedule::ResSchedEventListener {
 public:
     static sptr<ResschedEventListener> GetInstance() noexcept;
@@ -32,16 +41,18 @@ public:
     bool GetIsNeedReport() const;
     bool GetIsFirstReport() const;
     void SetIsFirstReport(bool value);
-    void ReportFrameToRSS();
+    void ReportFrameToRSS(uint64_t screenId = 0);
 
     void ReportFrameCountAsync(uint32_t rowPid);
     uint32_t GetCurrentPid();
 private:
+    static constexpr uint64_t DEFAULT_SCREEN_ID = 0;
     static std::once_flag createFlag_;
     static sptr<ResschedEventListener> instance_;
-    std::atomic<bool> isNeedReport_ = {false};
-    std::atomic<bool> isFirstReport_ = {false};
-    uint64_t lastReportTime_ = 0;
+    std::unordered_map<uint64_t, std::shared_ptr<ScreenReportContext>> screenContexts_;
+    mutable std::mutex screenContextsMutex_;
+    std::shared_ptr<ScreenReportContext> GetOrCreateScreenContext(uint64_t screenId);
+    std::shared_ptr<ScreenReportContext> GetScreenContext(uint64_t screenId) const;
     std::atomic<uint32_t> currentPid_;
     uint32_t currentType_;
     std::chrono::steady_clock::time_point beginTimeStamp_;
@@ -51,7 +62,8 @@ private:
     static std::mutex ffrtGetHighFrequenceQueueMutex_;
     static std::shared_ptr<ffrt::queue> ffrtHighPriorityQueue_;
 
-    void HandleDrawFrameEventReport(uint32_t eventValue);
+    void HandleDrawFrameEventReport(uint32_t eventValue,
+        const std::unordered_map<std::string, std::string>& extInfo);
     void HandleFrameRateStatisticsReport(uint32_t eventValue, std::unordered_map<std::string, std::string> extInfo);
     void HandleFrameRateStatisticsBeginAsync(uint32_t pid, uint32_t type);
     void HandleFrameRateStatisticsEndAsync(uint32_t pid, uint32_t type);

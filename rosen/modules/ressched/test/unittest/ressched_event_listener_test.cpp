@@ -213,6 +213,89 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameToRSS_SubsequentReport, Function 
 }
 
 /*
+* Function: HandleDrawFrameEventReport_ScreenIdIsolation
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test draw frame report events with screenId only affect that screen's context
+*/
+HWTEST_F(ResschedEventListenerTest, HandleDrawFrameEventReport_ScreenIdIsolation, Function | MediumTest | Level3)
+{
+    std::unordered_map<std::string, std::string> emptyExtInfo;
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP, emptyExtInfo);
+
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["screenId"] = "10";
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START, extInfo);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsNeedReport(), false);
+
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START, emptyExtInfo);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsNeedReport(), true);
+}
+
+/*
+* Function: HandleDrawFrameEventReport_InvalidScreenIdFallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test draw frame report start with invalid screenId falls back to default screen
+*/
+HWTEST_F(ResschedEventListenerTest, HandleDrawFrameEventReport_InvalidScreenIdFallback, Function | MediumTest | Level3)
+{
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["screenId"] = "invalid";
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START, extInfo);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsNeedReport(), true);
+}
+
+/*
+* Function: ReportFrameToRSS_UnknownScreenId
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ReportFrameToRSS with unknown screenId returns early and keeps default context
+*/
+HWTEST_F(ResschedEventListenerTest, ReportFrameToRSS_UnknownScreenId, Function | MediumTest | Level3)
+{
+    ResschedEventListener::GetInstance()->SetIsFirstReport(true);
+
+    ResschedEventListener::GetInstance()->ReportFrameToRSS(999);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsFirstReport(), true);
+}
+
+/*
+* Function: ReportFrameToRSS_NonDefaultScreenId
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ReportFrameToRSS on started non-default screen without affecting default context
+*/
+HWTEST_F(ResschedEventListenerTest, ReportFrameToRSS_NonDefaultScreenId, Function | MediumTest | Level3)
+{
+    std::unordered_map<std::string, std::string> emptyExtInfo;
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP, emptyExtInfo);
+
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["screenId"] = "10";
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START, extInfo);
+
+    ResschedEventListener::GetInstance()->ReportFrameToRSS(10);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsNeedReport(), false);
+}
+
+/*
 * Function: ReportFrameCountAsync_WithValidQueue
 * Type: Function
 * Rank: Important(2)

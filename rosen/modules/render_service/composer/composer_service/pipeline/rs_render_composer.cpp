@@ -278,7 +278,7 @@ void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter, 
 void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam)
 {
 #ifdef RES_SCHED_ENABLE
-    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+    ResschedEventListener::GetInstance()->ReportFrameToRSS(screenId_);
 #endif
     unExecuteTaskNum_++;
     if (setHardwareTaskNumCb_ != nullptr) {

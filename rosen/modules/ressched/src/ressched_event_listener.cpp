@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 #include <charconv>
+#include <cinttypes>
+#include <cstdint>
 #include <limits>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 
 #include "ffrt_inner.h"
+#include "platform/common/rs_log.h"
 #include "ressched_event_listener.h"
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -49,59 +55,117 @@ void ResschedEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventVal
     std::unordered_map<std::string, std::string> extInfo)
 {
     if (eventType == ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT) {
-        HandleDrawFrameEventReport(eventValue);
+        HandleDrawFrameEventReport(eventValue, extInfo);
     } else if (eventType == ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS) {
         HandleFrameRateStatisticsReport(eventValue, extInfo);
     }
 }
 
-void ResschedEventListener::HandleDrawFrameEventReport(uint32_t eventValue)
+void ResschedEventListener::HandleDrawFrameEventReport(uint32_t eventValue,
+    const std::unordered_map<std::string, std::string>& extInfo)
 {
+    std::string extInfoStr;
+    for (const auto& [k, v] : extInfo) {
+        extInfoStr += k + ":" + v + " ";
+    }
+    RS_LOGI("slide reco multiprocessing HandleDrawFrameEventReport eventValue=%{public}u extInfo=%{public}s",
+        eventValue, extInfoStr.c_str());
+    RS_TRACE_NAME_FMT("slide reco multiprocessing HandleDrawFrameEventReport eventValue:%u", eventValue);
+    uint64_t screenId = DEFAULT_SCREEN_ID;
+    auto it = extInfo.find("screenId");
+    if (it != extInfo.end()) {
+        auto result = std::from_chars(it->second.data(),
+            it->second.data() + it->second.size(), screenId);
+        if (result.ec != std::errc()) {
+            screenId = DEFAULT_SCREEN_ID;
+        }
+    }
+
+    auto ctx = GetOrCreateScreenContext(screenId);
+    if (ctx == nullptr) {
+        return;
+    }
     if (eventValue == ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START) {
-        isNeedReport_ = true;
-        isFirstReport_ = true;
+        ctx->isNeedReport.store(true);
+        ctx->isFirstReport.store(true);
+        ctx->lastReportTime.store(0);
     } else if (eventValue == ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP) {
-        isNeedReport_ = false;
-        isFirstReport_ = false;
+        ctx->isNeedReport.store(false);
+        ctx->isFirstReport.store(false);
     }
 }
 
 
-void ResschedEventListener::ReportFrameToRSS()
+void ResschedEventListener::ReportFrameToRSS(uint64_t screenId)
 {
-    if (GetIsNeedReport()) {
-        uint64_t currTime = static_cast<uint64_t>(
-            std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
-        if (GetIsFirstReport() ||
-            lastReportTime_ == 0 || (currTime > lastReportTime_ &&
-            currTime - lastReportTime_ >= SAMPLE_TIME)) {
-            RS_TRACE_NAME("ReportFrameToRSS");
-            uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
-            int64_t value = 0;
-            std::unordered_map<std::string, std::string> mapPayload;
-            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
-            SetIsFirstReport(false);
-            lastReportTime_ = static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
-        }
+    RS_LOGI("slide reco multiprocessing ReportFrameToRSS screenId=%{public}" PRIu64, screenId);
+    RS_TRACE_NAME_FMT("slide reco multiprocessing DoReportFrameToRSS screenId:%" PRIu64, screenId);
+    auto ctx = GetScreenContext(screenId);
+    if (ctx == nullptr || !ctx->isNeedReport.load()) {
+        return;
     }
+
+    uint64_t currTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    if (ctx->isFirstReport.load() ||
+        ctx->lastReportTime.load() == 0 || (currTime > ctx->lastReportTime.load() &&
+        currTime - ctx->lastReportTime.load() >= SAMPLE_TIME)) {
+        RS_TRACE_NAME("ReportFrameToRSS");
+        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
+        int64_t value = 0;
+        std::unordered_map<std::string, std::string> mapPayload;
+        mapPayload["screenId"] = std::to_string(screenId);
+        RS_LOGI("slide reco multiprocessing ReportFrameToRSS type=%{public}u value=%{public}" PRId64
+            " mapPayload:screenId=%{public}s", type, value, mapPayload["screenId"].c_str());
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+        ctx->isFirstReport.store(false);
+        ctx->lastReportTime.store(static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count()));
+    }
+}
+
+std::shared_ptr<ScreenReportContext> ResschedEventListener::GetOrCreateScreenContext(uint64_t screenId)
+{
+    std::lock_guard<std::mutex> lock(screenContextsMutex_);
+    auto it = screenContexts_.find(screenId);
+    if (it != screenContexts_.end()) {
+        return it->second;
+    }
+    auto ctx = std::make_shared<ScreenReportContext>();
+    screenContexts_[screenId] = ctx;
+    return ctx;
+}
+
+std::shared_ptr<ScreenReportContext> ResschedEventListener::GetScreenContext(uint64_t screenId) const
+{
+    std::lock_guard<std::mutex> lock(screenContextsMutex_);
+    auto it = screenContexts_.find(screenId);
+    if (it != screenContexts_.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 bool ResschedEventListener::GetIsNeedReport() const
 {
-    return isNeedReport_.load();
+    auto ctx = GetScreenContext(DEFAULT_SCREEN_ID);
+    return ctx != nullptr && ctx->isNeedReport.load();
 }
 
 bool ResschedEventListener::GetIsFirstReport() const
 {
-    return isFirstReport_.load();
+    auto ctx = GetScreenContext(DEFAULT_SCREEN_ID);
+    return ctx != nullptr && ctx->isFirstReport.load();
 }
 
 void ResschedEventListener::SetIsFirstReport(bool value)
 {
-    isFirstReport_ = value;
+    auto ctx = GetOrCreateScreenContext(DEFAULT_SCREEN_ID);
+    if (ctx != nullptr) {
+        ctx->isFirstReport.store(value);
+    }
 }
 
 void ResschedEventListener::HandleFrameRateStatisticsReport(uint32_t eventValue,
