@@ -33,7 +33,7 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
     }
     auto node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    context.MarkSceneBoardNode(id, token, *node);
+    node->ApplySceneBoardMark(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

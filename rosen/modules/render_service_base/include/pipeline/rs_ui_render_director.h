@@ -111,8 +111,10 @@ private:
     std::shared_ptr<RSSurfaceRenderNode> appWindowNode_;
     RSUIDirectorLifecycleState currentState_;
     mutable std::mutex stateMutex_;
-    // Read-mostly (written once per lifecycle), atomic to avoid nested locking
-    // when queried under RSContext::uiRenderDirectorsMutex_.
+    // Protocol field mirrored from the client-side one-way MarkAsSceneBoard API. The bool
+    // type is retained for the IPC command parameter; the public client API is irreversible
+    // so the flag only transitions false→true in practice. atomic for lock-free read under
+    // RSContext::uiRenderDirectorsMutex_.
     std::atomic<bool> isSceneBoard_{false};
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodes_;
     mutable std::mutex nodeMutex_;

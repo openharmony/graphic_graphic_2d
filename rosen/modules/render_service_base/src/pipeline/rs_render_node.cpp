@@ -362,6 +362,19 @@ RSRenderNode::RSRenderNode(
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
 
+void RSRenderNode::ApplySceneBoardMark(const RSContext& context, uint64_t token)
+{
+    if (token == 0) {
+        return;
+    }
+    if (context.IsSceneBoardToken(ExtractPid(GetId()), token)) {
+        MarkSceneBoard();
+        return;
+    }
+    ROSEN_LOGD("RSRenderNode::ApplySceneBoardMark sceneboard check miss, nodeId:%{public}" PRIu64
+        ", token:%{public}" PRIu64, GetId(), token);
+}
+
 void RSRenderNode::AddUIExtensionChild(SharedPtr child)
 {
     auto realParent = shared_from_this();

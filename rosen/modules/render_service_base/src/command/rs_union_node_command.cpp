@@ -32,7 +32,7 @@ void UnionNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextur
     }
     auto node = std::shared_ptr<RSUnionRenderNode>(new RSUnionRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    context.MarkSceneBoardNode(id, token, *node);
+    node->ApplySceneBoardMark(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

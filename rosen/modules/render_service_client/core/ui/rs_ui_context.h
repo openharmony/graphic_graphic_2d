@@ -173,14 +173,13 @@ public:
 
     /**
      * @brief Marks this context as belonging to SceneBoard and syncs the flag to the
-     *        render service. Idempotent one-shot identity declaration: repeated calls
-     *        with the same value do not resend the command; a changed value updates the
-     *        server-side director flag but does not retroactively mark created nodes.
-     *        Callers (WM) must call this before creating the first node of this context.
-     *
-     * @param isSceneBoard Whether this context belongs to SceneBoard.
+     *        render service. One-way identity declaration: idempotent (repeated calls
+     *        do not resend the command) and irreversible by design, so the interface
+     *        itself maintains the "birth identity" invariant. Callers (WM) must call
+     *        this before creating the first node of this context; marking after node
+     *        creation does not retroactively mark created nodes.
      */
-    void SetIsSceneBoard(bool isSceneBoard);
+    void MarkAsSceneBoard();
 
     /**
      * @brief Checks whether this context is marked as SceneBoard.

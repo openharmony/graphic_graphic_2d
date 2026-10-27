@@ -513,8 +513,9 @@ private:
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
-    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard = false);
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false,
+        bool isSceneBoard = false);
     RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
     void SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);

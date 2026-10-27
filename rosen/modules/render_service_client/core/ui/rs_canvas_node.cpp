@@ -47,7 +47,7 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode,
-        GetContextToken(rsUIContext));
+        node->GetUIContextToken());
     if (RSSystemProperties::GetRenderNodeLazyLoadEnabled()) {
         node->lazyLoad_ = true;
         node->nodeState_ = RSNodeState::LAZY_LOAD;
@@ -81,7 +81,7 @@ RSCanvasNode::~RSCanvasNode()
 void RSCanvasNode::CreateRenderNode()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), IsTextureExportNode(),
-        GetUIContextTokenValue());
+        GetUIContextToken());
     AddCommand(command, IsRenderServiceNode());
 }
 
@@ -147,7 +147,7 @@ void RSCanvasNode::CreateRenderNodeForTextureExportSwitch()
         hasCreateRenderNodeInRT_ = true;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), isTextureExportNode_,
-        GetUIContextTokenValue());
+        GetUIContextToken());
     AddCommand(command, IsRenderServiceNode());
 }
 

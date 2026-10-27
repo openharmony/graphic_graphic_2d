@@ -242,7 +242,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
 }
 
 ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-    bool& success)
+    bool& success, bool isSceneBoard)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
@@ -255,6 +255,9 @@ ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& disp
         RS_LOGE("RSRenderPipelineAgent::CreateDisplayNode fail");
         success = false;
         return ERR_INVALID_VALUE;
+    }
+    if (isSceneBoard) {
+        node->MarkSceneBoard();
     }
     std::function<void()> registerNode = [renderPipeline = pipeline, nodeId, node, displayNodeConfig]() {
         auto& context = renderPipeline->GetMainThread()->GetContext();
@@ -1421,7 +1424,7 @@ ErrCode RSRenderPipelineAgent::AvcodecVideoGetRecent()
 }
 
 ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-    bool unobscured)
+    bool unobscured, bool isSceneBoard)
 {
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
@@ -1432,6 +1435,9 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     if (node == nullptr) {
         RS_LOGE("RSRenderPipeline::CreateNodeAndSurface CreateNode fail");
         return ERR_INVALID_VALUE;
+    }
+    if (isSceneBoard) {
+        node->MarkSceneBoard();
     }
     sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     if (surface == nullptr) {

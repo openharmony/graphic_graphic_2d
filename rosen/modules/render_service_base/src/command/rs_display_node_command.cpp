@@ -60,7 +60,7 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
 
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    context.MarkSceneBoardNode(id, token, *node);
+    node->ApplySceneBoardMark(context, token);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
 

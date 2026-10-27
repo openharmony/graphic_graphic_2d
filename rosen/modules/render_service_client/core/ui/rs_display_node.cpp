@@ -47,7 +47,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
 
     if (LIKELY(!displayNodeConfig.isSync)) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig,
-            GetContextToken(rsUIContext));
+            node->GetUIContextToken());
         if (node->GetRSUIContext() != nullptr) {
             auto transaction = node->GetRSUIContext()->GetRSTransaction();
             if (transaction != nullptr) {
@@ -76,7 +76,8 @@ bool RSDisplayNode::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConf
         ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
         return false;
     }
-    return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId);
+    return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId,
+        rsUIContext->IsSceneBoard());
 }
 
 // LCOV_EXCL_START

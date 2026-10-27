@@ -25,7 +25,7 @@ void RSDepthNodeCommandHelper::Create(RSContext& context, NodeId id, bool isText
 {
     auto node = std::shared_ptr<RSDepthRenderNode>(new RSDepthRenderNode(id, context.weak_from_this(),
         isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    context.MarkSceneBoardNode(id, token, *node);
+    node->ApplySceneBoardMark(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

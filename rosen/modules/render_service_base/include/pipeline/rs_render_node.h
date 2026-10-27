@@ -161,15 +161,20 @@ public:
     }
     // Birth identity: whether this node was created under a SceneBoard instance. Unlike
     // uiContextToken_ (current owner, updated on migration), it is set once at creation
-    // and never changes afterwards.
-    void SetIsSceneBoard(bool isSceneBoard)
+    // and can never be cleared afterwards. Only one-way marking is exposed on purpose.
+    void MarkSceneBoard()
     {
-        isSceneBoard_ = isSceneBoard;
+        isSceneBoard_ = true;
     }
     bool IsSceneBoard() const
     {
         return isSceneBoard_;
     }
+    // Creation-time marking by instance token: queries the SceneBoard flag of the
+    // (pid, token) instance and marks this node on hit. token == 0 (context-less
+    // legacy path) skips silently; a non-zero miss is logged for observability.
+    // Must be called before node map registration.
+    void ApplySceneBoardMark(const RSContext& context, uint64_t token);
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const

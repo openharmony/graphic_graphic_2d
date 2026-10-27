@@ -504,11 +504,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint8_t displayMode{0};
             uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             float positionZ{0.0f};
+            bool isSceneBoard{false};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
                 !data.ReadUint8(displayMode) ||
                 !data.ReadUint32(mirrorSourceRotation) ||
-                !data.ReadFloat(positionZ)) {
+                !data.ReadFloat(positionZ) ||
+                !data.ReadBool(isSceneBoard)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -531,7 +533,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .positionZ = positionZ,
             };
             bool success = false;
-            if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
+            if (CreateDisplayNode(config, id, success, isSceneBoard) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -553,9 +555,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             bool isSync { false };
             uint8_t surfaceWindowType { 0 };
             bool unobscured { false };
+            bool isSceneBoard { false };
             bool readBuffer = false;
             if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
-                !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
+                !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured) ||
+                !data.ReadBool(isSceneBoard)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -589,7 +593,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
                 .bundleName = GetBundleName(ExtractPid(nodeId)) };
             sptr<Surface> surface = nullptr;
-            ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
+            ErrCode err = CreateNodeAndSurface(config, surface, unobscured, isSceneBoard);
             if ((err != ERR_OK) || (surface == nullptr)) {
                 ret = ERR_NULL_OBJECT;
                 break;

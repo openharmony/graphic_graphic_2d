@@ -123,7 +123,7 @@ HWTEST_F(RSUIRenderDirectorTest, RenderNodeUnregisterAndClear, TestSize.Level1)
 
 /**
  * @tc.name: SceneBoardFlagSetAndGet
- * @tc.desc: Test SetSceneBoardFlag/IsSceneBoard default and toggled values.
+ * @tc.desc: Test SetSceneBoardFlag/IsSceneBoard default and set values.
  * @tc.type: FUNC
  */
 HWTEST_F(RSUIRenderDirectorTest, SceneBoardFlagSetAndGet, TestSize.Level1)
@@ -134,11 +134,9 @@ HWTEST_F(RSUIRenderDirectorTest, SceneBoardFlagSetAndGet, TestSize.Level1)
     // Branch: default false.
     EXPECT_FALSE(director.IsSceneBoard());
 
-    // Branch: set true then toggle back.
+    // Branch: set true.
     director.SetSceneBoardFlag(true);
     EXPECT_TRUE(director.IsSceneBoard());
-    director.SetSceneBoardFlag(false);
-    EXPECT_FALSE(director.IsSceneBoard());
 }
 
 } // namespace OHOS::Rosen

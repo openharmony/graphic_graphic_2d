@@ -35,7 +35,7 @@ public:
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
 
     ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-        bool& success);
+        bool& success, bool isSceneBoard = false);
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success);
 
@@ -133,7 +133,8 @@ public:
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
     ErrCode AvcodecVideoGet(uint64_t uniqueId);
     ErrCode AvcodecVideoGetRecent();
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false);
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false,
+        bool isSceneBoard = false);
     ErrCode AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized, bool enforceQuota,
         bool requireGuestConnection = true);
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);

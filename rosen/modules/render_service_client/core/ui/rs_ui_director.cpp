@@ -133,6 +133,13 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
     RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
+    // Re-send the SceneBoard mark after GoCreate: a mark issued before Init would reach the
+    // service ahead of GoCreate and be dropped (update-only, no director yet), while the
+    // idempotent client-side flag would suppress later re-sends. Appending it here guarantees
+    // an in-order mark command for both call orders.
+    if (rsUIContext_ != nullptr && rsUIContext_->IsSceneBoard()) {
+        AddUIDirectorCommand<RSUIDirectorSetSceneBoard>(true);
+    }
     GoResume();
     GoForeground();
     if (isUniRenderEnabled_) {
@@ -208,8 +215,8 @@ void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
     RSRenderThread::Instance().UpdateWindowStatus(true);
 }
 
-template <typename CommandType>
-void RSUIDirector::AddUIDirectorCommand()
+template <typename CommandType, typename... ExtraArgs>
+void RSUIDirector::AddUIDirectorCommand(ExtraArgs&&... extraArgs)
 {
     if (rsUIContext_ == nullptr) {
         RS_LOGE("RSUIDirector::AddUIDirectorCommand, RSUIContext is nullptr");
@@ -225,8 +232,8 @@ void RSUIDirector::AddUIDirectorCommand()
     auto rootNode = rootNode_.lock();
     static pid_t pid = getpid();
     NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    std::unique_ptr<RSCommand> command = std::make_unique<CommandType>(nodeId, rsUIContext_->GetToken(),
+        std::forward<ExtraArgs>(extraArgs)...);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);

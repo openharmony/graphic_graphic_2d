@@ -87,12 +87,13 @@ public:
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
     virtual ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-        bool& success) = 0;
+        bool& success, bool isSceneBoard = false) = 0;
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
 
     virtual ErrCode CreateNodeAndSurface(
-        const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured) = 0;
+        const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured,
+        bool isSceneBoard = false) = 0;
 
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 

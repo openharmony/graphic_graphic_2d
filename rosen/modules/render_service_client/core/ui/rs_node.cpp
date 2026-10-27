@@ -5117,14 +5117,9 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
     return AddCommandInner(command, isRenderServiceCommand, followType, nodeId);
 }
 
-uint64_t RSNode::GetContextToken(const std::shared_ptr<RSUIContext>& context)
+uint64_t RSNode::GetUIContextToken() const
 {
-    return context ? context->GetToken() : 0;
-}
-
-uint64_t RSNode::GetUIContextTokenValue() const
-{
-    return GetContextToken(rsUIContext_);
+    return rsUIContext_ ? rsUIContext_->GetToken() : 0;
 }
 
 void RSNode::SetUIContextToken()

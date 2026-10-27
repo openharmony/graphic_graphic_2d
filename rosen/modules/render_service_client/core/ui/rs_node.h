@@ -1960,23 +1960,6 @@ public:
     }
 
     /**
-     * @brief Gets the token of the given RSUIContext, or 0 for the context-less legacy
-     *        single-instance path. Single source of the "null context fills 0" rule for
-     *        Create commands.
-     *
-     * @param context The RSUIContext, may be null.
-     * @return The token, or 0 when context is null.
-     */
-    static uint64_t GetContextToken(const std::shared_ptr<RSUIContext>& context);
-
-    /**
-     * @brief Gets the token of this node's RSUIContext, or 0 for the context-less path.
-     *
-     * @return The token, or 0 when this node has no context.
-     */
-    uint64_t GetUIContextTokenValue() const;
-
-    /**
      * @brief Gets the current state of the node.
      *
      * @return The current RSNodeState.
@@ -2124,7 +2107,16 @@ protected:
         bool isOnTheTree = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
-    
+
+    /**
+     * @brief Gets the token of this node's RSUIContext, or 0 for the context-less
+     *        legacy single-instance path. Single source of the "null context fills 0"
+     *        rule for Create commands; for derived node classes only.
+     *
+     * @return The token, or 0 when this node has no context.
+     */
+    uint64_t GetUIContextToken() const;
+
     virtual void CreateRenderNode() {}
     virtual void DumpSubClass(std::string& out) const {}
 

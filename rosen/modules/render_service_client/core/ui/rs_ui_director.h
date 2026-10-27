@@ -359,8 +359,8 @@ private:
     void ReleaseRenderNode();
     void ExecuteGoDestroy(bool isTextureExport);
     void AttachSurface();
-    template<typename CommandType>
-    void AddUIDirectorCommand();
+    template<typename CommandType, typename... ExtraArgs>
+    void AddUIDirectorCommand(ExtraArgs&&... extraArgs);
     static std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);

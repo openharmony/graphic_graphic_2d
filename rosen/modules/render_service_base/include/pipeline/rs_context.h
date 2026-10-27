@@ -283,11 +283,7 @@ public:
     void DestoryUIRenderDirectorByPid(pid_t pid);
     // Query whether the (pid, token) instance is marked as SceneBoard. The pid dimension keeps
     // correctness independent of the tid-global-uniqueness assumption of token generation.
-    bool IsSceneBoardToken(pid_t pid, uint64_t token);
-    // Mark a freshly created node as SceneBoard when its token maps to a marked instance.
-    // token == 0 (context-less legacy path) skips the check silently; a non-zero miss is logged
-    // so out-of-order marking stays observable. Must be called before node map registration.
-    void MarkSceneBoardNode(NodeId nodeId, uint64_t token, RSRenderNode& node);
+    bool IsSceneBoardToken(pid_t pid, uint64_t token) const;
 
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();
 private:
@@ -332,7 +328,7 @@ private:
     RSPersistentPropertyManager persistentPropertyManager_;
 
     std::unordered_map<pid_t, std::unordered_map<uint64_t, std::shared_ptr<RSUIRenderDirector>>> uiRenderDirectors_;
-    std::mutex uiRenderDirectorsMutex_;
+    mutable std::mutex uiRenderDirectorsMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

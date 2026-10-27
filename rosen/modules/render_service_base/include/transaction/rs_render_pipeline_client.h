@@ -95,11 +95,12 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard = false);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
 
-    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false,
+        bool isSceneBoard = false);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app); // proxy Single
 

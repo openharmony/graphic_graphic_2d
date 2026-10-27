@@ -48,7 +48,7 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
-        context.MarkSceneBoardNode(id, token, *node);
+        node->ApplySceneBoardMark(context, token);
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
     }
@@ -73,7 +73,7 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
     }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    context.MarkSceneBoardNode(nodeId, token, *node);
+    node->ApplySceneBoardMark(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
