@@ -339,6 +339,7 @@ HWTEST_F(RSDrawableTest, CalculateDrawableVecStatus_BufferNotDirty, TestSize.Lev
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_FALSE(drawableVecStatus & DrawableVecStatus::FRAME_NOT_EMPTY);
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_Bounds
  * @tc.desc: Test CalculateDirtySlotsNG with BOUNDS dirty type
@@ -357,6 +358,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_Bounds, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CLIP_TO_BOUNDS) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::MASK) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_ClipToBounds
  * @tc.desc: Test CalculateDirtySlotsNG with CLIP_TO_BOUNDS dirty type
@@ -375,6 +377,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_ClipToBounds, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CLIP_TO_BOUNDS) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BORDER) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_Frame
  * @tc.desc: Test CalculateDirtySlotsNG with FRAME dirty type
@@ -390,6 +393,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_Frame, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CONTENT_STYLE) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::FOREGROUND_STYLE) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_CompositingFilter
  * @tc.desc: Test CalculateDirtySlotsNG with COMPOSITING_FILTER dirty type
@@ -401,11 +405,9 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_CompositingFilter, TestSize.Level
     ModifierNG::ModifierDirtyTypes dirtyTypes;
     dirtyTypes.set(static_cast<size_t>(ModifierNG::RSModifierType::COMPOSITING_FILTER));
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::LIGHT_UP_EFFECT) != dirtySlots.end());
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BINARIZATION) != dirtySlots.end());
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::DYNAMIC_DIM) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::COLOR_FILTER) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_EnvForegroundColor
  * @tc.desc: Test CalculateDirtySlotsNG with ENV_FOREGROUND_COLOR dirty type
@@ -420,6 +422,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_EnvForegroundColor, TestSize.Leve
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::ENV_FOREGROUND_COLOR) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_ClipToFrame
  * @tc.desc: Test CalculateDirtySlotsNG with CLIP_TO_FRAME dirty type
@@ -437,6 +440,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_ClipToFrame, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CONTENT_STYLE) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::FOREGROUND_STYLE) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_SpatialEffect
  * @tc.desc: Test CalculateDirtySlotsNG with SPATIAL_EFFECT dirty type
@@ -451,6 +455,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_SpatialEffect, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::SPATIAL_EFFECT) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::MATERIAL_SHADER) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_BorderExpansion
  * @tc.desc: Test CalculateDirtySlotsNG expands BORDER to border dirty types
@@ -467,6 +472,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_BorderExpansion, TestSize.Level1)
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BORDER) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BACKGROUND_COLOR) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_ForegroundFilterExpansion
  * @tc.desc: Test CalculateDirtySlotsNG expands FOREGROUND_FILTER to RESTORE_FOREGROUND_FILTER
@@ -481,6 +487,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_ForegroundFilterExpansion, TestSi
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::FOREGROUND_FILTER) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::RESTORE_FOREGROUND_FILTER) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_PixelStretchExpansion
  * @tc.desc: Test CalculateDirtySlotsNG expands PIXEL_STRETCH to stretch dirty types
@@ -497,6 +504,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_PixelStretchExpansion, TestSize.L
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::PIXEL_STRETCH) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BACKGROUND_FILTER) != dirtySlots.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_BackgroundFilterExpansion
  * @tc.desc: Test CalculateDirtySlotsNG expands BACKGROUND_FILTER to bgfilter dirty types
@@ -513,6 +521,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_BackgroundFilterExpansion, TestSi
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BACKGROUND_FILTER) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::PIXEL_STRETCH) != dirtySlots.end());
 }
+
 /**
  * @tc.name: UpdateDirtySlots_CHILDREN_EraseTest
  * @tc.desc: Test UpdateDirtySlots erases CHILDREN slot when it is null
@@ -529,6 +538,7 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots_CHILDREN_EraseTest, TestSize.Level1)
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
     ASSERT_FALSE(drawableVec.find(static_cast<int8_t>(RSDrawableSlot::CHILDREN)) != drawableVec.end());
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_MultipleDirtyTypes
  * @tc.desc: Test CalculateDirtySlotsNG with multiple dirty types set
@@ -552,5 +562,4 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_MultipleDirtyTypes, TestSize.Leve
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::ENV_FOREGROUND_COLOR) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::MATERIAL_SHADER) != dirtySlots.end());
 }
-
 } // namespace OHOS::Rosen

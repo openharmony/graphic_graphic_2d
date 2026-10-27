@@ -39,6 +39,7 @@
 #include "render/rs_render_mesa_blur_filter.h"
 #include "hpae_base/rs_hpae_base_data.h"
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "drawable/rs_effect_drawable_utils.h"
 
 namespace OHOS::Rosen {
 namespace {
