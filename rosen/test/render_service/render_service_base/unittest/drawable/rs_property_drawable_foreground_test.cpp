@@ -1837,7 +1837,8 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnSyncNullFilter, TestSi
 
 /**
  * @tc.name: ColorNGFilterOnDrawWithNGFilterOnly
- * @tc.desc: OnDraw with only ColorNGFilter (no traditional ColorFilter) does not crash
+ * @tc.desc: OnDraw with only ColorNGFilter (no traditional ColorFilter)
+ *          (branch: filter_ == nullptr → skip; colorNGFilter_ && visualEffectContainer_ → true)
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawWithNGFilterOnly, TestSize.Level1)
@@ -1850,11 +1851,13 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawWithNGFilterOnly, 
     Drawing::Canvas canvas;
     Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
     drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
 }
 
 /**
  * @tc.name: ColorNGFilterOnDrawBothFilters
- * @tc.desc: OnDraw with both ColorFilter and ColorNGFilter draws ColorFilter first then ColorNGFilter
+ * @tc.desc: OnDraw with both ColorFilter and ColorNGFilter
+ *          (branch: filter_ != nullptr → draw; colorNGFilter_ && visualEffectContainer_ → draw)
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawBothFilters, TestSize.Level1)
@@ -1867,11 +1870,13 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawBothFilters, TestS
     Drawing::Canvas canvas;
     Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
     drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
 }
 
 /**
  * @tc.name: ColorNGFilterOnDrawNoNGFilter
- * @tc.desc: OnDraw with only traditional ColorFilter (no ColorNGFilter) does not crash
+ * @tc.desc: OnDraw with only traditional ColorFilter (no ColorNGFilter)
+ *          (branch: filter_ != nullptr → draw; colorNGFilter_ && visualEffectContainer_ → false → skip)
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawNoNGFilter, TestSize.Level1)
@@ -1884,5 +1889,45 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawNoNGFilter, TestSi
     Drawing::Canvas canvas;
     Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
     drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawBothNull
+ * @tc.desc: OnDraw with both filter_ and colorNGFilter_ null
+ *          (branch: filter_ == nullptr → skip; colorNGFilter_ && visualEffectContainer_ → false → skip)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawBothNull, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = nullptr;
+    drawable->colorNGFilter_ = nullptr;
+    drawable->visualEffectContainer_ = nullptr;
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ColorNGFilterOnDrawNGFilterNullContainer
+ * @tc.desc: OnDraw with colorNGFilter_ set but visualEffectContainer_ null
+ *          (branch: filter_ == nullptr → skip;
+ *           colorNGFilter_ != nullptr but visualEffectContainer_ == nullptr → false → skip)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawNGFilterNullContainer, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    drawable->filter_ = nullptr;
+    drawable->colorNGFilter_ = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    drawable->visualEffectContainer_ = nullptr;
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 100.0f, 100.0f);
+    drawable->OnDraw(&canvas, &rect);
+    SUCCEED();
 }
 } // namespace OHOS::Rosen
