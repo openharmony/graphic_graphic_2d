@@ -69,8 +69,6 @@ public:
     }
 
 private:
-    bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
-    bool HasValidEffect(const RSRenderNode* node);
     void DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
         SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect);
     HveFilter() = default;

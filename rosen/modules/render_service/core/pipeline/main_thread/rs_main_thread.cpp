@@ -2380,6 +2380,8 @@ void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNod
 {
     auto filterIds = HveFilter::GetHveFilter().GetFilterIds(surfaceNode->GetId());
     if (!filterIds.empty()) {
+        auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+        Occlusion::Region belowDirty(Occlusion::Rect(geoPtr ? geoPtr->GetAbsRect() : surfaceNode->GetAbsDrawRect()));
         for (const auto& id : filterIds) {
             auto node = GetContext().GetNodeMap().GetRenderNode(id);
             if (node == nullptr) {
@@ -2387,6 +2389,12 @@ void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNod
                 continue;
             }
             node->SetContentDirty();
+            if (node->GetRenderProperties().GetMaterialFilter()) {
+                node->UpdateFilterCacheWithBelowDirty(belowDirty, RSDrawableSlot::MATERIAL_FILTER);
+            }
+            if (node->GetRenderProperties().GetBackgroundFilter()) {
+                node->UpdateFilterCacheWithBelowDirty(belowDirty);
+            }
         }
     }
     HveFilter::GetHveFilter().ClearSurfaceToFilterNodeMap();
@@ -2546,8 +2554,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 surfaceNode->SetIntersectWithFilterNode(false);
-                HveFilter::GetHveFilter().IsApsConfigParamsEnabled()?
-                    HveHandleFilterNodes(surfaceNode) : surfaceNode->SetContentDirty();
+                HveHandleFilterNodes(surfaceNode);
                 doDirectComposition_ = false;
                 AddDisableReason("surfaceNode intersects with hve filter[" +
                     surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
