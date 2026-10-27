@@ -687,7 +687,8 @@ private:
 
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
-    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor,
+        std::set<NodeId>& quickPrepareNodeIds);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
