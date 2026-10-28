@@ -1506,4 +1506,86 @@ HWTEST_F(ParagraphTest, ParagraphBorderCacheClone001, TestSize.Level0)
     // both extra paragraphs shared the single cache entry of the same shape key
     EXPECT_EQ(cache->count(), 1);
 }
+
+/*
+ * @tc.name: ParagraphBorderSplitRun001
+ * @tc.desc: test for split runs keeping the border width for the line height reservation
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderSplitRun001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 160.0; // 160 just for test (calibrated in
+                                           // ParagraphBorderJustify001): wraps the text so
+                                           // the single shaped run crosses line boundaries
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.ellipsis = u"";
+    // any non-BASELINE vertical alignment plus multiple lines makes ParagraphImpl split
+    // the crossing run per line; the split copy must carry the border width so the split
+    // run keeps the +2w border reservation in the line height metrics
+    paragraphStyle.verticalAlignment = TextVerticalAlign::TOP;
+    auto fontCollection = std::make_shared<FontCollection>();
+    fontCollection->SetupDefaultFontManager();
+    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(builder, nullptr);
+    SPText::TextStyle style;
+    style.backgroundRect.color = 0xFF00FF00;       // 0xFF00FF00 just for test
+    style.backgroundRect.borderColor = 0xFFFF0000; // 0xFFFF0000 just for test
+    style.backgroundRect.borderWidth = BORDER_WIDTH;
+    builder->PushStyle(style);
+    builder->AddText(u"border text border text border text");
+    builder->Pop();
+    std::shared_ptr<Paragraph> paragraph = builder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(LAYOUT_WIDTH);
+    auto impl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(impl, nullptr);
+    ASSERT_GT(impl->lines().size(), 1u);
+    // sanity: the run crossing the lines was actually split into per-line runs
+    ASSERT_GT(impl->fRuns.size(), 1u);
+    for (auto& run : impl->fRuns) {
+        // the whole text carries the border, so every run (split or not) must keep it
+        EXPECT_GT(run.borderWidth(), 0.0f);
+    }
+}
+
+/*
+ * @tc.name: ParagraphBorderJustifyClamp001
+ * @tc.desc: test for justify clamping a negative allocation base when a bordered line overflows
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderJustifyClamp001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;        // 4.0 just for test
+    constexpr double CALIBRATION_WIDTH = 160.0; // 160 just for test (calibrated in
+                                                // ParagraphBorderJustify001): wraps the text
+    constexpr double OVERFLOW = 2.0;            // 2.0 just for test: below the enter gap the
+                                                // breaker still counts, so the same words stay
+                                                // on line 1 while the raw line overflows
+    const std::u16string text = u"border text border text border text";
+    // calibration: LEFT alignment never stretches, so line 0 keeps its raw gap-inclusive
+    // width (words + enter gap + trailing gap)
+    auto calibrator = BuildJustifyParagraphWithBorder(SPText::TextAlign::LEFT, BORDER_WIDTH, text);
+    ASSERT_NE(calibrator, nullptr);
+    calibrator->Layout(CALIBRATION_WIDTH);
+    auto implCalibrator = GetParagraphSkiaImpl(calibrator);
+    ASSERT_NE(implCalibrator, nullptr);
+    ASSERT_GT(implCalibrator->lines().size(), 1u);
+    const auto rawFirstLineWidth = implCalibrator->lines()[0].widthWithoutEllipsis();
+    // justify at a width the raw bordered line overflows: line breaking does not reserve
+    // the trailing gap (materialized at line assembly only), so line 1 ends up wider
+    // than the layout width and the justify allocation base goes negative; it must clamp
+    // to zero (degrade to no stretch) so the shift verification assert holds in debug
+    // builds and the line stays within the loose upper bound everywhere else
+    const double overflowWidth = rawFirstLineWidth - OVERFLOW;
+    auto paragraph = BuildJustifyParagraphWithBorder(SPText::TextAlign::JUSTIFY, BORDER_WIDTH, text);
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(overflowWidth);
+    auto impl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(impl, nullptr);
+    ASSERT_GT(impl->lines().size(), 1u);
+    // graceful degradation: no crash and the justified line stays within the layout
+    // width plus one border gap (the loose upper bound)
+    EXPECT_LE(impl->lines()[0].widthWithoutEllipsis(), overflowWidth + BORDER_WIDTH);
+}
 } // namespace txt

@@ -95,18 +95,38 @@ static Drawing::RoundRect ToDrawingRoundRect(const SkRRect& skRRect)
 }
 
 namespace {
+// Smoothstep on [0, edge]: C1-continuous at both ends, 0 for x <= 0 and 1 for x >= edge.
+SkScalar SmoothStep(SkScalar edge, SkScalar x)
+{
+    if (x <= 0.0f) {
+        return 0.0f;
+    }
+    if (x >= edge) {
+        return 1.0f;
+    }
+    const SkScalar t = x / edge;
+    return t * t * (3.0f - 2.0f * t);
+}
+
 // Builds the stroke path for an outward border: outset the fill rrect by half the border
-// width so the centered pen stroke covers [edge, edge + borderWidth] and never overlaps
-// the fill area. Radii grow by the same half width, clamped to half of the smaller side.
+// width so the centered pen stroke covers [edge, edge + borderWidth] on the straight sides
+// and never overlaps the fill area. The corner radius uses mixed interpolation:
+// outer edge radius = r + w * smoothstep(0, w/2, r), stroke path radius = that minus w/2.
+// r >= w/2 matches the concentric scheme exactly (outer r + w, inner edge hugging the fill
+// radius r); r = 0 keeps a square outer corner (path radius clamps to 0, miter join).
+// Below roughly 0.2w the formula underflows the path-radius floor and the corner stays
+// square; inside the transition zone the border's inner edge deviates from the fill radius
+// by up to w/2, which is the accepted trade-off of this scheme.
 Drawing::RoundRect BuildOuterStrokeRoundRect(const SkRRect& skRRect, const SkScalar borderWidth)
 {
     constexpr SkScalar HALF = 0.5f;
     const Drawing::scalar half = borderWidth * HALF;
     const SkRect outer = skRRect.rect().makeOutset(half, half);
     const Drawing::scalar limit = std::fmin(outer.width(), outer.height()) * HALF;
-    auto outerRadius = [skRRect, half, limit](SkRRect::Corner corner) -> Drawing::scalar {
-        const Drawing::scalar radius = skRRect.radii(corner).x() + half;
-        return std::fmax(std::fmin(radius, limit), 0.0f);
+    auto outerRadius = [skRRect, borderWidth, half, limit](SkRRect::Corner corner) -> Drawing::scalar {
+        const SkScalar r = skRRect.radii(corner).x();
+        const SkScalar pathRadius = r + borderWidth * SmoothStep(half, r) - half;
+        return std::fmax(std::fmin(pathRadius, limit), 0.0f);
     };
     Drawing::Rect rect;
     rect.SetLeft(outer.fLeft);
@@ -286,6 +306,9 @@ void RSCanvasParagraphPainter::drawRRectWithBorder(
         pen.SetColor(PaintRecord::ToRSColor(borderColor));
         pen.SetWidth(borderWidth);
         pen.SetAntiAlias(true);
+        // Square outer corners at radius 0 rely on a miter join; a round join would cap
+        // them with w/2 arcs. Keep this explicit so a default change cannot break it.
+        pen.SetJoinStyle(Drawing::Pen::JoinStyle::MITER_JOIN);
         canvas_->AttachPen(pen);
         canvas_->DrawRoundRect(BuildOuterStrokeRoundRect(rrect, borderWidth));
         canvas_->DetachPen();

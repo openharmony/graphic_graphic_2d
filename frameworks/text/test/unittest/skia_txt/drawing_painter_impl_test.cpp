@@ -619,4 +619,44 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest031, TestSize
     EXPECT_FLOAT_EQ(roundRects[0].GetRect().GetLeft(), -HALF_BORDER);
 }
 
+/*
+ * @tc.name: RSCanvasParagraphPainterTest032
+ * @tc.desc: test for zero corner radius keeping a square stroke path under mixed interpolation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest032, TestSize.Level0)
+{
+    SkRRect rrect = SkRRect::MakeRect(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT)); // sharp input corners
+    auto roundRects = CaptureRoundRects(rrect, COLOR_FILL_GREEN, COLOR_BORDER_RED, BORDER_WIDTH);
+    ASSERT_EQ(roundRects.size(), static_cast<size_t>(EXPECTED_ROUND_RECT_OPS_TWO));
+    constexpr SkScalar HALF_BORDER = BORDER_WIDTH / 2.0f; // 1.0 just for test
+    EXPECT_FLOAT_EQ(roundRects[1].GetRect().GetLeft(), -HALF_BORDER); // path still outsets w/2
+    EXPECT_FLOAT_EQ(roundRects[1].GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX(), 0.0f); // square
+    EXPECT_FLOAT_EQ(roundRects[0].GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX(), 0.0f); // fill unchanged
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest033
+ * @tc.desc: test for smoothstep transition of the stroke path radius below w/2
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest033, TestSize.Level0)
+{
+    constexpr SkScalar SMALL_RADIUS = 0.5f; // 0.5 just for test: t = 0.5, smoothstep = 0.5
+    constexpr SkScalar TINY_RADIUS = 0.25f; // 0.25 just for test: under the floor, clamps to square
+    constexpr SkScalar EDGE_RADIUS = 1.0f;  // 1.0 just for test: exactly w/2, matches old scheme
+    constexpr SkScalar EXPECTED_SMALL = 0.5f;  // 0.5 + 2 * 0.5 - 1
+    constexpr SkScalar EXPECTED_TINY = 0.0f;   // clamped to a square corner
+    constexpr SkScalar EXPECTED_EDGE = 2.0f;   // 1.0 + 2 * 1.0 - 1, equals r + w/2 (old scheme)
+    const SkScalar radii[] = { SMALL_RADIUS, TINY_RADIUS, EDGE_RADIUS };
+    const SkScalar expected[] = { EXPECTED_SMALL, EXPECTED_TINY, EXPECTED_EDGE };
+    for (size_t i = 0; i < sizeof(radii) / sizeof(radii[0]); ++i) {
+        SkRRect rrect = SkRRect::MakeRectXY(SkRect::MakeWH(RECT_WIDTH, RECT_HEIGHT), radii[i], radii[i]);
+        auto roundRects = CaptureRoundRects(rrect, COLOR_FILL_GREEN, COLOR_BORDER_RED, BORDER_WIDTH);
+        ASSERT_EQ(roundRects.size(), static_cast<size_t>(EXPECTED_ROUND_RECT_OPS_TWO));
+        EXPECT_FLOAT_EQ(roundRects[1].GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX(), expected[i]);
+        EXPECT_FLOAT_EQ(roundRects[0].GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX(), radii[i]);
+    }
+}
+
 } // namespace txt
