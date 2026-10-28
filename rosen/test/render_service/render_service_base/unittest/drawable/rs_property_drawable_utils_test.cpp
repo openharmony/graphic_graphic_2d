@@ -2543,4 +2543,22 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterNullContainer, testing::e
     DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, &rect, nullptr);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: DrawColorNGFilterWithSurface
+ * @tc.desc: DrawColorNGFilter with raster surface (surface != nullptr)
+ *          (branch: surface == nullptr → false)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterWithSurface, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    auto canvas = surface->GetCanvas();
+    ASSERT_NE(canvas, nullptr);
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(canvas, &rect, container);
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen
