@@ -66,6 +66,9 @@ public:
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
 
+    ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success) override;
+
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
 

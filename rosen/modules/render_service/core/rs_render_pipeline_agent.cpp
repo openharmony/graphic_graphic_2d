@@ -79,6 +79,8 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "app_mgr_client.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
+#include "feature/capture/rs_blur_pixelmap.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #undef LOG_TAG
 #define LOG_TAG "RSRenderPipelineAgent"
 
@@ -1274,6 +1276,95 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
     pipeline->PostMainThreadTask(getPixelMapTask);
 #endif
     success = future.get();
+    return ERR_OK;
+}
+
+void RSRenderPipelineAgent::PostBlurTaskToBackground(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+    std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+    std::shared_ptr<std::promise<bool>> promise)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto& bgThread = RSBackgroundThread::Instance();
+    auto bgRenderContext = bgThread.GetRenderContext();
+    auto bgGpuContext = bgThread.GetShareGPUContext();
+    if (bgRenderContext == nullptr || bgGpuContext == nullptr) {
+        return;
+    }
+    auto bgBlurTask = [pixelMap, blurRadius, blurredResult, promise,
+                          bgGpuContext, bgRenderContext]() {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+        bool ret = BlurPixelMapImpl(pixelMap, blurRadius, *blurredResult,
+            bgGpuContext.get(), bgRenderContext.get());
+#else
+        bool ret = false;
+#endif
+        promise->set_value(ret);
+    };
+    bgThread.PostTask(bgBlurTask);
+#else
+    promise->set_value(false);
+#endif
+}
+
+void RSRenderPipelineAgent::PostBlurTaskToRenderThread(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+    std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+    std::shared_ptr<std::promise<bool>> promise, RSUniRenderThread* renderThread)
+{
+    auto blurTask = [pixelMap, blurRadius, blurredResult, promise]() {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+        bool ret = BlurPixelMapOnRenderThread(pixelMap, blurRadius, *blurredResult);
+#else
+        bool ret = false;
+#endif
+        promise->set_value(ret);
+    };
+    renderThread->PostTask(blurTask);
+}
+
+ErrCode RSRenderPipelineAgent::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    RS_LOGI("RSRenderPipelineAgent::BlurPixelMap start, blurRadius:%{public}f", blurRadius);
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: pixelMap is nullptr");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: pipeline is nullptr");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    auto promise = std::make_shared<std::promise<bool>>();
+    std::future<bool> future = promise->get_future();
+    auto blurredResult = std::make_shared<std::shared_ptr<Media::PixelMap>>();
+    bool useBackground = false;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto bgRenderContext = RSBackgroundThread::Instance().GetRenderContext();
+    auto bgGpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
+    useBackground = (bgRenderContext != nullptr && bgGpuContext != nullptr);
+#endif
+    if (useBackground) {
+        PostBlurTaskToBackground(pixelMap, blurRadius, blurredResult, promise);
+    } else {
+        RS_LOGW("RSRenderPipelineAgent::BlurPixelMap: fallback to render thread");
+        PostBlurTaskToRenderThread(pixelMap, blurRadius, blurredResult, promise,
+            pipeline->GetUniRenderThread());
+    }
+    constexpr auto BLUR_TIMEOUT = std::chrono::milliseconds(166);
+    if (future.wait_for(BLUR_TIMEOUT) != std::future_status::ready) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: timeout waiting for blur task");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    success = future.get();
+    if (success) {
+        blurredPixelMap = *blurredResult;
+    }
+    RS_LOGI("RSRenderPipelineAgent::BlurPixelMap end, success:%{public}d", success);
     return ERR_OK;
 }
 

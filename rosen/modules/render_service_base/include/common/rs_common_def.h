@@ -410,6 +410,7 @@ enum class CaptureError : uint8_t {
     CAPTURE_NO_SECURE_PERMISSION,
     CAPTURE_FAIL_SPECIAL_LAYER,
     CAPTURE_UNSUPPORTED_FORMAT,
+    WINDOW_CAPTURE_NO_CHILD,
     // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };

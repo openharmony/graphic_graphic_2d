@@ -25,6 +25,7 @@ class IConsumerSurface;
 class SurfaceUtils;
 
 namespace Rosen {
+class RSUniRenderThread;
 class RSRenderPipelineAgent : public RefBase {
 public:
     explicit RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline> rsRenderPipeline);
@@ -166,6 +167,14 @@ public:
     ErrCode SetUifirstScale(float scaleFactor);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
+    ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success);
+    void PostBlurTaskToBackground(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+        std::shared_ptr<std::promise<bool>> promise);
+    void PostBlurTaskToRenderThread(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+        std::shared_ptr<std::promise<bool>> promise, RSUniRenderThread* renderThread);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void GetSurfaceRootNodeId(NodeId &windowNodeId);
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);

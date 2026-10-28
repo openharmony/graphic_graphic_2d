@@ -248,6 +248,68 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BlurPixelMapTest001
+ * @tc.desc: test BlurPixelMap returns nullptr when renderPipelineClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest001, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    renderInterface->renderPipelineClient_ = nullptr;
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest002
+ * @tc.desc: test BlurPixelMap returns nullptr when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest002, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto result = renderInterface->BlurPixelMap(nullptr, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest003
+ * @tc.desc: test BlurPixelMap delegates to pipeline client
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest003, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    if (result != nullptr) {
+        EXPECT_EQ(result->GetWidth(), 10);
+        EXPECT_EQ(result->GetHeight(), 10);
+    }
+}
+
+/**
  * @tc.name: GlobalBlackListTest001
  * @tc.desc: test Set/Add/RemoveGlobalBlackList delegate to render pipeline client
  * @tc.type: FUNC

@@ -120,6 +120,9 @@ public:
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
+    std::shared_ptr<Media::PixelMap> BlurPixelMap(
+        std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius);
+
     bool SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation);
 

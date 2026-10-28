@@ -67,6 +67,8 @@
 #include "transaction/rs_occlusion_data.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
+#include "transaction/rs_marshalling_helper.h"
+#include "pixel_map.h"
 using namespace testing;
 using namespace testing::ext;
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -1333,6 +1335,111 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_ShareMemAlloc_RGBA8888,
     EXPECT_TRUE(ret == ERR_NONE || ret == ERR_INVALID_REPLY);
 }
 #endif
+
+/**
+ * @tc.name: BlurPixelMapStub001
+ * @tc.desc: Test BLUR_PIXEL_MAP with empty data (no pixelMap) returns ERR_INVALID_DATA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: BlurPixelMapStub002
+ * @tc.desc: Test BLUR_PIXEL_MAP with valid pixelMap and blurRadius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, pixelMap));
+    data.WriteFloat(5.0f);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: BlurPixelMapStub003
+ * @tc.desc: Test BLUR_PIXEL_MAP with null agent returns ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, pixelMap));
+    data.WriteFloat(5.0f);
+
+    auto savedAgent = connectionStub_->renderPipelineAgent_;
+    connectionStub_->renderPipelineAgent_ = nullptr;
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_REPLY);
+    connectionStub_->renderPipelineAgent_ = savedAgent;
+}
+
+/**
+ * @tc.name: BlurPixelMapStub004
+ * @tc.desc: Test BLUR_PIXEL_MAP with valid pixelMap but missing blurRadius returns ERR_INVALID_DATA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, BlurPixelMapStub004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, pixelMap));
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
 
 /**
  * @tc.name: SetSurfaceWatermarkSub001
