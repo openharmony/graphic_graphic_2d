@@ -233,6 +233,14 @@ protected:
 
     void MarkNodeDirty();
 
+    void SetDrawNodeIfNeed(RSNode& node, bool affectsRendering) const
+    {
+        if (!node.GetIsDrawn() && affectsRendering) {
+            node.SetDrawNode();
+            node.SetDrawNodeType(DrawNodeType::DrawPropertyType);
+        }
+    }
+
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() = 0;
@@ -403,7 +411,7 @@ public:
 
     using RenderPropertyType = typename RSRenderPropertyTraits<T>::Type;
 
-    virtual void Set(const T& value)
+    virtual void Set(const T& value, bool affectsRendering = true)
     {
         if (!IsValid(value)) {
             return;
@@ -417,6 +425,7 @@ public:
         if (node == nullptr) {
             return;
         }
+        SetDrawNodeIfNeed(*node, affectsRendering);
 
         MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
@@ -536,7 +545,7 @@ public:
 
     using RenderPropertyType = RSRenderAnimatableProperty<T>;
 
-    void Set(const T& value) override
+    void Set(const T& value, bool affectsRendering = true) override
     {
         if (!RSProperty<T>::IsValid(value)) {
             return;
@@ -544,13 +553,12 @@ public:
         if (ROSEN_EQ(value, RSProperty<T>::stagingValue_) && !RSPropertyBase::IsDeduplicationEnabled()) {
             return;
         }
-
         auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
             RSProperty<T>::stagingValue_ = value;
             return;
         }
-
+        RSProperty<T>::SetDrawNodeIfNeed(*node, affectsRendering);
         RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto rsUIContext = node->GetRSUIContext();
@@ -571,11 +579,9 @@ public:
                 return;
             }
         }
-
         if (runningPathNum_ > 0) {
             return;
         }
-
         bool hasPropertyAnimation = node->HasPropertyAnimation(RSProperty<T>::id_);
         T sendValue = value;
         if (hasPropertyAnimation) {
@@ -950,7 +956,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& no
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty();
 template<>
@@ -959,7 +966,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& no
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty();
 template<>
@@ -968,7 +976,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnAttach(RSNode& node
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
 template<>
@@ -977,7 +986,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& nod
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShapeBase>>::GetRenderProperty();
 

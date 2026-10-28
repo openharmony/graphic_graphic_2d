@@ -8299,6 +8299,34 @@ HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ContainerNodeDrawFlagByAffectsRendering
+ * @tc.desc: container node stays undrawn for non-rendering properties and becomes drawn otherwise
+ * @tc.type: FUNC
+ * @tc.require: issue26598
+ */
+HWTEST_F(RSNodeTest, ContainerNodeDrawFlagByAffectsRendering, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // Default valued properties do not affect rendering, the container node must stay undrawn.
+    rsNode->SetAlpha(1.0f);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    rsNode->SetFrame(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBackgroundColor(0x00000000);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // A rendering-affecting property must mark the node drawn.
+    rsNode->SetAlpha(0.5f);
+    EXPECT_TRUE(rsNode->GetIsDrawn());
+}
+
+/**
  * @tc.name: SetAlwaysSnapshot
  * @tc.desc: test results of SetAlwaysSnapshot
  * @tc.type: FUNC

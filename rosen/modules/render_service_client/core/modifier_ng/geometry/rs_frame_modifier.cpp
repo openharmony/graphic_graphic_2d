@@ -18,7 +18,8 @@
 namespace OHOS::Rosen::ModifierNG {
 void RSFrameModifier::SetFrame(Vector4f frame)
 {
-    Setter(RSPropertyType::FRAME, frame);
+    bool isDefault = (frame.x_ == DEFAULT_FRAME.x_ && frame.y_ == DEFAULT_FRAME.y_);
+    Setter(RSPropertyType::FRAME, frame, !isDefault);
 }
 
 void RSFrameModifier::SetFrameSize(Vector2f size)
@@ -59,7 +60,7 @@ void RSFrameModifier::SetFramePositionY(float positionY)
 
 Vector4f RSFrameModifier::GetFrame() const
 {
-    return Getter(RSPropertyType::FRAME, Vector4f(0.0f, 0.0f, 0.0f, 0.0f));
+    return Getter(RSPropertyType::FRAME, DEFAULT_FRAME);
 }
 
 Vector2f RSFrameModifier::GetFrameSize() const

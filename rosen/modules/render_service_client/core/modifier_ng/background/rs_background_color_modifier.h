@@ -21,7 +21,18 @@
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSBackgroundColorModifier : public RSModifier {
 public:
-    RSBackgroundColorModifier() = default;
+    inline static const Color DEFAULT_BACKGROUND_COLOR{RgbPalette::Transparent()};
+    inline static const Vector4f DEFAULT_BG_BRIGHTNESS_RATES{0.f};
+    inline static const float DEFAULT_BG_BRIGHTNESS_SATURATION{0.f};
+    inline static const Vector4f DEFAULT_BG_BRIGHTNESS_POSCOEFF{0.f};
+    inline static const Vector4f DEFAULT_BG_BRIGHTNESS_NEGCOEFF{0.f};
+    inline static const float DEFAULT_BG_BRIGHTNESS_FRACTION{1.f};
+
+    RSBackgroundColorModifier()
+    {
+        affectsRendering_ = false;
+    }
+
     ~RSBackgroundColorModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::BACKGROUND_COLOR;
@@ -45,6 +56,27 @@ public:
     Vector4f GetBgBrightnessPosCoeff() const;
     Vector4f GetBgBrightnessNegCoeff() const;
     float GetBgBrightnessFract() const;
+
+protected:
+    bool IsDefault(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property) const override
+    {
+        switch (type) {
+            case RSPropertyType::BACKGROUND_COLOR:
+                return GetterWithoutCheck<Color>(property).GetAlpha() == DEFAULT_BACKGROUND_COLOR.GetAlpha();
+            case RSPropertyType::BG_BRIGHTNESS_RATES:
+                return GetterWithoutCheck<Vector4f>(property) == DEFAULT_BG_BRIGHTNESS_RATES;
+            case RSPropertyType::BG_BRIGHTNESS_SATURATION:
+                return GetterWithoutCheck<float>(property) == DEFAULT_BG_BRIGHTNESS_SATURATION;
+            case RSPropertyType::BG_BRIGHTNESS_POSCOEFF:
+                return GetterWithoutCheck<Vector4f>(property) == DEFAULT_BG_BRIGHTNESS_POSCOEFF;
+            case RSPropertyType::BG_BRIGHTNESS_NEGCOEFF:
+                return GetterWithoutCheck<Vector4f>(property) == DEFAULT_BG_BRIGHTNESS_NEGCOEFF;
+            case RSPropertyType::BG_BRIGHTNESS_FRACTION:
+                return GetterWithoutCheck<float>(property) == DEFAULT_BG_BRIGHTNESS_FRACTION;
+            default:
+                return false;
+        }
+    }
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_BACKGROUND_RS_BACKGROUND_COLOR_MODIFIER_H

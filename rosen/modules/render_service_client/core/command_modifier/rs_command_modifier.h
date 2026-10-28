@@ -18,6 +18,8 @@
 
 #include <atomic>
 #include <memory>
+#include <type_traits>
+#include <utility>
 #include <variant>
 
 #include "command/rs_command.h"
@@ -135,6 +137,17 @@ public:
 
     virtual RSCmdModifierType GetType() const = 0;
 
+    // A XxxCmdParam may optionally declare `bool AffectsRendering() const` to report whether its value
+    // changes the node's rendering state. Params without it fall back to the default `true`.
+    template<typename T>
+    static bool CmdParamAffectsRendering(const T& param)
+    {
+        if constexpr (HasAffectsRendering<T>::value) {
+            return param.AffectsRendering();
+        }
+        return true;
+    }
+
     uint64_t GetIndex() const
     {
         return index_;
@@ -161,6 +174,16 @@ protected:
     uint64_t index_ = 0;
 
     friend class RSNode;
+
+private:
+    template<typename T, typename = void>
+    struct HasAffectsRendering : std::false_type {
+    };
+
+    template<typename T>
+    struct HasAffectsRendering<T, std::void_t<decltype(std::declval<const T&>().AffectsRendering())>>
+        : std::true_type {
+    };
 };
 
 } // namespace Rosen

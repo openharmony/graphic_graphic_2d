@@ -21,7 +21,14 @@
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSAlphaModifier : public RSModifier {
 public:
-    RSAlphaModifier() = default;
+    inline static const float DEFAULT_ALPHA{1.f};
+    inline static const bool DEFAULT_ALPHA_OFFSCREEN{false};
+
+    RSAlphaModifier()
+    {
+        affectsRendering_ = false;
+    }
+
     ~RSAlphaModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::ALPHA;
@@ -42,6 +49,19 @@ public:
 
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
+
+protected:
+    bool IsDefault(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property) const override
+    {
+        switch (type) {
+            case RSPropertyType::ALPHA:
+                return GetterWithoutCheck<float>(property) == DEFAULT_ALPHA;
+            case RSPropertyType::ALPHA_OFFSCREEN:
+                return GetterWithoutCheck<bool>(property) == DEFAULT_ALPHA_OFFSCREEN;
+            default:
+                return false;
+        }
+    }
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_ALPHA_MODIFIER_H

@@ -31,6 +31,11 @@ class RSNode;
 struct OcclusionCullingStatusCmdParam {
     bool enablekeyOcclusion_;
     NodeId keyOcclusionNodeId_;
+
+    bool AffectsRendering() const
+    {
+        return enablekeyOcclusion_;
+    }
 };
 
 class OcclusionCullingStatusCmdModifier : public RSCmdModifier {
@@ -68,6 +73,8 @@ private:
 
 struct NodeNameCmdParam {
     std::string nodeName_;
+
+    bool AffectsRendering() const;
 };
 
 class NodeNameCmdModifier : public RSCmdModifier {
@@ -105,6 +112,11 @@ private:
 
 struct IsP3ColorCmdParam {
     int8_t collectColorSpace_;
+
+    bool AffectsRendering() const
+    {
+        return collectColorSpace_ != static_cast<int8_t>(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    }
 };
 
 class IsP3ColorCmdModifier : public RSCmdModifier {
@@ -142,6 +154,11 @@ private:
 
 struct DrawRegionCmdParam {
     std::shared_ptr<RectF> drawRegion_;
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class DrawRegionCmdModifier : public RSCmdModifier {
@@ -179,6 +196,11 @@ private:
 
 struct UseCmdlistDrawRegionCmdParam {
     bool needUseCmdlistDrawRegion_;
+
+    bool AffectsRendering() const
+    {
+        return needUseCmdlistDrawRegion_;
+    }
 };
 
 class UseCmdlistDrawRegionCmdModifier : public RSCmdModifier {
@@ -216,6 +238,11 @@ private:
 
 struct ExcludeNodeGroupCmdParam {
     bool isExcludedFromNodeGroup_;
+
+    bool AffectsRendering() const
+    {
+        return isExcludedFromNodeGroup_;
+    }
 };
 
 class ExcludeNodeGroupCmdModifier : public RSCmdModifier {
@@ -253,6 +280,11 @@ private:
 
 struct MarkNodeSingleFrameComposerCmdParam {
     bool isNodeSingleFrameComposer_;
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class MarkNodeSingleFrameComposerCmdModifier : public RSCmdModifier {
@@ -290,6 +322,11 @@ private:
 
 struct IsRepaintBoundaryCmdParam {
     bool isRepaintBoundary_;
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class IsRepaintBoundaryCmdModifier : public RSCmdModifier {
@@ -328,6 +365,11 @@ private:
 struct MarkOpincNodeCmdParam {
     bool isSuggestOpincNode_;
     bool isOpincNeedCalculate_;
+
+    bool AffectsRendering() const
+    {
+        return isSuggestOpincNode_;
+    }
 };
 
 class MarkOpincNodeCmdModifier : public RSCmdModifier {
@@ -365,6 +407,11 @@ private:
 
 struct IsUifirstNodeCmdParam {
     bool isUifirstNode_;
+
+    bool AffectsRendering() const
+    {
+        return !isUifirstNode_;
+    }
 };
 
 class IsUifirstNodeCmdModifier : public RSCmdModifier {
@@ -403,6 +450,11 @@ private:
 struct IsForceUifirstNodeCmdParam {
     bool isForceFlag_;
     bool isUifirstEnable_;
+
+    bool AffectsRendering() const
+    {
+        return isForceFlag_ || isUifirstEnable_;
+    }
 };
 
 class IsForceUifirstNodeCmdModifier : public RSCmdModifier {
@@ -440,6 +492,11 @@ private:
 
 struct SyncDrawNodeTypeCmdParam {
     DrawNodeType nodeType_;
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class SyncDrawNodeTypeCmdModifier : public RSCmdModifier {
@@ -477,6 +534,11 @@ private:
 
 struct UIFirstSwitchCmdParam {
     RSUIFirstSwitch uifirstSwitch_;
+
+    bool AffectsRendering() const
+    {
+        return uifirstSwitch_ != RSUIFirstSwitch::NONE;
+    }
 };
 
 class UIFirstSwitchCmdModifier : public RSCmdModifier {
@@ -514,6 +576,11 @@ private:
 
 struct OutOfParentCmdParam {
     OutOfParentType outOfParent_;
+
+    bool AffectsRendering() const
+    {
+        return outOfParent_ != OutOfParentType::UNKNOWN;
+    }
 };
 
 class OutOfParentCmdModifier : public RSCmdModifier {
@@ -551,6 +618,11 @@ private:
 
 struct IsCrossNodeCmdParam {
     bool isCrossNode_;
+
+    bool AffectsRendering() const
+    {
+        return isCrossNode_;
+    }
 };
 
 class IsCrossNodeCmdModifier : public RSCmdModifier {
@@ -588,6 +660,11 @@ private:
 
 struct IsDepthBackgroundCmdParam {
     bool isDepthBackground_;
+
+    bool AffectsRendering() const
+    {
+        return isDepthBackground_;
+    }
 };
 
 class IsDepthBackgroundCmdModifier : public RSCmdModifier {
@@ -622,6 +699,11 @@ struct NodeGroupCmdParam {
     bool isNodeGroup_;
     bool nodeGroupIsForced_;
     bool nodeGroupIncludeProperty_;
+
+    bool AffectsRendering() const
+    {
+        return isNodeGroup_;
+    }
 };
 
 class NodeGroupCmdModifier : public RSCmdModifier {
@@ -659,6 +741,11 @@ private:
 
 struct LayerPartRenderCmdParam {
     bool isLayerPartRender_;
+
+    bool AffectsRendering() const
+    {
+        return isLayerPartRender_;
+    }
 };
 
 class LayerPartRenderCmdModifier : public RSCmdModifier {

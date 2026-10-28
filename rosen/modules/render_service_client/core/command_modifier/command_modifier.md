@@ -112,7 +112,9 @@ RSCmdModifier（基类）
 
 每个具体的 CmdModifier 都遵循统一的设计模式：
 
-1. **参数结构体（Param）**：以 `XxxCmdParam` 命名，存储该 Modifier 所需的参数。
+1. **参数结构体（Param）**：以 `XxxCmdParam` 命名，存储该 Modifier 所需的参数；**可选**提供
+   `bool AffectsRendering() const`，返回该参数是否影响节点渲染（不提供时默认按 `true` 处理，
+   详见下文"参数结构体的 AffectsRendering() 契约"）。
 2. **Modifier 类**：以 `XxxCmdModifier` 命名，继承 `RSCmdModifier`，包含：
    - 构造函数接收 `weak_ptr<RSNode>` 和参数结构体
    - `SetParam()` 方法：比较新旧参数，相同则不更新（减少冗余命令）
@@ -203,6 +205,24 @@ RSNode::SetRSCmdPropertyWithResult<Modifier> →  modifier->UpdateToRenderWithRe
   对于一些特殊接口（如需要使用 IPC 直接调用 `RSRenderInterface` 等），子类可重写此方法进行适配，
   调用处使用 `SetRSCmdPropertyWithResult`。
 
+### 参数结构体的 AffectsRendering() 契约
+
+`XxxCmdParam` 除了存放参数，**可选**提供 `bool AffectsRendering() const`。它由三个入口模板在
+创建/更新 Modifier 之前统一通过 `ModifierType::CmdParamAffectsRendering(param)` 求值：
+
+```cpp
+// rs_node.h：SetRSCmdProperty / SetRSCmdPropertyWithResult / PushRSCmdModifierToQueue 内均有此逻辑
+if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+    SetDrawNode();
+}
+```
+
+- `CmdParamAffectsRendering()` 是 `RSCmdModifier`（`rs_command_modifier.h`）的**公有静态成员函数**：
+  若参数类型声明了 `AffectsRendering()` 则调用它，否则默认返回 `true`。因此缺少该方法的参数结构体仍可编译。
+  静态函数无需实例，判断仍发生在取/建 Modifier 之前，调用顺序与原先一致。
+- 语义：返回该参数的变化是否影响节点渲染。返回 `true` 且节点当前还不是 draw node 时，
+  框架调用 `SetDrawNode()` 把节点标记为绘制节点；返回 `false` 则不触发重绘标记。
+
 ---
 
 ### 开发范式一：标准 AddCommand 路径
@@ -221,6 +241,12 @@ struct NodeGroupCmdParam {
     bool isNodeGroup_;
     bool nodeGroupIsForced_;
     bool nodeGroupIncludeProperty_;
+
+    // 可选：返回该参数是否影响节点渲染（不声明时默认 true）
+    bool AffectsRendering() const
+    {
+        return isNodeGroup_;
+    }
 };
 
 class NodeGroupCmdModifier : public RSCmdModifier {
@@ -294,6 +320,7 @@ SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
 ```
 
 **要点：**
+- 参数结构体**可选**提供 `AffectsRendering()`；不提供时按默认 `true` 处理，入口模板仍可编译
 - `UpdateToRender()` 中**必须**通过 `AddCommand()` 提交命令
 - 命令会随 Transaction 批量发送至 Render Service，保证时序正确
 - 前台恢复时系统会遍历所有 CmdModifier 调用此方法，因此它承担了状态重建的职责
@@ -314,6 +341,7 @@ SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
 // rs_surface_node_command_modifier.h
 
 struct HardwareEnabledCmdParam {
+    // AffectsRendering() 为可选：不声明时默认按 true 处理，仍可被 SetRSCmdPropertyWithResult 调用。
     bool isHardwareEnabled_;
     SelfDrawingNodeType isSelfDrawingNodeType_;
     bool isDynamicHardwareEnable_;

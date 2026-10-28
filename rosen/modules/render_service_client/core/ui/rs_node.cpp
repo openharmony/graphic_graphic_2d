@@ -841,10 +841,6 @@ void RSNode::SetUIFilterPropertyNG(T value)
 void RSNode::SetAlpha(float alpha)
 {
     SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlpha>(alpha);
-    if (alpha < 1) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
     OnAlphaValueChanged();
 }
 
@@ -879,10 +875,6 @@ void RSNode::SetBoundsAndFrame(const Vector4f& bounds, const Vector4f& frame)
     }
 
     OnBoundsSizeChanged();
-    if (bounds.x_ != 0 || bounds.y_ != 0 || frame.x_ != 0 || frame.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 // Bounds
@@ -911,10 +903,6 @@ void RSNode::SetBounds(const Vector4f& bounds)
     }
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetBounds>(bounds);
     OnBoundsSizeChanged();
-    if (bounds.x_ != 0 || bounds.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 void RSNode::SetBounds(float positionX, float positionY, float width, float height)
@@ -989,10 +977,6 @@ void RSNode::SetFrameInner(const Vector4f& frame)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetPropertyNG<ModifierNG::RSFrameModifier, &ModifierNG::RSFrameModifier::SetFrame>(bounds);
-    if (bounds.x_ != 0 || bounds.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 void RSNode::SetFrame(float positionX, float positionY, float width, float height)
@@ -1021,8 +1005,6 @@ void RSNode::SetFramePositionX(float positionX)
     auto frame = property->Get();
     frame.x_ = positionX;
     property->Set(frame);
-    SetDrawNode();
-    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -1046,8 +1028,6 @@ void RSNode::SetFramePositionY(float positionY)
     auto frame = property->Get();
     frame.y_ = positionY;
     property->Set(frame);
-    SetDrawNode();
-    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
@@ -1749,10 +1729,6 @@ void RSNode::SetBackgroundColor(RSColor color)
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
-    if (color.GetAlpha() > 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
@@ -3168,9 +3144,6 @@ void RSNode::SetNodeName(const std::string& nodeName)
         return;
     }
     nodeName_ = nodeName;
-    if (!GetIsDrawn() && RSFrameRatePolicy::GetInstance()->IsAppBufferNode(nodeName)) {
-        SetDrawNode();
-    }
     SetRSCmdProperty<NodeNameCmdModifier>(NodeNameCmdParam{
         nodeName
     });
@@ -3788,12 +3761,6 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
         isNodeGroup, isForced, includeProperty
     });
-    if (isNodeGroup_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::ExcludedFromNodeGroup(bool isExcluded)
@@ -3832,12 +3799,6 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetRSCmdProperty<MarkOpincNodeCmdModifier>(MarkOpincNodeCmdParam{
         isOpincNode, isNeedCalculate
     });
-    if (isSuggestOpincNode_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::MarkLayerPartRender(bool isLayerPartRender)
@@ -3856,12 +3817,6 @@ void RSNode::MarkLayerPartRender(bool isLayerPartRender)
     SetRSCmdProperty<LayerPartRenderCmdModifier>(LayerPartRenderCmdParam{
         isLayerPartRender
     });
-    if (isLayerPartRender_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::MarkUifirstNode(bool isUifirstNode)
@@ -3889,24 +3844,6 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     });
 }
 
-void RSNode::SetDrawNode()
-{
-    LoadRenderNodeIfNeed();
-    if (isDrawNode_) {
-        return;
-    }
-    isDrawNode_ = true;
-    if (drawNodeChangeCallback_) {
-        drawNodeChangeCallback_(shared_from_this(), false);
-    }
-}
-
-bool RSNode::GetIsDrawn()
-{
-    return isDrawNode_;
-}
-
-
 /**
  * @brief Sets the drawing type of RSnode
  *
@@ -3924,7 +3861,7 @@ void RSNode::SetDrawNodeType(DrawNodeType nodeType)
         return;
     }
     drawNodeType_ = nodeType;
-    if (RSSystemProperties::ViewDrawNodeType()) {
+    if (UNLIKELY(RSSystemProperties::ViewDrawNodeType())) {
         SyncDrawNodeType(nodeType);
     }
 }
@@ -5015,6 +4952,7 @@ std::string RSNode::DumpNode(int depth) const
     ss << "]";
     ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
     ss << " nodeState[" << DumpNodeState() << "]";
+    ss << " isDrawNode[" << GetIsDrawn() << "]";
 
     {
         std::unique_lock<std::recursive_mutex> lock(animationMutex_);
@@ -5154,15 +5092,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         auto modifierType = modifier->GetType();
         if (modifierType == ModifierNG::RSModifierType::NODE_MODIFIER) {
             return;
-        }
-        if (modifierType != ModifierNG::RSModifierType::BOUNDS && modifierType != ModifierNG::RSModifierType::FRAME &&
-            modifierType != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
-            modifierType != ModifierNG::RSModifierType::ALPHA) {
-            SetDrawNode();
-            SetDrawNodeType(DrawNodeType::DrawPropertyType);
-            if (modifierType == ModifierNG::RSModifierType::TRANSFORM) {
-                SetDrawNodeType(DrawNodeType::GeometryPropertyType);
-            }
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
