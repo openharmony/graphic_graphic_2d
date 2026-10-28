@@ -22,7 +22,6 @@
 #include <unordered_map>
 
 #include "ffrt_inner.h"
-#include "platform/common/rs_log.h"
 #include "ressched_event_listener.h"
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -64,13 +63,6 @@ void ResschedEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventVal
 void ResschedEventListener::HandleDrawFrameEventReport(uint32_t eventValue,
     const std::unordered_map<std::string, std::string>& extInfo)
 {
-    std::string extInfoStr;
-    for (const auto& [k, v] : extInfo) {
-        extInfoStr += k + ":" + v + " ";
-    }
-    RS_LOGI("slide reco multiprocessing HandleDrawFrameEventReport eventValue=%{public}u extInfo=%{public}s",
-        eventValue, extInfoStr.c_str());
-    RS_TRACE_NAME_FMT("slide reco multiprocessing HandleDrawFrameEventReport eventValue:%u", eventValue);
     uint64_t screenId = DEFAULT_SCREEN_ID;
     auto it = extInfo.find("screenId");
     if (it != extInfo.end()) {
@@ -93,13 +85,12 @@ void ResschedEventListener::HandleDrawFrameEventReport(uint32_t eventValue,
         ctx->isNeedReport.store(false);
         ctx->isFirstReport.store(false);
     }
+    RS_TRACE_NAME_FMT("HandleDrawFrameEventReport eventValue:%u screenId:%" PRIu64, eventValue, screenId);
 }
 
 
 void ResschedEventListener::ReportFrameToRSS(uint64_t screenId)
 {
-    RS_LOGI("slide reco multiprocessing ReportFrameToRSS screenId=%{public}" PRIu64, screenId);
-    RS_TRACE_NAME_FMT("slide reco multiprocessing DoReportFrameToRSS screenId:%" PRIu64, screenId);
     auto ctx = GetScreenContext(screenId);
     if (ctx == nullptr || !ctx->isNeedReport.load()) {
         return;
@@ -111,13 +102,11 @@ void ResschedEventListener::ReportFrameToRSS(uint64_t screenId)
     if (ctx->isFirstReport.load() ||
         ctx->lastReportTime.load() == 0 || (currTime > ctx->lastReportTime.load() &&
         currTime - ctx->lastReportTime.load() >= SAMPLE_TIME)) {
-        RS_TRACE_NAME("ReportFrameToRSS");
+        RS_TRACE_NAME_FMT("ReportFrameToRSS screenId:%" PRIu64, screenId);
         uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
         int64_t value = 0;
         std::unordered_map<std::string, std::string> mapPayload;
         mapPayload["screenId"] = std::to_string(screenId);
-        RS_LOGI("slide reco multiprocessing ReportFrameToRSS type=%{public}u value=%{public}" PRId64
-            " mapPayload:screenId=%{public}s", type, value, mapPayload["screenId"].c_str());
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
         ctx->isFirstReport.store(false);
         ctx->lastReportTime.store(static_cast<uint64_t>(
