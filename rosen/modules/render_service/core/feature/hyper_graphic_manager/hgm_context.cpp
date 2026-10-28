@@ -242,7 +242,7 @@ void HgmContext::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, c
 
 void HgmContext::CleanAllWhenServiceConnectionDie(pid_t remotePid)
 {
-    renderServiceHandler_->PostSyncTask([this, remotePid] {
+    renderServiceHandler_->PostTask([this, remotePid] {
         frameRateLinkerMap_.FilterFrameRateLinkerByPid(remotePid);
     });
 
