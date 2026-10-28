@@ -1066,6 +1066,9 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
+        if (status == ScreenPowerStatus::POWER_STATUS_OFF && MultiScreenParam::IsSkipScreenPowerOffing()) {
+            renderServiceAgent_->HandlePowerStatus(id, ScreenPowerStatus::POWER_STATUS_OFFING);
+        }
         screenManagerAgent_->SetScreenPowerStatus(id, status);
         renderServiceAgent_->HandlePowerStatus(id, status);
         if (hgmContext_ != nullptr) {

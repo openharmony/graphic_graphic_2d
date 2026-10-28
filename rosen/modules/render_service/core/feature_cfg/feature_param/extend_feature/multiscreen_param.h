@@ -30,6 +30,7 @@ public:
     static bool IsMirrorDisplayCloseP3();
     static bool IsForceRenderForMirror();
     static bool IsSkipFrameByActiveRefreshRate();
+    static bool IsSkipScreenPowerOffing();
 
 protected:
     static void SetExternalScreenSecure(bool isSecure);
@@ -38,6 +39,7 @@ protected:
     static void SetMirrorDisplayCloseP3(bool isEnabled);
     static void SetForceRenderForMirror(bool isEnabled);
     static void SetSkipFrameByActiveRefreshRate(bool isEnabled);
+    static void SetSkipScreenPowerOffing(bool isEnabled);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
@@ -46,6 +48,7 @@ private:
     inline static bool isMirrorDisplayCloseP3_ = true;
     inline static bool isForceRenderForMirror_ = false;
     inline static bool isSkipFrameByActiveRefreshRate_ = false;
+    inline static bool isSkipScreenPowerOffing_ = false;
  
     friend class MultiScreenParamParse;
 };

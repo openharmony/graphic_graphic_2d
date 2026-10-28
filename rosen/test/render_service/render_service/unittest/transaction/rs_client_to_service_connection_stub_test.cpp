@@ -50,6 +50,7 @@
 #include "screen_manager/screen_types.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/rs_screen.h"
+#include "multiscreen_param.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "render/rs_typeface_cache.h"
@@ -2817,6 +2818,62 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest003, TestS
     connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::INVALID_POWER_STATUS);
     RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
     connection->hgmContext_ = preHgmContext_;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest004
+ * @tc.desc: Test SetScreenPowerStatus when IsSkipScreenPowerOffing enabled and status is OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest004, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_OFF);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest005
+ * @tc.desc: Test SetScreenPowerStatus when status is not OFF, pre-power-off branch is skipped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest005, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_ON);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest006
+ * @tc.desc: Test SetScreenPowerStatus when IsSkipScreenPowerOffing is false, pre-power-off branch is skipped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest006, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_OFF);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
 }
 
 /**

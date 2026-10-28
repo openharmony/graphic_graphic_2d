@@ -161,4 +161,22 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_005, TestSize.Level1)
     // restore sysProp
     system::SetParameter("rosen.graphic.screenoffskipdisplayenabled", sysProp ? "1" : "0");
 }
+
+/*
+ * @tc.name: CheckRenderSkipStatus_006
+ * @tc.desc: Test CheckRenderSkipStatus, if single screen is POWER_STATUS_OFFING, skip render
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_006, TestSize.Level1)
+{
+    RSRenderNodeMap renderNodeMap;
+    ScreenId screenId = 1;
+    RegisterScreenNode(renderNodeMap, screenId, ScreenPowerStatus::POWER_STATUS_OFFING, false);
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
+    // screen is in pre-power-off state, should skip render
+    ASSERT_TRUE(renderController->GetScreenRenderSkipped(screenId));
+    ASSERT_TRUE(renderController->GetAllScreenRenderSkipped());
+}
 }
