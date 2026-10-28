@@ -37,8 +37,8 @@
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
-#include "params/rs_surface_render_params.h"
 #include "params/rs_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -61,14 +61,15 @@ namespace Rosen {
 namespace {
 constexpr uint32_t ALPHA_MASK = 0xFF000000;
 
-// Flag ancestor cache roots of each blacklisted surface (NodeGroupHasChildInBlacklist)
-// so CheckCacheTypeAndDraw(isInCapture) invalidates them and OnCapture re-traverses the
-// subtree, letting CheckIfSurfaceSkipInMirrorOrScreenshot apply. Flag self-clears via OnSync.
-void MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& blackList)
+// Flag ancestor cache roots of each blacklisted surface so capture bypasses their caches,
+// and return the original flags for the caller to restore after capture. Reading the node
+// map and walking parents is race-free here: the capture flow runs on the main thread and
+// PostSyncTask blocks it until this render-thread task finishes.
+std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>>
+MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& blackList)
 {
-    if (blackList.empty()) {
-        return;
-    }
+    std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>> flaggedDrawables;
+    std::unordered_set<RSRenderParams*> touchedParams;
     for (NodeId blackId : blackList) {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(blackId);
         if (node == nullptr) {
@@ -80,14 +81,18 @@ void MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& bl
                 continue;
             }
             const auto& params = drawable->GetRenderParams();
-            // Gate on HasRenderGroupCache: SetNodeGroupHasChildInBlacklist lazily creates
-            // renderGroupCache_, which OnSync won't clear on non-cache-roots (staging has
-            // none), leaving a stale flag.
-            if (params != nullptr && params->HasRenderGroupCache()) {
-                params->SetNodeGroupHasChildInBlacklist(true);
+            if (params == nullptr || params->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
+                !touchedParams.insert(params.get()).second) {
+                continue;
             }
+            flaggedDrawables.emplace_back(drawable, params->NodeGroupHasChildInBlacklist());
+            params->SetNodeGroupHasChildInBlacklist(true);
         }
     }
+    if (!flaggedDrawables.empty()) {
+        RS_TRACE_NAME_FMT("MarkCaptureBlacklistAncestorCacheRoots flagged:%zu", flaggedDrawables.size());
+    }
+    return flaggedDrawables;
 }
 
 #ifdef RS_ENABLE_GPU
@@ -986,10 +991,15 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
     RSUniRenderThread::Instance().SetBlackList(blackList);
-    // Invalidate caches whose subtree contains a blacklisted surface.
-    MarkCaptureBlacklistAncestorCacheRoots(blackList);
+    auto flaggedDrawables = MarkCaptureBlacklistAncestorCacheRoots(blackList);
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
     displayNodeDrawable.OnCapture(canvas);
+    for (const auto& [drawable, inBlacklist] : flaggedDrawables) {
+        const auto& params = drawable->GetRenderParams();
+        if (params != nullptr) {
+            params->SetNodeGroupHasChildInBlacklist(inBlacklist);
+        }
+    }
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
             RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
     RSUniRenderThread::Instance().SetBlackList({});

@@ -267,12 +267,6 @@ public:
 
     void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
 
-    // True if this params owns a RSRenderGroupCache (i.e. the node is a RenderGroup cache root).
-    inline bool HasRenderGroupCache() const
-    {
-        return renderGroupCache_ != nullptr;
-    }
-
     inline bool IsLayerDirty() const
     {
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
