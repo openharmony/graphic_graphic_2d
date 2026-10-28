@@ -1545,7 +1545,7 @@ HWTEST_F(RSImageTest, PixelSamplingDumpTest, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(width, height);
     rsImage->SetPixelMap(pixelmap);
     EXPECT_EQ(rsImage->PixelSamplingDump(),
-        "[ Width:200 Height:300 pixelFormat: 4"
+        "[ Width:200 Height:300 pixelFormat:3"
         " pixels: ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
         " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
         " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00]");
