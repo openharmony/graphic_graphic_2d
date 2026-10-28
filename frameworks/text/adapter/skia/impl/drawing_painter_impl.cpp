@@ -16,6 +16,7 @@
 #include "drawing_painter_impl.h"
 
 #include <array>
+#include <cmath>
 #include <memory>
 
 #include "include/core/SkBlurTypes.h"
@@ -92,6 +93,37 @@ static Drawing::RoundRect ToDrawingRoundRect(const SkRRect& skRRect)
     Drawing::RoundRect roundRect(rect, {leftTop, rightTop, rightBottom, leftBottom});
     return roundRect;
 }
+
+namespace {
+// Builds the stroke path for an outward border: outset the fill rrect by half the border
+// width so the centered pen stroke covers [edge, edge + borderWidth] and never overlaps
+// the fill area. Radii grow by the same half width, clamped to half of the smaller side.
+Drawing::RoundRect BuildOuterStrokeRoundRect(const SkRRect& skRRect, const SkScalar borderWidth)
+{
+    constexpr SkScalar HALF = 0.5f;
+    const Drawing::scalar half = borderWidth * HALF;
+    const SkRect outer = skRRect.rect().makeOutset(half, half);
+    const Drawing::scalar limit = std::fmin(outer.width(), outer.height()) * HALF;
+    auto outerRadius = [skRRect, half, limit](SkRRect::Corner corner) -> Drawing::scalar {
+        const Drawing::scalar radius = skRRect.radii(corner).x() + half;
+        return std::fmax(std::fmin(radius, limit), 0.0f);
+    };
+    Drawing::Rect rect;
+    rect.SetLeft(outer.fLeft);
+    rect.SetTop(outer.fTop);
+    rect.SetRight(outer.fRight);
+    rect.SetBottom(outer.fBottom);
+    Drawing::Point leftTop(
+        outerRadius(SkRRect::Corner::kUpperLeft_Corner), outerRadius(SkRRect::Corner::kUpperLeft_Corner));
+    Drawing::Point rightTop(
+        outerRadius(SkRRect::Corner::kUpperRight_Corner), outerRadius(SkRRect::Corner::kUpperRight_Corner));
+    Drawing::Point rightBottom(
+        outerRadius(SkRRect::Corner::kLowerRight_Corner), outerRadius(SkRRect::Corner::kLowerRight_Corner));
+    Drawing::Point leftBottom(
+        outerRadius(SkRRect::Corner::kLowerLeft_Corner), outerRadius(SkRRect::Corner::kLowerLeft_Corner));
+    return Drawing::RoundRect(rect, { leftTop, rightTop, rightBottom, leftBottom });
+}
+} // namespace
 
 RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, const std::vector<PaintRecord>& paints)
     : canvas_(canvas), paints_(paints)
@@ -255,7 +287,7 @@ void RSCanvasParagraphPainter::drawRRectWithBorder(
         pen.SetWidth(borderWidth);
         pen.SetAntiAlias(true);
         canvas_->AttachPen(pen);
-        canvas_->DrawRoundRect(rsRRect);
+        canvas_->DrawRoundRect(BuildOuterStrokeRoundRect(rrect, borderWidth));
         canvas_->DetachPen();
     }
 }

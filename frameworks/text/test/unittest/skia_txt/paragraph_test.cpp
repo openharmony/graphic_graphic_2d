@@ -31,6 +31,53 @@ using namespace OHOS::Rosen::SPText;
 
 namespace txt {
 namespace skt = skia::textlayout;
+namespace {
+std::shared_ptr<Paragraph> BuildParagraphWithBorder(double borderWidth, const std::u16string& text)
+{
+    ParagraphStyle paragraphStyle;
+    // The adapter defaults to a tail ellipsis, which forces every paragraph onto a
+    // single line; wrapping tests need a plain multi-line paragraph instead.
+    paragraphStyle.ellipsis = u"";
+    auto fontCollection = std::make_shared<FontCollection>();
+    fontCollection->SetupDefaultFontManager();
+    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    if (builder == nullptr) {
+        return nullptr;
+    }
+    SPText::TextStyle style;
+    style.backgroundRect.color = 0xFF00FF00;       // 0xFF00FF00 just for test
+    style.backgroundRect.borderColor = 0xFFFF0000; // 0xFFFF0000 just for test
+    style.backgroundRect.borderWidth = borderWidth;
+    builder->PushStyle(style);
+    builder->AddText(text);
+    builder->Pop();
+    return builder->Build();
+}
+
+std::shared_ptr<Paragraph> BuildJustifyParagraphWithBorder(
+    OHOS::Rosen::SPText::TextAlign align, double borderWidth, const std::u16string& text)
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.textAlign = align;
+    // Same ellipsis clearing as BuildParagraphWithBorder: the adapter default forces
+    // a single line, which would keep justify from ever stretching a line.
+    paragraphStyle.ellipsis = u"";
+    auto fontCollection = std::make_shared<FontCollection>();
+    fontCollection->SetupDefaultFontManager();
+    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    if (builder == nullptr) {
+        return nullptr;
+    }
+    SPText::TextStyle style;
+    style.backgroundRect.color = 0xFF00FF00;       // 0xFF00FF00 just for test
+    style.backgroundRect.borderColor = 0xFFFF0000; // 0xFFFF0000 just for test
+    style.backgroundRect.borderWidth = borderWidth;
+    builder->PushStyle(style);
+    builder->AddText(text);
+    builder->Pop();
+    return builder->Build();
+}
+} // namespace
 class ParagraphTest : public testing::Test {
 public:
     void SetUp() override;
@@ -1086,5 +1133,377 @@ HWTEST_F(ParagraphTest, ParagraphTestCacheTab003, TestSize.Level0)
     ASSERT_NE(second, nullptr);
     second->Layout(200.0);
     EXPECT_EQ(cache->count(), 2);
+}
+
+/*
+ * @tc.name: ParagraphBorderLayout001
+ * @tc.desc: test for border width raising the line height by 2w when the bordered run decides it
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderLayout001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 300.0; // 300 just for test
+    auto plain = BuildParagraphWithBorder(0.0, u"border text");
+    auto bordered = BuildParagraphWithBorder(BORDER_WIDTH, u"border text");
+    ASSERT_NE(plain, nullptr);
+    ASSERT_NE(bordered, nullptr);
+    plain->Layout(LAYOUT_WIDTH);
+    bordered->Layout(LAYOUT_WIDTH);
+    EXPECT_FLOAT_EQ(
+        static_cast<float>(bordered->GetHeight() - plain->GetHeight()), 2 * static_cast<float>(BORDER_WIDTH));
+}
+
+/*
+ * @tc.name: ParagraphBorderWrap001
+ * @tc.desc: test for border gap participating in line breaking width
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderWrap001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
+    constexpr double WIDE_LAYOUT = 1000.0; // 1000 just for test
+    auto plain = BuildParagraphWithBorder(0.0, u"border text border text");
+    auto bordered = BuildParagraphWithBorder(BORDER_WIDTH, u"border text border text");
+    ASSERT_NE(plain, nullptr);
+    ASSERT_NE(bordered, nullptr);
+    plain->Layout(WIDE_LAYOUT);
+    auto implPlain = GetParagraphSkiaImpl(plain);
+    ASSERT_NE(implPlain, nullptr);
+    ASSERT_EQ(implPlain->lines().size(), 1u);        // sanity: single line without border
+    const auto tightWidth = plain->GetLongestLine(); // exact single-line width
+    plain->Layout(tightWidth);
+    bordered->Layout(tightWidth);
+    auto implBordered = GetParagraphSkiaImpl(bordered);
+    ASSERT_NE(implBordered, nullptr);
+    EXPECT_EQ(implBordered->lines().size(), 2u); // enter gap w forces an earlier break
+}
+
+/*
+ * @tc.name: ParagraphBorderIntrinsic001
+ * @tc.desc: test for border gap participating in min intrinsic width
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderIntrinsic001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;    // 4.0 just for test
+    constexpr double NARROW_LAYOUT = 100.0; // 100 just for test: wrap so intrinsic is measured
+    auto plain = BuildParagraphWithBorder(0.0, u"border text border text");
+    auto bordered = BuildParagraphWithBorder(BORDER_WIDTH, u"border text border text");
+    ASSERT_NE(plain, nullptr);
+    ASSERT_NE(bordered, nullptr);
+    plain->Layout(NARROW_LAYOUT);
+    bordered->Layout(NARROW_LAYOUT);
+    ASSERT_GT(plain->GetMinIntrinsicWidth(), 0.0); // sanity: measurement path ran
+    EXPECT_FLOAT_EQ(static_cast<float>(bordered->GetMinIntrinsicWidth() - plain->GetMinIntrinsicWidth()),
+        static_cast<float>(BORDER_WIDTH));
+}
+
+/*
+ * @tc.name: ParagraphBorderGap001
+ * @tc.desc: test for border gap materialized outside the box and counted in line width
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderGap001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 300.0; // 300 just for test
+    auto plain = BuildParagraphWithBorder(0.0, u"border text");
+    auto bordered = BuildParagraphWithBorder(BORDER_WIDTH, u"border text");
+    ASSERT_NE(plain, nullptr);
+    ASSERT_NE(bordered, nullptr);
+    plain->Layout(LAYOUT_WIDTH);
+    bordered->Layout(LAYOUT_WIDTH);
+    auto implPlain = GetParagraphSkiaImpl(plain);
+    auto implBordered = GetParagraphSkiaImpl(bordered);
+    ASSERT_NE(implPlain, nullptr);
+    ASSERT_NE(implBordered, nullptr);
+    ASSERT_EQ(implPlain->lines().size(), 1u);
+    ASSERT_EQ(implBordered->lines().size(), 1u);
+    // line width grows by exactly 2w (enter + trailing gaps)
+    const auto widthDelta =
+        implBordered->lines()[0].widthWithoutEllipsis() - implPlain->lines()[0].widthWithoutEllipsis();
+    EXPECT_FLOAT_EQ(widthDelta, 2 * static_cast<SkScalar>(BORDER_WIDTH));
+    // box clips: left edge shifts by w (gap outside the box), box width unchanged
+    SkScalar plainLeft = -1.0f, plainRight = -1.0f;
+    SkScalar borderLeft = -1.0f, borderRight = -1.0f;
+    auto collectClip = [](skt::TextLine& line, SkScalar& left, SkScalar& right) {
+        line.scanStyles(skt::StyleType::kBackground, [&left, &right](skt::TextRange range, const skt::TextStyle& style,
+                                                         const skt::TextLine::ClipContext& context) {
+            left = context.clip.fLeft;
+            right = context.clip.fRight;
+        });
+    };
+    collectClip(implPlain->lines()[0], plainLeft, plainRight);
+    collectClip(implBordered->lines()[0], borderLeft, borderRight);
+    EXPECT_FLOAT_EQ(borderLeft, plainLeft + static_cast<SkScalar>(BORDER_WIDTH));
+    EXPECT_FLOAT_EQ(borderRight - borderLeft, plainRight - plainLeft);
+}
+
+/*
+ * @tc.name: ParagraphBorderEllipsis001
+ * @tc.desc: test for tail ellipsis subtracting border gaps of removed clusters
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderEllipsis001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 137.0; // 137 just for test (calibrated): line 1 spans both
+                                           // border segments while the tail ellipsis removes the
+                                           // whole trailing segment (multiple clusters)
+    constexpr size_t SEGMENT_A_END = 12;   // "border text " length: kept text must stay in segment A
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = 1;
+    paragraphStyle.ellipsis = u"...";
+    auto fontCollection = std::make_shared<FontCollection>();
+    fontCollection->SetupDefaultFontManager();
+    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(builder, nullptr);
+    SPText::TextStyle style;
+    style.backgroundRect.color = 0xFF00FF00;       // 0xFF00FF00 just for test
+    style.backgroundRect.borderColor = 0xFFFF0000; // 0xFFFF0000 just for test
+    style.backgroundRect.borderWidth = BORDER_WIDTH;
+    builder->PushStyle(style); // "border text ": border segment A
+    builder->AddText(u"border text ");
+    style.backgroundRect.borderColor = 0xFF0000FF; // 0xFF0000FF just for test: a distinct color
+                                                   // starts border segment B so its enter gap is
+                                                   // carried by B's first cluster
+    builder->PushStyle(style);                     // "border text": border segment B
+    builder->AddText(u"border text");
+    builder->Pop();
+    std::shared_ptr<Paragraph> paragraph = builder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(LAYOUT_WIDTH);
+    auto impl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(impl, nullptr);
+    ASSERT_EQ(impl->lines().size(), 1u);
+    auto& line = impl->lines()[0];
+    ASSERT_NE(line.ellipsis(), nullptr);
+    // the removal must have crossed segment B (its enter gap is the residue under test)
+    ASSERT_LE(line.text().end, SEGMENT_A_END);
+    // surviving boxes keep their materialized gaps: leftmost box starts at its enter gap, and
+    // the line width ends exactly one trailing gap past the rightmost kept box edge (gaps of
+    // clusters removed by the ellipsis must be gone; the ellipsis run's own box starts past
+    // the kept text and is excluded)
+    SkScalar boxLeft = -1.0f;
+    SkScalar boxRight = -1.0f;
+    const auto keptTextEnd = line.text().end;
+    line.scanStyles(
+        skt::StyleType::kBackground, [&boxLeft, &boxRight, keptTextEnd](skt::TextRange range,
+                                         const skt::TextStyle& style, const skt::TextLine::ClipContext& context) {
+            if (range.start >= keptTextEnd) {
+                return;
+            }
+            if (boxLeft < 0.0f || context.clip.fLeft < boxLeft) {
+                boxLeft = context.clip.fLeft;
+            }
+            if (context.clip.fRight > boxRight) {
+                boxRight = context.clip.fRight;
+            }
+        });
+    EXPECT_FLOAT_EQ(boxLeft, static_cast<SkScalar>(BORDER_WIDTH));
+    EXPECT_FLOAT_EQ(line.widthWithoutEllipsis(), boxRight + static_cast<SkScalar>(BORDER_WIDTH));
+}
+
+/*
+ * @tc.name: ParagraphBorderJustify001
+ * @tc.desc: test for justify keeping border gaps fixed and filling the layout width
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderJustify001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;          // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 160.0;        // 160 just for test (calibrated): wraps the text
+                                                  // into 2 lines, the first one holding border boxes
+    constexpr double PLAIN_LAYOUT_WIDTH = 152.0;  // LAYOUT_WIDTH - 2 * BORDER_WIDTH: the no-border
+                                                  // control keeps the same first-line words
+    constexpr double SINGLE_LAYOUT_WIDTH = 300.0; // 300 just for test: keeps "border text" on one line
+    auto collectClip = [](skt::TextLine& line, SkScalar& left, SkScalar& right) {
+        line.scanStyles(skt::StyleType::kBackground, [&left, &right](skt::TextRange range, const skt::TextStyle& style,
+                                                         const skt::TextLine::ClipContext& context) {
+            left = context.clip.fLeft;
+            right = context.clip.fRight;
+        });
+    };
+    // a single line is also the last line: justify must leave it untouched
+    auto single = BuildJustifyParagraphWithBorder(SPText::TextAlign::JUSTIFY, BORDER_WIDTH, u"border text");
+    ASSERT_NE(single, nullptr);
+    single->Layout(SINGLE_LAYOUT_WIDTH);
+    auto implSingle = GetParagraphSkiaImpl(single);
+    ASSERT_NE(implSingle, nullptr);
+    ASSERT_EQ(implSingle->lines().size(), 1u);
+    SkScalar singleLeft = -1.0f, singleRight = -1.0f;
+    collectClip(implSingle->lines()[0], singleLeft, singleRight);
+    // untouched last line keeps the Task 4 gap geometry: enter gap left of the box,
+    // line width one trailing gap past the box
+    EXPECT_FLOAT_EQ(singleLeft, static_cast<SkScalar>(BORDER_WIDTH));
+    EXPECT_FLOAT_EQ(implSingle->lines()[0].widthWithoutEllipsis(), singleRight + static_cast<SkScalar>(BORDER_WIDTH));
+    // 2+ lines: every line but the last one gets stretched by justify
+    const std::u16string text = u"border text border text border text";
+    auto wrapped = BuildJustifyParagraphWithBorder(SPText::TextAlign::JUSTIFY, BORDER_WIDTH, text);
+    ASSERT_NE(wrapped, nullptr);
+    wrapped->Layout(LAYOUT_WIDTH);
+    auto implWrapped = GetParagraphSkiaImpl(wrapped);
+    ASSERT_NE(implWrapped, nullptr);
+    ASSERT_GT(implWrapped->lines().size(), 1u);
+    // the justified line fills the layout width exactly (gaps included in the base)
+    EXPECT_FLOAT_EQ(implWrapped->lines()[0].widthWithoutEllipsis(), static_cast<SkScalar>(LAYOUT_WIDTH));
+    SkScalar clipLeft = -1.0f, clipRight = -1.0f;
+    collectClip(implWrapped->lines()[0], clipLeft, clipRight);
+    ASSERT_GT(clipRight - clipLeft, 0.0f);
+    // the enter gap stays fixed: the box starts exactly one border width in
+    EXPECT_FLOAT_EQ(clipLeft, static_cast<SkScalar>(BORDER_WIDTH));
+    // the trailing gap stays fixed: the line width ends one border width past the box
+    EXPECT_FLOAT_EQ(implWrapped->lines()[0].widthWithoutEllipsis(), clipRight + static_cast<SkScalar>(BORDER_WIDTH));
+    // box clip width equals the content-matched no-border justify control: stretching
+    // spreads the words only, never the gaps
+    auto plain = BuildJustifyParagraphWithBorder(SPText::TextAlign::JUSTIFY, 0.0, text);
+    ASSERT_NE(plain, nullptr);
+    plain->Layout(PLAIN_LAYOUT_WIDTH);
+    auto implPlain = GetParagraphSkiaImpl(plain);
+    ASSERT_NE(implPlain, nullptr);
+    ASSERT_GT(implPlain->lines().size(), 1u);
+    ASSERT_EQ(implPlain->lines()[0].text().start, implWrapped->lines()[0].text().start);
+    ASSERT_EQ(implPlain->lines()[0].text().end, implWrapped->lines()[0].text().end);
+    SkScalar plainLeft = -1.0f, plainRight = -1.0f;
+    collectClip(implPlain->lines()[0], plainLeft, plainRight);
+    EXPECT_FLOAT_EQ(clipRight - clipLeft, plainRight - plainLeft);
+}
+
+/*
+ * @tc.name: ParagraphJustifyBorderlessRegress001
+ * @tc.desc: test for hyphenated borderless line staying visually full under justify
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphJustifyBorderlessRegress001, TestSize.Level0)
+{
+    constexpr double LAYOUT_WIDTH = 88.0; // 88 just for test (calibrated): the first line ends on the
+                                          // soft hyphen and keeps free space for justify to spread
+    // U+00AD makes the first line end on a soft hyphen: the appended hyphen run advance rides in
+    // the line width, and justify must still spread only the true free space (borderless
+    // regression anchor for the justify distribution base, no hyphenation dictionary needed)
+    auto paragraph =
+        BuildJustifyParagraphWithBorder(SPText::TextAlign::JUSTIFY, 0.0, u"word border\u00ADmmmm tail words");
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(LAYOUT_WIDTH);
+    auto impl = GetParagraphSkiaImpl(paragraph);
+    ASSERT_NE(impl, nullptr);
+    ASSERT_EQ(impl->lines().size(), 3u);
+    auto& hyphenLine = impl->lines()[0];
+    ASSERT_TRUE(hyphenLine.getBreakWithHyphen());
+    // the hyphenated line fills the layout width and its glyphs reach exactly that far: the
+    // hyphen advance is part of the line width, so it must neither be counted as free space
+    // nor subtracted twice
+    EXPECT_FLOAT_EQ(hyphenLine.widthWithoutEllipsis(), static_cast<SkScalar>(LAYOUT_WIDTH));
+    SkScalar clipRight = -1.0f;
+    hyphenLine.scanStyles(skt::StyleType::kBackground,
+        [&clipRight](skt::TextRange range, const skt::TextStyle& style, const skt::TextLine::ClipContext& context) {
+            if (context.clip.fRight > clipRight) {
+                clipRight = context.clip.fRight;
+            }
+        });
+    EXPECT_FLOAT_EQ(clipRight, static_cast<SkScalar>(LAYOUT_WIDTH));
+    // the last line is never justified and keeps its raw width
+    EXPECT_LT(impl->lines()[2].widthWithoutEllipsis(), static_cast<SkScalar>(LAYOUT_WIDTH));
+}
+
+/*
+ * @tc.name: ParagraphBorderZeroOverhead001
+ * @tc.desc: test for borderless paragraphs keeping the lazy empty auto-spacing table
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderZeroOverhead001, TestSize.Level0)
+{
+    // the SetUp fixture is borderless with auto spacing off and already laid out:
+    // its metrics must stay on the ParagraphTest001 baseline values
+    EXPECT_EQ(paragraph_->GetHeight(), 19);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLine()), 44);
+    // zero overhead: no border and no auto spacing means the materialization loop
+    // must not run at all, so every run keeps its empty (unallocated) fAutoSpacings
+    auto impl = GetParagraphSkiaImpl(paragraph_);
+    ASSERT_NE(impl, nullptr);
+    for (auto& run : impl->fRuns) {
+        EXPECT_TRUE(run.fAutoSpacings.empty());
+    }
+}
+
+/*
+ * @tc.name: ParagraphBorderCacheClone001
+ * @tc.desc: test for the border-cluster flag surviving the paragraph cache and clone paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphBorderCacheClone001, TestSize.Level0)
+{
+    constexpr double BORDER_WIDTH = 4.0;       // 4.0 just for test
+    constexpr double LAYOUT_WIDTH = 300.0;     // 300 just for test
+    constexpr double CACHE_MISS_WIDTH = 260.0; // 260 just for test: same shape key, other layout width
+    constexpr double CLONE_WIDTH = 240.0;      // 240 just for test: differs from every stored layout
+    auto fontCollection = std::make_shared<FontCollection>();
+    fontCollection->SetupDefaultFontManager();
+    auto buildBordered = [&fontCollection]() -> std::shared_ptr<Paragraph> {
+        ParagraphStyle paragraphStyle;
+        // the adapter defaults to a tail ellipsis, which forces single-line layout
+        paragraphStyle.ellipsis = u"";
+        auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+        if (builder == nullptr) {
+            return nullptr;
+        }
+        SPText::TextStyle style;
+        style.backgroundRect.color = 0xFF00FF00;       // 0xFF00FF00 just for test
+        style.backgroundRect.borderColor = 0xFFFF0000; // 0xFFFF0000 just for test
+        style.backgroundRect.borderWidth = BORDER_WIDTH;
+        builder->PushStyle(style);
+        builder->AddText(u"border text");
+        builder->Pop();
+        return builder->Build();
+    };
+    auto collectClip = [](skt::TextLine& line, SkScalar& left, SkScalar& right) {
+        line.scanStyles(skt::StyleType::kBackground, [&left, &right](skt::TextRange range, const skt::TextStyle& style,
+                                                         const skt::TextLine::ClipContext& context) {
+            left = context.clip.fLeft;
+            right = context.clip.fRight;
+        });
+    };
+
+    auto first = buildBordered();
+    ASSERT_NE(first, nullptr);
+    first->Layout(LAYOUT_WIDTH);
+    auto implFirst = GetParagraphSkiaImpl(first);
+    ASSERT_NE(implFirst, nullptr);
+    ASSERT_EQ(implFirst->lines().size(), 1u);
+    auto* cache = implFirst->fontCollection()->getParagraphCache();
+    ASSERT_NE(cache, nullptr);
+    ASSERT_EQ(cache->count(), 1); // shaped result of the first paragraph is stored
+
+    // path A (cache hit): same text and styles reuse the cached clusters (updateTo)
+    // but the different layout width misses the cached layout, so line assembly
+    // (autoSpacing) runs again on inherited clusters
+    auto second = buildBordered();
+    ASSERT_NE(second, nullptr);
+    second->Layout(CACHE_MISS_WIDTH);
+    auto implSecond = GetParagraphSkiaImpl(second);
+    ASSERT_NE(implSecond, nullptr);
+    ASSERT_EQ(implSecond->lines().size(), 1u);
+    EXPECT_FLOAT_EQ(implSecond->lines()[0].widthWithoutEllipsis(), implFirst->lines()[0].widthWithoutEllipsis());
+    SkScalar secondLeft = -1.0f, secondRight = -1.0f;
+    collectClip(implSecond->lines()[0], secondLeft, secondRight);
+    EXPECT_FLOAT_EQ(secondLeft, static_cast<SkScalar>(BORDER_WIDTH));
+
+    // path B (clone): the clone keeps the marked clusters without re-shaping, so its
+    // re-layout at a new width re-runs line assembly on the copied cluster table
+    std::shared_ptr<Paragraph> cloned = first->CloneSelf();
+    ASSERT_NE(cloned, nullptr);
+    cloned->Layout(CLONE_WIDTH);
+    auto implCloned = GetParagraphSkiaImpl(cloned);
+    ASSERT_NE(implCloned, nullptr);
+    ASSERT_EQ(implCloned->lines().size(), 1u);
+    EXPECT_FLOAT_EQ(cloned->GetHeight(), first->GetHeight());
+    EXPECT_FLOAT_EQ(implCloned->lines()[0].widthWithoutEllipsis(), implFirst->lines()[0].widthWithoutEllipsis());
+    SkScalar cloneLeft = -1.0f, cloneRight = -1.0f;
+    collectClip(implCloned->lines()[0], cloneLeft, cloneRight);
+    EXPECT_FLOAT_EQ(cloneLeft, static_cast<SkScalar>(BORDER_WIDTH));
+
+    // both extra paragraphs shared the single cache entry of the same shape key
+    EXPECT_EQ(cache->count(), 1);
 }
 } // namespace txt
