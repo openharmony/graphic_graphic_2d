@@ -2558,7 +2558,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterWithSurface, testing::ext
     auto canvas = surface->GetCanvas();
     ASSERT_NE(canvas, nullptr);
     Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
-    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(canvas, &rect, container);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(canvas.get(), &rect, container);
     EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen
