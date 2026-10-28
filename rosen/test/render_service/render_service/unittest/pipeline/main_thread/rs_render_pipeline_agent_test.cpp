@@ -19,6 +19,8 @@
 #include <iremote_stub.h>
 #include "gtest/gtest.h"
 
+#include "memory/rs_memory_snapshot.h"
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
 #include "surface_buffer_impl.h"
@@ -2513,5 +2515,39 @@ HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullMainThread_TaskNo
     auto task = std::make_shared<MockSyncTask>(1000000000);
     agent->ExecuteSynchronousTask(task);
     EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: GetMemoryGraphics_FiltersPid0AndSelfPid
+ * @tc.desc: Verify GetMemoryGraphics filters pid=0 and self pid from snapshot without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetMemoryGraphics_FiltersPid0AndSelfPid, TestSize.Level1)
+{
+    pid_t selfPid = getpid();
+    pid_t normalPid = 99001;
+    size_t testSize = 1024;
+
+    MemorySnapshot::Instance().AddCpuMemory(0, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(selfPid, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(normalPid, testSize);
+
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<MemoryGraphic> memoryGraphics;
+    ErrCode ret = agent->GetMemoryGraphics(memoryGraphics);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
+    EXPECT_TRUE(snapshotMap.find(0) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(selfPid) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(normalPid) != snapshotMap.end());
+
+    std::set<pid_t> exitedPids = {0, selfPid, normalPid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 } // namespace OHOS::Rosen

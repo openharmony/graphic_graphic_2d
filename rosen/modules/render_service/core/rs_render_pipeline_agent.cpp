@@ -1740,7 +1740,11 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& mem
     std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
     MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
     std::vector<pid_t> pids;
+    pid_t selfPid = getpid();
     for (const auto& [pid, info] : snapshotMap) {
+        if (pid == 0 || pid == selfPid) {
+            continue;
+        }
         pids.emplace_back(pid);
     }
 
