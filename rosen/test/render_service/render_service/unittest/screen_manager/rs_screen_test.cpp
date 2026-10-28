@@ -888,6 +888,19 @@ HWTEST_F(RSScreenTest, SetScreenFrameGravityTest001, testing::ext::TestSize.Leve
 }
 
 /*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetSkipColorSpaceConversionTest001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->SetSkipColorSpaceConversion(true);
+}
+
+/*
  * @tc.name: SetActiveMode_001
  * @tc.desc: SetActiveMode Test
  * @tc.type: FUNC
@@ -1750,6 +1763,35 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_006, testing::ext::TestSize.Level1)
     auto virtualScreen = std::make_shared<RSScreen>(config);
     virtualScreen->supportedVirtualColorGamuts_.resize(2);
     ASSERT_EQ(virtualScreen->SetScreenColorGamut(0), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: SetVirtualScreenHDRMode Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetVirtualScreenHDRMode_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
+    // invalid HDR mode
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_MODE_BUTT), StatusCode::INVALID_ARGUMENTS);
+
+    // physical screen does not support HDR mode
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_EQ(rsScreen->SetVirtualScreenHDRMode(HDRMode::HDR_DYNAMIC), StatusCode::SCREEN_TYPE_ERROR);
+    HDRMode physicalMode = HDRMode::HDR_STATIC;
+    ASSERT_EQ(rsScreen->GetVirtualScreenHDRMode(physicalMode), StatusCode::SCREEN_TYPE_ERROR);
+    ASSERT_EQ(physicalMode, HDRMode::HDR_STATIC); // mode keeps unchanged on failure
+
+    // virtual screen: set and get
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_STATIC), StatusCode::SUCCESS);
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(virtualScreen->GetVirtualScreenHDRMode(mode), StatusCode::SUCCESS);
+    ASSERT_EQ(mode, HDRMode::HDR_STATIC);
 }
 
 /*

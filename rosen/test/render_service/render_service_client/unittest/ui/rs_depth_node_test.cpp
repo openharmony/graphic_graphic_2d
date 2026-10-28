@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "ui/rs_depth_node.h"
+#include "ui/rs_ui_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -170,5 +172,114 @@ HWTEST_F(RSDepthNodeClientTest, SetDepthImageMatrix001, TestSize.Level1)
 
     Matrix3f matrix(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
     EXPECT_NO_FATAL_FAILURE(node->SetDepthImageMatrix(matrix));
+}
+
+/**
+ * @tc.name: CreateRenderNode001
+ * @tc.desc: isRenderServiceNode=true, isTextureExportNode=false — IsRenderServiceNode true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode001, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(true, false, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode002
+ * @tc.desc: isRenderServiceNode=false, isTextureExportNode=false — IsRenderServiceNode depends on uni-render.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode002, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(false, false, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode003
+ * @tc.desc: isRenderServiceNode=true, isTextureExportNode=true — IsRenderServiceNode false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode003, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(true, true, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode004
+ * @tc.desc: isRenderServiceNode=false, isTextureExportNode=true — IsRenderServiceNode false, texture export in cmd.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode004, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(false, true, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode005
+ * @tc.desc: CreateRenderNode with RSUIContext — command routed via context transaction.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode005, TestSize.Level1)
+{
+    constexpr uint64_t token = 100;
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
+    ASSERT_NE(rsUIContext, nullptr);
+    auto node = RSDepthNode::Create(true, false, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode006
+ * @tc.desc: CreateRenderNode with RSUIContext and texture export — IsRenderServiceNode false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode006, TestSize.Level1)
+{
+    constexpr uint64_t token = 101;
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
+    ASSERT_NE(rsUIContext, nullptr);
+    auto node = RSDepthNode::Create(false, true, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode007
+ * @tc.desc: CreateRenderNode can be called repeatedly without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode007, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(true, false, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode008
+ * @tc.desc: CreateRenderNode after SetTextureExport switches isTextureExportNode_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeClientTest, CreateRenderNode008, TestSize.Level1)
+{
+    auto node = RSDepthNode::Create(true, false, nullptr);
+    ASSERT_NE(node, nullptr);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+    node->SetTextureExport(true);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
+    node->SetTextureExport(false);
+    EXPECT_NO_FATAL_FAILURE(node->CreateRenderNode());
 }
 } // namespace OHOS::Rosen

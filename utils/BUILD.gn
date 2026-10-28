@@ -47,6 +47,8 @@ ohos_shared_library("libgraphic_utils") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libgraphic_utils_map"
+
   deps = [
     "color_manager:color_manager",
     "sandbox:sandbox_utils",

@@ -4612,4 +4612,214 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchFalse_AncoNode_001, 
     RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
     RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
 }
+
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds001
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds with null staging render params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds001, TestSize.Level1)
+{
+    // node is created without InitRenderParams, so staging render params is nullptr
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_EQ(surfaceNode->GetStagingRenderParams().get(), nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+    surfaceNode->SetDstRect({0, 0, 100, 100});
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // no crash when staging render params is nullptr
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds002
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when solidLayer flag is not enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds002, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest002";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // solidLayer flag is false: dstRect equal to / smaller than / offset from boundsRect, flag keeps false
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(false);
+    surfaceNode->SetDstRect({0, 0, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    surfaceNode->SetDstRect({100, 100, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds003
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect covers boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds003, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest003";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect equals boundsRect: solidLayer keeps enabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is larger than boundsRect and fully covers it: solidLayer keeps enabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({-50, -50, 300, 300});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds004
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect is smaller than boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds004, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest004";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect is smaller than boundsRect (letterbox, same top-left): solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is inside boundsRect (centered): solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({25, 25, 150, 150});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds005
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect partially overlaps,
+ *           is disjoint from or is empty against boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds005, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest005";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect partially overlaps boundsRect without covering it: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({100, 100, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is disjoint from boundsRect: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({500, 500, 100, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is empty: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 0, 0});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+
+/**
+ * @tc.name: UpdateRectInfoAndLeftTopForDelegateModeCoverage001
+ * @tc.desc: cover the delegate-mode=true edges of RSUniHwcVisitor::UpdateRectInfoForDelegateMode and
+ *           UpdateLeftAndTopForDelegateMode in one test (delegate-mode=false edges are already
+ *           exercised by the existing UpdateSrcRect001/002/003 tests).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateRectInfoAndLeftTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.SetDelegateMode(true);
+    node1.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node1.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // UpdateRectInfoForDelegateMode true edge: int32 buffer sizes take truncated delegate width/height,
+    // float bounds sizes take exact delegate dst width/height.
+    int32_t bufferWidth = 100;
+    int32_t bufferHeight = 200;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    rsUniHwcVisitor->UpdateRectInfoForDelegateMode(node1, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_EQ(bufferWidth, 10);
+    EXPECT_EQ(bufferHeight, 20);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+    // UpdateLeftAndTopForDelegateMode true edge: srcRect translated by (delegateSrcRect.left, top) = (1, 2)
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f);
+    rsUniHwcVisitor->UpdateLeftAndTopForDelegateMode(node1, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
+}
 } // namespace OHOS::Rosen

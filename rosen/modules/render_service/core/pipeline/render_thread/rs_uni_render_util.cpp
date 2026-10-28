@@ -1023,11 +1023,15 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
     if (layer->GetDelegateMode()) {
-        auto srcRect = layer->GetCropRect();
-        params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
-        params.dstRect = Drawing::Rect(0, 0, localBounds.width_, localBounds.height_);
-        RS_TRACE_NAME_FMT("web node 3: src=[%s], dst=[%s]",
-            params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
+        auto oldSrcRect = params.srcRect;
+        auto oldDstRect = params.dstRect;
+        auto delegatelayerSrc = layer->GetDelegateSrcRect();
+        params.srcRect = Drawing::Rect(delegatelayerSrc.x, delegatelayerSrc.y, delegatelayerSrc.x + delegatelayerSrc.w,
+            delegatelayerSrc.y + delegatelayerSrc.h);
+        RS_TRACE_NAME_FMT("%s: oldSrcRect=[%s], SrcRect=[%s], oldDstRect=[%s], delegatelayerSrc=[%d, %d, %d, %d]",
+            __func__, oldSrcRect.ToString().c_str(), params.srcRect.ToString().c_str(),
+            oldDstRect.ToString().c_str(),
+            delegatelayerSrc.x, delegatelayerSrc.y, delegatelayerSrc.w, delegatelayerSrc.h);
     }
     return params;
 }
@@ -1096,17 +1100,17 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixByDegree(int degree, const RectF& boun
     switch (degree) {
         case 90: { // get matrix by 90 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(0, -boundsWidth);
+            matrix.PreTranslate(0, -boundsHeight);
             break;
         }
         case 180: { // get matrix by 180 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(-boundsHeight, -boundsWidth);
+            matrix.PreTranslate(-boundsWidth, -boundsHeight);
             break;
         }
         case -90: { // get matrix by -90 degree
             matrix.PreRotate(degree);
-            matrix.PreTranslate(-boundsHeight, 0);
+            matrix.PreTranslate(-boundsWidth, 0);
             break;
         }
         default:

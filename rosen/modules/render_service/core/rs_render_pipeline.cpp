@@ -52,6 +52,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include <platform/common/rs_log.h>
 #include "platform/common/rs_system_properties.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hetero_hdr_manager.h"
 #endif
@@ -273,9 +274,8 @@ void RSRenderPipeline::InitCCMConfig()
 
 void RSRenderPipeline::FilterCCMInit()
 {
-    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(FilterParam::IsEffectMergeEnable());
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(FilterParam::IsFilterCacheEnable());
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
     GraphicsEffectEngine::GERender::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());

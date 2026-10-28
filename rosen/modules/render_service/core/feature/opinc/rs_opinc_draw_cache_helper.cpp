@@ -21,18 +21,18 @@
 
 namespace OHOS::Rosen {
 
-thread_local bool RSOpincDrawCacheHelper::inOpincSuggestSubtree_ = false;
+thread_local int32_t RSOpincDrawCacheHelper::inOpincSuggestSubtreeDepth_ = 0;
 
 bool RSOpincDrawCacheHelper::PrepareOpincSubtree(
     DrawableV2::RSRenderNodeDrawable& drawable, RSRenderParams& params)
 {
     // Root node marks the subtree scope.
     if (params.OpincIsSuggest()) {
-        inOpincSuggestSubtree_ = true;
+        inOpincSuggestSubtreeDepth_++;
     }
 
     // If not in the opinc subtree, continue directly.
-    if (!inOpincSuggestSubtree_) {
+    if (inOpincSuggestSubtreeDepth_ <= 0) {
         return true;
     }
 
@@ -43,8 +43,8 @@ bool RSOpincDrawCacheHelper::PrepareOpincSubtree(
 void RSOpincDrawCacheHelper::FinishOpincSubtree(RSRenderParams& params)
 {
     // Root node restores the subtree scope flag.
-    if (params.OpincIsSuggest()) {
-        inOpincSuggestSubtree_ = false;
+    if (params.OpincIsSuggest() && inOpincSuggestSubtreeDepth_ > 0) {
+        inOpincSuggestSubtreeDepth_--;
     }
 }
 

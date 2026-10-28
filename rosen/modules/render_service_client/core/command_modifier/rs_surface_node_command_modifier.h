@@ -1324,6 +1324,43 @@ private:
     ForceHardwareAndFixRotationCmdParam param_;
 };
 
+struct SolidLayerEnabledCmdParam {
+    bool isSolidLayerEnabled_;
+};
+
+class SolidLayerEnabledCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::IS_SOLID_LAYER_ENABLED;
+
+    SolidLayerEnabledCmdModifier(std::weak_ptr<RSNode> node, const SolidLayerEnabledCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const SolidLayerEnabledCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const SolidLayerEnabledCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    SolidLayerEnabledCmdParam param_;
+};
+
 struct AppRotationCorrectionCmdParam {
     ScreenRotation appRotationCorrection_;
 };

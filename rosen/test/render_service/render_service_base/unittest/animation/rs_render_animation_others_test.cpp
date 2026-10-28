@@ -15,8 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include <thread>
-
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
@@ -542,30 +540,6 @@ HWTEST_F(RSRenderAnimationOthersTest,
     node->Animate(0, minLeftDelayTime, nextFrameTime);
 
     EXPECT_NE(node->GetAnimationManager(), nullptr);
-}
-
-/**
- * @tc.name: FallbackAnimationsToRoot009
- * @tc.desc: Verify FallbackAnimationsToRoot logs error when creationTid differs from current tid
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot009, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot009 start";
-    auto context = std::make_shared<RSContext>();
-    auto& nodeMap = context->GetMutableNodeMap();
-    auto fallbackNode = nodeMap.GetAnimationFallbackNode();
-    ASSERT_NE(fallbackNode, nullptr);
-
-    RSRenderNode node(1, context);
-    auto animation = std::make_shared<RSRenderAnimationMock>();
-    node.AddAnimation(animation);
-    ASSERT_NE(node.GetAnimationManager(), nullptr);
-
-    node.GetAnimationManager()->creationTid_ = std::thread::id();
-    node.FallbackAnimationsToRoot();
-
-    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot009 end";
 }
 
 /**

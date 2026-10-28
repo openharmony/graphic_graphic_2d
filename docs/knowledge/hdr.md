@@ -52,8 +52,8 @@ HDR 显示涉及三个核心组件：
 **HDR 显示流程：**
 主线程收集 HDR 状态 → 亮度控制决策 → 渲染线程根据决策选择离屏格式 → 图片绘制时进行 Tone Mapping → 输出显示
 
-**HDR 投屏流程：**
-虚拟屏模式判断 → 色域判断 → 固定 10bit 格式 → VPE 颜色空间转换 → 输出到虚拟屏
+**HDR 录屏/投屏流程：**
+虚拟屏 HDRMode 判断（`SetVirtualScreenHDRMode`：NONE / HDR_DYNAMIC / HDR_STATIC）→ 固定 10bit 格式 → VPE 颜色空间转换 → 输出到虚拟屏
 
 ## 设计背景与决策理由
 
@@ -61,7 +61,7 @@ HDR 显示涉及三个核心组件：
 | --- | --- | --- |
 | 条件编译 VPE 路径 | `#ifdef USE_VIDEO_PROCESSING_ENGINE` | VPE（VideoProcessingEngine）是可选模块，条件编译保证跨平台兼容性 |
 | F16 离屏渲染 | `PrepareOffscreenRender` 中 `hdrOrScRGB` 为 true 时使用 F16 | HDR 内容需要更高精度格式，F16 保留 HDR 信息 |
-| 固定 10bit 格式 | `SetFixVirtualBuffer10Bit(true)` 当 `ColorGamut == BT2100_HLG` | HDR 投屏场景下，虚拟屏需要固定 10bit 格式避免格式切换 |
+| 固定 10bit 格式 | `SetFixVirtualBuffer10Bit(true)` 当虚拟屏 HDRMode != NONE（首帧） | HDR 投屏/录屏需固定 10bit，避免切换 |
 | RGBA1010108 门控 | `GetRGBA1010108Enabled()` 运行时判断 | 部分硬件/驱动不支持 1010108 格式，运行时门控 |
 | 亮度映射决策 | `RSLuminanceControl::IsHdrOn(screenId)` | 统一的 HDR 开启决策，考虑硬件能力和系统配置 |
 
@@ -108,15 +108,21 @@ HDR 显示涉及三个核心组件：
   → canvas.DrawRect 使用生成的 shader 绘制
 ```
 
-### HDR 投屏流程
+### 虚拟屏 HDR 流程（录屏/投屏）
 
 ```text
 HDRCast 流程：
-  1. HandleVirtualScreenHDRStatus 判断虚拟屏类型
-     - MIRROR_COMPOSITE：镜像模式，检查源屏 HDR 状态
-     - EXPAND_COMPOSITE：扩展模式，检查当前屏 HDR 状态
-  2. 判断条件：源屏 HDR 开启 && 虚拟屏色域 == BT2100_HLG
-  3. UpdateHDRCastProperties 设置固定 10bit 格式
+  1. 客户端通过 RSInterfaces::SetVirtualScreenHDRMode 设置虚拟屏 HDR 模式（HDRMode）
+  2. HandleVirtualScreenHDRStatus 读取 GetVirtualScreenHDRMode 按模式分发：
+     - NONE：关闭 HDR，走 SDR 路径，不固定 10bit
+     - HDR_STATIC：录制中色域不变，始终输出 HDR，内容 HDR/SDR 切换不改变输出效果
+     - HDR_DYNAMIC：动态跟随，再按虚拟屏类型判断：
+       - MIRROR_COMPOSITE：镜像模式，检查镜像源屏 HDR 状态（镜像源缺失时跳过该帧）
+       - EXPAND/INDEPENDENT_COMPOSITE：扩展/独立模式，检查虚拟屏自身 HDR 状态
+       - 判断条件：源屏 HDR 开启
+  3. UpdateVirtualScreenHDRProperties 在虚拟屏首帧（GetFirstFrameVirtualScreenInit）
+     且 HDRMode != NONE 时设置固定 10bit 格式并锁存，
+     后续帧按锁存结果设置 HDRPresent
   4. IsHDRCast 返回 true，设置 GRAPHIC_PIXEL_FMT_RGBA_1010102
   5. HDRCastProcess 执行颜色空间转换
   6. SetHDRCastShader 设置着色器进行 SRGB→BT2020_HLG 转换
@@ -293,7 +299,7 @@ HWC 禁用的触发条件：
 ### HDR 投屏失败
 
 优先检查：
-- 虚拟屏色域是否为 BT2100_HLG
+- 虚拟屏 HDR 模式是否已通过 `SetVirtualScreenHDRMode` 设置（旧版本依赖 `SetScreenColorGamut(BT2100_HLG)` 的方式已废弃）
 - 源屏或当前屏 HDR 状态是否正确
 - `SetFixVirtualBuffer10Bit(true)` 是否设置
 - 像素格式是否为 RGBA_1010102

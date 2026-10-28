@@ -291,6 +291,7 @@ public:
             case RSPropertyType::BLOOM: return "Bloom";
             case RSPropertyType::FOREGROUND_EFFECT_RADIUS: return "ForegroundEffectRadius";
             case RSPropertyType::USE_SHADOW_BATCHING: return "UseShadowBatching";
+            case RSPropertyType::SHADOW_CLIP_TYPE: return "ShadowClipType";
             case RSPropertyType::MOTION_BLUR_PARA: return "MotionBlurPara";
             case RSPropertyType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";

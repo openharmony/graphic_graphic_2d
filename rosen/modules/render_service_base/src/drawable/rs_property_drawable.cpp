@@ -33,7 +33,6 @@
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
@@ -277,7 +276,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 
 RSFilterDrawable::RSFilterDrawable()
 {
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
@@ -315,17 +314,18 @@ void RSFilterDrawable::OnSync()
 
     lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
         std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
-
+    lastStagingVisibleDrawRect_ = stagingVisibleRectInfo_ != nullptr ?
+        std::make_unique<RectI>(stagingVisibleRectInfo_->drawRect_) : nullptr;
     stagingVisibleRectInfo_ = nullptr;
     stagingIntersectWithDRM_ = false;
     stagingIsDarkColorMode_ = false;
 
     needSync_ = false;
 
-    if (!RSProperties::filterCacheEnabled_ || stagingCacheManager_ == nullptr ||
+    if (!RSFilterCacheManager::IsFilterCacheEnabled() || stagingCacheManager_ == nullptr ||
         cacheManager_ == nullptr || filter_ == nullptr) {
         ROSEN_LOGD("Clear filter cache failed or no need to clear cache, filterCacheEnabled:%{public}d,"
-            "cacheManager:%{public}d, filter:%{public}d", RSProperties::filterCacheEnabled_,
+            "cacheManager:%{public}d, filter:%{public}d", RSFilterCacheManager::IsFilterCacheEnabled(),
             stagingCacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
@@ -701,12 +701,14 @@ void RSFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
     stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
     stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
         GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
-    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
-        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->drawRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::DRAW, defaultRelativeRect), absMatrix);
     if (clipRect.has_value()) {
         stagingVisibleRectInfo_->snapshotRect_ = stagingVisibleRectInfo_->snapshotRect_.IntersectRect(*clipRect);
-        stagingVisibleRectInfo_->totalRect_ = stagingVisibleRectInfo_->totalRect_.IntersectRect(*clipRect);
+        stagingVisibleRectInfo_->drawRect_ = stagingVisibleRectInfo_->drawRect_.IntersectRect(*clipRect);
     }
+    stagingVisibleRectInfo_->totalRect_ =
+        stagingVisibleRectInfo_->snapshotRect_.JoinRect(stagingVisibleRectInfo_->drawRect_);
 }
 
 RectI RSFilterDrawable::GetVisibleTotalRegion(const RectI& defaultValue) const
@@ -722,6 +724,16 @@ RectI RSFilterDrawable::GetVisibleSnapshotRegion(const RectI& defaultValue) cons
 RectI RSFilterDrawable::GetLastVisibleSnapshotRegion(const RectI& defaultValue) const
 {
     return lastStagingVisibleSnapshotRect_ != nullptr ? *lastStagingVisibleSnapshotRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return stagingVisibleRectInfo_ != nullptr ? stagingVisibleRectInfo_->drawRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetLastVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return lastStagingVisibleDrawRect_ != nullptr ? *lastStagingVisibleDrawRect_ : defaultValue;
 }
 
 RectF RSFilterDrawable::GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const

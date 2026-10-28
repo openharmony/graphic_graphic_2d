@@ -48,6 +48,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
+#include "render/rs_pixel_map_util.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_skia_filter.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -635,7 +636,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     }
     OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
     auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
-    auto colorType = GetDrawingColorType(pixelmap->GetPixelFormat());
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         colorType, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 

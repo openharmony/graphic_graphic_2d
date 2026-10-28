@@ -177,6 +177,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetSolidLayerEnabled(bool enabled)
+{
+    if (isSolidLayerEnabled_ == enabled) {
+        return;
+    }
+    isSolidLayerEnabled_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetSolidLayerEnabled() const
+{
+    return isSolidLayerEnabled_;
+}
+
 void RSSurfaceRenderParams::SetNeedMakeImage(bool enabled)
 {
     if (needMakeImage_ == enabled) {
@@ -669,6 +683,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isSolidLayerEnabled_ = isSolidLayerEnabled_;
     targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
@@ -1040,7 +1055,7 @@ bool RSSurfaceRenderParams::GetDelegateMode() const
     return isWebProxyComposerNode_;
 }
 
-void RSSurfaceRenderParams::SetDelegateDstRect(const RectI& rect)
+void RSSurfaceRenderParams::SetDelegateDstRect(const RectF& rect)
 {
     if (delegateDstRect_ == rect) {
         return;
@@ -1049,12 +1064,12 @@ void RSSurfaceRenderParams::SetDelegateDstRect(const RectI& rect)
     needSync_ = true;
 }
 
-const RectI& RSSurfaceRenderParams::GetDelegateDstRect() const
+const RectF& RSSurfaceRenderParams::GetDelegateDstRect() const
 {
     return delegateDstRect_;
 }
 
-void RSSurfaceRenderParams::SetDelegateSrcRect(const RectI& rect)
+void RSSurfaceRenderParams::SetDelegateSrcRect(const RectF& rect)
 {
     if (delegateSrcRect_ == rect) {
         return;
@@ -1063,7 +1078,7 @@ void RSSurfaceRenderParams::SetDelegateSrcRect(const RectI& rect)
     needSync_ = true;
 }
 
-const RectI& RSSurfaceRenderParams::GetDelegateSrcRect() const
+const RectF& RSSurfaceRenderParams::GetDelegateSrcRect() const
 {
     return delegateSrcRect_;
 }

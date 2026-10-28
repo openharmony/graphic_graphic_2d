@@ -55,6 +55,9 @@ std::shared_ptr<Drawing::ColorSpace> RenderContext::ConvertColorGamutToColorSpac
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
                 Drawing::CMSMatrixType::REC2020);
             break;
+        // colorspace will be set to nullptr in RequestFrame, and then skip color gamut conversion
+        case GRAPHIC_COLOR_GAMUT_NATIVE:
+            break;
         default:
             colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;

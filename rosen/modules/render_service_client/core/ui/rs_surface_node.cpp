@@ -912,6 +912,15 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     });
 }
 
+void RSSurfaceNode::SetSolidLayerEnabled(bool isEnabled)
+{
+    RS_TRACE_NAME_FMT("SetSolidLayerEnabled id:%" PRIu64 " enabled:%d", GetId(), isEnabled);
+    ROSEN_LOGI("SetSolidLayerEnabled id:%{public}" PRIu64 " enabled:%{public}d", GetId(), isEnabled);
+    SetRSCmdProperty<SolidLayerEnabledCmdModifier>(SolidLayerEnabledCmdParam{
+        isEnabled
+    });
+}
+
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     SetRSCmdProperty<ForceHardwareAndFixRotationCmdModifier>(ForceHardwareAndFixRotationCmdParam{
@@ -1565,20 +1574,20 @@ GSError RSSurfaceNode::ReleaseBuffer(uint32_t sequence, sptr<SyncFence> fence)
     return delegateCompositeBufMgr_->ReleaseBuffer(sequence, fence);
 }
 
-void RSSurfaceNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateDstRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateDstRect(x, y, w, h);
 }
 
-void RSSurfaceNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateSrcRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateSrcRect(x, y, w, h);
 }
 
 bool RSSurfaceNode::SetDelegateMode(bool isDelegateMode)

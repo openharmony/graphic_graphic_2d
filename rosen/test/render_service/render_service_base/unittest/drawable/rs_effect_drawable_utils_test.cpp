@@ -20,6 +20,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
+#include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 
 using namespace testing;
@@ -233,6 +234,110 @@ HWTEST_F(RSEffectDrawableUtilsTest, ApplySDFShapeToEffect007, testing::ext::Test
     auto resultShape = effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_;
     EXPECT_NE(resultShape, nullptr);
     EXPECT_EQ(resultShape->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+}
+
+/**
+ * @tc.name: CalcShaderDrawRect001
+ * @tc.desc: Test CalcShaderDrawRect with null shader returns CalcBoundingBox
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, CalcShaderDrawRect001, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    std::shared_ptr<RSNGRenderShaderBase> shader = nullptr;
+    auto result = DrawableV2::RSEffectDrawableUtils::CalcShaderDrawRect(node, node.GetRenderProperties(), shader);
+    auto expected = node.CalcBoundingBox();
+    EXPECT_EQ(result, expected);
+}
+
+/**
+ * @tc.name: CalcShaderDrawRect002
+ * @tc.desc: Test CalcShaderDrawRect when bounds == CalcBoundingBox and drawRect not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, CalcShaderDrawRect002, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    ASSERT_NE(shader, nullptr);
+    auto result = DrawableV2::RSEffectDrawableUtils::CalcShaderDrawRect(node, node.GetRenderProperties(), shader);
+    auto drawRect = RSNGRenderShaderHelper::CalcRect(shader, node.GetRenderProperties().GetBoundsRect());
+    if (!drawRect.IsEmpty()) {
+        EXPECT_EQ(result, drawRect);
+    } else {
+        EXPECT_EQ(result, node.CalcBoundingBox());
+    }
+}
+
+/**
+ * @tc.name: CalcShaderDrawRect003
+ * @tc.desc: Test CalcShaderDrawRect with empty bounds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, CalcShaderDrawRect003, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    ASSERT_NE(shader, nullptr);
+    auto result = DrawableV2::RSEffectDrawableUtils::CalcShaderDrawRect(node, node.GetRenderProperties(), shader);
+    auto expected = node.CalcBoundingBox();
+    EXPECT_EQ(result, expected);
+}
+
+class TestRenderNodeForCalcRect : public RSRenderNode {
+public:
+    explicit TestRenderNodeForCalcRect(NodeId id) : RSRenderNode(id) {}
+    RectF CalcBoundingBox() const override
+    {
+        return RectF(0.0f, 0.0f, 200.0f, 200.0f);
+    }
+};
+
+/**
+ * @tc.name: CalcShaderDrawRect004
+ * @tc.desc: Test CalcShaderDrawRect when bounds != CalcBoundingBox returns CalcBoundingBox
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, CalcShaderDrawRect004, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    TestRenderNodeForCalcRect node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    ASSERT_NE(shader, nullptr);
+    auto result = DrawableV2::RSEffectDrawableUtils::CalcShaderDrawRect(node, node.GetRenderProperties(), shader);
+    auto expected = node.CalcBoundingBox();
+    EXPECT_EQ(result, expected);
+    EXPECT_NE(result, node.GetRenderProperties().GetBoundsRect());
+}
+
+/**
+ * @tc.name: CreateDefaultRRectShape001
+ * @tc.desc: Test CreateDefaultRRectShape via ApplySDFShapeToEffect with default rrect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, CreateDefaultRRectShape001, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    properties.SetFrame(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    properties.SetCornerRadius(0.0f);
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        shaderFromResult->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_);
+    ASSERT_NE(rrectShape, nullptr);
+    auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_TRUE(rrectFromShape.IsNearEqual(
+        RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
 }
 
 } // namespace OHOS::Rosen

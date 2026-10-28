@@ -63,7 +63,7 @@ DECLARE_RSLAYER_CMD(CropRect, GraphicIRect, CROP_RECT)
 DECLARE_RSLAYER_CMD(AncoSrcRect, GraphicIRect, ANCO_SRC_RECT)
 DECLARE_RSLAYER_CMD(VisibleRegions, std::vector<GraphicIRect>, VISIBLE_REGIONS)
 DECLARE_RSLAYER_CMD(DirtyRegions, std::vector<GraphicIRect>, DIRTY_REGIONS)
-DECLARE_RSLAYER_CMD(DelegateModeCropRect, GraphicIRect, DELEGATE_MODE_CROP_RECT)
+DECLARE_RSLAYER_CMD(DelegateSrcRect, GraphicIRect, DELEGATE_MODE_SRC_RECT)
 
 // rect_matrix command
 DECLARE_RSLAYER_CMD(Matrix, GraphicMatrix, MATRIX)

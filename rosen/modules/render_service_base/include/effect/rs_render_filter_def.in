@@ -48,7 +48,8 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, LightMode),
     ADD_PROPERTY_TAG(SoundWave, CircleCenter),
     ADD_PROPERTY_TAG(SoundWave, CircleRadius),
-    ADD_PROPERTY_TAG(SoundWave, LightIntensity)
+    ADD_PROPERTY_TAG(SoundWave, LightIntensity),
+    ADD_PROPERTY_TAG(SoundWave, SmoothUnionThreshold)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
@@ -199,7 +200,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgPos),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, SkipFrameEnable)
+    ADD_PROPERTY_TAG(FrostedGlass, SkipFrameEnable),
+    ADD_PROPERTY_TAG(FrostedGlass, AntiAlias)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,

@@ -55,7 +55,9 @@ public:
 
     void CreateProtectiveSolidLayer(RSProtectiveSolidRenderNode& node, RSSurfaceRenderParams& params) override;
     void CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& drawable) override;
-    
+    void CreateSolidColorLayerDirect(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateSolidColorLayerDirectForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& drawable) override;
+
     // hpae offline
     bool ProcessOfflineLayer(
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async) override;
@@ -63,12 +65,13 @@ public:
 
 private:
     void HandleDelegateComposerLayer(RSLayerPtr& layer, RSSurfaceRenderParams& params);
-    RectI GetDelegateDstRectByTranXY(RSSurfaceRenderParams& params);
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     RSLayerPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
     void CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params);
+    void ConfigureSolidColorLayer(RSLayerPtr& layer, NodeId nodeId,
+        RSSurfaceRenderParams& params, const GraphicIRect& boundsDst, const GraphicIRect& boundsSrc);
     void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<std::weak_ptr<RSLayer>> layers_;

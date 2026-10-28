@@ -1355,6 +1355,22 @@ int32_t RSClientToServiceConnection::SetScreenColorGamut(ScreenId id, int32_t mo
     return screenManagerAgent_->SetScreenColorGamut(id, modeIdx);
 }
 
+int32_t RSClientToServiceConnection::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    if (!screenManagerAgent_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSClientToServiceConnection::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    if (!screenManagerAgent_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSClientToServiceConnection::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     if (!screenManagerAgent_) {
@@ -1691,6 +1707,14 @@ void RSClientToServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gra
         return;
     }
     screenManagerAgent_->SetScreenFrameGravity(id, gravity);
+}
+
+void RSClientToServiceConnection::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    if (!screenManagerAgent_) {
+        return;
+    }
+    screenManagerAgent_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 int32_t RSClientToServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)

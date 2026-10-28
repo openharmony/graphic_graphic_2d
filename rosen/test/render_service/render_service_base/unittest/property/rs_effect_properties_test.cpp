@@ -21,6 +21,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_path.h"
+#include "render/rs_shadow.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1042,10 +1043,18 @@ HWTEST_F(RSEffectPropertiesTest, Distortion001, TestSize.Level1)
     properties.SetDistortionK(-2.0f);
     EXPECT_FALSE(properties.IsDistortionKValid());
 
-    // nullopt with para resets
+    // nullopt with para resets distortionPara_ to nullptr
     properties.SetDistortionK(std::nullopt);
-    EXPECT_EQ(properties.GetDistortionK(), 0.f);
+    EXPECT_FALSE(properties.GetDistortionK().has_value());
     EXPECT_FALSE(properties.GetDistortionDirty());
+    EXPECT_FALSE(properties.IsDistortionKValid());
+
+    // K=0.0 is invalid (no filter created), K in [-1,0) U (0,1] is valid
+    properties.SetDistortionK(0.0f);
+    EXPECT_FALSE(properties.IsDistortionKValid());
+    properties.SetDistortionK(-0.5f);
+    EXPECT_TRUE(properties.IsDistortionKValid());
+    properties.SetDistortionK(-1.0f);
     EXPECT_TRUE(properties.IsDistortionKValid());
 
     // SetDistortionDirty with existing para
@@ -1054,6 +1063,43 @@ HWTEST_F(RSEffectPropertiesTest, Distortion001, TestSize.Level1)
     EXPECT_FALSE(properties.GetDistortionDirty());
     properties.SetDistortionDirty(true);
     EXPECT_TRUE(properties.GetDistortionDirty());
+}
+
+/**
+ * @tc.name: DistortionNullGuard001
+ * @tc.desc: SetDistortionDirty is a no-op when distortionPara_ is null (early-return guard)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectPropertiesTest, DistortionNullGuard001, TestSize.Level1)
+{
+    // Case 1: default-constructed RSEffectProperties; filterEffect_ and distortionPara_ both null
+    RSEffectProperties properties;
+    EXPECT_EQ(properties.filterEffect_, nullptr);
+
+    // Early-return guard must prevent the write and avoid crashing
+    properties.SetDistortionDirty(true);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+    ASSERT_NE(properties.filterEffect_, nullptr);
+    EXPECT_EQ(properties.GetFilterEffect().distortionPara_, nullptr);
+
+    properties.SetDistortionDirty(false);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+    EXPECT_EQ(properties.GetFilterEffect().distortionPara_, nullptr);
+
+    // Case 2: filterEffect_ allocated (via unrelated setter) but distortionPara_ still null
+    RSEffectProperties properties2;
+    properties2.SetSpherize(0.5f);
+    ASSERT_NE(properties2.filterEffect_, nullptr);
+    ASSERT_EQ(properties2.GetFilterEffect().distortionPara_, nullptr);
+
+    properties2.SetDistortionDirty(true);
+    EXPECT_FALSE(properties2.GetDistortionDirty());
+    EXPECT_EQ(properties2.GetFilterEffect().distortionPara_, nullptr);
+
+    properties2.SetDistortionDirty(false);
+    EXPECT_FALSE(properties2.GetDistortionDirty());
+    EXPECT_EQ(properties2.GetFilterEffect().distortionPara_, nullptr);
 }
 
 /**
@@ -1492,6 +1538,24 @@ HWTEST_F(RSEffectPropertiesTest, ColorBlend001, TestSize.Level1)
     EXPECT_EQ(properties.GetColorBlend(), colorBlend);
     properties.SetColorBlend(std::nullopt);
     EXPECT_FALSE(properties.GetColorBlend().has_value());
+}
+
+/**
+ * @tc.name: SetShadowClipType001
+ * @tc.desc: test SetShadowClipType lazily creates shadow_, sets clipType, and updates on existing shadow_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_FALSE(properties.GetShadow().has_value());
+    // lazily creates shadow_ and sets clipType
+    properties.SetShadowClipType(ShadowClipType::BOUNDS_SHAPE);
+    EXPECT_TRUE(properties.GetShadow().has_value());
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::BOUNDS_SHAPE);
+    // update on existing shadow_ does not recreate it
+    properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
 }
 } // namespace Rosen
 } // namespace OHOS

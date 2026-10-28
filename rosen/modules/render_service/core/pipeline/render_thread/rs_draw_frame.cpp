@@ -36,7 +36,7 @@
 #include "pipeline/rs_effect_utils.h"
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "render/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_profiler.h"

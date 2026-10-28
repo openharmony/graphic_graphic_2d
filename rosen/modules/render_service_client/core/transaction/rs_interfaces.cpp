@@ -659,6 +659,16 @@ int32_t RSInterfaces::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return renderServiceClient_->SetScreenColorGamut(id, modeIdx);
 }
 
+int32_t RSInterfaces::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    return renderServiceClient_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSInterfaces::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    return renderServiceClient_->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     return renderServiceClient_->SetScreenGamutMap(id, mode);
@@ -781,6 +791,11 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offSetY
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
     renderServiceClient_->SetScreenFrameGravity(id, gravity);
+}
+
+void RSInterfaces::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    renderServiceClient_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)

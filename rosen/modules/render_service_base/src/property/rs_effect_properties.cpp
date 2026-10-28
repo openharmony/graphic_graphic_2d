@@ -1978,9 +1978,8 @@ void RSEffectProperties::SetDistortionK(const std::optional<float>& distortionK)
         }
         GetFilterEffect().distortionPara_->distortionK = distortionK.value();
         GetFilterEffect().distortionPara_->dirty = ROSEN_GNE(*distortionK, 0.0f) && ROSEN_LE(*distortionK, 1.0f);
-    } else if (GetFilterEffect().distortionPara_) {
-        GetFilterEffect().distortionPara_->distortionK = 0;
-        GetFilterEffect().distortionPara_->dirty = false;
+    } else {
+        GetFilterEffect().distortionPara_.reset();
     }
 }
 
@@ -1992,6 +1991,9 @@ std::optional<float> RSEffectProperties::GetDistortionK() const
 
 void RSEffectProperties::SetDistortionDirty(bool distortionEffectDirty)
 {
+    if (!GetFilterEffect().distortionPara_) {
+        return;
+    }
     GetFilterEffect().distortionPara_->dirty = distortionEffectDirty;
 }
 
@@ -2006,7 +2008,9 @@ bool RSEffectProperties::GetDistortionDirty() const
 bool RSEffectProperties::IsDistortionKValid() const
 {
     const auto& distortionK = GetDistortionK();
-    return distortionK.has_value() && ROSEN_GE(*distortionK, -1.0f) && ROSEN_LE(*distortionK, 1.0f);
+    // Invalid when zero, skip filter creation
+    return distortionK.has_value() && ROSEN_NE(*distortionK, 0.0f)
+        && ROSEN_GE(*distortionK, -1.0f) && ROSEN_LE(*distortionK, 1.0f);
 }
 
 bool RSEffectProperties::IsBackgroundMaterialFilterValid() const
@@ -2147,6 +2151,14 @@ void RSEffectProperties::SetShadowDisableSDFBlur(bool disable)
         GetFilterEffect().shadow_ = std::make_optional<RSShadow>();
     }
     GetFilterEffect().shadow_->SetDisableSDFBlur(disable);
+}
+
+void RSEffectProperties::SetShadowClipType(ShadowClipType clipType)
+{
+    if (!GetShadow().has_value()) {
+        GetFilterEffect().shadow_ = std::make_optional<RSShadow>();
+    }
+    GetFilterEffect().shadow_->SetClipType(clipType);
 }
 
 bool RSEffectProperties::GetShadowDisableSDFBlur() const

@@ -1,0 +1,361 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "transaction/rs_render_pipeline_client.h"
+#include "platform/common/rs_log.h"
+#include "rs_surface_linux.h"
+#include "rs_vsync_client_linux.h"
+namespace OHOS {
+namespace Rosen {
+
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+}
+
+RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+{
+}
+
+void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const std::function<void()>& callback)
+{
+}
+
+void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
+{
+}
+
+void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+}
+
+void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
+{
+}
+
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    return {};
+}
+
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
+{
+    return std::make_shared<RSSurfaceLinux>(reinterpret_cast<OnRenderFunc>(config.additionalData));
+}
+
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateRSSurface(const sptr<Surface> &surface)
+{
+    return std::make_shared<RSSurfaceLinux>(reinterpret_cast<OnRenderFunc>(0));
+}
+
+bool RSRenderPipelineClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::RegisterBufferClearListener(
+    NodeId id, const BufferAvailableCallback &callback)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+{
+    return {};
+}
+
+void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
+{
+}
+
+uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
+}
+
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
+{
+    return 0;
+}
+
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList)
+{
+}
+
+int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
+void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+    std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
+    std::shared_ptr<Media::PixelMap> pixelmapHDR)
+{
+}
+
+void RSRenderPipelineClient::TriggerOnFinish(const FinishCallbackRet& ret) const
+{
+}
+
+void RSRenderPipelineClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const
+{
+}
+
+bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
+{
+    return true;
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelineClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    bool checkDrmAndSurfaceLock)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::TakeUICaptureInRange(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    return true;
+}
+
+int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
+{
+    return 0;
+}
+
+void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
+{
+}
+
+bool RSRenderPipelineClient::SetAncoForceDoDirect(bool direct)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
+    pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    return true;
+}
+
+bool RSRenderPipelineClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return true;
+}
+
+void RSRenderPipelineClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
+{
+}
+
+bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
+{
+    return true;
+}
+
+void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp)
+{
+}
+
+void RSRenderPipelineClient::SetWindowContainer(NodeId nodeId, bool value)
+{
+}
+
+void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
+{
+}
+
+int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    maxWidth = 0;
+    maxHeight = 0;
+    return RS_CONNECTION_ERROR;
+}
+
+int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    const FrameStabilityCallback& callback)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+{
+}
+
+bool RSRenderPipelineClient::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::RegisterSurfaceTransactionListener(
+    sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId)
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::RegisterSurfaceNodeBufferReleaseListener(
+    sptr<RSISurfaceNodeBufferReleaseCallback> listener)
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::CleanDelegateModeBufferCmd(NodeId id)
+{
+    return false;
+}
+} // namespace Rosen
+} // namespace OHOS

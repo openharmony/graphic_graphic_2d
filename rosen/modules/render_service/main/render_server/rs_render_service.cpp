@@ -27,6 +27,7 @@
 #include "common/rs_common_def.h"
 #include "dfx/rs_service_dump_manager.h"
 #include "engine/rs_base_render_engine.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #ifdef RS_MULTI_DISPLAY_FEATURES
 #include "rs_multi_display_feature_param.h"
 #endif
@@ -483,6 +484,9 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
     renderService_.vsyncManager_->OnScreenPropertyChanged(id, type, property,
         renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
+    if (type == ScreenPropertyType::POWER_STATUS) {
+        RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(id, property);
+    }
 
     if (const auto hgmContext = renderService_.GetHgmContext()) {
         hgmContext->OnScreenPropertyChanged(id, type, property);

@@ -18,7 +18,6 @@
 
 #include <list>
 #include <memory>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -38,12 +37,12 @@ class RSRenderNode;
 
 class RSB_EXPORT RSAnimationManager {
 public:
-    RSAnimationManager();
+    RSAnimationManager() = default;
     RSAnimationManager(const RSAnimationManager&) = delete;
     RSAnimationManager(const RSAnimationManager&&) = delete;
     RSAnimationManager& operator=(const RSAnimationManager&) = delete;
     RSAnimationManager& operator=(const RSAnimationManager&&) = delete;
-    ~RSAnimationManager();
+    ~RSAnimationManager() = default;
 
     void DumpAnimations(std::string& out) const;
     bool AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -106,7 +105,6 @@ private:
     FrameRateRange rsRange_ = {0, 0, 0};
     RSAnimationRateDecider rateDecider_;
     FrameRateGetFunc frameRateGetFunc_;
-    std::thread::id creationTid_;
 };
 } // namespace Rosen
 } // namespace OHOS

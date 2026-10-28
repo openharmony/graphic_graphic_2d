@@ -40,7 +40,8 @@ constexpr uint8_t DO_GET_SCREEN_SUPPORTED_META_DATA_KEYS = 6;
 constexpr uint8_t DO_GET_SCREEN_COLOR_SPACE = 7;
 constexpr uint8_t DO_GET_SCREEN_SUPPORTED_COLOR_SPACES = 8;
 constexpr uint8_t DO_GET_PIXEL_FORMAT = 9;
-constexpr uint8_t TARGET_SIZE = 10;
+constexpr uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 10;
+constexpr uint8_t TARGET_SIZE = 11;
 
 constexpr uint8_t SCREEN_COLOR_GAMUT_SIZE = 11;
 constexpr uint8_t SCREEN_GAMUT_MAP_SIZE = 4;
@@ -84,6 +85,20 @@ void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
     ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, INVALID_SCREEN_ID - 1);
     ScreenHDRFormat hdrFormat = static_cast<ScreenHDRFormat>(fdp.ConsumeIntegral<uint8_t>() % SCREEN_HDR_FORMAT_SIZE);
     g_screenManager->GetScreenHDRFormat(id, hdrFormat);
+}
+
+void DoGetVirtualScreenHDRMode(FuzzedDataProvider& fdp)
+{
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
+    HDRMode mode = HDRMode::NONE;
+    g_screenManager->GetVirtualScreenHDRMode(id, mode);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
@@ -210,6 +225,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_PIXEL_FORMAT:
             OHOS::Rosen::DoGetPixelFormat(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoGetVirtualScreenHDRMode(fdp);
             break;
         default:
             return -1;

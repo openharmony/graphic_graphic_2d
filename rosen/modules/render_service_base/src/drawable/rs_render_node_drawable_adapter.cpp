@@ -35,6 +35,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -126,7 +127,15 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
                 ROSEN_LOGE("%{public}s, nodeId in cache: %{public}" PRIu64 ", nodeType=%{public}u, "
                     "drawableType=%{public}u", __func__, id, node->GetType(), drawableSptr->GetNodeType());
                 if (node->GetType() == drawableSptr->GetNodeType()) {
-                    return drawableSptr;
+                    // Check if cached drawable belongs to the same node object.
+                    // Same NodeId but different node means old node is still held
+                    // (e.g. GoStop), its drawable has stale state and must not be reused.
+                    auto cachedNode = drawableSptr->renderNode_.lock();
+                    if (cachedNode && cachedNode.get() == node.get()) {
+                        return drawableSptr;
+                    }
+                    ROSEN_LOGE("%{public}s, stale drawable for nodeId: %{public}" PRIu64
+                        ", cached node mismatch, will regenerate", __func__, id);
                 }
             }
             RenderNodeDrawableCache_.erase(cacheIt);
@@ -795,8 +804,7 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
 
 bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForPartialRender() const
 {
-    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSSystemProperties::GetFilterCacheEnabled()
-        && RSFilterCacheManager::isCCMFilterCacheEnable_ && RSUniRenderJudgement::IsUniRender();
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
     if (!sysPropEnable) {
         return false;
     }

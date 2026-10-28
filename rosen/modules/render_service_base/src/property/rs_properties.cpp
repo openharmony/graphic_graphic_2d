@@ -78,21 +78,6 @@ static inline bool IsFilterNeedForceSubmit(const std::shared_ptr<RSFilter>& filt
 }
 #endif
 
-// Only enable filter cache when uni-render is enabled and filter cache is enabled
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-#ifndef ROSEN_ARKUI_X
-bool RSProperties::filterCacheEnabled_ =
-    RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
-void RSProperties::SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable)
-{
-    filterCacheEnabled_ = (RSSystemProperties::GetFilterCacheEnabled() &&
-        isCCMFilterCacheEnable) && RSUniRenderJudgement::IsUniRender();
-}
-#else
-bool RSProperties::filterCacheEnabled_ = false;
-#endif
-#endif
-
 void RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled)
 {
     FilterEffectParams::blurAdaptiveAdjustEnabled_ = isCCMBlurAdaptiveAdjustEnabled;
@@ -1864,6 +1849,12 @@ bool RSProperties::GetFgBrightnessEnableEDR() const
     return GetEffectProperties().GetFgBrightnessEnableEDR();
 }
 
+bool RSProperties::GetColorfulBrightnessBlenderEnableEDR() const
+{
+    const auto* params = GetColorfulBrightnessBlenderParams();
+    return params != nullptr && params->hdrEnabled_;
+}
+
 void RSProperties::SetBgBrightnessRates(const Vector4f& rates)
 {
     GetEffectProperties().SetBgBrightnessRates(rates);
@@ -2481,6 +2472,19 @@ void RSProperties::SetShadowDisableSDFBlur(bool disable)
 bool RSProperties::GetShadowDisableSDFBlur() const
 {
     return GetEffectProperties().GetShadowDisableSDFBlur();
+}
+
+void RSProperties::SetShadowClipType(int clipType)
+{
+    GetEffectProperties().SetShadowClipType(static_cast<ShadowClipType>(clipType));
+    SetDirty();
+    contentDirty_ = true;
+}
+
+int RSProperties::GetShadowClipType() const
+{
+    const auto& shadow = GetShadow();
+    return shadow ? shadow->GetClipType() : static_cast<int>(ShadowClipType::DEFAULT_SHAPE);
 }
 
 const Color& RSProperties::GetShadowColor() const
@@ -4473,6 +4477,14 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowClipType, ret=" + std::to_string(ret);
+    }
+    if (sprintf_s(buffer, UINT8_MAX, ", ShadowClipType[%d]", GetShadowClipType()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
     // FrameGravity
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -4666,65 +4678,6 @@ std::string RSProperties::Dump() const
     }
     return dumpInfo;
 }
-
-// planning: need to delete, cachemanager moved to filter drawable
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSProperties::CreateFilterCacheManagerIfNeed()
-{
-    if (!filterCacheEnabled_) {
-        return;
-    }
-    if (auto& filter = GetBackgroundFilter()) {
-        auto& cacheManager = backgroundFilterCacheManager_;
-        if (cacheManager == nullptr) {
-            cacheManager = std::make_unique<RSFilterCacheManager>();
-        }
-        cacheManager->UpdateCacheStateWithFilterHash(filter);
-    } else {
-        backgroundFilterCacheManager_.reset();
-    }
-    if (auto& filter = GetCompositingFilter()) {
-        auto& cacheManager = foregroundFilterCacheManager_;
-        if (cacheManager == nullptr) {
-            cacheManager = std::make_unique<RSFilterCacheManager>();
-        }
-        cacheManager->UpdateCacheStateWithFilterHash(filter);
-    } else {
-        foregroundFilterCacheManager_.reset();
-    }
-}
-
-const std::unique_ptr<RSFilterCacheManager>& RSProperties::GetFilterCacheManager(bool isForeground) const
-{
-    return isForeground ? foregroundFilterCacheManager_ : backgroundFilterCacheManager_;
-}
-
-void RSProperties::ClearFilterCache()
-{
-    if (foregroundFilterCacheManager_ != nullptr) {
-        foregroundFilterCacheManager_->ReleaseCacheOffTree();
-    }
-    if (backgroundFilterCacheManager_ != nullptr) {
-        backgroundFilterCacheManager_->ReleaseCacheOffTree();
-    }
-    const auto& backgroundFilter_ = GetBackgroundFilter();
-    if (backgroundFilter_ != nullptr) {
-        auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
-        if (rsShaderFilter != nullptr) {
-            auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
-        }
-    }
-    const auto& filter_ = GetCompositingFilter();
-    if (filter_ != nullptr) {
-        auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter_);
-        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
-        if (rsShaderFilter != nullptr) {
-            auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
-        }
-    }
-}
-#endif
 
 void RSProperties::OnApplyModifiers()
 {
@@ -4931,13 +4884,6 @@ bool RSProperties::GetHaveEffectRegion() const
 
 void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    // clear cache if new region is null or outside current region
-    if (auto& manager = GetFilterCacheManager(false);
-        manager && manager->IsCacheValid() && haveEffectRegion == false) {
-        manager->UpdateCacheStateWithFilterRegion();
-    }
-#endif
     GetEffectProperties().SetHaveEffectRegion(haveEffectRegion);
 }
 

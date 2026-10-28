@@ -18,8 +18,8 @@
 #include <vector>
 #include <memory>
 
-#include "render/rs_filter_cache_memory_controller.h"
 #include "common/rs_common_def.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;
@@ -361,4 +361,26 @@ TEST_F(RSFilterCacheMemoryControllerTest, Int64BoundaryConditions)
     
     // Should handle the transition correctly
     EXPECT_FALSE(controller_->IsFilterCacheMemExceedThreshold());
+}
+
+// Test cacheMem_ = cacheMem_ - oldCacheMem + newCacheMem
+TEST_F(RSFilterCacheMemoryControllerTest, CacheMemGoesNegative)
+{
+    // Add initial cache
+    controller_->ReplaceFilterCacheMem(0, 1000);
+    EXPECT_EQ(controller_->cacheMem_, 1000);
+
+    // Replace with a smaller newCacheMem than oldCacheMem to make cacheMem_ go negative
+    // cacheMem_ = 1000 - 1000 + 0 = 0, not negative yet
+    controller_->ReplaceFilterCacheMem(1000, 0);
+    EXPECT_EQ(controller_->cacheMem_, 0);
+
+    // Add a small cache, then replace with a large oldCacheMem to make it negative
+    // cacheMem_ = 100 - 500 + 100 = -300 -> should be clamped to 0
+    controller_->ReplaceFilterCacheMem(0, 100);
+    EXPECT_EQ(controller_->cacheMem_, 100);
+
+    controller_->ReplaceFilterCacheMem(500, 100);
+    // cacheMem_ = 100 - 500 + 100 = -300, should be clamped to 0
+    EXPECT_EQ(controller_->cacheMem_, 0);
 }

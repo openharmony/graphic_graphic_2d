@@ -189,7 +189,7 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     }
     node.SetRSLayer(screenInfo_.id, layer);
     layer->SetNodeId(node.GetId());
-    layer->SetDelegateMode(node.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : params.GetDelegateMode());
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
@@ -217,7 +217,9 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
         cropRect.x, cropRect.y, cropRect.w, cropRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
         buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(), layer->GetTransform());
-    HandleDelegateComposerLayer(layer, params);
+    if (!offlineResult) {
+        HandleDelegateComposerLayer(layer, params);
+    }
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s ScreenId:%{public}" PRIu64 " zorder:%{public}d layerRect:[%{public}d, %{public}d, "
         "%{public}d, %{public}d] cropRect:[%{public}d, %{public}d, %{public}d, %{public}d] "
@@ -266,7 +268,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix((offlineResult && offlineResult->isGPUOffline) ?
         offlineResult->linearMatrix : renderParams.GetLayerLinearMatrix());
-    layer->SetDelegateMode(params.GetDelegateMode());
+    layer->SetDelegateMode(offlineResult ? false : params.GetDelegateMode());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
@@ -284,7 +286,9 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetType(),
         uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
         uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
-    HandleDelegateComposerLayer(layer, params);
+    if (!offlineResult) {
+        HandleDelegateComposerLayer(layer, params);
+    }
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
@@ -732,6 +736,101 @@ void RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread(DrawableV2:
     layers_.emplace_back(layer);
 }
 
+void RSUniRenderProcessor::ConfigureSolidColorLayer(RSLayerPtr& layer, NodeId nodeId,
+    RSSurfaceRenderParams& params, const GraphicIRect& boundsDst, const GraphicIRect& boundsSrc)
+{
+    auto& layerInfo = params.GetLayerInfo();
+    auto solidColor = params.GetSolidLayerColor();
+    layer->SetNodeId(nodeId);
+    layer->SetRSLayerId(nodeId);
+    layer->SetSurfaceName("solidcolor_" + params.GetName());
+    layer->SetZorder(layerInfo.zOrder);
+    GraphicLayerAlpha layerAlpha = {0};
+    layerAlpha.enGlobalAlpha = true;
+    layerAlpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
+    layer->SetAlpha(layerAlpha);
+    layer->SetLayerSize(boundsDst);
+    layer->SetCropRect(boundsSrc);
+    std::vector<GraphicIRect> visibleRegions;
+    visibleRegions.emplace_back(boundsDst);
+    layer->SetVisibleRegions(visibleRegions);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    GraphicLayerColor layerColor = {
+        static_cast<uint8_t>(solidColor.GetRed()), static_cast<uint8_t>(solidColor.GetGreen()),
+        static_cast<uint8_t>(solidColor.GetBlue()), static_cast<uint8_t>(solidColor.GetAlpha())
+    };
+    layer->SetLayerColor(layerColor);
+    layer->SetBuffer(nullptr, nullptr);
+    layer->SetIsNeedComposition(true);
+    layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::CreateSolidColorLayerDirect(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirect composerClient is nullptr");
+        return;
+    }
+    NodeId nodeId = node.GetId();
+    RSLayerPtr layer = RSSurfaceLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirect failed to create layer");
+        return;
+    }
+    node.SetRSLayer(screenInfo_.id, layer);
+    GraphicIRect boundsSrc = {0, 0, 0, 0};
+    GraphicIRect boundsDst = {0, 0, 0, 0};
+    node.CalcSolidLayerRects(boundsSrc, boundsDst);
+    auto& layerInfo = params.GetLayerInfo();
+    auto solidColor = params.GetSolidLayerColor();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayerDirect nodeId[%" PRIu64 "] name:%s "
+        "dst[%d %d %d %d] src[%d %d %d %d] alpha[%.2f] zOrder[%d] color[%08x]",
+        nodeId, node.GetName().c_str(),
+        boundsDst.x, boundsDst.y, boundsDst.w, boundsDst.h,
+        boundsSrc.x, boundsSrc.y, boundsSrc.w, boundsSrc.h,
+        layerInfo.alpha, layerInfo.zOrder, solidColor.AsArgbInt());
+    ConfigureSolidColorLayer(layer, nodeId, params, boundsDst, boundsSrc);
+}
+
+void RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread(
+    DrawableV2::RSSurfaceRenderNodeDrawable& drawable)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread composerClient is nullptr");
+        return;
+    }
+    auto& paramsSp = drawable.GetRenderParams();
+    if (paramsSp == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread params is nullptr");
+        return;
+    }
+    auto& params = *(static_cast<RSSurfaceRenderParams*>(paramsSp.get()));
+    NodeId nodeId = drawable.GetId();
+    RSLayerPtr layer = RSSurfaceLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayerDirectForRenderThread failed to create layer");
+        return;
+    }
+    drawable.SetRSLayer(screenInfo_.id, layer);
+    auto& layerInfo = params.GetLayerInfo();
+    // srcRect/dstRect are calculated by RSSurfaceRenderNode::CalcSolidLayerRects in MT side
+    // and synced to render params via UpdateSolidLayerRects.
+    GraphicIRect boundsDst = {
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h
+    };
+    GraphicIRect boundsSrc = {
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h
+    };
+    auto solidColor = params.GetSolidLayerColor();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayerDirectForRenderThread nodeId[%" PRIu64 "] name:%s "
+        "dst[%d %d %d %d] src[%d %d %d %d] alpha[%.2f] zOrder[%d] color[%08x]",
+        nodeId, drawable.GetName().c_str(),
+        boundsDst.x, boundsDst.y, boundsDst.w, boundsDst.h,
+        boundsSrc.x, boundsSrc.y, boundsSrc.w, boundsSrc.h,
+        layerInfo.alpha, layerInfo.zOrder, solidColor.AsArgbInt());
+    ConfigureSolidColorLayer(layer, nodeId, params, boundsDst, boundsSrc);
+}
+
 void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
 {
     if (layer == nullptr || layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
@@ -762,70 +861,14 @@ std::vector<RSLayerPtr> RSUniRenderProcessor::GetLayers() const
 }
 #endif
 
-RectI RSUniRenderProcessor::GetDelegateDstRectByTranXY(RSSurfaceRenderParams& params)
-{
-    auto tranX = params.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X);
-    auto tranY = params.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y);
-    RectI delegateDstRectNew = params.GetDelegateDstRect();
-    if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_90) {
-        delegateDstRectNew.SetAll((screenInfoForDelegateMode_.GetRotatedPhyWidth() - tranY), tranX,
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_270) {
-        delegateDstRectNew.SetAll(tranY, (screenInfoForDelegateMode_.GetRotatedPhyHeight() - tranX),
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_0) {
-        delegateDstRectNew.SetAll(tranX, tranY,
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    } else if (screenInfoForDelegateMode_.rotation == ScreenRotation::ROTATION_180) {
-        delegateDstRectNew.SetAll(
-            (screenInfoForDelegateMode_.GetRotatedPhyWidth() - tranX),
-            (screenInfoForDelegateMode_.GetRotatedPhyHeight() - tranY),
-            delegateDstRectNew.GetWidth(), delegateDstRectNew.GetHeight());
-    }
-    return delegateDstRectNew;
-}
-
 void RSUniRenderProcessor::HandleDelegateComposerLayer(RSLayerPtr& layer, RSSurfaceRenderParams& params)
 {
     if (!params.GetDelegateMode()) {
         return;
     }
-    if (params.GetDelegateDstRect().GetHeight() <= 0) {
-        RS_LOGE("HandleDelegateComposerLayer fail, delegateDstRect is invalid: %s",
-            params.GetDelegateDstRect().ToString().c_str());
-        return;
-    }
-    auto cropRect = layer->GetCropRect();
-    auto cropRectForWeb = cropRect;
-    auto layerRect = layer->GetLayerSize();
-    layer->SetDelegateModeCropRect(cropRectForWeb); // init CropRectForWeb
-    RectI delegateDstRectNew = GetDelegateDstRectByTranXY(params);
-    auto matrix = params.GetTotalMatrix();
-    RS_TRACE_NAME_FMT("HandleDelegateComposerLayer:[tranX=%.2f, tranY=%.2f,],"
-        " screenInfo:{rotation=%u, rotatedPhyWidth=%u, rotatedPhyHeight=%u }"
-        ", srcRect:%s, dstRect:%s, dstRectNew:%s",
-        matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::TRANS_Y),
-        screenInfoForDelegateMode_.rotation, screenInfoForDelegateMode_.GetRotatedPhyWidth(),
-        screenInfoForDelegateMode_.GetRotatedPhyHeight(), params.GetDelegateSrcRect().ToString().c_str(),
-        params.GetDelegateDstRect().ToString().c_str(), delegateDstRectNew.ToString().c_str());
-    scalar scalarTmp =
-        (scalar)params.GetDelegateSrcRect().GetHeight() / (scalar)params.GetDelegateDstRect().GetHeight();
-    if (delegateDstRectNew.GetLeft() < 0) {
-        int32_t offset = delegateDstRectNew.GetLeft();
-        offset = static_cast<int32_t>(offset * scalarTmp);
-        cropRectForWeb.x -= offset;
-        cropRectForWeb.x = cropRectForWeb.x > cropRectForWeb.w ? cropRectForWeb.w : cropRectForWeb.x;
-        cropRectForWeb.w = cropRectForWeb.w > 0 ? cropRectForWeb.w + offset : 0;
-    } else if (delegateDstRectNew.GetLeft() > 0) {
-        scalar endX = delegateDstRectNew.GetLeft() + delegateDstRectNew.GetWidth();
-        cropRectForWeb.w = endX <= screenInfoForDelegateMode_.GetRotatedPhyWidth() ?
-            cropRectForWeb.w : cropRectForWeb.w - (endX - screenInfoForDelegateMode_.GetRotatedPhyWidth()) * scalarTmp;
-    }
-    cropRectForWeb.w = cropRectForWeb.w >= 0 ? cropRectForWeb.w : 0;
-    RS_TRACE_NAME_FMT("CropRectForWeb:[%d, %d, %d, %d], CropRect:[%d, %d, %d, %d], layerSize:[%d, %d, %d, %d]",
-        cropRectForWeb.x, cropRectForWeb.y, cropRectForWeb.w, cropRectForWeb.h,
-        cropRect.x, cropRect.y, cropRect.w, cropRect.h, layerRect.x, layerRect.y, layerRect.w, layerRect.h);
-    layer->SetDelegateModeCropRect(cropRectForWeb);
+    auto delegateSrcRect = params.GetDelegateSrcRect();
+    layer->SetDelegateSrcRect({delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
+        delegateSrcRect.GetWidth(), delegateSrcRect.GetHeight()});
 }
 } // namespace Rosen
 } // namespace OHOS

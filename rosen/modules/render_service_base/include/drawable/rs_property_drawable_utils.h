@@ -47,6 +47,9 @@ namespace Drawing {
 class GEVisualEffectContainer;
 }
 
+class RSDrawingFilter;
+class RSFilterCacheManager;
+
 class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
@@ -121,9 +124,10 @@ public:
     static Drawing::Path CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
         const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
     static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,
-        const float& elevation, const bool& isFilled, Color spotColor);
+        const float& elevation, const bool& isFilled, Color spotColor, const bool& useBoundsClip, const RRect& bounds);
     static void DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-        const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur);
+        const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur,
+        const bool& useBoundsClip, const RRect& bounds);
     static void DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffectType useEffectType);
 
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
