@@ -196,8 +196,7 @@ void RSClientToServiceConnection::CleanForRefresh() noexcept
         return;
     }
     RS_LOGD("CleanForRefresh() start.");
-    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh begin, remotePid: " + std::to_string(remotePid_));
-    RS_TRACE_NAME_FMT("CleanVirtualScreens %d", remotePid_);
+    RS_TRACE_NAME_FMT("RSClientToServiceConnection CleanForRefresh begin, remotePid: %d", remotePid_);
     CleanVirtualScreens();
 
     if (hgmContext_ != nullptr) {
