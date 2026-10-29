@@ -20,7 +20,8 @@
 namespace OHOS::Rosen::ModifierNG {
 void RSBoundsModifier::SetBounds(Vector4f bounds)
 {
-    Setter(RSPropertyType::BOUNDS, bounds);
+    bool isDefault = (bounds.x_ == DEFAULT_BOUNDS.x_ && bounds.y_ == DEFAULT_BOUNDS.y_);
+    Setter(RSPropertyType::BOUNDS, bounds, !isDefault);
 }
 
 void RSBoundsModifier::SetBoundsSize(Vector2f size)
@@ -61,7 +62,7 @@ void RSBoundsModifier::SetBoundsPositionY(float positionY)
 
 Vector4f RSBoundsModifier::GetBounds() const
 {
-    return Getter(RSPropertyType::BOUNDS, Vector4f());
+    return Getter(RSPropertyType::BOUNDS, DEFAULT_BOUNDS);
 }
 
 Vector2f RSBoundsModifier::GetBoundsSize() const

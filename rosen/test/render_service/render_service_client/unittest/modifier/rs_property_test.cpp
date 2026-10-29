@@ -961,6 +961,39 @@ HWTEST_F(RSPropertyTest, Set003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAffectsRendering001
+ * @tc.desc: RSProperty Set with affectsRendering false keeps container node undrawn (cpp specializations)
+ * @tc.type: FUNC
+ * @tc.require: issue26598
+ */
+HWTEST_F(RSPropertyTest, SetAffectsRendering001, TestSize.Level1)
+{
+    auto filterNode = RSCanvasNode::Create();
+    auto filterProp = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    filterProp->target_ = filterNode;
+    filterProp->Set(std::make_shared<RSNGBlurFilter>(), false);
+    EXPECT_FALSE(filterNode->GetIsDrawn());
+
+    auto shaderNode = RSCanvasNode::Create();
+    auto shaderProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    shaderProp->target_ = shaderNode;
+    shaderProp->Set(std::make_shared<RSNGContourDiagonalFlowLight>(), false);
+    EXPECT_FALSE(shaderNode->GetIsDrawn());
+
+    auto maskNode = RSCanvasNode::Create();
+    auto maskProp = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    maskProp->target_ = maskNode;
+    maskProp->Set(std::make_shared<RSNGRippleMask>(), false);
+    EXPECT_FALSE(maskNode->GetIsDrawn());
+
+    auto shapeNode = RSCanvasNode::Create();
+    auto shapeProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    shapeProp->target_ = shapeNode;
+    shapeProp->Set(std::make_shared<RSNGSDFUnionOpShape>(), false);
+    EXPECT_FALSE(shapeNode->GetIsDrawn());
+}
+
+/**
  * @tc.name: RSNGShaderBaseGetRenderPropertyTest
  * @tc.desc: Test GetRenderPropertyTest for RSProperty<std::shared_ptr<RSNGShaderBase>>
  * @tc.type:FUNC

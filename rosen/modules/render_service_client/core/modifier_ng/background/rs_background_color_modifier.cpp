@@ -18,61 +18,61 @@
 namespace OHOS::Rosen::ModifierNG {
 void RSBackgroundColorModifier::SetBackgroundColor(Color color)
 {
-    Setter(RSPropertyType::BACKGROUND_COLOR, color);
+    Setter(RSPropertyType::BACKGROUND_COLOR, color, color.GetAlpha() != DEFAULT_BACKGROUND_COLOR.GetAlpha());
 }
 
 Color RSBackgroundColorModifier::GetBackgroundColor() const
 {
-    return Getter(RSPropertyType::BACKGROUND_COLOR, Color(RgbPalette::Transparent()));
+    return Getter(RSPropertyType::BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 }
 
 void RSBackgroundColorModifier::SetBgBrightnessRates(const Vector4f& rates)
 {
-    Setter(RSPropertyType::BG_BRIGHTNESS_RATES, rates);
+    Setter(RSPropertyType::BG_BRIGHTNESS_RATES, rates, rates != DEFAULT_BG_BRIGHTNESS_RATES);
 }
 
 Vector4f RSBackgroundColorModifier::GetBgBrightnessRates() const
 {
-    return Getter(RSPropertyType::BG_BRIGHTNESS_RATES, Vector4f(0.f));
+    return Getter(RSPropertyType::BG_BRIGHTNESS_RATES, DEFAULT_BG_BRIGHTNESS_RATES);
 }
 
 void RSBackgroundColorModifier::SetBgBrightnessSaturation(float saturation)
 {
-    Setter(RSPropertyType::BG_BRIGHTNESS_SATURATION, saturation);
+    Setter(RSPropertyType::BG_BRIGHTNESS_SATURATION, saturation, saturation != DEFAULT_BG_BRIGHTNESS_SATURATION);
 }
 
 float RSBackgroundColorModifier::GetBgBrightnessSaturation() const
 {
-    return Getter(RSPropertyType::BG_BRIGHTNESS_SATURATION, 0.f);
+    return Getter(RSPropertyType::BG_BRIGHTNESS_SATURATION, DEFAULT_BG_BRIGHTNESS_SATURATION);
 }
 
 void RSBackgroundColorModifier::SetBgBrightnessPosCoeff(const Vector4f& coeff)
 {
-    Setter(RSPropertyType::BG_BRIGHTNESS_POSCOEFF, coeff);
+    Setter(RSPropertyType::BG_BRIGHTNESS_POSCOEFF, coeff, coeff != DEFAULT_BG_BRIGHTNESS_POSCOEFF);
 }
 
 Vector4f RSBackgroundColorModifier::GetBgBrightnessPosCoeff() const
 {
-    return Getter(RSPropertyType::BG_BRIGHTNESS_POSCOEFF, Vector4f(0.f));
+    return Getter(RSPropertyType::BG_BRIGHTNESS_POSCOEFF, DEFAULT_BG_BRIGHTNESS_POSCOEFF);
 }
 
 void RSBackgroundColorModifier::SetBgBrightnessNegCoeff(const Vector4f& coeff)
 {
-    Setter(RSPropertyType::BG_BRIGHTNESS_NEGCOEFF, coeff);
+    Setter(RSPropertyType::BG_BRIGHTNESS_NEGCOEFF, coeff, coeff != DEFAULT_BG_BRIGHTNESS_NEGCOEFF);
 }
 
 Vector4f RSBackgroundColorModifier::GetBgBrightnessNegCoeff() const
 {
-    return Getter(RSPropertyType::BG_BRIGHTNESS_NEGCOEFF, Vector4f(0.f));
+    return Getter(RSPropertyType::BG_BRIGHTNESS_NEGCOEFF, DEFAULT_BG_BRIGHTNESS_NEGCOEFF);
 }
 
 void RSBackgroundColorModifier::SetBgBrightnessFract(float fraction)
 {
-    Setter(RSPropertyType::BG_BRIGHTNESS_FRACTION, fraction);
+    Setter(RSPropertyType::BG_BRIGHTNESS_FRACTION, fraction, fraction != DEFAULT_BG_BRIGHTNESS_FRACTION);
 }
 
 float RSBackgroundColorModifier::GetBgBrightnessFract() const
 {
-    return Getter(RSPropertyType::BG_BRIGHTNESS_FRACTION, 1.f);
+    return Getter(RSPropertyType::BG_BRIGHTNESS_FRACTION, DEFAULT_BG_BRIGHTNESS_FRACTION);
 }
 } // namespace OHOS::Rosen::ModifierNG

@@ -21,7 +21,13 @@
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSFrameModifier : public RSModifier {
 public:
-    RSFrameModifier() = default;
+    inline static const Vector4f DEFAULT_FRAME{0.f};
+
+    RSFrameModifier()
+    {
+        affectsRendering_ = false;
+    }
+
     ~RSFrameModifier() = default;
 
     static inline constexpr auto Type = RSModifierType::FRAME;
@@ -51,6 +57,16 @@ public:
     Vector2f GetFramePosition() const;
     float GetFramePositionX() const;
     float GetFramePositionY() const;
+
+protected:
+    bool IsDefault(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property) const override
+    {
+        if (type != RSPropertyType::FRAME) {
+            return false;
+        }
+        auto frame = GetterWithoutCheck<Vector4f>(property);
+        return frame.x_ == DEFAULT_FRAME.x_ && frame.y_ == DEFAULT_FRAME.y_;
+    }
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_MODIFIER_H

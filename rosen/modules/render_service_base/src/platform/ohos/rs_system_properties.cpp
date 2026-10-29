@@ -1645,9 +1645,9 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
 
 bool RSSystemProperties::ViewDrawNodeType()
 {
-    static CachedHandle handle = CachedParameterCreate("persist.graphic.viewDrawNodeType", "0");
-    int32_t changed = 0;
-    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+    static const bool viewDrawNodeTypeEnabled =
+        system::GetBoolParameter("persist.graphic.viewDrawNodeType", false);
+    return viewDrawNodeTypeEnabled;
 }
 
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)

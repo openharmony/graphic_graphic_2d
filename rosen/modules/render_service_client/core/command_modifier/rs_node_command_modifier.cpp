@@ -16,10 +16,16 @@
 #include "command_modifier/rs_node_command_modifier.h"
 
 #include "command/rs_spatial_effect_command.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
+
+bool NodeNameCmdParam::AffectsRendering() const
+{
+    return RSFrameRatePolicy::GetInstance()->IsAppBufferNode(nodeName_);
+}
 
 void OcclusionCullingStatusCmdModifier::UpdateToRender()
 {
