@@ -196,16 +196,8 @@ void RSClientToServiceConnection::CleanForRefresh() noexcept
         return;
     }
     RS_LOGD("CleanForRefresh() start.");
-    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh begin, remotePid: " + std::to_string(remotePid_));
-    renderServiceAgent_->ScheduleTask(
-        [weakThis = wptr<RSClientToServiceConnection>(this)]() {
-            sptr<RSClientToServiceConnection> connection = weakThis.promote();
-            if (!connection) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("CleanVirtualScreens %d", connection->remotePid_);
-            connection->CleanVirtualScreens();
-        }).wait();
+    RS_TRACE_NAME_FMT("RSClientToServiceConnection CleanForRefresh begin, remotePid: %d", remotePid_);
+    CleanVirtualScreens();
 
     if (hgmContext_ != nullptr) {
         hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
