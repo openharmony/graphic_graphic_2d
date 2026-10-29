@@ -131,7 +131,10 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     // FG properties in Bounds clip
     nullptr,                                                         // FG_SAVE_BOUNDS,
     nullptr,                                                         // FG_CLIP_TO_BOUNDS,
+    nullptr,                                                         // BINARIZATION,
     RSColorFilterDrawable::OnGenerate,                               // COLOR_FILTER,
+    nullptr,                                                         // LIGHT_UP_EFFECT,
+    nullptr,                                                         // DYNAMIC_DIM,
     RSCompositingFilterDrawable::OnGenerate,                         // COMPOSITING_FILTER,
     RSForegroundColorDrawable::OnGenerate,                           // FOREGROUND_COLOR,
     RSForegroundShaderDrawable::OnGenerate,                          // FOREGROUND_SHADER,
