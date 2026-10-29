@@ -1972,7 +1972,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, ColorNGFilterOnDrawEmptyClipBounds, T
     auto canvas = surface->GetCanvas();
     ASSERT_NE(canvas, nullptr);
     Drawing::Rect rect(0.0f, 0.0f, 0.0f, 0.0f);
-    drawable->OnDraw(canvas, &rect);
+    drawable->OnDraw(canvas.get(), &rect);
     SUCCEED();
 }
 } // namespace OHOS::Rosen
