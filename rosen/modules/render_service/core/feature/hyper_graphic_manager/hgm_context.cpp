@@ -341,20 +341,12 @@ void HgmContext::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
 void HgmContext::SetRefreshRateMode(int32_t refreshRateMode)
 {
     RS_TRACE_FUNC();
-    HgmTaskHandleThread::Instance().PostTask([this, refreshRateMode] {
-        int32_t setResult = hgmCore_.SetRefreshRateMode(refreshRateMode);
-        RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
-        if (setResult != 0) {
-            RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
-        }
-    });
+    RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
 }
 
 int32_t HgmContext::GetCurrentRefreshRateMode()
 {
-    return HgmTaskHandleThread::Instance().ScheduleTask([this] {
-        return hgmCore_.GetCurrentRefreshRateMode();
-    }).get();
+    return static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
 }
 
 std::vector<int32_t> HgmContext::GetScreenSupportedRefreshRates(ScreenId id)
