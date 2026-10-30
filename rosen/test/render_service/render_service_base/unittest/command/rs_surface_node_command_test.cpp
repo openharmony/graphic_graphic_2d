@@ -1260,7 +1260,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest003, Test
 
 /**
  * @tc.name: RecreateNodeAndSurfaceBundleNameTest004
- * @tc.desc: Test RecreateNodeAndSurface overwrites bundleName for SELF_DRAWING_NODE when QueryBundleName returns non-empty
+ * @tc.desc: Test RecreateNodeAndSurface overwrites bundleName for SELF_DRAWING_NODE
+ *           when QueryBundleName returns non-empty
  * @tc.type: FUNC
  */
 HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest004, TestSize.Level1)
