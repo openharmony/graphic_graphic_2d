@@ -623,41 +623,25 @@ HWTEST_F(RSUifirstManagerTest2, ResetWindowCache, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsMissionCenterScene
- * @tc.desc: Test IsMissionCenterScene for pc
+ * @tc.name: IsInMissionCenterState
+ * @tc.desc: Test IsInMissionCenterState
  * @tc.type: FUNC
  * @tc.require: #IBVTGU
  */
-HWTEST_F(RSUifirstManagerTest2, IsMissionCenterScene, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, IsInMissionCenterState, TestSize.Level1)
 {
+    // enter mission center animation starts: state should be active
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_MISSION_CENTER);
-    auto isMissionCenterScene = uifirstManager_.IsMissionCenterScene();
-    ASSERT_EQ(isMissionCenterScene, true);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    // enter animation ends (OTHERS): steady multi-task state, state should remain active
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
-    isMissionCenterScene = uifirstManager_.IsMissionCenterScene();
-    ASSERT_EQ(isMissionCenterScene, false);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    // exit mission center animation starts: state should remain active
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::EXIT_MISSION_CENTER);
-    isMissionCenterScene = uifirstManager_.IsMissionCenterScene();
-    ASSERT_EQ(isMissionCenterScene, true);
-}
-
-/**
- * @tc.name: IsSplitScreenScene
- * @tc.desc: Test IsSplitScreenScene for pc
- * @tc.type: FUNC
- * @tc.require: #IBVTGU
- */
-HWTEST_F(RSUifirstManagerTest2, IsSplitScreenScene, TestSize.Level1)
-{
-    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_SPLIT_SCREEN);
-    auto isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isSplitScreenScene, true);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    // exit animation ends (OTHERS): leave multi-task state
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
-    isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isSplitScreenScene, false);
-    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::EXIT_SPLIT_SCREEN);
-    isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isSplitScreenScene, true);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), false);
 }
 
 /**

@@ -1607,23 +1607,25 @@ void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimated
         case SystemAnimatedScenes::EXIT_RECENTS:
             isRecentTaskScene_.store(false);
             break;
-        // enter and exit mission center are two independent animations, the same goes for enter and exit split screen
-        // enter and exit mission center or enter and exit split screen animation starts for PC
+        // enter and exit mission center are two independent animations
         case SystemAnimatedScenes::ENTER_MISSION_CENTER:
-        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
-            isMissionCenterScene_.store(true);
+            // entering multi-task state, keep state until exit animation ends
+            isInMissionCenterState_.store(true);
+            isExitingMissionCenter_.store(false);
             break;
-        case SystemAnimatedScenes::ENTER_SPLIT_SCREEN:
-        case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
-            isSplitScreenScene_.store(true);
+        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
+            // mark exiting so OTHERS can leave the multi-task state
+            isExitingMissionCenter_.store(true);
             break;
         case SystemAnimatedScenes::SNAPSHOT_ROTATION:
             isSnapshotRotationScene_.store(true);
             break;
-        // enter and exit mission center or enter and exit split screen animation ends for PC
+        // enter and exit mission center animation ends
         case SystemAnimatedScenes::OTHERS:
-            isMissionCenterScene_.store(false);
-            isSplitScreenScene_.store(false);
+            if (isInMissionCenterState_.load() && isExitingMissionCenter_.load()) {
+                isInMissionCenterState_.store(false);
+                isExitingMissionCenter_.store(false);
+            }
             isSnapshotRotationScene_.store(false);
             break;
         default:
@@ -1953,9 +1955,10 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
             RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
         return false;
     }
-    // disable uifirst when leash window has no app window at recent task scene or split screen scene
+    // disable uifirst when leash window has no app window during the whole mission center state
+    // (including the steady multi-task state between enter and exit animations)
     if (node.IsLeashWindow() && node.IsScale() && !LeashWindowContainMainWindow(node) &&
-        (RSUifirstManager::Instance().IsMissionCenterScene() || RSUifirstManager::Instance().IsSplitScreenScene())) {
+        (RSUifirstManager::Instance().IsInMissionCenterState())) {
         RS_TRACE_NAME("leash window has no app window, disable uifirst");
         return false;
     }
