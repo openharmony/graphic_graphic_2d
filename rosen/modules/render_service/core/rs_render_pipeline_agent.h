@@ -230,7 +230,6 @@ public:
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     void ForceRefreshOneFrameWithNextVSync();
-    std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
     bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
@@ -281,8 +280,6 @@ private:
     static bool IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer);
 #endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
-    std::unordered_map<pid_t, std::string> pidToBundleName_;
-    mutable std::mutex pidToBundleMutex_;
     mutable std::mutex mutex_;
 };
 

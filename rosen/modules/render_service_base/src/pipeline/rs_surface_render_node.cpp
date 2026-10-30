@@ -202,6 +202,11 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
     }
 }
 
+void RSSurfaceRenderNode::SetBundleName(const std::string& bundleName)
+{
+    bundleName_ = bundleName;
+}
+
 NodeId RSSurfaceRenderNode::GetId() const
 {
     return RSRenderNode::GetId();

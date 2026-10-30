@@ -2436,13 +2436,10 @@ void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
                 return;
             }
             mainThread->CleanResources(pid, forRefresh);
+            mainThread->RemoveBundleNameFromCache(pid);
         }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
     pipeline->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
@@ -2720,31 +2717,6 @@ void RSRenderPipelineAgent::SetCacheEnabledForRotation(bool enabled)
         return;
     }
     RSSystemProperties::SetCacheEnabledForRotation(enabled);
-}
-
-std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
-        return it->second;
-    }
-
-    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
-    if (appMgrClient == nullptr) {
-        RS_LOGE("GetBundleName get appMgrClient fail.");
-        return {};
-    }
-
-    std::string bundleName{};
-    int32_t uid{0};
-    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
-    if ((ret != ERR_OK) || bundleName.empty()) {
-        RS_LOGE("GetBundleName failed, ret=%{public}d.", ret);
-        return {};
-    }
-
-    pidToBundleName_.emplace(pid, bundleName);
-    return bundleName;
 }
 
 void RSRenderPipelineAgent::AddTransactionDataPidInfo(pid_t remotePid)

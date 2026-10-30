@@ -5546,22 +5546,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrectionT
 }
 
 /**
- * @tc.name: GetBundleNameTest001
- * @tc.desc: GetBundleName
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, GetBundleNameTest001, TestSize.Level1)
-{
-    constexpr pid_t testPid = 1234;
-    const std::string expectedBundleName = "com.example.app";
-    connectionStub_->renderPipelineAgent_->pidToBundleName_[testPid] = expectedBundleName;
-
-    std::string actualBundleName = connectionStub_->GetBundleName(testPid);
-    EXPECT_EQ(actualBundleName, expectedBundleName);
-}
-
-/**
  * @tc.name: GetBundleNameTest002
  * @tc.desc: GetBundleName
  * @tc.type: FUNC
