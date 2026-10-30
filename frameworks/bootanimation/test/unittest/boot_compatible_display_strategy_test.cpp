@@ -18,6 +18,7 @@
 #include "boot_compatible_display_strategy.h"
 #include "boot_animation_strategy.h"
 #include "parameters.h"
+#include "transaction/rs_interfaces.h"
 #include "util.h"
 
 using namespace testing;
@@ -250,5 +251,71 @@ HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_RotateScreenPosi
     config.screenId = 0;
     bool result = strategy->PrepareScreenConfig(config);
     EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: SelectHdmiScreen_WithScreen_ReturnHdmiOrFallback
+ * @tc.desc: Verify SelectHdmiScreen returns either fallback or an HDMI screen.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, SelectHdmiScreen_WithScreen_ReturnHdmiOrFallback, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->GetConnectToRenderMap(1);
+    Rosen::ScreenId firstId = strategy->GetFirstScreenId();
+    Rosen::ScreenId selected = strategy->SelectHdmiScreen(firstId);
+    if (selected != firstId) {
+        Rosen::RSScreenCapability cap = Rosen::RSInterfaces::GetInstance().GetScreenCapability(selected);
+        EXPECT_EQ(cap.GetType(), DISP_INTF_HDMI);
+    }
+}
+
+/**
+ * @tc.name: SelectHdmiScreen_NoScreen_ReturnFallback
+ * @tc.desc: Verify SelectHdmiScreen returns fallback when no screen connected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, SelectHdmiScreen_NoScreen_ReturnFallback, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    Rosen::ScreenId fallback = 999;
+    Rosen::ScreenId selected = strategy->SelectHdmiScreen(fallback);
+    EXPECT_EQ(selected, fallback);
+}
+
+/**
+ * @tc.name: SelectHdmiScreen_HdmiNotFound_ReturnFallback
+ * @tc.desc: Verify SelectHdmiScreen returns fallback when connected screen is not HDMI.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, SelectHdmiScreen_HdmiNotFound_ReturnFallback, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->GetConnectToRenderMap(1);
+    Rosen::ScreenId firstId = strategy->GetFirstScreenId();
+    Rosen::ScreenId selected = strategy->SelectHdmiScreen(firstId);
+    Rosen::RSScreenCapability cap = Rosen::RSInterfaces::GetInstance().GetScreenCapability(selected);
+    if (cap.GetType() != DISP_INTF_HDMI) {
+        EXPECT_EQ(selected, firstId);
+    }
+}
+
+/**
+ * @tc.name: PrepareScreenConfig_NonPcDevice_ScreenIdUnchanged
+ * @tc.desc: Verify PrepareScreenConfig skips HDMI branch and keeps firstScreenId on non-PC device.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_NonPcDevice_ScreenIdUnchanged, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->GetConnectToRenderMap(1);
+    Rosen::ScreenId firstId = strategy->GetFirstScreenId();
+    BootAnimationConfig config;
+    strategy->PrepareScreenConfig(config);
+    EXPECT_EQ(config.screenId, firstId);
 }
 }
