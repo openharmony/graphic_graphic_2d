@@ -653,6 +653,25 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return static_cast<HgmRefreshRateModes>(ConvertToInt(enable, 0));
 }
 
+bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
+{
+    bool setOk = system::SetParameter("rosen.hgmrefreshratemodelist", param);
+    if (setOk) {
+        RS_LOGI("SetHgmRefreshRateModeList set to %{public}s", param.c_str());
+    } else {
+        RS_LOGE("SetHgmRefreshRateModeList set failed, param: %{public}s", param.c_str());
+    }
+    return setOk;
+}
+
+std::string RSSystemProperties::GetHgmRefreshRateModeList()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hgmrefreshratemodelist", "");
+    int changed = 0;
+    const char *value = CachedParameterGetChanged(g_Handle, &changed);
+    return value == nullptr ? "" : value;
+}
+
 bool RSSystemProperties::GetHardCursorEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.hardCursor.enabled", "1");

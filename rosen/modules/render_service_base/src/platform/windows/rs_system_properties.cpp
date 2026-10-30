@@ -267,6 +267,16 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return {};
 }
 
+bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
+{
+    return false;
+}
+
+std::string RSSystemProperties::GetHgmRefreshRateModeList()
+{
+    return "";
+}
+
 bool RSSystemProperties::GetHardCursorEnabled()
 {
     return false;

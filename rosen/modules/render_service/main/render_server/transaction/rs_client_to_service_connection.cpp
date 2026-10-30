@@ -832,20 +832,16 @@ std::vector<int32_t> RSClientToServiceConnection::GetScreenSupportedRefreshRates
 
 ErrCode RSClientToServiceConnection::GetShowRefreshRateEnabled(bool& enable)
 {
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent is nullptr", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.empty()) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    return serviceToRenderConns[0]->GetShowRefreshRateEnabled(enable);
+    enable = RSSystemParameters::GetShowRefreshRateEnabled();
+    return ERR_OK;
 }
 
 void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
+    if (type == static_cast<int32_t>(RealtimeRefreshRateType::SHOW)) {
+        RSSystemParameters::SetShowRefreshRateEnabled(enabled);
+        return;
+    }
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return;

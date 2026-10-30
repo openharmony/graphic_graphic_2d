@@ -16,8 +16,10 @@
 #include "hgm_core.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <unistd.h>
 
@@ -51,8 +53,30 @@ void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* con
             configData->UpdateRefreshRateForSettings(mode);
         }
         hgmCore.SetRefreshRateMode(curMode);
+        hgmCore.StoreRefreshRateModeList();
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
         HILOG_COMM_INFO("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
+    });
+}
+
+void HgmCore::RefreshRateModeChangeProcess(const char* key, const char* value, void* context)
+{
+    if (value == nullptr) {
+        return;
+    }
+    int32_t refreshRateMode = 0;
+    auto parseResult = std::from_chars(value, value + std::strlen(value), refreshRateMode);
+    if (parseResult.ec != std::errc() ||
+        refreshRateMode == static_cast<int32_t>(HgmRefreshRateModes::SET_RATE_MODE_NULL)) {
+        return;
+    }
+    HgmTaskHandleThread::Instance().PostTask([refreshRateMode] {
+        HGM_LOGI("Refresh rate mode changed to %{public}d", refreshRateMode);
+        auto& hgmCore = HgmCore::Instance();
+        if (hgmCore.GetCurrentRefreshRateMode() == refreshRateMode) {
+            return;
+        }
+        hgmCore.SetRefreshRateMode(refreshRateMode);
     });
 }
 
@@ -98,6 +122,7 @@ void HgmCore::Init()
     if (mPolicyConfigVisitor_ != nullptr) {
         mPolicyConfigVisitor_->SetXmlModeId(std::to_string(customFrameRateMode_));
     }
+    StoreRefreshRateModeList();
     (void)AddParamWatcher();
     SetLtpoConfig();
     HGM_LOGI("initialization success!!!");
@@ -110,7 +135,34 @@ int HgmCore::AddParamWatcher() const
     if (ret != SUCCESS) {
         HILOG_COMM_ERROR("WatchParameter fail: %{public}d", ret);
     }
+    // RefreshRateModeChangeProcess adjusts the refresh rate mode when the prop changes
+    int retMode = WatchParameter("persist.rosen.sethgmrefreshratemode.enabled",
+        HgmCore::RefreshRateModeChangeProcess, nullptr);
+    if (retMode != SUCCESS) {
+        HILOG_COMM_ERROR("WatchParameter fail: %{public}d", retMode);
+    }
     return ret;
+}
+
+void HgmCore::StoreRefreshRateModeList()
+{
+    if (mPolicyConfigData_ == nullptr) {
+        HGM_LOGW("policy config data is null, skip storing mode list");
+        return;
+    }
+    std::string modeList = "";
+    for (const auto& [rate, _] : mPolicyConfigData_->refreshRateForSettings_) {
+        if (!modeList.empty()) {
+            modeList += ",";
+        }
+        modeList += std::to_string(rate);
+    }
+    bool ok = RSSystemProperties::SetHgmRefreshRateModeList(modeList);
+    if (ok && RSSystemProperties::GetHgmRefreshRateModeList() == modeList) {
+        HGM_LOGI("store mode list to prop success: %{public}s", modeList.c_str());
+        return;
+    }
+    HGM_LOGW("store mode list failed %{public}d, mode: %{public}s", ok, modeList.c_str());
 }
 
 void HgmCore::CheckCustomFrameRateModeValid()

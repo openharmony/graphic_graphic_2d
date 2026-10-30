@@ -55,6 +55,7 @@ public:
         GetScreenActiveRefreshRateCallback getScreenActiveRefreshRateCb;
     };
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
+    static void RefreshRateModeChangeProcess(const char* key, const char* value, void* context);
     static HgmCore& Instance();
 
     std::vector<ScreenId> GetScreenIds() const { return screenIds_; }
@@ -180,6 +181,8 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
     void SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
     void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
+
+    void StoreRefreshRateModeList();
 
     bool IsEnabled() const;
 
