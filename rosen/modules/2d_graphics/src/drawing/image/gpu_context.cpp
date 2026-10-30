@@ -376,6 +376,11 @@ void GPUContext::SetParam(const std::string& name, const std::string& value)
     impl_->SetParam(name, value);
 }
 
+void GPUContext::SetParam(const std::unordered_map<std::string, std::string>& params)
+{
+    impl_->SetParam(params);
+}
+
 void GPUContext::SetTextCacheEnforced(bool isEnforced)
 {
     impl_->SetTextCacheEnforced(isEnforced);

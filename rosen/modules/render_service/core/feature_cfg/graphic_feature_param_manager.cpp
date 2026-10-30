@@ -99,6 +99,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<BackgroundRebuildParam>(); }},
     {FEATURE_CONFIGS[TUNNEL_LAYER], [] { return std::make_unique<TunnelLayerParamParse>(); },
         [] { return std::make_unique<TunnelLayerParam>(); }},
+    {FEATURE_CONFIGS[DDGR_CONFIG], [] { return std::make_unique<DDGRConfigParamParse>(); },
+        [] { return std::make_unique<DDGRConfigParam>(); }},
 };
 
 void GraphicFeatureParamManager::Init()

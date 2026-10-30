@@ -147,6 +147,8 @@ public:
 
     virtual void SetParam(const std::string& name, const std::string& value) = 0;
 
+    virtual void SetParam(const std::unordered_map<std::string, std::string>& params) = 0;
+
     virtual void SetTextCacheEnforced(bool isEnforced) = 0;
 };
 } // namespace Drawing
