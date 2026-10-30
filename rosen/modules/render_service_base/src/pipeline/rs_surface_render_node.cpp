@@ -4303,13 +4303,13 @@ void RSSurfaceRenderNode::ClearCloneCrossNode()
     if (cloneCrossNodeVec_.size() == 0) {
         return;
     }
-
-    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> localCloneNodeVec;
+    localCloneNodeVec.swap(cloneCrossNodeVec_);
+    for (auto it = localCloneNodeVec.begin(); it != localCloneNodeVec.end(); ++it) {
         if (auto parent = (*it)->GetParent().lock()) {
             parent->RemoveChild(*it, true);
         }
     }
-    cloneCrossNodeVec_.clear();
 }
 
 void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
