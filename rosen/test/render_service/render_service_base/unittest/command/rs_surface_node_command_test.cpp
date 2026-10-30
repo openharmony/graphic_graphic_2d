@@ -83,7 +83,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithSceneBoardToken, TestSize.Level
 
     RSContext context;
     RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
-    RSUIDirectorCommandHelper::SetSceneBoard(context, directorNodeId, token, true);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
 
     // token of a marked instance: node is marked before registration.
     SurfaceNodeCommandHelper::Create(context, nodeId, RSSurfaceNodeType::DEFAULT, false, token);

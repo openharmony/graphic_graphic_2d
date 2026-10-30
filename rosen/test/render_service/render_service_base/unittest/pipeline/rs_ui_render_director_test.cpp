@@ -123,7 +123,7 @@ HWTEST_F(RSUIRenderDirectorTest, RenderNodeUnregisterAndClear, TestSize.Level1)
 
 /**
  * @tc.name: SceneBoardFlagSetAndGet
- * @tc.desc: Test SetSceneBoardFlag/IsSceneBoard default and set values.
+ * @tc.desc: Test MarkSceneBoard/IsSceneBoard: one-way mark, default false, repeat mark keeps true.
  * @tc.type: FUNC
  */
 HWTEST_F(RSUIRenderDirectorTest, SceneBoardFlagSetAndGet, TestSize.Level1)
@@ -134,8 +134,10 @@ HWTEST_F(RSUIRenderDirectorTest, SceneBoardFlagSetAndGet, TestSize.Level1)
     // Branch: default false.
     EXPECT_FALSE(director.IsSceneBoard());
 
-    // Branch: set true.
-    director.SetSceneBoardFlag(true);
+    // Branch: one-way mark; repeated marks are idempotent.
+    director.MarkSceneBoard();
+    EXPECT_TRUE(director.IsSceneBoard());
+    director.MarkSceneBoard();
     EXPECT_TRUE(director.IsSceneBoard());
 }
 

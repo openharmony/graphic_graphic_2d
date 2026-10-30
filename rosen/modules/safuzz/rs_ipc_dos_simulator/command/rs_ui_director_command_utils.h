@@ -30,7 +30,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUIDirectorGoBackground, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUIDirectorGoStop, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUIDirectorGoDestroy, Uint64, Uint64);
-    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUIDirectorSetSceneBoard, Uint64, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUIDirectorMarkSceneBoard, Uint64, Uint64);
 };
 } // namespace Rosen
 } // namespace OHOS

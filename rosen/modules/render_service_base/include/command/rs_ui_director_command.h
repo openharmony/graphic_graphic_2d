@@ -40,7 +40,7 @@ public:
     static void GoBackground(RSContext& context, NodeId nodeId, uint64_t token);
     static void GoStop(RSContext& context, NodeId nodeId, uint64_t token);
     static void GoDestroy(RSContext& context, NodeId nodeId, uint64_t token);
-    static void SetSceneBoard(RSContext& context, NodeId nodeId, uint64_t token, bool isSceneBoard);
+    static void MarkSceneBoard(RSContext& context, NodeId nodeId, uint64_t token);
 };
 
 ADD_COMMAND(RSUIDirectorGoCreate,
@@ -61,9 +61,9 @@ ADD_COMMAND(RSUIDirectorGoStop,
 ADD_COMMAND(RSUIDirectorGoDestroy,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_DESTROY,
         RSUIDirectorCommandHelper::GoDestroy, NodeId, uint64_t))
-ADD_COMMAND(RSUIDirectorSetSceneBoard,
+ADD_COMMAND(RSUIDirectorMarkSceneBoard,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, UI_DIRECTOR, SET_SCENE_BOARD,
-        RSUIDirectorCommandHelper::SetSceneBoard, NodeId, uint64_t, bool))
+        RSUIDirectorCommandHelper::MarkSceneBoard, NodeId, uint64_t))
 } // namespace Rosen
 } // namespace OHOS
 

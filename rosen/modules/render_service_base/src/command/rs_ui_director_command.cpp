@@ -123,7 +123,7 @@ void RSUIDirectorCommandHelper::GoDestroy(RSContext& context, NodeId nodeId, uin
     context.DestroyUIRenderDirector(pid, token);
 }
 
-void RSUIDirectorCommandHelper::SetSceneBoard(RSContext& context, NodeId nodeId, uint64_t token, bool isSceneBoard)
+void RSUIDirectorCommandHelper::MarkSceneBoard(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
     // Update-only: with same-handler FIFO ordering, GoCreate always arrives before this command.
@@ -132,11 +132,11 @@ void RSUIDirectorCommandHelper::SetSceneBoard(RSContext& context, NodeId nodeId,
     // would leak a director nobody destroys afterwards.
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
-        ROSEN_LOGE("RSUIDirectorCommandHelper::SetSceneBoard director not found, pid: %{public}d, "
+        ROSEN_LOGE("RSUIDirectorCommandHelper::MarkSceneBoard director not found, pid: %{public}d, "
             "token: %{public}" PRIu64, static_cast<int32_t>(pid), token);
         return;
     }
-    director->SetSceneBoardFlag(isSceneBoard);
+    director->MarkSceneBoard();
 }
 
 } // namespace Rosen

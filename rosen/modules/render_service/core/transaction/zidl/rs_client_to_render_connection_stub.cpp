@@ -532,6 +532,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
                 .positionZ = positionZ,
             };
+            // Trust boundary: same as CREATE_NODE_AND_SURFACE, ignore the faked
+            // isSceneBoard flag from non-system callers.
+            if (isSceneBoard && isNonSystemCalling) {
+                RS_LOGW("CREATE_DISPLAY_NODE non-system caller[%{public}d] faking isSceneBoard, ignored",
+                    static_cast<int32_t>(callingPid));
+                isSceneBoard = false;
+            }
             bool success = false;
             if (CreateDisplayNode(config, id, success, isSceneBoard) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
@@ -592,6 +599,14 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
                 .bundleName = GetBundleName(ExtractPid(nodeId)) };
+            // Trust boundary: the isSceneBoard flag from the parcel must not be honored for
+            // non-system callers, otherwise a normal app could fake the SceneBoard identity
+            // and bypass the PERMISSION_SYSTEM check of the MarkSceneBoard command.
+            if (isSceneBoard && isNonSystemAppCalling) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE non-system caller[%{public}d] faking isSceneBoard, ignored",
+                    static_cast<int32_t>(callingPid));
+                isSceneBoard = false;
+            }
             sptr<Surface> surface = nullptr;
             ErrCode err = CreateNodeAndSurface(config, surface, unobscured, isSceneBoard);
             if ((err != ERR_OK) || (surface == nullptr)) {

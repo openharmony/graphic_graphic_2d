@@ -193,12 +193,12 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopInvalidModeTest, 
 }
 
 /**
- * @tc.name: UIDirectorCommandHelperSetSceneBoardTest
- * @tc.desc: Test SetSceneBoard updates the flag on an existing director only.
+ * @tc.name: UIDirectorCommandHelperMarkSceneBoardTest
+ * @tc.desc: Test MarkSceneBoard marks an existing director one-way; repeat marks are idempotent.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardTest, TestSize.Level1)
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMarkSceneBoardTest, TestSize.Level1)
 {
     RSContext rsContext;
     constexpr pid_t pid = 700;
@@ -210,22 +210,22 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardTest, Test
     ASSERT_NE(director, nullptr);
     EXPECT_FALSE(director->IsSceneBoard());
 
-    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
     EXPECT_TRUE(director->IsSceneBoard());
     EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
 
-    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, false);
-    EXPECT_FALSE(director->IsSceneBoard());
-    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, token));
+    // One-way identity: repeated marks keep the flag true (no clear path on the server).
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_TRUE(director->IsSceneBoard());
 }
 
 /**
- * @tc.name: UIDirectorCommandHelperSetSceneBoardNoCreateTest
- * @tc.desc: Test SetSceneBoard never creates a director when it is missing.
+ * @tc.name: UIDirectorCommandHelperMarkSceneBoardNoCreateTest
+ * @tc.desc: Test MarkSceneBoard never creates a director when it is missing.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardNoCreateTest, TestSize.Level1)
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMarkSceneBoardNoCreateTest, TestSize.Level1)
 {
     RSContext rsContext;
     constexpr pid_t pid = 710;
@@ -233,13 +233,13 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperSetSceneBoardNoCreateTe
     constexpr NodeId nodeId = MakeNodeId(pid, 0);
 
     // Out-of-order (before GoCreate): update-only, no director is created.
-    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
 
     // Late (after GoDestroy): must not resurrect a destroyed director.
     RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
     RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, token);
-    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
 }
 
@@ -261,7 +261,7 @@ HWTEST_F(RSUIDirectorCommandTest, RSContextIsSceneBoardTokenTest, TestSize.Level
     EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, token));
 
     RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
-    RSUIDirectorCommandHelper::SetSceneBoard(rsContext, nodeId, token, true);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
     EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
     // same pid, unknown token
     EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, otherToken));

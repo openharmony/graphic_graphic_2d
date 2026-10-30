@@ -278,7 +278,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSUIDirectorCommand, RSUIDirectorGoBackground),
     DECLARE_ADD_RANDOM(RSUIDirectorCommand, RSUIDirectorGoStop),
     DECLARE_ADD_RANDOM(RSUIDirectorCommand, RSUIDirectorGoDestroy),
-    DECLARE_ADD_RANDOM(RSUIDirectorCommand, RSUIDirectorSetSceneBoard),
+    DECLARE_ADD_RANDOM(RSUIDirectorCommand, RSUIDirectorMarkSceneBoard),
 };
 }
 

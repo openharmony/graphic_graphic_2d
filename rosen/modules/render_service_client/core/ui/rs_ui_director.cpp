@@ -138,7 +138,7 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     // idempotent client-side flag would suppress later re-sends. Appending it here guarantees
     // an in-order mark command for both call orders.
     if (rsUIContext_ != nullptr && rsUIContext_->IsSceneBoard()) {
-        AddUIDirectorCommand<RSUIDirectorSetSceneBoard>(true);
+        AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
     }
     GoResume();
     GoForeground();

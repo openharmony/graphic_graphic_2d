@@ -44,7 +44,7 @@ void RSUIContext::MarkAsSceneBoard()
     // Synthetic node id keeps the same pid slot as RSUIDirector::AddUIDirectorCommand;
     // PERMISSION_SYSTEM commands are not validated against nodeId pid.
     NodeId nodeId = (static_cast<NodeId>(getpid()) << 32) | SCENE_BOARD_COMMAND_NODE_ID;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUIDirectorSetSceneBoard>(nodeId, token_, true);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUIDirectorMarkSceneBoard>(nodeId, token_);
     rsTransactionHandler_->AddCommand(command, true);
 }
 
