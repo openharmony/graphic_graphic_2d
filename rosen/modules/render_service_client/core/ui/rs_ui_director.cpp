@@ -133,10 +133,9 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
     RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
-    // Re-send the SceneBoard mark after GoCreate: a mark issued before Init would reach the
-    // service ahead of GoCreate and be dropped (update-only, no director yet), while the
-    // idempotent client-side flag would suppress later re-sends. Appending it here guarantees
-    // an in-order mark command for both call orders.
+    // Safety net: if MarkAsSceneBoard was called on a director created via CreateRSUIDirector()
+    // (which skips Init), the mark command would arrive before GoCreate and be dropped by the
+    // server (update-only). Re-send here after GoCreate covers that edge path.
     if (rsUIContext_ != nullptr && rsUIContext_->IsSceneBoard()) {
         AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
     }
@@ -237,6 +236,19 @@ void RSUIDirector::AddUIDirectorCommand(ExtraArgs&&... extraArgs)
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
+}
+
+void RSUIDirector::MarkAsSceneBoard()
+{
+    if (rsUIContext_ == nullptr) {
+        RS_LOGE("RSUIDirector::MarkAsSceneBoard, RSUIContext is nullptr");
+        return;
+    }
+    if (rsUIContext_->IsSceneBoard()) {
+        return;
+    }
+    rsUIContext_->MarkAsSceneBoard();
+    AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
 }
 
 void RSUIDirector::GoCreate()

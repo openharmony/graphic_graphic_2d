@@ -172,17 +172,10 @@ public:
     }
 
     /**
-     * @brief Marks this context as belonging to SceneBoard and syncs the flag to the
-     *        render service. One-way identity declaration: idempotent (repeated calls
-     *        do not resend the command) and irreversible by design, so the interface
-     *        itself maintains the "birth identity" invariant. Callers (WM) must call
-     *        this before creating the first node of this context; marking after node
-     *        creation does not retroactively mark created nodes.
-     */
-    void MarkAsSceneBoard();
-
-    /**
-     * @brief Checks whether this context is marked as SceneBoard.
+     * @brief Checks whether this context is marked as SceneBoard. The mark itself is
+     *        declared through the public RSUIDirector::MarkAsSceneBoard API (the
+     *        UI_DIRECTOR command family is owned by RSUIDirector); this flag is also
+     *        read directly by synchronous node-creation IPC paths.
      *
      * @return True if this context is marked as SceneBoard.
      */
@@ -296,6 +289,10 @@ private:
     void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
     void ClearCanvasDrawingNodeResource();
     bool DestroyModifiersDraw();
+
+    // Internal flag setter, called by friend RSUIDirector::MarkAsSceneBoard which owns
+    // the command-sending path. One-way: only transitions false→true.
+    void MarkAsSceneBoard();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     void SetCacheDir(const std::string& cacheFilePath);
