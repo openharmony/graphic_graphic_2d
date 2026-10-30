@@ -246,8 +246,6 @@ static std::vector<UnicodeRangeInfo> FlattenAndSort(
     return result;
 }
 
-static std::vector<UnicodeRangeInfo> unicodeRangeBitConfigSorted;
-
 namespace {
 bool HasMatchingUnicode(size_t& index, const std::vector<uint32_t>& unicodeList,
     uint32_t rangeStart, uint32_t rangeEnd)
@@ -278,9 +276,7 @@ std::vector<std::string> FontLanguageQuery::GenerateFontSupportedLanguages(const
 
     std::vector<uint32_t> unicodeList = FontUnicodeQuery::GenerateUnicodeItem(typeface);
 
-    if (unicodeRangeBitConfigSorted.empty()) {
-        unicodeRangeBitConfigSorted = FlattenAndSort(unicodeRangeBitConfig);
-    }
+    static const std::vector<UnicodeRangeInfo> unicodeRangeBitConfigSorted = FlattenAndSort(unicodeRangeBitConfig);
 
     std::set<std::string> languageSet;
     size_t index = 0;
