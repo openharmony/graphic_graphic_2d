@@ -17,6 +17,8 @@
 
 #include "common/rs_optional_trace.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "pipeline/rs_effect_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -144,6 +146,52 @@ void RSEffectUtils::CheckRegionChangeForFilterCache(RSRenderNode& node,
         node.MarkFilterStatusChanged(filterDrawable, isForeground, true);
     }
 #endif
+}
+
+bool RSEffectUtils::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
+{
+    auto current = node;
+    while (current) {
+        if (current->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            return false;
+        }
+        if (current->GetType() == RSRenderNodeType::EFFECT_NODE) {
+            auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(current);
+            return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
+                   current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
+                   current->ShouldPaint() && current->GetGlobalAlpha() == 1;
+        }
+        current = current->GetParent().lock();
+    }
+    return false;
+}
+
+bool RSEffectUtils::HasValidEffect(const RSRenderNode* node)
+{
+    // Basic termination condition
+    if (!node || node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+        return false;
+    }
+    const RSProperties& properties = node->GetRenderProperties();
+    if (properties.GetUseEffect() &&
+        node->ShouldPaint() && node->GetGlobalAlpha() == 1 && !node->HasChildrenOutOfRect()) {
+        // After finding target node, start searching upwards for EFFECT_NODE
+        RS_LOGD("%{public}s UseEffect is valid", __func__);
+        return HasValidEffectNode(node->GetParent().lock());
+    }
+    return HasValidEffect(node->GetParent().lock().get());
+}
+
+bool RSEffectUtils::HasValidFilterOrEffect(const RSRenderNode& renderNode)
+{
+    const RSProperties& properties = renderNode.GetRenderProperties();
+    if (properties.GetBackgroundFilter() != nullptr ||
+        properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
+        RS_LOGD("%{public}s within filter range", __func__);
+        return true;
+    }
+    // If there is BgBrightness, ensure the Effect is valid.
+    return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -17,8 +17,7 @@
 
 #include "common/rs_color_palette.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -102,40 +101,6 @@ bool HveFilter::HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId)
     return false;
 }
 
-bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
-{
-    auto current = node;
-    while (current) {
-        if (current->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            return false;
-        }
-        if (current->GetType() == RSRenderNodeType::EFFECT_NODE) {
-            auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(current);
-            return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
-                   current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
-                   current->ShouldPaint() && current->GetGlobalAlpha() == 1;
-        }
-        current = current->GetParent().lock();
-    }
-    return false;
-}
-
-bool HveFilter::HasValidEffect(const RSRenderNode* node)
-{
-    // Basic termination condition
-    if (!node || node->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        return false;
-    }
-    const RSProperties& properties = node->GetRenderProperties();
-    if (properties.GetUseEffect() &&
-        node->ShouldPaint() && node->GetGlobalAlpha() == 1 && !node->HasChildrenOutOfRect()) {
-        // After finding target node, start searching upwards for EFFECT_NODE
-        RS_LOGD("%{public}s UseEffect is valid", __func__);
-        return HasValidEffectNode(node->GetParent().lock());
-    }
-    return HasValidEffect(node->GetParent().lock().get());
-}
-
 bool HveFilter::AreSceneConditionsDisabled(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
 {
     return !apsConfigParamsEnabled_ && (!hwcNode.GetArsrTag() ||
@@ -151,14 +116,7 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
         RS_LOGD("%{public}s scene conditions not met", __func__);
         return false;
     }
-    const RSProperties& properties = renderNode.GetRenderProperties();
-    if (properties.GetBackgroundFilter() != nullptr ||
-        properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
-        RS_LOGD("%{public}s within filter range", __func__);
-        return true;
-    }
-    // If there is BgBrightness, ensure the Effect is valid.
-    return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
+    return RSEffectUtils::HasValidFilterOrEffect(renderNode);
 }
 
 void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
