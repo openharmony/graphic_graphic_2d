@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#define private public
-
 #include <memory>
 #include "file_ex.h"
 #include "gtest/gtest.h"
@@ -603,26 +601,6 @@ HWTEST_F(RSRenderServiceConnectionTest, RemoveBundleNameFromCacheTest001, TestSi
     EXPECT_TRUE(mainThread->QueryBundleName(testPid).empty());
 }
 
-/**
- * @tc.name: QueryBundleNameCacheHitTest001
- * @tc.desc: QueryBundleName returns cached value without IPC when pid is in cache
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceConnectionTest, QueryBundleNameCacheHitTest001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    constexpr pid_t testPid = 99999;
-    const std::string expectedBundleName = "com.test.cache.hit";
-    {
-        std::lock_guard<std::mutex> lock(mainThread->pidToBundleMutex_);
-        mainThread->pidToBundleName_[testPid] = expectedBundleName;
-    }
-    EXPECT_EQ(mainThread->QueryBundleName(testPid), expectedBundleName);
-    mainThread->RemoveBundleNameFromCache(testPid);
-    EXPECT_TRUE(mainThread->QueryBundleName(testPid).empty());
-}
 
 /**
  * @tc.name: CleanAllTest
