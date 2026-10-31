@@ -585,6 +585,11 @@ std::string RSRenderComposer::GetSurfaceNameInLayersForTrace(const std::vector<s
 
 bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pipelineParam)
 {
+    if (skipDelay_.load()) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers skip delay, skipDelay_ is true");
+        RS_TRACE_NAME("CommitAndReleaseLayers skip delay");
+        return false;
+    }
     if (pipelineParam.isForceRefresh) {
         RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Force Refresh");
         RS_TRACE_NAME("CommitAndReleaseLayers in Force Refresh");
@@ -1602,6 +1607,11 @@ void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)
 int64_t RSRenderComposer::GetDelayTime() const
 {
     return delayTime_.load();
+}
+
+void RSRenderComposer::SetSkipDelay(bool skipDelay)
+{
+    skipDelay_.store(skipDelay);
 }
 
 void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,

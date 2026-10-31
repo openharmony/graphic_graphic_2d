@@ -75,6 +75,11 @@ public:
         lastActiveRect = activeRect;
     }
 
+    void SetSkipDelay(bool skipDelay) override
+    {
+        (void)skipDelay;
+    }
+
     bool commitTunnelCalled = false;
     uint64_t lastSurfaceId = 0;
     uint64_t lastTunnelLayerId = 0;
@@ -552,5 +557,19 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetActiveRectSwitchStatus_
     RectI activeRect(1, 2, 3, 4);
     EXPECT_NO_FATAL_FAILURE(proxy.SetActiveRectSwitchStatus(true, activeRect));
     EXPECT_NO_FATAL_FAILURE(proxy.SetActiveRectSwitchStatus(false, activeRect));
+}
+
+/**
+ * @tc.name: Proxy_SetSkipDelay_RemoteNull_ErrorPath
+ * @tc.desc: Test SetSkipDelay with null remote hits SendRequest error branch without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SetSkipDelay_RemoteNull_ErrorPath, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObj = nullptr;
+    RSRenderToComposerConnectionProxy proxy(nullObj);
+    ASSERT_EQ(nullObj, nullptr);
+    EXPECT_NO_FATAL_FAILURE(proxy.SetSkipDelay(true));
+    EXPECT_NO_FATAL_FAILURE(proxy.SetSkipDelay(false));
 }
 } // namespace OHOS::Rosen

@@ -93,6 +93,7 @@ protected:
     void HandlePowerStatus(ScreenPowerStatus status);
     void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
+    void SetSkipDelay(bool skipDelay);
     void DumpVKImageInfo(std::string& dumpString);
     void SetFrameTimeInterval(const int64_t idealPeriod, const int64_t actualTimestamp);
 
@@ -184,6 +185,7 @@ private:
     std::atomic<int32_t> unExecuteTaskNum_ = 0;
     std::atomic<int64_t> delayTime_ = 0;
     std::atomic<ScreenPowerStatus> screenPowerStatus_ = ScreenPowerStatus::POWER_STATUS_ON;
+    std::atomic<bool> skipDelay_ = false;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     int64_t lastActualTime_ = 0;

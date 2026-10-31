@@ -250,4 +250,32 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetActiveRectSwitchStatus_
     ASSERT_NE(agent, nullptr);
     ASSERT_EQ(agent->rsRenderComposer_, nullptr);
 }
+
+/**
+ * @tc.name: Connection_SetSkipDelay_NullAgent_EarlyReturn
+ * @tc.desc: Test SetSkipDelay with null agent returns early.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetSkipDelay_NullAgent_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerAgent> agent = nullptr;
+    RSRenderToComposerConnection conn("conn", 13u, agent);
+    EXPECT_NO_FATAL_FAILURE(conn.SetSkipDelay(true));
+    ASSERT_EQ(agent, nullptr);
+}
+
+/**
+ * @tc.name: Connection_SetSkipDelay_ValidAgent_ForwardsCall
+ * @tc.desc: Test SetSkipDelay with valid agent forwards call without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_SetSkipDelay_ValidAgent_ForwardsCall, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(std::shared_ptr<RSRenderComposer>(nullptr));
+    RSRenderToComposerConnection conn("conn", 14u, agent);
+    EXPECT_NO_FATAL_FAILURE(conn.SetSkipDelay(true));
+    EXPECT_NO_FATAL_FAILURE(conn.SetSkipDelay(false));
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+}
 } // namespace OHOS::Rosen

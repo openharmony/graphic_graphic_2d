@@ -38,6 +38,7 @@ private:
     int32_t PreAllocProtectedFrameBuffersStub(OHOS::MessageParcel& parcel);
     int32_t MarkTunnelSurfaceInvalidSurfaceIdStub(OHOS::MessageParcel& parcel);
     int32_t SetActiveRectSwitchStatusStub(OHOS::MessageParcel& parcel);
+    int32_t SetSkipDelayStub(OHOS::MessageParcel& parcel);
     pid_t lastSendingPid_ = 0;
 };
 } // namespace OHOS::Rosen

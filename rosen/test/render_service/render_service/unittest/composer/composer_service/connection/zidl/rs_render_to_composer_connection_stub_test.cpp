@@ -567,4 +567,74 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, SetActiveRectSwitchStatusStub_Val
     int32_t ret = conn.SetActiveRectSwitchStatusStub(parcel);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
+
+/**
+ * @tc.name: OnRemoteRequest_SetSkipDelay_Success
+ * @tc.desc: Test stub deserializes skipDelay bool and calls SetSkipDelay.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetSkipDelay_Success, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+    data.WriteBool(true);
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_SetSkipDelay_ReadFail
+ * @tc.desc: Test stub returns binder error when skipDelay payload is missing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetSkipDelay_ReadFail, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: SetSkipDelayStub_ValidPayload_ReturnsOk
+ * @tc.desc: Test SetSkipDelayStub returns OK with valid bool payload.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, SetSkipDelayStub_ValidPayload_ReturnsOk, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel parcel;
+    parcel.WriteBool(true);
+
+    int32_t ret = conn.SetSkipDelayStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * @tc.name: SetSkipDelayStub_ReadFailure_ReturnsError
+ * @tc.desc: Test SetSkipDelayStub returns binder error when payload is missing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, SetSkipDelayStub_ReadFailure_ReturnsError, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel parcel;
+
+    int32_t ret = conn.SetSkipDelayStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
 } // namespace OHOS::Rosen

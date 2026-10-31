@@ -2115,6 +2115,119 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequiredForLTPS, TestSize.Level1)
 }
 
 /**
+ * Function: IsDelayRequired_SkipDelay
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to true via SetSkipDelay
+ *                  3. call IsDelayRequired with various params
+ *                  4. verify always returns false
+ */
+HWTEST_F(RsRenderComposerTest, IsDelayRequired_SkipDelay, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    PipelineParam param;
+    param.isForceRefresh = false;
+    param.hasGameScene = false;
+
+    rsRenderComposer_->SetSkipDelay(true);
+
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
+
+    hgmCore.isLtpoMode_.store(false);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = false;
+    hgmCore.isLtpoMode_.store(true);
+    frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    frameRateMgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    param.hasGameScene = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    rsRenderComposer_->SetSkipDelay(false);
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    frameRateMgr->isAdaptive_.store(frameRateMgrIsAdaptive);
+}
+
+/**
+ * Function: UpdateDelayTime_SkipDelay
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to true via SetSkipDelay
+ *                  3. call UpdateDelayTime, IsDelayRequired returns false so delayTime stays 0
+ *                  4. verify delayTime is 0
+ */
+HWTEST_F(RsRenderComposerTest, UpdateDelayTime_SkipDelay, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+
+    PipelineParam param;
+    auto& hgmCore = HgmCore::Instance();
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    hgmCore.isLtpoMode_.store(false);
+
+    tmpRsRenderComposer->SetSkipDelay(true);
+
+    uint32_t currentRate = 60;
+    int64_t delayTime = tmpRsRenderComposer->UpdateDelayTime(hgmCore, currentRate, param);
+    EXPECT_EQ(delayTime, 0);
+
+    tmpRsRenderComposer->SetSkipDelay(false);
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: IsDelayRequired_SkipDelayFalse
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to false (default)
+ *                  3. call IsDelayRequired with isForceRefresh=true
+ *                  4. verify returns false via existing force refresh path, not skip path
+ *                  5. call IsDelayRequired with non-LTPO, delay mode enabled, no game scene
+ *                  6. verify returns true (existing behavior unchanged)
+ */
+HWTEST_F(RsRenderComposerTest, IsDelayRequired_SkipDelayFalse, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    PipelineParam param;
+    param.isForceRefresh = false;
+    param.hasGameScene = false;
+
+    rsRenderComposer_->SetSkipDelay(false);
+
+    param.isForceRefresh = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = false;
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    bool hgmCoreIsDelayMode = hgmCore.isDelayMode_;
+
+    hgmCore.isLtpoMode_.store(false);
+    hgmCore.isDelayMode_ = true;
+    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    hgmCore.isDelayMode_ = hgmCoreIsDelayMode;
+}
+
+/**
  * Function: CreateFrameBufferSurfaceOhos
  * Type: Function
  * Rank: Important(2)

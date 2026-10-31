@@ -149,5 +149,15 @@ void RSRenderToComposerConnection::SetActiveRectSwitchStatus(bool flag, const Re
     }
     rsRenderComposerAgent_->SetActiveRectSwitchStatus(flag, activeRect);
 }
+
+void RSRenderToComposerConnection::SetSkipDelay(bool skipDelay)
+{
+    RS_TRACE_NAME_FMT("%s screenId[%" PRIu64 "], skipDelay[%d]", __func__, screenId_, skipDelay);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("%{public}s param illegal", __func__);
+        return;
+    }
+    rsRenderComposerAgent_->SetSkipDelay(skipDelay);
+}
 } // namespace Rosen
 } // namespace OHOS
