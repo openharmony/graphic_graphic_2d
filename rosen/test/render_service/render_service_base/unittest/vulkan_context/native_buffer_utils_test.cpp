@@ -804,5 +804,88 @@ HWTEST_F(NativeBufferUtilsTest, FindMemoryType001, TestSize.Level1)
     EXPECT_EQ(ret, UINT32_MAX);
 }
 
+namespace {
+constexpr VkDeviceSize NATIVE_BUFFER_ALLOCATION_SIZE = 100;
+constexpr VkDeviceSize IMAGE_MEMORY_REQUIREMENT_SIZE = 200;
+constexpr VkDeviceSize FAKE_IMAGE_HANDLE = 0x1234;
+constexpr VkDeviceSize FAKE_DEVICE_MEMORY_HANDLE = 0x5678;
+
+// Install stubs so allocationSize(NATIVE_BUFFER_ALLOCATION_SIZE) < image memory
+// requirement(IMAGE_MEMORY_REQUIREMENT_SIZE), forcing IsNativeBufferSizeSufficient
+// to fail and vkDestroyImage to be invoked.
+void InstallSizeInsufficientStubs(const std::shared_ptr<RsVulkanInterface>& vkInterface)
+{
+    vkInterface->vkGetNativeBufferPropertiesOHOS =
+        [](VkDevice, const OH_NativeBuffer*, VkNativeBufferPropertiesOHOS* props) -> VkResult {
+            props->allocationSize = NATIVE_BUFFER_ALLOCATION_SIZE;
+            props->memoryTypeBits = 1;
+            return VK_SUCCESS;
+        };
+    vkInterface->vkCreateImage = [](VkDevice, const VkImageCreateInfo*, const VkAllocationCallbacks*,
+        VkImage* image) -> VkResult {
+            *image = reinterpret_cast<VkImage>(FAKE_IMAGE_HANDLE);
+            return VK_SUCCESS;
+        };
+    vkInterface->vkGetPhysicalDeviceMemoryProperties2 =
+        [](VkPhysicalDevice, VkPhysicalDeviceMemoryProperties2* props) {
+            props->memoryProperties.memoryTypeCount = 1;
+            props->memoryProperties.memoryTypes[0].propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        };
+    vkInterface->vkAllocateMemory = [](VkDevice, const VkMemoryAllocateInfo*, const VkAllocationCallbacks*,
+        VkDeviceMemory* memory) -> VkResult {
+            *memory = reinterpret_cast<VkDeviceMemory>(FAKE_DEVICE_MEMORY_HANDLE);
+            return VK_SUCCESS;
+        };
+    vkInterface->vkBindImageMemory2 =
+        [](VkDevice, uint32_t, const VkBindImageMemoryInfo*) -> VkResult { return VK_SUCCESS; };
+    vkInterface->vkGetImageMemoryRequirements = [](VkDevice, VkImage, VkMemoryRequirements* req) {
+        req->size = IMAGE_MEMORY_REQUIREMENT_SIZE;
+    };
+    vkInterface->vkDestroyImage = [](VkDevice, VkImage, const VkAllocationCallbacks*) {};
+}
+} // namespace
+
+/**
+ * @tc.name: CreateSurfaceFromNativeBuffer006
+ * @tc.desc: test CreateSurfaceFromNativeBuffer with IsNativeBufferSizeSufficient failure
+ *           covers new branch: allocationSize < memRequirements.size → vkDestroyImage + return nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeBufferUtilsTest, CreateSurfaceFromNativeBuffer006, TestSize.Level1)
+{
+    auto& context = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
+    auto vkInterface = context.GetRsVulkanInterface();
+    if (!vkInterface || !vkInterface->IsValid()) {
+        GTEST_SKIP() << "Vulkan not available";
+    }
+
+    auto origGetNativeBufferProps = vkInterface->vkGetNativeBufferPropertiesOHOS;
+    auto origCreateImage = vkInterface->vkCreateImage;
+    auto origGetPhysDevMemProps2 = vkInterface->vkGetPhysicalDeviceMemoryProperties2;
+    auto origAllocateMemory = vkInterface->vkAllocateMemory;
+    auto origBindImageMemory2 = vkInterface->vkBindImageMemory2;
+    auto origGetImageMemReq = vkInterface->vkGetImageMemoryRequirements;
+    auto origDestroyImage = vkInterface->vkDestroyImage;
+
+    InstallSizeInsufficientStubs(vkInterface);
+
+    OH_NativeBuffer* fakeNativeBuffer = reinterpret_cast<OH_NativeBuffer*>(0x1);
+    Drawing::GPUContext* gpuContext = nullptr;
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto ret = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
+        vkInterface, gpuContext, imageInfo, fakeNativeBuffer, nullptr);
+    EXPECT_EQ(ret, nullptr);
+
+    vkInterface->vkGetNativeBufferPropertiesOHOS = origGetNativeBufferProps;
+    vkInterface->vkCreateImage = origCreateImage;
+    vkInterface->vkGetPhysicalDeviceMemoryProperties2 = origGetPhysDevMemProps2;
+    vkInterface->vkAllocateMemory = origAllocateMemory;
+    vkInterface->vkBindImageMemory2 = origBindImageMemory2;
+    vkInterface->vkGetImageMemoryRequirements = origGetImageMemReq;
+    vkInterface->vkDestroyImage = origDestroyImage;
+}
+
 } // namespace Rosen
 } // namespace OHOS
