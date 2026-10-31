@@ -639,7 +639,7 @@ HWTEST_F(HgmCommandTest, HgmCoreInit001, Function | SmallTest | Level0)
 
 /**
  * @tc.name: StoreRefreshRateModeListTest
- * @tc.desc: Verify StoreRefreshRateModeList covers null config, empty list, multi-elment, success and failure paths
+ * @tc.desc: Verify StoreRefreshRateModeList covers null config, empty list, multi-element, success and failure paths
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -649,7 +649,7 @@ HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Le
     hgmCore.InitXmlConfig();
     LoadXmlContent1();
     ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
-    std::string prevParam = system::GetParameter("rosen.hgmRefreshRateModeList","");
+    std::string prevParam = system::GetParameter("rosen.hgmRefreshRateModeList", "");
 
     auto origData = std::move(hgmCore.mPolicyConfigData_);
     hgmCore.mPolicyConfigData_ = nullptr;
@@ -660,11 +660,11 @@ HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Le
     auto origSettings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
     hgmCore.mPolicyConfigData_->refreshRateForSettings_.clear();
     hgmCore.StoreRefreshRateModeList();
-    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), "");
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), "");
 
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = {{60, 1}, {120, 2}};
     hgmCore.StoreRefreshRateModeList();
-    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), "60, 120");
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), "60, 120");
 
     uint32_t errorSize = 200;
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = std::vector<std::pair<int32_t, int32_t>>(errorSize, {1, 1});
@@ -672,7 +672,7 @@ HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Le
 
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = origSettings;
     hgmCore.StoreRefreshRateModeList();
-    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), prevParam);
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), prevParam);
 }
 
 /**
