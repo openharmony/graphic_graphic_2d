@@ -2170,6 +2170,12 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithCurveAnimation001, TestSize.
     constexpr PropertyId propId = 6;
     constexpr NodeId nodeId = 6;
     auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto nullAnimationRippleFields = std::make_shared<ParticleRippleFields>();
+    EXPECT_NO_FATAL_FAILURE(
+        renderNode->GetMutableRenderProperties().SetParticleRippleFields(nullAnimationRippleFields));
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), nullAnimationRippleFields);
+
     auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
@@ -2180,7 +2186,6 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithCurveAnimation001, TestSize.
     ASSERT_NE(animationManager, nullptr);
     animationManager->RegisterParticleAnimation(propId, animId);
 
-    renderNode->GetMutableRenderProperties().backref_ = renderNode;
     auto rippleFields = std::make_shared<ParticleRippleFields>();
     EXPECT_NO_FATAL_FAILURE(renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields));
     EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), rippleFields);
