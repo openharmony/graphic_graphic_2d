@@ -8907,6 +8907,16 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
     surfaceNode->isHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::HAS_PROTECTED, true);
+    surfaceNode->SetLayerTop(false);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNode, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(needForceUpdateHwcNodes);
+
+    needForceUpdateHwcNodes = false;
+    surfaceNode->isHwcGlobalPositionEnabled_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(true);
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNode, hasVisibleHwcNodes,
         needForceUpdateHwcNodes);
