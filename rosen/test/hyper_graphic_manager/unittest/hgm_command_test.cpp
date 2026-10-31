@@ -638,6 +638,44 @@ HWTEST_F(HgmCommandTest, HgmCoreInit001, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: StoreRefreshRateModeListTest
+ * @tc.desc: Verify StoreRefreshRateModeList covers null config, empty list, multi-elment, success and failure paths
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    LoadXmlContent1();
+    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+    std::string prevParam = system::GetParameter("rosen.hgmRefreshRateModeList","");
+
+    auto origData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = nullptr;
+    hgmCore.StoreRefreshRateModeList();
+    hgmCore.mPolicyConfigData_ = std::move(origData);
+    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+
+    auto origSettings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
+    hgmCore.mPolicyConfigData_->refreshRateForSettings_.clear();
+    hgmCore.StoreRefreshRateModeList();
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), "");
+
+    hgmCore.mPolicyConfigData_->refreshRateForSettings_ = {{60, 1}, {120, 2}};
+    hgmCore.StoreRefreshRateModeList();
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), "60, 120");
+
+    uint32_t errorSize = 200;
+    hgmCore.mPolicyConfigData_->refreshRateForSettings_ = std::vector<std::pair<int32_t, int32_t>>(errorSize, {1, 1});
+    hgmCore.StoreRefreshRateModeList();
+
+    hgmCore.mPolicyConfigData_->refreshRateForSettings_ = origSettings;
+    hgmCore.StoreRefreshRateModeList();
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList",""), prevParam);
+}
+
+/**
  * @tc.name: RefreshRateModeChangeProcessTest
  * @tc.desc: Verify RefreshRateModeChangeProcess handles nullptr, invalid string, zero, same-mode and valid mode inputs
  * @tc.type: FUNC

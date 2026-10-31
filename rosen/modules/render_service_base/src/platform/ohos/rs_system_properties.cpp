@@ -655,7 +655,7 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 
 bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
 {
-    bool setOk = system::SetParameter("rosen.hgmrefreshratemodelist", param);
+    bool setOk = system::SetParameter("rosen.hgmRefreshRateModeList", param);
     if (setOk) {
         RS_LOGI("SetHgmRefreshRateModeList set to %{public}s", param.c_str());
     } else {
@@ -666,7 +666,7 @@ bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
 
 std::string RSSystemProperties::GetHgmRefreshRateModeList()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hgmrefreshratemodelist", "");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hgmRefreshRateModeList", "");
     int changed = 0;
     const char *value = CachedParameterGetChanged(g_Handle, &changed);
     return value == nullptr ? "" : value;
