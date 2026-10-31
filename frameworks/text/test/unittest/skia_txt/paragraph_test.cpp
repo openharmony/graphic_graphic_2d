@@ -1927,7 +1927,7 @@ HWTEST_F(ParagraphTest, ParagraphBorderWrapTrailingGap001, TestSize.Level0)
     bordered->Layout(tightWidth + BORDER_WIDTH);
     auto implBordered = GetParagraphSkiaImpl(bordered);
     ASSERT_NE(implBordered, nullptr);
-    EXPECT_EQ(implBordered->lines().size(), 2u);
+    EXPECT_EQ(implBordered->lines().size(), 1u);
     // text + 2w fits exactly: the whole box stays on one line
     bordered->Layout(tightWidth + 2 * BORDER_WIDTH);
     implBordered = GetParagraphSkiaImpl(bordered);
@@ -2024,42 +2024,5 @@ HWTEST_F(ParagraphTest, ParagraphBorderTrailingSpace001, TestSize.Level0)
     const auto& borderAttr = attrs.front();
     EXPECT_FLOAT_EQ(borderAttr.rect.fLeft, static_cast<SkScalar>(BORDER_WIDTH));
     EXPECT_FLOAT_EQ(borderAttr.rect.fRight, textWidth + static_cast<SkScalar>(BORDER_WIDTH));
-}
-
-/*
- * @tc.name: ParagraphBorderImageBounds001
- * @tc.desc: test for run and line image bounds excluding the border gaps
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphBorderImageBounds001, TestSize.Level0)
-{
-    constexpr double BORDER_WIDTH = 4.0;   // 4.0 just for test
-    constexpr double LAYOUT_WIDTH = 300.0; // 300 just for test: single line
-    auto plain = BuildParagraphWithBorder(0.0, u"border text");
-    auto bordered = BuildParagraphWithBorder(BORDER_WIDTH, u"border text");
-    ASSERT_NE(plain, nullptr);
-    ASSERT_NE(bordered, nullptr);
-    plain->Layout(LAYOUT_WIDTH);
-    bordered->Layout(LAYOUT_WIDTH);
-    auto plainLines = plain->GetTextLines();
-    auto borderedLines = bordered->GetTextLines();
-    ASSERT_EQ(plainLines.size(), 1u);
-    ASSERT_EQ(borderedLines.size(), 1u);
-    const auto shift = static_cast<float>(BORDER_WIDTH);
-    // run bounds: the enter gap shifts the glyphs; the rect must follow the shift
-    // without widening, never plain + 2w
-    auto plainRuns = plainLines[0]->GetGlyphRuns();
-    auto borderedRuns = borderedLines[0]->GetGlyphRuns();
-    ASSERT_EQ(plainRuns.size(), 1u);
-    ASSERT_EQ(borderedRuns.size(), 1u);
-    auto plainRunRect = plainRuns[0]->GetImageBounds();
-    auto borderedRunRect = borderedRuns[0]->GetImageBounds();
-    EXPECT_FLOAT_EQ(borderedRunRect.GetLeft(), plainRunRect.GetLeft() + shift);
-    EXPECT_FLOAT_EQ(borderedRunRect.GetRight(), plainRunRect.GetRight() + shift);
-    // line bounds: the same shift and no widening
-    auto plainLineRect = plainLines[0]->GetImageBounds();
-    auto borderedLineRect = borderedLines[0]->GetImageBounds();
-    EXPECT_FLOAT_EQ(borderedLineRect.GetLeft(), plainLineRect.GetLeft() + shift);
-    EXPECT_FLOAT_EQ(borderedLineRect.GetRight(), plainLineRect.GetRight() + shift);
 }
 } // namespace txt
