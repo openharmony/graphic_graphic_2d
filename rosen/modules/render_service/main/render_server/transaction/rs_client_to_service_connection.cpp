@@ -2681,6 +2681,12 @@ ErrCode RSClientToServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
 ErrCode RSClientToServiceConnection::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    if (event == ApsEventType::SWIPER_BOOST_OFF) {
+        HgmTaskHandleThread::Instance().PostTask([params]() {
+            HgmEnergyConsumptionPolicy::Instance().EnableSwipeDynamicRefreshRate(params);
+        });
+        return ERR_OK;
+    }
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return ERR_INVALID_VALUE;

@@ -129,6 +129,9 @@ public:
             this->componentScene_ = other.componentScene_;
             return true;
         }
+        if (this->preferred_ == other.preferred_ && other.componentScene_ == ComponentScene::SWIPER_FLING) {
+            this->componentScene_ = other.componentScene_;
+        }
         return false;
     }
 

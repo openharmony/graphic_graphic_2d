@@ -134,6 +134,23 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceSceneInfo(const Ev
     }
 }
 
+void HgmEnergyConsumptionPolicy::EnableSwipeDynamicRefreshRate(
+    const std::unordered_map<std::string, std::string>& configMap)
+{
+    auto iter = configMap.find("SWIPER_BOOST_OFF");
+    disableSwiperTouchHigh_ = iter != configMap.end() && iter->second == "TRUE";
+    HGM_LOGI("disableSwiperTouchHigh: %{public}d", disableSwiperTouchHigh_);
+}
+
+bool HgmEnergyConsumptionPolicy::DisableTouchHighFrameRate(const FrameRateRange& finalRange)
+{
+    if (currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO || !disableSwiperTouchHigh_) {
+        return false;
+    }
+    return finalRange.componentScene_ == ComponentScene::SWIPER_FLING ||
+           (finalRange.type_ & SWIPER_DRAG_FRAME_RATE_TYPE);
+}
+
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     if (!isAnimationEnergyAssuranceEnable_ ||
