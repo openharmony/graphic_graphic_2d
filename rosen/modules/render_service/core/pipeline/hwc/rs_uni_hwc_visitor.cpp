@@ -719,6 +719,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         auto& hwcRects = hwcRectsByApp[firstLevelNodeId];
         UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
         UpdateHwcNodeEnableByForceDisableHdr(hwcNodePtr);
+        DisableSolidLayerByDstRectNEBounds(*hwcNodePtr);
         if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
             ancoNodes.push_back(hwcNodePtr);
             if (RSUniRenderUtil::GetComposerAutoSwitch()) {
@@ -1518,8 +1519,6 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
         return;
     }
     UpdateHwcNodeByTransform(node, absMatrix);
-    // Must be after UpdateHwcNodeByTransform and before UpdateDstRectByGlobalPosition.
-    DisableSolidLayerByDstRectNEBounds(node);
     // dstRect transform to global position after UpdateHwcNodeByTransform
     UpdateDstRectByGlobalPosition(node);
     UpdateHwcNodeEnableByBufferSize(node);
