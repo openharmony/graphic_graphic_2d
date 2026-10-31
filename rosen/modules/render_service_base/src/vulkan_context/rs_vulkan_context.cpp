@@ -35,10 +35,11 @@ namespace Rosen {
 /**
  * Get - 根据类型获取单例
  *
- * 实现三种类型的单例管理：
+ * 实现类型的单例管理：
  * - 0 - BASIC_RENDER: 启用HTS，非保护
  * - 1 - PROTECTED_REDRAW: 不启用HTS，保护模式(DRM)
  * - 2 - UNPROTECTED_REDRAW: 不启用HTS，非保护
+ * - 3 - EFFECT_KIT: 启用HTS，非保护
  */
 RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
 {
@@ -56,10 +57,30 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
         case RenderEngineType::BASIC_RENDER:
         default:
         {
+            if (type != RenderEngineType::BASIC_RENDER) {
+                ROSEN_LOGE("RsVulkanContext::Get BASIC_RENDER but use wrong type %{public}d", static_cast(type));
+            }
             static RsVulkanContext basicRenderSingleton = RsVulkanContext(false, true, RenderEngineType::BASIC_RENDER);
             return basicRenderSingleton;
         }
     }
+}
+
+std::unique_ptr RsVulkanContext::GetForEffectKit()
+{
+    return std::make_unique(false, true, RenderEngineType::EFFECT_KIT);
+}
+
+void RsVulkanContext::ReleaseContextForEffectKit(std::unique_ptr& vkContext)
+{
+    if (vkContext->type_ != RenderEngineType::EFFECT_KIT) {
+        return;
+    }
+    if (vkContext && vkContext->vulkanInterface_) {
+        vkContext->vulkanInterface_->ReleaseVulkanResource();
+        vkContext->vulkanInterface_.reset();
+    }
+    (void)vkContext.release();
 }
 
 RsVulkanContext::RsVulkanContext(bool isProtected, bool isHtsEnable, RenderEngineType type)

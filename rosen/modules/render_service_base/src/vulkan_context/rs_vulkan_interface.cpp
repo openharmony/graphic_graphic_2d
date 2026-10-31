@@ -138,6 +138,33 @@ RsVulkanInterface::~RsVulkanInterface()
     CloseLibraryHandle();
 }
 
+void RsVulkanInterface::ReleaseVulkanResource()
+{
+    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
+        if (semaphoreFence.fence != nullptr) {
+            semaphoreFence.fence->Wait(-1);
+        }
+        vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+    }
+    usedSemaphoreFenceList_.clear();
+
+    if (protectedMemoryFeatures_) {
+        delete protectedMemoryFeatures_;
+        protectedMemoryFeatures_ = nullptr;
+    }
+
+    if (device_ != VK_NULL_HANDLE) {
+        vkDeviceWaitIdle(device_);
+        vkDestroyDevice(device_, nullptr);
+        device_ = VK_NULL_HANDLE;
+    }
+    queue_ = VK_NULL_HANDLE;
+    physicalDevice_ = VK_NULL_HANDLE;
+    graphicsQueueFamilyIndex_ = UINT32_MAX;
+    SetVulkanDeviceStatus(VulkanDeviceStatus::UNINITIALIZED);
+}
+
 bool RsVulkanInterface::IsValid() const
 {
     return instance_ != VK_NULL_HANDLE && device_ != VK_NULL_HANDLE;
@@ -372,7 +399,7 @@ skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
         }
         std::string_view s { proc_name };
         if (s.find("vkQueueSubmit") == 0) {
-            if (type_ == RenderEngineType::BASIC_RENDER) {
+            if (type_ == RenderEngineType::BASIC_RENDER || type_ == RenderEngineType::EFFECT_KIT) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForBasicRender;
             } else if (type_ == RenderEngineType::UNPROTECTED_REDRAW) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForUnprotectedRedraw;

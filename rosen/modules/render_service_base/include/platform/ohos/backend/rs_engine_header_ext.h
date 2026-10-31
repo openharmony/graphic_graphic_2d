@@ -22,6 +22,7 @@ enum class RenderEngineType : uint8_t {
     BASIC_RENDER = 0,
     PROTECTED_REDRAW,
     UNPROTECTED_REDRAW,
+    EFFECT_KIT,
     MAX_INTERFACE_TYPE,
 };
 }
