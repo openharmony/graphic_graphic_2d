@@ -76,4 +76,15 @@ void MultiScreenParam::SetSkipFrameByActiveRefreshRate(bool isEnabled)
 {
     isSkipFrameByActiveRefreshRate_ = isEnabled;
 }
+
+bool MultiScreenParam::IsSkipScreenPowerOffing()
+{
+    return isSkipScreenPowerOffing_;
+}
+
+void MultiScreenParam::SetSkipScreenPowerOffing(bool isEnabled)
+{
+    isSkipScreenPowerOffing_ = isEnabled;
+}
+
 } // namespace OHOS::Rosen

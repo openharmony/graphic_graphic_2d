@@ -2159,6 +2159,34 @@ HWTEST_F(RsRenderComposerTest, SetAFBCEnabled, TestSize.Level1)
 }
 
 /**
+ * Function: HandlePowerStatus_Offing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call HandlePowerStatus with POWER_STATUS_OFFING
+ *                  2. verify screenPowerStatus_ is stored and function returns early
+ */
+HWTEST_F(RsRenderComposerTest, HandlePowerStatus_Offing, TestSize.Level1)
+{
+    rsRenderComposer_->HandlePowerStatus(ScreenPowerStatus::POWER_STATUS_OFFING);
+    EXPECT_EQ(rsRenderComposer_->screenPowerStatus_.load(), ScreenPowerStatus::POWER_STATUS_OFFING);
+}
+
+/**
+ * Function: HandlePowerStatus_NotOffing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call HandlePowerStatus with POWER_STATUS_ON
+ *                  2. verify screenPowerStatus_ is stored and function continues to PostTask
+ */
+HWTEST_F(RsRenderComposerTest, HandlePowerStatus_NotOffing, TestSize.Level1)
+{
+    rsRenderComposer_->HandlePowerStatus(ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(rsRenderComposer_->screenPowerStatus_.load(), ScreenPowerStatus::POWER_STATUS_ON);
+}
+
+/**
  * Function: Redraw001
  * Type: Function
  * Rank: Important(2)
