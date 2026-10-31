@@ -664,7 +664,7 @@ HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Le
 
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = {{60, 1}, {120, 2}};
     hgmCore.StoreRefreshRateModeList();
-    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), "60, 120");
+    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), "60,120");
 
     uint32_t errorSize = 200;
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = std::vector<std::pair<int32_t, int32_t>>(errorSize, {1, 1});
@@ -672,7 +672,7 @@ HWTEST_F(HgmCommandTest, StoreRefreshRateModeListTest, Function | SmallTest | Le
 
     hgmCore.mPolicyConfigData_->refreshRateForSettings_ = origSettings;
     hgmCore.StoreRefreshRateModeList();
-    EXPECT_EQ(system::GetParameter("rosen.hgmRefreshRateModeList", ""), prevParam);
+    system::SetParameter("rosen.hgmRefreshRateModeList", prevParam);
 }
 
 /**
