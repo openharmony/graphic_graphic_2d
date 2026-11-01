@@ -420,8 +420,6 @@ void ProcessGpuOfflineForTopLayer(
      */
     void PrepareColorPickers();
 
-    void UpdateHardWareForcedDisabledStateForDelegateMode(
-        std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
     void CollectVirtualScreenNodeId(RSScreenRenderNode& node);
 
     friend class RSUniHwcVisitor;
