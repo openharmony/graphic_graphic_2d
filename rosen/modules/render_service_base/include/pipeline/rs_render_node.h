@@ -168,13 +168,9 @@ public:
     {
         return isSceneBoard_;
     }
-    // Creation-time instance registration for Create commands that carry a token:
-    // 1. records the birth instance token in the ownership registry (uiContextToken_/
-    //    uiContextTokenList_, same as the follow-up SetUIContextToken command used to do),
-    // 2. applies the SceneBoard birth-identity mark by querying the (pid, token) director.
-    // token == 0 (context-less legacy path) is a no-op; a non-zero SceneBoard miss is
-    // logged for observability. Must be called before node map registration.
-    void RegisterInstanceIdentity(const RSContext& context, uint64_t token);
+    // Creation-time marking: registers the birth instance token (non-zero) and applies
+    // the one-way SceneBoard mark. Call before node map registration.
+    void ApplyInstanceIdentity(uint64_t token, bool isSceneBoard);
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const

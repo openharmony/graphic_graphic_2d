@@ -6107,5 +6107,33 @@ HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild003, TestSize.Level1)
     EXPECT_TRUE(node->HasInfiniteGroupAnimationChild());
 }
 
+/**
+ * @tc.name: ApplyInstanceIdentityTest
+ * @tc.desc: ApplyInstanceIdentity marks/registers per (token, isSceneBoard) verdicts.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, ApplyInstanceIdentityTest, TestSize.Level1)
+{
+    constexpr uint64_t token = 42;
+    {
+        RSRenderNode node(1, false);
+        node.ApplyInstanceIdentity(token, true);
+        EXPECT_TRUE(node.IsSceneBoard());
+        EXPECT_EQ(node.GetUIContextToken(), token);
+    }
+    {
+        RSRenderNode node(2, false);
+        node.ApplyInstanceIdentity(token, false);
+        EXPECT_FALSE(node.IsSceneBoard());
+        EXPECT_EQ(node.GetUIContextToken(), token);
+    }
+    {
+        RSRenderNode node(3, false);
+        node.ApplyInstanceIdentity(0, false);
+        EXPECT_FALSE(node.IsSceneBoard());
+        EXPECT_EQ(node.GetUIContextToken(), 0);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

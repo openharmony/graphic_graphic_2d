@@ -34,9 +34,15 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
             MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
-    auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
-        context.weak_from_this(), isTextureExportNode);
-    node->RegisterInstanceIdentity(context, token);
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
+    std::shared_ptr<RSCanvasRenderNode> node;
+    if (isSceneBoard) {
+        node = CreateRSCanvasRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
+    } else {
+        node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
+            context.weak_from_this(), isTextureExportNode);
+    }
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         HILOG_COMM_ERROR("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);

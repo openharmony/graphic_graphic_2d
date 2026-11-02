@@ -30,9 +30,15 @@ void UnionNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextur
             MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
-    auto node = std::shared_ptr<RSUnionRenderNode>(new RSUnionRenderNode(id,
-        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    node->RegisterInstanceIdentity(context, token);
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
+    std::shared_ptr<RSUnionRenderNode> node;
+    if (isSceneBoard) {
+        node = CreateUnionRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
+    } else {
+        node = std::shared_ptr<RSUnionRenderNode>(new RSUnionRenderNode(id,
+            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    }
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

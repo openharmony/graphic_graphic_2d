@@ -363,20 +363,17 @@ RSRenderNode::RSRenderNode(
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
 
-void RSRenderNode::RegisterInstanceIdentity(const RSContext& context, uint64_t token)
+void RSRenderNode::ApplyInstanceIdentity(uint64_t token, bool isSceneBoard)
 {
-    if (token == 0) {
-        return;
+    if (token != 0) {
+        SetUIContextToken(token); // idempotent: list dedups repeated tokens
     }
-    // Register the birth token in the ownership registry; idempotent (list dedup), so a
-    // later SetUIContextToken command with the same token is a harmless no-op.
-    SetUIContextToken(token);
-    if (context.IsSceneBoardToken(ExtractPid(GetId()), token)) {
+    if (isSceneBoard) {
         MarkSceneBoard();
-        return;
+    } else if (token != 0) {
+        ROSEN_LOGD("RSRenderNode::ApplyInstanceIdentity sceneboard check miss, nodeId:%{public}" PRIu64
+            ", token:%{public}" PRIu64, GetId(), token);
     }
-    ROSEN_LOGD("RSRenderNode::RegisterInstanceIdentity sceneboard check miss, nodeId:%{public}" PRIu64
-        ", token:%{public}" PRIu64, GetId(), token);
 }
 
 void RSRenderNode::AddUIExtensionChild(SharedPtr child)

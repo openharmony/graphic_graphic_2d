@@ -67,44 +67,58 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestCreate, TestSize.Level1)
 
 /**
  * @tc.name: TestCreateWithSceneBoardToken
- * @tc.desc: Create marks the node as SceneBoard when the token maps to a marked instance.
+ * @tc.desc: Non-SCB Create paths: token registration on miss, no-op on zero token.
  * @tc.type: FUNC
  */
 HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithSceneBoardToken, TestSize.Level1)
 {
     constexpr pid_t pid = 800;
-    constexpr uint64_t token = 801;
     constexpr uint64_t unknownToken = 802;
-    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
-    constexpr NodeId nodeId = MakeNodeId(pid, 1);
     constexpr NodeId missNodeId = MakeNodeId(pid, 2);
     constexpr NodeId zeroTokenNodeId = MakeNodeId(pid, 3);
+
+    RSContext context;
+
+    // Unmarked token: not marked, token still registered.
+    SurfaceNodeCommandHelper::Create(context, missNodeId, RSSurfaceNodeType::DEFAULT, false, unknownToken);
+    auto missNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(missNodeId);
+    ASSERT_NE(missNode, nullptr);
+    EXPECT_FALSE(missNode->IsSceneBoard());
+    EXPECT_EQ(missNode->GetUIContextToken(), unknownToken);
+
+    // Zero token: neither marked nor registered.
+    SurfaceNodeCommandHelper::Create(context, zeroTokenNodeId, RSSurfaceNodeType::DEFAULT, false, 0);
+    auto zeroNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(zeroTokenNodeId);
+    ASSERT_NE(zeroNode, nullptr);
+    EXPECT_FALSE(zeroNode->IsSceneBoard());
+    EXPECT_EQ(zeroNode->GetUIContextToken(), 0);
+}
+
+/**
+ * @tc.name: TestCreateSceneBoardFactoryPath
+ * @tc.desc: SCB-marked Create paths (blocked on SceneBoard factory implementation).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, TestCreateSceneBoardFactoryPath, TestSize.Level1)
+{
+    constexpr pid_t pid = 800;
+    constexpr uint64_t token = 801;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
 
     RSContext context;
     RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
     RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
 
-    // token of a marked instance: node is marked and the token is registered at creation.
+    // Marked token: marked and token-registered.
     SurfaceNodeCommandHelper::Create(context, nodeId, RSSurfaceNodeType::DEFAULT, false, token);
     auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
     EXPECT_TRUE(node->IsSceneBoard());
     EXPECT_EQ(node->GetUIContextToken(), token);
 
-    // token of an unmarked instance: not marked.
-    SurfaceNodeCommandHelper::Create(context, missNodeId, RSSurfaceNodeType::DEFAULT, false, unknownToken);
-    auto missNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(missNodeId);
-    ASSERT_NE(missNode, nullptr);
-    EXPECT_FALSE(missNode->IsSceneBoard());
-
-    // zero token (context-less legacy path): not marked.
-    SurfaceNodeCommandHelper::Create(context, zeroTokenNodeId, RSSurfaceNodeType::DEFAULT, false, 0);
-    auto zeroNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(zeroTokenNodeId);
-    ASSERT_NE(zeroNode, nullptr);
-    EXPECT_FALSE(zeroNode->IsSceneBoard());
-
-    // CreateWithConfig path carries the token as well.
+    // CreateWithConfig path.
     constexpr NodeId configNodeId = MakeNodeId(pid, 4);
     SurfaceNodeCommandHelper::CreateWithConfig(context, configNodeId, "scb", 1, windowType, token);
     auto configNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(configNodeId);

@@ -31,14 +31,19 @@ void RSWindowKeyFrameNodeCommandHelper::Create(
             MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
-    auto node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
-        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
+    RSWindowKeyFrameRenderNode::SharedPtr node;
+    if (isSceneBoard) {
+        node = CreateWindowKeyFrameRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
+    } else {
+        node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
+            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    }
     if (node == nullptr) {
         RS_LOGE("RSWindowKeyFrameNodeCommand Alloc render node object failed");
         return;
     }
-
-    node->RegisterInstanceIdentity(context, token);
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
     RS_LOGI("RSWindowKeyFrameNodeCommand node[%{public}" PRIu64 "] created", id);
 }

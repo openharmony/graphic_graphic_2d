@@ -45,10 +45,16 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
             ROSEN_LOGE("SurfaceNodeCommandHelper::Create create after add, id:%{public}" PRIu64, id);
             RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::Create create after add, id:%" PRIu64, id);
         }
-        auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
-            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+        const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
+        std::shared_ptr<RSSurfaceRenderNode> node;
+        if (isSceneBoard) {
+            node = CreateSurfaceRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
+        } else {
+            node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
+                context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+        }
         node->SetSurfaceNodeType(type);
-        node->RegisterInstanceIdentity(context, token);
+        node->ApplyInstanceIdentity(token, isSceneBoard);
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
     }
@@ -71,9 +77,15 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
         ROSEN_LOGE("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%{public}" PRIu64, nodeId);
         RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%" PRIu64, nodeId);
     }
-    auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
-        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    node->RegisterInstanceIdentity(context, token);
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(nodeId), token);
+    std::shared_ptr<RSSurfaceRenderNode> node;
+    if (isSceneBoard) {
+        node = CreateSurfaceRenderNodeWithConfigForSceneBoard(config, context.weak_from_this());
+    } else {
+        node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
+            context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    }
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

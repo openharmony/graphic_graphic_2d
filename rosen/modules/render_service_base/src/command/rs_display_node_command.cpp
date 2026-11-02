@@ -58,9 +58,15 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
         config.ToString().c_str());
 
-    auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
-        config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    node->RegisterInstanceIdentity(context, token);
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
+    std::shared_ptr<RSLogicalDisplayRenderNode> node;
+    if (isSceneBoard) {
+        node = CreateLogicalDisplayRenderNodeForSceneBoard(id, config, context.weak_from_this());
+    } else {
+        node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
+            config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    }
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
 
