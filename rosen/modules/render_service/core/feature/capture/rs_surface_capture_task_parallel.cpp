@@ -232,8 +232,40 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode should not paint!");
             return false;
         }
-        if (curNode->GetSortedChildren()->size() == 0) {
-            // here
+
+        auto contentNode = curNode;
+        if (curNode->IsLeashWindow()) {
+            const auto& leashChildren = curNode->GetSortedChildren();
+            if (leashChildren != nullptr && !leashChildren->empty()) {
+                auto firstChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(leashChildren->front());
+                if (firstChild && firstChild->IsAppWindow()) {
+                    contentNode = firstChild;
+                } else {
+                    RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: leashWindow id:%{public}" PRIu64
+                        " has no appWindow child, firstChild id:%{public}" PRIu64,
+                        curNode->GetId(), firstChild ? firstChild->GetId() : 0);
+                }
+            } else {
+                RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: leashWindow id:%{public}" PRIu64
+                    " has no child to drill down", curNode->GetId());
+            }
+        }
+        bool hasNoChild = contentNode->GetSortedChildren()->size() == 0;
+        RS_LOGI("RSSurfaceCaptureTaskParallel::CreateResources hasNoChild check: useCurWindow:%{public}d,"
+            " surfaceNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d],"
+            " curNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d],"
+            " contentNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d"
+            " childSize:%{public}zu abilityState:%{public}d hasDestoryRebuild:%{public}d],"
+            " hasNoChild:%{public}d",
+            captureConfig_.useCurWindow,
+            surfaceNode->GetId(), surfaceNode->IsAppWindow(), surfaceNode->IsLeashWindow(),
+            curNode->GetId(), curNode->IsAppWindow(), curNode->IsLeashWindow(),
+            contentNode->GetId(), contentNode->IsAppWindow(), contentNode->IsLeashWindow(),
+            contentNode->GetSortedChildren()->size(),
+            static_cast<uint8_t>(contentNode->GetAbilityState()), contentNode->HasDestoryRebuild(),
+            hasNoChild);
+
+        if (hasNoChild) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
             errorCode_ = CaptureError::WINDOW_CAPTURE_NO_CHILD;
             return false;
