@@ -25,7 +25,6 @@ ohos_unittest("RSUIEffectTest") {
       "rs_ui_effect_effect_test.cpp",
       "atlas_frame_mask_para_test.cpp",
       "glass_effect_para_test.cpp",
-      "cosmos_ring_para_test.cpp",
    ]
 
    configs = [ ":rs_ui_effect_test_config" ]

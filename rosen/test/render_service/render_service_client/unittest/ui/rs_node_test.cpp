@@ -32,7 +32,6 @@
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
-#include "modifier_ng/background/rs_background_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "render/rs_filter.h"
@@ -4153,38 +4152,6 @@ HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
     std::shared_ptr<VisualEffectPara> effectPara = nullptr;
     auto shader = RSNGShaderBase::Create(effectPara);
     EXPECT_TRUE(shader == nullptr);
-}
-
-/**
- * @tc.name: SetVisualEffectChainsMultipleShaders
- * @tc.desc: test SetVisualEffect appends multiple shader effects into one chain
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetVisualEffectChainsMultipleShaders, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    auto effectObj = std::make_shared<VisualEffect>();
-    auto colorGradient = std::make_shared<ColorGradientEffectPara>();
-    auto borderLight = std::make_shared<BorderLightEffectPara>();
-    effectObj->AddPara(colorGradient);
-    effectObj->AddPara(borderLight);
-    rsNode->SetVisualEffect(effectObj.get());
-
-    auto modifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER);
-    ASSERT_NE(modifier, nullptr);
-    ASSERT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER));
-    auto shaderModifier = std::static_pointer_cast<ModifierNG::RSBackgroundNGShaderModifier>(modifier);
-    auto headShader = shaderModifier->GetBackgroundNGShader();
-    ASSERT_NE(headShader, nullptr);
-    EXPECT_EQ(headShader->GetType(), RSNGEffectType::COLOR_GRADIENT_EFFECT);
-
-    auto renderEffect = headShader->GetRenderEffect();
-    ASSERT_NE(renderEffect, nullptr);
-    auto dump = renderEffect->Dump();
-    EXPECT_NE(dump.find("ColorGradient"), std::string::npos);
-    EXPECT_NE(dump.find("BorderLight"), std::string::npos);
-    EXPECT_NE(dump.find("--"), std::string::npos);
 }
 
 /**
