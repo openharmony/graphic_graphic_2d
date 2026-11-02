@@ -124,6 +124,9 @@ protected:
  
     static std::shared_ptr<Media::PixelMap> CreateGradientPixelMap(int width, int height)
     {
+        if (width <= 0 || height <= 0) {
+            return nullptr;
+        }
         std::vector<uint32_t> colors(width * height);
         for (int i = 0; i < width * height; i++) {
             uint32_t r = static_cast<uint32_t>((i % width) * COLOR_MAX / width);
