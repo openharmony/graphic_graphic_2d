@@ -1,0 +1,79 @@
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# the distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import(
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
+
+ohos_source_set("linux") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+  }
+  defines = rs_common_define
+
+  sources = [
+    "../ohos/rs_log.cpp",
+    "rs_accessibility.cpp",
+    "rs_ashmem_helper.cpp",
+    "rs_marshalling_helper.cpp",
+    "rs_render_service_client.cpp",
+    "rs_render_pipeline_client.cpp",
+    "rs_surface_frame_linux.cpp",
+    "rs_surface_linux.cpp",
+    "rs_system_properties.cpp",
+    "rs_vsync_client_linux.cpp",
+  ]
+
+  include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
+
+  defines += [ "MODULE_RSB" ]
+  if (enable_glfw_window) {
+    defines += [ "USE_GLFW_WINDOW" ]
+  }
+
+  cflags = [ "-std=c++17" ]
+
+  configs = [ "$rosen_root/modules/platform:eventhandler_config" ]
+
+  public_configs = [ "$rosen_root/modules/composer:composer_public_config" ]
+
+  deps = [ "$rosen_root/modules/platform:image_native" ]
+
+  public_deps = [
+    "$rosen_root/modules/glfw_render_context:libglfw_render_context",
+    "$rosen_root/modules/platform:ace_skia",
+    "$rosen_root/modules/platform:ipc_core",
+    "$rosen_root/modules/platform:utils",
+  ]
+
+  external_deps = [
+    "egl:libEGL",
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+  ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+
+    external_deps += [ "graphics_effect:graphics_effect_core" ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

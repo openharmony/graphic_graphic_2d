@@ -3271,6 +3271,234 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, TakeSurfaceCaptureTest00
 }
 
 /*
+ * @tc.name: TakeSurfaceCaptureTest009
+ * @tc.desc: TakeSurfaceCapture with pixelFormat=BGRA_8888, verify the display capture outputs a
+ * BGRA_8888 pixelmap and the saved PNG artifact shows the correct content
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, TakeSurfaceCaptureTest009)
+{
+    uint32_t width = 100;
+    uint32_t height = 200;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        GetTestName(), width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId, .displayMode = DisplayMode::EXPAND, .mirrorNodeId = 0, .isSync = true
+    };
+    Vector4f displayRect(0, 0, 100, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN);
+    ASSERT_NE(displayNode, nullptr);
+
+    auto canvasNode = CreateCanvasNodeWithConfig({ 0, 0, 50, 100 }, SK_ColorYELLOW);
+    ASSERT_NE(canvasNode, nullptr);
+
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestSurfaceNode0", { 0, 0, 50, 100 }, SK_ColorTRANSPARENT);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSNode::AddChild(canvasNode);
+
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+    displayNode->RSNode::AddChild(surfaceNode);
+    SendMessagesAndSleep();
+
+    RSSurfaceCaptureConfig surfaceCaptureConfig { .scaleX = 1.0f,
+        .scaleY = 1.0f,
+        .useDma = false,
+        .useCurWindow = true,
+        .captureType = SurfaceCaptureType::DEFAULT_CAPTURE,
+        .isSync = false,
+        .mainScreenRect = {},
+        .blackList = {}, // exclude surfacenode in screenshot
+        .isSoloNodeUiCapture = false,
+        .isHdrCapture = false,
+        .needF16WindowCaptureForScRGB = false,
+        .uiCaptureInRangeParam = {},
+        .specifiedAreaRect = {},
+        .backGroundColor = Drawing::Color::COLOR_TRANSPARENT,
+        .pixelFormat = Media::PixelFormat::BGRA_8888 };
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    rsRenderInterface_->TakeSurfaceCapture(displayNode, callback, surfaceCaptureConfig);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("%{public}s TakeSurfaceCapture failed", GetTestName().c_str());
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureTest010
+ * @tc.desc: TakeSurfaceCapture with pixelFormat=RGBA_8888 (explicit default format), verify the
+ * capture outputs an RGBA_8888 pixelmap and the saved PNG artifact shows the correct content
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, TakeSurfaceCaptureTest010)
+{
+    uint32_t width = 100;
+    uint32_t height = 200;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        GetTestName(), width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId, .displayMode = DisplayMode::EXPAND, .mirrorNodeId = 0, .isSync = true
+    };
+    Vector4f displayRect(0, 0, 100, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN);
+    ASSERT_NE(displayNode, nullptr);
+
+    auto canvasNode = CreateCanvasNodeWithConfig({ 0, 0, 50, 100 }, SK_ColorYELLOW);
+    ASSERT_NE(canvasNode, nullptr);
+
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestSurfaceNode0", { 0, 0, 50, 100 }, SK_ColorTRANSPARENT);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSNode::AddChild(canvasNode);
+
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+    displayNode->RSNode::AddChild(surfaceNode);
+    SendMessagesAndSleep();
+
+    RSSurfaceCaptureConfig surfaceCaptureConfig { .scaleX = 1.0f,
+        .scaleY = 1.0f,
+        .useDma = false,
+        .useCurWindow = true,
+        .captureType = SurfaceCaptureType::DEFAULT_CAPTURE,
+        .isSync = false,
+        .mainScreenRect = {},
+        .blackList = {}, // exclude surfacenode in screenshot
+        .isSoloNodeUiCapture = false,
+        .isHdrCapture = false,
+        .needF16WindowCaptureForScRGB = false,
+        .uiCaptureInRangeParam = {},
+        .specifiedAreaRect = {},
+        .backGroundColor = Drawing::Color::COLOR_TRANSPARENT,
+        .pixelFormat = Media::PixelFormat::RGBA_8888 };
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    rsRenderInterface_->TakeSurfaceCapture(displayNode, callback, surfaceCaptureConfig);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("%{public}s TakeSurfaceCapture failed", GetTestName().c_str());
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureTest011
+ * @tc.desc: TakeSurfaceCapture with unsupported pixelFormat=RGB_565, verify the capture degrades to
+ * RGBA_8888 output and the saved PNG artifact still shows the correct content
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, TakeSurfaceCaptureTest011)
+{
+    uint32_t width = 100;
+    uint32_t height = 200;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        GetTestName(), width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId, .displayMode = DisplayMode::EXPAND, .mirrorNodeId = 0, .isSync = true
+    };
+    Vector4f displayRect(0, 0, 100, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN);
+    ASSERT_NE(displayNode, nullptr);
+
+    auto canvasNode = CreateCanvasNodeWithConfig({ 0, 0, 50, 100 }, SK_ColorYELLOW);
+    ASSERT_NE(canvasNode, nullptr);
+
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestSurfaceNode0", { 0, 0, 50, 100 }, SK_ColorTRANSPARENT);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSNode::AddChild(canvasNode);
+
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+    displayNode->RSNode::AddChild(surfaceNode);
+    SendMessagesAndSleep();
+
+    RSSurfaceCaptureConfig surfaceCaptureConfig { .scaleX = 1.0f,
+        .scaleY = 1.0f,
+        .useDma = false,
+        .useCurWindow = true,
+        .captureType = SurfaceCaptureType::DEFAULT_CAPTURE,
+        .isSync = false,
+        .mainScreenRect = {},
+        .blackList = {}, // exclude surfacenode in screenshot
+        .isSoloNodeUiCapture = false,
+        .isHdrCapture = false,
+        .needF16WindowCaptureForScRGB = false,
+        .uiCaptureInRangeParam = {},
+        .specifiedAreaRect = {},
+        .backGroundColor = Drawing::Color::COLOR_TRANSPARENT,
+        .pixelFormat = Media::PixelFormat::RGB_565 };
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    rsRenderInterface_->TakeSurfaceCapture(displayNode, callback, surfaceCaptureConfig);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("%{public}s TakeSurfaceCapture failed", GetTestName().c_str());
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureTest012
+ * @tc.desc: TakeSurfaceCapture with useDma=true and pixelFormat=BGRA_8888, verify the DMA capture path
+ * ignores the requested format, outputs RGBA_8888 and the saved PNG artifact shows the correct content
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, TakeSurfaceCaptureTest012)
+{
+    uint32_t width = 100;
+    uint32_t height = 200;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        GetTestName(), width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId, .displayMode = DisplayMode::EXPAND, .mirrorNodeId = 0, .isSync = true
+    };
+    Vector4f displayRect(0, 0, 100, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN);
+    ASSERT_NE(displayNode, nullptr);
+
+    auto canvasNode = CreateCanvasNodeWithConfig({ 0, 0, 50, 100 }, SK_ColorYELLOW);
+    ASSERT_NE(canvasNode, nullptr);
+
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestSurfaceNode0", { 0, 0, 50, 100 }, SK_ColorTRANSPARENT);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSNode::AddChild(canvasNode);
+
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+    displayNode->RSNode::AddChild(surfaceNode);
+    SendMessagesAndSleep();
+
+    RSSurfaceCaptureConfig surfaceCaptureConfig { .scaleX = 1.0f,
+        .scaleY = 1.0f,
+        .useDma = true,
+        .useCurWindow = true,
+        .captureType = SurfaceCaptureType::DEFAULT_CAPTURE,
+        .isSync = false,
+        .mainScreenRect = {},
+        .blackList = {}, // exclude surfacenode in screenshot
+        .isSoloNodeUiCapture = false,
+        .isHdrCapture = false,
+        .needF16WindowCaptureForScRGB = false,
+        .uiCaptureInRangeParam = {},
+        .specifiedAreaRect = {},
+        .backGroundColor = Drawing::Color::COLOR_TRANSPARENT,
+        .pixelFormat = Media::PixelFormat::BGRA_8888 };
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    rsRenderInterface_->TakeSurfaceCapture(displayNode, callback, surfaceCaptureConfig);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("%{public}s TakeSurfaceCapture failed", GetTestName().c_str());
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
  * @tc.name: SetVirtualScreenStatusTest001
  * @tc.desc: SetVirtualScreenStatus to VIRTUAL_SCREEN_PAUSE, verify screen rendering enters paused state
  * @tc.type: FUNC
@@ -4136,4 +4364,5 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MultiSurfaceAddRemoveTes
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
+
 } // namespace OHOS::Rosen

@@ -55,7 +55,7 @@ public:
 
     void PrepareDelegateCompositeCommand(std::unique_ptr<RSTransactionData>& transactionData);
     bool ProcessDelegateCompositeCommand(RSContext& context);
-    bool CleanDelegateCompositeCommand(NodeId id, pid_t pid);
+    bool CleanDelegateCompositeCommand(uint64_t token, NodeId id, pid_t pid);
 
     bool RegisterReleaseListener(sptr<IConsumerSurface> cSurface);
     void DumpInfo(std::string& dumpString);
@@ -66,12 +66,15 @@ public:
     bool ProcessBufferReleaseInfo(uint64_t bufferId);
     void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo>& infos, NodeId nodeId, uint64_t queueId);
     void ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>>& cmdqueue, RSContext& context);
+    bool QueryAndResetCommandProcessFlag();
 private:
     void AddBufferReleaseInfoInner(pid_t pid, OnCompletedRet& ret);
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
     void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>>& targetsListenerMap);
     void DumpTotleInfo(std::string& dumpString);
     void CleanDelegateCompositeCommandInner(NodeId id, std::queue<std::unique_ptr<RSCommand>>& queue);
+    void PrepareDelegateCompositeCommandInner(std::unique_ptr<RSTransactionData>& transactionData,
+        std::queue<std::unique_ptr<RSCommand>> &cmdQueue);
     pid_t webProxyComposerTid_ = 0;
 
     std::mutex surfaceNodeBufferReleaseCallbackMapMutex_;
@@ -86,7 +89,10 @@ private:
 
     std::mutex cmdMapMutex_;
     using singlePidCmdMap = std::map<uint64_t, std::queue<std::unique_ptr<RSCommand>>>;
-    std::unordered_map<pid_t, singlePidCmdMap> allPidCmdMap_;
+    using surfaceTransactionCmdMap = std::map<uint64_t, singlePidCmdMap>;
+    std::unordered_map<pid_t, surfaceTransactionCmdMap> allPidCmdMap_;
+
+    bool hasCommandProcess_ = false; // must use it in rsMainThread
 };
 } // namespace Rosen
 } // namespace OHOS

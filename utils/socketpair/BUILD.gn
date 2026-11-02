@@ -23,7 +23,7 @@ config("socketpair_config") {
     "-g3",
   ]
 
-  if (target_cpu == "arm64" && defined(build_ext_path)) {
+  if (is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path)) {
     socketpair_version_script =
       rebase_path("//foundation/graphic/graphic_2d/utils/socketpair/socketpair.versionscript",
                   root_build_dir)

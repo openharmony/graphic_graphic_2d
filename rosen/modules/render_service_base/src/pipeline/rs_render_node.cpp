@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
@@ -20,8 +21,6 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <sstream>
-#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -1549,6 +1548,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", colorSpace: " + std::to_string(surfaceNode->GetColorSpace());
         out += ", uifirstColorGamut: " + std::to_string(surfaceNode->GetFirstLevelNodeColorGamut());
         out += ", isSurfaceBufferOpaque: " + std::to_string(surfaceNode->GetSurfaceBufferOpaque());
+        out += ", isSolidLayerEnabled: " + std::to_string(surfaceNode->GetSolidLayerEnabled());
         if (surfaceNode->IsCloneNode()) {
             out += ", isCloneNode: " + std::to_string(surfaceNode->IsCloneNode());
             out += ", isRelated: " + std::to_string(surfaceNode->IsRelated());
@@ -1865,11 +1865,6 @@ void RSRenderNode::FallbackAnimationsToRoot()
 {
     if (!HasAnimation()) {
         return;
-    }
-    if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {
-        std::ostringstream oss;
-        oss << "creationTid=" << animationManager_->creationTid_ << ", currentTid=" << currentTid;
-        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
     }
 
     auto context = GetContext().lock();
@@ -2523,6 +2518,12 @@ void RSRenderNode::SetParentSubTreeDirty()
 
 void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
+    RSRenderNodeCycleGuard guard(inParentChainTraversal_);
+    if (guard.HasCycle()) {
+        ROSEN_LOGE("RSRenderNode::SetParentTreeStateChangeDirty cycle detected, skip node[id:%{public}"
+            PRIu64 "]", GetId());
+        return;
+    }
     auto parentNode = parent_.lock();
     if (!parentNode) {
         return;
@@ -2585,7 +2586,8 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 bool RSRenderNode::IsFilterCacheValid() const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2604,7 +2606,8 @@ bool RSRenderNode::IsFilterCacheValid() const
 
 bool RSRenderNode::IsAIBarFilter() const
 {
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2619,7 +2622,8 @@ bool RSRenderNode::IsAIBarFilter() const
 bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2636,7 +2640,8 @@ return false;
 bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2928,7 +2933,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         return;
     }
     auto filterDrawable = GetFilterDrawable(false);
@@ -2953,7 +2958,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, RSDrawableSlot slot)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
 #ifndef ROSEN_ARKUI_X
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
 #endif
@@ -2979,44 +2984,14 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 void RSRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
 
-    const auto& properties = GetRenderProperties();
-    auto checkRegionInsideFunc = [&properties, this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
-        if (filterDrawable != nullptr) {
-            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-            bool regionChanged = ((!snapshotRegion.IsInsideOf(lastSnapshotRegion)) ||
-                (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
-                !IsForceClearOrUseFilterCache(filterDrawable);
-            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
-                " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
-                snapshotRegion.ToString().c_str());
-            if (regionChanged) {
-                MarkFilterStatusChanged(filterDrawable, false, true);
-            }
-        }
-    };
-    bool isForeground = false;
-    auto checkRegionChangeFunc = [&isForeground, this](std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
-        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-        bool regionChanged = snapshotRegion != lastSnapshotRegion &&
-            !IsForceClearOrUseFilterCache(filterDrawable);
-        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty"
-            " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
-            snapshotRegion.ToString().c_str());
-        if (regionChanged) {
-            MarkFilterStatusChanged(filterDrawable, isForeground, true);
-        }
-    };
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, checkRegionChangeFunc);
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, checkRegionInsideFunc);
-    isForeground = true;
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER, checkRegionChangeFunc);
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER), false);
+    RSEffectUtils::CheckRegionInsideForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER));
+    RSEffectUtils::CheckRegionChangeForFilterCache(*this, GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER), true);
 #endif
 }
 
@@ -3067,7 +3042,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
 {
 #ifdef RS_ENABLE_GPU
     MarkFilterHasEffectChildren();
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::PostPrepareForBlurFilterNode filter cache is disabled.");
         return;
     }

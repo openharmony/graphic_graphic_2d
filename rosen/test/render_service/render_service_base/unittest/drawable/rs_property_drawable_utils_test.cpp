@@ -22,6 +22,8 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_memory_controller.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -32,7 +34,6 @@
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"
-#include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
@@ -161,10 +162,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
     Drawing::Canvas canvasTest1;
     Drawing::Path pathTest1;
     Color spotColor;
-    rsPropertyDrawableUtils->DrawShadow(&canvasTest1, pathTest1, 1.0f, 1.0f, 1.0f, false, spotColor);
+    rsPropertyDrawableUtils->DrawShadow(&canvasTest1, pathTest1, 1.0f, 1.0f, 1.0f, false, spotColor, false, RRect());
     Drawing::Canvas canvasTest2;
     Drawing::Path pathTest2;
-    rsPropertyDrawableUtils->DrawShadow(&canvasTest2, pathTest2, 1.0f, 1.0f, 1.0f, true, spotColor);
+    rsPropertyDrawableUtils->DrawShadow(&canvasTest2, pathTest2, 1.0f, 1.0f, 1.0f, true, spotColor, false, RRect());
 }
 
 /**
@@ -564,7 +565,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, tes
     Drawing::Canvas canvasTest1;
     Drawing::Path path;
     Color spotColor;
-    rsPropertyDrawableUtilsTest1->DrawShadow(&canvasTest1, path, 1.0f, 1.0f, 1.0f, true, spotColor);
+    rsPropertyDrawableUtilsTest1->DrawShadow(&canvasTest1, path, 1.0f, 1.0f, 1.0f, true, spotColor, false, RRect());
     EXPECT_EQ(spotColor.GetAlpha(), 0);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
@@ -721,7 +722,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Path path;
     path.AddRect({ 0, 0, 5, 5 });
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(
-        &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+        &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false, false, RRect());
     ASSERT_TRUE(true);
 }
 
@@ -738,7 +739,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterNullCanvasTest, testin
     path.AddRect({ 0, 0, 5, 5 });
     const auto bounds = path.GetBounds();
 
-    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false, false, RRect());
     EXPECT_EQ(path.GetBounds(), bounds);
 }
 
@@ -756,7 +757,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest020, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 0.f, false,
-        Color(255, 0, 0, 255), false);
+        Color(255, 0, 0, 255), false, false, RRect());
     ASSERT_TRUE(true);
 }
 
@@ -774,7 +775,47 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest021, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, -1.f, false,
-        Color(255, 255, 255, 255), false);
+        Color(255, 0, 0, 255), false, false, RRect());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowUseBoundsClipTest
+ * @tc.desc: DrawShadow with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowUseBoundsClipTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    RectT<float> rect(0.0f, 0.0f, 100.0f, 100.0f);
+    RRect rrect(rect, 10.0f, 10.0f);
+    // isFilled=false: clip applied via ClipRoundRect
+    utils->DrawShadow(&canvas, path, 5.0f, 5.0f, 10.0f, false, Color(0, 0, 0, 255), true, rrect);
+    // isFilled=true: clip not applied
+    utils->DrawShadow(&canvas, path, 5.0f, 5.0f, 10.0f, true, Color(0, 0, 0, 255), true, rrect);
+    ASSERT_TRUE(true);
+}
+ 
+/**
+ * @tc.name: DrawShadowMaskFilterUseBoundsClipTest
+ * @tc.desc: DrawShadowMaskFilter with useBoundsClip=true, isFilled=false (ClipRoundRect) and isFilled=true (no clip)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterUseBoundsClipTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Canvas canvas;
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 100, 100 });
+    RectT<float> rect(0.0f, 0.0f, 100.0f, 100.0f);
+    RRect rrect(rect, 10.0f, 10.0f);
+    // isFilled=false: clip applied via ClipRoundRect
+    utils->DrawShadowMaskFilter(&canvas, path, 5.f, 5.f, 10.f, false, Color(255, 0, 0, 255), false, true, rrect);
+    // isFilled=true: clip not applied
+    utils->DrawShadowMaskFilter(&canvas, path, 5.f, 5.f, 10.f, true, Color(255, 0, 0, 255), false, true, rrect);
     ASSERT_TRUE(true);
 }
 
@@ -984,6 +1025,115 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing
     RSColor maskColor(0xFFFFFFE5);
     auto filter = rsPropertyDrawableUtilsTest1->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
     ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest001
+ * @tc.desc: Different saturation should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issue26459
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest001, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation1 = 1.0f;
+    float saturation2 = 2.0f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation1, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation2, brightness, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest002
+ * @tc.desc: Different brightness should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issue26459
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest002, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness1 = 0.8f;
+    float brightness2 = 1.2f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness1, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness2, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest003
+ * @tc.desc: Same parameters should produce same filter hash
+ * @tc.type: FUNC
+ * @tc.require: issue26459
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest003, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_EQ(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest004
+ * @tc.desc: Different maskColor should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issue26459
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest004, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor1(0xFFFFFFE5);
+    RSColor maskColor2(0x000000E5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor1);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor2);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterHashTest005
+ * @tc.desc: Different radius should produce different filter hash
+ * @tc.type: FUNC
+ * @tc.require: issue26459
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterHashTest005, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(utils, nullptr);
+    float radius1 = 40.0f;
+    float radius2 = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter1 = utils->GenerateBehindWindowFilter(radius1, saturation, brightness, maskColor);
+    auto filter2 = utils->GenerateBehindWindowFilter(radius2, saturation, brightness, maskColor);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+    EXPECT_NE(filter1->Hash(), filter2->Hash());
 }
 
 /**
@@ -1446,7 +1596,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     // Set up conditions to satisfy the branch:
 
     // 1. Enable filter cache
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     // 2. Create valid filter
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
@@ -1462,6 +1612,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     // 5. Create canvas with valid surface
     Drawing::Canvas canvasTest(400, 400);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
 
     // 6. Enable filter cache on canvas (not disabled)
     paintFilterCanvas.SetDisableFilterCache(false);
@@ -1474,7 +1627,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest003, testing::ext:
     Drawing::RectI bounds(0, 0, 400, 400);
 
     // Verify all conditions are satisfied
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1498,7 +1651,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Set up conditions to satisfy the branch
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     // Create a valid filter
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
@@ -1514,6 +1667,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     // Create canvas with valid surface and set up cache properly
     Drawing::Canvas canvasTest(200, 200);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(false);
 
     // Set up reasonable screen size
@@ -1523,7 +1680,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest004, testing::ext:
     Drawing::RectI bounds(0, 0, 200, 200);
 
     // Verify conditions
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1543,7 +1700,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Disable filter cache to ensure the branch is NOT taken
-    RSProperties::filterCacheEnabled_ = false;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1555,6 +1712,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(false);
 
     Drawing::RectI screenRect(0, 0, 1920, 1080);
@@ -1563,7 +1724,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest005, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify the first condition is false while others are true
-    EXPECT_FALSE(RSProperties::filterCacheEnabled_);
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1583,7 +1744,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest006, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Enable filter cache but disable it on canvas
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1595,6 +1756,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest006, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(true); // Disable cache on canvas
 
     Drawing::RectI screenRect(0, 0, 1920, 1080);
@@ -1603,7 +1768,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest006, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify one condition is false while others are true
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_TRUE(paintFilterCanvas.GetDisableFilterCache()); // This should prevent cache branch
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());
@@ -1623,7 +1788,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest007, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Enable filter cache but set up memory threshold to be exceeded
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1635,6 +1800,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest007, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    EXPECT_EQ(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(false);
 
     // Set very small screen size to trigger memory threshold exceeded
@@ -1645,7 +1812,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest007, testing::ext:
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify conditions
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_TRUE(cacheManager->IsFilterCacheMemExceedThreshold()); // This should prevent cache branch
@@ -1664,7 +1831,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest008, testing::ext:
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1676,12 +1843,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest008, testing::ext:
 
     Drawing::Canvas canvasTest(300, 300);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(false);
 
     Drawing::RectI bounds(0, 0, 300, 300);
 
     // Verify one condition is false while others can't be checked (null cacheManager)
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_EQ(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
 
@@ -1700,7 +1871,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
 
     // Set up all conditions to satisfy the cache branch
-    RSProperties::filterCacheEnabled_ = true;
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 
     std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
     EXPECT_NE(rsFilter, nullptr);
@@ -1712,6 +1883,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
 
     Drawing::Canvas canvasTest(400, 400);
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    EXPECT_NE(paintFilterCanvas.GetSurface(), nullptr);
+
     paintFilterCanvas.SetDisableFilterCache(false);
 
     Drawing::RectI screenRect(0, 0, 1920, 1080);
@@ -1720,7 +1895,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest009, testing::ext:
     Drawing::RectI bounds(0, 0, 400, 400);
 
     // Verify all conditions are satisfied
-    EXPECT_TRUE(RSProperties::filterCacheEnabled_);
+    EXPECT_TRUE(RSFilterCacheManager::IsFilterCacheEnabled());
     EXPECT_NE(cacheManager, nullptr);
     EXPECT_FALSE(paintFilterCanvas.GetDisableFilterCache());
     EXPECT_FALSE(cacheManager->IsFilterCacheMemExceedThreshold());

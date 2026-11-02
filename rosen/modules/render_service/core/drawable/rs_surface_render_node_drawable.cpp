@@ -165,6 +165,10 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
             SetNeedCacheRelatedSourceNode(true);
             return true;
         }
+        if (surfaceParams.IsCrossNode()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s crossNode not needCacheSurface, need clearCache", __func__);
+            subThreadCache_.GetRSDrawWindowCache().ClearCache();
+        }
         return false;
     }
 
@@ -176,6 +180,7 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
     }
+    subThreadCache_.GetRSDrawWindowCache().ClearCache();
     return false;
 }
 
@@ -718,6 +723,36 @@ void RSSurfaceRenderNodeDrawable::SyncUifirstDrawCmds()
     renderParams_->OnSync(GetUifirstRenderParams());
 }
 
+// RAII guard: enforce atlas-based text cache rendering under perspective to avoid
+// slow per-glyph path. No-op when GPU context is unavailable. Used via std::optional.
+class AutoTextCacheRestore {
+public:
+    explicit AutoTextCacheRestore(RSPaintFilterCanvas& canvas) : canvas_(canvas)
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(true);
+    }
+    ~AutoTextCacheRestore()
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(false);
+    }
+
+    AutoTextCacheRestore(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore(const AutoTextCacheRestore&) = delete;
+    AutoTextCacheRestore& operator=(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore& operator=(const AutoTextCacheRestore&) = delete;
+
+private:
+    RSPaintFilterCanvas& canvas_;
+};
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -792,8 +827,23 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
         return;
     }
-    auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        surfaceParams->GetCloneSourceDrawable().lock());
+    // Enforce text cache when animation-overlap-blocked surface is drawn under perspective.
+    // baseMatrix = (sandbox ? parent matrix : canvas matrix) concat with surface matrix.
+    std::optional<AutoTextCacheRestore> textCacheRestore;
+
+    if (surfaceParams->GetUifirstDisabledByAnimationOverlap()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw GetUifirstDisabledByAnimationOverlap() is true");
+        Drawing::Matrix baseMatrix =
+            surfaceParams->HasSandBox() ? RSRenderParams::GetParentSurfaceMatrix() : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (baseMatrix.HasPerspective()) {
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw baseMatrix.HasPerspective() is true");
+            textCacheRestore.emplace(*rscanvas);
+        }
+    }
+
+    auto cloneSourceDrawable =
+        std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceParams->GetCloneSourceDrawable().lock());
     auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
     if (cloneSourceParams) {
         bool prevCrossNodeDraw = rscanvas->IsCrossNodeDraw();
@@ -1929,15 +1979,14 @@ void RSSurfaceRenderNodeDrawable::UpdateRectForDelegateMode(const RSSurfaceRende
     BufferDrawParam& params)
 {
     if (surfaceParams.GetDelegateMode()) {
-        auto& nodeParams = GetRenderParams();
-        if (nodeParams) {
-            const GraphicIRect srcRect = nodeParams->GetLayerInfo().srcRect;
-            params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
-            params.dstRect = Drawing::Rect(0, 0, nodeParams->GetBounds().GetWidth(),
-                nodeParams->GetBounds().GetHeight());
-            RS_TRACE_NAME_FMT("update rect for delegate mode: src=[%s], dst=[%s]",
-                params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
-        }
+        auto oldSrcRect = params.srcRect;
+        auto delegateSrcRect = surfaceParams.GetDelegateSrcRect();
+        params.srcRect = Drawing::Rect(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
+            delegateSrcRect.GetRight(), delegateSrcRect.GetBottom());
+        RS_TRACE_NAME_FMT("update rect for delegate mode: oldSrcRect=[%s], newSrcRect=[%s], dstRect=[%s],"
+            "delegateSrcRect=[%s], delegateDstRect=%s",
+            oldSrcRect.ToString().c_str(), params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str(),
+            delegateSrcRect.ToString().c_str(), surfaceParams.GetDelegateDstRect().ToString().c_str());
     }
 }
 } // namespace OHOS::Rosen::DrawableV2

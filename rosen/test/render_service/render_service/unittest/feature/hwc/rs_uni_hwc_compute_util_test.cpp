@@ -2022,4 +2022,60 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithoutSurfacePar
 
     ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
 }
+
+/**
+ * @tc.name: UpdateRectInfoForDelegateModeCoverage001
+ * @tc.desc: cover both edges of `if (node.GetDelegateMode())` in
+ *           RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateRectInfoForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    float bufferWidth = 100.f;
+    float bufferHeight = 200.f;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    // delegate=false edge: sizes stay unchanged
+    node.SetDelegateMode(false);
+    RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_FLOAT_EQ(bufferWidth, 100.f);
+    EXPECT_FLOAT_EQ(bufferHeight, 200.f);
+    EXPECT_FLOAT_EQ(boundsWidth, 300.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 400.f);
+    // delegate=true edge: overwrite with delegate rect sizes
+    node.SetDelegateMode(true);
+    node.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_FLOAT_EQ(bufferWidth, 10.f);
+    EXPECT_FLOAT_EQ(bufferHeight, 20.f);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+}
+
+/**
+ * @tc.name: UpdateLeftAndTopForDelegateModeCoverage001
+ * @tc.desc: cover both edges of `if (node.GetDelegateMode())` in
+ *           RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateLeftAndTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f); // left, top, right, bottom
+    // delegate=false edge: no translation
+    node.SetDelegateMode(false);
+    RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode(node, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 5.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 6.f);
+    // delegate=true edge: translate by (delegateSrcRect.GetLeft(), GetTop()) = (1, 2)
+    node.SetDelegateMode(true);
+    node.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode(node, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
+}
 } // namespace OHOS::Rosen

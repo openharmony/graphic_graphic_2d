@@ -411,6 +411,7 @@ void RsDelegateCompositeCallbackManager::GetSurfaceTransactionCmdInfoLocked(
 
 bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSContext& context)
 {
+    hasCommandProcess_ = false;
     std::unordered_map<pid_t, singlePidCmdMap> allPidProcessCmdMap;
     bool ret = false;
     {
@@ -420,25 +421,29 @@ bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSConte
         }
         for (auto it = allPidCmdMap_.begin(); it != allPidCmdMap_.end();) {
             auto &sendingPid = it->first;
-            auto &sendingPidCmdMap = it->second;
-            if (sendingPidCmdMap.empty()) {
-                it = allPidCmdMap_.erase(it);
-                continue;
+            auto &surfaceTransactionCmdMap = it->second;
+            for (auto it1 = surfaceTransactionCmdMap.begin(); it1 != surfaceTransactionCmdMap.end();) {
+                auto &singlePidCmdMap = it1->second;
+                auto it2 = singlePidCmdMap.begin();
+                if (it2 != singlePidCmdMap.end()) {
+                    allPidProcessCmdMap[sendingPid][it2->first] = std::move(it2->second);
+                    singlePidCmdMap.erase(it2);
+                }
+                if (singlePidCmdMap.empty()) {
+                    it1 = surfaceTransactionCmdMap.erase(it1);
+                    continue;
+                }
+                it1++;
             }
 
-            auto iter = sendingPidCmdMap.begin();
-            if (iter != sendingPidCmdMap.end()) {
-                allPidProcessCmdMap[sendingPid][iter->first] = std::move(iter->second);
-                sendingPidCmdMap.erase(iter);
-            }
-            if (sendingPidCmdMap.empty()) {
+            if (surfaceTransactionCmdMap.empty()) {
                 it = allPidCmdMap_.erase(it);
                 continue;
             }
             it++;
         }
         if (!allPidCmdMap_.empty()) {
-            RS_TRACE_NAME("ProcessDelegateCompositeCommand: RequestNextVsync");
+            RS_TRACE_NAME_FMT("ProcessDelegateCompositeCommand: RequestVsync, size=%zu", allPidCmdMap_.size());
             ret = true;
         }
     }
@@ -457,6 +462,13 @@ bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSConte
     return ret;
 }
 
+bool RsDelegateCompositeCallbackManager::QueryAndResetCommandProcessFlag()
+{
+    bool ret = hasCommandProcess_;
+    hasCommandProcess_ = false;
+    return ret;
+}
+
 void RsDelegateCompositeCallbackManager::ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>> &cmdqueue,
     RSContext& context)
 {
@@ -465,6 +477,7 @@ void RsDelegateCompositeCallbackManager::ProcessEachCommandQueue(std::queue<std:
         cmdqueue.pop();
         if (cmd && cmd->IsCallingPidValid()) {
             cmd->Process(context);
+            hasCommandProcess_ = true;
         }
     }
 }
@@ -494,27 +507,51 @@ void RsDelegateCompositeCallbackManager::PrepareDelegateCompositeCommand(
         }
     }
 
-    {
-        std::lock_guard<std::mutex> lock(cmdMapMutex_);
-        pid_t sendingPid = transactionData->GetSendingPid();
-        auto it = allPidCmdMap_.find(sendingPid);
-        if (it == allPidCmdMap_.end()) {
-            if (allPidCmdMap_.size() >= MAX_MAP_SIZE) {
-                ROSEN_LOGE("DelegateModeDebugTag: PrepareDelegateCompositeCommand fail, allPidCmdMap_ over size");
-                return;
-            }
-            singlePidCmdMap cmdMap;
-            cmdMap[transactionData->GetIndex()] = std::move(cmdQueue);
-            allPidCmdMap_[sendingPid] = std::move(cmdMap);
+    PrepareDelegateCompositeCommandInner(transactionData, cmdQueue);
+}
+
+void RsDelegateCompositeCallbackManager::PrepareDelegateCompositeCommandInner(
+    std::unique_ptr<RSTransactionData>& transactionData, std::queue<std::unique_ptr<RSCommand>> &cmdQueue)
+{
+    pid_t sendingPid = transactionData->GetSendingPid();
+    auto token = transactionData->GetToken();
+    auto index = transactionData->GetIndex();
+    RS_TRACE_NAME_FMT("PrepareDelegateCompositeCommand: [%d,%" PRIu64 "], token=%" PRIu64, sendingPid, index, token);
+
+    std::lock_guard<std::mutex> lock(cmdMapMutex_);
+    auto it = allPidCmdMap_.find(sendingPid);
+    if (it == allPidCmdMap_.end()) {
+        if (allPidCmdMap_.size() >= MAX_MAP_SIZE) {
+            ROSEN_LOGE("DelegateModeDebugTag: PrepareDelegateCompositeCommand fail, allPidCmdMap_ over size");
             return;
         }
-        if (it->second.size() >= MAX_MAP_SIZE) {
-            ROSEN_LOGE("DelegateModeDebugTag: PrepareDelegateCompositeCommand fail, cmdQueue over size");
-            return;
-        }
-        it->second[transactionData->GetIndex()] = std::move(cmdQueue);
-        RS_TRACE_NAME_FMT("PrepareDelegateCompositeCommand: [%d,%" PRIu64 "]", sendingPid, transactionData->GetIndex());
+        singlePidCmdMap cmdMap;
+        cmdMap[index] = std::move(cmdQueue);
+        surfaceTransactionCmdMap transactionCmdMap;
+        transactionCmdMap[token] = std::move(cmdMap);
+        allPidCmdMap_[sendingPid] = std::move(transactionCmdMap);
+        return;
     }
+
+    auto& transactionCmdMap = it->second;
+    auto it1 = transactionCmdMap.find(token);
+    if (it1 == transactionCmdMap.end()) {
+        if (transactionCmdMap.size() >= MAX_MAP_SIZE) {
+            ROSEN_LOGE("DelegateModeDebugTag: PrepareDelegateCompositeCommand fail, transactionCmdMap over size");
+            return;
+        }
+        singlePidCmdMap cmdMap;
+        cmdMap[index] = std::move(cmdQueue);
+        transactionCmdMap[token] = std::move(cmdMap);
+        return;
+    }
+
+    auto& cmdMap = it1->second;
+    if (cmdMap.size() >= MAX_MAP_SIZE) {
+        ROSEN_LOGE("DelegateModeDebugTag: PrepareDelegateCompositeCommand fail, cmdMap over size");
+        return;
+    }
+    cmdMap[index] = std::move(cmdQueue);
 }
 
 bool RsDelegateCompositeCallbackManager::CheckSurfaceTransactionIdentity(pid_t pid, pid_t tid)
@@ -625,9 +662,13 @@ void RsDelegateCompositeCallbackManager::DumpInfo(std::string &dumpString)
         dumpString.append("allPidCmdMap size: " + std::to_string(allPidCmdMap_.size()) + "\n");
         for (auto it = allPidCmdMap_.begin(); it != allPidCmdMap_.end(); it++) {
             auto &sendingPid = it->first;
-            auto &sendingPidCmdMap = it->second;
-            dumpString.append("----sendingPid=" + std::to_string(sendingPid) +
-                ", CmdMapSize=" + std::to_string(sendingPidCmdMap.size()) + "\n");
+            auto &surfaceTransactionCmdMap = it->second;
+            for (auto it1 = surfaceTransactionCmdMap.begin(); it1 != surfaceTransactionCmdMap.end();it1++) {
+                auto &token = it1->first;
+                auto &sendingPidCmdMap = it1->second;
+                dumpString.append("----sendingPid=" + std::to_string(sendingPid) + ", token=" + std::to_string(token) +
+                    ", CmdMapSize=" + std::to_string(sendingPidCmdMap.size()) + "\n");
+            }
         }
     }
 
@@ -694,18 +735,27 @@ void RsDelegateCompositeCallbackManager::DumpTotleInfo(std::string &dumpString)
     }
 }
 
-bool RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommand(NodeId nodeId, pid_t pid)
+bool RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommand(uint64_t token, NodeId nodeId, pid_t pid)
 {
+    RS_TRACE_NAME_FMT("CleanDelegateCompositeCommand: pid=%d, token=%" PRIu64 ", nodeId=%" PRIu64, pid, token, nodeId);
     std::lock_guard<std::mutex> lock(cmdMapMutex_);
     auto it = allPidCmdMap_.find(pid);
     if (it == allPidCmdMap_.end()) {
+        RS_TRACE_NAME("not find pid");
         return true;
     }
-    auto &sendingPid = it->first;
-    auto &sendingPidCmdMap = it->second;
-    for (auto it1 = sendingPidCmdMap.begin(); it1 != sendingPidCmdMap.end(); ++it1) {
-        auto &index = it1->first;
-        auto &cmdqueue = it1->second;
+    auto &surfaceTransactionCmdMap = it->second;
+    auto it1 = surfaceTransactionCmdMap.find(token);
+    if (it1 == surfaceTransactionCmdMap.end()) {
+        RS_TRACE_NAME("not find token");
+        return true;
+    }
+
+    auto &cmdMap = it1->second;
+    for (auto it2 = cmdMap.begin(); it2 != cmdMap.end(); ++it2) {
+        auto &index = it2->first;
+        auto &cmdqueue = it2->second;
+        RS_TRACE_NAME_FMT("find: pid=%d, token=%" PRIu64 ", nodeId=%" PRIu64, pid, token, nodeId);
         CleanDelegateCompositeCommandInner(nodeId, cmdqueue);
     }
     return true;
@@ -726,9 +776,9 @@ void RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommandInner(Node
         if (!cmd) {
             continue;
         }
-        if (cmd->GetType() == RSCommandType::DELEGATE_COMPOSITE &&
-            cmd->GetSubType() == RSDelegateCompositeCommandType::TRANSACTION_BUFFER &&
-            cmd->GetNodeId() == nodeId) {
+        if (cmd->GetNodeId() == nodeId &&
+            !(cmd->GetType() == RSCommandType::DELEGATE_COMPOSITE &&
+            cmd->GetSubType() == RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD)) {
             RS_TRACE_NAME_FMT("cmd: NodeId=%" PRIu64 ", type=%u, subtype=%u, can clean",
                 cmd->GetNodeId(), cmd->GetType(), cmd->GetSubType());
             continue;

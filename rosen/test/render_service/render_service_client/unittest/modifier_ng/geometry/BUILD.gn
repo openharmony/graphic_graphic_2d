@@ -23,7 +23,6 @@ ohos_unittest("RSRenderServiceClientGeometryModifierNGTest") {
   }
   sources = [
     "rs_bounds_clip_modifier_test.cpp",
-    "rs_bounds_clip_shape_modifier_test.cpp",
     "rs_bounds_modifier_test.cpp",
     "rs_frame_clip_modifier_test.cpp",
     "rs_frame_modifier_test.cpp",

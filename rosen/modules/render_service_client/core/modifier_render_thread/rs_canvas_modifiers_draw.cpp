@@ -127,7 +127,9 @@ void RSCanvasModifiersDrawable::ResetSurface(
             RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: SetColorSpace fail, nodeId=%{public}" PRIu64, nodeId_);
         }
     }
-    Draw();
+    if (hasDrawn_) {
+        Draw();
+    }
 }
 
 void RSCanvasModifiersDrawable::UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer)
@@ -169,6 +171,7 @@ void RSCanvasModifiersDrawable::Draw()
     }
     drawCmdListCache_->clear();
     forceFlushBuffer_ = false;
+    hasDrawn_ = true;
 }
 
 std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawHistory()

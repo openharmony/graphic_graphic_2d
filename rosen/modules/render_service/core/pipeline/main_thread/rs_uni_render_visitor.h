@@ -311,6 +311,7 @@ void ProcessGpuOfflineForTopLayer(
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node);
     void HandleColorGamuts(RSScreenRenderNode& node);
+    void HandleSkipColorSpaceConversion(RSScreenRenderNode& node, bool skipColorSpaceConversion);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();

@@ -41,6 +41,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_pixel_map_util.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_client_to_service_connection.h"
@@ -105,7 +106,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
     RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
     if (callback) {
-        callback->OnSurfaceCapture(nodeId_, captureConfig_, pixelmap.get());
+        callback->OnSurfaceCapture(nodeId_, captureConfig_, pixelmap.get(), errorCode_);
     }
     return true;
 }
@@ -162,6 +163,22 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
         }
     }
     Media::InitializationOptions opts;
+    if (captureConfig_.useDma) {
+        // DMA capture ignores the requested format and uses the default RGBA_8888.
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    } else if (captureConfig_.pixelFormat == Media::PixelFormat::BGRA_8888) {
+        opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    } else if (captureConfig_.pixelFormat == Media::PixelFormat::RGBA_8888) {
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    } else if (captureConfig_.pixelFormat != Media::PixelFormat::UNKNOWN) {
+        errorCode_ = CaptureError::CAPTURE_UNSUPPORTED_FORMAT;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        RS_LOGW("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode pixelFormat"
+            " %{public}u not support, fallback to RGBA_8888",
+            static_cast<uint32_t>(captureConfig_.pixelFormat));
+    } else {
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    }
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
@@ -180,8 +197,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
-    auto colorType = (pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16) ?
-        Drawing::ColorType::COLORTYPE_RGBA_F16 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSSurfaceCapture Data", size);
     if (fd < 0) {
@@ -257,8 +273,9 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
         return nullptr;
     }
+    auto colorType = RSPixelMapUtil::PixelFormatToDrawingColorType(pixelmap->GetPixelFormat());
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
-        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
+        colorType, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {

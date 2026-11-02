@@ -1,29 +1,30 @@
 /*
-* Copyright (c) 2026 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef RS_DRAWABLE_UPDATER_H
 #define RS_DRAWABLE_UPDATER_H
 
 #include <limits>
+
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
 
-template <typename U>
+template<typename U>
 class RSDrawableHelper : public RSDrawable {
 public:
     RSDrawableHelper() = default;
@@ -32,7 +33,7 @@ public:
     RSPaintFilterCanvas::SaveType type_;
 };
 
-template <typename T, typename U>
+template<typename T, typename U>
 static inline bool UpdateRSDrawable(std::shared_ptr<RSDrawable>& drawable, std::shared_ptr<U>& content)
 {
     if constexpr (std::is_constructible<T, std::shared_ptr<U>>::value) {

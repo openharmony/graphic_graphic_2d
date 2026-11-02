@@ -364,7 +364,8 @@ bool VSyncConnection::NeedTriggeredVsyncLocked(const int64_t& currentTime)
     return isNeedTriggered;
 }
 
-VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
+VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom,
+    DvsyncDisableReason disableReason)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -381,7 +382,7 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWh
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom);
+    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom, disableReason);
 }
 
 VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -1264,9 +1265,9 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
 }
 
 VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection,
-    FromWhom fromWhom)
+    FromWhom fromWhom, DvsyncDisableReason disableReason)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom, disableReason);
     return VSYNC_ERROR_OK;
 }
 

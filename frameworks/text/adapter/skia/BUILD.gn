@@ -20,6 +20,16 @@ template("skia_libtxt") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    if (platform_is_ohos) {
+      branch_protector_ret = "pac_ret"
+      sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        cfi_vcall_icall_only = true
+        debug = false
+      }
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
     defines += invoker.defines

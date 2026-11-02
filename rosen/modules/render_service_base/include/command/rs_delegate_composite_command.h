@@ -36,7 +36,7 @@ public:
     TransactionBufferCommand();
     TransactionBufferCommand(NodeId nodeId);
     TransactionBufferCommand(std::vector<RSTransactionConfig>& configs, NodeId nodeId);
-    TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId);
+    TransactionBufferCommand(OHOS::Rosen::RectF rect, bool isSrcRect, NodeId nodeId);
 
     void Process(RSContext& context) override;
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
@@ -108,7 +108,7 @@ private:
     static RSCommand* UnmarshallingCmdTypeSetRect(MessageParcel* messageParcel);
     bool MarshallingCmdTypeSetRect(MessageParcel* messageParcel) const;
     bool isSrcRect_ = true;
-    RectF rect_;
+    OHOS::Rosen::RectF rect_;
 
     // rs command define
     using RegisterTransactionBuffer = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,

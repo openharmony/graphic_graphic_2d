@@ -45,6 +45,7 @@
 #include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
 #include "filter/include/filter_water_ripple_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 
 namespace ANI::UIEffect {
 using namespace taihe;
@@ -88,6 +89,8 @@ public:
     Filter SpinBlur(uintptr_t center, double angle, int32_t samples);
     Filter HaloBloom(::ohos::graphics::uiEffect::uiEffect::Color const& tintColor, double bloomFactor,
         double glowExposure);
+    Filter MapColorByBrightness(taihe::array_view<::ohos::graphics::uiEffect::uiEffect::Color> colors,
+        taihe::array_view<double> positions);
 
 private:
     bool IsFilterValid() const;

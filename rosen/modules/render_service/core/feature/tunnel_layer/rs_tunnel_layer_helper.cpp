@@ -157,6 +157,13 @@ void ReleasePreviousNormalBuffer(const sptr<IConsumerSurface>& consumer,
         bufferOwnerCount->OnBufferReleased();
     }
 }
+
+bool IsScreenPowerOff(ScreenPowerStatus status)
+{
+    return status == ScreenPowerStatus::POWER_STATUS_OFF ||
+        status == ScreenPowerStatus::POWER_STATUS_SUSPEND ||
+        status == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED;
+}
 }
 
 bool RSTunnelLayerHelper::ResolveTunnelLayerInfo(
@@ -202,6 +209,33 @@ bool RSTunnelLayerHelper::TryCommitBufferDirect(const std::shared_ptr<RSSurfaceR
     return TryCommitPendingBuffer(node, composerClientManager, preBufferFromTunnel, tunnelRuntime, pendingBuffer);
 }
 
+std::mutex RSTunnelLayerHelper::screenPowerStatusMutex_;
+std::unordered_map<ScreenId, ScreenPowerStatus> RSTunnelLayerHelper::screenPowerStatusMap_;
+void RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(ScreenId screenId, const sptr<ScreenPropertyBase>& property)
+{
+    auto prop = static_cast<ScreenProperty<uint32_t>*>(property.GetRefPtr());
+    if (!prop) {
+        return;
+    }
+    auto status = static_cast<ScreenPowerStatus>(prop->Get());
+    std::lock_guard<std::mutex> lock(screenPowerStatusMutex_);
+    screenPowerStatusMap_[screenId] = status;
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s screenId=%" PRIu64 ", status=%u",
+        __func__, screenId, static_cast<uint32_t>(status));
+    RS_LOGI_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s screenId=%{public}" PRIu64 ", status=%{public}u",
+        __func__, screenId, static_cast<uint32_t>(status));
+}
+
+ScreenPowerStatus RSTunnelLayerHelper::GetCachedScreenPowerStatus(ScreenId screenId)
+{
+    std::lock_guard<std::mutex> lock(screenPowerStatusMutex_);
+    auto it = screenPowerStatusMap_.find(screenId);
+    if (it != screenPowerStatusMap_.end()) {
+        return it->second;
+    }
+    return ScreenPowerStatus::INVALID_POWER_STATUS;
+}
+
 bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurfaceRenderNode>& node,
     const std::shared_ptr<RSComposerClientManager>& composerClientManager,
     bool preBufferFromTunnel, RSTunnelRuntimeState& tunnelRuntime,
@@ -242,10 +276,13 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     commitInfo.screenId = tunnelRuntime.GetScreenId();
     commitInfo.buffer = pendingBuffer.buffer;
     commitInfo.acquireFence = pendingBuffer.acquireFence;
-    if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
-        tunnelRuntime.DisableTunnelLayer();
-        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
-        return false;
+    ScreenPowerStatus powerStatus = GetCachedScreenPowerStatus(tunnelRuntime.GetScreenId());
+    if (!IsScreenPowerOff(powerStatus)) {
+        if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
+            tunnelRuntime.DisableTunnelLayer();
+            pendingBuffer.bufferOwnerCount_->OnBufferReleased();
+            return false;
+        }
     }
 
     auto pendingReleaseFence = releaseFence == nullptr ? SyncFence::InvalidFence() : releaseFence;

@@ -38,6 +38,10 @@
 namespace OHOS {
 class Surface;
 
+namespace Media {
+enum class PixelFormat : int32_t; // defined in image_type.h
+}
+
 namespace Rosen {
 using AnimationId = uint64_t;
 using NodeType = uint8_t;
@@ -175,6 +179,7 @@ enum class RSSurfaceFrameType : uint8_t {
     RS_SURFACE_FRAME_OHOS_GL = 5,
     RS_SURFACE_FRAME_OHOS_RASTER = 6,
     RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+    RS_SURFACE_FRAME_LINUX = 8,
 };
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
@@ -404,6 +409,8 @@ enum class CaptureError : uint8_t {
     DYNAMIC_RANGE_NOT_SUPPORT,
     CAPTURE_NO_SECURE_PERMISSION,
     CAPTURE_FAIL_SPECIAL_LAYER,
+    CAPTURE_UNSUPPORTED_FORMAT,
+    WINDOW_CAPTURE_NO_CHILD,
     // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
@@ -439,6 +446,7 @@ struct RSSurfaceCaptureConfig {
     bool isSyncRender = false;
     bool isConfigTriggered = false;
     bool windowSync = false;
+    Media::PixelFormat pixelFormat{};
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -460,7 +468,8 @@ struct RSSurfaceCaptureConfig {
                (colorSpace == config.colorSpace) &&
                (dynamicRangeMode == config.dynamicRangeMode) &&
                (isSyncRender == config.isSyncRender) &&
-               (windowSync == config.windowSync);
+               (windowSync == config.windowSync) &&
+               (pixelFormat == config.pixelFormat);
     }
 };
 

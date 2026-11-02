@@ -33,7 +33,6 @@
 #include "property/rs_spatial_effect_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
@@ -465,13 +464,6 @@ public:
     bool HasSpatialGlassEffect() const;
     bool HasGlassEffect() const;
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    void ClearFilterCache();
-#endif
-
-    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
-
     // ---------------------------- filter effect delegations ---------------------------- //
     // material filter
     const std::shared_ptr<RSFilter>& GetMaterialFilter() const;
@@ -623,6 +615,7 @@ public:
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowDisableSDFBlur(bool disable);
+    void SetShadowClipType(int clipType);
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowMaskValid() const;
     bool IsShadowValid() const;
@@ -636,6 +629,7 @@ public:
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
     bool GetShadowDisableSDFBlur() const;
+    int GetShadowClipType() const;
 
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 
@@ -783,6 +777,7 @@ public:
 
     void SetColorfulBrightnessBlenderParams(std::unique_ptr<RSColorfulBrightnessBlenderPara> params);
     const RSColorfulBrightnessBlenderPara* GetColorfulBrightnessBlenderParams() const;
+    bool GetColorfulBrightnessBlenderEnableEDR() const;
     bool IsColorfulBrightnessBlenderValid() const;
     std::string GetColorfulBrightnessBlenderDescription() const;
     template <typename T>
@@ -1074,12 +1069,6 @@ private:
 
     Drawing::Matrix prevAbsMatrix_;
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void CreateFilterCacheManagerIfNeed();
-    std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
-    std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static bool filterCacheEnabled_;
-#endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
 

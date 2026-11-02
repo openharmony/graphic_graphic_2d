@@ -849,6 +849,19 @@ HWTEST_F(RSServiceClientTest, SetScreenPowerStatus001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSkipColorSpaceConversion Test
+ * @tc.desc: SetSkipColorSpaceConversion Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, SetSkipColorSpaceConversion, TestSize.Level1)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    rsClient->SetSkipColorSpaceConversion(screenId, true);
+}
+
+/**
  * @tc.name: GetPanelPowerStatus001
  * @tc.desc: Test GetPanelPowerStatus
  * @tc.type:FUNC
@@ -1004,6 +1017,47 @@ HWTEST_F(RSServiceClientTest, GetScreenColorGamut001, TestSize.Level1)
     ScreenColorGamut mode = COLOR_GAMUT_NATIVE;
     ret = rsClient->GetScreenColorGamut(virtualScreenId, mode);
     EXPECT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: SetVirtualScreenHDRMode Test
+ * @tc.desc: SetVirtualScreenHDRMode and GetVirtualScreenHDRMode Test
+ * @tc.type:FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSServiceClientTest, SetVirtualScreenHDRMode001, TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
+        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    EXPECT_EQ(rsClient->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_STATIC), StatusCode::SUCCESS);
+    HDRMode mode = HDRMode::NONE;
+    EXPECT_EQ(rsClient->GetVirtualScreenHDRMode(virtualScreenId, mode), StatusCode::SUCCESS);
+    EXPECT_EQ(mode, HDRMode::HDR_STATIC);
+    // invalid mode
+    EXPECT_EQ(rsClient->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_MODE_BUTT),
+        StatusCode::RS_CONNECTION_ERROR);
+    // no screen for the id
+    EXPECT_EQ(rsClient->SetVirtualScreenHDRMode(INVALID_SCREEN_ID, HDRMode::HDR_DYNAMIC),
+        StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(rsClient->GetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+
+    // connection is destroyed: RENDER_SERVICE_NULL
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_DYNAMIC),
+        StatusCode::RENDER_SERVICE_NULL);
+    EXPECT_EQ(rsClient->GetVirtualScreenHDRMode(virtualScreenId, mode), StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_NE(rsClient->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_DYNAMIC),
+        StatusCode::RENDER_SERVICE_NULL);
 }
 
 /*

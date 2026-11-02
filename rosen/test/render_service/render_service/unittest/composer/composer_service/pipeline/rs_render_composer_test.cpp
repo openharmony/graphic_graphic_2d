@@ -10266,7 +10266,8 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_AutoSwitchEnabled, TestSize.
  * CaseDescription: 1. create RSRenderComposer
  *                  2. set ComposerAutoSwitch to false
  *                  3. call ProcessComposerFrame with rate=60
- *                  4. verify else branch: SetFrameTimeInterval called with idealPeriod=0
+ *                  4. verify that SetFrameTimeInterval is not called when AutoSwitch is false,
+ *                     frameTimeInterval remains at the pre-set value
  */
 HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_AutoSwitchDisabled, TestSize.Level1)
 {
@@ -10276,13 +10277,13 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_AutoSwitchDisabled, TestSize
     auto composer = std::make_shared<RSRenderComposer>(output, property);
 
     RSUniRenderUtil::SetComposerAutoSwitch(false);
-    // Pre-set a non-zero value to verify it gets reset
+    // Pre-set a non-zero value to verify it is not reset
     RSUniRenderUtil::SetFrameTimeInterval(100);
     PipelineParam pipelineParam;
     pipelineParam.actualTimestamp = 0;
     EXPECT_NO_FATAL_FAILURE(composer->ProcessComposerFrame(60, pipelineParam));
-    // AutoSwitch false → SetFrameTimeInterval(0, actualTimestamp) → frameTimeInterval = 0
-    EXPECT_EQ(RSUniRenderUtil::GetFrameTimeInterval(), 0);
+    // AutoSwitch false → SetFrameTimeInterval not called → frameTimeInterval stays at pre-set value
+    EXPECT_EQ(RSUniRenderUtil::GetFrameTimeInterval(), 100);
 
     composer->uniRenderEngine_ = nullptr;
 }

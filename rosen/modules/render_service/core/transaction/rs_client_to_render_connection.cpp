@@ -415,6 +415,16 @@ ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr
     return renderPipelineAgent_->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
 }
 
+ErrCode RSClientToRenderConnection::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success);
+}
+
 ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {

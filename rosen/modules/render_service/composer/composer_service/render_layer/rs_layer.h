@@ -197,11 +197,11 @@ public:
     {
         (void)isDelegateMode;
     };
-    virtual void SetDelegateModeCropRect(const GraphicIRect& crop)
+    virtual void SetDelegateSrcRect(const GraphicIRect& crop)
     {
         (void)crop;
     };
-    virtual GraphicIRect GetDelegateModeCropRect()
+    virtual GraphicIRect GetDelegateSrcRect()
     {
         GraphicIRect rect;
         return rect;

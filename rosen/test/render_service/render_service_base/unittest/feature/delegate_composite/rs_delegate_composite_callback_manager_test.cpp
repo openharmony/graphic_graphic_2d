@@ -162,7 +162,7 @@ void RSDelegateCompositeCallbackManagerTest::DrainCmdQueues(RSContext& context)
 HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand001, TestSize.Level1)
 {
     auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
-    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 654321));
+    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 0, 654321));
 }
 
 /**
@@ -206,7 +206,7 @@ HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand00
     secondQueue.push_back(MakeRectCmd((static_cast<NodeId>(nodePid) << 32) | 3, true)); // kept
     PrepareCommands(sendingPid, sendingTid, TX_INDEX_SECOND, std::move(secondQueue));
 
-    ASSERT_TRUE(manager.CleanDelegateCompositeCommand(targetNode, sendingPid));
+    ASSERT_TRUE(manager.CleanDelegateCompositeCommand(0, targetNode, sendingPid));
 
     DrainCmdQueues(*context);
 
@@ -246,7 +246,7 @@ HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand00
     auto data = MakeTransactionData(sendingPid, sendingTid, TX_INDEX_FIRST);
     manager.PrepareDelegateCompositeCommand(data);
 
-    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(123, sendingPid));
+    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 123, sendingPid));
 
     auto context = std::make_shared<RSContext>();
     EXPECT_FALSE(manager.ProcessDelegateCompositeCommand(*context));

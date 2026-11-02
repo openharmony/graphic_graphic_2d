@@ -5301,6 +5301,39 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIsGpuOverDrawBufferOptimizeNode002, TestSi
     ASSERT_TRUE(surfaceNode->IsGpuOverDrawBufferOptimizeNode());
 }
 
+/**
+ * @tc.name: HandleSkipColorSpaceConversion001
+ * @tc.desc: HandleSkipColorSpaceConversion cover all branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleSkipColorSpaceConversion001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    // skipColorSpaceConversion or screen property false -> early return, unchanged
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, false);
+    screenNode->screenProperty_.Set<ScreenPropertyType::SCREEN_TYPE>(VIRTUAL_TYPE_SCREEN);
+    rsUniRenderVisitor->HandleColorGamuts(*screenNode);
+    screenNode->screenProperty_.Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(false);
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+    // screen property true but screen params null -> only set native
+    screenNode->screenProperty_.Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(true);
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+    // screen params not null -> set native and dst color space
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    rsUniRenderVisitor->HandleSkipColorSpaceConversion(*screenNode, true);
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_NATIVE);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    ASSERT_EQ(screenParams->GetDstColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
 /*
  * @tc.name: MergeRemovedChildDirtyRegion001
  * @tc.desc: Test MergeRemovedChildDirtyRegion while node has removed child which dirty rect is empty

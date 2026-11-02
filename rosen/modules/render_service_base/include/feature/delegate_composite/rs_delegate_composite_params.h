@@ -16,7 +16,7 @@
 #define RS_DELEGATE_COMPOSITE_PARAMS
 
 #include <atomic>
-#include "common/rs_vector4.h"
+#include "common/rs_rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,18 +24,18 @@ class RsDelegateCompositeParams {
 public:
     RsDelegateCompositeParams(std::string name, NodeId nodeId);
 
-    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    const Vector4f& GetDelegateDstRect();
+    void SetDelegateDstRect(const RectF& delegateDstRect);
+    const RectF& GetDelegateDstRect();
 
-    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
-    const Vector4f& GetDelegateSrcRect();
+    void SetDelegateSrcRect(const RectF& delegateSrcRect);
+    const RectF& GetDelegateSrcRect();
 
     void SetDelegateMode(bool isSetDelegateMode);
     bool GetDelegateMode();
 
 private:
-    Vector4f delegateDstRect_ = { 0.0f, 0.0f, 0.0f, 0.0f };
-    Vector4f delegateSrcRect_ = { 0.0f, 0.0f, 9999.0f, 9999.0f };
+    OHOS::Rosen::RectF delegateDstRect_ = { 0.0f, 0.0f, 0.0f, 0.0f };
+    OHOS::Rosen::RectF delegateSrcRect_ = { 0.0f, 0.0f, 9999.0f, 9999.0f };
     std::atomic<bool> isSetDelegateMode_ = false;
     std::string name_ = "Unnamed";
     NodeId nodeId_ = 0;

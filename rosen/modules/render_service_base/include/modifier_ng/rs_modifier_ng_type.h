@@ -73,7 +73,6 @@ enum class RSModifierType : uint16_t {
     MATERIAL_SHADER = 40,
     USE_UNION = 41,
     OVERLAY_NG_SHADER = 42,
-    CLIP_SHAPE = 43,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -156,7 +155,6 @@ public:
             case RSModifierType::COLOR_PICKER : return "ColorPicker";
             case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::USE_UNION: return "UseUnion";
-            case RSModifierType::CLIP_SHAPE: return "ClipShape";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }
@@ -293,6 +291,7 @@ public:
             case RSPropertyType::BLOOM: return "Bloom";
             case RSPropertyType::FOREGROUND_EFFECT_RADIUS: return "ForegroundEffectRadius";
             case RSPropertyType::USE_SHADOW_BATCHING: return "UseShadowBatching";
+            case RSPropertyType::SHADOW_CLIP_TYPE: return "ShadowClipType";
             case RSPropertyType::MOTION_BLUR_PARA: return "MotionBlurPara";
             case RSPropertyType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";

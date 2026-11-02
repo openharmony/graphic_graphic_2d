@@ -553,5 +553,94 @@ HWTEST_F(RSRenderModifierNGTest, UseUnionRenderModifierUnmarshallingTest, TestSi
     EXPECT_NE(unmarshalled, nullptr);
     EXPECT_EQ(unmarshalled->GetType(), ModifierNG::RSModifierType::USE_UNION);
 }
+
+// FindPropertyType series: cover RSRenderModifier::FindPropertyType branches.
+// Returns matching type when property found, INVALID when not found, INVALID on empty map.
+
+/**
+ * @tc.name: FindPropertyType001
+ * @tc.desc: Property exists in map — returns the matching RSPropertyType.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType001, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    // found — returns ALPHA
+    EXPECT_EQ(modifier->FindPropertyType(property), ModifierNG::RSPropertyType::ALPHA);
 }
 
+/**
+ * @tc.name: FindPropertyType002
+ * @tc.desc: Property not in map — returns INVALID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType002, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    auto attached = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, attached);
+    auto notAttached = std::make_shared<RSRenderProperty<float>>();
+    // not found — returns INVALID
+    EXPECT_EQ(modifier->FindPropertyType(notAttached), ModifierNG::RSPropertyType::INVALID);
+}
+
+/**
+ * @tc.name: FindPropertyType003
+ * @tc.desc: Empty properties map — returns INVALID for any target.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType003, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    auto target = std::make_shared<RSRenderProperty<float>>();
+    // empty map — returns INVALID
+    EXPECT_EQ(modifier->FindPropertyType(target), ModifierNG::RSPropertyType::INVALID);
+}
+
+/**
+ * @tc.name: FindPropertyType004
+ * @tc.desc: Multiple properties, search for each — returns correct type for each.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType004, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    auto alphaProp = std::make_shared<RSRenderProperty<float>>();
+    auto boundsProp = std::make_shared<RSRenderProperty<Vector4f>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, alphaProp);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsProp);
+    EXPECT_EQ(modifier->FindPropertyType(alphaProp), ModifierNG::RSPropertyType::ALPHA);
+    EXPECT_EQ(modifier->FindPropertyType(boundsProp), ModifierNG::RSPropertyType::BOUNDS);
+}
+
+/**
+ * @tc.name: FindPropertyType005
+ * @tc.desc: Search with nullptr target — returns INVALID (no match).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType005, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    // nullptr target — no match, returns INVALID
+    std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    EXPECT_EQ(modifier->FindPropertyType(nullTarget), ModifierNG::RSPropertyType::INVALID);
+}
+
+/**
+ * @tc.name: FindPropertyType006
+ * @tc.desc: Nullptr attached in map — search for nullptr returns its type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, FindPropertyType006, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSMaxRenderModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, nullptr);
+    std::shared_ptr<RSRenderPropertyBase> nullTarget = nullptr;
+    // nullptr stored in map matches nullptr target
+    EXPECT_EQ(modifier->FindPropertyType(nullTarget), ModifierNG::RSPropertyType::BOUNDS);
+}
+} // namespace OHOS::Rosen

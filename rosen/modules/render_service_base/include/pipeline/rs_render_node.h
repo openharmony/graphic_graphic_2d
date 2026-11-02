@@ -75,6 +75,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
+class RSEffectUtils;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -1329,6 +1330,8 @@ private:
     bool isParentTreeDirty_ = false;
     // marks the node as "on the traversal path"
     bool inTraversalPath_ = false;
+    // marks the node as "on the parent chain traversal path" to detect cycles
+    mutable bool inParentChainTraversal_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1519,6 +1522,7 @@ private:
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
     friend class RSDynamicLayerSkipController;
+    friend class RSEffectUtils;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

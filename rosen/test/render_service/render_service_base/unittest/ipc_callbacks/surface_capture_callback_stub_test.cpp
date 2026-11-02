@@ -300,17 +300,49 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest008, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReadSurfaceCaptureConfig
+ * @tc.name: ReadSurfaceCaptureConfigTest001
  * @tc.desc: Verify the ReadSurfaceCaptureConfig error case
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueIBOVQL
  */
-HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfig, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfigTest001, TestSize.Level1)
 {
     MessageParcel data;
     RSSurfaceCaptureConfig captureConfig;
     int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ReadSurfaceCaptureConfigTest002
+ * @tc.desc: Test ReadSurfaceCaptureConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfigTest002, TestSize.Level1)
+{
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        auto ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(stub->ReadSurfaceCaptureConfig(captureConfig, data), true);
+    }
+
+    {
+        MessageParcel data;
+        RSSurfaceCaptureConfig captureConfig;
+        captureConfig.pixelFormat = Media::PixelFormat::EXTERNAL_MAX;
+        auto ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(stub->ReadSurfaceCaptureConfig(captureConfig, data), false);
+    }
 }
 
 /**

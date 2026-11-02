@@ -152,6 +152,9 @@ private:
 
     std::unique_ptr<RectF> stagingDrawRect_ = nullptr;
     std::unique_ptr<RectF> drawRect_ = nullptr;
+
+    RectF stagingBoundsRect_;
+    RectF boundsRect_;
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {

@@ -2848,5 +2848,18 @@ HWTEST_F(RSPaintFilterCanvasTest, NullCanvasGettersTest, TestSize.Level1)
     EXPECT_EQ(nullCanvas.GetSaveCount(), 0);
 }
 
+/**
+ * @tc.name: SetSkipColorSpaceConversionTest
+ * @tc.desc: SetSkipColorSpaceConversionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetSkipColorSpaceConversionTest, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetSkipColorSpaceConversion(true);
+    EXPECT_EQ(canvas.GetSkipColorSpaceConversion(), true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

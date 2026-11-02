@@ -26,6 +26,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -1933,23 +1934,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CalcFilterCacheValidForOcclusionTest, TestSize
 }
 
 /**
- * @tc.name: UpdateFilterNodesTest
- * @tc.desc: test results of UpdateFilterNodesTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterNodesTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    std::shared_ptr<RSRenderNode> renderNode;
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 0);
-    renderNode = std::make_shared<RSRenderNode>(id + 1);
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 1);
-}
-
-/**
  * @tc.name: CheckValidFilterCacheFullyCoverTargetTest
  * @tc.desc: test results of CheckValidFilterCacheFullyCoverTargetTest
  * @tc.type: FUNC
@@ -1969,7 +1953,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     }
     filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
@@ -2041,57 +2025,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateDrawingCacheNodes, TestSize.Level1)
     EXPECT_EQ(node->drawingCacheNodes_.size(), 0);
     node->UpdateDrawingCacheNodes(renderNode);
     EXPECT_EQ(node->drawingCacheNodes_.size(), 1);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusWithVisible
- * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusWithVisible, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    bool visible = true;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    ASSERT_TRUE(renderNode->prevVisible_);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusIfNodeStatic
- * @tc.desc: test results of UpdateFilterCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
-    auto mockNode1 = std::make_shared<RSEffectRenderNode>(id + 1);
-    node->filterNodes_.emplace_back(mockNode1);
-    auto mockNode2 = std::make_shared<RSRenderNode>(id + 2);
-    node->filterNodes_.emplace_back(mockNode2);
-    auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
-    mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode3);
-    auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
-    mockNode4->isOnTheTree_ = true;
-    mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode4);
-    std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
-    node->filterNodes_.emplace_back(mockNode5);
-    node->dirtyManager_->UpdateCacheableFilterRect({0, 0, 100, 100});
-    node->oldDirtyInSurface_ = {0, 0, 10, 10};
-    std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
-    mockNode6->isOnTheTree_ = true;
-    mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    node->filterNodes_.emplace_back(mockNode6);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
-    ASSERT_NE(node->filterNodes_.size(), 0);
 }
 
 /**
@@ -3848,6 +3781,45 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
 
     EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+}
+
+/**
+ * @tc.name: UpdateDelegateRectToSurfaceParamsCoverage001
+ * @tc.desc: cover both edges of the newly added `if (!surfaceParams) return;` inside
+ *           RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams; also exercise the
+ *           existing `if (!GetDelegateMode()) return;` guard so gcov reports the whole
+ *           function at 100% branch coverage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateDelegateRectToSurfaceParamsCoverage001, TestSize.Level1)
+{
+    // Edge A: delegate=false hits the outer early-return; params state is left untouched (we do not
+    // assert on delegateDstRect_/SrcRect_ because those members are not explicitly initialized).
+    RSSurfaceRenderNode n1(id);
+    n1.SetDelegateMode(false);
+    auto p1 = std::make_unique<RSSurfaceRenderParams>(id);
+    n1.stagingRenderParams_ = std::move(p1);
+    EXPECT_NO_FATAL_FAILURE(n1.UpdateDelegateRectToSurfaceParams());
+
+    // Edge B: delegate=true but stagingRenderParams_ is nullptr -> `!surfaceParams` true, early return
+    RSSurfaceRenderNode n2(id);
+    n2.SetDelegateMode(true);
+    n2.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n2.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    n2.stagingRenderParams_ = nullptr;
+    EXPECT_NO_FATAL_FAILURE(n2.UpdateDelegateRectToSurfaceParams());
+
+    // Edge C: delegate=true and valid staging params -> both guards fall through, rects are pushed
+    RSSurfaceRenderNode n3(id);
+    n3.SetDelegateMode(true);
+    n3.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n3.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    auto p3 = std::make_unique<RSSurfaceRenderParams>(id);
+    auto* p3Raw = p3.get();
+    n3.stagingRenderParams_ = std::move(p3);
+    n3.UpdateDelegateRectToSurfaceParams();
+    EXPECT_EQ(p3Raw->GetDelegateDstRect(), RectF(1.f, 2.f, 3.f, 4.f));
+    EXPECT_EQ(p3Raw->GetDelegateSrcRect(), RectF(5.f, 6.f, 7.f, 8.f));
 }
 } // namespace Rosen
 } // namespace OHOS

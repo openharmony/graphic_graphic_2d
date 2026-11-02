@@ -85,6 +85,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
@@ -767,6 +768,36 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             if (success) {
                 RSMarshallingHelper::Marshalling(reply, pixelmap);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP): {
+            RSMarshallingHelper::UnmarshallingTransactionVer(data);
+            std::shared_ptr<Media::PixelMap> pixelMap;
+            if (!RSMarshallingHelper::Unmarshalling(data, pixelMap) || pixelMap == nullptr) {
+                RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP unmarshal pixelMap failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            float blurRadius{0.f};
+            if (!data.ReadFloat(blurRadius)) {
+                RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP ReadFloat blurRadius failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::shared_ptr<Media::PixelMap> blurredPixelMap;
+            bool success{false};
+            if (BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success) != ERR_OK ||
+                !reply.WriteBool(success)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (success && blurredPixelMap != nullptr) {
+                if (!RSMarshallingHelper::Marshalling(reply, blurredPixelMap)) {
+                    RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP Marshalling failed");
+                    ret = ERR_INVALID_REPLY;
+                }
             }
             break;
         }
@@ -2079,6 +2110,7 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
 {
     uint8_t captureType { 0 };
     uint32_t displayIntent { 0 };
+    uint32_t pixelFormat { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
@@ -2103,7 +2135,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
         !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
         !data.ReadBool(captureConfig.isSyncRender) ||
-        !data.ReadBool(captureConfig.windowSync)) {
+        !data.ReadBool(captureConfig.windowSync) ||
+        !data.ReadUint32(pixelFormat)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
@@ -2121,6 +2154,12 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         return false;
     }
     captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
+    if (pixelFormat >= static_cast<uint32_t>(Media::PixelFormat::EXTERNAL_MAX)) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read pixelFormat failed!"
+            "value=%{public}u", pixelFormat);
+        return false;
+    }
+    captureConfig.pixelFormat = static_cast<Media::PixelFormat>(pixelFormat);
     return true;
 }
 

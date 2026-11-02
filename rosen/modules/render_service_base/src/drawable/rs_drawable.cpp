@@ -47,7 +47,6 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::BORDER,                       RSDrawableSlot::BORDER },
     { ModifierNG::RSModifierType::OUTLINE,                      RSDrawableSlot::OUTLINE },
     { ModifierNG::RSModifierType::CLIP_TO_BOUNDS,               RSDrawableSlot::CLIP_TO_BOUNDS },
-    { ModifierNG::RSModifierType::CLIP_SHAPE,                   RSDrawableSlot::CLIP_TO_BOUNDS },
     { ModifierNG::RSModifierType::CLIP_TO_FRAME,                RSDrawableSlot::CLIP_TO_FRAME },
     { ModifierNG::RSModifierType::VISIBILITY,                   RSDrawableSlot::INVALID },
     { ModifierNG::RSModifierType::DYNAMIC_LIGHT_UP,             RSDrawableSlot::DYNAMIC_LIGHT_UP },
@@ -423,8 +422,7 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     // Step 1.2: expand dirty slots by rules
     // if bounds or cornerRadius changed, mark affected drawables as dirty
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_SHAPE))) {
+        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
     }
 
