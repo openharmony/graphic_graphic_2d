@@ -304,12 +304,8 @@ public:
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
 
     /**
-     * @brief Marks this director's context as belonging to SceneBoard and syncs the
-     *        mark to the render service via the UI_DIRECTOR command family. One-way
-     *        identity declaration: idempotent (repeated calls do not resend) and
-     *        irreversible. Must be called after RSUIDirector creation (Create/Init
-     *        sends GoCreate first); marking before the first node creation ensures
-     *        all subsequently created nodes are tagged on the server.
+     * @brief One-way, idempotent SceneBoard identity declaration for this director's
+     *        context, synced to the render service. Call before creating the first node.
      */
     void MarkAsSceneBoard();
 

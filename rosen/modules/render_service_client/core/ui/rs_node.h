@@ -2136,9 +2136,7 @@ protected:
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
     /**
-     * @brief Gets the token of this node's RSUIContext, or 0 for the context-less
-     *        legacy single-instance path. Single source of the "null context fills 0"
-     *        rule for Create commands; for derived node classes only.
+     * @brief RSUIContext token, or 0 for the context-less legacy path. Derived classes only.
      *
      * @return The token, or 0 when this node has no context.
      */

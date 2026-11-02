@@ -294,8 +294,8 @@ public:
     void CreateUIRenderDirector(pid_t pid, uint64_t token);
     void DestroyUIRenderDirector(pid_t pid, uint64_t token);
     void DestoryUIRenderDirectorByPid(pid_t pid);
-    // Query whether the (pid, token) instance is marked as SceneBoard. The pid dimension keeps
-    // correctness independent of the tid-global-uniqueness assumption of token generation.
+    // Whether the (pid, token) instance is marked as SceneBoard; pid guards against
+    // cross-process token collisions.
     bool IsSceneBoardToken(pid_t pid, uint64_t token) const;
 
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();

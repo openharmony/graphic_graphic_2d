@@ -64,9 +64,7 @@ public:
     uint64_t GetToken() const;
 
     /**
-     * @brief Marks this director's instance as SceneBoard (one-way, irreversible).
-     *        Mirrored from the client-side MarkAsSceneBoard API; there is no clear path
-     *        so the birth-identity invariant is enforced by the server as well.
+     * @brief One-way SceneBoard mark (no clear path on either side).
      */
     void MarkSceneBoard()
     {
@@ -112,9 +110,7 @@ private:
     std::shared_ptr<RSSurfaceRenderNode> appWindowNode_;
     RSUIDirectorLifecycleState currentState_;
     mutable std::mutex stateMutex_;
-    // Mirrored from the client-side one-way MarkAsSceneBoard API; no clear path exists on
-    // the server either, so the flag only transitions false→true. atomic for lock-free
-    // read under RSContext::uiRenderDirectorsMutex_.
+    // One-way false→true; atomic for lock-free read under uiRenderDirectorsMutex_.
     std::atomic<bool> isSceneBoard_{false};
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodes_;
     mutable std::mutex nodeMutex_;

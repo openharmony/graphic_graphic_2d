@@ -4905,8 +4905,7 @@ void RSNode::Dump(std::string& out) const
     out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
     out += "], instanceId[" + std::to_string(instanceId_);
     out += "], UIContext[" + (rsUIContextPtr ? std::to_string(rsUIContextPtr->GetToken()) : "null");
-    // Current-context SceneBoard flag (follows context migration), deliberately distinct
-    // from the server-side node dump whose isSceneBoard is the immutable birth identity.
+    // Current-context flag (follows migration); distinct from server's birth identity.
     out += "], contextIsSceneBoard["
         + std::string(rsUIContextPtr && rsUIContextPtr->IsSceneBoard() ? "true" : "false");
     if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {

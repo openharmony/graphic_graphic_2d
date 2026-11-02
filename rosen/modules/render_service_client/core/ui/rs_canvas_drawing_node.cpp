@@ -177,7 +177,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode,
         node->GetUIContextToken());
     node->AddCommand(command, node->IsRenderServiceNode());
-    // No follow-up SetUIContextToken: the Create command registers the instance identity.
+    // Create carries the token; no follow-up SetUIContextToken.
     return node;
 }
 

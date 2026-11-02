@@ -126,10 +126,8 @@ void RSUIDirectorCommandHelper::GoDestroy(RSContext& context, NodeId nodeId, uin
 void RSUIDirectorCommandHelper::MarkSceneBoard(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
-    // Update-only: with same-handler FIFO ordering, GoCreate always arrives before this command.
-    // A missing director means the command is out of order (before GoCreate, violating the timing
-    // contract) or late (after GoDestroy). Dropping is safe in both cases, and creating one here
-    // would leak a director nobody destroys afterwards.
+    // Update-only: GoCreate arrives first by FIFO; a missing director (out-of-order or
+    // post-GoDestroy) is dropped rather than recreated to avoid an orphaned director.
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         ROSEN_LOGE("RSUIDirectorCommandHelper::MarkSceneBoard director not found, pid: %{public}d, "

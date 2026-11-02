@@ -172,10 +172,8 @@ public:
     }
 
     /**
-     * @brief Checks whether this context is marked as SceneBoard. The mark itself is
-     *        declared through the public RSUIDirector::MarkAsSceneBoard API (the
-     *        UI_DIRECTOR command family is owned by RSUIDirector); this flag is also
-     *        read directly by synchronous node-creation IPC paths.
+     * @brief Whether this context is marked as SceneBoard
+     *        (set via RSUIDirector::MarkAsSceneBoard).
      *
      * @return True if this context is marked as SceneBoard.
      */
@@ -290,8 +288,7 @@ private:
     void ClearCanvasDrawingNodeResource();
     bool DestroyModifiersDraw();
 
-    // Internal flag setter, called by friend RSUIDirector::MarkAsSceneBoard which owns
-    // the command-sending path. One-way: only transitions false→true.
+    // Flag setter for friend RSUIDirector::MarkAsSceneBoard; one-way false→true.
     void MarkAsSceneBoard();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
@@ -312,8 +309,7 @@ private:
 
     uint64_t token_;
     NodeId rootNodeId_ = 0;
-    // Written by WM (possibly off the UI thread) and read from dump paths that may run on
-    // another instance's runner; atomic relaxes that race without ordering requirements.
+    // atomic: written by WM, read from cross-instance dump paths.
     std::atomic<bool> isSceneBoard_{false};
 
     RSNodeMapV2 nodeMap_;

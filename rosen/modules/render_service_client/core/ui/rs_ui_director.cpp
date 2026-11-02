@@ -133,9 +133,7 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
     RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
-    // Safety net: if MarkAsSceneBoard was called on a director created via CreateRSUIDirector()
-    // (which skips Init), the mark command would arrive before GoCreate and be dropped by the
-    // server (update-only). Re-send here after GoCreate covers that edge path.
+    // Safety net for CreateRSUIDirector() (skips Init): re-send the mark after GoCreate.
     if (rsUIContext_ != nullptr && rsUIContext_->IsSceneBoard()) {
         AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
     }

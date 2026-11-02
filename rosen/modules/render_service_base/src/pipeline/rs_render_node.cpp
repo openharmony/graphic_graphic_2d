@@ -1335,7 +1335,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     } else {
         out += ", RSUIContextToken: NO_RSUIContext";
     }
-    // Birth identity, may differ from RSUIContextToken after migration/rebuild (expected).
+    // Birth identity; may differ from RSUIContextToken after migration.
     out += ", isSceneBoard: " + std::to_string(IsSceneBoard());
     if (GetBootAnimation()) {
         out += ", GetBootAnimation: true";

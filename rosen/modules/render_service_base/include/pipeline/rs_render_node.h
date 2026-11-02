@@ -159,9 +159,7 @@ public:
     {
         return uiContextTokenList_;
     }
-    // Birth identity: whether this node was created under a SceneBoard instance. Unlike
-    // uiContextToken_ (current owner, updated on migration), it is set once at creation
-    // and can never be cleared afterwards. Only one-way marking is exposed on purpose.
+    // Birth identity (vs uiContextToken_ = current owner): set once at creation, never cleared.
     void MarkSceneBoard()
     {
         isSceneBoard_ = true;

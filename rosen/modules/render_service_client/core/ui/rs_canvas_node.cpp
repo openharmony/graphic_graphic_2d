@@ -55,8 +55,7 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
     } else {
         node->AddCommand(command, node->IsRenderServiceNode());
     }
-    // No follow-up SetUIContextToken: the Create command's trailing token registers the
-    // instance identity on the server (RegisterInstanceIdentity) at creation time.
+    // Create carries the token; no follow-up SetUIContextToken.
     return node;
 }
 
