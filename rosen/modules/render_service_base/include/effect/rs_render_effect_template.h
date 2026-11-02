@@ -138,6 +138,7 @@ public:
             case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
+            case RSNGEffectType::POINT_LIGHT: return "PointLight";
             default: return "UNKNOWN";
         }
     }
@@ -270,6 +271,11 @@ public:
             current = current->nextEffect_.get();
         }
         return false;
+    }
+
+    std::shared_ptr<Derived> GetNext() const
+    {
+        return nextEffect_;
     }
 
 protected:

@@ -258,6 +258,11 @@ Drawing::Rect RSPropertyDrawableUtils::Rect2DrawingRect(const RectF& r)
     return { r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_ };
 }
 
+Vector4f RSPropertyDrawableUtils::Rec2Vector4f(const RectF& r)
+{
+    return { r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_ };
+}
+
 RRect RSPropertyDrawableUtils::GetRRectForDrawingBorder(
     const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {

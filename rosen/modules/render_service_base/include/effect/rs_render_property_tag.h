@@ -162,6 +162,7 @@ enum class RSNGEffectType : int16_t {
     MAP_COLOR_BY_BRIGHTNESS,
     GLASS_EFFECT,
     ATLAS_FRAME_MASK,
+    POINT_LIGHT,
     DISTORT_LIGHT,
 };
 

@@ -40,6 +40,7 @@ bool RSShaderDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
+    RSEffectDrawableUtils::SetPointLightData(properties, node);
     stagingShader_ = shader;
 
     stagingNodeId_ = node.GetId();

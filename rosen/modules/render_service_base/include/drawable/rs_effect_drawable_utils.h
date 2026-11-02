@@ -53,6 +53,11 @@ public:
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
         const std::string& shapeTag);
 
+    static std::shared_ptr<RSNGRenderShaderBase> FindShader(
+        const std::shared_ptr<RSNGRenderShaderBase>& shader, RSNGEffectType type);
+
+    static void SetPointLightData(
+        const std::shared_ptr<RSNGRenderShaderBase>& shader, const RSRenderNode& node);
 private:
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
 };
