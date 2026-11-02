@@ -41,6 +41,8 @@ public:
     HgmRenderContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmRenderContext() noexcept = default;
 
+    static void ShowRefreshRateChangeProcess(const char* key, const char* value, void* context);
+
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
 

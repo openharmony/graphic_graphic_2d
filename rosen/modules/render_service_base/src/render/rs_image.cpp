@@ -575,6 +575,7 @@ std::string RSImage::PixelSamplingDump() const
     int32_t w = pixelMap_->GetWidth();
     int32_t h = pixelMap_->GetHeight();
     oss << "[ Width:" << w << " Height:" << h;
+    oss << " pixelFormat:" << int32_t(pixelMap_->GetPixelFormat());
     oss << " pixels:" << std::hex << std::uppercase;
 #ifdef ROSEN_OHOS
     Media::Position pos;

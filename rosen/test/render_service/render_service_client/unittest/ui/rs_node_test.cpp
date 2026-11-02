@@ -36,6 +36,7 @@
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_shadow.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_node.h"
@@ -4707,6 +4708,19 @@ HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetShadowClipType001
+ * @tc.desc: Test setting shadow clip type with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowClipType001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
+}
+
+/**
  * @tc.name: SetandGetForegroundEffectRadius001
  * @tc.desc:
  * @tc.type:FUNC
@@ -8296,6 +8310,34 @@ HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     auto res = rsNode->GetIsDrawn();
     ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ContainerNodeDrawFlagByAffectsRendering
+ * @tc.desc: container node stays undrawn for non-rendering properties and becomes drawn otherwise
+ * @tc.type: FUNC
+ * @tc.require: issue26598
+ */
+HWTEST_F(RSNodeTest, ContainerNodeDrawFlagByAffectsRendering, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // Default valued properties do not affect rendering, the container node must stay undrawn.
+    rsNode->SetAlpha(1.0f);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    rsNode->SetFrame(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBackgroundColor(0x00000000);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // A rendering-affecting property must mark the node drawn.
+    rsNode->SetAlpha(0.5f);
+    EXPECT_TRUE(rsNode->GetIsDrawn());
 }
 
 /**

@@ -1848,6 +1848,45 @@ HWTEST_F(RSMainThreadTest, HveHandleFilterNodes, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HveHandleFilterNodesWithBothFilters
+ * @tc.desc: HveHandleFilterNodes with both filters, covers both branches
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, HveHandleFilterNodesWithBothFilters, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    auto& hveFilter = HveFilter::GetHveFilter();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    hveFilter.ClearSurfaceToFilterNodeMap();
+
+    NodeId filterId = 2103;
+    auto filterNode = std::make_shared<RSRenderNode>(filterId, mainThread->context_);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
+        std::make_shared<RSFilter>();
+    filterNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    nodeMap.RegisterRenderNode(filterNode);
+    hveFilter.PushHveFilterSurfaceNodeMapping(filterId, surfaceNode->GetId());
+
+    EXPECT_NE(filterNode->GetRenderProperties().GetMaterialFilter(), nullptr);
+    EXPECT_NE(filterNode->GetRenderProperties().GetBackgroundFilter(), nullptr);
+    mainThread->HveHandleFilterNodes(surfaceNode);
+    EXPECT_TRUE(filterNode->IsContentDirty());
+    EXPECT_TRUE(hveFilter.GetFilterIds(surfaceNode->GetId()).empty());
+
+    nodeMap.UnregisterRenderNode(filterId);
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+    EXPECT_EQ(nodeMap.GetRenderNode(filterId), nullptr);
+    EXPECT_EQ(nodeMap.GetRenderNode(surfaceNode->GetId()), nullptr);
+}
+
+/**
  * @tc.name: CollectInfoForHardwareComposer001
  * @tc.desc: CollectInfoForHardwareComposer test
  * @tc.type: FUNC

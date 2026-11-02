@@ -49,6 +49,7 @@ public:
     void MarkTunnelSurfaceInvalid(ScreenId screenId, uint64_t surfaceId);
     void SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix);
     void SetActiveRectSwitchStatus(ScreenId screenId, bool flag, const RectI& activeRect);
+    void SetSkipDelay(ScreenId screenId, bool skipDelay);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

@@ -411,6 +411,7 @@ void RsDelegateCompositeCallbackManager::GetSurfaceTransactionCmdInfoLocked(
 
 bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSContext& context)
 {
+    hasCommandProcess_ = false;
     std::unordered_map<pid_t, singlePidCmdMap> allPidProcessCmdMap;
     bool ret = false;
     {
@@ -442,8 +443,7 @@ bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSConte
             it++;
         }
         if (!allPidCmdMap_.empty()) {
-            RS_TRACE_NAME_FMT("ProcessDelegateCompositeCommand: RequestNextVsync, allPidCmdMap size=%zu",
-                allPidCmdMap_.size());
+            RS_TRACE_NAME_FMT("ProcessDelegateCompositeCommand: RequestVsync, size=%zu", allPidCmdMap_.size());
             ret = true;
         }
     }
@@ -462,6 +462,13 @@ bool RsDelegateCompositeCallbackManager::ProcessDelegateCompositeCommand(RSConte
     return ret;
 }
 
+bool RsDelegateCompositeCallbackManager::QueryAndResetCommandProcessFlag()
+{
+    bool ret = hasCommandProcess_;
+    hasCommandProcess_ = false;
+    return ret;
+}
+
 void RsDelegateCompositeCallbackManager::ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>> &cmdqueue,
     RSContext& context)
 {
@@ -470,6 +477,7 @@ void RsDelegateCompositeCallbackManager::ProcessEachCommandQueue(std::queue<std:
         cmdqueue.pop();
         if (cmd && cmd->IsCallingPidValid()) {
             cmd->Process(context);
+            hasCommandProcess_ = true;
         }
     }
 }
@@ -768,9 +776,9 @@ void RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommandInner(Node
         if (!cmd) {
             continue;
         }
-        if (cmd->GetType() == RSCommandType::DELEGATE_COMPOSITE &&
-            cmd->GetSubType() == RSDelegateCompositeCommandType::TRANSACTION_BUFFER &&
-            cmd->GetNodeId() == nodeId) {
+        if (cmd->GetNodeId() == nodeId &&
+            !(cmd->GetType() == RSCommandType::DELEGATE_COMPOSITE &&
+            cmd->GetSubType() == RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD)) {
             RS_TRACE_NAME_FMT("cmd: NodeId=%" PRIu64 ", type=%u, subtype=%u, can clean",
                 cmd->GetNodeId(), cmd->GetType(), cmd->GetSubType());
             continue;

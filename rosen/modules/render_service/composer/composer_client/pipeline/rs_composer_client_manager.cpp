@@ -264,5 +264,13 @@ void RSComposerClientManager::SetActiveRectSwitchStatus(ScreenId screenId, bool 
         client->SetActiveRectSwitchStatus(flag, activeRect);
     }
 }
+
+void RSComposerClientManager::SetSkipDelay(ScreenId screenId, bool skipDelay)
+{
+    if (auto client = GetComposerClient(screenId)) {
+        RS_TRACE_NAME_FMT("%s screenId: %" PRIu64 ", skipDelay: %d", __func__, screenId, skipDelay);
+        client->SetSkipDelay(skipDelay);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

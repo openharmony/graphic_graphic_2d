@@ -572,43 +572,35 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest003, TestSize.Level1
 }
 
 /**
- * @tc.name: GetBundleNameTest001
- * @tc.desc: GetBundleName
+ * @tc.name: QueryBundleNameTest001
+ * @tc.desc: QueryBundleName with invalid pid returns empty
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest001, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionTest, QueryBundleNameTest001, TestSize.Level1)
 {
-    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
-    auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
-
-    constexpr pid_t testPid = 1234;
-    const std::string expectedBundleName = "com.example.app";
-    rsRenderServiceConnection->pidToBundleName_[testPid] = expectedBundleName;
-
-    std::string actualBundleName = rsRenderServiceConnection->GetBundleName(testPid);
-    EXPECT_EQ(actualBundleName, expectedBundleName);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr pid_t testPid = -1;
+    const std::string bundleName = mainThread->QueryBundleName(testPid);
+    EXPECT_TRUE(bundleName.empty());
 }
 
 /**
- * @tc.name: GetBundleNameTest002
- * @tc.desc: GetBundleName
+ * @tc.name: RemoveBundleNameFromCacheTest001
+ * @tc.desc: RemoveBundleNameFromCache removes entry and QueryBundleName returns empty for invalid pid
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionTest, RemoveBundleNameFromCacheTest001, TestSize.Level1)
 {
-    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
-    auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
-
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     constexpr pid_t testPid = -1;
-    const std::string bundleName = rsRenderServiceConnection->GetBundleName(testPid);
-    EXPECT_TRUE(bundleName.empty());
+    EXPECT_NO_FATAL_FAILURE(mainThread->RemoveBundleNameFromCache(testPid));
+    EXPECT_TRUE(mainThread->QueryBundleName(testPid).empty());
 }
+
 
 /**
  * @tc.name: CleanAllTest

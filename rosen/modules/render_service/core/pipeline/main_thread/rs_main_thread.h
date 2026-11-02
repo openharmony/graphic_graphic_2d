@@ -474,6 +474,11 @@ public:
     void ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
 
+    // Query bundleName by pid, used by base-layer commands (e.g. RecreateNodeAndSurface)
+    // to compensate bundleName lost during rebuild. RSMainThread is a singleton, no UAF risk.
+    std::string QueryBundleName(pid_t pid);
+    void RemoveBundleNameFromCache(pid_t pid);
+
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
 
@@ -687,7 +692,8 @@ private:
 
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
-    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor,
+        std::set<NodeId>& quickPrepareNodeIds);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
@@ -971,6 +977,10 @@ private:
 
     // for protectiveSolidNode
     std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
+
+    // for QueryBundleName
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    std::mutex pidToBundleMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -98,6 +98,10 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             ret = SetActiveRectSwitchStatusStub(data);
             break;
         }
+        case IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY: {
+            ret = SetSkipDelayStub(data);
+            break;
+        }
         default: {
             ret = COMPOSITOR_ERROR_BINDER_ERROR;
             break;
@@ -257,6 +261,17 @@ int32_t RSRenderToComposerConnectionStub::SetActiveRectSwitchStatusStub(OHOS::Me
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
     SetActiveRectSwitchStatus(flag, activeRect);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::SetSkipDelayStub(OHOS::MessageParcel& parcel)
+{
+    bool skipDelay = false;
+    if (!parcel.ReadBool(skipDelay)) {
+        RS_LOGE("%{public}s read skipDelay failed.", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    SetSkipDelay(skipDelay);
     return COMPOSITOR_ERROR_OK;
 }
 } // namespace Rosen

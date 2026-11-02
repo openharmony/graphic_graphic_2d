@@ -593,8 +593,14 @@ void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId 
             nodeId);
         return;
     }
-    RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId : %" PRId64 " , uniqueId : %" PRId64,
-        nodeId, consumer->GetUniqueId());
+    // Compensate bundleName lost during rebuild: rebuild command carries an empty bundleName,
+    // mirror the first-create path which queries by pid for SELF_DRAWING_NODE.
+    if (node->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        auto bundleName = context.QueryBundleName(ExtractPid(nodeId));
+        if (!bundleName.empty()) {
+            node->SetBundleName(bundleName);
+        }
+    }
 
     context.InvokeRecreateNodeCallBack(nodeId, std::weak_ptr<RSSurfaceBufferInterface>(node));
     context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -602,8 +608,8 @@ void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId 
         surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), surfaceHandler->GetPreBuffer(),
         surfaceHandler->GetPreBufferOwnerCount());
     ROSEN_LOGI("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId:%{public}" PRIu64
-               " reuse consumer:%{public}" PRIu64 " unobscured:%{public}d",
-        nodeId, consumer->GetUniqueId(), unobscured);
+               " reuse consumer:%{public}" PRIu64 " unobscured:%{public}d bundleName:%{public}s",
+        nodeId, consumer->GetUniqueId(), unobscured, node->GetBundleName().c_str());
 }
 #endif
 void SurfaceNodeCommandHelper::SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode)

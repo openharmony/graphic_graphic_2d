@@ -14,6 +14,7 @@
  */
 
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
+#include "render/rs_shadow.h"
 
 namespace OHOS::Rosen::ModifierNG {
 RSShadowModifier::RSShadowModifier() : shadowAlpha_(0.f)
@@ -142,5 +143,15 @@ void RSShadowModifier::SetUseShadowBatching(bool useShadowBatching)
 bool RSShadowModifier::GetUseShadowBatching() const
 {
     return Getter(RSPropertyType::USE_SHADOW_BATCHING, false);
+}
+
+void RSShadowModifier::SetClipType(int clipType)
+{
+    Setter<RSProperty>(RSPropertyType::SHADOW_CLIP_TYPE, clipType);
+}
+ 
+int RSShadowModifier::GetClipType() const
+{
+    return Getter(RSPropertyType::SHADOW_CLIP_TYPE, static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen::ModifierNG

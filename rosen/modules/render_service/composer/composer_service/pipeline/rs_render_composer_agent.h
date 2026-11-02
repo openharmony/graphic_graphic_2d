@@ -51,6 +51,7 @@ public:
     void HandlePowerStatus(ScreenPowerStatus status);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     void SetAFBCEnabled(bool enabled);
+    void SetSkipDelay(bool skipDelay);
     void SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
         const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
         const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);

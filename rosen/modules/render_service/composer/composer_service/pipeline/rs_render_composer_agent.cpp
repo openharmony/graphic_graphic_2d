@@ -402,6 +402,15 @@ void RSRenderComposerAgent::HandlePowerStatus(ScreenPowerStatus status)
     rsRenderComposer_->HandlePowerStatus(status);
 }
 
+void RSRenderComposerAgent::SetSkipDelay(bool skipDelay)
+{
+    if (rsRenderComposer_ == nullptr) {
+        RS_LOGE("rsRenderComposer is nullptr");
+        return;
+    }
+    rsRenderComposer_->SetSkipDelay(skipDelay);
+}
+
 void RSRenderComposerAgent::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     if (buffer && rsRenderComposer_) {

@@ -179,6 +179,7 @@ enum class RSSurfaceFrameType : uint8_t {
     RS_SURFACE_FRAME_OHOS_GL = 5,
     RS_SURFACE_FRAME_OHOS_RASTER = 6,
     RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+    RS_SURFACE_FRAME_LINUX = 8,
 };
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
@@ -409,6 +410,7 @@ enum class CaptureError : uint8_t {
     CAPTURE_NO_SECURE_PERMISSION,
     CAPTURE_FAIL_SPECIAL_LAYER,
     CAPTURE_UNSUPPORTED_FORMAT,
+    WINDOW_CAPTURE_NO_CHILD,
     // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };

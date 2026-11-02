@@ -445,6 +445,22 @@ HWTEST_F(RSScreenTest, SetPowerStatus_007, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetPowerStatus_008
+ * @tc.desc: SetPowerStatus Test, when IsSkipScreenPowerOffing enabled and status is OFF, property is OFFING
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_008, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(mockScreenId_);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    rsScreen->SetPowerStatus(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_OFF));
+    ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::POWER_STATUS_OFF);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+}
+
+/*
  * @tc.name: GetPowerStatus_001
  * @tc.desc: GetPowerStatus Test with mock HDI device
  * @tc.type: FUNC

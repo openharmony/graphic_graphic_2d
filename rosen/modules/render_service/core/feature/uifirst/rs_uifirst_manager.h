@@ -140,14 +140,9 @@ public:
         return isRecentTaskScene_.load();
     }
 
-    bool IsMissionCenterScene() const
+    bool IsInMissionCenterState() const
     {
-        return isMissionCenterScene_.load();
-    }
-
-    bool IsSplitScreenScene() const
-    {
-        return isSplitScreenScene_.load();
+        return isInMissionCenterState_.load();
     }
 
     bool IsSnapshotRotationScene() const
@@ -366,8 +361,9 @@ private:
     bool isFreeMultiWindowEnabled_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
-    std::atomic<bool> isMissionCenterScene_ = false;
-    std::atomic<bool> isSplitScreenScene_ = false;
+    // tracks the whole mission center state (enter animation + steady + exit animation)
+    std::atomic<bool> isInMissionCenterState_ = false;
+    std::atomic<bool> isExitingMissionCenter_ = false;
     std::atomic<bool> isSnapshotRotationScene_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;

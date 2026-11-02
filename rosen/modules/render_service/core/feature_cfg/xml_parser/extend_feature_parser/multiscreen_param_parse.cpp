@@ -68,6 +68,8 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
             MultiScreenParam::SetForceRenderForMirror(isEnabled);
         } else if (name == "IsSkipFrameByActiveRefreshRate") {
             MultiScreenParam::SetSkipFrameByActiveRefreshRate(isEnabled);
+        } else if (name == "IsSkipScreenPowerOffing") {
+            MultiScreenParam::SetSkipScreenPowerOffing(isEnabled);
         }
     }
     return PARSE_EXEC_SUCCESS;

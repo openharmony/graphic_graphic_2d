@@ -881,7 +881,7 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     val = Drawing::Image::MakeRasterData(imageInfo, skData, rb);
     // add to MemoryTrack for memoryManager
     if (isMalloc) {
-        MemoryInfo info = {pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE};
+        MemoryInfo info = {pixmapSize, 0, 0, 0, MEMORY_TYPE::MEM_SKIMAGE};
         MemoryTrack::Instance().AddPictureRecord(addr, info);
         imagepixelAddr = const_cast<void*>(addr);
     }

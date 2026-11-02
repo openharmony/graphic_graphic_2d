@@ -277,6 +277,19 @@ public:
         }
     }
 
+    void SetGetBundleNameFunc(std::function<std::string(pid_t)> func)
+    {
+        getBundleNameFunc_ = std::move(func);
+    }
+
+    std::string QueryBundleName(pid_t pid) const
+    {
+        if (getBundleNameFunc_) {
+            return getBundleNameFunc_(pid);
+        }
+        return {};
+    }
+
     std::shared_ptr<RSUIRenderDirector> GetUIRenderDirector(pid_t pid, uint64_t token);
     void CreateUIRenderDirector(pid_t pid, uint64_t token);
     void DestroyUIRenderDirector(pid_t pid, uint64_t token);
@@ -314,6 +327,7 @@ private:
     std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void(NodeId, std::weak_ptr<RSSurfaceBufferInterface>)> recreateNodeCallBack_;
     std::function<void()> vsyncRequestFunc_;
+    std::function<std::string(pid_t)> getBundleNameFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;

@@ -33,6 +33,7 @@
 #include "render/rs_color_picker.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
@@ -592,7 +593,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
-        RSProperties::filterCacheEnabled_ && !cacheManager->IsFilterCacheMemExceedThreshold());
+        RSFilterCacheManager::IsFilterCacheEnabled() && !cacheManager->IsFilterCacheMemExceedThreshold());
     if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
@@ -760,7 +761,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
+    if (RSFilterCacheManager::IsFilterCacheEnabled() && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
         !cacheManager->IsFilterCacheMemExceedThreshold()) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
@@ -1456,7 +1457,8 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 }
 
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
+    const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor,
+    const bool& useBoundsClip, const RRect& rRect_)
 {
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadow, ShadowElevation: %f, ShadowOffsetX: "
@@ -1464,7 +1466,12 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
         elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
     if (!isFilled) {
-        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (useBoundsClip) {
+            canvas->ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rRect_),
+                Drawing::ClipOp::DIFFERENCE, true);
+        } else {
+            canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     }
     path.Offset(offsetX, offsetY);
     Drawing::Point3 planeParams = {0.0f, 0.0f, elevation};
@@ -1480,7 +1487,8 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 }
 
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur)
+    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur,
+    const bool& useBoundsClip, const RRect& rRect_)
 {
     if (UNLIKELY(canvas == nullptr)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawShadowMaskFilter canvas is null");
@@ -1492,7 +1500,12 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
         radius, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
     if (!isFilled) {
-        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (useBoundsClip) {
+            canvas->ClipRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(rRect_),
+                Drawing::ClipOp::DIFFERENCE, true);
+        } else {
+            canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     }
     path.Offset(offsetX, offsetY);
     Drawing::Brush brush;
@@ -1524,7 +1537,7 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
     const auto& effectData = useEffectType == UseEffectType::EFFECT_COMPONENT ?
         canvas->GetEffectData() : canvas->GetBehindWindowData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr ||
-        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+        !RSFilterCacheManager::IsEffectMergeEnabled()) {
         return;
     }
     RS_TRACE_FUNC();

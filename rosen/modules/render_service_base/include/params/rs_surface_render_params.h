@@ -947,10 +947,10 @@ public:
 
     void SetDelegateMode(bool flag);
     bool GetDelegateMode() const;
-    void SetDelegateDstRect(const RectI& rect);
-    const RectI& GetDelegateDstRect() const;
-    void SetDelegateSrcRect(const RectI& rect);
-    const RectI& GetDelegateSrcRect() const;
+    void SetDelegateDstRect(const RectF& rect);
+    const RectF& GetDelegateDstRect() const;
+    void SetDelegateSrcRect(const RectF& rect);
+    const RectF& GetDelegateSrcRect() const;
 
     void SetTunnelState(RSTunnelRuntimeState::TunnelState state)
     {
@@ -1153,8 +1153,8 @@ private:
     ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
     int32_t rotationCorrectionDegree_ = 0;
 
-    RectI delegateDstRect_;
-    RectI delegateSrcRect_;
+    RectF delegateDstRect_;
+    RectF delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
 
     // for layer splitter

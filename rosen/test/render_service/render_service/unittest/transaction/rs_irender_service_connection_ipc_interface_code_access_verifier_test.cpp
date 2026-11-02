@@ -419,6 +419,22 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
 }
 
 /**
+ * @tc.name: BlurPixelMapVerifier
+ * @tc.desc: test BLUR_PIXEL_MAP permission checking is enforced via IsSystemCalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, BlurPixelMapVerifier,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
+
+/**
  * @tc.name: SetGlobalBlackListAccessCheck
  * @tc.desc: test SET_GLOBAL_BLACKLIST permission checking gated by system calling
  * @tc.type: FUNC

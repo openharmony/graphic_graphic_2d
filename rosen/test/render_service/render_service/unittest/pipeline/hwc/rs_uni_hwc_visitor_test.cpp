@@ -4354,8 +4354,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_002, TestSi
 
 /**
  * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_003
- * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize >= DEFAULT_QUEUE_SIZE
- *           and frameTimeInterval < autoSwitchInterval
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize < DEFAULT_QUEUE_SIZE,
+ *           hardware composer should not be forced disabled
  * @tc.type: FUNC
  * @tc.require: issueIAJY2P
  */
@@ -4368,7 +4368,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_003, TestSi
     ASSERT_NE(consumer, nullptr);
     auto producer = consumer->GetProducer();
     auto psurf = Surface::CreateSurfaceAsProducer(producer);
-    psurf->SetQueueSize(5);
+    psurf->SetQueueSize(3);
 
     auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
     auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
@@ -4545,6 +4545,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, T
     hwcNodePtr->SetHardwareForcedDisabledState(false);
     hwcNodePtr->SetIsOnTheTree(true);
     ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    auto hwcConsumer = hwcNodePtr->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(hwcConsumer, nullptr);
+    auto hwcProducer = hwcConsumer->GetProducer();
+    auto hwcPsurf = Surface::CreateSurfaceAsProducer(hwcProducer);
+    hwcPsurf->SetQueueSize(5);
     // Push directly into childHwcNodes_ to make GetChildHwcNodes return it
     displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
     displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
@@ -4559,6 +4564,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, T
     RSUniRenderUtil::SetAutoSwitchInterval(5);
 
     rsUniHwcVisitor->UpdateHwcNodeEnable();
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(hwcNodePtr);
     EXPECT_TRUE(hwcNodePtr->IsHardwareForcedDisabled());
 
     RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
@@ -4785,5 +4791,41 @@ HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds005, TestSize.Le
     surfaceNode->SetDstRect({0, 0, 0, 0});
     rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
     EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+
+/**
+ * @tc.name: UpdateRectInfoAndLeftTopForDelegateModeCoverage001
+ * @tc.desc: cover the delegate-mode=true edges of RSUniHwcVisitor::UpdateRectInfoForDelegateMode and
+ *           UpdateLeftAndTopForDelegateMode in one test (delegate-mode=false edges are already
+ *           exercised by the existing UpdateSrcRect001/002/003 tests).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateRectInfoAndLeftTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.SetDelegateMode(true);
+    node1.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node1.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // UpdateRectInfoForDelegateMode true edge: int32 buffer sizes take truncated delegate width/height,
+    // float bounds sizes take exact delegate dst width/height.
+    int32_t bufferWidth = 100;
+    int32_t bufferHeight = 200;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    rsUniHwcVisitor->UpdateRectInfoForDelegateMode(node1, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_EQ(bufferWidth, 10);
+    EXPECT_EQ(bufferHeight, 20);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+    // UpdateLeftAndTopForDelegateMode true edge: srcRect translated by (delegateSrcRect.left, top) = (1, 2)
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f);
+    rsUniHwcVisitor->UpdateLeftAndTopForDelegateMode(node1, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
 }
 } // namespace OHOS::Rosen

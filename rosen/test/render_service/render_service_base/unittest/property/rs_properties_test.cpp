@@ -22,7 +22,6 @@
 #include "effect/rs_render_shape_base.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_render_maskcolor_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -448,50 +447,6 @@ HWTEST_F(RSPropertiesTest, Dump005, TestSize.Level1)
     std::string dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowRadius[-2.0]") != std::string::npos);
 }
-
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-/**
- * @tc.name: CreateFilterCacheManagerIfNeed001
- * @tc.desc: test results of CreateFilterCacheManagerIfNeed
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, CreateFilterCacheManagerIfNeed001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-    properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetCompositingFilter() != nullptr);
-}
-
-/**
- * @tc.name: ClearFilterCache001
- * @tc.desc: test results of ClearFilterCache
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, ClearFilterCache001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.foregroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    properties.ClearFilterCache();
-
-    properties.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    properties.ClearFilterCache();
-    EXPECT_TRUE(properties.backgroundFilterCacheManager_ != nullptr);
-
-    auto maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(BLUR_COLOR_MODE::DEFAULT, RSColor());
-    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSDrawingFilter>(maskColorShaderFilter));
-    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSDrawingFilter>(maskColorShaderFilter));
-    properties.ClearFilterCache();
-    EXPECT_NE(maskColorShaderFilter, nullptr);
-}
-#endif
 
 /**
  * @tc.name: OnApplyModifiers001
@@ -3612,11 +3567,6 @@ HWTEST_F(RSPropertiesTest, CalculateFrameOffset001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetHaveEffectRegion001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    properties.backgroundFilterCacheManager_->cachedSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    properties.backgroundFilterCacheManager_->cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     properties.SetHaveEffectRegion(false);
     EXPECT_NE(properties.isDrawn_, true);
 }
@@ -5049,6 +4999,58 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
     std::optional<Vector4f> nulloptPercent = std::nullopt;
     properties.SetPixelStretchPercent(nulloptPercent);
     EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
+}
+
+/**
+ * @tc.name: SetShadowClipType001
+ * @tc.desc: test results of SetShadowClipType with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+}
+ 
+/**
+ * @tc.name: GetShadowClipType001
+ * @tc.desc: default GetShadowClipType returns DEFAULT_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
+}
+ 
+/**
+ * @tc.name: SetShadowClipTypeContentDirty001
+ * @tc.desc: SetShadowClipType sets contentDirty_ to true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetShadowClipTypeContentDirty001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsContentDirty());
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    EXPECT_TRUE(properties.IsContentDirty());
+}
+
+/**
+ * @tc.name: DumpShadowClipType001
+ * @tc.desc: Dump output includes ShadowClipType for both default and set values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(1.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowClipType[0]") != std::string::npos);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
 }
 } // namespace Rosen
 } // namespace OHOS

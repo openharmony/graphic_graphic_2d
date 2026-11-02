@@ -21,6 +21,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_path.h"
+#include "render/rs_shadow.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1537,6 +1538,24 @@ HWTEST_F(RSEffectPropertiesTest, ColorBlend001, TestSize.Level1)
     EXPECT_EQ(properties.GetColorBlend(), colorBlend);
     properties.SetColorBlend(std::nullopt);
     EXPECT_FALSE(properties.GetColorBlend().has_value());
+}
+
+/**
+ * @tc.name: SetShadowClipType001
+ * @tc.desc: test SetShadowClipType lazily creates shadow_, sets clipType, and updates on existing shadow_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
+{
+    RSEffectProperties properties;
+    EXPECT_FALSE(properties.GetShadow().has_value());
+    // lazily creates shadow_ and sets clipType
+    properties.SetShadowClipType(ShadowClipType::BOUNDS_SHAPE);
+    EXPECT_TRUE(properties.GetShadow().has_value());
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::BOUNDS_SHAPE);
+    // update on existing shadow_ does not recreate it
+    properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
+    EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
 }
 } // namespace Rosen
 } // namespace OHOS

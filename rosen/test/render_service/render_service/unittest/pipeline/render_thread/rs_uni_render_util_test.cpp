@@ -2472,6 +2472,19 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
     constexpr NodeId defaultDisplayId = 2;
     constexpr NodeId surfaceId = 3;
 
+    // Sync renderThreadParams before creating the surface drawable to avoid cache invalidation:
+    // The previous test (004) stored a drawable with the same surfaceId (3) in renderThreadParams.
+    // When Sync replaces the old params, that drawable is destroyed and its Destructor calls
+    // RemoveDrawableFromCache(3). If we create our drawable before Sync, the Destructor would
+    // erroneously remove our new drawable's cache entry. Sync first to clean up stale state.
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, nullptr));
+    rtThread.Sync(std::move(renderThreadParams));
+
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
     renderNode->InitRenderParams();
@@ -2493,14 +2506,6 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.GetRSRenderThreadParams()) {
-        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    }
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, nullptr));
-    rtThread.Sync(std::move(renderThreadParams));
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);

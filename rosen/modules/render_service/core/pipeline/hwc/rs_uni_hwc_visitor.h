@@ -124,8 +124,11 @@ private:
 
     // Sourcetuning
     bool IsTargetSourceTuning(RSSurfaceRenderNode& node);
-    
-    bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
+
+    // DelegateMode
+    void UpdateRectInfoForDelegateMode(RSSurfaceRenderNode& node, int32_t& bufferWidth, int32_t& bufferHeight,
+        float& boundsWidth, float& boundsHeight);
+    void UpdateLeftAndTopForDelegateMode(RSSurfaceRenderNode& node, Drawing::Rect& srcRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

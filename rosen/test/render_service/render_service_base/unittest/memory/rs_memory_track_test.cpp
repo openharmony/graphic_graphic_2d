@@ -1390,4 +1390,21 @@ HWTEST_F(RSMemoryTrackTest, GetMemNodeMapTest001, testing::ext::TestSize.Level1)
 
     MemoryTrack::Instance().RemoveNodeRecord(testId);
 }
+
+/**
+ * @tc.name: MemoryInfoFieldAlignmentTest001
+ * @tc.desc: Test 5-value aggregate init correctly assigns MEM_SKIMAGE to type field (not uid).
+ * @tc.type: FUNC
+ * @tc.require: issue#I8XW2H
+ */
+HWTEST_F(RSMemoryTrackTest, MemoryInfoFieldAlignmentTest001, testing::ext::TestSize.Level1)
+{
+    size_t pixmapSize = 4096;
+    MemoryInfo info = {pixmapSize, 0, 0, 0, MEMORY_TYPE::MEM_SKIMAGE};
+    EXPECT_EQ(info.size, pixmapSize);
+    EXPECT_EQ(info.pid, 0u);
+    EXPECT_EQ(info.nid, 0u);
+    EXPECT_EQ(info.uid, 0u);
+    EXPECT_EQ(info.type, MEMORY_TYPE::MEM_SKIMAGE);
+}
 } // namespace OHOS::Rosen

@@ -746,4 +746,550 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawableClearDrawableVec002, TestSize
     childrenDrawable.OnDraw(canvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+/**
+ * @tc.name: RSCustomModifierDrawable_OnPurge001
+ * @tc.desc: Test OnPurge with empty drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    drawable->OnPurge();
+    EXPECT_TRUE(drawable->drawCmdListVec_.empty());
+}
+
+/**
+ * @tc.name: RSCustomModifierDrawable_OnPurge002
+ * @tc.desc: Test OnPurge with non-empty drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    auto drawCmdList1 = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    auto drawCmdList2 = std::make_shared<RSSimpleDrawCmdList>(2, 2);
+    drawable->drawCmdListVec_.push_back(drawCmdList1);
+    drawable->drawCmdListVec_.push_back(drawCmdList2);
+    drawable->OnPurge();
+    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
+}
+
+/**
+ * @tc.name: RSCustomModifierDrawable_OnPurge003
+ * @tc.desc: Test OnPurge with nullptr entries in drawCmdListVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable_OnPurge003, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomModifierDrawable>(ModifierNG::RSModifierType::CONTENT_STYLE);
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    drawable->drawCmdListVec_.push_back(drawCmdList);
+    drawable->drawCmdListVec_.push_back(nullptr);
+    drawable->OnPurge();
+    EXPECT_EQ(drawable->drawCmdListVec_.size(), 2u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate001
+ * @tc.desc: Test PostUpdate sets enableEDREffect via FgBrightnessEnableEDR
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.screenNodeId_ = 42;
+    std::optional<RSDynamicBrightnessPara> params = { RSDynamicBrightnessPara() };
+    node.GetMutableRenderProperties().SetFgBrightnessParams(params);
+    node.GetMutableRenderProperties().SetFgBrightnessFract(0.0f);
+    node.GetMutableRenderProperties().SetFgBrightnessHdr(true);
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_TRUE(drawable->enableEDREffect_);
+    EXPECT_EQ(drawable->screenNodeId_, 42u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate002
+ * @tc.desc: Test PostUpdate with ColorfulBrightnessBlenderEnableEDR
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.screenNodeId_ = 99;
+    auto paramValue = RSColorfulBrightnessBlenderPara(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
+        Vector3f(0.6f, 0.7f, 0.8f), Vector3f(0.9f, 0.1f, 0.2f), 0.33f, 0.88f, true);
+    node.GetMutableRenderProperties().SetColorfulBrightnessBlenderParams(
+        std::make_unique<RSColorfulBrightnessBlenderPara>(paramValue));
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_TRUE(drawable->enableEDREffect_);
+    EXPECT_EQ(drawable->screenNodeId_, 99u);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_PostUpdate003
+ * @tc.desc: Test PostUpdate without EDR effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_PostUpdate003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto drawable = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    drawable->PostUpdate(node);
+    EXPECT_FALSE(drawable->enableEDREffect_);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable_OnDraw001
+ * @tc.desc: Test OnDraw returns early when canvas is not PaintFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable_OnDraw001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorBlendMode(12);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    drawable->OnSync();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    EXPECT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: RSEndBlenderDrawable_OnUpdate001
+ * @tc.desc: Test OnUpdate returns false when blendMode is NONE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSEndBlenderDrawable_OnUpdate002
+ * @tc.desc: Test OnUpdate returns false when blendApplyType is FAST
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable_OnUpdate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorBlendMode(12);
+    node.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::FAST));
+    ASSERT_EQ(DrawableV2::RSEndBlenderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable_OnGenerate001
+ * @tc.desc: Test OnGenerate returns nullptr when modifier is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnGenerate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable_OnSync001
+ * @tc.desc: Test OnSync when needSync_ is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable_OnSync001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomClipToFrameDrawable>();
+    drawable->needSync_ = false;
+    drawable->OnSync();
+    EXPECT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate001
+ * @tc.desc: Test OnGenerate cache hit when cached drawable holds the same node object;
+ *           should return the cached drawable without regeneration.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate001, TestSize.Level1)
+{
+    // Unique NodeId to avoid interference with other tests.
+    constexpr NodeId testNodeId = 90001;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    auto cachedDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, cachedDrawable);
+    }
+ 
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result.get(), cachedDrawable.get());
+    EXPECT_EQ(result->GetId(), testNodeId);
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate002
+ * @tc.desc: Test OnGenerate cache hit but node address mismatch (stale drawable from old node);
+ *           should erase stale cache entry and regenerate (returns nullptr because RS_NODE has no
+ *           registered generator in this test binary).
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate002, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90002;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    // Old node object with the same NodeId; its drawable is cached.
+    auto oldNode = std::make_shared<RSRenderNode>(testNodeId);
+    auto staleDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(oldNode);
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, staleDrawable);
+    }
+ 
+    // New node object with the same NodeId but different address.
+    auto newNode = std::make_shared<RSRenderNode>(testNodeId);
+    ASSERT_NE(newNode.get(), oldNode.get());
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(newNode);
+    // RS_NODE generator is not registered in render_service_base test binary, so regeneration
+    // returns nullptr. The key assertion is the stale cache entry was erased.
+    EXPECT_EQ(result, nullptr);
+ 
+    std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+    EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.count(testNodeId), 0u);
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate003
+ * @tc.desc: Test OnGenerate cache hit but NodeType mismatch;
+ *           should erase stale cache entry and regenerate.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate003, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90003;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    // Build a cached drawable whose nodeType_ differs from the incoming node's type.
+    // RSRenderNode defaults to RS_NODE (0x0001). We craft the cached drawable's nodeType_
+    // to a different value by casting to a mismatched type via direct member mutation.
+    auto cachedNode = std::make_shared<RSRenderNode>(testNodeId);
+    auto cachedDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(cachedNode);
+    cachedDrawable->nodeType_ = RSRenderNodeType::SURFACE_NODE; // mismatch with RS_NODE
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, cachedDrawable);
+    }
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    ASSERT_NE(node->GetType(), cachedDrawable->GetNodeType());
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    // No RS_NODE generator registered in this test binary, regeneration returns nullptr.
+    EXPECT_EQ(result, nullptr);
+ 
+    std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+    EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.count(testNodeId), 0u);
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate004
+ * @tc.desc: Test OnGenerate when node is nullptr; should return nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate004, TestSize.Level1)
+{
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+    std::shared_ptr<const RSRenderNode> nullNode = nullptr;
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nullNode);
+    EXPECT_EQ(result, nullptr);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate005
+ * @tc.desc: Test OnGenerate when node already has renderDrawable_ set;
+ *           should return the existing drawable directly without touching cache.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate005, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90005;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    auto existingDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    node->renderDrawable_ = existingDrawable;
+ 
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result.get(), existingDrawable.get());
+    // Cache should not be touched (no entry for this nodeId).
+    std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+    EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.count(testNodeId), 0u);
+ 
+    node->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate006
+ * @tc.desc: Test OnGenerate successful drawable generation path when GeneratorMap has a registered
+ *           generator; should generate, cache, and set node->renderDrawable_.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate006, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90006;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    // Register a test generator for RS_NODE so the generation path is exercised.
+    auto testGenerator = [](std::shared_ptr<const RSRenderNode> node)
+        -> DrawableV2::RSRenderNodeDrawableAdapter::Ptr {
+        return new ConcreteRSRenderNodeDrawableAdapter(std::move(node));
+    };
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap[RSRenderNodeType::RS_NODE] = testGenerator;
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    ASSERT_EQ(node->renderDrawable_, nullptr);
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetId(), testNodeId);
+    EXPECT_EQ(result->GetNodeType(), RSRenderNodeType::RS_NODE);
+    // node->renderDrawable_ should now be set to the generated drawable.
+    ASSERT_NE(node->renderDrawable_, nullptr);
+    EXPECT_EQ(node->renderDrawable_.get(), result.get());
+    // Cache should contain the new drawable entry.
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.count(testNodeId), 1u);
+    }
+ 
+    // Cleanup: remove test generator and clear cache.
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
+    node->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate007
+ * @tc.desc: Test OnGenerate when cache entry exists but weak_ptr lock fails (drawable expired);
+ *           should erase stale cache entry and regenerate.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate007, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90007;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    // Create a drawable, put it in cache, then release it so weak_ptr lock fails.
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    {
+        auto tempDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, tempDrawable);
+    } // tempDrawable destroyed here; cache now holds expired weak_ptr
+ 
+    // Register test generator so regeneration path can succeed.
+    auto testGenerator = [](std::shared_ptr<const RSRenderNode> n)
+        -> DrawableV2::RSRenderNodeDrawableAdapter::Ptr {
+        return new ConcreteRSRenderNodeDrawableAdapter(std::move(n));
+    };
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap[RSRenderNodeType::RS_NODE] = testGenerator;
+ 
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetId(), testNodeId);
+    // A new drawable should have been generated and cached.
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        EXPECT_EQ(DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.count(testNodeId), 1u);
+    }
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
+    node->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate008
+ * @tc.desc: Test OnGenerate cache hit with same node address and same NodeType;
+ *           verify the cached drawable is returned directly (no regeneration).
+ *           This directly validates the node address check added in DTS2026101207391.
+ * @tc.type: FUNC
+ * @tc.require: DTS2026101207391
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate008, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90008;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    auto cachedDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_EQ(cachedDrawable->GetNodeType(), node->GetType());
+    ASSERT_EQ(cachedDrawable->renderNode_.lock().get(), node.get());
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, cachedDrawable);
+    }
+ 
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result.get(), cachedDrawable.get());
+    EXPECT_EQ(result->renderNode_.lock().get(), node.get());
+ 
+    node->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate009
+ * @tc.desc: Test OnGenerate stale drawable (same NodeId, same NodeType, different node object)
+ *           triggers regeneration via registered generator; the new drawable should hold the
+ *           new node and the old stale entry should be replaced in cache.
+ * @tc.type: FUNC
+ * @tc.require: DTS2026101207391
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate009, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90009;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    auto oldNode = std::make_shared<RSRenderNode>(testNodeId);
+    auto staleDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(oldNode);
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, staleDrawable);
+    }
+ 
+    auto testGenerator = [](std::shared_ptr<const RSRenderNode> n)
+        -> DrawableV2::RSRenderNodeDrawableAdapter::Ptr {
+        return new ConcreteRSRenderNodeDrawableAdapter(std::move(n));
+    };
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap[RSRenderNodeType::RS_NODE] = testGenerator;
+ 
+    auto newNode = std::make_shared<RSRenderNode>(testNodeId);
+    ASSERT_NE(newNode.get(), oldNode.get());
+    ASSERT_EQ(newNode->GetType(), staleDrawable->GetNodeType());
+ 
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(newNode);
+    ASSERT_NE(result, nullptr);
+    EXPECT_NE(result.get(), staleDrawable.get());
+    EXPECT_EQ(result->renderNode_.lock().get(), newNode.get());
+    ASSERT_NE(newNode->renderDrawable_, nullptr);
+    EXPECT_EQ(newNode->renderDrawable_.get(), result.get());
+ 
+    {
+        std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+        auto it = DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.find(testNodeId);
+        ASSERT_NE(it, DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.end());
+        auto cached = it->second.lock();
+        ASSERT_NE(cached, nullptr);
+        EXPECT_EQ(cached.get(), result.get());
+        EXPECT_EQ(cached->renderNode_.lock().get(), newNode.get());
+    }
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
+    newNode->renderDrawable_ = nullptr;
+    oldNode->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate010
+ * @tc.desc: Test OnGenerate stale drawable where cached renderNode_ weak_ptr is expired
+ *           (old node destroyed) but cache entry still exists; should treat as mismatch
+ *           and regenerate.
+ * @tc.type: FUNC
+ * @tc.require: DTS2026101207391
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate010, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90010;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    {
+        auto tempNode = std::make_shared<RSRenderNode>(testNodeId);
+        auto tempDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(tempNode);
+        {
+            std::lock_guard<std::mutex> lock(DrawableV2::RSRenderNodeDrawableAdapter::cacheMapMutex_);
+            DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(testNodeId, tempDrawable);
+        }
+    } // tempNode and tempDrawable destroyed; cache holds expired weak_ptr for drawable
+ 
+    auto testGenerator = [](std::shared_ptr<const RSRenderNode> n)
+        -> DrawableV2::RSRenderNodeDrawableAdapter::Ptr {
+        return new ConcreteRSRenderNodeDrawableAdapter(std::move(n));
+    };
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap[RSRenderNodeType::RS_NODE] = testGenerator;
+ 
+    auto newNode = std::make_shared<RSRenderNode>(testNodeId);
+    auto result = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(newNode);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->renderNode_.lock().get(), newNode.get());
+    ASSERT_NE(newNode->renderDrawable_, nullptr);
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
+    newNode->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
+ 
+/**
+ * @tc.name: RSRenderNodeDrawableAdapterOnGenerate011
+ * @tc.desc: Test OnGenerate second call with same node after first generation;
+ *           second call should hit cache (same node address) and return same drawable.
+ * @tc.type: FUNC
+ * @tc.require: DTS2026101207391
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRenderNodeDrawableAdapterOnGenerate011, TestSize.Level1)
+{
+    constexpr NodeId testNodeId = 90011;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+ 
+    auto testGenerator = [](std::shared_ptr<const RSRenderNode> n)
+        -> DrawableV2::RSRenderNodeDrawableAdapter::Ptr {
+        return new ConcreteRSRenderNodeDrawableAdapter(std::move(n));
+    };
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap[RSRenderNodeType::RS_NODE] = testGenerator;
+ 
+    auto node = std::make_shared<RSRenderNode>(testNodeId);
+    auto first = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(node->renderDrawable_, nullptr);
+ 
+    // Reset renderDrawable_ to force going through cache lookup path again.
+    node->renderDrawable_ = nullptr;
+    auto second = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(second.get(), first.get());
+ 
+    DrawableV2::RSRenderNodeDrawableAdapter::GeneratorMap.erase(RSRenderNodeType::RS_NODE);
+    node->renderDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+}
 } // namespace OHOS::Rosen

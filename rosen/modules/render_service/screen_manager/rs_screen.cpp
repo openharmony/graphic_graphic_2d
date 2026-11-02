@@ -568,6 +568,10 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
     HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id, powerStatus);
     hasLogBackLightAfterPowerStatusChanged_ = false;
+    if (powerStatus == ScreenPowerStatus::POWER_STATUS_OFF &&
+        MultiScreenParam::IsSkipScreenPowerOffing()) {
+        UPDATE_PROPERTY(PowerStatus, ScreenPowerStatus::POWER_STATUS_OFFING);
+    }
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         HILOG_COMM_WARN("[UL_POWER] SetPowerStatus failed to set power status");
         UPDATE_PROPERTY(PowerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
@@ -547,6 +548,8 @@ void RSRenderNode::RemoveChildInner(SharedPtr child, bool skipTransition)
     if (it == children_.end()) {
         return;
     }
+    uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
+    children_.erase(it);
     // avoid duplicate entry in disappearingChildren_ (this should not happen)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
@@ -554,12 +557,10 @@ void RSRenderNode::RemoveChildInner(SharedPtr child, bool skipTransition)
         ROSEN_LOGD("RSRenderNode::RemoveChild %{public}" PRIu64 " move child(id %{public}" PRIu64 ") into"
             " disappearingChildren", GetId(), child->GetId());
         // keep shared_ptr alive for transition
-        uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
     } else {
         child->ResetParent();
     }
-    children_.erase(it);
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
@@ -1129,8 +1130,9 @@ void RSRenderNode::RemoveCrossScreenChild(const std::shared_ptr<RSSurfaceRenderN
             "(id %{public}" PRIu64 ")", GetId(), child->GetId());
         return;
     }
-    RemoveChild(*cloneIt, true);
+    auto cloneNode = *cloneIt;
     child->cloneCrossNodeVec_.erase(cloneIt);
+    RemoveChild(cloneNode, true);
 }
 
 void RSRenderNode::RemoveFromTree(bool skipTransition)
@@ -2535,6 +2537,12 @@ void RSRenderNode::SetParentSubTreeDirty()
 
 void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
+    RSRenderNodeCycleGuard guard(inParentChainTraversal_);
+    if (guard.HasCycle()) {
+        ROSEN_LOGE("RSRenderNode::SetParentTreeStateChangeDirty cycle detected, skip node[id:%{public}"
+            PRIu64 "]", GetId());
+        return;
+    }
     auto parentNode = parent_.lock();
     if (!parentNode) {
         return;
@@ -2597,7 +2605,8 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 bool RSRenderNode::IsFilterCacheValid() const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2616,7 +2625,8 @@ bool RSRenderNode::IsFilterCacheValid() const
 
 bool RSRenderNode::IsAIBarFilter() const
 {
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2631,7 +2641,8 @@ bool RSRenderNode::IsAIBarFilter() const
 bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2648,7 +2659,8 @@ return false;
 bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
+    if (!sysPropEnable) {
         ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
         return false;
     }
@@ -2940,7 +2952,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         return;
     }
     auto filterDrawable = GetFilterDrawable(false);
@@ -2965,7 +2977,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, RSDrawableSlot slot)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
 #ifndef ROSEN_ARKUI_X
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
 #endif
@@ -2991,7 +3003,7 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 void RSRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
@@ -3049,7 +3061,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
 {
 #ifdef RS_ENABLE_GPU
     MarkFilterHasEffectChildren();
-    if (!RSProperties::filterCacheEnabled_) {
+    if (!RSFilterCacheManager::IsFilterCacheEnabled()) {
         ROSEN_LOGE("RSRenderNode::PostPrepareForBlurFilterNode filter cache is disabled.");
         return;
     }

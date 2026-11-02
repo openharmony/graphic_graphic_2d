@@ -45,6 +45,7 @@
 #include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_drawing_filter.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -99,6 +100,8 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingColorStrategy_ = properties.GetShadowColorStrategy();
     stagingRadius_ = properties.GetShadowRadius();
     stagingDisableSDFBlur_ = properties.GetShadowDisableSDFBlur();
+    stagingClipType_ = properties.GetShadowClipType();
+    stagingRRect_ = properties.GetRRect();
     needSync_ = true;
 
     stagingGeContainer_ = nullptr;
@@ -141,6 +144,8 @@ void RSShadowDrawable::OnSync()
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
     disableSDFBlur_ = stagingDisableSDFBlur_;
+    clipType_ = stagingClipType_;
+    rRect_ = stagingRRect_;
     geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
 }
@@ -161,6 +166,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
+    bool useBoundsClip = !isFilled_ && clipType_ == ShadowClipType::BOUNDS_SHAPE;
     if (geContainer_) {
         geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
@@ -178,12 +184,12 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     }
     if (ROSEN_GNE(elevation_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadow(canvas, path, offsetX_, offsetY_,
-            elevation_, isFilled_, shadowColor);
+            elevation_, isFilled_, shadowColor, useBoundsClip, rRect_);
         return;
     }
     if (ROSEN_GE(radius_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
-            radius_, isFilled_, shadowColor, disableSDFBlur_);
+            radius_, isFilled_, shadowColor, disableSDFBlur_, useBoundsClip, rRect_);
         return;
     }
 }
@@ -789,7 +795,7 @@ void RSUseEffectDrawable::OnSync()
 
 void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+    if (!RSFilterCacheManager::IsEffectMergeEnabled()) {
         return;
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);

@@ -471,6 +471,7 @@ public:
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowDisableSDFBlur(bool disable);
+    void SetShadowClipType(ShadowClipType clipType);
     // shadow getters, return legacy defaults when shadow_ is not set
     bool GetShadowDisableSDFBlur() const;
     const Color& GetShadowColor() const;

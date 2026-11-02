@@ -28,7 +28,7 @@ compile_check_file = [
 ]
 compile_check_groundtruth = [
     ['rs_logical_display_render_node_drawable.cpp', 125, 220],
-    ['rs_surface_render_node_drawable.cpp', 814, 963],
+    ['rs_surface_render_node_drawable.cpp', 756, 929],
     ['rs_canvas_render_node_drawable.cpp', 81, 143],
     ['rs_effect_render_node_drawable.cpp', 38, 91],
     ['rs_render_node_drawable.cpp', 127, 157],

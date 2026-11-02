@@ -75,6 +75,11 @@ bool RSSystemParameters::GetShowRefreshRateEnabled(int *changed)
     return ConvertToInt(enabled, 0) != 0;
 }
 
+void RSSystemParameters::SetShowRefreshRateEnabled(bool enabled)
+{
+    system::SetParameter("rosen.showRefreshRate.enabled", enabled ? "1" : "0");
+}
+
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "2");

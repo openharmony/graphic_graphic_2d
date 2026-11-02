@@ -105,5 +105,19 @@ HWTEST_F(MultiScreenParamTest, SetForceRenderForMirror, Function | SmallTest | L
     MultiScreenParam::SetForceRenderForMirror(false);
     EXPECT_FALSE(MultiScreenParam::IsForceRenderForMirror());
 }
+
+/**
+ * @tc.name: SetSkipScreenPowerOffing
+ * @tc.desc: Verify the SetSkipScreenPowerOffing/IsSkipScreenPowerOffing function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MultiScreenParamTest, SetSkipScreenPowerOffing, Function | SmallTest | Level1)
+{
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    EXPECT_TRUE(MultiScreenParam::IsSkipScreenPowerOffing());
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    EXPECT_FALSE(MultiScreenParam::IsSkipScreenPowerOffing());
+}
 } // namespace Rosen
 } // namespace OHOS

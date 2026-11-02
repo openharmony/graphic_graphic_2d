@@ -332,11 +332,6 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSScreenRenderN
     };
 
     GraphicColorGamut rsColorSpace = rsSurface->GetColorSpace();
-    // set buffer colorspace as same as screen colorspace when skip colorspace conversion
-    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
-    if (screenParams != nullptr && screenParams->GetScreenProperty().GetSkipColorSpaceConversion()) {
-        rsColorSpace = screenParams->GetDstColorSpace();
-    }
     CM_ColorSpaceType colorSpace;
     auto it = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(rsColorSpace);
     if (it != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
@@ -344,6 +339,11 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSScreenRenderN
     } else {
         RS_LOGW("RSUniRenderComposerAdapter::SetBufferColorSpace unknown color space");
         colorSpace = CM_COLORSPACE_NONE;
+    }
+    // set buffer colorspace as p3 colorspace when skip colorspace conversion
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    if (screenParams != nullptr && screenParams->GetScreenProperty().GetSkipColorSpaceConversion()) {
+        colorSpace = CM_P3_FULL;
     }
 
     if (MetadataHelper::SetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
