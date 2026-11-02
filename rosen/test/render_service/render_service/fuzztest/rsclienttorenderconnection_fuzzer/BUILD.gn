@@ -92,6 +92,7 @@ ohos_fuzztest("RSClientToRenderConnectionFuzzTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "libxml2:libxml2",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {
