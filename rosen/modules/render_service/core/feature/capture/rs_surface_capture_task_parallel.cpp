@@ -233,6 +233,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             return false;
         }
         if (curNode->GetSortedChildren()->size() == 0) {
+            // here
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
             errorCode_ = CaptureError::WINDOW_CAPTURE_NO_CHILD;
             return false;

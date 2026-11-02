@@ -764,6 +764,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources007, TestSize.Level2)
     nodeMap.UnregisterRenderNode(nodeId);
 }
 
+// here
+
 /**
  * @tc.name: AddWindowCapTask001
  * @tc.desc: Test Func AddWindowCapTask with basic functionality
