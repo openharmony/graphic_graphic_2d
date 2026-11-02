@@ -764,7 +764,288 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources007, TestSize.Level2)
     nodeMap.UnregisterRenderNode(nodeId);
 }
 
-// here
+/**
+ * @tc.name: CreateResources008
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, drill down to appWindow with children → hasNoChild=false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources008, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000400;
+    NodeId appWindowNodeId = 1000401;
+    NodeId rootNodeId = 1000402;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
+    ASSERT_NE(rootNode, nullptr);
+    rootNode->SetParent(appWindowNode);
+    appWindowNode->AddChild(rootNode, -1);
+
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+    nodeMap.RegisterRenderNode(rootNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+    nodeMap.UnregisterRenderNode(rootNodeId);
+}
+
+/**
+ * @tc.name: CreateResources009
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, drill down to appWindow with no children (后台销毁空壳)
+ *           → hasNoChild=true → WINDOW_CAPTURE_NO_CHILD
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources009, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000500;
+    NodeId appWindowNodeId = 1000501;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    appWindowNode->SetHasDestoryRebuild(true);
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+    // appWindow has no children — simulates后台销毁: ROOT_NODE removed, appWindow shell remains
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: CreateResources010
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, leashChildren is empty → drill down fails
+ *           → contentNode stays leashWindow → hasNoChild=true (leash has 0 children)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources010, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId leashNodeId = 1000600;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+    // leashNode has no children at all
+    leashNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+
+    RSSurfaceCaptureTaskParallel task(leashNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+}
+
+/**
+ * @tc.name: CreateResources011
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, first child is not appWindow → drill down fails
+ *           → contentNode stays leashWindow → hasNoChild based on leash children count
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources011, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId leashNodeId = 1000700;
+    NodeId nonAppChildNodeId = 1000701;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto nonAppChildNode = std::make_shared<RSSurfaceRenderNode>(nonAppChildNodeId);
+    ASSERT_NE(nonAppChildNode, nullptr);
+    nonAppChildNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    nonAppChildNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
+    nonAppChildNode->shouldPaint_ = true;
+    nonAppChildNode->SetParent(leashNode);
+    leashNode->AddChild(nonAppChildNode, -1);
+    // nonAppChild has no children, so leash's child count is 1 but contentNode stays leash.
+    // contentNode=leashWindow, leash has 1 child (nonAppChild) → hasNoChild=false
+    leashNode->GenerateFullChildrenList();
+    nonAppChildNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(nonAppChildNode);
+
+    RSSurfaceCaptureTaskParallel task(leashNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(nonAppChildNodeId);
+}
+
+/**
+ * @tc.name: CreateResources012
+ * @tc.desc: Test hasNoChild: curNode is appWindow (useCurWindow=true) with no children + BACKGROUND state
+ *           → hasNoChild=true → WINDOW_CAPTURE_NO_CHILD (original后台场景)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources012, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId appWindowNodeId = 1000800;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    appWindowNode->SetHasDestoryRebuild(true);
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(appWindowNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: CreateResources013
+ * @tc.desc: Test hasNoChild: curNode is leashWindow (useCurWindow=false), parent leash not ShouldPaint
+ *           → curNode stays appWindow with children → hasNoChild=false → success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources013, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000900;
+    NodeId appWindowNodeId = 1000901;
+    NodeId rootNodeId = 1000902;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = false; // leash not paintable → curNode stays appWindow
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
+    ASSERT_NE(rootNode, nullptr);
+    rootNode->SetParent(appWindowNode);
+    appWindowNode->AddChild(rootNode, -1);
+
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+    nodeMap.RegisterRenderNode(rootNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+    nodeMap.UnregisterRenderNode(rootNodeId);
+}
 
 /**
  * @tc.name: AddWindowCapTask001
