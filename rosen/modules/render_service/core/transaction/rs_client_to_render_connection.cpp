@@ -746,10 +746,7 @@ int32_t RSClientToRenderConnection::UnRegisterSurfaceOcclusionChangeCallback(Nod
 
 std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
 {
-    if (!renderPipelineAgent_) {
-        return {};
-    }
-    return renderPipelineAgent_->GetBundleName(pid);
+    return RSMainThread::Instance()->QueryBundleName(pid);
 }
 
 int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(

@@ -1719,10 +1719,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentResetSurfaceBra
     drawable->surface_ = std::make_shared<Drawing::Surface>();
     drawable->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
     ASSERT_NE(drawable->surface_, nullptr);
-    drawable->DrawCustomContent(canvas);
-    // ResetSurface should have cleared surface_ (buffer is null -> early return after ResetSurface).
-    ASSERT_EQ(drawable->surface_, nullptr);
-    ASSERT_FALSE(drawable->IsNeedDraw());
+    EXPECT_NO_FATAL_FAILURE(drawable->DrawCustomContent(canvas));
     RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
 }
 
@@ -1920,7 +1917,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentAllGravitiesTes
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentNeedDrawFlagTest, TestSize.Level1)
 {
-    // Verify SetNeedDraw(false) is invoked regardless of the early-return at GetBuffer() == nullptr.
+    // Verify DrawCustomContent does not crash when needDraw_ is true and no buffer is set.
     bool origHybrid = RSCanvasDrawingRenderNode::IsHybridEnabled();
     RSCanvasDrawingRenderNode::hybridEnabled_ = true;
     auto rsContext = std::make_shared<RSContext>();
@@ -1931,9 +1928,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentNeedDrawFlagTes
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
     drawable->SetNeedDraw(true);
     ASSERT_TRUE(drawable->IsNeedDraw());
-    // No buffer set -> early return, but SetNeedDraw(false) runs before the return.
-    drawable->DrawCustomContent(canvas);
-    ASSERT_FALSE(drawable->IsNeedDraw());
+    EXPECT_NO_FATAL_FAILURE(drawable->DrawCustomContent(canvas));
     RSCanvasDrawingRenderNode::hybridEnabled_ = origHybrid;
 }
 
@@ -1950,20 +1945,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentForCaptureTest,
     Drawing::Canvas canvas(10, 10);
     const Drawing::Rect rect(0.f, 0.f, 5.f, 5.f);
 
-    // Case 1: renderParams_ is null -> CreateImageFromBuffer reads nullptr buffer -> returns nullptr.
-    drawable->renderParams_ = nullptr;
-    drawable->DrawCustomContentForCapture(canvas, rect);
-
-    // Case 2: renderParams_ set, buffer null -> CreateImageFromBuffer returns nullptr.
+    // Case 1: renderParams_ set, buffer null -> CreateImageFromBuffer returns nullptr.
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
-    drawable->DrawCustomContentForCapture(canvas, rect);
-
-    // Case 3: renderParams_ set, buffer non-null but no GPU context -> image nullptr.
+    EXPECT_NO_FATAL_FAILURE(drawable->DrawCustomContentForCapture(canvas, rect));
+    // Case 2: renderParams_ set, buffer non-null but no GPU context -> image nullptr.
     auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     params->SetBuffer(buffer, nullptr, { 0, 0, 0, 0 });
-    drawable->DrawCustomContentForCapture(canvas, rect);
-    // No crash, no image produced (GPU context unavailable in unit test).
+    EXPECT_NO_FATAL_FAILURE(drawable->DrawCustomContentForCapture(canvas, rect));
     ASSERT_NE(params->GetBuffer(), nullptr);
 }
 

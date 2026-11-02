@@ -804,6 +804,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
             }
 #endif
         });
+    context_->SetGetBundleNameFunc(
+        [this](pid_t pid) { return QueryBundleName(pid); });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
 #ifdef RES_SCHED_ENABLE
     int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(gettid(),
@@ -6747,6 +6749,36 @@ void RSMainThread::ResetDisableReasons()
 std::string RSMainThread::GetDisableReasons() const
 {
     return directCompositionDisableReasons_;
+}
+
+std::string RSMainThread::QueryBundleName(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
+        return it->second;
+    }
+    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        RS_LOGE("QueryBundleName get appMgrClient fail.");
+        return {};
+    }
+
+    std::string bundleName{};
+    int32_t uid{0};
+    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+    if ((ret != ERR_OK) || bundleName.empty()) {
+        RS_LOGE("QueryBundleName failed, pid=%{public}d ret=%{public}d.", pid, ret);
+        return {};
+    }
+
+    pidToBundleName_.emplace(pid, bundleName);
+    return bundleName;
+}
+
+void RSMainThread::RemoveBundleNameFromCache(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    pidToBundleName_.erase(pid);
 }
 } // namespace Rosen
 } // namespace OHOS
