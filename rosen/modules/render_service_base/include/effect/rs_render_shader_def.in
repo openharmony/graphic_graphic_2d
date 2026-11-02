@@ -451,5 +451,5 @@ DECLARE_SHADER(CosmosRing, COSMOS_RING,
     ADD_PROPERTY_TAG(CosmosRing, GlowThreshold),
     ADD_PROPERTY_TAG(CosmosRing, GlowIntensity),
     ADD_PROPERTY_TAG(CosmosRing, GlowSaturation),
-    ADD_PROPERTY_TAG(CosmosRing, GlowExposure),
+    ADD_PROPERTY_TAG(CosmosRing, GlowExposure)
 );
