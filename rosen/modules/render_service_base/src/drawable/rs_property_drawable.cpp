@@ -140,11 +140,12 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
     if (properties.GetClipToShape()) {
-        stagingType_ = RSClipToBoundsType::CLIP_SHAPE;
+        stagingType_ = RSClipToBoundsType::CLIP_RRECT;
+        onst auto& shape = properties.GetClipShape();
         auto bounds = properties.GetBoundsRect();
-        const auto& shape = properties.GetClipShape();
-        RRect rrect(RectT<float>(bounds.left_, bounds.top_, shape->GetWidth(), shape->GetHeight()),
-            shape->GetCornerRadius());
+        RRect rrect(RectT<float>(bounds.left_, bounds.top_,
+            shape->rect_.width_, shape->rect_.height_), Vector4f(shape->radius_[0][0], shape->radius_[1][0],
+            shape->radius_[2][0], shape->radius_[3][0]));
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
         stagingIsClipRRectOptimization_ = properties.NeedCornerOptimization();
     } else if (properties.GetClipBounds() != nullptr) {
@@ -208,7 +209,6 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
             canvas->ClipPath(drawingPath_, Drawing::ClipOp::INTERSECT, true);
             break;
         }
-        case RSClipToBoundsType::CLIP_SHAPE:
         case RSClipToBoundsType::CLIP_RRECT: {
             if (RSSystemProperties::GetClipRRectOptimizationEnabled() || isClipRRectOptimization_) {
                 RS_TRACE_NAME_FMT("RSClipToBoundsDrawable ClipRRectOptimization NodeId[%llu]", nodeId_);

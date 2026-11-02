@@ -21,7 +21,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "property/rs_point_light_manager.h"
-#include "common/rs_rect_shape.h"
+#include "common/rs_rect.h"
 #include "render/rs_drawing_filter.h"
 
 using namespace testing;
@@ -2105,6 +2105,21 @@ HWTEST_F(RSPropertiesTest, SetClipRRect001, TestSize.Level1)
     EXPECT_EQ(properties.geoDirty_, true);
     EXPECT_EQ(properties.GetClipRRect(), clipRRect);
     EXPECT_TRUE(properties.GetClipToRRect());
+}
+
+/**
+ * @tc.name: SetClipRRectEmptyTest
+ * @tc.desc: test GetClipToRRect returns false when rect is empty
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertiesTest, SetClipRRectEmptyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // empty rect (0x0) — GetClipToRRect returns false (IsEmpty check)
+    RRect emptyRRect(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f);
+    properties.SetClipRRect(emptyRRect);
+    EXPECT_FALSE(properties.GetClipToRRect());
 }
 
 /**
@@ -5006,49 +5021,52 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
  * @tc.name: SetClipShape001
  * @tc.desc: test results of SetClipShape with normal values
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, SetClipShape001, TestSize.Level1)
 {
     RSProperties properties;
     Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f);
-    RectShape shape(100.0f, 200.0f, radius);
+    RRect shape(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), radius);
     properties.SetClipShape(shape);
     EXPECT_EQ(properties.geoDirty_, true);
     EXPECT_EQ(properties.isDirty_, true);
     EXPECT_EQ(properties.isDrawn_, true);
     ASSERT_TRUE(properties.GetClipToShape());
-    EXPECT_EQ(properties.GetClipShape()->GetWidth(), 100.0f);
-    EXPECT_EQ(properties.GetClipShape()->GetHeight(), 200.0f);
-    EXPECT_EQ(properties.GetClipShape()->GetCornerRadius(), radius);
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetWidth(), 100.0f);
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetHeight(), 200.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[0][0], radius.x_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[1][0], radius.y_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[2][0], radius.z_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[3][0], radius.w_);
 }
  
 /**
  * @tc.name: SetClipShape002
  * @tc.desc: test SetClipShape overwrites previous value
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, SetClipShape002, TestSize.Level1)
 {
     RSProperties properties;
-    RectShape shape1(100.0f, 200.0f, Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    RRect shape1(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
     properties.SetClipShape(shape1);
     ASSERT_TRUE(properties.GetClipToShape());
  
-    RectShape shape2(300.0f, 400.0f, Vector4f(50.0f, 60.0f, 70.0f, 80.0f));
+    RRect shape2(RectT<float>(0.0f, 0.0f, 300.0f, 400.0f), Vector4f(50.0f, 60.0f, 70.0f, 80.0f));
     properties.SetClipShape(shape2);
     ASSERT_TRUE(properties.GetClipToShape());
-    EXPECT_EQ(properties.GetClipShape()->GetWidth(), 300.0f);
-    EXPECT_EQ(properties.GetClipShape()->GetHeight(), 400.0f);
-    EXPECT_EQ(properties.GetClipShape()->GetCornerRadius(), Vector4f(50.0f, 60.0f, 70.0f, 80.0f));
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetWidth(), 300.0f);
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetHeight(), 400.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[0][0], 50.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[1][0], 60.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[2][0], 70.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[3][0], 80.0f);
 }
  
 /**
  * @tc.name: GetClipShape001
  * @tc.desc: test GetClipShape returns nullptr when not set
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, GetClipShape001, TestSize.Level1)
 {
@@ -5061,12 +5079,11 @@ HWTEST_F(RSPropertiesTest, GetClipShape001, TestSize.Level1)
  * @tc.name: ResetClipShape001
  * @tc.desc: test ResetClipShape clears clipShape_ to nullptr
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, ResetClipShape001, TestSize.Level1)
 {
     RSProperties properties;
-    RectShape shape(100.0f, 200.0f, Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    RRect shape(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
     properties.SetClipShape(shape);
     ASSERT_TRUE(properties.GetClipToShape());
  
@@ -5081,7 +5098,6 @@ HWTEST_F(RSPropertiesTest, ResetClipShape001, TestSize.Level1)
  * @tc.name: ResetClipShape002
  * @tc.desc: test ResetClipShape when clipShape_ is already nullptr
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, ResetClipShape002, TestSize.Level1)
 {
@@ -5095,14 +5111,13 @@ HWTEST_F(RSPropertiesTest, ResetClipShape002, TestSize.Level1)
  * @tc.name: GetClipToShape001
  * @tc.desc: test GetClipToShape returns false after reset even with non-zero shape values
  * @tc.type: FUNC
- * @tc.require: SR20260808951364
  */
 HWTEST_F(RSPropertiesTest, GetClipToShape001, TestSize.Level1)
 {
     RSProperties properties;
     EXPECT_FALSE(properties.GetClipToShape());
  
-    RectShape shape(0.0f, 0.0f, Vector4f(0.0f));
+    RRect shape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), Vector4f(0.0f));
     properties.SetClipShape(shape);
     // clipShape_ is set (non-null), so GetClipToShape returns true
     EXPECT_TRUE(properties.GetClipToShape());

@@ -98,7 +98,6 @@
 #include "modifier_ng/foreground/rs_foreground_color_modifier.h"
 #include "modifier_ng/foreground/rs_foreground_shader_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
-#include "modifier_ng/geometry/rs_bounds_clip_shape_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_modifier.h"
 #include "modifier_ng/geometry/rs_frame_modifier.h"
@@ -2978,11 +2977,10 @@ void RSNode::SetClipRRect(const std::shared_ptr<RRect>& rrect)
     SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetClipRRect>(rrect);
 }
 
-void RSNode::SetClipShape(const RectShape& shape)
+void RSNode::SetClipShape(const RRect& shape)
 {
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSBoundsClipShapeModifier,
-        &ModifierNG::RSBoundsClipShapeModifier::SetClipShape>(shape);
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier,
+        &ModifierNG::RSBoundsClipModifier::SetClipShape>(shape);
 }
 
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)

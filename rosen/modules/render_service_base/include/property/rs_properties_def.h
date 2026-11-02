@@ -138,8 +138,7 @@ enum class RSClipToBoundsType : int16_t {
     CLIP_RRECT,
     CLIP_IRECT,
     CLIP_RECT,
-    CLIP_SDF,
-    CLIP_SHAPE
+    CLIP_SDF
 };
 
 struct RSDynamicBrightnessPara {
