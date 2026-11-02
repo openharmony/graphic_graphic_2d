@@ -24,7 +24,6 @@
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "common/rs_rect_shape.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_draw_cmd_list.h"
