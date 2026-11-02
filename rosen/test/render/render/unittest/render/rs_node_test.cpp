@@ -842,5 +842,4 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius003, TestSize.Level1)
     rsNode->SetOutlineRadius(floatData[3]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOutlineRadius().x_, floatData[3]));
 }
-
 } // namespace OHOS::Rosen
