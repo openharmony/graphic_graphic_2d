@@ -2892,14 +2892,16 @@ std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerD
     return nullptr;
 }
 
-bool RSRenderNode::PrepareColorPicker(bool darkMode)
+bool RSRenderNode::PrepareColorPicker(bool darkMode, bool restoreEnabled)
 {
     auto drawable = GetColorPickerDrawable();
     if (!drawable) {
         return false;
     }
 
-    RSColorPickerUtils::RestoreContrastColorScheme(*this);
+    if (restoreEnabled) {
+        RSColorPickerUtils::RestoreContrastColorScheme(*this);
+    }
 
     if (GetRenderProperties().GetColorPicker() &&
         GetRenderProperties().GetColorPicker()->lastContrastColorScheme != ContrastColorScheme::INVALID) {
