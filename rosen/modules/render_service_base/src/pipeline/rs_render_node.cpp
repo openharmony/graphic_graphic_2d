@@ -362,16 +362,19 @@ RSRenderNode::RSRenderNode(
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
 
-void RSRenderNode::ApplySceneBoardMark(const RSContext& context, uint64_t token)
+void RSRenderNode::RegisterInstanceIdentity(const RSContext& context, uint64_t token)
 {
     if (token == 0) {
         return;
     }
+    // Register the birth token in the ownership registry; idempotent (list dedup), so a
+    // later SetUIContextToken command with the same token is a harmless no-op.
+    SetUIContextToken(token);
     if (context.IsSceneBoardToken(ExtractPid(GetId()), token)) {
         MarkSceneBoard();
         return;
     }
-    ROSEN_LOGD("RSRenderNode::ApplySceneBoardMark sceneboard check miss, nodeId:%{public}" PRIu64
+    ROSEN_LOGD("RSRenderNode::RegisterInstanceIdentity sceneboard check miss, nodeId:%{public}" PRIu64
         ", token:%{public}" PRIu64, GetId(), token);
 }
 

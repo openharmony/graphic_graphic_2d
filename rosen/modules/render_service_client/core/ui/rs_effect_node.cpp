@@ -45,7 +45,7 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
         return node;
     }
     transaction->AddCommand(command, node->IsRenderServiceNode());
-    node->SetUIContextToken();
+    // No follow-up SetUIContextToken: the Create command registers the instance identity.
     return node;
 }
 

@@ -36,7 +36,7 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     }
     auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
         context.weak_from_this(), isTextureExportNode);
-    node->ApplySceneBoardMark(context, token);
+    node->RegisterInstanceIdentity(context, token);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         HILOG_COMM_ERROR("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);

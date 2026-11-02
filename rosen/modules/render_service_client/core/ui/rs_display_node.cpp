@@ -65,6 +65,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
             return nullptr;
         }
     }
+    // Keep: the isSync branch goes through the synchronous CreateDisplayNode IPC
+    // which bypasses Create commands, so token registration still needs this command.
     node->SetUIContextToken();
     return node;
 }

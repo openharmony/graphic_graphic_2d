@@ -52,15 +52,11 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
         node->lazyLoad_ = true;
         node->nodeState_ = RSNodeState::LAZY_LOAD;
         node->AddLazyLoadCommand(std::move(command), node->IsRenderServiceNode());
-        if (node->GetRSUIContext()) {
-            node->AddLazyLoadCommand(
-                std::make_unique<RSSetUIContextToken>(node->GetId(), node->GetRSUIContext()->GetToken()),
-                node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
-        }
     } else {
         node->AddCommand(command, node->IsRenderServiceNode());
-        node->SetUIContextToken();
     }
+    // No follow-up SetUIContextToken: the Create command's trailing token registers the
+    // instance identity on the server (RegisterInstanceIdentity) at creation time.
     return node;
 }
 

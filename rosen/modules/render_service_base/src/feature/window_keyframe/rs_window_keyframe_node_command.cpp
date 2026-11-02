@@ -38,7 +38,7 @@ void RSWindowKeyFrameNodeCommandHelper::Create(
         return;
     }
 
-    node->ApplySceneBoardMark(context, token);
+    node->RegisterInstanceIdentity(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
     RS_LOGI("RSWindowKeyFrameNodeCommand node[%{public}" PRIu64 "] created", id);
 }

@@ -36,7 +36,7 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
     }
     auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    node->ApplySceneBoardMark(context, token);
+    node->RegisterInstanceIdentity(context, token);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         RS_LOGE("RootNodeCommandHelper::Create after add, id:%{public}" PRIu64, id);
         RS_TRACE_NAME_FMT("RootNodeCommandHelper::Create after add, id:%" PRIu64, id);

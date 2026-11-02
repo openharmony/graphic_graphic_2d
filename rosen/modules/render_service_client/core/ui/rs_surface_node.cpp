@@ -175,6 +175,8 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
         SetFrameGravity(Gravity::RESIZE);
     }
     ROSEN_LOGI("RsDebug RSSurfaceNode::SendDataToRender id:%{public}" PRIu64, GetId());
+    // Keep: the non-leash branch goes through the synchronous CreateNodeAndSurface IPC
+    // which bypasses Create commands, so token registration still needs this command.
     SetUIContextToken();
     return true;
 }
@@ -245,6 +247,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->SetFrameGravity(Gravity::RESIZE);
     }
     ROSEN_LOGI("RsDebug RSSurfaceNode::Create id:%{public}" PRIu64, node->GetId());
+    // Keep: the non-leash branch goes through the synchronous CreateNodeAndSurface IPC
+    // which bypasses Create commands, so token registration still needs this command.
     node->SetUIContextToken();
     return node;
 }

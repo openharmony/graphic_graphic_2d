@@ -37,7 +37,7 @@ RSDepthNode::SharedPtr RSDepthNode::Create(bool isRenderServiceNode, bool isText
     std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(node->GetId(), isTextureExportNode,
         node->GetUIContextToken());
     node->AddCommand(command, node->IsRenderServiceNode());
-    node->SetUIContextToken();
+    // No follow-up SetUIContextToken: the Create command registers the instance identity.
 
     return node;
 }

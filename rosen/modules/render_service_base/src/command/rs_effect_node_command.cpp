@@ -32,7 +32,7 @@ void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextu
     }
     auto node = std::shared_ptr<RSEffectRenderNode>(new RSEffectRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    node->ApplySceneBoardMark(context, token);
+    node->RegisterInstanceIdentity(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

@@ -37,7 +37,7 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
     auto targetNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(targetId);
     auto node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,
         targetNode, targetId, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    node->ApplySceneBoardMark(context, token);
+    node->RegisterInstanceIdentity(context, token);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

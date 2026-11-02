@@ -85,11 +85,12 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithSceneBoardToken, TestSize.Level
     RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
     RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
 
-    // token of a marked instance: node is marked before registration.
+    // token of a marked instance: node is marked and the token is registered at creation.
     SurfaceNodeCommandHelper::Create(context, nodeId, RSSurfaceNodeType::DEFAULT, false, token);
     auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
     EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
 
     // token of an unmarked instance: not marked.
     SurfaceNodeCommandHelper::Create(context, missNodeId, RSSurfaceNodeType::DEFAULT, false, unknownToken);
