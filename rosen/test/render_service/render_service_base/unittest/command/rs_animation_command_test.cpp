@@ -682,6 +682,40 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateParticleAnimationNGFailedDuplicate001
+ * @tc.desc: Verify CreateParticleAnimationNG does not attach a particle animation when AddAnimation fails
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateParticleAnimationNGFailedDuplicate001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 2;
+    auto node = std::make_shared<RSRenderNode>(targetId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+
+    constexpr PropertyId firstPropertyId = 101;
+    constexpr PropertyId secondPropertyId = 102;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    auto firstAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, firstPropertyId, particlesRenderParams);
+    auto secondAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, secondPropertyId, particlesRenderParams);
+    AnimationCommandHelper::CreateParticleAnimationNG(*context, targetId, 201, firstAnimation);
+    auto animationManager = node->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    ASSERT_EQ(animationManager->GetAnimation(ANIMATION_ID), firstAnimation);
+    ASSERT_EQ(animationManager->GetParticleAnimations().size(), 1u);
+
+    AnimationCommandHelper::CreateParticleAnimationNG(*context, targetId, 202, secondAnimation);
+    EXPECT_EQ(animationManager->GetAnimation(ANIMATION_ID), firstAnimation);
+    EXPECT_EQ(animationManager->GetAnimationsSize(), 1u);
+    EXPECT_TRUE(secondAnimation->GetTarget() == nullptr);
+    EXPECT_EQ(animationManager->GetParticleAnimations().size(), 1u);
+    EXPECT_TRUE(animationManager->GetParticleAnimations().count(firstPropertyId) == 1);
+    EXPECT_TRUE(animationManager->GetParticleAnimations().count(secondPropertyId) == 0);
+}
+
+/**
  * @tc.name: CreateAnimation002
  * @tc.desc: Verify CreateAnimation with null animation
  * @tc.type:FUNC

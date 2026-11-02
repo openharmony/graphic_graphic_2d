@@ -1480,7 +1480,7 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
             return;
         }
         auto animation = animationManager->GetParticleAnimation();
-        if (animation == nullptr) {
+        if (animation == nullptr || animation->GetType() != RSRenderAnimationType::PARTICLE_ANIMATION) {
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
