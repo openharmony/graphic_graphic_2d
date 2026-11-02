@@ -2498,6 +2498,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterSurfaceNullptr, testing::
     auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
     Drawing::Canvas canvas;
     Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    EXPECT_EQ(canvas.GetSurface(),nullptr);
     DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&canvas, &rect, container);
     EXPECT_TRUE(true);
 }
