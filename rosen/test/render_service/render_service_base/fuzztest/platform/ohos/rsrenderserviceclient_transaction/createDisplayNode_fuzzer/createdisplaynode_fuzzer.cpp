@@ -39,7 +39,8 @@ void DoCreateDisplayNode(FuzzedDataProvider& fdp)
         .isSync = fdp.ConsumeBool(),
         .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>(),
         .positionZ = fdp.ConsumeFloatingPoint<float>() };
-    g_renderPipelineClient->CreateDisplayNode(displayNodeConfig, static_cast<NodeId>(nodeId));
+    g_renderPipelineClient->CreateDisplayNode(displayNodeConfig, static_cast<NodeId>(nodeId),
+        fdp.ConsumeBool()); // isSceneBoard
 }
 
 } // anonymous namespace

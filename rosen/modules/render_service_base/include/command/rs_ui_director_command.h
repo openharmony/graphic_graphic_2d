@@ -29,7 +29,7 @@ enum RSUIDirectorCommandType : uint16_t {
     GO_BACKGROUND,
     GO_STOP,
     GO_DESTROY,
-    SET_SCENE_BOARD,
+    MARK_SCENE_BOARD,
 };
 
 class RSB_EXPORT RSUIDirectorCommandHelper {
@@ -62,7 +62,7 @@ ADD_COMMAND(RSUIDirectorGoDestroy,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_DESTROY,
         RSUIDirectorCommandHelper::GoDestroy, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorMarkSceneBoard,
-    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, UI_DIRECTOR, SET_SCENE_BOARD,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, UI_DIRECTOR, MARK_SCENE_BOARD,
         RSUIDirectorCommandHelper::MarkSceneBoard, NodeId, uint64_t))
 } // namespace Rosen
 } // namespace OHOS

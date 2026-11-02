@@ -1748,7 +1748,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
 
-    // Test case 7: valid complete data (all fields including positionZ)
+    // Test case 7: valid complete data (all fields including positionZ and isSceneBoard)
     {
         MessageParcel data;
         MessageParcel reply;
@@ -1760,6 +1760,25 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.
         data.WriteBool(false); // isMirrored
         data.WriteUint32(4); // mirrorSourceRotation
         data.WriteFloat(128.0f); // positionZ
+        data.WriteBool(false); // isSceneBoard
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        ASSERT_TRUE(res == ERR_NONE || res == ERR_INVALID_STATE);
+    }
+
+    // Test case 7b: complete data with isSceneBoard=true (value passes through; the stub's
+    // untrusted-caller downgrade is covered by the trust-boundary logic, not observable here)
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        data.WriteUint32(4); // mirrorSourceRotation
+        data.WriteFloat(128.0f); // positionZ
+        data.WriteBool(true); // isSceneBoard
         res = connectionStub_->OnRemoteRequest(code, data, reply, option);
         ASSERT_TRUE(res == ERR_NONE || res == ERR_INVALID_STATE);
     }
@@ -1819,6 +1838,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest004, TestSize.
     data.WriteUint8(static_cast<uint8_t>(DisplayMode::EXPAND)); // displayMode
     // mirrorSourceRotation beyond INVALID_SCREEN_ROTATION must be rejected
     data.WriteUint32(static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1);
+    data.WriteFloat(128.0f); // positionZ (complete reads so the rotation check is reached)
+    data.WriteBool(false); // isSceneBoard
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
@@ -5311,6 +5332,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceNodeMaxTest001,
     data.WriteBool(false); // isSync
     data.WriteUint8(static_cast<uint8_t>(SurfaceWindowType::DEFAULT_WINDOW));
     data.WriteBool(false); // unobscured
+    data.WriteBool(false); // isSceneBoard (complete reads so the NODE_MAX check is reached)
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }

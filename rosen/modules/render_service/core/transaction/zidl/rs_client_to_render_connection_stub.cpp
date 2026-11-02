@@ -533,10 +533,12 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
                 .positionZ = positionZ,
             };
-            // Trust boundary: same as CREATE_NODE_AND_SURFACE, ignore the faked
-            // isSceneBoard flag from non-system callers.
-            if (isSceneBoard && isNonSystemCalling) {
-                RS_LOGW("CREATE_DISPLAY_NODE non-system caller[%{public}d] faking isSceneBoard, ignored",
+            // Trust boundary: same as CREATE_NODE_AND_SURFACE, fail closed — the isSceneBoard
+            // flag is only honored for system callers with a valid token type. GetAccessType
+            // reports TOKEN_INVALID with isNonSystemCalling=false, so !isTokenTypeValid must
+            // be checked explicitly to reject callers faking the SceneBoard identity.
+            if (isSceneBoard && (isNonSystemCalling || !isTokenTypeValid)) {
+                RS_LOGW("CREATE_DISPLAY_NODE untrusted caller[%{public}d] faking isSceneBoard, ignored",
                     static_cast<int32_t>(callingPid));
                 isSceneBoard = false;
             }
@@ -600,11 +602,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
                 .bundleName = GetBundleName(ExtractPid(nodeId)) };
-            // Trust boundary: the isSceneBoard flag from the parcel must not be honored for
-            // non-system callers, otherwise a normal app could fake the SceneBoard identity
+            // Trust boundary: fail closed — the isSceneBoard flag from the parcel is only
+            // honored for system callers with a valid token type. GetAccessType reports
+            // TOKEN_INVALID with isNonSystemAppCalling=false, so !isTokenTypeValid must be
+            // checked explicitly, otherwise a normal app could fake the SceneBoard identity
             // and bypass the PERMISSION_SYSTEM check of the MarkSceneBoard command.
-            if (isSceneBoard && isNonSystemAppCalling) {
-                RS_LOGW("CREATE_NODE_AND_SURFACE non-system caller[%{public}d] faking isSceneBoard, ignored",
+            if (isSceneBoard && (isNonSystemAppCalling || !isTokenTypeValid)) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE untrusted caller[%{public}d] faking isSceneBoard, ignored",
                     static_cast<int32_t>(callingPid));
                 isSceneBoard = false;
             }
