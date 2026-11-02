@@ -111,4 +111,30 @@ HWTEST_F(RSMemoryFlowControlTest, CheckOverflowAndCreateInstanceTest002, testing
     auto ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, bufferSize);
     EXPECT_FALSE(ashmemFlowControlUnit);
 }
+
+/**
+ * @tc.name: AshmemFlowControlUnitDestructorTest001
+ * @tc.desc: test ~AshmemFlowControlUnit when needStatistic_ is false (direct construction)
+ * @tc.type: FUNC
+ * @tc.require: issue#IBABHE
+ */
+HWTEST_F(RSMemoryFlowControlTest, AshmemFlowControlUnitDestructorTest001, testing::ext::TestSize.Level1)
+{
+    MemoryFlowControl& instance = MemoryFlowControl::Instance();
+    pid_t pid = 7;
+    const uint32_t threshold = MemoryFlowControl::GetAshmemFlowControlThreshold();
+    const uint32_t halfThreshold = threshold / 2;
+
+    instance.RemoveAshmemStatistic(pid, halfThreshold);
+    EXPECT_TRUE(instance.AddAshmemStatistic(pid, halfThreshold));
+
+    {
+        AshmemFlowControlUnit unit(pid, halfThreshold);
+    }
+
+    uint32_t addSize = halfThreshold + 1;
+    EXPECT_FALSE(instance.AddAshmemStatistic(pid, addSize));
+
+    instance.RemoveAshmemStatistic(pid, halfThreshold);
+}
 } // namespace OHOS::Rosen
