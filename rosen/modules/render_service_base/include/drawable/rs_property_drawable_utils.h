@@ -102,7 +102,7 @@ public:
         const std::optional<Drawing::RectI>& drawRect = std::nullopt);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         NodeId filterId, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-        Drawing::RectI& bounds, bool behindWindow = false);
+        const Drawing::RectI& bounds, bool behindWindow = false);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessBuilder();
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessLinearBuilder();

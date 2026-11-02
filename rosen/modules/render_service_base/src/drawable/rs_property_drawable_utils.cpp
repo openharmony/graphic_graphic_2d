@@ -739,7 +739,7 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, NodeId filterId,
     const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    Drawing::RectI& bounds, bool behindWindow)
+    const Drawing::RectI& bounds, bool behindWindow)
 {
     if (rsFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");

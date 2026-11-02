@@ -268,8 +268,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginOffscreenTest007, testing::ext
     // second: DrawFilterWithDRM test
     Drawing::Canvas canvasTest3;
     RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
-    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
-    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
+    DrawableV2::RSEffectDrawableUtils::DrawFilterWithDRM(&paintFilterCanvasTest3, nullptr, true, nullptr);
+    DrawableV2::RSEffectDrawableUtils::DrawFilterWithDRM(&paintFilterCanvasTest3, nullptr, false, nullptr);
 }
 
 /**

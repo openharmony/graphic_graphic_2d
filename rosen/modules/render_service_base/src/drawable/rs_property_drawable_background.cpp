@@ -838,14 +838,14 @@ void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* r
         drawable->DrawImpl(*paintFilterCanvas, *rect, index);
         paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
         if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-            RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+            RSEffectDrawableUtils::DrawFilterWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(), nullptr);
             return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);
         return;
     }
     if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-        RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+        RSEffectDrawableUtils::DrawFilterWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(), nullptr);
         return;
     }
     RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);

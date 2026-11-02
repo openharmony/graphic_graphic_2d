@@ -47,6 +47,10 @@ public:
     // box larger than bounds, the whole bounding box is preferred in that case.
     static RectF CalcShaderDrawRect(
         const RSRenderNode& node, const RSProperties& properties, const std::shared_ptr<RSNGRenderShaderBase>& shader);
+    // DRM bypass: if the filter carries the frosted glass effect, draw a nearly opaque SDF
+    // shape color instead of the blur effect; otherwise fall back to the flat mask color.
+    static void DrawFilterWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+        const std::shared_ptr<RSFilter>& filter);
     // DRM bypass: draw a nearly opaque SDF shape color instead of the blur effect when the
     // effect region intersects the DRM layer.
     static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,

@@ -137,6 +137,28 @@ void RSEffectDrawableUtils::ApplySDFShapeToEffect(
     }
 }
 
+void RSEffectDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+    const std::shared_ptr<RSFilter>& filter)
+{
+    if (UNLIKELY(canvas == nullptr)) {
+        ROSEN_LOGE("RSEffectDrawableUtils::DrawFilterWithDRM canvas is null");
+        return;
+    }
+    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer;
+    if (filter != nullptr && filter->IsDrawingFilter()) {
+        geContainer = std::static_pointer_cast<RSDrawingFilter>(filter)->GetGEContainer();
+    }
+    if (rect != nullptr && geContainer != nullptr &&
+        geContainer->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS) != nullptr) {
+        DrawColorUsingSDFWithDRM(canvas, rect, isDark, geContainer, Drawing::GE_FILTER_FROSTED_GLASS,
+            Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetColor(GetDRMMaskColor(isDark));
+    canvas->DrawBackground(brush);
+}
+
 void RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
