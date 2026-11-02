@@ -453,3 +453,26 @@ DECLARE_SHADER(CosmosRing, COSMOS_RING,
     ADD_PROPERTY_TAG(CosmosRing, GlowSaturation),
     ADD_PROPERTY_TAG(CosmosRing, GlowExposure)
 );
+
+DECLARE_SHADER(CosmosRingParticle, COSMOS_RING_PARTICLE,
+    ADD_PROPERTY_TAG(CosmosRingParticle, ParticleCount),
+    ADD_PROPERTY_TAG(CosmosRingParticle, ParticleSize),
+    ADD_PROPERTY_TAG(CosmosRingParticle, DispersionStrength),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Scale),
+    ADD_PROPERTY_TAG(CosmosRingParticle, YPosition),
+    ADD_PROPERTY_TAG(CosmosRingParticle, InnerRadius),
+    ADD_PROPERTY_TAG(CosmosRingParticle, OuterRadius),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Speed),
+    ADD_PROPERTY_TAG(CosmosRingParticle, MidColor),
+    ADD_PROPERTY_TAG(CosmosRingParticle, TintStrength),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Brightness),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Seed),
+    ADD_PROPERTY_TAG(CosmosRingParticle, BirthPeak),
+    ADD_PROPERTY_TAG(CosmosRingParticle, FadeMin),
+    ADD_PROPERTY_TAG(CosmosRingParticle, FadePower),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Opacity),
+    ADD_PROPERTY_TAG(CosmosRingParticle, SizeVariation),
+    ADD_PROPERTY_TAG(CosmosRingParticle, EnableCache),
+    ADD_PROPERTY_TAG(CosmosRingParticle, UpdateInterval),
+    ADD_PROPERTY_TAG(CosmosRingParticle, Progress)
+);

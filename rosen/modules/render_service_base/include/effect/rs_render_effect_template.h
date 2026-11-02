@@ -140,6 +140,7 @@ public:
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
             case RSNGEffectType::COSMOS_RING_SHADOW: return "CosmosRingShadow";
             case RSNGEffectType::COSMOS_RING: return "CosmosRing";
+            case RSNGEffectType::COSMOS_RING_PARTICLE: return "CosmosRingParticle";
             default: return "UNKNOWN";
         }
     }
