@@ -2370,7 +2370,6 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         return;
     }
     // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
-    std::shared_ptr<RSNGShaderBase> headShader = nullptr;
     auto visualEffectParas = visualEffect->GetAllPara();
     bool hasHdrBrightnessBlender = false;
     for (const auto& visualEffectPara : visualEffectParas) {
@@ -2382,14 +2381,13 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             SetSDFShape(RSNGFilterHelper::CreateNGSDFDistortOpShape(visualEffectPara));
             continue;
         }
-
-        if (auto curShader = RSNGShaderBase::Create(visualEffectPara)) {
-            if (headShader) {
-                headShader->Append(curShader);
-            } else {
-                headShader = curShader; // init headShader
-            }
-            continue;
+        if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::GLASS_EFFECT) {
+            SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
@@ -2412,10 +2410,6 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
                 brightnessBlender->GetPositiveCoeff().data_[2] },
             { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
                 brightnessBlender->GetNegativeCoeff().data_[2] } });
-    }
-    // for backwards compatibility, or existed shader may be removed
-    if (headShader) {
-        SetBackgroundNGShader(headShader);
     }
 }
 
