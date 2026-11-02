@@ -5093,7 +5093,7 @@ HWTEST_F(RSPropertiesTest, ResetClipShape001, TestSize.Level1)
     EXPECT_EQ(properties.geoDirty_, true);
     EXPECT_EQ(properties.isDirty_, true);
 }
- 
+
 /**
  * @tc.name: ResetClipShape002
  * @tc.desc: test ResetClipShape when clipShape_ is already nullptr
@@ -5106,7 +5106,7 @@ HWTEST_F(RSPropertiesTest, ResetClipShape002, TestSize.Level1)
     EXPECT_FALSE(properties.GetClipToShape());
     EXPECT_EQ(properties.GetClipShape(), nullptr);
 }
- 
+
 /**
  * @tc.name: GetClipToShape001
  * @tc.desc: test GetClipToShape returns false after reset even with non-zero shape values
@@ -5116,12 +5116,12 @@ HWTEST_F(RSPropertiesTest, GetClipToShape001, TestSize.Level1)
 {
     RSProperties properties;
     EXPECT_FALSE(properties.GetClipToShape());
- 
+
     RRect shape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), Vector4f(0.0f));
     properties.SetClipShape(shape);
     // clipShape_ is set (non-null), so GetClipToShape returns true
     EXPECT_TRUE(properties.GetClipToShape());
- 
+
     properties.ResetClipShape();
     EXPECT_FALSE(properties.GetClipToShape());
 }
@@ -5148,7 +5148,7 @@ HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
     RSProperties properties;
     EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
- 
+
 /**
  * @tc.name: SetShadowClipTypeContentDirty001
  * @tc.desc: SetShadowClipType sets contentDirty_ to true

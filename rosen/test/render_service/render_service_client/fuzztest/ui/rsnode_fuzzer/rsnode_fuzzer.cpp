@@ -297,22 +297,22 @@ void RSNodeFuzzTestClipShape(std::shared_ptr<RSCanvasNode> canvasNode)
     Vector4f radius(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     RRect shape(RectT<float>(0.0f, 0.0f, width, height), radius);
     canvasNode->SetClipShape(shape);
- 
+
     // Fuzz with extreme float values
     Vector4f extremeRadius(
         GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     RRect extremeShape(RectT<float>(0.0f, 0.0f, GetData<float>(), GetData<float>()), extremeRadius);
     canvasNode->SetClipShape(extremeShape);
- 
+
     // Fuzz consecutive sets to test overwrite
     RRect shape2(RectT<float>(0.0f, 0.0f, GetData<float>(), GetData<float>()),
         Vector4f(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()));
     canvasNode->SetClipShape(shape2);
- 
+
     // Fuzz with zero-size shape
     RRect zeroShape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), Vector4f(0.0f, 0.0f, 0.0f, 0.0f));
     canvasNode->SetClipShape(zeroShape);
- 
+
     // Fuzz with negative dimensions
     RRect negShape(RectT<float>(0.0f, 0.0f, GetData<float>(), GetData<float>()),
         Vector4f(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()));

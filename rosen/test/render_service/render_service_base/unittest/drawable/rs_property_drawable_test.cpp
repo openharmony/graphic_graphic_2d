@@ -783,13 +783,13 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnUpdateTest, Te
     Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f);
     RRect shape(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), radius);
     node.GetMutableRenderProperties().SetClipShape(shape);
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_RRECT);
     EXPECT_TRUE(drawable->needSync_);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeOnUpdateNotSetTest
  * @tc.desc: Test RSClipToBoundsDrawable OnUpdate when clipShape is not set
@@ -804,7 +804,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnUpdateNotSetTe
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_NE(drawable->stagingType_, RSClipToBoundsType::CLIP_RRECT);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeOnDrawOptTest
  * @tc.desc: Test RSClipToBoundsDrawable OnDraw with CLIP_RRECT and optimization enabled
@@ -823,7 +823,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnDrawOptTest, T
     int saveCountAfter = canvas.GetSaveCount();
     EXPECT_TRUE(saveCountAfter >= saveCountBefore);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeOnDrawNoOptTest
  * @tc.desc: Test RSClipToBoundsDrawable OnDraw with CLIP_RRECT and optimization disabled
@@ -842,7 +842,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnDrawNoOptTest,
     int saveCountAfter = canvas.GetSaveCount();
     EXPECT_TRUE(saveCountAfter >= saveCountBefore);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeEmptyRRectTest
  * @tc.desc: Test OnUpdate with ClipShape and zero-size RRect still goes CLIP_RRECT path
@@ -855,12 +855,12 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeEmptyRRectTest, 
     // Zero-size RRect → OnUpdate computes RRect from clipShape_ + bounds
     RRect zeroShape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), Vector4f(0.0f));
     node.GetMutableRenderProperties().SetClipShape(zeroShape);
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_RRECT);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeRRectValueTest
  * @tc.desc: Test OnUpdate with ClipShape verifies stagingClipRRect_ values are correct
@@ -880,11 +880,11 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeRRectValueTest, 
     node.GetMutableRenderProperties().SetClipShape(shape);
     node.GetMutableRenderProperties().SetBounds(
         Vector4f(BOUNDS_X, BOUNDS_Y, SHAPE_WIDTH, SHAPE_HEIGHT));
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_RRECT);
- 
+
     // RRect uses GetBoundsRect() which returns (0,0,w,h) — clip executes in node-local space
     const auto& rrectRect = drawable->stagingClipRRect_.GetRect();
     EXPECT_FLOAT_EQ(rrectRect.GetLeft(), 0.0f);
@@ -892,7 +892,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeRRectValueTest, 
     EXPECT_FLOAT_EQ(rrectRect.GetWidth(), SHAPE_WIDTH);
     EXPECT_FLOAT_EQ(rrectRect.GetHeight(), SHAPE_HEIGHT);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapeCornerOptTest
  * @tc.desc: Test OnUpdate with ClipShape verifies stagingIsClipRRectOptimization_ value
@@ -906,7 +906,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeCornerOptTest, T
     RRect shape(RectT<float>(0.0f, 0.0f, 400.0f, 400.0f), radius);
     node.GetMutableRenderProperties().SetClipShape(shape);
     node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_EQ(drawable->stagingType_, RSClipToBoundsType::CLIP_RRECT);
@@ -914,7 +914,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeCornerOptTest, T
     bool expectedOpt = node.GetRenderProperties().NeedCornerOptimization();
     EXPECT_EQ(drawable->stagingIsClipRRectOptimization_, expectedOpt);
 }
- 
+
 /**
  * @tc.name: RSClipToBoundsDrawableClipShapePriorityTest
  * @tc.desc: Test OnUpdate with both ClipShape and ClipBounds set, ClipShape takes priority
@@ -930,7 +930,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapePriorityTest, Te
     // Also set ClipBounds — ClipShape has higher priority
     auto clipPath = std::make_shared<RSPath>();
     node.GetMutableRenderProperties().SetClipBounds(clipPath);
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     // ClipShape is first branch, should get CLIP_RRECT not CLIP_PATH
@@ -951,7 +951,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnGenerateTest, 
     RRect shape(RectT<float>(0.0f, 0.0f, 400.0f, 400.0f), radius);
     node.GetMutableRenderProperties().SetClipShape(shape);
     node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
- 
+
     auto drawable = DrawableV2::RSClipToBoundsDrawable::OnGenerate(node);
     EXPECT_NE(drawable, nullptr);
     // OnGenerate calls OnUpdate + OnSync, so type_ should be synced
@@ -974,7 +974,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnSyncRRectTest,
     RRect shape(RectT<float>(0.0f, 0.0f, SHAPE_WIDTH, SHAPE_HEIGHT), radius);
     node.GetMutableRenderProperties().SetClipShape(shape);
     node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, SHAPE_WIDTH, SHAPE_HEIGHT));
- 
+
     auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
     EXPECT_TRUE(drawable->OnUpdate(node));
     EXPECT_TRUE(drawable->needSync_);
@@ -983,12 +983,11 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnSyncRRectTest,
     drawable->OnSync();
     EXPECT_FALSE(drawable->needSync_);
     EXPECT_EQ(drawable->type_, RSClipToBoundsType::CLIP_RRECT);
- 
+
     // After sync, clipRRect_ should match stagingClipRRect_ values
     const auto& syncedRect = drawable->clipRRect_.GetRect();
     EXPECT_FLOAT_EQ(syncedRect.GetWidth(), SHAPE_WIDTH);
     EXPECT_FLOAT_EQ(syncedRect.GetHeight(), SHAPE_HEIGHT);
     EXPECT_EQ(drawable->isClipRRectOptimization_, drawable->stagingIsClipRRectOptimization_);
 }
-
 } // namespace OHOS::Rosen

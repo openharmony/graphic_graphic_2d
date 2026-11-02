@@ -24,19 +24,19 @@ using namespace testing;
 using namespace testing::ext;
  
 namespace OHOS::Rosen {
- 
+
 class GeometryClipShapeTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
- 
+
 public:
     void BeforeEach() override
     {
         SetScreenSize(screenWidth, screenHeight);
     }
 };
- 
+
 static void ClipShapeNode(std::shared_ptr<RSCanvasNode>& node, const RRect& shape, float imgSize)
 {
     node->SetBackgroundColor(0xFF0ff000);
@@ -52,7 +52,7 @@ static void ClipShapeNode(std::shared_ptr<RSCanvasNode>& node, const RRect& shap
     node->SetClipToBounds(true);
     node->SetClipShape(shape);
 }
- 
+
 // Matrix test: 3x3 combinations of size and cornerRadius (plain + parent-child with image)
 // Layout: 3 cols x 6 rows, max X=920, max Y=1780
 GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Test_1)
@@ -73,7 +73,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
             float posX = i * STEP_X;
             float plainY = j * 2 * STEP_Y;       // 0, 600, 1200
             float parentY = j * 2 * STEP_Y + STEP_Y; // 300, 900, 1500
- 
+
             // Plain node with background color
             auto testNode =
                 RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
@@ -84,7 +84,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
             testNode->SetClipShape(shape);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
- 
+
             // Parent-child with image and text
             auto testFaNode =
                 RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
@@ -126,7 +126,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
     constexpr float ROW1_Y = 0.0f;
     constexpr float ROW2_Y = 350.0f;
     constexpr float ROW3_Y = 600.0f;
- 
+
     // --- Row 1: normal values (full-size uniform, small, non-uniform radius) ---
     RRect normalShapes[] = {
         RRect(RectT<float>(0.0f, 0.0f, NODE_L, NODE_L), Vector4f(50.0f, 50.0f, 50.0f, 50.0f)),
@@ -142,7 +142,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
- 
+
     // --- Row 2: boundary and extreme values ---
     RRect boundaryShapes[] = {
         RRect(RectT<float>(0.0f, 0.0f, NODE_S, NODE_S), Vector4f(0.0f, 0.0f, 0.0f, 0.0f)),
@@ -160,7 +160,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
- 
+
     // --- Row 3 left: ClipToBounds false (ClipShape should not take effect) ---
     auto clipFalseNode =
         RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
@@ -181,7 +181,7 @@ GRAPHIC_TEST(GeometryClipShapeTest, CONTENT_DISPLAY_TEST, Geometry_ClipShape_Tes
     clipFalseNode->SetClipShape(falseShape);
     GetRootNode()->AddChild(clipFalseNode);
     RegisterNode(clipFalseNode);
- 
+
     // --- Row 3 right: parent-child with child overflow ---
     auto testFaNode =
         RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());

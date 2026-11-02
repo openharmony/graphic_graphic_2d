@@ -141,7 +141,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     stagingGeContainer_ = nullptr;
     if (properties.GetClipToShape()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
-        onst auto& shape = properties.GetClipShape();
+        const auto& shape = properties.GetClipShape();
         auto bounds = properties.GetBoundsRect();
         RRect rrect(RectT<float>(bounds.left_, bounds.top_,
             shape->rect_.width_, shape->rect_.height_), Vector4f(shape->radius_[0][0], shape->radius_[1][0],

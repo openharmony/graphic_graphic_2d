@@ -3469,7 +3469,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, DepthCameraPara)                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, DepthLightPara)                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, AtlasInfo)
-    
+
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
 #undef EXPLICIT_INSTANTIATION

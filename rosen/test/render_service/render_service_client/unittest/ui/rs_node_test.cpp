@@ -9477,7 +9477,7 @@ HWTEST_F(RSNodeTest, SetClipShape001, TestSize.Level1)
     Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f); // for test
     RRect shape(RectT<float>(0.0f, 0.0f, CLIP_WIDTH, CLIP_HEIGHT), radius);
     rsNode->SetClipShape(shape);
- 
+
     auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
     ASSERT_NE(modifier, nullptr);
     auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);
@@ -9489,7 +9489,7 @@ HWTEST_F(RSNodeTest, SetClipShape001, TestSize.Level1)
     EXPECT_FLOAT_EQ(gotShape.radius_[2][0], radius.z_);
     EXPECT_FLOAT_EQ(gotShape.radius_[3][0], radius.w_);
 }
- 
+
 /**
  * @tc.name: SetClipShape002
  * @tc.desc: test results of SetClipShape with zero width/height RRect
@@ -9503,7 +9503,7 @@ HWTEST_F(RSNodeTest, SetClipShape002, TestSize.Level1)
     Vector4f zeroRadius(0.0f, 0.0f, 0.0f, 0.0f); // for test
     RRect shape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), zeroRadius);
     rsNode->SetClipShape(shape);
- 
+
     auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
     ASSERT_NE(modifier, nullptr);
     auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);
@@ -9515,7 +9515,7 @@ HWTEST_F(RSNodeTest, SetClipShape002, TestSize.Level1)
     EXPECT_FLOAT_EQ(gotShape.radius_[2][0], zeroRadius.z_);
     EXPECT_FLOAT_EQ(gotShape.radius_[3][0], zeroRadius.w_);
 }
- 
+
 /**
  * @tc.name: SetClipShape003
  * @tc.desc: test results of SetClipShape with consecutive different values
@@ -9536,7 +9536,7 @@ HWTEST_F(RSNodeTest, SetClipShape003, TestSize.Level1)
     rsNode->SetClipShape(firstShape);
     RRect secondShape(RectT<float>(0.0f, 0.0f, SECOND_WIDTH, SECOND_HEIGHT), secondRadius);
     rsNode->SetClipShape(secondShape);
- 
+
     auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
     ASSERT_NE(modifier, nullptr);
     auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);

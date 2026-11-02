@@ -65,7 +65,7 @@ void RSBoundsClipModifier::SetClipShape(const RRect& shape)
 {
     Setter(RSPropertyType::CLIP_SHAPE, shape);
 }
- 
+
 RRect RSBoundsClipModifier::GetClipShape() const
 {
     return Getter(RSPropertyType::CLIP_SHAPE, RRect());
