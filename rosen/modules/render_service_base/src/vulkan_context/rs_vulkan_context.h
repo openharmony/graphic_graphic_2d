@@ -81,8 +81,8 @@ public:
     void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext>& gpuContext);
 
     // only for effect kit
-    static std::unique_ptr GetForEffectKit();
-    static void ReleaseContextForEffectKit(std::unique_ptr& vkContext);
+    static std::unique_ptr<RsVulkanContext> GetForEffectKit();
+    static void ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext);
 private:
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
     RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
