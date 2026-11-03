@@ -79,6 +79,7 @@ public:
     ResType SetHdiRogEnable(bool isHdiRogEnable);
     ResType SetDualScreenState(DualScreenStatus dualScreenStatus);
     ResType SetSamplingMode(ScreenSamplingMode samplingMode);
+    ResType SetPostProcessingShader(const std::vector<uint8_t>& param);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -132,6 +133,7 @@ public:
     bool GetHdiRogEnable() const;
     DualScreenStatus GetDualScreenState() const;
     ScreenSamplingMode GetSamplingMode() const;
+    std::vector<uint8_t> GetPostProcessingShader() const;
 
     ScreenInfo GetScreenInfo() const;
 

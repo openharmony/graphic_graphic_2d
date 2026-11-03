@@ -254,6 +254,8 @@ public:
 
     virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
 
+    virtual int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param) = 0;
+
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
     virtual int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;

@@ -206,6 +206,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CORRECTION");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POST_PROCESSING_SHADER): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POST_PROCESSING_SHADER");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT");
             break;

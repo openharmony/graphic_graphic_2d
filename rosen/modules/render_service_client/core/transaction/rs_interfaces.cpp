@@ -684,6 +684,11 @@ int32_t RSInterfaces::SetScreenCorrection(ScreenId id, ScreenRotation screenRota
     return renderServiceClient_->SetScreenCorrection(id, screenRotation);
 }
 
+int32_t RSInterfaces::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    return renderServiceClient_->SetPostProcessingShader(id, param);
+}
+
 int32_t RSInterfaces::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     return renderServiceClient_->GetScreenGamutMap(id, mode);

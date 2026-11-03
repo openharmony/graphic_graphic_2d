@@ -91,6 +91,7 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param);
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);

@@ -900,6 +900,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
                      property_.GetEnableVisibleRect(),
                      property_.GetMainScreenVisibleRect().x, property_.GetMainScreenVisibleRect().y,
                      property_.GetMainScreenVisibleRect().w, property_.GetMainScreenVisibleRect().h);
+        AppendFormat(dumpString, "postProcessingShaderSize=%zu\n", property_.GetPostProcessingShader().size());
     }
 }
 
@@ -1486,6 +1487,11 @@ void RSScreen::SetBlackList(const std::unordered_set<NodeId>& blackList)
 void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
 {
     UPDATE_PROPERTY(TypeBlackList, typeBlackList);
+}
+
+void RSScreen::SetPostProcessingShader(const std::vector<uint8_t>& param)
+{
+    UPDATE_PROPERTY(PostProcessingShader, param);
 }
 
 void RSScreen::AddBlackList(const std::vector<NodeId>& blackList)

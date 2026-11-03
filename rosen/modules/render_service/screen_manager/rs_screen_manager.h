@@ -17,6 +17,7 @@
 #define RS_SCREEN_MANAGER
 
 #include <condition_variable>
+#include <cstddef>
 #include <cstdint>
 #include <event_handler.h>
 #include <future>
@@ -177,6 +178,9 @@ public:
 
     // type blacklist
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
+
+    // post processing shader
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param);
 
     // whitelist
     int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);

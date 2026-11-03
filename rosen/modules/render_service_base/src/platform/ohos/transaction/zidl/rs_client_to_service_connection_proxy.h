@@ -202,6 +202,8 @@ public:
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
 
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param) override;
+
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
     int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
