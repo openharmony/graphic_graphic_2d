@@ -40,6 +40,7 @@
 #include "hpae_base/rs_hpae_base_data.h"
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "drawable/rs_effect_drawable_utils.h"
+#include "skia_adapter/skia_canvas.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -60,6 +61,29 @@ public:
 private:
     int width_;
     int height_;
+};
+
+class MockSurfaceCanvas : public Drawing::Canvas {
+public:
+    explicit MockSurfaceCanvas(std::shared_ptr<Drawing::Surface> surface, int32_t width, int32_t height)
+        : Canvas(width, height), surface_(std::move(surface))
+    {
+        auto canvas = surface_->GetCanvas();
+        if (canvas) {
+            auto skiaCanvas = canvas->GetImpl<Drawing::SkiaCanvas>();
+            if (skiaCanvas && skiaCanvas->ExportSkCanvas()) {
+                GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas->ExportSkCanvas());
+            }
+        }
+    }
+
+    Drawing::Surface* GetSurface() const override
+    {
+        return surface_.get();
+    }
+
+private:
+    std::shared_ptr<Drawing::Surface> surface_;
 };
 } // namespace
 
@@ -2556,10 +2580,26 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterWithSurface, testing::ext
     auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
     ASSERT_NE(surface, nullptr);
-    auto canvas = surface->GetCanvas();
-    ASSERT_NE(canvas, nullptr);
+    MockSurfaceCanvas mockCanvas(surface, 100, 100);
     Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
-    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(canvas.get(), &rect, container);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&mockCanvas, &rect, container);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterEmptyDrawRect
+ * @tc.desc: DrawColorNGFilter with empty clip bounds (drawRect.IsEmpty() → true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterEmptyDrawRect, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    MockSurfaceCanvas mockCanvas(surface, 100, 100);
+    mockCanvas.ClipRect(Drawing::Rect(0.0f, 0.0f, 0.0f, 0.0f), Drawing::ClipOp::INTERSECT);
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&mockCanvas, &rect, container);
     EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen
