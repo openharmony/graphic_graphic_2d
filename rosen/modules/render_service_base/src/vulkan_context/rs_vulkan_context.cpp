@@ -58,7 +58,7 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
         default:
         {
             if (type != RenderEngineType::BASIC_RENDER) {
-                ROSEN_LOGE("RsVulkanContext::Get BASIC_RENDER but use wrong type %{public}d", static_cast(type));
+                ROSEN_LOGE("RsVulkanContext::Get BASIC_RENDER but use wrong type %{public}d", static_cast<int>(type));
             }
             static RsVulkanContext basicRenderSingleton = RsVulkanContext(false, true, RenderEngineType::BASIC_RENDER);
             return basicRenderSingleton;
@@ -66,12 +66,12 @@ RsVulkanContext& RsVulkanContext::Get(RenderEngineType type)
     }
 }
 
-std::unique_ptr RsVulkanContext::GetForEffectKit()
+std::unique_ptr<RsVulkanContext> RsVulkanContext::GetForEffectKit()
 {
-    return std::make_unique(false, true, RenderEngineType::EFFECT_KIT);
+    return std::make_unique<RsVulkanContext>(false, true, RenderEngineType::EFFECT_KIT);
 }
 
-void RsVulkanContext::ReleaseContextForEffectKit(std::unique_ptr& vkContext)
+void RsVulkanContext::ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext)
 {
     if (vkContext->type_ != RenderEngineType::EFFECT_KIT) {
         return;
