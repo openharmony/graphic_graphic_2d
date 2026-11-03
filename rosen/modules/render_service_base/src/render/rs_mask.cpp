@@ -297,11 +297,14 @@ bool RSMask::SanitizeArenaVptrs(const Drawing::CmdListData& cmdListData) const
     if (data == nullptr) {
         return false;
     }
+    if (size < sizeof(Drawing::OpItem)) {
+        return true; // too small to hold any OpItem, so no vptr can be present
+    }
     char* arena = const_cast<char*>(static_cast<const char*>(data));
     size_t offset = 0;
-    // offset advances by at least sizeof(OpItem) per iteration and is bounded by size,
-    // so the loop terminates without a counter.
-    while (offset + sizeof(Drawing::OpItem) <= size) {
+    // Each non-zero link advances offset by at least sizeof(OpItem) and keeps it bounded by
+    // size, so the loop terminates without a counter.
+    do {
         // Arena objects are genuinely constructed by MemAllocator::Allocate, so member access
         // via OpItem* is well-defined; the compiler computes field offsets the same way the
         // playback side does, instead of hard-coding them here.
@@ -310,19 +313,18 @@ bool RSMask::SanitizeArenaVptrs(const Drawing::CmdListData& cmdListData) const
         if (memset_s(arena + offset, size - offset, 0, VPTR_SIZE) != EOK) {
             return false;
         }
-        if (nextOffset == 0) {
-            break; // end of the op chain
-        }
-        // The upper bound must be validated with subtraction before offset is assigned: a
-        // garbage-huge nextOffset would wrap the addition in the loop condition above and
-        // pass it, causing an out-of-bounds access, while "size - sizeof(OpItem)" cannot
-        // underflow because size >= sizeof(OpItem) holds inside the loop. A corrupted chain
-        // (backward, overlapping or out-of-range) fails closed so no unscrubbed byte is sent.
-        if (nextOffset < offset + sizeof(Drawing::OpItem) || nextOffset > size - sizeof(Drawing::OpItem)) {
+        // nextOffset == 0 is the chain-end signal and must bypass this validation. The upper
+        // bound of a non-zero link must be validated with subtraction: a garbage-huge nextOffset
+        // would wrap the addition in "nextOffset + sizeof(OpItem) <= size" and pass it, causing
+        // an out-of-bounds access, while "size - sizeof(OpItem)" cannot underflow because the
+        // size >= sizeof(OpItem) guard holds here. A corrupted chain (backward, overlapping or
+        // out-of-range) fails closed so no unscrubbed byte is sent.
+        if (nextOffset != 0 &&
+            (nextOffset < offset + sizeof(Drawing::OpItem) || nextOffset > size - sizeof(Drawing::OpItem))) {
             return false;
         }
         offset = nextOffset;
-    }
+    } while (offset != 0); // 0 means the end of the op chain
     return true;
 }
 
