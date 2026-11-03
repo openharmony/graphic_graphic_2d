@@ -296,7 +296,7 @@ int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_Colo
 
 int32_t OH_NativeImage_IsReleased(OH_NativeImage* image, bool* isReleased)
 {
-    if (image == nullptr || isReleased == nullptr) {
+    if (image == nullptr || isReleased == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -305,7 +305,7 @@ int32_t OH_NativeImage_IsReleased(OH_NativeImage* image, bool* isReleased)
 
 int32_t OH_NativeImage_Release(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr || image->producer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }

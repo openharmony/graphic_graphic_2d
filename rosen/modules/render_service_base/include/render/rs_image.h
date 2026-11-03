@@ -125,7 +125,6 @@ public:
     RectF GetDstRect();
     void SetFrameRect(RectF frameRect);
     void SetFitMatrix(const Drawing::Matrix& matrix);
-    Drawing::Matrix GetFitMatrix() const;
     std::shared_ptr<Drawing::Image> GetImage() const;
     void SetOrientationFit(int orientationFitNum);
     OrientationFit GetOrientationFit() const;
@@ -134,7 +133,7 @@ public:
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
     std::string PixelSamplingDump() const;
-    void ImageSamplingDump(uint64_t imageId) const;
+    void ImageSamplingDump(uint64_t imageId, uint64_t nodeId) const;
     void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
@@ -158,7 +157,7 @@ public:
         desc += split + "\tisScaledImageAsync_: " + std::to_string(static_cast<int>(isScaledImageAsync_)) + " \n";
         desc += split + "\timageId: " + std::to_string(uniqueId_) + " \n";
         desc += split + "} \n";
-        ImageSamplingDump(uniqueId_);
+        ImageSamplingDump(uniqueId_, nodeId_);
     }
 
 private:
@@ -189,8 +188,7 @@ private:
         Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
         bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree,
         int& orientationFitNum);
-    static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
-        const std::shared_ptr<Media::PixelMap>& pixelMap);
+    static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId);
 #endif
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;

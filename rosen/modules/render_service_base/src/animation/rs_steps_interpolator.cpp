@@ -22,6 +22,15 @@
 
 namespace OHOS {
 namespace Rosen {
+StepsCurvePosition SafeCastStepsCurvePosition(int32_t val, StepsCurvePosition defaultVal)
+{
+    if (val < 0 || val > static_cast<int32_t>(StepsCurvePosition::END)) {
+        ROSEN_LOGE("SafeCastStepsCurvePosition: invalid value %{public}d, using default", val);
+        return defaultVal;
+    }
+    return static_cast<StepsCurvePosition>(val);
+}
+
 RSStepsInterpolator::RSStepsInterpolator(int32_t steps, StepsCurvePosition position)
     : steps_(steps <= 0 ? 1 : steps), position_(position)
 {}

@@ -208,7 +208,6 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetDoDirectCompositionEnabled();
     static bool GetDumpRsTreeDetailEnabled();
-    static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetDrawMirrorCacheImageEnabled();
     static bool GetPixelmapDfxEnabled();
@@ -225,6 +224,8 @@ public:
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
+    static bool SetHgmRefreshRateModeList(const std::string& param);
+    static std::string GetHgmRefreshRateModeList();
     static bool GetHardCursorEnabled();
     static bool GetSLRScaleEnabled();
     static float GetAnimationScale();
@@ -390,7 +391,6 @@ public:
     static bool GetAIBarOptEnabled();
     static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
-    static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
@@ -402,6 +402,7 @@ public:
     static bool GetBootCompleted();
     static bool GetClipRRectOptimizationEnabled();
     static bool GetNodeMemClearEnabled();
+    static bool GetBgNodeReleaseEnabled();
     static bool GetTransactionDataTraceEnabled();
     static bool GetDefaultMemClearEnabled();
     static bool GetSceneBoardIsPcMode();
@@ -419,6 +420,11 @@ public:
     static bool GetVirtualScreenParallelEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
+    static bool IsSimulateTest();
+
+    // Timeout (ms) for offloaded synchronous IPC calls to render service.
+    static uint32_t GetIpcSyncTimeoutMs();
+
 private:
     RSSystemProperties() = default;
 

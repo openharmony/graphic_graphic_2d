@@ -140,14 +140,9 @@ public:
         return isRecentTaskScene_.load();
     }
 
-    bool IsMissionCenterScene() const
+    bool IsInMissionCenterState() const
     {
-        return isMissionCenterScene_.load();
-    }
-
-    bool IsSplitScreenScene() const
-    {
-        return isSplitScreenScene_.load();
+        return isInMissionCenterState_.load();
     }
 
     bool IsSnapshotRotationScene() const
@@ -187,6 +182,31 @@ public:
     inline void UifirstCurStateClear()
     {
         uifirstCacheState_.clear();
+    }
+
+    void SetSystemDoWindowAnimate(bool flag)
+    {
+        systemDoWindowAnimate_ = flag;
+    }
+
+    bool IsInSystemWindowAnimate()
+    {
+        return systemDoWindowAnimate_;
+    }
+
+    void SetTopLeashWindowId(NodeId id)
+    {
+        topLeashWindowId_ = id;
+    }
+
+    bool IsTopLeashWindow(NodeId id)
+    {
+        return id == topLeashWindowId_;
+    }
+
+    bool IsNotFindTopLeashWindow()
+    {
+        return topLeashWindowId_ == INVALID_NODEID;
     }
 
     void SetFreeMultiWindowStatus(bool enable)
@@ -232,6 +252,7 @@ public:
         return subthreadProcessingNode_.count(id) > 0;
     }
 private:
+    bool IsRebuildForceDisable(const RSSurfaceRenderNode& node) const;
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
         bool isFirst = true;
@@ -314,6 +335,7 @@ private:
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
 
     bool IsToSubByAppAnimation() const;
+    bool IsAnimationOverlapRecordScene() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
     bool CheckHasTransAndFilter(const RSSurfaceRenderNode& node);
@@ -339,10 +361,11 @@ private:
     bool isFreeMultiWindowEnabled_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
-    std::atomic<bool> isMissionCenterScene_ = false;
-    std::atomic<bool> isSplitScreenScene_ = false;
+    // tracks the whole mission center state (enter animation + steady + exit animation)
+    std::atomic<bool> isInMissionCenterState_ = false;
+    std::atomic<bool> isExitingMissionCenter_ = false;
     std::atomic<bool> isSnapshotRotationScene_ = false;
-    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;
     // Minimum frame drop time in behind window condition
     static constexpr int BEHIND_WINDOW_RELEASE_TIME = 33;
@@ -397,6 +420,7 @@ private:
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
     std::vector<EventInfo> currentFrameEvent_;
+    bool hasNewResponseEvent_ = false;
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
@@ -420,6 +444,9 @@ private:
 
     // when all screens are power off, uifirst pending post nodes need purge.
     bool allScreenPowerOffNeedPurge_ = false;
+
+    bool systemDoWindowAnimate_ = false;
+    NodeId topLeashWindowId_ = INVALID_NODEID;
 };
 
 // If a subnode is delivered directly
@@ -429,11 +456,11 @@ public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
     {
         isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
-        isCurFirsLevelNodeId_ = curNodeId == curFirstLevelNodeId;
+        isCurFirstLevelNodeId_ = curNodeId == curFirstLevelNodeId;
         if (isCurUifirstRootNodeId_) {
             curUifirstRootNodeId_ = curUifirstRootNodeId;
         }
-        if (isCurFirsLevelNodeId_) {
+        if (isCurFirstLevelNodeId_) {
             curFirstLevelNodeId_ = curFirstLevelNodeId;
         }
     }
@@ -441,7 +468,7 @@ public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId)
     {
         isCurUifirstRootNodeId_ = true;
-        isCurFirsLevelNodeId_ = true;
+        isCurFirstLevelNodeId_ = true;
         curUifirstRootNodeId_ = curUifirstRootNodeId;
         curFirstLevelNodeId_ = curFirstLevelNodeId;
     }
@@ -451,7 +478,7 @@ public:
         if (isCurUifirstRootNodeId_) {
             curUifirstRootNodeId_ = INVALID_NODEID;
         }
-        if (isCurFirsLevelNodeId_) {
+        if (isCurFirstLevelNodeId_) {
             curFirstLevelNodeId_ = INVALID_NODEID;
         }
     }
@@ -476,7 +503,7 @@ private:
     static inline thread_local NodeId curFirstLevelNodeId_ = INVALID_NODEID;
 
     bool isCurUifirstRootNodeId_ = false;
-    bool isCurFirsLevelNodeId_ = false;
+    bool isCurFirstLevelNodeId_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

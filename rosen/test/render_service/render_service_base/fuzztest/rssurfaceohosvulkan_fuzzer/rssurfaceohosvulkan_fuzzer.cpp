@@ -123,15 +123,6 @@ bool DoSetUiTimeStamp(const uint8_t* data, size_t size)
     rsSurfaceOhosVulkan->SetUiTimeStamp(frame, uiTimestamp);
     return true;
 }
-bool DoSetSkContext()
-{
-    sptr<Surface> surface;
-    auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
-
-    std::shared_ptr<Drawing::GPUContext> skContext = nullptr;
-    rsSurfaceOhosVulkan->SetSkContext(skContext);
-    return true;
-}
 bool DoSetNativeWindowInfo(const uint8_t* data, size_t size)
 {
     sptr<Surface> surface;
@@ -156,17 +147,6 @@ bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
     NativeWindowBuffer* nativeWindowBuffer;
 
     rsSurfaceOhosVulkan->RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC);
-    return true;
-}
-bool DoCreateVkSemaphore()
-{
-    sptr<Surface> surface;
-    auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
-
-    NativeBufferUtils::NativeSurfaceInfo nativeSurface;
-    auto& vkContext = RsVulkanContext::GetSingleton();
-    VkSemaphore semaphore;
-    rsSurfaceOhosVulkan->CreateVkSemaphore(semaphore, vkContext, nativeSurface);
     return true;
 }
 } // namespace Rosen

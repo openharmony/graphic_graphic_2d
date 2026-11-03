@@ -389,6 +389,102 @@ HWTEST_F(PenTest, GetterAndSetterOfAlphaf001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetterAndSetterOfRedF001
+ * @tc.desc: Test for GetRedF with default color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfRedF001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color;
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetRedF(), pen->GetRedF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfRedF002
+ * @tc.desc: Test for GetRedF with custom color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfRedF002, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color = Color(11, 12, 13, 14);
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetRedF(), pen->GetRedF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfGreenF001
+ * @tc.desc: Test for GetGreenF with default color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfGreenF001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color;
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetGreenF(), pen->GetGreenF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfGreenF002
+ * @tc.desc: Test for GetGreenF with custom color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfGreenF002, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color = Color(11, 12, 13, 14);
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetGreenF(), pen->GetGreenF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfBlueF001
+ * @tc.desc: Test for GetBlueF with default color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfBlueF001, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color;
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetBlueF(), pen->GetBlueF()));
+}
+
+/**
+ * @tc.name: GetterAndSetterOfBlueF002
+ * @tc.desc: Test for GetBlueF with custom color
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetterAndSetterOfBlueF002, TestSize.Level1)
+{
+    auto pen = std::make_unique<Pen>();
+    ASSERT_TRUE(pen != nullptr);
+    Color color = Color(11, 12, 13, 14);
+    pen->SetColor(color);
+    ASSERT_TRUE(IsScalarAlmostEqual(color.GetBlueF(), pen->GetBlueF()));
+}
+
+/**
  * @tc.name: GetterAndSetterOfWidth001
  * @tc.desc:
  * @tc.type: FUNC

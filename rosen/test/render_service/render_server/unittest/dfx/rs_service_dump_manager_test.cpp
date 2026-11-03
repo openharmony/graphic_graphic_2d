@@ -83,7 +83,7 @@ HWTEST_F(RSServiceDumpManagerTest, IsServiceDumpCmd_InvalidServiceCommand, TestS
     // Given: A list of invalid commands
     std::vector<std::u16string> invalidCmds = {
         u"invalid", u"RSTree", u"nodeNotOnTree",
-        u"EventParamList", u"dumpMem", u"client"
+        u"EventParamList", u"client"
     };
 
     // When & Then: None should be identified as service dump commands
@@ -286,6 +286,32 @@ HWTEST_F(RSServiceDumpManagerTest, CollectDump_EmptyString, TestSize.Level1)
     ASSERT_NE(dumpManager_, nullptr);
     // Then: Should handle empty string gracefully
     SUCCEED();
+}
+
+/*
+ * @tc.name: CollectDump_ExceedsProcessCount
+ * @tc.desc: Test CollectDump ignores extra data after completion count reached
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSServiceDumpManagerTest, CollectDump_ExceedsProcessCount, TestSize.Level1)
+{
+    // Given: A dump manager instance initialized with 1 process
+    dumpManager_->InitProcessDumpTask(2);
+    std::string firstData = "First dump data";
+    std::string emptyData = "";
+    std::string extraData = "Extra dump data";
+
+    // When: Collect dump data more times than process count
+    dumpManager_->CollectDump(firstData);
+    dumpManager_->CollectDump(emptyData);
+    dumpManager_->CollectDump(extraData);
+
+    // Then: Only the first collection is kept
+    std::string dumpString;
+    dumpManager_->WaitForDump(dumpString);
+    EXPECT_NE(dumpString.find(firstData), std::string::npos);
+    EXPECT_EQ(dumpString.find(extraData), std::string::npos);
 }
 
 /*

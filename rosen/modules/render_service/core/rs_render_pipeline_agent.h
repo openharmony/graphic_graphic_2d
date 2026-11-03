@@ -25,6 +25,7 @@ class IConsumerSurface;
 class SurfaceUtils;
 
 namespace Rosen {
+class RSUniRenderThread;
 class RSRenderPipelineAgent : public RefBase {
 public:
     explicit RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline> rsRenderPipeline);
@@ -107,13 +108,16 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
+
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 
-    int32_t SubmitCanvasPreAllocatedBuffer(
-        pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
@@ -131,6 +135,8 @@ public:
     ErrCode AvcodecVideoGet(uint64_t uniqueId);
     ErrCode AvcodecVideoGetRecent();
     ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false);
+    ErrCode AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized, bool enforceQuota,
+        bool requireGuestConnection = true);
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
@@ -161,6 +167,14 @@ public:
     ErrCode SetUifirstScale(float scaleFactor);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
+    ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success);
+    void PostBlurTaskToBackground(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+        std::shared_ptr<std::promise<bool>> promise);
+    void PostBlurTaskToRenderThread(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+        std::shared_ptr<std::promise<bool>> promise, RSUniRenderThread* renderThread);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void GetSurfaceRootNodeId(NodeId &windowNodeId);
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
@@ -182,9 +196,11 @@ public:
     bool UnRegisterTypeface(uint64_t globalUniqueId);
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
-    ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height);
+    ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void UpdateScreenNodesResolution(RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height);
+    void UpdateScreenNodesResolution(RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     void AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height);
     void SetBootAnimationBounds(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t width, uint32_t height);
     void Clean(pid_t pid, bool forRefresh = false);
@@ -196,7 +212,6 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
     void SetShowRefreshRateEnabled(bool enabled, int32_t type);
     ErrCode GetShowRefreshRateEnabled(bool& enable);
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
@@ -215,12 +230,11 @@ public:
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     void ForceRefreshOneFrameWithNextVSync();
-    std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
     bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
-    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> AddConnection(pid_t remotePid, uint64_t tokenMaskId,
         sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     void SetCacheEnabledForRotation(bool enabled);
     std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);
@@ -252,6 +266,7 @@ public:
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
     bool RegisterSurfaceNodeBufferReleaseListener(pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener);
     bool UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid);
+    bool CleanDelegateModeBufferCmd(NodeId nodeId, pid_t pid);
 
 private:
     void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
@@ -261,9 +276,10 @@ private:
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static std::shared_ptr<RSSurfaceHandler> CreateCanvasSurfaceHandler(NodeId nodeId);
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static bool IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer);
+#endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
-    std::unordered_map<pid_t, std::string> pidToBundleName_;
-    mutable std::mutex pidToBundleMutex_;
     mutable std::mutex mutex_;
 };
 

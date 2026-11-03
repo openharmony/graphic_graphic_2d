@@ -56,6 +56,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "BehindWindowFilterConfig",
     "VirtualScreenParallelConfig",
     "BackgroundRebuildConfig",
+    "TunnelLayerConfig",
 };
 
 enum FeatureModule {
@@ -91,6 +92,7 @@ enum FeatureModule {
     BEHIND_WINDOW_FILTER,
     VIRTUAL_SCREEN_PARALLEL,
     BACKGROUND_REBUILD,
+    TUNNEL_LAYER,
     // Do not change it.
     ENUM_LENGTH,
 };

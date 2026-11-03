@@ -155,7 +155,9 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
-    g_rsInterfaces->SetRogScreenResolution(id, width, height);
+    ScreenSamplingMode samplingMode = static_cast<ScreenSamplingMode>(
+        fdp.ConsumeIntegral<uint32_t>() % (static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN) + 1));
+    g_rsInterfaces->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 void DoSetScreenActiveMode(FuzzedDataProvider& fdp)

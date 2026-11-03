@@ -44,7 +44,12 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, AlphaB),
     ADD_PROPERTY_TAG(SoundWave, ProgressA),
     ADD_PROPERTY_TAG(SoundWave, ProgressB),
-    ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
+    ADD_PROPERTY_TAG(SoundWave, TotalAlpha),
+    ADD_PROPERTY_TAG(SoundWave, LightMode),
+    ADD_PROPERTY_TAG(SoundWave, CircleCenter),
+    ADD_PROPERTY_TAG(SoundWave, CircleRadius),
+    ADD_PROPERTY_TAG(SoundWave, LightIntensity),
+    ADD_PROPERTY_TAG(SoundWave, SmoothUnionThreshold)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
@@ -53,6 +58,18 @@ DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
     ADD_PROPERTY_TAG(EdgeLight, Mask),
     ADD_PROPERTY_TAG(EdgeLight, Bloom),
     ADD_PROPERTY_TAG(EdgeLight, UseRawColor)
+);
+
+DECLARE_FILTER(SpinBlur, SPIN_BLUR,
+    ADD_PROPERTY_TAG(SpinBlur, Center),
+    ADD_PROPERTY_TAG(SpinBlur, Angle),
+    ADD_PROPERTY_TAG(SpinBlur, Samples)
+);
+
+DECLARE_FILTER(HaloBloom, HALO_BLOOM,
+    ADD_PROPERTY_TAG(HaloBloom, TintColor),
+    ADD_PROPERTY_TAG(HaloBloom, BloomFactor),
+    ADD_PROPERTY_TAG(HaloBloom, GlowExposure)
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
@@ -172,6 +189,10 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, BaseMaterialType),
     ADD_PROPERTY_TAG(FrostedGlass, MaterialColor),
+    ADD_PROPERTY_TAG(FrostedGlass, ColorBlendMode),
+    ADD_PROPERTY_TAG(FrostedGlass, VibrancyStrength),
+    ADD_PROPERTY_TAG(FrostedGlass, LumaParams),
+    ADD_PROPERTY_TAG(FrostedGlass, MaterialColorFraction),
     ADD_PROPERTY_TAG(FrostedGlass, SamplingScale),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBlurParams),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeWeightsEmboss),
@@ -179,7 +200,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgPos),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, SkipFrameEnable)
+    ADD_PROPERTY_TAG(FrostedGlass, SkipFrameEnable),
+    ADD_PROPERTY_TAG(FrostedGlass, AntiAlias)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
@@ -272,4 +294,18 @@ DECLARE_FILTER(MotionBlur, MOTION_BLUR,
     ADD_PROPERTY_TAG(MotionBlur, Radius),
     ADD_PROPERTY_TAG(MotionBlur, Anchor),
     ADD_PROPERTY_TAG(MotionBlur, SampleCount)
+);
+
+DECLARE_FILTER(MapColorByBrightness, MAP_COLOR_BY_BRIGHTNESS,
+    ADD_PROPERTY_TAG(MapColorByBrightness, Colors),
+    ADD_PROPERTY_TAG(MapColorByBrightness, Positions)
+);
+
+DECLARE_FILTER(DistortLight, DISTORT_LIGHT,
+    ADD_PROPERTY_TAG(DistortLight, DistortMask),
+    ADD_PROPERTY_TAG(DistortLight, LightFactor),
+    ADD_PROPERTY_TAG(DistortLight, HighLightFactor),
+    ADD_PROPERTY_TAG(DistortLight, HighLightWidth),
+    ADD_PROPERTY_TAG(DistortLight, HighLightSoft),
+    ADD_PROPERTY_TAG(DistortLight, HighLightColor)
 );

@@ -17,10 +17,12 @@
 #define ROSEN_JANK_STATS_HELPER_H
 
 #include <atomic>
+#include <unordered_map>
 
 #include "params/rs_render_thread_params.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "nocopyable.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,9 +34,9 @@ public:
     void JankStatsAfterSync(const std::unique_ptr<RSRenderThreadParams>& params, int accumulatedBufferCount);
     void JankStatsEnd(uint32_t dynamicRefreshRate);
 
-    void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
+    void SetSkipJankAnimatorFrame(ScreenId screenId, bool skipJankAnimatorFrame)
     {
-        rtSkipJankAnimatorFrame_.store(skipJankAnimatorFrame);
+        rtSkipJankAnimatorFrameMap_[screenId] = skipJankAnimatorFrame;
     }
     void SetDiscardJankFrames(bool discardJankFrames)
     {
@@ -46,6 +48,8 @@ private:
     ~RSJankStatsRenderFrameHelper() = default;
     DISALLOW_COPY_AND_MOVE(RSJankStatsRenderFrameHelper);
 
+    bool IsAllScreensSkipJankAnimatorFrame() const;
+
     bool doJankStats_ = true;
 
     // main thread params
@@ -56,8 +60,10 @@ private:
     bool rsDiscardJankFrames_ = false;
 
     // unirender thread params
-    std::atomic_bool rtSkipJankAnimatorFrame_ = false;
     std::atomic_bool rtDiscardJankFrames_ = false;
+    // render-thread-only; all access is single-threaded via JankStatsStart/End
+    // per-screen skip jank animator frame state, cleared per frame by JankStatsStart
+    std::unordered_map<ScreenId, bool> rtSkipJankAnimatorFrameMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

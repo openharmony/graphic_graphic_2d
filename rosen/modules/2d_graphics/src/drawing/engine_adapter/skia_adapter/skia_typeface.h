@@ -71,7 +71,7 @@ public:
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
-    std::shared_ptr<Data> Serialize() const override;
+    std::shared_ptr<Data> Serialize(SerializeBehavior behavior) const override;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
     /** return stored hash, calculates the hash if no value is stored */
     uint32_t GetHash() const override;

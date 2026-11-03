@@ -21,7 +21,7 @@
 #include "drawing_path_iterator.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -38,12 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPathIteratorTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPathIteratorTest::SetUpTestCase() {}
 void NativeDrawingPathIteratorTest::TearDownTestCase() {}
 void NativeDrawingPathIteratorTest::SetUp() {}
 void NativeDrawingPathIteratorTest::TearDown() {}

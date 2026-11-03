@@ -84,12 +84,23 @@ void RSRenderPropertyAnimation::AttachRenderProperty(const std::shared_ptr<RSRen
         return;
     }
     InitValueEstimator();
+    OnSetPropertyOnAdd();
 }
 
 void RSRenderPropertyAnimation::SetPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value)
 {
     if (property_ != nullptr) {
         property_->SetValue(value);
+    }
+}
+
+void RSRenderPropertyAnimation::OnRestart()
+{
+    if (originValue_ != nullptr) {
+        lastValue_ = originValue_->Clone();
+    }
+    if (valueEstimator_ != nullptr) {
+        valueEstimator_->ResetLastValue(GetAdditive());
     }
 }
 
@@ -114,23 +125,6 @@ const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetOrigi
 const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetLastValue() const
 {
     return lastValue_;
-}
-
-void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value)
-{
-    if (value == nullptr) {
-        ROSEN_LOGD("RSRenderPropertyAnimation::SetAnimationValue, input is null!");
-        return;
-    }
-    std::shared_ptr<RSRenderPropertyBase> animationValue;
-    if (GetAdditive() && (property_ != nullptr)) {
-        animationValue = property_->Clone() + (value - lastValue_);
-        lastValue_ = value->Clone();
-    } else {
-        animationValue = value->Clone();
-        lastValue_ = value->Clone();
-    }
-    SetPropertyValue(animationValue);
 }
 
 const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetAnimationValue(
@@ -234,7 +228,7 @@ void RSRenderPropertyAnimation::DumpFraction(float fraction, int64_t time)
 {
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(GetTarget(), GetTargetId(), GetTargetName(),
         GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time, GetDuration(), GetRepeatCount(),
-        GetFrameRateRange());
+        GetFrameRateRange(), animationFraction_.GetRunningTime());
 }
 } // namespace Rosen
 } // namespace OHOS

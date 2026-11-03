@@ -331,6 +331,8 @@ static constexpr char PHONG_SHADER_STRING[](R"(
     uniform vec4 viewPos[12];
     uniform vec4 specularLightColor[12];
     uniform float specularStrength[12];
+    uniform float enableDither;
+    uniform float ditherAlphaThreshold;
 
     mediump vec4 main(vec2 drawing_coord) {
         vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -358,6 +360,12 @@ static constexpr char PHONG_SHADER_STRING[](R"(
                 fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
             }
         }
+        // dither to fix color banding: only dark zone, skip bright
+        if (enableDither > 0.5 && fragColor.a < ditherAlphaThreshold) {
+            float ditherVal = fract(52.9829 * fract(dot(vec2(0.06711056, 0.00583715), floor(drawing_coord))));
+            fragColor += (ditherVal - 0.5) / 255.0;
+            fragColor.a = clamp(fragColor.a, 0.0, 1.0);
+        }
         return fragColor;
     }
 )");
@@ -367,6 +375,8 @@ static constexpr char SINGLE_PHONG_SHADER_STRING[](R"(
     uniform vec4 viewPos[1];
     uniform vec4 specularLightColor[1];
     uniform float specularStrength[1];
+    uniform float enableDither;
+    uniform float ditherAlphaThreshold;
 
     mediump vec4 main(vec2 drawing_coord) {
         vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -391,6 +401,12 @@ static constexpr char SINGLE_PHONG_SHADER_STRING[](R"(
             vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
             vec4 specularColor = specularLightColor[0];
             fragColor = fragColor + o + specular * specularStrength[0] * specularColor;
+        }
+        // dither to fix color banding: only dark zone, skip bright
+        if (enableDither > 0.5 && fragColor.a < ditherAlphaThreshold) {
+            float ditherVal = fract(52.9829 * fract(dot(vec2(0.06711056, 0.00583715), floor(drawing_coord))));
+            fragColor += (ditherVal - 0.5) / 255.0;
+            fragColor.a = clamp(fragColor.a, 0.0, 1.0);
         }
         return fragColor;
     }
@@ -450,6 +466,8 @@ static constexpr char SDF_CONTENT_AND_BORDER_LIGHT_SHADER_STRING[](R"(
 )");
 
 constexpr float SDR_LUMINANCE = 1.0f;
+// dither alpha threshold for color banding
+constexpr float DITHER_ALPHA_THRESHOLD = 0.15f;
 } // namespace
 
 RSDrawable::Ptr RSCoverageNGShaderDrawable::OnGenerate(const RSRenderNode& node)
@@ -460,41 +478,37 @@ RSDrawable::Ptr RSCoverageNGShaderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
-void RSCoverageNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-#ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
-#endif
-    if (visualEffectContainer_ != nullptr && rect != nullptr) {
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-
-        // Pass the original bounds of the component to the GEVisualEffectContainer
-        visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect,
-            rect->GetWidth(), rect->GetHeight());
-        geRender->DrawShaderEffect(*canvas, *(visualEffectContainer_),
-            drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
-    } else {
-        DrawLight(canvas);
-    }
-}
-
 bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    const auto& illuminatedPtr = properties.GetIlluminated();
-    const auto& coverageShader = properties.GetCoverageNGShader();
-    if (coverageShader) {
-        needSync_ = true;
-        stagingCoverageShader_ = coverageShader;
-        RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, coverageShader, node.GetId());
-
-        // Need to expand drawing rect to draw effects outside of the component
-        auto bounds = node.GetRenderProperties().GetBoundsRect();
-        stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(coverageShader, bounds);
-        return true;
+    if (properties.GetCoverageNGShader()) {
+        return RSShaderDrawable::OnUpdate(node);
     }
+    return StageLightProperties(node, properties);
+}
 
+void RSCoverageNGShaderDrawable::OnSync()
+{
+    RSShaderDrawable::OnSync();
+    SyncLightProperties();
+}
+
+void RSCoverageNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+{
+    if (visualEffectContainer_ != nullptr && rect != nullptr) {
+        RSShaderDrawable::OnDraw(canvas, rect);
+        return;
+    }
+    DrawLight(canvas);
+}
+
+bool RSCoverageNGShaderDrawable::StageLightProperties(const RSRenderNode& node, const RSProperties& properties)
+{
+    // The light mode means the coverage shader has been removed: drop the stale staged shader,
+    // otherwise the base OnSync would rebuild the container from it and swallow the light
+    // request (the base resets needSync_ after serving).
+    stagingShader_ = nullptr;
+    const auto& illuminatedPtr = properties.GetIlluminated();
     if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
@@ -515,11 +529,13 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
     stagingScreenNodeId_ = node.GetScreenNodeId();
     auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    // Use GetResolvedSDFShape to handle dual non-linear distortion (distort op + distortion collapse)
     if (sdfShape) {
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
             geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        stagingSDFShaderEffect_ = geShape ? geShape->GenerateDrawingShader(0.0f, 0.0f) : nullptr;
+        stagingSDFShaderEffect_ = geShape ? geShape->GenerateDrawingShader(
+            stagingSdfDrawRect_.GetWidth(), stagingSdfDrawRect_.GetHeight()) : nullptr;
     }
     auto begin = stagingLightSourcesAndPosVec_.begin();
     auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
@@ -529,13 +545,19 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSCoverageNGShaderDrawable::OnSync()
+std::shared_ptr<RSNGRenderShaderBase> RSCoverageNGShaderDrawable::GetShader(const RSProperties& properties) const
+{
+    return properties.GetCoverageNGShader();
+}
+
+void RSCoverageNGShaderDrawable::SyncLightProperties()
 {
     if (!needSync_) {
         lightSourcesAndPosVec_.clear();
         return;
     }
     lightSourcesAndPosVec_ = std::move(stagingLightSourcesAndPosVec_);
+    visualEffectContainer_ = nullptr;
     if (lightSourcesAndPosVec_.size() > MAX_LIGHT_SOURCES) {
         std::sort(lightSourcesAndPosVec_.begin(), lightSourcesAndPosVec_.end(), [](const auto& x, const auto& y) {
             return x.second.x_ * x.second.x_ + x.second.y_ * x.second.y_ <
@@ -558,16 +580,14 @@ void RSCoverageNGShaderDrawable::OnSync()
     if (enableEDREffect_) {
         displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
     }
-
-    // coverage Shader
-    if (needSync_ && stagingCoverageShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingCoverageShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        drawRect_ = stagingDrawRect_;
-    }
     needSync_ = false;
+}
+
+void RSCoverageNGShaderDrawable::DfxOnDraw() const
+{
+    RS_OPTIONAL_TRACE_FMT("RSCoverageNGShaderDrawable, nodeId:%{public}" PRIu64
+                          ", drawRect:%{public}s, cornerRadius:%{public}f",
+        nodeId_, drawRect_.ToString().c_str(), cornerRadius_);
 }
 
 float RSCoverageNGShaderDrawable::GetBrightnessMapping(float headroom, float input)
@@ -839,6 +859,11 @@ void RSCoverageNGShaderDrawable::ProcessSingleLightSourcesData(std::array<float,
 
 void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 {
+#ifdef RS_ENABLE_GPU
+    // Tag GPU resources generated in the point light path, null GPU context is safe here.
+    RSTagTracker tagTracker(
+        canvas ? canvas->GetGPUContext() : nullptr, RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
+#endif
     if (lightSourcesAndPosVec_.empty()) {
         return;
     }
@@ -847,6 +872,8 @@ void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
     if (!builder || !canvas) {
         return;
     }
+    builder->SetUniform("ditherAlphaThreshold", DITHER_ALPHA_THRESHOLD);
+    builder->SetUniform("enableDither", illuminatedType_ == IlluminatedType::CONTENT ? 1.0f : 0.0f);
 
     if (lightLength == 1) {
         std::array<float, 1> lightIntensityArray = { 0 };
@@ -870,7 +897,12 @@ void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetPhongShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
@@ -887,7 +919,12 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetPh
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetFeatheringBorderLightShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
@@ -904,7 +941,12 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetFe
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetNormalLightShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?

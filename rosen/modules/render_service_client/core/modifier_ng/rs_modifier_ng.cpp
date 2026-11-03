@@ -195,6 +195,19 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, ThresholdType::COARSE },
     { RSPropertyType::SHADOW_BLENDER_PARAMS, ThresholdType::ZERO },
     { RSPropertyType::HDR_DARKEN_BLENDER_PARAMS, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED, ThresholdType::ZERO },
+    { RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_PLACEHOLDER, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_STRATEGY, ThresholdType::ZERO },
     { RSPropertyType::COLOR_PICKER_INTERVAL, ThresholdType::ZERO },
@@ -222,6 +235,7 @@ void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
         RS_LOGE("Failed to attach property, property is null.");
         return;
     }
+    affectsRendering_ = true;
     property->SetIsCustom(IsCustom());
     property->AttachModifier(shared_from_this());
     if (node_.expired()) {
@@ -239,7 +253,13 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
         RS_LOGE("Failed to attach property with type %{public}d, property is null!", static_cast<int32_t>(type));
         return;
     }
+    AttachPropertyInner(type, property, !IsDefault(type, property));
+}
 
+void RSModifier::AttachPropertyInner(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property,
+    bool affectsRendering)
+{
+    affectsRendering_ |= affectsRendering;
     property->SetPropertyTypeNG(type);
     // replace existing property if any
     properties_[type] = property;
@@ -249,6 +269,10 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
     if (!node) {
         // not attached yet
         return;
+    }
+    if (!node->GetIsDrawn() && affectsRendering_) {
+        node->SetDrawNode();
+        node->SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
     auto shouldSetOption = node->motionPathOption_ != nullptr && property->IsPathAnimatable();
     if (shouldSetOption) {
@@ -277,6 +301,7 @@ void RSModifier::DetachProperty(RSPropertyType type)
     properties_.erase(it);
     // actually do the detach
     property->Detach();
+    OnDetachProperty(property->GetId());
     auto node = node_.lock();
     if (!node) {
         // not attached yet
@@ -300,6 +325,10 @@ void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<R
 
 void RSModifier::OnAttach(RSNode& node)
 {
+    if (!node.GetIsDrawn() && affectsRendering_) {
+        node.SetDrawNode();
+        node.SetDrawNodeType(DrawNodeType::DrawPropertyType);
+    }
     node_ = node.weak_from_this();
     if (properties_.empty()) {
         return;

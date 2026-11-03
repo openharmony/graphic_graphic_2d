@@ -26,6 +26,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -33,12 +34,16 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "property/rs_spatial_effect_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+const RectI ROG_DIRTY_RECT = { 10, 20, 100, 200 };
+} // namespace
 class RSSurfaceRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -74,6 +79,19 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
+};
+
+class TestDrawableAdapterWithSyncDirtyManager : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit TestDrawableAdapterWithSyncDirtyManager(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
+    std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override
+    {
+        return syncDirtyManager_;
+    }
+    std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_;
 };
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
@@ -177,7 +195,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextClipRegion001, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ConnectToNodeInRenderService001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    surfaceRenderNode.ConnectToNodeInRenderService(nullptr);
+    surfaceRenderNode.ConnectToNodeInRenderService();
     ASSERT_EQ(surfaceRenderNode.GetId(), 0);
 }
 
@@ -1675,7 +1693,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetNotifyRTBufferAvailable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ConnectToNodeInRenderServiceTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->ConnectToNodeInRenderService(nullptr);
+    testNode->ConnectToNodeInRenderService();
     EXPECT_FALSE(testNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
 }
 
@@ -1916,23 +1934,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CalcFilterCacheValidForOcclusionTest, TestSize
 }
 
 /**
- * @tc.name: UpdateFilterNodesTest
- * @tc.desc: test results of UpdateFilterNodesTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterNodesTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    std::shared_ptr<RSRenderNode> renderNode;
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 0);
-    renderNode = std::make_shared<RSRenderNode>(id + 1);
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 1);
-}
-
-/**
  * @tc.name: CheckValidFilterCacheFullyCoverTargetTest
  * @tc.desc: test results of CheckValidFilterCacheFullyCoverTargetTest
  * @tc.type: FUNC
@@ -1952,7 +1953,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     }
     filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
@@ -2024,57 +2025,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateDrawingCacheNodes, TestSize.Level1)
     EXPECT_EQ(node->drawingCacheNodes_.size(), 0);
     node->UpdateDrawingCacheNodes(renderNode);
     EXPECT_EQ(node->drawingCacheNodes_.size(), 1);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusWithVisible
- * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusWithVisible, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    bool visible = true;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    ASSERT_TRUE(renderNode->prevVisible_);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusIfNodeStatic
- * @tc.desc: test results of UpdateFilterCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
-    auto mockNode1 = std::make_shared<RSEffectRenderNode>(id + 1);
-    node->filterNodes_.emplace_back(mockNode1);
-    auto mockNode2 = std::make_shared<RSRenderNode>(id + 2);
-    node->filterNodes_.emplace_back(mockNode2);
-    auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
-    mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode3);
-    auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
-    mockNode4->isOnTheTree_ = true;
-    mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode4);
-    std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
-    node->filterNodes_.emplace_back(mockNode5);
-    node->dirtyManager_->UpdateCacheableFilterRect({0, 0, 100, 100});
-    node->oldDirtyInSurface_ = {0, 0, 10, 10};
-    std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
-    mockNode6->isOnTheTree_ = true;
-    mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode6);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
-    ASSERT_NE(node->filterNodes_.size(), 0);
 }
 
 /**
@@ -2211,6 +2161,72 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnSyncTest002, TestSize.Level1)
     surfaceNode->SetUifirstSkipPartialSync(true);
     surfaceNode->OnSync();
     EXPECT_FALSE(surfaceNode->lastFrameSynced_);
+}
+
+/**
+ * @tc.name: OnSyncClipAndScaleDirtyManagerDeviceGpu
+ * @tc.desc: test OnSync clips and scales sync dirty manager by rog ratio for main window under DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncClipAndScaleDirtyManagerDeviceGpu, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = std::make_shared<TestDrawableAdapterWithSyncDirtyManager>(surfaceNode);
+    surfaceNode->renderDrawable_ = drawable;
+    auto syncDirtyManager = drawable->GetSyncDirtyManager();
+    ASSERT_NE(syncDirtyManager, nullptr);
+
+    constexpr uint32_t renderWidth = 1080;
+    constexpr uint32_t renderHeight = 2400;
+    // 2 means physical resolution is twice of render resolution
+    constexpr int32_t rogRatio = 2;
+    constexpr uint32_t phyWidth = renderWidth * static_cast<uint32_t>(rogRatio);
+    constexpr uint32_t phyHeight = renderHeight * static_cast<uint32_t>(rogRatio);
+    constexpr uint32_t refreshRate = 60;
+    constexpr ScreenId screenId = 0;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId);
+    screenNode->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION,
+        sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolutionValType(renderWidth, renderHeight)));
+    screenNode->UpdateScreenProperty(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE,
+        sptr<ScreenProperty<phyResolutionValType>>::MakeSptr(
+            phyResolutionValType(phyWidth, phyHeight, refreshRate)));
+    screenNode->UpdateScreenProperty(ScreenPropertyType::SAMPLING_MODE,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU)));
+
+    auto stagingParams = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    stagingParams->SetAncestorScreenNode(screenNode);
+    stagingParams->SetOldDirtyInSurface(
+        RectI(0, 0, static_cast<int32_t>(renderWidth), static_cast<int32_t>(renderHeight)));
+    surfaceNode->stagingRenderParams_ = std::move(stagingParams);
+
+    surfaceNode->dirtyManager_->SetCurrentFrameDirtyRect(ROG_DIRTY_RECT);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    surfaceNode->OnSync();
+
+    // OnSync copies node dirty into sync dirty manager then clips and scales it by rog ratio
+    RectI expectedDirty(ROG_DIRTY_RECT.left_ * rogRatio, ROG_DIRTY_RECT.top_ * rogRatio,
+        ROG_DIRTY_RECT.width_ * rogRatio, ROG_DIRTY_RECT.height_ * rogRatio);
+    EXPECT_EQ(syncDirtyManager->GetCurrentFrameDirtyRegion(), expectedDirty);
+}
+
+/**
+ * @tc.name: OnSyncClipAndScaleDirtyManagerNullSyncDirtyManager
+ * @tc.desc: test OnSync handles null sync dirty manager without crash for main window
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncClipAndScaleDirtyManagerNullSyncDirtyManager, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    // TestDrawableAdapter::GetSyncDirtyManager returns nullptr
+    surfaceNode->renderDrawable_ = std::make_shared<TestDrawableAdapter>(surfaceNode);
+    ASSERT_NE(surfaceNode->renderDrawable_, nullptr);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    surfaceNode->OnSync();
 }
 
 /**
@@ -2605,6 +2621,86 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = true;
+    node->vcldInfo_.enable = true;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = true;
+    node->vcldInfo_.enable = false;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = false;
+    node->vcldInfo_.enable = true;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_TRUE(node->vcldInfo_.enable);
+}
+ 
+/**
+ * @tc.name: UpdateHwcNodeLayerInfo
+ * @tc.desc: test results of UpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcNodeLayerInfo004, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    node->isHardwareForcedDisabled_ = false;
+    node->vcldInfo_.enable = false;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    ASSERT_FALSE(node->vcldInfo_.enable);
+}
+
+/**
  * @tc.name: BufferClearCallbackProxy
  * @tc.desc: test results of BufferClearCallbackProxy
  * @tc.type: FUNC
@@ -2690,13 +2786,17 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
+    testNode->isBufferFlushed_ = false;
+    testNode->ResetIsBufferFlushed();
+
     testNode->stagingRenderParams_ = nullptr;
+    testNode->isBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetIsBufferFlushed();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
+    testNode->isBufferFlushed_ = true;
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
@@ -2713,12 +2813,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceNodeStates, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     testNode->stagingRenderParams_ = nullptr;
+    testNode->isBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetSurfaceNodeStates();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
+    testNode->isBufferFlushed_ = true;
     testNode->ResetSurfaceNodeStates();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
@@ -2756,7 +2857,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 
     auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
     testNode->opaqueRegion_ = regionBeforeProcess;
-    testNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    testNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     testNode->drawBehindWindowRegion_ = defaultSmallRect;
     testNode->childrenBlurBehindWindow_ = { INVALID_NODEID };
 
@@ -2921,6 +3022,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRelatedTest, TestSize.Level1)
     node->SetRelated(true);
     ASSERT_TRUE(node->addedToPendingSyncList_);
     ASSERT_TRUE(node->IsRelated());
+}
+
+/**
+ * @tc.name: SetIsDepthResource
+ * @tc.desc: Test IsDepthResource to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthResource, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthResource(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+    node->SetIsDepthResource(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+}
+
+/**
+ * @tc.name: SetIsDepthBackground
+ * @tc.desc: Test IsDepthBackground to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthBackground, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthBackground(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+    node->SetIsDepthBackground(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
 }
 
 /**
@@ -3446,7 +3579,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSingleFrameComposerTest, TestSize.L
 
 /**
  * @tc.name: SurfaceNodeSelfAddedForSubSurfaceTest
- * @tc.desc: Verify isSelfAddedForSubSurface_ flag is correctly set and used
+ * @tc.desc: Verify selfAddForSubSurfaceCnt_ flag is correctly set and used
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3455,12 +3588,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSelfAddedForSubSurfaceTest, TestSiz
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
-    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
-    node->isSelfAddedForSubSurface_ = true;
-    ASSERT_TRUE(node->isSelfAddedForSubSurface_);
+    ASSERT_FALSE(node->selfAddForSubSurfaceCnt_);
+    node->selfAddForSubSurfaceCnt_ = true;
+    ASSERT_TRUE(node->selfAddForSubSurfaceCnt_);
 
-    node->isSelfAddedForSubSurface_ = false;
-    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
+    node->selfAddForSubSurfaceCnt_ = false;
+    ASSERT_FALSE(node->selfAddForSubSurfaceCnt_);
 }
 
 /**
@@ -3602,6 +3735,91 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
     ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
     surfaceRenderNode.SetRebuildingState(true);
     EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap001
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with staging render params
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_TRUE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(false);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
+ * @tc.name: SetUifirstDisabledByAnimationOverlap002
+ * @tc.desc: Test Set/GetUifirstDisabledByAnimationOverlap with null stagingRenderParams_ without crash
+ * @tc.type: FUNC
+ * @tc.require: issue26284
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUifirstDisabledByAnimationOverlap002, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetUifirstDisabledByAnimationOverlap(true);
+    EXPECT_FALSE(surfaceRenderNode.GetUifirstDisabledByAnimationOverlap());
+}
+
+/**
+ * @tc.name: GetVideoDimType_001
+ * @tc.desc: Test GetVideoDimType returns default VIDEO_DIM_TYPE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+}
+
+/**
+ * @tc.name: UpdateDelegateRectToSurfaceParamsCoverage001
+ * @tc.desc: cover both edges of the newly added `if (!surfaceParams) return;` inside
+ *           RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams; also exercise the
+ *           existing `if (!GetDelegateMode()) return;` guard so gcov reports the whole
+ *           function at 100% branch coverage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateDelegateRectToSurfaceParamsCoverage001, TestSize.Level1)
+{
+    // Edge A: delegate=false hits the outer early-return; params state is left untouched (we do not
+    // assert on delegateDstRect_/SrcRect_ because those members are not explicitly initialized).
+    RSSurfaceRenderNode n1(id);
+    n1.SetDelegateMode(false);
+    auto p1 = std::make_unique<RSSurfaceRenderParams>(id);
+    n1.stagingRenderParams_ = std::move(p1);
+    EXPECT_NO_FATAL_FAILURE(n1.UpdateDelegateRectToSurfaceParams());
+
+    // Edge B: delegate=true but stagingRenderParams_ is nullptr -> `!surfaceParams` true, early return
+    RSSurfaceRenderNode n2(id);
+    n2.SetDelegateMode(true);
+    n2.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n2.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    n2.stagingRenderParams_ = nullptr;
+    EXPECT_NO_FATAL_FAILURE(n2.UpdateDelegateRectToSurfaceParams());
+
+    // Edge C: delegate=true and valid staging params -> both guards fall through, rects are pushed
+    RSSurfaceRenderNode n3(id);
+    n3.SetDelegateMode(true);
+    n3.SetDelegateDstRect(RectF(1.f, 2.f, 3.f, 4.f));
+    n3.SetDelegateSrcRect(RectF(5.f, 6.f, 7.f, 8.f));
+    auto p3 = std::make_unique<RSSurfaceRenderParams>(id);
+    auto* p3Raw = p3.get();
+    n3.stagingRenderParams_ = std::move(p3);
+    n3.UpdateDelegateRectToSurfaceParams();
+    EXPECT_EQ(p3Raw->GetDelegateDstRect(), RectF(1.f, 2.f, 3.f, 4.f));
+    EXPECT_EQ(p3Raw->GetDelegateSrcRect(), RectF(5.f, 6.f, 7.f, 8.f));
 }
 } // namespace Rosen
 } // namespace OHOS

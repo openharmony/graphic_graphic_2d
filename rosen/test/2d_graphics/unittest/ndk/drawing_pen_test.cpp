@@ -35,7 +35,7 @@
 
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -52,12 +52,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPenTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPenTest::SetUpTestCase() {}
 void NativeDrawingPenTest::TearDownTestCase() {}
 void NativeDrawingPenTest::SetUp() {}
 void NativeDrawingPenTest::TearDown() {}

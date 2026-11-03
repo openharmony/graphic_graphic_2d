@@ -26,6 +26,11 @@ int32_t MemoryGraphic::GetPid() const
     return pid_;
 }
 
+int32_t MemoryGraphic::GetRenderPid() const
+{
+    return renderPid_;
+}
+
 float MemoryGraphic::GetCpuMemorySize() const
 {
     return cpuMemSize_;
@@ -46,6 +51,11 @@ void MemoryGraphic::SetPid(int32_t pid)
     pid_ = pid;
 }
 
+void MemoryGraphic::SetRenderPid(int32_t pid)
+{
+    renderPid_ = pid;
+}
+
 void MemoryGraphic::SetCpuMemorySize(float cpuMemSize)
 {
     cpuMemSize_ = cpuMemSize;
@@ -59,7 +69,7 @@ void MemoryGraphic::SetGpuMemorySize(float gpuMemSize)
 bool MemoryGraphic::Marshalling(Parcel& parcel) const
 {
     bool flag = parcel.WriteInt32(pid_) && parcel.WriteFloat(cpuMemSize_) &&
-        parcel.WriteFloat(gpuMemSize_);
+        parcel.WriteFloat(gpuMemSize_) && parcel.WriteInt32(renderPid_);
     if (!flag) {
         ROSEN_LOGE("MemoryGraphic::Marshalling failed");
     }
@@ -69,14 +79,17 @@ bool MemoryGraphic::Marshalling(Parcel& parcel) const
 MemoryGraphic* MemoryGraphic::Unmarshalling(Parcel& parcel)
 {
     int32_t pid;
+    int32_t renderPid;
     float cpuMemSize;
     float gpuMemSize;
-    if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(cpuMemSize) && parcel.ReadFloat(gpuMemSize))) {
+    if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(cpuMemSize) &&
+        parcel.ReadFloat(gpuMemSize) && parcel.ReadInt32(renderPid))) {
         ROSEN_LOGE("MemoryGraphic::Unmarshalling failed");
         return nullptr;
     }
 
     MemoryGraphic* mem = new MemoryGraphic(pid, cpuMemSize, gpuMemSize);
+    mem->SetRenderPid(renderPid);
     return mem;
 }
 

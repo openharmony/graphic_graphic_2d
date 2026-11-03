@@ -120,11 +120,20 @@ public:
         return { serviceToRenderConnection_ };
     }
 
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override
+    {
+        if (pid == getpid()) {
+            return serviceToRenderConnection_;
+        }
+        return nullptr;
+    }
+
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
     {
         return connectToRenderConnection_;
     }
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override { return RS_CONNECTION_ERROR; }
 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;

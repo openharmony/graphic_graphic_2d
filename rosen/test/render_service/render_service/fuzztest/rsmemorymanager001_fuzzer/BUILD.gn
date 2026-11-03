@@ -40,7 +40,10 @@ ohos_fuzztest("RSMemoryManager001FuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   sources = [ "rsmemorymanager001_fuzzer.cpp" ]
 }
 

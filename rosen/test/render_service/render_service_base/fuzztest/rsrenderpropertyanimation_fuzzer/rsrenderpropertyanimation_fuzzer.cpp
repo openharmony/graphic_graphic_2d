@@ -31,6 +31,7 @@
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_path_animation.h"
+#include "animation/rs_render_property_animation.h"
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
 #include "animation/rs_render_transition_effect.h"
@@ -105,7 +106,6 @@ void RSRenderPropertyAnimationFuzzerTest1()
     renderPropertyAnimation->GetPropertyValue();
     renderPropertyAnimation->GetOriginValue();
     renderPropertyAnimation->GetLastValue();
-    renderPropertyAnimation->SetAnimationValue(property);
     renderPropertyAnimation->GetAnimationValue(property);
     renderPropertyAnimation->OnRemoveOnCompletion();
     renderPropertyAnimation->RecordLastAnimateValue();
@@ -136,8 +136,6 @@ void RSRenderPropertyAnimationFuzzerTest2()
     renderPropertyAnimation->GetAdditive();
     renderPropertyAnimation->AttachRenderProperty(property);
 
-    renderPropertyAnimation->SetAnimationValue(nullptr);
-    renderPropertyAnimation->SetAnimationValue(property);
     renderPropertyAnimation->GetAnimationValue(nullptr);
     renderPropertyAnimation->GetAnimationValue(property);
     renderPropertyAnimation->OnRemoveOnCompletion();

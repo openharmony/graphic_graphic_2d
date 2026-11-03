@@ -66,5 +66,28 @@ HWTEST_F(RSBlendRenderModifierNGTest, RSBlendRenderModifierTest, TestSize.Level1
     EXPECT_EQ(properties.GetFgBrightnessHdr(), false);
     EXPECT_EQ(properties.GetShadowBlenderParams(), std::nullopt);
     EXPECT_EQ(properties.GetHdrDarkenBlenderParams(), std::nullopt);
+    // ResetProperties now also clears ColorfulBrightnessBlender params (added by ColorfulBrightnessBlender feature)
+    EXPECT_EQ(properties.GetColorfulBrightnessBlenderParams(), nullptr);
+    EXPECT_FALSE(properties.IsColorfulBrightnessBlenderValid());
+}
+
+/**
+ * @tc.name: RSBlendRenderModifierColorfulResetTest
+ * @tc.desc: verify ResetProperties clears previously-set ColorfulBrightnessBlender params.
+ *           Covers the SetColorfulBrightnessBlenderParams(std::nullopt) call added to ResetProperties.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlendRenderModifierNGTest, RSBlendRenderModifierColorfulResetTest, TestSize.Level1)
+{
+    RSBlendRenderModifier modifier;
+    RSProperties properties;
+    // set colorful params, then reset and verify cleared
+    auto params = std::make_unique<RSColorfulBrightnessBlenderPara>(1.0f, 0.5f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
+        Vector3f(0.6f, 0.7f, 0.8f), Vector3f(0.9f, 0.1f, 0.2f), 0.33f, 0.88f);
+    properties.SetColorfulBrightnessBlenderParams(std::move(params));
+    EXPECT_TRUE(properties.IsColorfulBrightnessBlenderValid());
+    modifier.ResetProperties(properties);
+    EXPECT_EQ(properties.GetColorfulBrightnessBlenderParams(), nullptr);
+    EXPECT_FALSE(properties.IsColorfulBrightnessBlenderValid());
 }
 } // namespace OHOS::Rosen

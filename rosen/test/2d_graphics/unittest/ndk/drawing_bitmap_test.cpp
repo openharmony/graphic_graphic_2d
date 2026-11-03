@@ -20,7 +20,7 @@
 #include "drawing_types.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -39,12 +39,7 @@ protected:
     OH_Drawing_Bitmap* bitmap_ = nullptr;
 };
 
-void NativeDrawingBitmapTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingBitmapTest::SetUpTestCase() {}
 void NativeDrawingBitmapTest::TearDownTestCase() {}
 void NativeDrawingBitmapTest::SetUp()
 {

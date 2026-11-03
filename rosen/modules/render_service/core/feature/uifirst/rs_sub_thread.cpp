@@ -25,6 +25,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -181,6 +182,10 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         return;
     }
 
+    if (UNLIKELY(RSFrameStatsCollection::IsEnabled())) {
+        RSFrameStatsCollection::GetInstance().Increment(
+            FrameStatsCounter::ToIndex(FrameStatsCounter::RSSubThread::TotalFrames));
+    }
     NodeId nodeId = nodeDrawable->GetId();
     auto& rsSubThreadCache = nodeDrawable->GetRsSubThreadCache();
     rsSubThreadCache.SetSubThreadSkip(false);
@@ -240,19 +245,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        renderContext_->CreateShareContext();
-        auto gpuContext = std::make_shared<Drawing::GPUContext>();
-        Drawing::GPUContextOptions options;
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-
-        if (!gpuContext->BuildFromGL(options)) {
-            RS_LOGE("nullptr gpuContext is null");
-            return nullptr;
-        }
-        return gpuContext;
+        return renderContext_->CreateDrawingGPUContext();
     }
 #endif
 
@@ -261,10 +254,11 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();
-        std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
+        auto& vkContext = RsVulkanContext::Get(renderContext_->GetType());
+        std::string vulkanVersion = vkContext.GetRsVulkanInterface()->GetVulkanVersion();
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
+        if (!gpuContext->BuildFromVK(vkContext.GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
@@ -275,8 +269,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     return nullptr;
 }
 
-std::pair<bool, float> RSSubThread::GetHdrParams(RSSurfaceRenderParams* renderParams, bool isHdrSurface,
-    NodeId surfaceId)
+std::pair<bool, float> RSSubThread::GetHdrParams(RSSurfaceRenderParams* renderParams, bool isHdrSurface)
 {
     bool backToFP16 = true;
     float hdrScale = 1.0f;
@@ -286,33 +279,17 @@ std::pair<bool, float> RSSubThread::GetHdrParams(RSSurfaceRenderParams* renderPa
         RS_LOGE("RSSubThread::GetHdrParams ancestorDrawable is nullptr");
         return {backToFP16, hdrScale};
     }
-
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
     if (!screenDrawable) {
         RS_LOGE("RSSubThread::GetHdrParams screenDrawable is nullptr");
         return {backToFP16, hdrScale};
     }
-
     auto* screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     if (!screenParams) {
         RS_LOGE("RSSubThread::GetHdrParams screenParams is nullptr");
         return {backToFP16, hdrScale};
     }
-
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto renderNode = nodeMap.GetRenderNode<const RSSurfaceRenderNode>(surfaceId);
-    if (!renderNode) {
-        RS_LOGE("RSSubThread::GetHdrParams surfaceNode is nullptr");
-        return {backToFP16, hdrScale};
-    }
-    
-    auto displayNodeId = renderNode->GetLogicalDisplayNodeId();
-    auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId);
-    if (!displayNode) {
-        RS_LOGE("RSSubThread::GetHdrParams displayNode is nullptr");
-        return {backToFP16, hdrScale};
-    }
-    backToFP16 = RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams);
+    backToFP16 = RSHdrUtil::NeedBackToFP16(renderParams->GetHasDstAlphaBlendModeNode(), screenParams);
 #endif
     return {backToFP16, backToFP16 ? 1.0 : screenParams->GetHdrBrightnessRatio()};
 }
@@ -328,13 +305,13 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     bool isHdrSurface = false;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     float hdrScale = 1.0f;
-    
+
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(rsSubThreadCache.GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
     if (surfaceParams != nullptr) {
         isHdrSurface = surfaceParams->GetHDRPresent();
         if (isHdrSurface && !isScRGBEnable) {
-            auto params = GetHdrParams(surfaceParams, isHdrSurface, nodeDrawable->GetId());
+            auto params = GetHdrParams(surfaceParams, isHdrSurface);
             hdrScale = params.second;
         }
     }
@@ -375,7 +352,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->Save();
     // Get uifirst scaling parameter and apply scaling to canvas if enabled
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    // Apply uifrst scale ratio to canvas when IsUifirstScale is enabled
+    // Apply uifirst scale ratio to canvas when IsUifirstScale is enabled
     if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);
@@ -387,7 +364,8 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !rsSubThreadCache.IsHighPostPriority()) ? false : true;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), acquireFence, optFenceWait);
+    RSUniRenderUtil::OptimizedFlushAndSubmit(
+        renderContext_->GetType(), cacheSurface, grContext_.get(), acquireFence, optFenceWait);
     bufferGuard.SetAcquireFence(acquireFence);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     rsSubThreadCache.UpdateBackendTexture();

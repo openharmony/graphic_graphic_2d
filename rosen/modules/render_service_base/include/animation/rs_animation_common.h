@@ -31,8 +31,11 @@ static constexpr int CONTENT_TRANSITION_DURATION_MS = 200;
 enum class RotationMode {
     ROTATE_NONE,
     ROTATE_AUTO,
-    ROTATE_AUTO_REVERSE
+    ROTATE_AUTO_REVERSE,
 };
+
+RotationMode SafeCastRotationMode(int32_t val,
+    RotationMode defaultVal = RotationMode::ROTATE_NONE);
 
 enum class RSInteractiveAnimationPosition : uint8_t {
     START,
@@ -54,6 +57,17 @@ enum class ImplicitAnimationParamType {
 enum class ContentTransitionType : uint8_t {
     IDENTITY = 0,
     OPACITY,
+};
+
+enum class RSAnimationType {
+    UNKNOWN,
+    CURVE,
+    KEYFRAME,
+    PATH,
+    SPRING,
+    INTERPOLATING_SPRING,
+    PARTICLE,
+    DUMMY,
 };
 
 } // namespace Rosen

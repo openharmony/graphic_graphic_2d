@@ -19,7 +19,7 @@
 #include "drawing_color.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -36,12 +36,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingColorTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingColorTest::SetUpTestCase() {}
 void NativeDrawingColorTest::TearDownTestCase() {}
 void NativeDrawingColorTest::SetUp() {}
 void NativeDrawingColorTest::TearDown() {}

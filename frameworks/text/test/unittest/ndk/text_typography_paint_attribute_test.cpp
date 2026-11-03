@@ -16,6 +16,7 @@
 #include "drawing_font_collection.h"
 #include "drawing_text_typography.h"
 #include "gtest/gtest.h"
+#include "rosen_text/ref_count_holder.h"
 #include "typography.h"
 
 using namespace testing;
@@ -42,7 +43,7 @@ protected:
 
 static Typography* ConvertToOriginalText(OH_Drawing_Typography* style)
 {
-    return reinterpret_cast<Typography*>(style);
+    return reinterpret_cast<RefCountedHolder<Typography>*>(style)->Get();
 }
 
 void NdkTypographyPaintAttributeTest::SetUp()

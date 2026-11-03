@@ -19,15 +19,10 @@
 #include <thread>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "ui_effect/effect/include/brightness_blender.h"
-#include "ui_effect/effect/include/color_gradient_effect_para.h"
-#include "ui_effect/filter/include/filter_content_light_para.h"
-#include "ui_effect/filter/include/filter_displacement_distort_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "parameters.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -35,16 +30,16 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
-#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
-#include "parameters.h"
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
-#include "ui/rs_node.h"
+#include "render/rs_shadow.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -4713,6 +4708,19 @@ HWTEST_F(RSNodeTest, SetandGetShadowDisableSDFBlur002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetShadowClipType001
+ * @tc.desc: Test setting shadow clip type with BOUNDS_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetShadowClipType001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
+    rsNode->SetShadowClipType(static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
+}
+
+/**
  * @tc.name: SetandGetForegroundEffectRadius001
  * @tc.desc:
  * @tc.type:FUNC
@@ -4911,22 +4919,69 @@ HWTEST_F(RSNodeTest, SetIsCrossNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTextureExport
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: SetTextureExportTest001
+ * @tc.desc: Branches: isTextureExportNode==isTextureExportNode_ true (early return);
+ *           isTextureExportNode!=isTextureExportNode_ false (continue);
+ *           !IsUniRenderEnabled() true (early return after setting flag)
+ * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, SetTextureExport, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetTextureExportTest001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->isTextureExportNode_ = true;
     rsNode->SetTextureExport(true);
     ASSERT_TRUE(rsNode->IsTextureExportNode());
-
     rsNode->SetTextureExport(false);
-    ASSERT_EQ(rsNode->IsTextureExportNode(), false);
+    ASSERT_FALSE(rsNode->IsTextureExportNode());
+}
 
+/**
+ * @tc.name: SetTextureExportTest002
+ * @tc.desc: Branches: exportTypeChangedCallback_ set (callback invoked);
+ *           exportTypeChangedCallback_ null (callback skipped);
+ *           GetNodeState()==INACTIVE (RebuildTree, return)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetTextureExportTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->InitUniRenderEnabled();
+    bool callbackCalled = false;
+    rsNode->SetExportTypeChangedCallback([&callbackCalled](bool) { callbackCalled = true; });
+    rsNode->nodeState_ = RSNodeState::INACTIVE;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(callbackCalled);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
+    ASSERT_EQ(rsNode->GetNodeState(), RSNodeState::INACTIVE);
+    rsNode->exportTypeChangedCallback_ = nullptr;
+    rsNode->isTextureExportNode_ = false;
+    rsNode->nodeState_ = RSNodeState::ACTIVE;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
+}
+
+/**
+ * @tc.name: SetTextureExportTest003
+ * @tc.desc: Branches: create render node condition true (CreateRenderNodeForTextureExportSwitch);
+ *           create render node condition false (skip);
+ *           !isTextureExportNode_ true (SetUIContextToken called)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetTextureExportTest003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->InitUniRenderEnabled();
+    rsNode->hasCreateRenderNodeInRT_ = false;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(rsNode->hasCreateRenderNodeInRT_);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
     rsNode->isTextureExportNode_ = true;
+    rsNode->hasCreateRenderNodeInRS_ = true;
     rsNode->SetTextureExport(false);
-    EXPECT_TRUE(rsNode->children_.empty());
+    ASSERT_FALSE(rsNode->IsTextureExportNode());
 }
 
 /**
@@ -6389,6 +6444,76 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNodeNameTest002
+ * @tc.desc: test SetNodeName with LTPO node
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto name = rsNode->GetNodeName();
+    EXPECT_EQ(name, "");
+
+    auto srcAppBufferList = std::atomic_load(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_);
+    std::string ltpoNodeFlag{"ltpoNodeFlag"};
+    auto testList = std::make_shared<const std::vector<std::string>>(std::vector<std::string>{ltpoNodeFlag});
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+    std::string normalNodeFlag{"normalNodeFlag"};
+    rsNode->SetNodeName("");
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    rsNode->SetNodeName(normalNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    rsNode->SetNodeName(ltpoNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, true);
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_, srcAppBufferList);
+}
+
+/**
+ * @tc.name: SetNodeNameTest003
+ * @tc.desc: test SetNodeName early return when name is same
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string name = "sameName";
+    rsNode->SetNodeName(name);
+    EXPECT_EQ(rsNode->GetNodeName(), name);
+
+    rsNode->isDrawNode_ = false;
+    rsNode->SetNodeName(name);
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    EXPECT_EQ(rsNode->GetNodeName(), name);
+}
+
+/**
+ * @tc.name: SetNodeNameTest004
+ * @tc.desc: test SetNodeName skips SetDrawNode when already drawn
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto srcAppBufferList = std::atomic_load(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_);
+
+    std::string ltpoFlag{"ltpoFlag004"};
+    auto testList = std::make_shared<const std::vector<std::string>>(std::vector<std::string>{ltpoFlag});
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    rsNode->isDrawNode_ = true;
+    rsNode->SetNodeName(ltpoFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, true);
+    EXPECT_EQ(rsNode->GetNodeName(), ltpoFlag);
+
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_, srcAppBufferList);
+}
+
+/**
  * @tc.name: HybridRender001
  * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
  * @tc.type: FUNC
@@ -7596,9 +7721,13 @@ HWTEST_F(RSNodeTest, AddCrossParentChild, TestSize.Level1)
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
+/**
  * @tc.name: RemoveCrossParentChildTest001
  * @tc.desc: Branch A - child is nullptr, function returns early, children_ unchanged
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
+{
     struct RSDisplayNodeConfig config;
     auto displayNode = RSDisplayNode::Create(config);
     ASSERT_NE(displayNode, nullptr);
@@ -7609,6 +7738,7 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
     displayNode->RemoveCrossParentChild(nullptr, newParent);
     EXPECT_EQ(displayNode->children_.size(), countBefore);
 }
+
 /**
  * @tc.name: RemoveCrossParentChildTest002
  * @tc.desc: Branch B - newParent is nullptr, function returns early, children_ unchanged
@@ -7625,6 +7755,7 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest002, TestSize.Level1)
     displayNode->RemoveCrossParentChild(child, nullptr);
     EXPECT_EQ(displayNode->children_.size(), countBefore);
 }
+
 /**
  * @tc.name: RemoveCrossParentChildTest003
  * @tc.desc: Branch C - this is not a DisplayNode, returns early, children_ unchanged
@@ -7657,14 +7788,29 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChildTest004, TestSize.Level1)
     displayNode->children_.push_back(child);
     displayNode->RemoveCrossParentChild(child, newParent);
     EXPECT_EQ(child->GetParent(), newParent);
+}
 
 /**
- * @tc.name: AddCrossScreenChild
+ * @tc.name: SetIsCrossNodeTest001
+ * @tc.desc: Test SetIsCrossNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetIsCrossNodeTest001, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetIsCrossNode(true);
+    displayNode->SetIsCrossNode(false);
+}
+
+/**
+ * @tc.name: AddCrossScreenChildTest001
  * @tc.desc: test results of AddCrossScreenChild
  * @tc.type: FUNC
  * @tc.require: issueIBF3VR
  */
-HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, AddCrossScreenChildTest001, TestSize.Level1)
 {
     struct RSDisplayNodeConfig displayNodeConfig;
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
@@ -7679,12 +7825,12 @@ HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
 }
 
 /**
- * @tc.name: RemoveCrossScreenChild
+ * @tc.name: RemoveCrossScreenChildTest001
  * @tc.desc: test results of RemoveCrossScreenChild
  * @tc.type: FUNC
  * @tc.require: issueIBF3VR
  */
-HWTEST_F(RSNodeTest, RemoveCrossScreenChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, RemoveCrossScreenChildTest001, TestSize.Level1)
 {
     struct RSDisplayNodeConfig config;
     auto displayNode = RSDisplayNode::Create(config);
@@ -8164,6 +8310,34 @@ HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     auto res = rsNode->GetIsDrawn();
     ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ContainerNodeDrawFlagByAffectsRendering
+ * @tc.desc: container node stays undrawn for non-rendering properties and becomes drawn otherwise
+ * @tc.type: FUNC
+ * @tc.require: issue26598
+ */
+HWTEST_F(RSNodeTest, ContainerNodeDrawFlagByAffectsRendering, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // Default valued properties do not affect rendering, the container node must stay undrawn.
+    rsNode->SetAlpha(1.0f);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    rsNode->SetFrame(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    rsNode->SetBackgroundColor(0x00000000);
+    EXPECT_FALSE(rsNode->GetIsDrawn());
+
+    // A rendering-affecting property must mark the node drawn.
+    rsNode->SetAlpha(0.5f);
+    EXPECT_TRUE(rsNode->GetIsDrawn());
 }
 
 /**
@@ -9214,26 +9388,103 @@ HWTEST_F(RSNodeTest, HasCreateRenderNodeInRS_DefaultTrue, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTextureExport_BasicFlow
- * @tc.desc: Test SetTextureExport toggles texture export flag without crashing.
+ * @tc.name: FlushCachedModifiersRecursively_TraversesAllChildren001
+ * @tc.desc: Test FlushCachedModifiersRecursively flushes modifiers on all nodes in the subtree
  * @tc.type: FUNC
- * @tc.require: issues30915
  */
-HWTEST_F(RSNodeTest, SetTextureExport_BasicFlow, TestSize.Level1)
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_TraversesAllChildren001, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    EXPECT_FALSE(rsNode->IsTextureExportNode());
+    // Build a tree: root -> child1 -> grandChild, root -> child2
+    auto root = CreateCanvasNode();
+    auto child1 = CreateCanvasNode();
+    auto child2 = CreateCanvasNode();
+    auto grandChild = CreateCanvasNode();
+    root->AddChild(child1, -1);
+    root->AddChild(child2, -1);
+    child1->AddChild(grandChild, -1);
 
-    rsNode->SetTextureExport(true);
-    EXPECT_TRUE(rsNode->IsTextureExportNode());
+    // Add modifiers with cached state to each node
+    auto rootModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    rootModifier->cachedPropertyId_ = 1;
+    rootModifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    rootModifier->node_ = root;
+    root->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(rootModifier);
 
-    // Duplicate call with the same value should be a no-op.
-    rsNode->SetTextureExport(true);
-    EXPECT_TRUE(rsNode->IsTextureExportNode());
+    auto child1Modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    child1Modifier->cachedPropertyId_ = 2;
+    child1Modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    child1Modifier->node_ = child1;
+    child1->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(child1Modifier);
 
-    rsNode->SetTextureExport(false);
-    EXPECT_FALSE(rsNode->IsTextureExportNode());
+    auto child2Modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    child2Modifier->cachedPropertyId_ = 3;
+    child2Modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    child2Modifier->node_ = child2;
+    child2->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(child2Modifier);
+
+    auto grandChildModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    grandChildModifier->cachedPropertyId_ = 4;
+    grandChildModifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    grandChildModifier->node_ = grandChild;
+    grandChild->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(grandChildModifier);
+
+    // Verify caches are set before flush
+    ASSERT_NE(rootModifier->cachedPropertyId_, 0);
+    ASSERT_NE(child1Modifier->cachedPropertyId_, 0);
+    ASSERT_NE(child2Modifier->cachedPropertyId_, 0);
+    ASSERT_NE(grandChildModifier->cachedPropertyId_, 0);
+
+    // Call FlushCachedModifiersRecursively on root
+    bool result = root->FlushCachedModifiersRecursively();
+    EXPECT_TRUE(result);
+
+    // All modifiers in the subtree should be flushed
+    EXPECT_EQ(rootModifier->cachedPropertyId_, 0);
+    EXPECT_EQ(child1Modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(child2Modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(grandChildModifier->cachedPropertyId_, 0);
+    EXPECT_EQ(rootModifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(child1Modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(child2Modifier->cachedDrawCmdList_, nullptr);
+    EXPECT_EQ(grandChildModifier->cachedDrawCmdList_, nullptr);
 }
 
+/**
+ * @tc.name: FlushCachedModifiersRecursively_SingleNodeNoCrash001
+ * @tc.desc: Test FlushCachedModifiersRecursively with single node (no children) does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_SingleNodeNoCrash001, TestSize.Level1)
+{
+    auto node = CreateCanvasNode();
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    modifier->cachedPropertyId_ = 10;
+    modifier->cachedDrawCmdList_ = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    modifier->node_ = node;
+    node->modifiersNG_[1] = std::static_pointer_cast<ModifierNG::RSModifier>(modifier);
+
+    ASSERT_NE(modifier->cachedPropertyId_, 0);
+    bool result = node->FlushCachedModifiersRecursively();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(modifier->cachedPropertyId_, 0);
+    EXPECT_EQ(modifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedModifiersRecursively_EmptyModifiersNoCrash001
+ * @tc.desc: Test FlushCachedModifiersRecursively with nodes having no modifiers does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_EmptyModifiersNoCrash001, TestSize.Level1)
+{
+    auto root = CreateCanvasNode();
+    auto child = CreateCanvasNode();
+    root->AddChild(child, -1);
+    ASSERT_TRUE(root->modifiersNG_.empty());
+    ASSERT_TRUE(child->modifiersNG_.empty());
+    bool result = root->FlushCachedModifiersRecursively();
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(root->modifiersNG_.empty());
+    EXPECT_TRUE(child->modifiersNG_.empty());
+}
 } // namespace OHOS::Rosen

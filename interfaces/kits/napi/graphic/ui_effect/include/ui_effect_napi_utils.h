@@ -95,6 +95,21 @@ inline constexpr napi_type_tag MASK_NAPI_TYPE_TAG = {
     .upper = 0x9f12af0784a90fc9
 };
 
+inline constexpr napi_type_tag VISUAL_EFFECT_TYPE_TAG = {
+    .lower = 0x1c80317fa3b1799d,
+    .upper = 0xbdd640fb06671ad1
+};
+
+inline constexpr napi_type_tag FILTER_TYPE_TAG = {
+    .lower = 0x3eb13b9046685257,
+    .upper = 0x23b8c1e9392456de
+};
+
+inline constexpr napi_type_tag BLENDER_TYPE_TAG = {
+    .lower = 0x1a3d1fa7bc8960a9,
+    .upper = 0xbd9c66b3ad3c2d6d
+};
+
 constexpr uint32_t NUM_0 = 0;
 constexpr uint32_t NUM_1 = 1;
 constexpr uint32_t NUM_2 = 2;
@@ -128,7 +143,6 @@ constexpr uint32_t NUM_29 = 29;
 constexpr uint32_t NUM_30 = 30;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NO_PERMISSION = 201;
-constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 constexpr int32_t ERR_INVALID_PARAM = 401;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);
@@ -152,11 +166,8 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 class UIEffectNapiUtils {
 public:
     static napi_valuetype GetType(napi_env env, napi_value root);
-    static bool IsSystemApp();
-    static bool IsFormRenderServiceCall();
     static bool CheckPermission(const std::string& permission);
-private:
-    static std::string GetBundleName();
+    static bool CheckNullOrUndefined(napi_env env, napi_value argv, const char* paramName);
 };
 } // namespace Rosen
 } // namespace OHOS

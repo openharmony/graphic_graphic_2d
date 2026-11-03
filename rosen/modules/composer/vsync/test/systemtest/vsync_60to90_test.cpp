@@ -173,7 +173,7 @@ void VSync60To90Test::Process1()
 
     int changeRefreshRate;
     std::vector<std::pair<uint64_t, uint32_t>> refreshRates;
-    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates;
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRefreshRates;
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset;
     int64_t rsVsyncCount;
     uint32_t generatorRefreshRate;
@@ -192,10 +192,10 @@ void VSync60To90Test::Process1()
         changeRefreshRate = 0;
         read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
         refreshRates = {{1, 60}}; // 60hz
-        listenerRefreshRates = {
+        listenerRefreshRates = {{
             .cb = appController,
             .refreshRates = refreshRates
-        };
+        }};
         listenerPhaseOffset = {
             .cb = appController,
             .phaseByPulseNum = 3 // phase is 3 pulse
@@ -240,10 +240,10 @@ void VSync60To90Test::Process1()
         changeRefreshRate = 0;
         read(pipeFd[0], &changeRefreshRate, sizeof(changeRefreshRate));
         refreshRates = {{1, 90}}; // 90hz
-        listenerRefreshRates = {
+        listenerRefreshRates = {{
             .cb = appController,
             .refreshRates = refreshRates
-        };
+        }};
         listenerPhaseOffset = {
             .cb = appController,
             .phaseByPulseNum = 1 // phase is 1 pulse

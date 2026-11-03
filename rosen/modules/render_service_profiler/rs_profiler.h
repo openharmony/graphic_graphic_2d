@@ -40,7 +40,7 @@ struct TRACE3D_CORE_API_TABLE;
 
 namespace trace3d::api {
     class DebugScope;
-}
+} // namespace trace3d::api
 
 RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 
@@ -51,10 +51,11 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_RENDER_BEGIN() RSProfiler::OnRenderBegin()
 #define RS_PROFILER_ON_RENDER_END() RSProfiler::OnRenderEnd()
 #define RS_PROFILER_ON_PROCESS_COMMAND() RSProfiler::OnProcessCommand()
+#define RS_PROFILER_ON_GARBAGE_COLLECT(garbage) RSProfiler::OnGarbageCollect(garbage)
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid) RSProfiler::OnCreateConnection(pid)
-#define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) \
-    RSProfiler::OnRemoteRequest(connection, code, data, reply, option)
-#define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data) RSProfiler::OnRecvParcel(parcel, data)
+#define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, parcel, reply, option) \
+    RSProfiler::OnRemoteRequest(connection, code, parcel, reply, option)
+#define RS_PROFILER_GET_CALLING_PID(connection) RSProfiler::GetCallingPid(connection)
 #define RS_PROFILER_COPY_PARCEL(parcel) RSProfiler::CopyParcel(parcel)
 #define RS_PROFILER_IS_PARCEL_MOCK(parcel) RSProfiler::IsPlaybackParcel(parcel)
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id) id = RSProfiler::PatchNodeId(parcel, id)
@@ -112,11 +113,10 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage) \
     RSProfiler::LogShaderCall(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() RSProfiler::IsRecordingMode()
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
-    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
+#define RS_PROFILER_HRP_SERVICE_ENABLED() RSProfiler::IsHrpServiceEnabled()
 #else
 #define Trace3DCoreInitRS() nullptr
 #define RS_PROFILER_GET_RENDER_FRAME_NUMBER() 0
@@ -126,9 +126,10 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ON_RENDER_BEGIN()
 #define RS_PROFILER_ON_RENDER_END()
 #define RS_PROFILER_ON_PROCESS_COMMAND()
+#define RS_PROFILER_ON_GARBAGE_COLLECT(garbage)
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid)
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) 0
-#define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data)
+#define RS_PROFILER_GET_CALLING_PID(connection) GetCallingPid()
 #define RS_PROFILER_COPY_PARCEL(parcel) std::make_shared<MessageParcel>()
 #define RS_PROFILER_IS_PARCEL_MOCK(parcel) false
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id)
@@ -183,10 +184,10 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_ADD_MESA_BLUR_METRICS(area)
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() false
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
+#define RS_PROFILER_HRP_SERVICE_ENABLED() false
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -206,8 +207,11 @@ namespace OHOS::Rosen {
 class RSRenderPipeline;
 class RSMainThread;
 class RSIServiceToRenderConnection;
+class RSServiceToRenderConnectionStub;
 class RSIClientToServiceConnection;
+class RSClientToServiceConnectionStub;
 class RSIClientToRenderConnection;
+class RSClientToRenderConnectionStub;
 class RSTransactionData;
 class RSRenderNode;
 class RSRenderModifier;
@@ -244,7 +248,7 @@ private:
     std::unordered_set<NodeId> unfinishedNodeList;
 
 public:
-    ProfilerMarshallingJob() : marshallingTick(nullptr), offsetNodes(0) {}
+    explicit ProfilerMarshallingJob(std::function<void(NodeId, bool)>&& tick) : marshallingTick(std::move(tick)) {}
     void AddNode(NodeId nodeId)
     {
         unfinishedNodeList.insert(nodeId);
@@ -493,18 +497,15 @@ public:
     static void OnParallelRenderEnd(uint32_t frameNumber);
     static void OnProcessCommand();
 
-    // see RSRenderService::CreateConnection
     static void OnCreateConnection(pid_t pid);
 
-    static uint64_t OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSClientToRenderConnectionStub* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
-    static uint64_t OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSClientToServiceConnectionStub* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
-    static uint64_t OnRemoteRequest(RSIServiceToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSServiceToRenderConnectionStub* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
-
-    // see UnmarshalThread::RecvParcel
-    static void OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data);
+    static pid_t GetCallingPid(RSClientToRenderConnectionStub* connection);
 
     RSB_EXPORT static std::shared_ptr<MessageParcel> CopyParcel(const MessageParcel& parcel);
     RSB_EXPORT static uint64_t PatchTime(uint64_t time);
@@ -523,6 +524,8 @@ public:
     {
         return static_cast<T>(PatchPlainPid(parcel, static_cast<pid_t>(pid)));
     }
+
+    RSB_EXPORT static void OnGarbageCollect(DrawableV2::RSRenderNodeDrawableAdapter*& drawable);
 
     RSB_EXPORT static void TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber);
     RSB_EXPORT static void TransactionUnmarshallingEnd(const Parcel& parcel, uint32_t parcelNumber);
@@ -550,17 +553,15 @@ public:
     RSB_EXPORT static uint32_t GetRenderFrameNumber();
     RSB_EXPORT static bool ShouldBlockHWCNode();
 
-    RSB_EXPORT static void AnimeGetStartTimesFromFile(
-        std::unordered_map<AnimationId, std::vector<int64_t>>& animeMap);
-    RSB_EXPORT static std::unordered_map<AnimationId, std::vector<int64_t>> &AnimeGetStartTimes();
+    RSB_EXPORT static std::unordered_map<AnimationId, std::vector<int64_t>>& AnimeGetStartTimes();
     RSB_EXPORT static std::vector<std::pair<uint64_t, int64_t>> AnimeGetStartTimesFlattened(double recordStartTime);
     RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
     RSB_EXPORT static void MarshallingTouch(NodeId nodeId);
 
-    RSB_EXPORT static void SendMessageBase(const std::string& msg);
-    RSB_EXPORT static std::string ReceiveMessageBase();
+    RSB_EXPORT static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)))
+    __attribute__((__nonnull__(1)));
     RSB_EXPORT static RSProfilerLogMsg ReceiveRSLogBase();
     RSB_EXPORT static void SendRSLogBase(RSProfilerLogType type, const std::string& msg);
     RSB_EXPORT static void AddLightBlursMetrics(uint32_t areaBlurs);
@@ -579,15 +580,14 @@ public:
     RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
 
-public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsPlaybackParcel(const Parcel& parcel);
-    RSB_EXPORT static bool IsSharedMemoryEnabled();
+    RSB_EXPORT static bool IsThreadSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
 
     RSB_EXPORT static Mode GetMode();
-    RSB_EXPORT static SubMode GetSubMode();
+    RSB_EXPORT static SubMode GetThreadSubMode();
     RSB_EXPORT static bool IsNoneMode();
     RSB_EXPORT static bool IsReadMode();
     RSB_EXPORT static bool IsReadEmulationMode();
@@ -605,6 +605,8 @@ public:
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
+    RSB_EXPORT static bool IsHrpServiceEnabled();
+    RSB_EXPORT static void SetHrpServiceEnabled(bool enabled);
     RSB_EXPORT static void JobMarshallingKillPid(pid_t pid);
     RSB_EXPORT static void JobMarshallingKillPidEnd();
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
@@ -618,7 +620,7 @@ public:
     RSB_EXPORT static uint64_t GetParseTransactionDataEndCounter();
 
     RSB_EXPORT static void RsMetricClear();
-    RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
+    RSB_EXPORT static void RsMetricSet(const std::string& name, std::string value);
     RSB_EXPORT static std::string RsMetricGetList();
  
     RSB_EXPORT static void RSLogOutput(RSProfilerLogType type, const char* format, va_list argptr);
@@ -635,8 +637,7 @@ public:
 private:
     static void StartNetworkThread();
 
-    static uint64_t ProcessRemoteRequest(
-        pid_t pid, uint32_t code, MessageParcel& parcel, MessageParcel& reply, MessageOption& option);
+    static uint64_t ProcessRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
     static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
 
     static const char* GetProcessNameByPid(int pid);
@@ -645,8 +646,8 @@ private:
 
     RSB_EXPORT static void MarkReplayNodesDirty(RSContext& context);
 
-    RSB_EXPORT static void EnableSharedMemory();
-    RSB_EXPORT static void DisableSharedMemory();
+    RSB_EXPORT static void EnableThreadSharedMemory();
+    RSB_EXPORT static void DisableThreadSharedMemory();
 
     RSB_EXPORT static bool BaseSetPlaybackSpeed(double speed);
     RSB_EXPORT static double BaseGetPlaybackSpeed();
@@ -676,9 +677,8 @@ private:
     static void BetaRecordSetLastParcelTime();
 
     RSB_EXPORT static void SetMode(Mode mode);
-    RSB_EXPORT static void SetSubMode(SubMode mode);
+    RSB_EXPORT static void SetThreadSubMode(SubMode mode);
     RSB_EXPORT static bool IsEnabled();
-    RSB_EXPORT static bool IsHrpServiceEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
@@ -702,22 +702,23 @@ private:
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
     // RSRenderNodeMap
-    RSB_EXPORT static void FilterForPlayback(RSContext& context, pid_t pid);
     RSB_EXPORT static void FilterMockNode(RSContext& context);
 
+    RSB_EXPORT static std::vector<RSRenderNode::SharedPtr> GetRenderNodes(const RSContext& context);
     RSB_EXPORT static size_t GetRenderNodeCount(const RSContext& context);
     RSB_EXPORT static NodeId GetRandomSurfaceNode(const RSContext& context);
 
     RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
-        std::shared_ptr<ProfilerMarshallingJob> job);
+        const std::shared_ptr<ProfilerMarshallingJob>& job);
     RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         uint32_t depth = 0u);
     RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
     RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdModifiers, bool isBetaRecording);
-    RSB_EXPORT static bool MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data,
-        bool skipDrawCmdModifiers, bool isBetaRecording);
+    RSB_EXPORT static bool MarshalDrawCmdModifier(
+        const ModifierNG::RSRenderModifier& modifier, bool skipImages, std::stringstream& data);
+    RSB_EXPORT static bool MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion,
@@ -774,9 +775,6 @@ private:
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
 
-    RSB_EXPORT static uint32_t PerfTreeFlatten(std::shared_ptr<RSRenderNode> node,
-        std::vector<std::pair<NodeId, uint32_t>>& nodeSet, std::unordered_map<NodeId, uint32_t>& mapNode2Count,
-        uint32_t depth);
     RSB_EXPORT static uint32_t CalcNodeCmdListCount(RSRenderNode& node);
     RSB_EXPORT static void CalcPerfNodePrepare(NodeId nodeId, uint32_t timeCount, bool excludeDown);
     RSB_EXPORT static void CalcPerfNodePrepareLo(const std::shared_ptr<RSRenderNode>& node, bool forceExcludeNode);
@@ -790,7 +788,7 @@ private:
     static bool IsPlaying();
 
     static bool IsLoadSaveFirstScreenInProgress();
-    static std::string FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordingStarted = false);
+    static std::string FirstFrameMarshalling(uint32_t fileVersion, bool betaRecord = false);
     static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOn();
     static void HiddenSpaceTurnOff();
@@ -798,7 +796,6 @@ private:
     static std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> GetLogicalDisplayNodes();
     static uint64_t GetRootNodeId();
 
-    static void ScheduleTask(std::function<void()>&& task);
     static void RequestNextVSync();
     static void AwakeRenderServiceThread();
     static void ResetAnimationStamp();
@@ -806,7 +803,6 @@ private:
     static void CreateMockConnection(pid_t pid);
     static void PurgeMockConnections();
     static sptr<IRemoteObject> GetMockConnection(pid_t pid);
-    static pid_t GetConnectionPid(const RSIClientToRenderConnection* connection);
 
     static std::shared_ptr<RSRenderNode> GetRenderNode(uint64_t id);
     static void ProcessSendingRdc();
@@ -825,9 +821,6 @@ private:
     static void Invoke(const std::vector<std::string>& line);
     static void ProcessPauseMessage();
     static void ProcessCommands();
-    // Deprecated: Use SendMessage instead
-    static void Respond(const std::string& message);
-    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void DumpSystemParameters(const ArgList& args);
@@ -915,11 +908,17 @@ private:
     static void TestLoadSubTree(const ArgList& args);
     static void TestClearSubTree(const ArgList& args);
 
-    static void MarshalSelfDrawingNodes(bool isBetaRecording);
+    static void MarshalSelfDrawingNodes();
     static void UnmarshalSelfDrawingNodes();
 
     static void InitTrace3D(const ArgList& args);
     static void StopTrace3D();
+
+    RSB_EXPORT static void PostMainThreadTask(std::function<void()>&& task);
+    RSB_EXPORT static void PostMainThreadTaskAndWait(std::function<void()>&& task);
+    RSB_EXPORT static void PostRenderThreadTask(std::function<void()>&& task);
+    RSB_EXPORT static void PostRenderThreadTaskAndWait(std::function<void()>&& task);
+
 private:
     using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
     static const CommandRegistry COMMANDS;
@@ -929,7 +928,7 @@ private:
     static RSContext* context_;
 
     static sptr<RSIServiceToRenderConnection> serviceToRenderConnection_;
-    using ConnectionList = std::vector<sptr<RSIClientToRenderConnection>>;
+    using ConnectionList = std::unordered_map<pid_t, sptr<RSIClientToRenderConnection>>;
     static ConnectionList connections_;
     static std::mutex connectionMutex_;
 
@@ -963,6 +962,13 @@ private:
     using LogicalDisplayChildren =
         std::unordered_map<std::shared_ptr<RSLogicalDisplayRenderNode>, std::vector<RSRenderNode::SharedPtr>>;
     RSB_EXPORT static LogicalDisplayChildren displayChildren_;
+
+    using TaskRunner = std::function<void(std::function<void()>&&, bool)>;
+    RSB_EXPORT static TaskRunner mainThreadTaskRunner_;
+    RSB_EXPORT static TaskRunner renderThreadTaskRunner_;
+
+    using MessageSender = std::function<void(const std::string&)>;
+    RSB_EXPORT static MessageSender messageSender_;
 };
 
 } // namespace OHOS::Rosen

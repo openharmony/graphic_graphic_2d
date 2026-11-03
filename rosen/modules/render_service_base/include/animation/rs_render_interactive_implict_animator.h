@@ -45,7 +45,7 @@ public:
         InteractiveImplictAnimatorId id, const std::weak_ptr<RSContext>& context = {});
     virtual ~RSRenderInteractiveImplictAnimator() = default;
 
-    void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations);
+    virtual void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations);
 
     virtual void PauseAnimator();
     virtual void ContinueAnimator();
@@ -81,6 +81,11 @@ public:
     bool IsTimeDriven() const override { return true; }
 
     bool IsRunning() const override { return state_ == GroupAnimatorState::RUNNING; }
+    
+    // Returns true when the target ability is in background and the group is infinite-repeat,
+    // meaning OnAnimate skips advancement. Callers should treat such animators as not
+    // driving the next vsync to avoid continuous frame refresh while backgrounded.
+    bool IsBackground() const;
 
     const RSAnimationTimingProtocol& GetTimingProtocol() const { return timingProtocol_; }
 
@@ -89,6 +94,7 @@ public:
     void ContinueAnimator() override;
     void FinishAnimator(RSInteractiveAnimationPosition finishPos) override;
     void RemoveActiveChildAnimation(AnimationId animationId);
+    void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations) override;
 
 private:
     bool IsStarted() const { return state_ != GroupAnimatorState::INITIALIZED; }

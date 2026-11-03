@@ -237,6 +237,29 @@ void RSCanvasParagraphPainter::drawRRect(const SkRRect& rrect, const SkColor col
     canvas_->DetachBrush();
 }
 
+void RSCanvasParagraphPainter::drawRRectWithBorder(
+    const SkRRect& rrect, const SkColor fillColor, const SkColor borderColor, const SkScalar borderWidth)
+{
+    Drawing::RoundRect rsRRect = ToDrawingRoundRect(rrect);
+    if (fillColor != 0) {
+        Drawing::Brush brush;
+        brush.SetColor(PaintRecord::ToRSColor(fillColor));
+        brush.SetAntiAlias(false);
+        canvas_->AttachBrush(brush);
+        canvas_->DrawRoundRect(rsRRect);
+        canvas_->DetachBrush();
+    }
+    if (borderColor != 0 && borderWidth > 0) {
+        Drawing::Pen pen;
+        pen.SetColor(PaintRecord::ToRSColor(borderColor));
+        pen.SetWidth(borderWidth);
+        pen.SetAntiAlias(true);
+        canvas_->AttachPen(pen);
+        canvas_->DrawRoundRect(rsRRect);
+        canvas_->DetachPen();
+    }
+}
+
 void RSCanvasParagraphPainter::drawFilledRect(const SkRect& rect, const DecorationStyle& decorStyle)
 {
     Drawing::Paint paint = ConvertDecorStyle(decorStyle, Drawing::Paint::PAINT_FILL);

@@ -40,11 +40,6 @@ bool RSRenderGroupCacheDrawable::IsDrawingExcludedSubTreeForCache()
     return drawExcludedSubTreeForCache_;
 }
 
-void RSRenderGroupCacheDrawable::SetLastFrameCacheRootHasExcludedChild(bool hasFilter)
-{
-    isLastFrameCacheRootHasExcludedChild_ = hasFilter;
-}
-
 void RSRenderGroupCacheDrawable::SetRenderGroupCachedSurface(const std::shared_ptr<Drawing::Surface>& surface)
 {
     renderGroupCachedSurface_ = surface;

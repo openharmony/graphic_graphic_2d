@@ -21,6 +21,7 @@
 
 using namespace OHOS;
 
+#define MAX_VSYNC_NAME_LENGTH 512
 namespace {
 struct NativeVSync {
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
@@ -68,6 +69,7 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
         VLOGE("name is nullptr, please check");
         return nullptr;
     }
+    length = length >= MAX_VSYNC_NAME_LENGTH ? MAX_VSYNC_NAME_LENGTH : length;
     std::string vsyncName(name, length);
     NativeVSync* nativeVSync = new NativeVSync;
     if (nativeVSync == nullptr) {

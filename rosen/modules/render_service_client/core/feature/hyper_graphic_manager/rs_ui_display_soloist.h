@@ -93,9 +93,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventHandler> subVsyncHandler_ = nullptr;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> subReceiver_ = nullptr;
-#ifdef RS_ENABLE_GPU
     bool hasInitVsyncReceiver_ = false;
-#endif
 
     int32_t sourceVsyncRate_ = 0;
     int32_t drawFPS_ = 0;
@@ -111,11 +109,9 @@ private:
     std::mutex mtx_;
     bool hasRequestedVsync_ = false;
     bool destroyed_ = false;
-    std::string vsyncTimeoutTaskName_;
-#ifdef RS_ENABLE_GPU
+    std::string vsyncTimeoutTaskName_ = "";
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
-#endif
 
     std::mutex callbackMutex_;
     std::pair<DisplaySoloistOnFrameCallback, void*> callback_;
@@ -162,7 +158,7 @@ private:
     static void OnVsync(TimestampType timestamp, void* client);
     void VsyncCallbackInner(TimestampType timestamp);
     void DispatchSoloistCallback(TimestampType timestamp);
-    VSyncReceiver::FrameCallback managerFrameCallback_{
+    VSyncReceiver::FrameCallback managerFrameCallback_ = {
         .userData_ = this,
         .callback_ = OnVsync,
     };
@@ -178,10 +174,8 @@ private:
     std::mutex mtx_;
     std::mutex dataUpdateMtx_;
     std::string vsyncTimeoutTaskName_ = "soloist_manager_time_out_task";
-#ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
-#endif
 };
 
 } // namespace Rosen

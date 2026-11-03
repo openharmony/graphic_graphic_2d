@@ -38,6 +38,7 @@ namespace OHOS {
 constexpr int NUMBER_TWO = 2;
 constexpr int READ_SIZE = 8192;
 constexpr int MAX_FILE_NAME = 512;
+constexpr size_t MAX_CONFIG_FILE_SIZE = 1024 * 1024;
 #ifdef VERIFY_PLAT_FPGA
 constexpr int SLEEP_TIME_US = 600000;
 #else
@@ -69,6 +70,7 @@ constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
 inline const std::string DEVICE_TYPE_PHONE = "phone";
 inline const std::string DEVICE_TYPE_WEARABLE = "wearable";
+inline const std::string DEVICE_TYPE_2IN1 = "2in1";
 
 inline const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 
@@ -175,10 +177,10 @@ void SortZipFile(ImageStructVec& imgVec);
 bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStructVec& imgVec,
     FrameRateConfig& frameConfig, unsigned long fileSize);
 
-bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& frameConfig);
+bool ParseImageConfig(const char* fileBuffer, size_t totalsize, FrameRateConfig& frameConfig);
 
 bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> imageStruct,
-    int32_t bufferLen, ImageStructVec& imgVec);
+    size_t bufferLen, ImageStructVec& imgVec);
 
 bool CloseZipFile(const unzFile zipFile, bool ret);
 

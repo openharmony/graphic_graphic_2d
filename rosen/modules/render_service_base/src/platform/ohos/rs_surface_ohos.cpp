@@ -19,12 +19,12 @@ namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RenderContext> RSSurfaceOhos::GetRenderContext()
 {
-    return context_;
+    return renderContext_;
 }
 
 void RSSurfaceOhos::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
-    context_ = context;
+    renderContext_ = context;
 }
 
 void RSSurfaceOhos::SetColorSpace(GraphicColorGamut colorSpace)

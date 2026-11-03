@@ -15,6 +15,8 @@
 
 #include "rs_render_connect_parcel_info.h"
 
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.h"
+
 namespace OHOS {
 namespace Rosen {
 bool ReplyToRenderInfo::Marshalling(Parcel& data) const
@@ -29,10 +31,7 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
     if (!message->WriteRemoteObject(vsyncConn_)) {
         return false;
     }
-    if (!RSIpcPersistenceManager::Marshalling(data, *replayData_)) {
-        return false;
-    }
-    return true;
+    return RSIpcPersistenceManager::Marshalling(data, persistenceData_);
 }
 
 ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
@@ -51,11 +50,11 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
     if (!result->vsyncConn_) {
         return nullptr;
     }
-    auto typeToDataMap = RSIpcPersistenceManager::Unmarshalling(data);
-    if (!typeToDataMap.has_value()) {
+    auto persistenceData = RSIpcPersistenceManager::Unmarshalling(data);
+    if (!persistenceData) {
         return nullptr;
     }
-    result->replayData_ = std::make_shared<IpcPersistenceTypeToDataMap>(typeToDataMap.value());
+    result->persistenceData_ = std::move(*persistenceData);
     return result.release();
 }
 

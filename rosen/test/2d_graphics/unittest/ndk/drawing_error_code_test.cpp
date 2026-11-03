@@ -18,7 +18,7 @@
 #include "drawing_error_code.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void NativeErrorCodeTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeErrorCodeTest::SetUpTestCase() {}
 void NativeErrorCodeTest::TearDownTestCase() {}
 void NativeErrorCodeTest::SetUp() {}
 void NativeErrorCodeTest::TearDown() {}

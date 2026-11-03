@@ -184,7 +184,7 @@ std::unordered_map<std::string, pid_t> RSContext::GetUIFrameworkDirtyNodeNameMap
         if (renderNode == nullptr) {
             iter = uiFrameworkDirtyNodes_.erase(iter);
         } else {
-            if (renderNode->IsDirty()) {
+            if (renderNode->IsDirty() || renderNode->IsSubTreeDirty()) {
                 uiFrameworkDirtyNodeNameMap[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
             }
             ++iter;

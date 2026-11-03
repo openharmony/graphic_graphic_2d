@@ -38,6 +38,8 @@ void RSRenderThreadTest::SetUpTestCase() {}
 void RSRenderThreadTest::TearDownTestCase()
 {
     RSRenderThread::Instance().Stop();
+    RSRenderThread::Instance().renderContext_->drGPUContext_ = nullptr;
+    RSRenderThread::Instance().renderContext_ = nullptr;
 }
 void RSRenderThreadTest::SetUp() {}
 void RSRenderThreadTest::TearDown() {}

@@ -27,7 +27,10 @@
 namespace OHOS {
 namespace Rosen {
 
-TransactionBufferCommand::Register TransactionBufferCommand::instance_;
+TransactionBufferCommand::RegisterTransactionBuffer TransactionBufferCommand::transactionBufferInstance_;
+TransactionBufferCommand::RegisterTransactionBufferSrcRect TransactionBufferCommand::transactionBufferSrcRectInstance_;
+TransactionBufferCommand::RegisterTransactionBufferDstRect TransactionBufferCommand::transactionBufferDstRectInstance_;
+
 SurfaceTransactionCommand::Register SurfaceTransactionCommand::instance_;
 
 static void RsDelegateCompositeCommandPrintLog(const std::string& log)
@@ -142,7 +145,7 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetBuffer(MessageParcel* messag
 }
 
 void TransactionBufferCommand::ProcessCmdTypeSetBufferwithAttach(sptr<Transaction> transaction,
-    sptr<IConsumerSurface> consumer, const RSTransactionConfig& config)
+    sptr<IConsumerSurface> consumer, const RSTransactionConfig& config, bool isDelegateMode)
 {
     auto buffer = transaction->GetBuffer();
     if (!buffer) {
@@ -159,18 +162,25 @@ void TransactionBufferCommand::ProcessCmdTypeSetBufferwithAttach(sptr<Transactio
     configDamages.desiredPresentTimestamp = transaction->GetDesiredPresentTimestamp();
     if (!consumer->IsCached(buffer->GetSeqNum())) {
         GSError ret = producer->AttachBufferToQueue(buffer);
-        if (ret == SURFACE_ERROR_BUFFER_QUEUE_FULL) {
-            producer->CleanProducerBySeqNum(config.delList);
-            ret = producer->AttachBufferToQueue(buffer);
+        RS_TRACE_NAME_FMT("AttachBufferToQueue=%d", ret);
+        if (ret != GSERROR_OK) {
+            ROSEN_LOGE("ProcessCmdTypeSetBufferwithAttach fail(nodeId=%{public}" PRIu64
+                "), bufferSeq=%{public}u, UniqueId=%{public}" PRIu64 ", ret=%{public}u",
+                config.nodeId, buffer->GetSeqNum(), producer->GetUniqueId(), ret);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("AttachBufferToQueue=%d", ret);
     }
     sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
-    GSError ret = producer->FlushBuffer(buffer->GetSeqNum(), bedata, transaction->GetFence(), configDamages);
+    producer->SetTransform(buffer->GetSurfaceBufferTransform());
+    sptr<SyncFence> fence = transaction->GetFence() ? transaction->GetFence() : SyncFence::InvalidFence();
+    GSError ret = producer->FlushBuffer(buffer->GetSeqNum(), bedata, fence, configDamages);
     if (ret != GSERROR_OK) {
         RS_TRACE_NAME_FMT("FlushBuffer=%u fail, buffer sequence=%u", ret, buffer->GetSeqNum());
         ROSEN_LOGE("DelegateModeDebugTag: FlushBuffer=%{public}u fail, buffer sequence=%{public}u",
             ret, buffer->GetSeqNum());
+        if (isDelegateMode) {
+            RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer,
+                fence, consumer);
+        }
     }
 }
 
@@ -181,16 +191,21 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
     }
     RS_TRACE_NAME_FMT("ProcessCmdTypeSetBuffer, configList size=%u", configList_.size());
     for (const auto& config : configList_) {
+        bool isDelegateMode = false;
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
             context.GetNodeMap().GetRenderNode(config.nodeId));
         if (!node || !node->GetRSSurfaceHandler()) {
             continue;
         }
+        isDelegateMode = node->GetDelegateMode();
         sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
         if (!consumer || !consumer->GetProducer()) {
             continue;
         }
         auto producer = consumer->GetProducer();
+        if (!config.delList.empty()) {
+            producer->CleanProducerBySeqNum(config.delList);
+        }
         if (!config.transaction) {
             RS_TRACE_NAME_FMT("only has info=sequence=%u", config.transactionInfo.bufferInfo.sequence);
             BufferFlushConfigWithDamages configDamages;
@@ -207,10 +222,18 @@ void TransactionBufferCommand::ProcessCmdTypeSetBuffer(RSContext& context)
                 ROSEN_LOGE("DelegateModeDebugTag: FlushBuffer=%{public}u fail, buffer sequence=%{public}u",
                     ret, config.transactionInfo.bufferInfo.sequence);
             }
+            if (isDelegateMode && ret != GSERROR_OK) {
+                sptr<SyncFence> fence =
+                    config.transactionInfo.fence ? config.transactionInfo.fence : SyncFence::InvalidFence();
+                RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(config.nodeId,
+                    consumer->GetUniqueId(), config.transactionInfo.bufferInfo.sequence, fence,
+                    ExtractPid(config.nodeId));
+            }
             continue;
         }
-        ProcessCmdTypeSetBufferwithAttach(config.transaction, consumer, config);
+        ProcessCmdTypeSetBufferwithAttach(config.transaction, consumer, config, isDelegateMode);
     }
+    RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
 }
 
 RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetBuffer(MessageParcel* messageParcel)
@@ -249,11 +272,12 @@ TransactionBufferCommand::TransactionBufferCommand(std::vector<RSTransactionConf
     configList_.swap(configs);
     nodeId_ = nodeId;
     cmdType_ = CmdType::SET_BUFFER;
+    cmdSubType_ = TRANSACTION_BUFFER;
 }
 
 TransactionBufferCommand::TransactionBufferCommand() {}
 
-TransactionBufferCommand::TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId)
+TransactionBufferCommand::TransactionBufferCommand(OHOS::Rosen::RectF rect, bool isSrcRect, NodeId nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("TransactionBufferCommand::TransactionBufferCommand in,"
         "rect=%s, isSrcRect=%d, nodeId=%llu", rect.ToString().c_str(), isSrcRect, nodeId);
@@ -261,6 +285,7 @@ TransactionBufferCommand::TransactionBufferCommand(RectF rect, bool isSrcRect, N
     cmdType_ = CmdType::SET_RECT;
     isSrcRect_ = isSrcRect;
     rect_ = rect;
+    cmdSubType_ = isSrcRect ? TRANSACTION_BUFFER_SRC_RECT : TRANSACTION_BUFFER_DST_RECT;
 }
 
 void TransactionBufferCommand::ProcessCmdTypeSetRect(RSContext& context)
@@ -274,9 +299,9 @@ void TransactionBufferCommand::ProcessCmdTypeSetRect(RSContext& context)
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
         nodeMap.GetRenderNode<RSRenderNode>(nodeId_))) {
         if (isSrcRect_) {
-            node->SetDelegateSrcRect(rect_.GetTop(), rect_.GetLeft(), rect_.GetWidth(), rect_.GetHeight());
+            node->SetDelegateSrcRect(rect_);
         } else {
-            node->SetDelegateDstRect(rect_.GetTop(), rect_.GetLeft(), rect_.GetWidth(), rect_.GetHeight());
+            node->SetDelegateDstRect(rect_);
         }
         webNodeIds.emplace(nodeId_);
     } else {
@@ -294,8 +319,8 @@ RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetRect(MessageParcel* 
     NodeId nodeId = 0;
 
     bool ret =
-        messageParcel->ReadFloat(top) &&
         messageParcel->ReadFloat(left) &&
+        messageParcel->ReadFloat(top) &&
         messageParcel->ReadFloat(width) &&
         messageParcel->ReadFloat(height) &&
         messageParcel->ReadBool(isSrcRect) &&
@@ -305,7 +330,7 @@ RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetRect(MessageParcel* 
         return nullptr;
     }
 
-    RectF rect(top, left, width, height);
+    RectF rect(left, top, width, height);
     auto command = new TransactionBufferCommand(rect, isSrcRect, nodeId);
     return command;
 }
@@ -317,8 +342,8 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetRect(MessageParcel* messageP
         return false;
     }
     bool ret =
-        messageParcel->WriteFloat(rect_.GetTop()) &&
         messageParcel->WriteFloat(rect_.GetLeft()) &&
+        messageParcel->WriteFloat(rect_.GetTop()) &&
         messageParcel->WriteFloat(rect_.GetWidth()) &&
         messageParcel->WriteFloat(rect_.GetHeight()) &&
         messageParcel->WriteBool(isSrcRect_) &&
@@ -335,11 +360,21 @@ bool TransactionBufferCommand::MarshallingCmdTypeSetRect(MessageParcel* messageP
 void SurfaceTransactionCommand::Process(RSContext& context)
 {
     (void)context;
-    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Process, srcId=%" PRIu64
-        ", seqNum=%" PRIu64 ", pid=%d, tid=%d",
+    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Process, srcId=%" PRIu64 ", seqNum=%" PRIu64
+                               ", pid=%d, tid=%d",
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
+#ifdef RS_ENABLE_DELEGATE_COMPOSITE
+    // For non-system callers, ExtractPid(nodeId_) has been validated to equal the IPC calling
+    // pid at unmarshalling (see RSTransactionData::CheckNonSystemCommand). Reject commands whose
+    // self-reported pid does not match it, otherwise a forged command could write an arbitrary
+    // (pid, tid) into the delegate identity map and divert another process's transactions.
+    if (commandSendPid_ != ExtractPid(nodeId_)) {
+        RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand::Process fail: sender pid mismatch");
+        return;
+    }
     RsDelegateCompositeCallbackManager::GetInstance().AddSurfaceTransactionCmdInfo(
         commandSrcId_, commandSeqNum_, commandSendPid_, commandSendTid_);
+#endif
 }
 
 RSCommand* SurfaceTransactionCommand::Unmarshalling(Parcel& parcel)
@@ -348,13 +383,15 @@ RSCommand* SurfaceTransactionCommand::Unmarshalling(Parcel& parcel)
     uint64_t seqNum = 0;
     int32_t pid = 0;
     int32_t tid = 0;
-    if (!parcel.ReadUint64(srcId) || !parcel.ReadUint64(seqNum) || !parcel.ReadInt32(pid) || !parcel.ReadInt32(tid)) {
+    NodeId nodeId = 0;
+    if (!parcel.ReadUint64(srcId) || !parcel.ReadUint64(seqNum) || !parcel.ReadInt32(pid) || !parcel.ReadInt32(tid) ||
+        !parcel.ReadUint64(nodeId)) {
         RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand::Unmarshalling fail");
         return nullptr;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::Unmarshalling. srcId=%llu, seqNum=%llu, pid=%d, tid=%d",
-        srcId, seqNum, pid, tid);
-    return new SurfaceTransactionCommand(srcId, seqNum, pid, tid);
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "SurfaceTransactionCommand::Unmarshalling. srcId=%llu, seqNum=%llu, pid=%d, tid=%d", srcId, seqNum, pid, tid);
+    return new SurfaceTransactionCommand(srcId, seqNum, pid, tid, nodeId);
 }
 
 bool SurfaceTransactionCommand::Marshalling(Parcel& parcel) const
@@ -366,21 +403,24 @@ bool SurfaceTransactionCommand::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!parcel.WriteUint64(commandSrcId_) || !parcel.WriteUint64(commandSeqNum_) ||
-        !parcel.WriteInt32(commandSendPid_) || !parcel.WriteInt32(commandSendTid_)) {
+        !parcel.WriteInt32(commandSendPid_) || !parcel.WriteInt32(commandSendTid_) || !parcel.WriteUint64(nodeId_)) {
         RsDelegateCompositeCommandPrintLog("SurfaceTransactionCommand Marshalling fail: write command fail");
         return false;
     }
     return true;
 }
 
-SurfaceTransactionCommand::SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid)
+SurfaceTransactionCommand::SurfaceTransactionCommand(
+    uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid, NodeId nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("SurfaceTransactionCommand::SurfaceTransactionCommand: "
-        "srcId=%llu, seqNum=%llu, pid=%d, tid=%d", srcId, seqNum, pid, tid);
+                               "srcId=%llu, seqNum=%llu, pid=%d, tid=%d",
+        srcId, seqNum, pid, tid);
     commandSrcId_ = srcId;
     commandSeqNum_ = seqNum;
     commandSendPid_ = pid;
     commandSendTid_ = tid;
+    nodeId_ = nodeId;
 }
 } // namespace Rosen
 } // namespace OHOS

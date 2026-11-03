@@ -30,7 +30,7 @@
 #include "pipeline/rs_render_node.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 #endif
 #include "pipeline/rs_paint_filter_canvas.h"
 
@@ -188,7 +188,8 @@ protected:
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
-        bool isNeedFP16 = false, GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+        bool isNeedFP16 = false, GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        bool skipColorSpaceConversion = false);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(
@@ -202,7 +203,6 @@ protected:
     void TraverseSubTreeAndDrawFilterWithClip(
         Drawing::Canvas& canvas, const RSRenderParams& params, bool includeProperty = false);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
-    bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
     void SetShouldClipHole(bool value) override;
     bool ShouldClipHole() const override;

@@ -66,7 +66,7 @@ public:
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
-    const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
+    void AddDrawCmdListTo(std::vector<SimpleDrawCmdListPtr>& targetVec, ModifierNG::RSModifierType modifierType) const;
     void AccumulateLastDirtyTypes() override;
     void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
@@ -75,6 +75,7 @@ public:
     void ApplyModifiers() override;
     bool CheckCachedOp();
     bool HasCachedOp() const;
+    size_t GetCurrentOpCount() const;
 
     void SetWaitSync(bool waitSync)
     {
@@ -145,7 +146,6 @@ private:
     bool isNeverOnTree_ = true;
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
-    std::atomic<bool> isNeedProcess_ = false;
     bool waitSync_ = false;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
@@ -155,22 +155,24 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::mutex imageMutex_;
     std::mutex taskMutex_;
-    std::mutex drawCmdListsMutex_;
+    mutable std::mutex drawCmdListsMutex_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
     ModifierCmdList outOfLimitCmdList_;
     size_t cachedOpCount_ = 0;
+    size_t currentOpCount_ = 0;
 
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;
 
     bool modifiersApplied_ = false;
+    bool hasDrawCmdList_ = false;
 
     static inline bool hybridEnabled_ = false;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     bool sizeOutOfGpuLimit_ = false;
-    bool firstBufferAcquired_ = false;
+    bool clientRender_ = false;
     bool bufferDirty_ = false;
 #endif
 

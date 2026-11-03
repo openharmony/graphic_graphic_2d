@@ -96,7 +96,7 @@ void RSSplitSurfaceBuffer::Init(bool isHebc)
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
          RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && grContext_ != nullptr) {
         auto vulkanSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface_);
-        vulkanSurface->SetSkContext(grContext_);
+        vulkanSurface->SetRenderContext(uniRenderEngine->GetRenderContext());
     }
 #endif
     rsSurface_->SetColorSpace(bufferConfig_.colorGamut);
@@ -272,6 +272,7 @@ bool RSSplitSurfaceBuffer::ReleaseBuffer()
     if (ret != OHOS::SURFACE_ERROR_OK) {
         LAYER_SPLIT_LOGE("%{public}s (node: %{public}" PRIu64 "): ReleaseBuffer failed(ret: %{public}d)", __func__,
             surfaceHandler_->GetNodeId(), ret);
+        return false;
     }
     surfaceHandler_->SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
     LAYER_SPLIT_LOGD("RsDebug %{public}s (node: %{public}" PRIu64 "), drop one frame", __func__,

@@ -35,6 +35,10 @@ public:
 
     void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData);
 
+    void SetVideoCallPid(pid_t pid);
+
+    uint64_t GetVideoCallPtsOffset(pid_t pid, const std::string& bufferName);
+
 private:
     void GetComponentFps(FrameRateRange& range);
 
@@ -42,6 +46,8 @@ private:
     bool isTouchIdle_ = false;
     EnergyCommonDataMap energyCommonData_;
     std::unordered_map<std::string, int32_t> componentPowerConfig_;
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
+    std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
 };
 }; // namespace OHOS::Rosen
 

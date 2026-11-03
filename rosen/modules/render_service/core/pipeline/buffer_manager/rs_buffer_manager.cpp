@@ -198,11 +198,10 @@ void RSBufferManager::DumpPendingReleaseBuffers(std::string& output)
 void RSBufferCollectorHelper::OnCanvasDrawEnd()
 {
     for (auto& info : pendingReleaseBufferInfos_) {
-        if (info.bufferOwnerCount_) {
-            info.bufferOwnerCount_->DecRef();
-        }
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(info.consumer_, info.buffer_, fence_,
             info.bufferOwnerCount_);
+        // bufferOwnerCount_ is guaranteed non-null: OnCanvasDrawBuffer rejects null before push.
+        info.bufferOwnerCount_->DecRef();
     }
 }
 
@@ -255,32 +254,6 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
         if (iter->second.bufferOwnerCount_.expired() && bufferOwnerCount) {
             iter->second.bufferOwnerCount_ = bufferOwnerCount;
         }
-    }
-}
-
-void RSBufferManager::ReplacePendingReleaseBufferFence(sptr<IConsumerSurface> consumer,
-    sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
-{
-    if (buffer == nullptr || fence == nullptr) {
-        return;
-    }
-    auto bufferId = buffer->GetBufferId();
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReplacePendingReleaseBufferFence bufferId %" PRIu64
-        " seq %u fence %d", bufferId, uint32_t(buffer->GetSeqNum()), fence->Get());
-    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
-    auto iter = pendingReleaseBuffers_.find(bufferId);
-    if (iter == pendingReleaseBuffers_.end()) {
-        pendingReleaseBuffers_[bufferId] = { consumer, buffer, { fence }, bufferOwnerCount };
-        return;
-    }
-    iter->second.mergedFences_ = { fence };
-    iter->second.buffer_ = buffer;
-    if (consumer != nullptr) {
-        iter->second.consumer_ = consumer;
-    }
-    if (bufferOwnerCount != nullptr) {
-        iter->second.bufferOwnerCount_ = bufferOwnerCount;
     }
 }
 
@@ -423,7 +396,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
             ", ret:%{public}d)", bufferId, ret);
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
         RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer, mergedFence, consumer);
 #endif
     }

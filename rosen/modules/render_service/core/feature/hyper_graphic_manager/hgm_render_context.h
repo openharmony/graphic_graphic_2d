@@ -41,6 +41,8 @@ public:
     HgmRenderContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmRenderContext() noexcept = default;
 
+    static void ShowRefreshRateChangeProcess(const char* key, const char* value, void* context);
+
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
 
@@ -78,7 +80,7 @@ private:
     const std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
 
     std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
-    std::string gameNodeName_;
+    std::string gameNodeName_ = "";
     std::atomic<bool> isGameNodeOnTree_ = false;
     std::atomic<bool> isAdaptiveVsyncReady_ = false;
 

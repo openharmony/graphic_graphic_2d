@@ -30,7 +30,10 @@ class RSB_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 
-    RSRenderAnimationType GetType() const override { return RSRenderAnimationType::PROPERTY_ANIMATION; }
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::PROPERTY_ANIMATION;
+    }
 
     void DumpAnimationInfo(std::string& out) const override;
     void DumpProperty(std::string& out) const;
@@ -61,11 +64,11 @@ protected:
 
     const std::shared_ptr<RSRenderPropertyBase>& GetLastValue() const;
 
-    void SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value);
-
     const std::shared_ptr<RSRenderPropertyBase> GetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value);
 
     void OnRemoveOnCompletion() override;
+
+    void OnRestart() override;
 
     void RecordLastAnimateValue() override;
 
@@ -74,6 +77,8 @@ protected:
     void ProcessAnimateVelocityUnderAngleRotation(double frameInterval) override;
 
     virtual void InitValueEstimator() {}
+
+    virtual void OnSetPropertyOnAdd() {}
 
     void DumpFraction(float fraction, int64_t time) override;
 

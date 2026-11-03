@@ -53,6 +53,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 
@@ -74,6 +75,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
+class RSEffectUtils;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -119,14 +121,20 @@ public:
     RSRenderNode& operator=(const RSRenderNode&) = delete;
     RSRenderNode& operator=(const RSRenderNode&&) = delete;
     virtual ~RSRenderNode();
+    // Whether this node must be released on the main thread during GC.
+    // LOGICAL_DISPLAY_NODE: destructor accesses non-thread-safe global map (RSPointLightManager)
+    // PROXY_NODE: destructor modifies target node's properties/modifiers without lock
+    inline bool MustReleaseOnMainThread() const
+    {
+        auto type = GetType();
+        if (UNLIKELY(type == RSRenderNodeType::LOGICAL_DISPLAY_NODE || type == RSRenderNodeType::PROXY_NODE)) {
+            return true;
+        }
+        return HasAnimation() || !RSSystemProperties::GetBgNodeReleaseEnabled();
+    }
 
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
-
-    bool IsContainBootAnimation() const
-    {
-        return containBootAnimationNodeSet_.count(GetId()) > 0;
-    }
 
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
@@ -151,7 +159,6 @@ public:
     {
         return uiContextTokenList_;
     }
-    bool IsUIRenderDirectorStopped() const;
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -561,6 +568,14 @@ public:
         return shouldPaint_;
     }
 
+    // Whether the node was visible (ShouldPaint() == true) in the last frame.
+    // Used to detect visible→invisible transitions so that the dirty region can
+    // still be generated to clear the previous content from the surface buffer.
+    inline bool IsLastVisible() const
+    {
+        return isLastVisible_;
+    }
+
     inline RectI GetInnerAbsDrawRect() const noexcept
     {
         return innerAbsDrawRect_;
@@ -640,19 +655,6 @@ public:
         return nodeName_ ? *nodeName_ : emptyStr;
     }
     bool HasSubSurface() const;
-    int GetSubSurfaceCnt() const
-    {
-        auto it = subSurfaceCntMap_.find(GetId());
-        return it != subSurfaceCntMap_.end() ? it->second : 0;
-    }
-    void SetSubSurfaceCnt(int cnt)
-    {
-        if (cnt == 0) {
-            subSurfaceCntMap_.erase(GetId());
-        } else {
-            subSurfaceCntMap_[GetId()] = cnt;
-        }
-    }
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
@@ -677,6 +679,7 @@ public:
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
     bool HasAnimation() const;
+    bool HasInfiniteGroupAnimationChild() const;
     bool GetCurFrameHasAnimation() const
     {
         return curFrameHasAnimation_;
@@ -1039,9 +1042,15 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
+    void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+    {
+        isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    }
 
-    bool IsAccessibilityConfigChangedNode() const;
+    bool IsAccessibilityConfigChanged() const
+    {
+        return isAccessibilityConfigChanged_;
+    }
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1120,7 +1129,7 @@ public:
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // Called every frame to handle state transitions and sync
     // return true if current state is COLOR_PICK and need to transition back to PREPARING
-    bool PrepareColorPicker(bool darkMode);
+    bool PrepareColorPicker(bool darkMode, bool restoreEnabled = false);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
@@ -1180,6 +1189,12 @@ protected:
     void MoveUIExtensionChild(SharedPtr child);
     void RemoveUIExtensionChild(SharedPtr child);
     bool NeedRoutedBasedOnUIExtension(SharedPtr child);
+    // Inner child list operations without UIExtension routing. AddChild/MoveChild/RemoveChild make the
+    // routing decision only once, and the *UIExtensionChild helpers must call these inner versions
+    // instead of the public ones, otherwise the two sides can recurse into each other infinitely.
+    void AddChildInner(SharedPtr child, int index);
+    void MoveChildInner(SharedPtr child, int index);
+    void RemoveChildInner(SharedPtr child, bool skipTransition);
 
     bool IsNodeParentHasUIFirstCache();
 
@@ -1315,6 +1330,8 @@ private:
     bool isParentTreeDirty_ = false;
     // marks the node as "on the traversal path"
     bool inTraversalPath_ = false;
+    // marks the node as "on the parent chain traversal path" to detect cycles
+    mutable bool inParentChainTraversal_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1341,9 +1358,11 @@ private:
     // When an empty list is needed, use EmptyChildrenList instead.
     static const inline RS_HIDDEN auto EmptyChildrenList =
         std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
-    static inline std::unordered_set<NodeId> containBootAnimationNodeSet_;
-    static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
-    static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
+    bool isContainBootAnimation_ = false;
+    int subSurfaceCnt_ = 0;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
+    bool isAccessibilityConfigChanged_ = false;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
@@ -1439,6 +1458,7 @@ private:
 
     void SetParent(WeakPtr parent);
     void ResetParent();
+    bool RecordHardCursorOffTreeRegion();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     virtual void OnResetParent() {}
 
@@ -1502,6 +1522,7 @@ private:
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
     friend class RSDynamicLayerSkipController;
+    friend class RSEffectUtils;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

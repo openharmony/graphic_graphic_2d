@@ -66,6 +66,7 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl:libEGL",
     "opengles:libGLES",
     "jsoncpp:jsoncpp",
+    "bounds_checking_function:libsec_shared",
   ]
 }
 

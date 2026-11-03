@@ -44,25 +44,25 @@ const RSCompositingFilterRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSLinearGradientBlurPara>,
                 &RSProperties::SetLinearGradientBlurPara> },
         { RSPropertyType::FOREGROUND_BLUR_RADIUS,
-            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetForegroundBlurRadius,
-                &RSProperties::GetForegroundBlurRadius> },
+            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetCompositingBlurRadius,
+                &RSProperties::GetCompositingBlurRadius> },
         { RSPropertyType::FOREGROUND_BLUR_SATURATION,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetForegroundBlurSaturation> },
+            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetCompositingBlurSaturation> },
         { RSPropertyType::FOREGROUND_BLUR_BRIGHTNESS,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetForegroundBlurBrightness> },
+            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetCompositingBlurBrightness> },
         { RSPropertyType::FOREGROUND_BLUR_MASK_COLOR,
-            RSRenderModifier::PropertyApplyHelperAdd<Color, &RSProperties::SetForegroundBlurMaskColor,
-                &RSProperties::GetForegroundBlurMaskColor> },
+            RSRenderModifier::PropertyApplyHelperAdd<Color, &RSProperties::SetCompositingBlurMaskColor,
+                &RSProperties::GetCompositingBlurMaskColor> },
         { RSPropertyType::FOREGROUND_BLUR_COLOR_MODE,
-            RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetForegroundBlurColorMode> },
+            RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetCompositingBlurColorMode> },
         { RSPropertyType::FOREGROUND_BLUR_RADIUS_X,
-            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetForegroundBlurRadiusX,
-                &RSProperties::GetForegroundBlurRadiusX> },
+            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetCompositingBlurRadiusX,
+                &RSProperties::GetCompositingBlurRadiusX> },
         { RSPropertyType::FOREGROUND_BLUR_RADIUS_Y,
-            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetForegroundBlurRadiusY,
-                &RSProperties::GetForegroundBlurRadiusY> },
+            RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetCompositingBlurRadiusY,
+                &RSProperties::GetCompositingBlurRadiusY> },
         { RSPropertyType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION,
-            RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetFgBlurDisableSystemAdaptation> },
+            RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetCtBlurDisableSystemAdaptation> },
         { RSPropertyType::COMPOSITING_NG_FILTER,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
                 &RSProperties::SetCompositingNGFilter> },
@@ -82,14 +82,14 @@ void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties
     properties.SetLightUpEffect(1.f);
     properties.SetDynamicDimDegree(std::nullopt);
     properties.SetLinearGradientBlurPara(nullptr);
-    properties.SetForegroundBlurRadius(0.f);
-    properties.SetForegroundBlurSaturation(1.f);
-    properties.SetForegroundBlurBrightness(1.f);
-    properties.SetForegroundBlurMaskColor(Color());
-    properties.SetForegroundBlurColorMode(0);
-    properties.SetForegroundBlurRadiusX(0.f);
-    properties.SetForegroundBlurRadiusY(0.f);
-    properties.SetFgBlurDisableSystemAdaptation(true);
+    properties.SetCompositingBlurRadius(0.f);
+    properties.SetCompositingBlurSaturation(1.f);
+    properties.SetCompositingBlurBrightness(1.f);
+    properties.SetCompositingBlurMaskColor(Color());
+    properties.SetCompositingBlurColorMode(0);
+    properties.SetCompositingBlurRadiusX(0.f);
+    properties.SetCompositingBlurRadiusY(0.f);
+    properties.SetCtBlurDisableSystemAdaptation(true);
     properties.SetCompositingNGFilter(nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

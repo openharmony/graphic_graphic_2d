@@ -40,8 +40,8 @@ void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
 
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
-    if (context_ != nullptr) {
-        std::static_pointer_cast<RenderContextGL>(context_)->DestroyEGLSurface(mEglSurface);
+    if (renderContext_ != nullptr) {
+        std::static_pointer_cast<RenderContextGL>(renderContext_)->DestroyEGLSurface(mEglSurface);
     }
     DestoryNativeWindow(mWindow);
     mWindow = nullptr;
@@ -126,7 +126,7 @@ bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
 
 void RSSurfaceOhosGl::ClearBuffer()
 {
-    if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
+    if (renderContext_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
         ROSEN_LOGD("RSSurfaceOhosGl: Clear surface buffer!");
         DestoryNativeWindow(mWindow);
         auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());
@@ -140,7 +140,7 @@ void RSSurfaceOhosGl::ClearBuffer()
 
 void RSSurfaceOhosGl::ResetBufferAge()
 {
-    if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
+    if (renderContext_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
         ROSEN_LOGD("RSSurfaceOhosGl: Reset Buffer Age!");
         DestoryNativeWindow(mWindow);
         auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());

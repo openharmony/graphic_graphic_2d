@@ -708,11 +708,10 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest002, testing::ext::Tes
 
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_FALSE(ashmemInfo.empty());
-    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
 #else
     EXPECT_TRUE(ashmemInfo.empty());
-    EXPECT_FALSE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
 #endif
+    EXPECT_FALSE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
 }
 
 /**
@@ -728,13 +727,8 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest003, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadAshmemInfoFromFile(dirPath, ashmemInfo, testPid);
 
-#ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_FALSE(ashmemInfo.empty());
-    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
-#else
     EXPECT_TRUE(ashmemInfo.empty());
     EXPECT_FALSE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
-#endif
 }
 
 /**
@@ -789,11 +783,10 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest002, testing::ext::Tes
 
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_FALSE(dmaBufInfo.empty());
-    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
 #else
     EXPECT_TRUE(dmaBufInfo.empty());
-    EXPECT_FALSE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
 #endif
+    EXPECT_FALSE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
 }
 
 /**
@@ -809,13 +802,8 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest003, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadDmaBufInfoFromFile(dirPath, dmaBufInfo, testPid);
 
-#ifdef RS_ENABLE_UNI_RENDER
-    EXPECT_FALSE(dmaBufInfo.empty());
-    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
-#else
     EXPECT_TRUE(dmaBufInfo.empty());
     EXPECT_FALSE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
-#endif
 }
 
 /**

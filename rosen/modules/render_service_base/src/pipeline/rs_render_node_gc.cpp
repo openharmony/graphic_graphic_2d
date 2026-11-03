@@ -15,12 +15,15 @@
 
 #include "pipeline/rs_render_node_gc.h"
 
+#include "common/rs_background_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include <csignal>
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -67,6 +70,21 @@ void RSRenderNodeGC::AddNodeToBucket(RSRenderNode* ptr)
     }
 }
 
+void RSRenderNodeGC::AddNodeToBgBucket(RSRenderNode* ptr)
+{
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    if (nodeBgBucket_.size() > 0) {
+        auto& bucket = nodeBgBucket_.back();
+        if (bucket.size() < BUCKET_MAX_SIZE) {
+            bucket.push_back(ptr);
+        } else {
+            nodeBgBucket_.push({ptr});
+        }
+    } else {
+        nodeBgBucket_.push({ptr});
+    }
+}
+
 RSRenderNodeGC& RSRenderNodeGC::Instance()
 {
     static RSRenderNodeGC instance;
@@ -83,8 +101,33 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     if (ptr == nullptr) {
         return;
     }
-    AddNodeToBucket(ptr);
+    // erase expired entry from notOnTreeNodeMap_ before bucket routing (which takes nodeMutex_),
+    // no-op if never registered
+    EraseFromNotOnTreeNodeMap(ptr->GetId());
+    if (ptr->MustReleaseOnMainThread()) {
+        AddNodeToBucket(ptr);
+    } else {
+        AddNodeToBgBucket(ptr);
+    }
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
+}
+
+void RSRenderNodeGC::EraseFromNotOnTreeNodeMap(NodeId nodeId)
+{
+    auto nodePid = ExtractPid(nodeId);
+    if (nodePid == scbPid_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    auto mapIt = notOnTreeNodeMap_.find(nodePid);
+    if (mapIt == notOnTreeNodeMap_.end()) {
+        return;
+    }
+    auto& map = mapIt->second;
+    map.erase(nodeId);
+    if (map.empty()) {
+        notOnTreeNodeMap_.erase(mapIt);
+    }
 }
 
 bool RSRenderNodeGC::IsBucketQueueEmpty()
@@ -146,26 +189,64 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
+void RSRenderNodeGC::ReleaseNodeOnBgThread()
+{
+    RS_TRACE_NAME_FMT("ReleaseNodeOnBgThread start");
+    while (true) {
+        std::vector<RSRenderNode*> toDele;
+        {
+            std::lock_guard<std::mutex> lock(nodeMutex_);
+            if (nodeBgBucket_.empty()) {
+                bgReleasePending_ = false;
+                return;
+            }
+            toDele.swap(nodeBgBucket_.front());
+            nodeBgBucket_.pop();
+        }
+        for (auto ptr : toDele) {
+            if (ptr == nullptr) {
+                continue;
+            }
+            if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
+                continue;
+            }
+#if defined(__aarch64__)
+            auto* hook = reinterpret_cast<MemoryHook*>(ptr);
+            hook->Protect();
+#endif
+            delete ptr;
+            ptr = nullptr;
+        }
+    }
+}
+
 void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
+    ReleaseMainBucket(highPriority);
+    ReleaseBgBucket();
+}
+
+void RSRenderNodeGC::ReleaseMainBucket(bool highPriority)
+{
     if (mainTask_) {
-        mainTask_([this]() {
-            ReleaseNodeMemNotOnTree();
-        }, DELETE_NODE_OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        if (CheckHasNodeNotOnTree()) {
+            mainTask_([this]() { ReleaseNodeMemNotOnTree(); }, DELETE_NODE_OFF_TREE_TASK, 0,
+                AppExecFwk::EventQueue::Priority::HIGH);
+        }
     } else {
         ReleaseNodeMemNotOnTree();
     }
     uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
-        if (nodeBucket_.empty()) {
-            return;
-        }
         remainBucketSize = nodeBucket_.size();
     }
-    nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
+    if (remainBucketSize == 0) {
+        return;
+    }
     if (mainTask_) {
+        nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
         auto task = [this, highPriority]() {
             if (isEnable_.load() == false &&
                 nodeGCLevel_ != GCLevel::IMMEDIATE) {
@@ -181,7 +262,7 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
             if (highPriority && imageReleaseFunc_) {
                 imageReleaseFunc_();
             }
-            ReleaseNodeMemory(highPriority);
+            ReleaseMainBucket(highPriority);
         };
         auto taskPriority = highPriority ? AppExecFwk::EventQueue::Priority::HIGH :
                             static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_);
@@ -191,6 +272,23 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     }
 }
 
+void RSRenderNodeGC::ReleaseBgBucket()
+{
+    if (!RSSystemProperties::GetBgNodeReleaseEnabled()) {
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(nodeMutex_);
+        if (nodeBgBucket_.empty() || bgReleasePending_) {
+            return;
+        }
+        // Mark pending before PostTask to prevent duplicate posting
+        bgReleasePending_ = true;
+        RS_TRACE_NAME_FMT("PostBgReleaseTask, bgBuckets=%zu", nodeBgBucket_.size());
+    }
+    RSBackgroundThread::Instance().PostTask([this]() { ReleaseNodeOnBgThread(); });
+}
+
 void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr)
 {
     RSRenderNodeGC::Instance().DrawableDestructorInner(ptr);
@@ -198,6 +296,11 @@ void RSRenderNodeGC::DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter*
 
 void RSRenderNodeGC::DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr)
 {
+    RS_PROFILER_ON_GARBAGE_COLLECT(ptr);
+    if (!ptr) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(drawableMutex_);
     if (drawableBucket_.size() > 0) {
         auto& bucket = drawableBucket_.back();
@@ -478,36 +581,65 @@ void RSRenderNodeGC::SetIsOnTheTree(NodeId nodeId, std::weak_ptr<RSBaseRenderNod
 
 void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
 {
-    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
-    uint32_t cnt = 0;
-    for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
-        auto mapIt = notOnTreeNodeMap_.find(*pidIt);
-        if (mapIt == notOnTreeNodeMap_.end()) {
-            continue;
-        }
-        auto& nodeMap = mapIt->second;
-        auto nodeIt = nodeMap.begin();
-        RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32, *pidIt, nodeMap.size());
-        while (nodeIt != nodeMap.end()) {
-            // VSync arrival or limit reached, break release early
-            if (isEnable_.load() == false || cnt > NODE_MEM_RELEASE_LIMIT) {
-                RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
-                    cnt, isEnable_.load() ? "true" : "false");
-                return;
-            }
-            auto node = nodeIt->second.lock();
-            if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
-                nodeMap.erase(nodeIt++);
+    // Keep nodes alive until after the lock is released to prevent deadlock:
+    // node destruction (when shared_ptr ref count reaches zero) calls
+    // EraseFromNotOnTreeNodeMap which acquires nodeNotOnTreeMutex_.
+    std::vector<std::shared_ptr<RSBaseRenderNode>> keepAlive;
+    {
+        std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+        uint32_t cnt = 0;
+        for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
+            auto mapIt = notOnTreeNodeMap_.find(*pidIt);
+            if (mapIt == notOnTreeNodeMap_.end()) {
                 continue;
             }
-            cnt++;
-            node->ReleaseNodeMem();
-            nodeMap.erase(nodeIt++);
-        }
-        if (nodeMap.empty())  {
-            notOnTreeNodeMap_.erase(mapIt);
+            auto& nodeMap = mapIt->second;
+            auto nodeIt = nodeMap.begin();
+            RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32,
+                *pidIt, nodeMap.size());
+            while (nodeIt != nodeMap.end()) {
+                if (!isEnable_.load() || cnt > NODE_MEM_RELEASE_LIMIT) {
+                    RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
+                        cnt, isEnable_.load() ? "true" : "false");
+                    return;
+                }
+                auto node = nodeIt->second.lock();
+                if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
+                    nodeMap.erase(nodeIt++);
+                    continue;
+                }
+                cnt++;
+                node->ReleaseNodeMem();
+                keepAlive.push_back(std::move(node));
+                nodeMap.erase(nodeIt++);
+            }
+            if (nodeMap.empty()) {
+                notOnTreeNodeMap_.erase(mapIt);
+            }
         }
     }
 }
+
+bool RSRenderNodeGC::CheckHasNodeNotOnTree()
+{
+    constexpr size_t MAX_CHECK_SIZE = 50;
+    if (!nodeNotOnTreeMutex_.try_lock()) {
+        return true;
+    }
+    if (backgroundPidSet_.size() > MAX_CHECK_SIZE) {
+        nodeNotOnTreeMutex_.unlock();
+        return true;
+    }
+    for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
+        auto mapIt = notOnTreeNodeMap_.find(*pidIt);
+        if (mapIt != notOnTreeNodeMap_.end()) {
+            nodeNotOnTreeMutex_.unlock();
+            return true;
+        }
+    }
+    nodeNotOnTreeMutex_.unlock();
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

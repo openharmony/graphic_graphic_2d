@@ -14,6 +14,7 @@
  */
 
 #include <cstdint>
+#include <dlfcn.h>
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 #include <iservice_registry.h>
@@ -27,13 +28,14 @@
 #include "layer_backend/hdi_output.h"
 #include "params/rs_render_params.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
+#include "text/typeface.h"
 #include "transaction/rs_layer_transaction_data.h"
 #include "params/rs_render_params.h"
 
@@ -51,14 +53,25 @@ public:
 
 void RSRenderComposerClientTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
+    // Preload librender_service_client.z.so on the main thread to prevent BSS
+    // segment race when dlopen is triggered from a background CompThread.
+    dlopen("librender_service_client.z.so", RTLD_NOW);
 }
 
-void RSRenderComposerClientTest::TearDownTestCase() {}
+void RSRenderComposerClientTest::TearDownTestCase()
+{
+    // Reset Typeface callbacks to prevent use-after-free during process exit.
+    // The static TypefaceAutoRegister object in librender_service_client.z.so
+    // registers callbacks that capture references to RSInterfaces; C++ static
+    // destruction order is undefined, so these callbacks may fire after
+    // RSInterfaces has been destroyed.
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
+}
 
 void RSRenderComposerClientTest::SetUp() {}
+
 void RSRenderComposerClientTest::TearDown() {}
 
 std::shared_ptr<RSComposerClient> CreateClient()

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "rosen_text/ref_count_holder.h"
 #include "text_typography_test_common.h"
 
 namespace OHOS {
@@ -1062,7 +1063,8 @@ HWTEST_F(NdkTypographyTest, SetBothIndents_ExceedWidth, TestSize.Level0)
 
 skia::textlayout::ParagraphImpl* GetSkiaParagraphByTypography(OH_Drawing_Typography* typography)
 {
-    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::Typography* rosenTypography =
+        reinterpret_cast<OHOS::Rosen::RefCountedHolder<OHOS::Rosen::Typography>*>(typography)->Get();
     OHOS::Rosen::SPText::ParagraphImpl* paragraph =
         reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
     return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
@@ -1347,5 +1349,37 @@ HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest010, TestSize.Lev
     TestZeroWidthCharFallback(cjk1, "U+FFF0 CJK COMPATIBILITY IDEOGRAPH-0F00", expectedValues);
     TestZeroWidthCharFallback(cjk2, "U+FFF1 CJK COMPATIBILITY IDEOGRAPH-0F01", expectedValues);
     TestZeroWidthCharFallback(cjk3, "U+FFF8 CJK COMPATIBILITY IDEOGRAPH-0F08", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyOnePixelTest
+ * @tc.desc: test for one pixel diff layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyOnePixelTest, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextWordBreakType(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_FontCollection* fc = OH_Drawing_GetFontCollectionGlobalInstance();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
+    EXPECT_NE(handler, nullptr);
+    double fontSize = 100;
+    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_700);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "字738";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    double maxWidth = 279;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 2);
+    maxWidth = 279.9999;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 1);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 } // namespace OHOS

@@ -23,6 +23,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_param_util.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -681,6 +682,51 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop005, TestSize.Level2)
     RSScreenProperty screenProperty;
     RSUniHwcComputeUtil::LayerCrop(node, screenProperty);
     EXPECT_EQ(screenProperty.GetWidth(), 0);
+}
+
+/**
+ * @tc.name: LayerCrop006
+ * @tc.desc: LayerCrop test when node is in delegate mode, dstRect/srcRect stay untouched
+ * @tc.type: FUNC
+ * @tc.require: issuesIBT79X
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop006, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.SetHwcGlobalPositionEnabled(false);
+    node.SetDelegateMode(true);
+    ASSERT_TRUE(node.GetDelegateMode());
+    // dstRect exceeds the empty screen, so the crop logic would rewrite both rects
+    // if the delegate-mode node were not skipped.
+    node.SetDstRect(RectI(-10, -10, 100, 100));
+    node.SetSrcRect(RectI(0, 0, 100, 100));
+    RSScreenProperty screenProperty;
+    RSUniHwcComputeUtil::LayerCrop(node, screenProperty);
+    EXPECT_EQ(node.GetDstRect(), RectI(-10, -10, 100, 100));
+    EXPECT_EQ(node.GetSrcRect(), RectI(0, 0, 100, 100));
+}
+
+/**
+ * @tc.name: LayerCrop007
+ * @tc.desc: LayerCrop test when node is not in delegate mode, crop is applied as usual
+ * @tc.type: FUNC
+ * @tc.require: issuesIBT79X
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop007, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.SetHwcGlobalPositionEnabled(false);
+    ASSERT_FALSE(node.GetDelegateMode());
+    node.SetDstRect(RectI(-10, -10, 100, 100));
+    node.SetSrcRect(RectI(0, 0, 100, 100));
+    RSScreenProperty screenProperty;
+    RSUniHwcComputeUtil::LayerCrop(node, screenProperty);
+    // control group of LayerCrop006: without delegate mode the same rects get cropped
+    // to the empty screen (0, 0, 0, 0)
+    EXPECT_EQ(node.GetDstRect(), RectI(0, 0, 0, 0));
+    EXPECT_EQ(node.GetSrcRect(), RectI(0, 0, 0, 0));
 }
 
 /**
@@ -1427,6 +1473,35 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_002, Function | SmallTes
 }
 
 /**
+ * @tc.name: UpdateHwcNodeProperty_003
+ * @tc.desc: Test UpdateHwcNodeProperty with null hwcNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_003, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_EQ(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeProperty_004
+ * @tc.desc: Test UpdateHwcNodeProperty with null boundsGeo
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.boundsGeo_.reset();
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_FALSE(surfaceNode->GetVcldInfo().enable);
+}
+
+/**
  * @tc.name: TraverseParentNodeAndReduce_001
  * @tc.desc: Test TraverseParentNodeAndReduce
  * @tc.type: FUNC
@@ -1706,8 +1781,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_006, Function | Sma
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1719,8 +1793,6 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function |
 
     ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
     ASSERT_FLOAT_EQ(hwcNode->GetVcldInfo().radius, 0.0f);
-
-    uniHwcPrevalidateUtil.loadSuccess_ = true;
 }
 
 /**
@@ -1731,8 +1803,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_VcldDisabled, Function |
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1748,6 +1819,29 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function
 }
 
 /**
+ * @tc.name: UpdateHwcNodeVcldInfo_HardwareForcedDisabled
+ * @tc.desc: Test UpdateHwcNodeVcldInfo when layer is HardwareForcedDisabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_HardwareForcedDisabled, Function | SmallTest | Level2)
+{
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
+ 
+    NodeId hwcNodeId = 0;
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
+    hwcNode->SetHardwareForcedDisabledState(true);
+ 
+    NodeId parentId = 1;
+    auto parentNode = std::make_shared<RSRenderNode>(parentId);
+    parentNode->GetMutableRenderProperties().SetCornerRadius({10.0f, 10.0f, 10.0f, 10.0f});
+ 
+    RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(hwcNode, parentNode);
+ 
+    ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
+}
+
+/**
  * @tc.name: UpdateHwcNodeVcldInfo_AncoLayer
  * @tc.desc: Test UpdateHwcNodeVcldInfo when layer is AncoLayer
  * @tc.type: FUNC
@@ -1755,8 +1849,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_AncoLayer, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1779,8 +1872,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_AncoLayer, Function | Sm
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ZeroCornerRadius, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1802,8 +1894,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ZeroCornerRadius, Functi
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest001, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1829,8 +1920,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest001, Fun
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest002, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1856,8 +1946,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RectNotMatchTest002, Fun
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RadiusTooSmall, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1888,8 +1977,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_RadiusTooSmall, Function
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithSurfaceParam, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1916,8 +2004,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithSurfaceParam,
  */
 HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithoutSurfaceParam, Function | SmallTest | Level2)
 {
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+    RSUniHwcPrevalidateParamUtil::SetIsVcldEnabled(true);
 
     NodeId hwcNodeId = 0;
     auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
@@ -1934,5 +2021,61 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_SuccessWithoutSurfacePar
     RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(hwcNode, parentNode);
 
     ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
+}
+
+/**
+ * @tc.name: UpdateRectInfoForDelegateModeCoverage001
+ * @tc.desc: cover both edges of `if (node.GetDelegateMode())` in
+ *           RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateRectInfoForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    float bufferWidth = 100.f;
+    float bufferHeight = 200.f;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    // delegate=false edge: sizes stay unchanged
+    node.SetDelegateMode(false);
+    RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_FLOAT_EQ(bufferWidth, 100.f);
+    EXPECT_FLOAT_EQ(bufferHeight, 200.f);
+    EXPECT_FLOAT_EQ(boundsWidth, 300.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 400.f);
+    // delegate=true edge: overwrite with delegate rect sizes
+    node.SetDelegateMode(true);
+    node.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    RSUniHwcComputeUtil::UpdateRectInfoForDelegateMode(node, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_FLOAT_EQ(bufferWidth, 10.f);
+    EXPECT_FLOAT_EQ(bufferHeight, 20.f);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+}
+
+/**
+ * @tc.name: UpdateLeftAndTopForDelegateModeCoverage001
+ * @tc.desc: cover both edges of `if (node.GetDelegateMode())` in
+ *           RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateLeftAndTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f); // left, top, right, bottom
+    // delegate=false edge: no translation
+    node.SetDelegateMode(false);
+    RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode(node, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 5.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 6.f);
+    // delegate=true edge: translate by (delegateSrcRect.GetLeft(), GetTop()) = (1, 2)
+    node.SetDelegateMode(true);
+    node.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    RSUniHwcComputeUtil::UpdateLeftAndTopForDelegateMode(node, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
 }
 } // namespace OHOS::Rosen

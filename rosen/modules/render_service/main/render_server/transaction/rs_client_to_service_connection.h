@@ -80,6 +80,7 @@ private:
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
     ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) override;
@@ -160,6 +161,8 @@ private:
 
     ScreenId GetMainScreenId() override;
 
+    void SetThermalFrameRateLimit(uint32_t frameRate) override;
+
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
@@ -189,7 +192,8 @@ private:
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode) override;
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
 
     ErrCode MarkPowerOffNeedProcessOneFrame() override;
@@ -232,6 +236,10 @@ private:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
+
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) override;
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
@@ -283,6 +291,8 @@ private:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) override;
+
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
@@ -304,6 +314,8 @@ private:
         uint32_t rowCount = 0, uint32_t colCount = 0) override;
     
     ErrCode SetUifirstScale(float scaleFactor) override;
+
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -370,6 +382,7 @@ private:
     ErrCode SetUIMode3D(UIMode3D mode) override;
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
+    int32_t AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized) override;
 
 #ifdef TP_FEATURE_ENABLE
     ErrCode SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) override;
@@ -377,8 +390,6 @@ private:
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
-
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 

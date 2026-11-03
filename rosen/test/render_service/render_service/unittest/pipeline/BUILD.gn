@@ -57,6 +57,7 @@ group("unittest") {
     ":RSVirtualScreenProcessorTest",
     ":RSRenderPipelineTest",
     ":RSRenderPipelineAgentTest",
+    ":RSRenderPipelineAgentCleanDelegateTest",
     ":RSOpincSplitNodeSelectorTest",
     ":RSOpincLayerSplitterPlannerTest",
     ":RSLayerSplitManagerTest",
@@ -65,11 +66,8 @@ group("unittest") {
     ":RSOpincLayerSplitterProcessorTest",
     ":RSSplitSurfaceTest",
     ":RSCanvasDrawingNodeBufferConsumerListenerTest",
+    ":RSSurfacePermissionTest",
   ]
-  if (rs_enable_parallel_render && rs_enable_gpu) {
-    deps += [ ":RSRenderTaskTest" ]
-  }
-
   if (graphic_2d_feature_product == "pc") {
     deps += [
       ":RSDrawWindowCacheTest",
@@ -94,10 +92,17 @@ ohos_unittest("RSBufferManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -116,17 +121,26 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -151,13 +165,21 @@ ohos_unittest("RSVirtualScreenParallelManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
     "ffrt:libffrt",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   sanitize = {
     cfi = false
@@ -195,12 +217,20 @@ ohos_unittest("RSRenderPipelineTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -239,12 +269,19 @@ ohos_unittest("RSRenderPipelineAgentTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -271,6 +308,49 @@ ohos_unittest("RSRenderPipelineAgentTest") {
   ]
 }
 
+## Build RSRenderPipelineAgentCleanDelegateTest
+ohos_unittest("RSRenderPipelineAgentCleanDelegateTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_render_pipeline_agent_clean_delegate_test.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
 ## Build RSRenderServiceUnitTest
 ohos_unittest("RSRenderServiceUnitTest") {
   module_out_path = module_output_path
@@ -281,13 +361,20 @@ ohos_unittest("RSRenderServiceUnitTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "ability_base:want",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -316,10 +403,15 @@ ohos_unittest("RSUniRenderJudgementTest") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
   ]
   defines = []
   defines += gpu_defines
@@ -347,16 +439,25 @@ ohos_unittest("RSUniRenderProcessorTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -386,12 +487,19 @@ ohos_unittest("RSUniRenderThreadTest") {
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -425,12 +533,20 @@ ohos_unittest("RSRenderServiceVisitorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -471,18 +587,28 @@ ohos_unittest("RSComposerAdapterTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "ROSEN_OHOS" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -506,12 +632,20 @@ ohos_unittest("RSRenderServiceListenerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -519,6 +653,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -542,12 +677,19 @@ ohos_unittest("RSProcessorFactoryTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -587,12 +729,21 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -629,17 +780,26 @@ ohos_unittest("RSDropFrameProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -665,12 +825,20 @@ ohos_unittest("RSBaseRenderUtilTest") {
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "libxml2:libxml2",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -679,6 +847,8 @@ ohos_unittest("RSBaseRenderUtilTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
+  defines += [ "ROSEN_OHOS" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -717,18 +887,26 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -753,24 +931,34 @@ ohos_unittest("RSUniRenderUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
+    "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
     "ffrt:libffrt",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -789,17 +977,27 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
+  defines = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
-    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+    defines += [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
   }
+  defines += gpu_defines
 }
 
 ## Build RSUniRenderUtilSecUIExtensionTest
@@ -813,15 +1011,25 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  defines = []
+  defines += gpu_defines
 }
 
 ## Build RSUniRenderVisitorTest
@@ -846,24 +1054,33 @@ ohos_unittest("RSUniRenderVisitorTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
-    "eventhandler:libeventhandler",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_profiler",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/",
+    "$graphic_2d_root/utils/color_manager/export",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -873,6 +1090,9 @@ ohos_unittest("RSUniRenderVisitorTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (defined(graphic_2d_feature_tv_shutter_3d_enable) && graphic_2d_feature_tv_shutter_3d_enable) {
+    defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
   }
 }
 
@@ -891,6 +1111,7 @@ ohos_unittest("RSMainThreadTest") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -898,6 +1119,12 @@ ohos_unittest("RSMainThreadTest") {
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "googletest:gmock_main",
+    "libxml2:libxml2",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
   ]
   defines = []
   defines += gpu_defines
@@ -934,10 +1161,17 @@ ohos_unittest("RSMainThreadProfilerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
-    "hilog:libhilog",
-    "init:libbegetutil",
+    "drivers_interface_display:display_commontype_idl_headers",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
   ]
   defines = []
@@ -963,55 +1197,28 @@ ohos_unittest("RSMainThreadProfilerTest") {
   }
 }
 
-## Build RSRenderTaskTest
-ohos_unittest("RSRenderTaskTest") {
-  module_out_path = module_output_path
-  sources = [ "parallel_render/rs_render_task_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
-    "opengles:libGLES",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [
-      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
-      "video_processing_engine:videoprocessingengine",
-    ]
-  }
-}
-
 ## Build RSSLRScaleTest
 ohos_unittest("RSSLRScaleTest") {
   module_out_path = module_output_path
   sources = [ "rs_slr_scale_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1027,17 +1234,26 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
+  defines += [ "ROSEN_OHOS" ]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -1072,12 +1288,20 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "libxml2:libxml2",
+    "drivers_interface_display:display_commontype_idl_headers",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -1086,6 +1310,7 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "ROSEN_OHOS" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1101,7 +1326,13 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
 ## Build RSRoundCornerDisplayTest
 ohos_unittest("RSRoundCornerDisplayTest") {
   module_out_path = module_output_path
-  sources = [ "rs_round_corner_display_test.cpp" ]
+  sources = [
+    "rs_rcd_img_load_test.cpp",
+    "rs_round_corner_display_test.cpp",
+    "rs_round_corner_display_test_common.cpp",
+    "rs_round_corner_display_test_part2.cpp",
+    "rs_round_corner_display_test_part3.cpp",
+  ]
 
   deps = [
     ":rs_test_common",
@@ -1110,13 +1341,20 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "opengles:libGLES",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
-    "egl:libEGL",
-    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1145,10 +1383,19 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1181,12 +1428,20 @@ ohos_unittest("RSRenderEngineTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1216,18 +1471,27 @@ ohos_unittest("RSDividedRenderUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  defines += [ "ROSEN_OHOS" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1252,12 +1516,20 @@ ohos_unittest("RSDrawFrameTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1282,12 +1554,21 @@ ohos_unittest("RSUniRenderEngineTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1320,13 +1601,20 @@ ohos_unittest("RSHwcContextTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -1356,19 +1644,32 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hwc/rs_uni_hwc_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
-    "samgr:samgr_proxy",
-    "egl:libEGL",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -1377,6 +1678,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
   }
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1402,17 +1704,24 @@ ohos_unittest("RSSolidLayerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  include_dirs = [ "$graphic_2d_root/utils/color_manager/export" ]
 }
 
 ## Build RSLayerSplitManagerTest
@@ -1426,31 +1735,40 @@ ohos_unittest("RSLayerSplitManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   defines = []
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "image_framework:image_native",
     "image_framework:image_utils",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1473,7 +1791,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1482,22 +1800,31 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
   defines = []
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "image_framework:image_native",
     "image_framework:image_utils",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1508,7 +1835,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
-
+ 
 ## Build RSOpincLayerSplitterPlannerTest
 ohos_unittest("RSOpincLayerSplitterPlannerTest") {
   module_out_path = module_output_path
@@ -1521,14 +1848,25 @@ ohos_unittest("RSOpincLayerSplitterPlannerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -1546,11 +1884,20 @@ ohos_unittest("RSOpincLayerSplitterProcessorTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -1582,11 +1929,18 @@ ohos_unittest("RSOpincSplitControllerTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "graphic_surface:surface_headers",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -1601,17 +1955,31 @@ ohos_unittest("RSLayerSplitSurfaceBufferTest") {
   sources = [
     "layer_split/rs_layer_split_surface_buffer_test.cpp",
   ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -1632,11 +2000,21 @@ ohos_unittest("RSSplitSurfaceTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "graphic_surface:surface",
+    "graphic_surface:surface_headers",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "image_framework:image_native",
     "init:libbegetutil",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -1650,10 +2028,19 @@ ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
   module_out_path = module_output_path
   sources = []
   deps = [ ":rs_test_common" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core",
+  ]
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
   ]
   defines = []
   defines += gpu_defines
@@ -1675,16 +2062,62 @@ ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
   }
 }
 
+## Build RSSurfacePermissionTest
+ohos_unittest("RSSurfacePermissionTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_surface_permission_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "egl:libEGL",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "libxml2:libxml2",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+}
+
 ## Build rs_test_common.a
 config("rs_test_common_public_config") {
+  defines = rs_common_define
+  defines += gpu_defines
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
+  if (accessibility_enable) {
+    defines += accessibility_defines
+  }
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan &&
+    graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
@@ -1714,7 +2147,13 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/utils/socketpair/export",
-    "$graphic_2d_root/rosen/modules/render_service/vsync", 
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
+    "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/utils/sandbox",
+    "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/frameworks/text/interface/export/rosen_text",
+    "$graphic_2d_root/interfaces/inner_api/composer",
   ]
 
   cflags = [
@@ -1734,7 +2173,7 @@ ohos_static_library("rs_test_common") {
   sources = [ "rs_test_util.cpp" ]
   public_configs = [ ":rs_test_common_public_config" ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
@@ -1745,20 +2184,25 @@ ohos_static_library("rs_test_common") {
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
-
   external_deps = [
+    "eventhandler:libeventhandler",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "libxml2:libxml2",
   ]
 
-  public_external_deps = [
+  external_deps += [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gmock_main",
@@ -1767,10 +2211,9 @@ ohos_static_library("rs_test_common") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "ipc:ipc_core",
   ]
   if (use_memmgr_plugin || use_memmgr) {
-    public_external_deps += [ "memmgr:memmgrclient" ]
+    external_deps += [ "memmgr:memmgrclient" ]
   }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

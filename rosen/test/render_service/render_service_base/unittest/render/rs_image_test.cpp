@@ -46,6 +46,7 @@ public:
 void RSImageTest::SetUpTestCase() {}
 void RSImageTest::TearDownTestCase() {}
 void RSImageTest::SetUp() {}
+
 void RSImageTest::TearDown() {}
 
 static void GenRSMarshallingParcelHeader(Parcel& parcel)
@@ -370,6 +371,40 @@ HWTEST_F(RSImageTest, SetRadiusTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRadiusTest002
+ * @tc.desc: Verify function SetRadius with invalid radius size
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, SetRadiusTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    image->hasRadius_ = true;
+
+    std::vector<Drawing::Point> emptyRadius;
+    image->SetRadius(emptyRadius);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius1 = { Drawing::Point { 1.f, 1.f} };
+    image->SetRadius(radius1);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius2 = { Drawing::Point { 1.f, 1.f}, Drawing::Point { 1.f, 1.f} };
+    image->SetRadius(radius2);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius3 = {
+        Drawing::Point { 1.f, 1.f},
+        Drawing::Point { 1.f, 1.f},
+        Drawing::Point { 1.f, 1.f}
+    };
+    image->SetRadius(radius3);
+    EXPECT_FALSE(image->hasRadius_);
+}
+
+/**
  * @tc.name: SetScaleTest001
  * @tc.desc: Verify function SetScale
  * @tc.type:FUNC
@@ -597,6 +632,165 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
+class RSImageBaseCacheAccessor : public RSImageBase {
+public:
+    static void DecreaseCacheRefCountForTest(uint64_t uniqueId, bool useSkImage,
+        std::shared_ptr<Media::PixelMap> pixelMap)
+    {
+        RSImageBase::DecreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
+    }
+};
+
+static void WriteImagePrefix(Parcel& parcel, uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    RSMarshallingHelper::Marshalling(parcel, uniqueId);
+    RSMarshallingHelper::Marshalling(parcel, static_cast<int32_t>(0));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<int32_t>(0));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint64_t>(0));
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    RSMarshallingHelper::Marshalling(parcel, std::shared_ptr<Drawing::Image>());
+    RSMarshallingHelper::Marshalling(parcel, pixelMap);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount001
+ * @tc.desc: Verify DecreaseCacheRefCount releases drawing image cache when useSkImage is true
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount001, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x1111;
+    auto img = std::make_shared<Drawing::Image>();
+    RSImageCache::Instance().CacheDrawingImage(uniqueId, img);
+    RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(uniqueId);
+    EXPECT_NE(RSImageCache::Instance().GetDrawingImageCache(uniqueId), nullptr);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, true, nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount002
+ * @tc.desc: Verify DecreaseCacheRefCount releases pixelmap cache when pixelmap is not editable
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount002, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x2222;
+    auto pixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, pixelMap);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount003
+ * @tc.desc: Verify DecreaseCacheRefCount releases editable pixelmap cache for cacheable DMA pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount003, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x3333;
+    auto pixelMap = CreatePixelMap(4, 4);
+    pixelMap->SetEditable(true);
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, pixelMap);
+    EXPECT_EQ(RSImageCache::Instance().GetEditablePixelMapCache(uniqueId), nullptr);
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+}
+
+/**
+ * @tc.name: RSImageDecreaseCacheRefCount004
+ * @tc.desc: Verify DecreaseCacheRefCount does nothing when no branch matches
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageDecreaseCacheRefCount004, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x4444;
+    auto pixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    RSImageBaseCacheAccessor::DecreaseCacheRefCountForTest(uniqueId, false, nullptr);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback001
+ * @tc.desc: Verify failed compress data unmarshalling rolls back newly cached pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback001, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x5555;
+    auto pixelMap = CreatePixelMap(4, 4);
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, pixelMap);
+    constexpr uint32_t oversizedCompressSize = 4096;
+    parcel.WriteUint32(oversizedCompressSize);
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback002
+ * @tc.desc: Verify failed image properties unmarshalling rolls back newly cached pixelmap
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback002, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x6666;
+    auto pixelMap = CreatePixelMap(4, 4);
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, pixelMap);
+    parcel.WriteUint32(UINT32_MAX); // null compress data, image properties missing
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RSImageUnmarshallingRollback003
+ * @tc.desc: Verify rollback keeps cache entry alive when another holder exists
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSImageTest, RSImageUnmarshallingRollback003, TestSize.Level1)
+{
+    constexpr uint64_t uniqueId = 0x7777;
+    auto cachedPixelMap = CreatePixelMap(4, 4);
+    RSImageCache::Instance().CachePixelMap(uniqueId, cachedPixelMap);
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    MessageParcel parcel;
+    GenRSMarshallingParcelHeader(parcel);
+    WriteImagePrefix(parcel, uniqueId, nullptr);
+    constexpr uint32_t oversizedCompressSize = 4096;
+    parcel.WriteUint32(oversizedCompressSize);
+
+    EXPECT_EQ(RSImage::Unmarshalling(parcel), nullptr);
+    EXPECT_NE(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+
+    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(uniqueId), nullptr);
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: IsEDRSurfaceTest001
@@ -621,6 +815,85 @@ HWTEST_F(RSImageTest, IsEDRSurfaceTest001, TestSize.Level1)
     pixelmap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     rsImage->SetPixelMap(pixelmap);
     EXPECT_EQ(rsImage->IsEDRSurface(), false);
+}
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest001
+ * @tc.desc: Verify HDRConvert returns false for non-DMA HDR pixelMap
+ *           (IsHdr true but allocator not DMA, must not reach reinterpret_cast)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    ASSERT_NE(pixelmap, nullptr);
+    // make IsHdr() return true via ASTC format + astcHdr_, without DMA backing
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ASTC_4x4;
+    pixelmap->astcHdr_ = true;
+    rsImage->pixelMap_ = pixelmap;
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    EXPECT_TRUE(pixelmap->IsHdr());
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::DMA_ALLOC);
+
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions samplingOptions;
+    // non-DMA HDR pixelMap must be rejected to avoid type confusion on GetFd()
+    EXPECT_FALSE(rsImage->HDRConvert(samplingOptions, canvas));
+}
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest002
+ * @tc.desc: Verify HDRConvert returns false when pixelMap_ or image_ is null,
+ *           and when pixelMap is non-HDR non-DMA (all HDR flags false)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest002, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions sampling;
+    // null pixelMap_ and image_
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+    // null image_ only
+    rsImage->pixelMap_ = CreatePixelMap(200, 300);
+    ASSERT_NE(rsImage->pixelMap_, nullptr);
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+    // non-HDR non-DMA pixelMap, all HDR flags false
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
+}
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRConvertTest003
+ * @tc.desc: Verify HDRConvert returns false when canvas is not PAINT_FILTER
+ *           (reached via IsHdr true + DMA allocator, returns before reinterpret_cast)
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, HDRConvertTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    ASSERT_NE(pixelmap, nullptr);
+    // IsHdr true + DMA to pass guard, plain canvas triggers type check
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ASTC_4x4;
+    pixelmap->astcHdr_ = true;
+    pixelmap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    rsImage->pixelMap_ = pixelmap;
+    rsImage->image_ = std::make_shared<Drawing::Image>();
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions sampling;
+    // plain canvas (COMMON) != PAINT_FILTER, returns before reinterpret_cast
+    EXPECT_FALSE(rsImage->HDRConvert(sampling, canvas));
 }
 #endif
 
@@ -752,22 +1025,6 @@ HWTEST_F(RSImageTest, SetFitMatrixTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetFitMatrixTest
- * @tc.desc: Test RSImageTest.GetFitMatrix
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST_F(RSImageTest, GetFitMatrixTest, TestSize.Level1)
-{
-    auto rsImage = std::make_shared<RSImage>();
-    ASSERT_NE(rsImage, nullptr);
-    Drawing::Matrix matrix;
-    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
-    rsImage->fitMatrix_ = matrix;
-    EXPECT_EQ(rsImage->GetFitMatrix(), matrix);
-}
-
-/**
  * @tc.name: addImageMatrixTest001
  * @tc.desc: addImageMatrixtest001.
  * @tc.type: FUNC
@@ -803,7 +1060,7 @@ HWTEST_F(RSImageTest, addImageMatrixTest002, TestSize.Level1)
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
-    EXPECT_EQ(image.GetFitMatrix(), matrix);
+    EXPECT_EQ(image.fitMatrix_.value(), matrix);
 }
 
 /**
@@ -1288,8 +1545,9 @@ HWTEST_F(RSImageTest, PixelSamplingDumpTest, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(width, height);
     rsImage->SetPixelMap(pixelmap);
     EXPECT_EQ(rsImage->PixelSamplingDump(),
-        "[ Width:200 Height:300 pixels: ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
-        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        "[ Width:200 Height:300 pixelFormat:3"
+        " pixels: ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
         " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00]");
 }
 

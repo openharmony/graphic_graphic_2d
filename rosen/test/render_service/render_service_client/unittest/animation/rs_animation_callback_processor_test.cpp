@@ -22,6 +22,7 @@
 #include "ui/rs_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 
 using namespace testing;
@@ -51,54 +52,181 @@ void RSAnimationCallbackProcessorTest::TearDown() {}
 
 /**
  * @tc.name: AnimationCallbackProcessor
- * @tc.desc: Verify AnimationCallbackProcessor
+ * @tc.desc: Verify AnimationCallbackProcessor with no matching context
  * @tc.type:FUNC
  */
 HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessor, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(connectToRenderRemote, rsUIContext);
-    ASSERT_TRUE(director != nullptr);
     NodeId nodeId = 0;
     AnimationId animId = 0;
     uint64_t token = 0;
     AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, token, event);
+    EXPECT_EQ(nodeId, 0u);
 }
 
 /**
  * @tc.name: AnimationCallbackProcessorTest001
- * @tc.desc: test results of AnimationCallbackProcessor
+ * @tc.desc: test AnimationCallbackProcessor with node and animation on context
  * @tc.type:FUNC
  */
 HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(connectToRenderRemote, rsUIContext);
-    ASSERT_TRUE(director != nullptr);
-    NodeId nodeId = 0;
-    AnimationId animId = 0;
     uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+    auto rsUIContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
+    RSUIContextManager::MutableInstance().rsUIContextMap_[token] = rsUIContext;
 
     auto node = std::make_shared<RSRootNode>(false);
-    nodeId = node->GetId();
-    director->SetRoot(nodeId);
-    RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
-    bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    auto animation = std::make_shared<RSAnimationMock>(director->GetRSUIContext());
-    animId = animation->GetId();
-    director->rsUIContext_->animations_.emplace(animId, animation);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    director->rsUIContext_ = nullptr;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    ASSERT_TRUE(res);
+    NodeId nodeId = node->GetId();
+    rsUIContext->GetMutableNodeMap().RegisterNode(node);
+
+    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
+    RSUIDirector::AnimationCallbackProcessor(nodeId, 0, token, event);
+
+    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
+    AnimationId animId = animation->GetId();
+    node->animations_.emplace(animId, animation);
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, token, event);
+    EXPECT_EQ(animation->state_, RSAnimation::AnimationState::INITIALIZED);
+
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, token, AnimationCallbackEvent::FINISHED);
+    EXPECT_EQ(animation->state_, RSAnimation::AnimationState::FINISHED);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(token);
+}
+
+/**
+ * @tc.name: AnimationCallbackProcessorFallbackNodeFound
+ * @tc.desc: Valid token, node not in self context, found in another context with animation,
+ *           L957 true + L958 true, should execute callback and return
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessorFallbackNodeFound, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    uint64_t selfToken = 100;
+    auto selfContext = std::make_shared<RSUIContext>(selfToken, connectToRenderRemote);
+    RSUIContextManager::MutableInstance().rsUIContextMap_[selfToken] = selfContext;
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+
+    auto otherContext = std::make_shared<RSUIContext>(999, connectToRenderRemote);
+    uint64_t otherToken = 999;
+    RSUIContextManager::MutableInstance().rsUIContextMap_[otherToken] = otherContext;
+
+    auto node = std::make_shared<RSRootNode>(false);
+    NodeId nodeId = node->GetId();
+    otherContext->GetMutableNodeMap().RegisterNode(node);
+
+    auto animation = std::make_shared<RSAnimationMock>(otherContext);
+    AnimationId animId = animation->GetId();
+    node->animations_.emplace(animId, animation);
+
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, selfToken, event);
+    EXPECT_EQ(animation->state_, RSAnimation::AnimationState::FINISHED);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(otherToken);
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(selfToken);
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = false;
+}
+
+/**
+ * @tc.name: AnimationCallbackProcessorFallbackNodeNotFoundContextCallback
+ * @tc.desc: Valid token, node not found in any context, but another context has the animation,
+ *           L957 false for all + L968 true, should execute context-level AnimationCallback and return
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessorFallbackNodeNotFoundContextCallback,
+    TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    uint64_t selfToken = 100;
+    auto selfContext = std::make_shared<RSUIContext>(selfToken, connectToRenderRemote);
+    RSUIContextManager::MutableInstance().rsUIContextMap_[selfToken] = selfContext;
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+
+    auto otherContext = std::make_shared<RSUIContext>(999, connectToRenderRemote);
+    uint64_t otherToken = 999;
+    RSUIContextManager::MutableInstance().rsUIContextMap_[otherToken] = otherContext;
+
+    auto animation = std::make_shared<RSAnimationMock>(otherContext);
+    AnimationId animId = animation->GetId();
+    otherContext->animations_.emplace(animId, animation);
+
+    NodeId nodeId = 99999;
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, selfToken, event);
+    EXPECT_EQ(animation->state_, RSAnimation::AnimationState::FINISHED);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(otherToken);
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(selfToken);
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = false;
+}
+
+/**
+ * @tc.name: AnimationCallbackProcessorFallbackAllFail
+ * @tc.desc: Valid token, node not found in any context, no context has the animation,
+ *           should fall through to fallback node
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessorFallbackAllFail, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    uint64_t selfToken = 100;
+    auto selfContext = std::make_shared<RSUIContext>(selfToken, connectToRenderRemote);
+    RSUIContextManager::MutableInstance().rsUIContextMap_[selfToken] = selfContext;
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+
+    auto otherContext = std::make_shared<RSUIContext>(999, connectToRenderRemote);
+    uint64_t otherToken = 999;
+    RSUIContextManager::MutableInstance().rsUIContextMap_[otherToken] = otherContext;
+
+    NodeId nodeId = 99999;
+    AnimationId animId = 88888;
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, selfToken, event);
+    EXPECT_TRUE(otherContext->animations_.empty());
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(otherToken);
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(selfToken);
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = false;
+}
+
+/**
+ * @tc.name: AnimationCallbackProcessorFallbackNodeAnimationFail
+ * @tc.desc: Valid token, node found in another context but animation not on that node,
+ *           L957 true + L958 false, nodeFound=true so return directly without context-level callback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCallbackProcessorTest, AnimationCallbackProcessorFallbackNodeAnimationFail, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    uint64_t selfToken = 100;
+    auto selfContext = std::make_shared<RSUIContext>(selfToken, connectToRenderRemote);
+    RSUIContextManager::MutableInstance().rsUIContextMap_[selfToken] = selfContext;
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+
+    auto otherContext = std::make_shared<RSUIContext>(999, connectToRenderRemote);
+    uint64_t otherToken = 999;
+    RSUIContextManager::MutableInstance().rsUIContextMap_[otherToken] = otherContext;
+
+    auto node = std::make_shared<RSRootNode>(false);
+    NodeId nodeId = node->GetId();
+    otherContext->GetMutableNodeMap().RegisterNode(node);
+
+    auto otherAnimation = std::make_shared<RSAnimationMock>(otherContext);
+    AnimationId otherAnimId = otherAnimation->GetId();
+    otherContext->animations_.emplace(otherAnimId, otherAnimation);
+
+    AnimationId animId = 88888;
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    RSUIDirector::AnimationCallbackProcessor(nodeId, animId, selfToken, event);
+    EXPECT_EQ(otherAnimation->state_, RSAnimation::AnimationState::INITIALIZED);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(otherToken);
+    RSUIContextManager::MutableInstance().rsUIContextMap_.erase(selfToken);
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = false;
 }
 
 } // namespace Rosen

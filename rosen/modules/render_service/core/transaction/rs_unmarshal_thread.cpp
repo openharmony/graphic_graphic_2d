@@ -18,16 +18,15 @@
 #include "app_mgr_client.h"
 #include "engine/rs_base_render_util.h"
 #include "ffrt_inner.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
 #include "res_sched_client.h"
 #include "res_type.h"
 #include "rs_frame_report.h"
-#include "rs_profiler.h"
 #include "command/rs_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "rs_trace.h"
@@ -135,10 +134,21 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
     bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
                              parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
+    const bool isNoNeedWaitTask = !waitUnmarshalling;
+    if (isNoNeedWaitTask) {
+        noNeedWaitTaskNum_.fetch_add(1);
+    }
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
-        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
+                                     ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit,
+                                     parcelNumber, isNoNeedWaitTask]() mutable {
+        auto finishNoNeedWaitTask = [this, isNoNeedWaitTask]() {
+            if (isNoNeedWaitTask) {
+                noNeedWaitTaskNum_.fetch_sub(1);
+            }
+        };
         RSMarshallingHelper::SetCallingPid(callingPid);
         AshmemFdContainer::SetIsUnmarshalThread(true);
+        AshmemFdContainer::Instance().Clear();
         if (ashmemFdWorker) {
             ashmemFdWorker->PushFdsToContainer();
         }
@@ -149,12 +159,14 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (ashmemFdWorker) {
             // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
             parcel->FlushBuffer();
-            ashmemFdWorker->EnableManualCloseFds();
+            ashmemFdWorker.reset();
         }
         if (!transData) {
+            finishNoNeedWaitTask();
             return;
         }
         transData->SetCallingPid(callingPid);
+        transData->SetSendingPid(callingPid);
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
             if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
@@ -163,11 +175,14 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {
                 RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
+                finishNoNeedWaitTask();
                 return;
             }
         }
-        RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transData);
+#endif
         if (transData && transData->GetDVSyncUpdate()) {
             RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());
         }
@@ -185,9 +200,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
                 RSMainThread::Instance()->RequestNextVSync("UI", time);
             }
         }
-        if (noNeedWaitTaskNum_ > 0) {
-            noNeedWaitTaskNum_--;
-        }
+        finishNoNeedWaitTask();
         RSMainThread::Instance()->NotifyUnmarshalTask(time);
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
@@ -201,9 +214,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
-    }
-    if (!waitUnmarshalling) {
-        noNeedWaitTaskNum_++;
     }
 }
 

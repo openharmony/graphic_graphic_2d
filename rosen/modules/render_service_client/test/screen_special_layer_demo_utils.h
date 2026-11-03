@@ -56,6 +56,7 @@ const std::map<std::string, ModifyListFunc> MODIFY_LIST_FUNC_MAP {
 
 class ScreenSpecialLayerDemoUtils {
 public:
+    static bool SwitchToFoundationUid();
     static void PrintPersistId();
     static std::map<std::string, std::string> GetAllPersistId();
     static std::string DumpRsTree();
@@ -64,6 +65,7 @@ public:
     static bool ParseBoolParam(char* input, bool& output);
     static bool ParseUint32Param(char* input, uint32_t& output);
     static void ModifySpecialLayerList(int argc, char* argv[]);
+    static void SetRogScreenResolution(int argc, char* argv[]);
 };
 } // namespace Rosen
 } // namespace OHOS

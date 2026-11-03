@@ -238,26 +238,26 @@ HWTEST_F(RenderNodeMapTest, GetRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode001
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized001
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: 22738
  */
-HWTEST_F(RenderNodeMapTest, IsUIExtensionSurfaceNode001, TestSize.Level1)
+HWTEST_F(RenderNodeMapTest, IsUIExtensionAuthorized001, TestSize.Level1)
 {
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    bool isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
 }
 
 /**
@@ -280,12 +280,12 @@ HWTEST_F(RenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode002
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized002
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: 22738
  */
-HWTEST_F(RenderNodeMapTest, IsUIExtensionSurfaceNode002, TestSize.Level1)
+HWTEST_F(RenderNodeMapTest, IsUIExtensionAuthorized002, TestSize.Level1)
 {
     NodeId id = 1;
     RSSurfaceRenderNodeConfig config = { .id = id };
@@ -294,55 +294,67 @@ HWTEST_F(RenderNodeMapTest, IsUIExtensionSurfaceNode002, TestSize.Level1)
     RSRenderNodeMap rsRenderNodeMap;
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    bool isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode004
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized004
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: 22738
  */
-HWTEST_F(RenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
+HWTEST_F(RenderNodeMapTest, IsUIExtensionAuthorized004, TestSize.Level1)
 {
-    NodeId id = 1;
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    NodeId id = (static_cast<NodeId>(hostPid) << 32) | 1;
     RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    // registration alone does not grant any authorization
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    EXPECT_TRUE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), guestPid);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode003
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized003
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: 22738
  */
-HWTEST_F(RenderNodeMapTest, IsUIExtensionSurfaceNode003, TestSize.Level1)
+HWTEST_F(RenderNodeMapTest, IsUIExtensionAuthorized003, TestSize.Level1)
 {
-    NodeId id = 1;
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    NodeId id = (static_cast<NodeId>(hostPid) << 32) | 1;
     RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
+    // pre-authorization before node registration must survive the registration
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    EXPECT_TRUE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), guestPid);
+    EXPECT_TRUE(rsRenderNodeMap.RevokeUIExtensionPid(id, guestPid));
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
 }
 
 /**

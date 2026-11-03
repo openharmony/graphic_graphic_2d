@@ -45,6 +45,16 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
     return isDisableHwcOnExpandScreen_;
 }
 
+void HWCParam::SetEnableHwcOnWiredMirror(bool isEnable)
+{
+    isEnableHwcOnWiredMirror_ = isEnable;
+}
+
+bool HWCParam::IsEnableHwcOnWiredMirror()
+{
+    return isEnableHwcOnWiredMirror_;
+}
+
 const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningForAppMap()
 {
     return sourceTuningMap_;

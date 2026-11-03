@@ -16,6 +16,7 @@
 #include "js_point_utils.h"
 #include "native_value.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -63,7 +64,7 @@ napi_value JsPointUtils::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsPointUtils *jsPointUtils = new JsPointUtils();
-    status = napi_wrap(env, jsThis, jsPointUtils, JsPointUtils::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsPointUtils, JsPointUtils::Destructor, nullptr, &POINT_UTILS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPointUtils;
         ROSEN_LOGE("JsPointUtils::Constructor Failed to wrap native instance");
@@ -90,14 +91,16 @@ napi_value JsPointUtils::Negate(napi_env env, napi_callback_info info)
     double point[ARGC_TWO] = { 0 };
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], point, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsPointUtils::Negate incorrect parameter0 type.");
+            "Parameter error. Param[0] type mismatch. Expected: Point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
 
     Drawing::Point drawingPoint(point[ARGC_ZERO], point[ARGC_ONE]);
     drawingPoint.Negate();
     if (!SetPointToJsValue(env, argv[ARGC_ZERO], drawingPoint)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsPointUtils::Negate cannot fill 'point' Point type.");
+            "Parameter error. Param[0] type mismatch. Expected: Point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
     return nullptr;
 }
@@ -110,7 +113,8 @@ napi_value JsPointUtils::Offset(napi_env env, napi_callback_info info)
     double point[ARGC_TWO] = { 0 };
     if (!ConvertFromJsPoint(env, argv[ARGC_ZERO], point, ARGC_TWO)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsPointUtils::Offset incorrect parameter0 type.");
+            "Parameter error. Param[0] type mismatch. Expected: Point with number properties "
+            "(x, y), Actual: invalid Point.");
     }
 
     double dx = 0;
@@ -122,7 +126,8 @@ napi_value JsPointUtils::Offset(napi_env env, napi_callback_info info)
     drawingPoint.Offset(dx, dy);
     if (!SetPointToJsValue(env, argv[ARGC_ZERO], drawingPoint)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsPointUtils::Offset cannot fill 'point' Point type.");
+            "Parameter error. Param[0] type mismatch. Expected: Point with number properties "
+            "(x, y), Actual: cannot fill Point.");
     }
     return nullptr;
 }

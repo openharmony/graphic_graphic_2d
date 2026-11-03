@@ -40,32 +40,27 @@ constexpr int32_t DEFAULT_MAX_FD = 1024;
 
 int32_t ForkAndExec(GroupId groupId)
 {
+    std::string processName = "render_service:" + std::to_string(groupId);
+    const char* argv0 = processName.c_str();
+    const char* execPath = "/system/bin/render_process";
+    long maxfd = sysconf(_SC_OPEN_MAX);
+    if (maxfd < 0) {
+        maxfd = DEFAULT_MAX_FD;
+    }
     pid_t pid = fork();
-    RS_LOGW("%{public}s: Forked done %{public}d", __func__, pid);
     if (pid < 0) {
         RS_LOGE("%{public}s: Fork failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno, strerror(errno));
         return -1;
     }
     if (pid == 0) {
-        long maxfd = sysconf(_SC_OPEN_MAX);
-        if (maxfd < 0) {
-            maxfd = DEFAULT_MAX_FD;
-        }
         for (long fd = 3; fd < maxfd; fd++) {
             close(fd);
         }
-
-        RS_LOGW("%{public}s: Forked success self %{public}d, parent %{public}d", __func__, getpid(), getppid());
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) == -1) {
-            RS_LOGE("%{public}s: prctl(PR_SET_PDEATHSIG, SIGKILL), errorno:%{public}d, errormsg:%{public}s", __func__,
-                errno, strerror(errno));
             _exit(-1);
         }
-        std::string processName = "render_service:" + std::to_string(groupId);
-        char* argv[] = { const_cast<char*>(processName.c_str()), nullptr };
-        if (execv("/system/bin/render_process", argv) == -1) {
-            RS_LOGE("%{public}s: Fork execv command failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno,
-                strerror(errno));
+        char* argv[] = { const_cast<char*>(argv0), nullptr };
+        if (execv(execPath, argv) == -1) {
             _exit(-1);
         }
         return 0;
@@ -332,6 +327,16 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSMultiRenderProcessManager::Get
     return stateStore_.GetServiceToRenderConns();
 }
 
+sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConnByPid(pid_t pid) const
+{
+    auto uidOpt = stateStore_.GetValidRenderProcessUniqueIdByPid(pid);
+    if (!uidOpt.has_value()) {
+        RS_LOGE("%{public}s: GetConnectToRenderConnByPid failed", __func__);
+        return nullptr;
+    }
+    return stateStore_.GetServiceToRenderConnByUniqueId(uidOpt.value());
+}
+
 sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderConnection(ScreenId screenId) const
 {
     auto optionalProcessUniqueId =
@@ -346,6 +351,64 @@ sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderC
 std::shared_ptr<RSIpcPersistenceManager> RSMultiRenderProcessManager::GetIpcPersistenceManager() const
 {
     return ipcPersistenceManager_;
+}
+
+int32_t RSMultiRenderProcessManager::SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer)
+{
+    if (!transfer) {
+        RS_LOGE("%{public}s: transfer is nullptr", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+
+    auto persistenceManager = GetIpcPersistenceManager();
+    bool needPersist = persistenceManager && transfer->IsPersistent();
+    if (needPersist) {
+        persistenceManager->PersistTransfer(transfer);
+    }
+
+    auto conns = GetServiceToRenderConns();
+    if (conns.empty()) {
+        RS_LOGE("%{public}s: serviceToRenderConns is empty", __func__);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    auto policy = transfer->GetFanoutPolicy();
+    bool anySuccess = false;
+    int32_t firstErr = StatusCode::RS_CONNECTION_ERROR;
+    for (const auto& conn : conns) {
+        if (!conn) {
+            RS_LOGE("%{public}s: conn is nullptr", __func__);
+            continue;
+        }
+        auto perConnTransfer = transfer->CopyTransfer();
+        int32_t ret = conn->SendTransfer(perConnTransfer);
+        if (ret != StatusCode::SUCCESS) {
+            RS_LOGE("%{public}s: SendTransfer failed, err=%{public}d", __func__, ret);
+            if (policy == FanoutPolicy::FAIL_FAST) {
+                return ret;
+            }
+            if (firstErr == StatusCode::RS_CONNECTION_ERROR) {
+                firstErr = ret;
+            }
+            continue;
+        }
+        anySuccess = true;
+        int32_t result = perConnTransfer->GetReplyResult();
+        bool isReplyErr =
+            result != Detail::REPLY_RESULT_PENDING && result != StatusCode::SUCCESS;
+        if (!isReplyErr) {
+            continue;
+        }
+        if (policy == FanoutPolicy::FAIL_FAST) {
+            return result;
+        }
+        if (firstErr == StatusCode::RS_CONNECTION_ERROR) {
+            firstErr = result;
+        }
+    }
+    if (anySuccess) {
+        return StatusCode::SUCCESS;
+    }
+    return firstErr;
 }
 
 void RSMultiRenderProcessManager::RenderProcessDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remoteObject)

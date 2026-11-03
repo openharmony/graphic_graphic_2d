@@ -45,6 +45,10 @@ class RS_EXPORT FontCollection {
 public:
     static std::shared_ptr<FontCollection> From(std::shared_ptr<txt::FontCollection> fontCollection);
     static std::shared_ptr<FontCollection> Create();
+    // Creates a standalone font collection; each call returns a new instance whose
+    // lifetime is fully owned by the caller, unlike Create() which always returns
+    // the same process-wide instance.
+    static std::unique_ptr<FontCollection> CreateStandalone();
     virtual ~FontCollection() = default;
 
     virtual void EnableGlobalFontMgr() {}

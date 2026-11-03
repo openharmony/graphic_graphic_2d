@@ -82,8 +82,7 @@ void InitRenderContext()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        g_context->SetUpGpuContext(drawingContext);
+        g_context->SetUpGpuContext();
     } else {
         g_context->SetUpGpuContext();
     }

@@ -27,8 +27,9 @@
 #include "common/rs_common_def.h"
 #include "dfx/rs_service_dump_manager.h"
 #include "engine/rs_base_render_engine.h"
-#ifdef RS_CAR_FEATURES
-#include "rs_car_multi_display_feature_param.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#include "rs_multi_display_feature_param.h"
 #endif
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
@@ -59,6 +60,14 @@
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
+#endif
+
+#ifdef RES_SCHED_ENABLE
+#include "if_system_ability_manager.h"
+#include <iservice_registry.h>
+#include "res_sched_client.h"
+#include "res_type.h"
+#include "system_ability_definition.h"
 #endif
 
 #undef LOG_TAG
@@ -135,8 +144,8 @@ void RSRenderService::InitCCMConfig()
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
 
-#ifdef RS_CAR_FEATURES
-    RSCarMultiDisplayFeatureParam::Load();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    RSMultiDisplayFeatureParam::Load();
 #endif
 }
 
@@ -201,13 +210,9 @@ void RSRenderService::HgmInit()
 void RSRenderService::FeatureComponentInit()
 {
     RS_LOGI("%{public}s", __func__);
-    // vk init
-#ifdef RS_ENABLE_VK
-    if (Drawing::SystemProperties::IsUseVulkan()) {
-        RsVulkanContext::SetRecyclable(false);
-        RS_LOGD("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
-        RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
-    }
+
+#ifdef RES_SCHED_ENABLE
+    SubScribeSystemAbility();
 #endif
 
     // touch screen init
@@ -446,9 +451,9 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
             renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
         std::bind(&RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync,
             renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1, std::placeholders::_2));
-#ifdef RS_CAR_FEATURES
-    if (RSCarMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
-        RSCarMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    if (RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
+        RSMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {
         renderService_.rsRenderComposerManager_->SetAFBCEnabled(screenId, false);
         RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "] SetAFBCEnabled[false]", __func__, screenId);
     }
@@ -479,6 +484,13 @@ void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(
     renderService_.vsyncManager_->OnScreenPropertyChanged(id, type, property,
         renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     renderService_.renderProcessManager_->OnScreenPropertyChanged(id, type, property);
+    if (type == ScreenPropertyType::POWER_STATUS) {
+        RSTunnelLayerHelper::NotifyScreenPowerStatusChanged(id, property);
+    }
+
+    if (const auto hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->OnScreenPropertyChanged(id, type, property);
+    }
 }
 
 void RSRenderService::ScreenManagerListener::OnScreenRefresh(ScreenId id)
@@ -581,5 +593,33 @@ void RSRenderService::ScreenManagerListener::OnProcessDisconnected(ScreenId scre
     }
     renderService_.vsyncManager_->OnScreenDisconnected(screenId, renderService_.handler_);
 }
+
+#ifdef RES_SCHED_ENABLE
+void RSRenderService::SubScribeSystemAbility()
+{
+    RS_LOGI("%{public}s", __func__);
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        RS_LOGE("%{public}s failed to get system ability manager client", __func__);
+        return;
+    }
+    std::string threadName = "RSMainThread";
+    std::string strUid = std::to_string(getuid());
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+
+    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    if (saStatusChangeListener_ == nullptr) {
+        RS_LOGE("SubScribeSystemAbility new VSyncSystemAbilityListener failed");
+        return;
+    }
+    int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
+    if (ret != ERR_OK) {
+        RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
+        saStatusChangeListener_ = nullptr;
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

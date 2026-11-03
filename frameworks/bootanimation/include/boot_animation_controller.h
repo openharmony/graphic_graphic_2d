@@ -27,6 +27,9 @@ public:
 
 private:
     void WaitRenderServiceInit() const;
+#ifdef IS_CAR
+    int WaitPowerStateChange() const;
+#endif
     std::string GetConfigFilePath();
     void CreateDefaultBootConfig();
     BootStrategyType GetBootType() const;

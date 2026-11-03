@@ -607,4 +607,200 @@ HWTEST_F(RSOpincLayerSplitterProcessorTest, CanSkipOpIncNodeDraw_PlanPrepare_Har
     bool result = processor.CanSkipOpIncNodeDraw(1);
     EXPECT_FALSE(result);
 }
+/**
+ * @tc.name: Sync_CheckNeedRequestFalse
+ * @tc.desc: Test Sync when requestController_ exists but CheckNeedRequest returns false, planStatus != LEAVE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, Sync_CheckNeedRequestFalse, TestSize.Level1)
+{
+    // Test Case: requestController_ != nullptr, CheckNeedRequest() == false, planStatus_ != LEAVE
+    RSOpincLayerSplitterProcessor processor;
+    processor.opIncNodes_.insert(1);
+
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    planner->planStatus_ = PlanStatus::PREPARE;
+
+    auto controller = std::make_shared<RequestController>();
+    planner->requestController_ = controller;
+    // Fresh controller: noLeaveCount_=0 < requestThreshold_=1, CheckNeedRequest returns false
+
+    processor.Sync(planner);
+    EXPECT_EQ(processor.planStatus_, PlanStatus::PREPARE);
+    // opIncNodes_ unchanged (neither request path nor LEAVE path)
+    EXPECT_FALSE(processor.opIncNodes_.empty());
+}
+
+/**
+ * @tc.name: RequestFrame_NoRequestController
+ * @tc.desc: Test RequestFrame when requestController_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, RequestFrame_NoRequestController, TestSize.Level1)
+{
+    // Test Case: UNLIKELY(!requestController_) — requestController_ is nullptr
+    RSOpincLayerSplitterProcessor processor;
+    processor.requestController_ = nullptr;
+    processor.splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+
+    RSSurfaceRenderParams params(0);
+    processor.RequestFrame(params);
+    // Early return, splitSurface_->RequestFrame should NOT be called
+    EXPECT_NE(processor.splitSurface_, nullptr);
+}
+
+/**
+ * @tc.name: DrawDfx_Enabled_PlanOff
+ * @tc.desc: Test DrawDfx when drawDfxEnabled_=true and planStatus_=OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, DrawDfx_Enabled_PlanOff, TestSize.Level1)
+{
+    // Test Case: drawDfxEnabled_=true, planStatus_ != PlanStatus::ON (OFF)
+    RSOpincLayerSplitterProcessor processor;
+    processor.drawDfxEnabled_ = true;
+    processor.planStatus_ = PlanStatus::OFF;
+    processor.DrawDfx();
+    EXPECT_EQ(processor.planStatus_, PlanStatus::OFF);
+}
+
+/**
+ * @tc.name: DrawDfx_Enabled_PlanPrepare
+ * @tc.desc: Test DrawDfx when drawDfxEnabled_=true and planStatus_=PREPARE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, DrawDfx_Enabled_PlanPrepare, TestSize.Level1)
+{
+    // Test Case: drawDfxEnabled_=true, planStatus_ != PlanStatus::ON (PREPARE)
+    RSOpincLayerSplitterProcessor processor;
+    processor.drawDfxEnabled_ = true;
+    processor.planStatus_ = PlanStatus::PREPARE;
+    processor.DrawDfx();
+    EXPECT_EQ(processor.planStatus_, PlanStatus::PREPARE);
+}
+
+/**
+ * @tc.name: CalSplitCanvasMatrix_SplitSurfaceNoCanvas
+ * @tc.desc: Test CalSplitCanvasMatrix when splitSurface_ exists but splitCanvas_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, CalSplitCanvasMatrix_SplitSurfaceNoCanvas, TestSize.Level1)
+{
+    // Test Case: splitSurface_ != nullptr, splitSurface_->splitCanvas_ == nullptr
+    RSOpincLayerSplitterProcessor processor;
+    processor.splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    processor.splitSurface_->splitCanvas_ = nullptr;
+    processor.srcRect_ = RectF(10, 10, 50, 50);
+    processor.dstRect_ = RectF(0, 0, 100, 100);
+
+    Drawing::Canvas canvas(100, 100);
+    processor.CalSplitCanvasMatrix(canvas, 0);
+    EXPECT_NE(processor.splitSurface_, nullptr);
+    EXPECT_EQ(processor.splitSurface_->splitCanvas_, nullptr);
+}
+
+/**
+ * @tc.name: RecordNodeWithCacheImage_NoRequestController
+ * @tc.desc: Test RecordNodeWithCacheImage when planStatus=OFF, requestController_=nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, RecordNodeWithCacheImage_NoRequestController, TestSize.Level1)
+{
+    // Test Case: UNLIKELY(!requestController_) — planStatus=OFF but requestController_ is nullptr
+    RSOpincLayerSplitterProcessor processor;
+    processor.planStatus_ = PlanStatus::OFF;
+    processor.requestController_ = nullptr;
+    processor.opIncNodes_.insert(1);
+
+    processor.RecordNodeWithCacheImage(1);
+    // Early return at line 114, opIncNodes_ unchanged
+    EXPECT_FALSE(processor.opIncNodes_.empty());
+}
+
+/**
+ * @tc.name: RecordNodeWithCacheImage_NodeNotFound
+ * @tc.desc: Test RecordNodeWithCacheImage when nodeId not found in opIncNodes_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, RecordNodeWithCacheImage_NodeNotFound, TestSize.Level1)
+{
+    // Test Case: opIncNodes_.find(nodeId) == opIncNodes_.end()
+    RSOpincLayerSplitterProcessor processor;
+    processor.planStatus_ = PlanStatus::OFF;
+    auto controller = std::make_shared<RequestController>();
+    controller->Update(false, PlanStatus::PREPARE, false, false);
+    processor.requestController_ = controller;
+    processor.opIncNodes_.insert(1);
+
+    processor.RecordNodeWithCacheImage(2);
+    // node 2 not found, early return, opIncNodes_ unchanged
+    EXPECT_FALSE(processor.opIncNodes_.empty());
+    EXPECT_EQ(processor.opIncNodes_.size(), 1);
+}
+
+/**
+ * @tc.name: CanSkipOpIncNodeDraw_SplitSurfaceNullDrawableNull
+ * @tc.desc: Test CanSkipOpIncNodeDraw when splitSurface_ is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, CanSkipOpIncNodeDraw_SplitSurfaceNullDrawableNull, TestSize.Level1)
+{
+    // Test Case: !splitSurface_ — splitSurface_ is nullptr
+    RSOpincLayerSplitterProcessor processor;
+    processor.splitSurface_ = nullptr;
+    processor.opIncNodes_.insert(1);
+
+    bool result = processor.CanSkipOpIncNodeDraw(1);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CanSkipOpIncNodeDraw_DrawableNull
+ * @tc.desc: Test CanSkipOpIncNodeDraw when splitSurface_ exists but splitSurfaceDrawable_ is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, CanSkipOpIncNodeDraw_DrawableNull, TestSize.Level1)
+{
+    // Test Case: !splitSurface_->splitSurfaceDrawable_ — splitSurfaceDrawable_ is nullptr
+    RSOpincLayerSplitterProcessor processor;
+    processor.splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    processor.splitSurface_->splitSurfaceDrawable_ = nullptr;
+    processor.opIncNodes_.insert(1);
+    processor.planStatus_ = PlanStatus::ON;
+
+    bool result = processor.CanSkipOpIncNodeDraw(1);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CanSkipOpIncNodeDraw_PlanOn_NodeNotFound
+ * @tc.desc: Test CanSkipOpIncNodeDraw when planStatus=ON, splitSurface+drawable exist, node not in opIncNodes_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOpincLayerSplitterProcessorTest, CanSkipOpIncNodeDraw_PlanOn_NodeNotFound, TestSize.Level1)
+{
+    // Test Case: opIncNodes_.find(nodeId) == opIncNodes_.end(), with splitSurface+drawable set
+    RSOpincLayerSplitterProcessor processor;
+    processor.splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    SetupNodeGeometry(surfaceNode, 100, 100);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    processor.splitSurface_->splitSurfaceDrawable_ = surfaceDrawable;
+    processor.opIncNodes_.insert(1);
+    processor.planStatus_ = PlanStatus::ON;
+
+    bool result = processor.CanSkipOpIncNodeDraw(2);
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

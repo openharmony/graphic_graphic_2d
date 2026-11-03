@@ -60,8 +60,6 @@ public:
     void FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     size_t GetTotalMemory();
     void PrintMemorySnapshotToHilog();
-    void SetMemSnapshotPrintHilogLimit(int memSnapshotPrintHilogLimit);
-    int GetMemSnapshotPrintHilogLimit();
     
     /**
     * @brief Update GPU memory information for a process.
@@ -69,6 +67,9 @@ public:
     * @param memorysize Memory size in bytes.
     * @param isAdd True to allocate, false to free.
     * @param isEngine True for engine GPU memory, false for native GPU memory.
+    * @param canAllocate Output parameter. Set to false if process is abnormal and
+    *                    this is an engine memory allocation request, indicating
+    *                    that memory allocation should be denied.
     * @return true on success.
     */
     bool UpdateGpuInfo(pid_t pid, size_t memorysize, bool isAdd, bool isEngine);
@@ -96,11 +97,10 @@ private:
     uint64_t singleCpuMemoryLimit_ = UINT64_MAX; // error threshold for cpu memory of a single process
     uint64_t singleGpuMemoryLimit_ = UINT64_MAX; // error threshold for gpu memory of a single process
     uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
-    size_t totalCpuMemory_ = 0; // record the total memory of all processes
-    size_t totalGpuMemory_ = 0; // record the total memory of all processes
+    size_t totalCpuMemory_ = 0; // record the total cpu memory of all processes
+    size_t totalGpuMemory_ = 0; // record the total gpu memory of all processes
     MemoryOverflowCalllback memoryOverflowCallback_ = nullptr;
     int64_t memorySnapshotHilogTime_ = 0;
-    size_t memSnapshotPrintHilogLimit_ = 0;
     std::shared_mutex killProcessSetMutex_;
     std::atomic<int32_t> killProcessSetSize_ = 0;
     std::unordered_set<pid_t> killProcessSet_;

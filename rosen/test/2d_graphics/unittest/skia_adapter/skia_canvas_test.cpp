@@ -19,6 +19,7 @@
 #include "draw/core_canvas.h"
 #include "skia_adapter/skia_canvas_autocache.h"
 #include "skia_adapter/skia_oplist_handle.h"
+#include "utils/shadow_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1320,6 +1321,50 @@ HWTEST_F(SkiaCanvasTest, DrawUIColor001, TestSize.Level1)
     ASSERT_TRUE(skiaCanvas != nullptr);
     UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
     skiaCanvas->DrawUIColor(uiColor, BlendMode::SRC_OVER);
+}
+
+/**
+ * @tc.name: DrawShadowWithRecordCmdBit001
+ * @tc.desc: Test DrawShadow with RECORD_CMD_BIT set in flag, uses private_draw_shadow_rec path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, DrawShadowWithRecordCmdBit001, TestSize.Level1)
+{
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    Color ambientColor = 0xFF000000;
+    Color spotColor = 0xFF000000;
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(100, 100);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->ExportSkCanvas() != nullptr);
+    // Compose flag with RECORD_CMD_BIT set
+    uint8_t composeFlag = SetShadowIsRecordCmd(static_cast<uint8_t>(ShadowFlags::NONE), true);
+    ShadowFlags flagWithRecordCmd = static_cast<ShadowFlags>(SetShadowFlag(composeFlag));
+    skiaCanvas->DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, flagWithRecordCmd);
+}
+
+/**
+ * @tc.name: DrawShadowWithoutRecordCmdBit001
+ * @tc.desc: Test DrawShadow without RECORD_CMD_BIT in flag, uses SkShadowUtils::DrawShadow path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, DrawShadowWithoutRecordCmdBit001, TestSize.Level1)
+{
+    Path path;
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    Color ambientColor = 0xFF000000;
+    Color spotColor = 0xFF000000;
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(100, 100);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    ASSERT_TRUE(skiaCanvas->ExportSkCanvas() != nullptr);
+    // Compose flag with RECORD_CMD_BIT cleared
+    uint8_t composeFlag = SetShadowIsRecordCmd(static_cast<uint8_t>(ShadowFlags::NONE), false);
+    ShadowFlags flagWithoutRecordCmd = static_cast<ShadowFlags>(SetShadowFlag(composeFlag));
+    skiaCanvas->DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, flagWithoutRecordCmd);
 }
 } // namespace Drawing
 } // namespace Rosen

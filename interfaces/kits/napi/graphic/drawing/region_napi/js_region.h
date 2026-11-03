@@ -50,7 +50,7 @@ public:
     static napi_value SetPath(napi_env env, napi_callback_info info);
     static napi_value IsRect(napi_env env, napi_callback_info info);
     static napi_value QuickContains(napi_env env, napi_callback_info info);
-    static napi_value RegionTransferDynamic(napi_env env, napi_callback_info info);
+    static napi_value CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region);
 
     Region* GetRegion();
     std::shared_ptr<Region> GetRegionPtr()
@@ -76,7 +76,6 @@ private:
     napi_value OnSetPath(napi_env env, napi_callback_info info);
     napi_value OnIsRect(napi_env env, napi_callback_info info);
     napi_value OnQuickContains(napi_env env, napi_callback_info info);
-    static napi_value CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Region> m_region = nullptr;

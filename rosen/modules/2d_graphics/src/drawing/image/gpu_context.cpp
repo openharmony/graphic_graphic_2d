@@ -247,14 +247,19 @@ void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t s
 }
 
 // LCOV_EXCL_START
+void GPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+{
+    impl_->InitGpuMemoryInfoStatProc(callback);
+}
+
 void GPUContext::SetAbnormalPid(pid_t pid)
 {
     impl_->SetAbnormalPid(pid);
 }
 
-void GPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+void GPUContext::RemoveAbnormalPid(pid_t pid)
 {
-    impl_->InitGpuMemoryInfoStatProc(callback);
+    impl_->RemoveAbnormalPid(pid);
 }
 // LCOV_EXCL_STOP
 
@@ -369,6 +374,11 @@ bool GPUContextOptions::GetIsUniRender() const
 void GPUContext::SetParam(const std::string& name, const std::string& value)
 {
     impl_->SetParam(name, value);
+}
+
+void GPUContext::SetTextCacheEnforced(bool isEnforced)
+{
+    impl_->SetTextCacheEnforced(isEnforced);
 }
 } // namespace Drawing
 } // namespace Rosen

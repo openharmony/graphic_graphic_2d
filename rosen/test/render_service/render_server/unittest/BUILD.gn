@@ -86,6 +86,8 @@ ohos_unittest("RSRenderServiceAgentTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "libxml2:libxml2",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -164,12 +166,19 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
         external_deps += [ "sensor:sensor_interface_native" ]
     }
     subsystem_name = "graphic"
+    sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        debug = true
+    }
 }
 
 ###############################################################################
@@ -243,7 +252,17 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
+
+    if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
+        defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+        external_deps += [
+            "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+            "video_processing_engine:videoprocessingengine",
+        ]
+    }
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
         external_deps += [ "sensor:sensor_interface_native" ]
@@ -321,6 +340,8 @@ ohos_unittest("RSRenderProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -394,6 +415,7 @@ ohos_unittest("RSRenderModeConfigParserTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -473,6 +495,8 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -634,6 +658,8 @@ ohos_unittest("RenderServiceTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "libxml2:libxml2",
     ]
 
     # Add memmgr client dependency when memory manager integration is enabled so
@@ -644,6 +670,58 @@ ohos_unittest("RenderServiceTest") {
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
         external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+
+ohos_unittest("RSMultiDisplayFeatureParamTest") {
+    module_out_path = module_output_path
+    if (graphic_2d_feature_multi_display_features_enable) {
+        sources = [ "rs_multi_display_feature_param_test.cpp" ]
+        cflags = [
+            "-Dprivate=public",
+            "-Dprotected=public",
+        ]
+        include_dirs = [
+            "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+            "$graphic_2d_root/rosen/modules/render_service/main/render_server/server_config",
+        ]
+        deps = [
+            "$graphic_2d_root/rosen/modules/render_service:librender_service",
+            "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        ]
+        external_deps = [
+            "c_utils:utils",
+            "hilog:libhilog",
+        ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+
+ohos_unittest("RSMultiDisplayFeatureParamParseTest") {
+    module_out_path = module_output_path
+    if (graphic_2d_feature_multi_display_features_enable) {
+        sources = [ "rs_multi_display_feature_param_parse_test.cpp" ]
+        cflags = [
+            "-Dprivate=public",
+            "-Dprotected=public",
+        ]
+        include_dirs = [
+            "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+            "$graphic_2d_root/rosen/modules/render_service/main/render_server/server_config",
+        ]
+        deps = [
+            "$graphic_2d_root/rosen/modules/render_service:librender_service",
+            "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        ]
+        external_deps = [
+            "c_utils:utils",
+            "hilog:libhilog",
+        ]
     }
     subsystem_name = "graphic"
 }
@@ -660,6 +738,8 @@ group("unittest") {
         ":RSMultiRenderProcessManagerTest",
         ":RSMultiRenderProcessManagerRepositoryTest",
         ":RenderServiceTest",
+        ":RSMultiDisplayFeatureParamTest",
+        ":RSMultiDisplayFeatureParamParseTest",
         "dfx:unittest",
     ]
 }

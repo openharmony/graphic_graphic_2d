@@ -88,6 +88,8 @@ public:
         SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
     void PurgeMipmapMem();
+    bool IsImageInfoReserved() const;
+    void SetImageInfoReserved(bool reserved);
 #endif
     void SetNodeId(NodeId id) override;
     NodeId GetNodeId() const override;
@@ -113,6 +115,7 @@ private:
 #ifdef RS_ENABLE_VK
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+    bool imageInfoReserved_ = false;
 #endif
 #endif
     std::shared_ptr<Drawing::Image> image_;

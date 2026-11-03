@@ -35,6 +35,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_track.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_interface.h"
@@ -64,6 +65,7 @@ class RSCommand;
 class RSDirtyRegionManager;
 class RSOcclusionHandler;
 class RSSurfaceHandler;
+class RSTunnelRuntimeState;
 
 // Used for control-level occlusion culling scene info and culled nodes transmission.
 // Maintained by the Dirty Regions feature team.
@@ -163,10 +165,7 @@ public:
 
     void ResetRenderParams();
 
-    ScreenId GetScreenId() const
-    {
-        return screenId_;
-    }
+    ScreenId GetScreenId() const;
 
     bool IsAbilityComponent() const
     {
@@ -181,6 +180,16 @@ public:
     bool IsRosenWeb() const
     {
         return GetName().find("RosenWeb") != std::string::npos;
+    }
+
+    bool IsDelegateChild() const
+    {
+        return GetName() == "delegate_child";
+    }
+
+    bool IsBufferReclaimNode()
+    {
+        return IsRosenWeb() || (GetDelegateMode() && IsDelegateChild());
     }
 
     bool IsSubHighPriorityType() const
@@ -304,13 +313,37 @@ public:
         dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
+    void SetSolidLayerEnabled(bool isEnabled)
+    {
+        isSolidLayerEnabled_ = isEnabled;
+    }
+
+    bool GetSolidLayerEnabled() const
+    {
+        return isSolidLayerEnabled_;
+    }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    // Calculate src/dst rects for SolidLayer: src uses bounds size, dst uses absRect (absolute position)
+    void CalcSolidLayerRects(GraphicIRect& src, GraphicIRect& dst) const;
+    void UpdateSolidLayerRects(RSLayerInfo& layer, const sptr<SurfaceBuffer>& buffer);
+#endif
+
     void SetForceHardwareAndFixRotation(bool flag);
     bool GetFixRotationByUser() const
     {
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating);
+    void SetInFixedRotation(bool isRotating, bool screenChanged);
+    // Returns true if the screen the node is being prepared on differs from the last one,
+    // and records the current screen for the next comparison.
+    bool CheckScreenChanged(ScreenId screenId)
+    {
+        bool screenChanged = lastScreenId_ != INVALID_SCREEN_ID && lastScreenId_ != screenId;
+        lastScreenId_ = screenId;
+        return screenChanged;
+    }
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -337,8 +370,11 @@ public:
     {
         return hasSubNodeShouldPaint_;
     }
-
 #ifndef ROSEN_CROSS_PLATFORM
+    void UpdateTunnelBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
@@ -588,6 +624,8 @@ public:
         return bundleName_;
     }
 
+    void SetBundleName(const std::string& bundleName);
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -831,8 +869,6 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    bool IsFullScreen() const;
-
     VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const
@@ -877,6 +913,18 @@ public:
     RSSurfaceRenderNode* AsRSSurfaceRenderNode() override { return this; }
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
+
+    // Tunnel runtime state lives on the node (lazy-created). Callers obtain a shared_ptr via
+    // GetTunnelRuntimeState() and invoke RSTunnelRuntimeState methods directly; node does not
+    // re-wrap the state API. TryGetTunnelRuntimeState() returns null for non-tunnel surfaces.
+    //
+    // Usage constraint: GetTunnelRuntimeState() lazy-creates the state and is the sole write
+    // entrypoint — only RSRenderServiceListener::OnTunnelLayerInfoChanged may call it to attach
+    // tunnel state to a node that did not have one. All other call sites (read or write-after-
+    // creation) MUST use TryGetTunnelRuntimeState() and early-return on nullptr, so non-tunnel
+    // nodes never get a state object allocated spuriously.
+    std::shared_ptr<RSTunnelRuntimeState> GetTunnelRuntimeState();
+    std::shared_ptr<RSTunnelRuntimeState> TryGetTunnelRuntimeState() const;
 
     bool OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
@@ -1138,7 +1186,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
+    void ConnectToNodeInRenderService();
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -1389,8 +1437,6 @@ public:
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
-    void FindScreenId();
-
     void OnTreeStateChanged() override;
 
     void SetDrawingGPUContext(Drawing::GPUContext* grContext)
@@ -1466,14 +1512,6 @@ public:
         return isFilterCacheStatusChanged_;
     }
 
-    void ResetFilterNodes()
-    {
-        filterNodes_.clear();
-    }
-    void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // update static node's back&front-ground filter cache status
-    void UpdateFilterCacheStatusWithVisible(bool visible);
-    void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect, bool isRotationChanged);
     void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
@@ -1576,6 +1614,10 @@ public:
     void SetIsParentUifirstNodeEnableParam(bool b);
 
     void SetUifirstChildrenDirtyRectParam(RectI rect);
+
+    void SetUifirstDisabledByAnimationOverlap(bool disabled);
+
+    bool GetUifirstDisabledByAnimationOverlap() const;
 
     void SetUifirstStartTime(int64_t startTime)
     {
@@ -1749,6 +1791,16 @@ public:
     bool IsContainerWindowTransparent() const
     {
         return isContainerWindowTransparent_;
+    }
+
+    bool IsUIRenderDirectorStopped() const
+    {
+        return isUIRenderDirectorStopped_.load();
+    }
+
+    void SetUIRenderDirectorStopped(bool isUIRenderDirectorStopped)
+    {
+        isUIRenderDirectorStopped_ = isUIRenderDirectorStopped;
     }
 
     bool IsSecureUIExtension() const
@@ -2041,10 +2093,10 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
-    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateDstRect();
-    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateSrcRect();
+    void SetDelegateDstRect(const RectF& delegateDstRect);
+    RectF GetDelegateDstRect();
+    void SetDelegateSrcRect(const RectF& delegateSrcRect);
+    RectF GetDelegateSrcRect();
     void SetDelegateMode(bool isSetDelegateMode);
     bool IsDelegateModeNodeWithBuffer();
     bool GetDelegateMode() override;
@@ -2093,7 +2145,12 @@ private:
     template<typename T>
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+    {
+        if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+            oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+        }
+    }
 
     void CountRelatedNode(bool isIncrement);
     void ClearRelatedSourceCache(bool value);
@@ -2148,9 +2205,12 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool isSolidLayerEnabled_ = false;
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    bool haveScreenChangeInRotation_ = false;
+    ScreenId lastScreenId_ = INVALID_SCREEN_ID;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isSplitSurfaceNode_ = false;
@@ -2177,7 +2237,6 @@ private:
     bool isScale_ = false;
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
-    bool prevVisible_ = false;
 
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
@@ -2192,7 +2251,6 @@ private:
     bool hasSurfaceBuffer_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
-    bool isSelfAddedForSubSurface_ = false;
     bool isNodeSingleFrameComposer_ = false;
     mutable std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_;
     bool isNodeToBeCaptured_ = false;
@@ -2266,6 +2324,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     bool isRebuildingState_ = false;
+    std::atomic<bool> isUIRenderDirectorStopped_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector
@@ -2298,6 +2357,10 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
+    // Lazily-created tunnel runtime state owned by the node. Non-tunnel surfaces keep this null.
+    // Guarded by tunnelStateMutex_ for check-then-create atomicity in GetTunnelRuntimeState().
+    std::shared_ptr<RSTunnelRuntimeState> tunnelRuntimeState_;
+    mutable std::mutex tunnelStateMutex_;
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
     std::function<std::shared_ptr<Media::PixelMap>()> surfaceCaptureCallback_ = nullptr;
@@ -2363,8 +2426,6 @@ private:
 
     Occlusion::Region containerRegion_;
     std::unordered_set<NodeId> abilityNodeIds_;
-    // valid filter nodes within, including itself
-    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
 
@@ -2463,6 +2524,8 @@ private:
 
     // Used for delegateComposite
     std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
+
+    bool isBufferFlushed_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_vector4.h"
+#include "ipc_object_stub.h"
 #include "rs_window_animation_stub.h"
 #include "rs_window_animation_finished_callback.h"
 #include "rs_window_animation_target.h"
@@ -555,6 +556,173 @@ HWTEST_F(RSWindowAnimationStubTest, WallpaperUpdate002, TestSize.Level1)
         RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
     GTEST_LOG_(INFO) << "RSWindowAnimationStubTest WallpaperUpdate002 end";
+}
+/**
+ * @tc.name: StartAppInvalidCallbackObject001
+ * @tc.desc: Verify StartApp returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, StartAppInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteInt32(StartingAppType::FROM_LAUNCHER);
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_START_APP, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AppTransitionInvalidCallbackObject001
+ * @tc.desc: Verify AppTransition returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, AppTransitionInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_APP_TRANSITION, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AppBackTransitionInvalidCallbackObject001
+ * @tc.desc: Verify AppBackTransition returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, AppBackTransitionInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: MinimizeWindowInvalidCallbackObject001
+ * @tc.desc: Verify MinimizeWindow returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, MinimizeWindowInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_MINIMIZE_WINDOW, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: MinimizeAllWindowInvalidCallbackObject001
+ * @tc.desc: Verify MinimizeAllWindow returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, MinimizeAllWindowInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteUint32(1);
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: CloseWindowInvalidCallbackObject001
+ * @tc.desc: Verify CloseWindow returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, CloseWindowInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteParcelable(windowAnimationTarget_.get());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_CLOSE_WINDOW, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ScreenUnlockInvalidCallbackObject001
+ * @tc.desc: Verify ScreenUnlock returns ERR_INVALID_DATA when callback object is not valid type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, ScreenUnlockInvalidCallbackObject001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    sptr<IRemoteObject> invalidObject = new IPCObjectStub(u"invalid");
+    data.WriteRemoteObject(invalidObject);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_SCREEN_UNLOCK, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: StartApp004
+ * @tc.desc: Verify StartApp rejects invalid StartingAppType values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, StartApp004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp004 start";
+    MessageOption option;
+
+    MessageParcel dataNegative;
+    MessageParcel reply1;
+    dataNegative.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    dataNegative.WriteInt32(-1);
+    dataNegative.WriteParcelable(windowAnimationTarget_.get());
+    dataNegative.WriteRemoteObject(finishCallBack_->AsObject());
+    int res =
+        windowAnimationStub_->OnRemoteRequest(RSIWindowAnimationController::ON_START_APP, dataNegative, reply1, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel dataTooLarge;
+    MessageParcel reply2;
+    dataTooLarge.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    dataTooLarge.WriteInt32(static_cast<int>(FROM_OTHER) + 1);
+    dataTooLarge.WriteParcelable(windowAnimationTarget_.get());
+    dataTooLarge.WriteRemoteObject(finishCallBack_->AsObject());
+    res =
+        windowAnimationStub_->OnRemoteRequest(RSIWindowAnimationController::ON_START_APP, dataTooLarge, reply2, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp004 end";
 }
 } // namespace Rosen
 } // namespace OHOS

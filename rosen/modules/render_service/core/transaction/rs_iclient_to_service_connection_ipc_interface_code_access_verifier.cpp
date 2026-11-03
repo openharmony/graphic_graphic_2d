@@ -14,15 +14,16 @@
  */
 
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
 
 std::vector<std::pair<RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType, PermissionType>>
     RSIClientToServiceConnectionInterfaceCodeAccessVerifier::permissionRSIRenderServiceConnectionInterfaceMappings_ {
-        { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE,
-            PermissionType::UPDATE_CONFIGURATION },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS,
+            PermissionType::GET_RUNNING_INFO },
+        { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS_BY_RENDER_PID,
             PermissionType::GET_RUNNING_INFO },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
             PermissionType::UPDATE_CONFIGURATION },
@@ -139,6 +140,12 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_UIEXTENSION_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AUTHORIZE_UIEXTENSION_PID): {
+            // allowed for any app process: ownership is enforced by RSClientToServiceConnection
+            // via ExtractPid(nodeId) == callingPid, so a caller can only authorize its own NodeIds
+            hasPermission = true;
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN");
             break;
@@ -203,12 +210,24 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_HDR_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_HDR_MODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_VIRTUAL_SCREEN_HDR_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_VIRTUAL_SCREEN_HDR_MODE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_WATERMARK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WATERMARK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_UIFIRST_SCALE): {
             hasPermission = IsRssCalling(codeEnumTypeName_ + "::SET_UIFIRST_SCALE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_ENGINE_CONTROL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_ENGINE_CONTROL");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
@@ -248,11 +267,11 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_WHITELIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROG_SCREEN_RESOLUTION): {
@@ -385,6 +404,18 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS_BY_RENDER_PID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHICS_BY_RENDER_PID");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_TO_SP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO_TO_SP");
             break;
@@ -511,7 +542,8 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FORCE_REFRESH): {
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH") ||
-                IsExfusionServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");
+                IsExfusionServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH") ||
+                IsGameServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_COLOR_FOLLOW): {
@@ -576,22 +608,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PID_GPU_MEMORY_IN_MB");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_OPEN_FILE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_POPULATE_FILES");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
             break;
@@ -604,11 +620,64 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_THERMAL_FRAME_RATE_LIMIT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_THERMAL_FRAME_RATE_LIMIT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BACKGROUND_REBUILD_ENABLED):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VSYNC_CONNECTION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SYNC_FRAME_RATE_RANGE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_FRAME_RATE_LINKER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_PAGE_NAME):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_JANK_STATS):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_COMPLETE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_JANK_FRAME):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_START):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_END):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NEED_REGISTER_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SHARED_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_UPDATE_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_MODE_CHANGE_CALLBACK): {
+            hasPermission = true;
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
+            hasPermission = true;
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SKIP_COLOR_SPACE_CONVERSION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SKIP_COLOR_SPACE_CONVERSION");
+            break;
+        }
         default: {
+            hasPermission = false;
             break;
         }
     }
     return hasPermission;
+}
+
+bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsFeatureVerificationPassed(CodeUnderlyingType code)
+{
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
+            return RS_PROFILER_HRP_SERVICE_ENABLED();
+        }
+        default: {
+            return true;
+        }
+    }
 }
 
 #ifdef ENABLE_IPC_SECURITY

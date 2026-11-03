@@ -40,6 +40,7 @@ private:
     bool SetVpeVideoParameter(std::shared_ptr<OHOS::Media::VideoProcessingEngine::VpeVideo> vpeVideo,
         uint32_t type, const RSSurfaceRenderNodeConfig& config);
     bool IsConfigNameSkipped(const std::string& name);
+    void NotifyToXperf(const sptr<Surface>& surface, const sptr<Surface>& vpeSurface) const;
     
     std::mutex vpeVideoLock_{};
     // Guarded by vpeVideoLock_ begin

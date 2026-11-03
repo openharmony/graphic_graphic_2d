@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <parameters.h>
+#include <ipc_object_stub.h>
 #include "util.h"
 #include "boot_animation_strategy.h"
 
@@ -135,7 +136,7 @@ HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_InvalidScreenId_NoScreenTrue
     strategy->noScreen_ = false;
     EXPECT_FALSE(strategy->noScreen_.load());
 
-    strategy->OnScreenChanged(INVALID_SCREEN_ID, ScreenEvent::UNKNOWN, ScreenChangeReason::DEFAULT, nullptr);
+    strategy->OnScreenChanged(NONE_PHYSICAL_SCREEN_ID, ScreenEvent::UNKNOWN, ScreenChangeReason::DEFAULT, nullptr);
 
     EXPECT_TRUE(strategy->noScreen_.load());
 }
@@ -151,7 +152,8 @@ HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_ValidScreenConnected_MapPopu
     ASSERT_NE(strategy, nullptr);
 
     ScreenId testScreenId = static_cast<ScreenId>(12345);
-    sptr<IRemoteObject> connectToRender = nullptr;
+    sptr<IRemoteObject> connectToRender = sptr<IPCObjectStub>::MakeSptr();
+    ASSERT_NE(connectToRender, nullptr);
 
     strategy->OnScreenChanged(testScreenId, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, connectToRender);
 
@@ -194,11 +196,16 @@ HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_MultipleScreensConnected_Map
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     ASSERT_NE(strategy, nullptr);
 
+    sptr<IRemoteObject> connectToRender1 = sptr<IPCObjectStub>::MakeSptr();
+    ASSERT_NE(connectToRender1, nullptr);
+    sptr<IRemoteObject> connectToRender2 = sptr<IPCObjectStub>::MakeSptr();
+    ASSERT_NE(connectToRender2, nullptr);
+
     ScreenId screenId1 = static_cast<ScreenId>(100);
     ScreenId screenId2 = static_cast<ScreenId>(200);
 
-    strategy->OnScreenChanged(screenId1, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, nullptr);
-    strategy->OnScreenChanged(screenId2, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, nullptr);
+    strategy->OnScreenChanged(screenId1, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, connectToRender1);
+    strategy->OnScreenChanged(screenId2, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, connectToRender2);
 
     EXPECT_EQ(strategy->connectToRenderMap_.size(), 2);
     EXPECT_NE(strategy->connectToRenderMap_.find(screenId1), strategy->connectToRenderMap_.end());

@@ -76,6 +76,9 @@ public:
         HEAT_DISTORTION,
         BLUR_BUBBLES_RISE,
         MOTION_BLUR,
+        SPIN_BLUR,
+        HALO_BLOOM,
+        MAP_COLOR_BY_BRIGHTNESS,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;

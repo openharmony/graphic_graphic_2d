@@ -53,8 +53,7 @@ public:
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 private:
     static ani_object ColorFilterTransferStatic(ani_env*  env, ani_object obj, ani_object input);
-    static ani_long GetColorFilterAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<ColorFilter>* GetColorFilterPtrAddr();
+    static ani_object ColorFilterTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<ColorFilter> colorFilter_ = nullptr;
 };
 } // namespace Drawing

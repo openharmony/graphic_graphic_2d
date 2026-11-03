@@ -190,7 +190,7 @@ void RSRenderModifier::ApplyLegacyProperty(RSProperties& properties)
             RS_LOGD("apply legacy property failed, type: %{public}d", static_cast<int>(type));
             continue;
         }
-        if (it->second != nullptr) {
+        if (it->second != nullptr && property != nullptr) {
             it->second(properties, *property);
         }
     }
@@ -332,7 +332,7 @@ void RSCustomRenderModifier<T>::ConvertDrawCmdListToSimple()
 
     auto properties = properties_;
     for (auto& [type, property] : properties) {
-        if (!property->IsDrawCmdListProperty()) {
+        if (!property || !property->IsDrawCmdListProperty()) {
             continue;
         }
         DetachProperty(type);

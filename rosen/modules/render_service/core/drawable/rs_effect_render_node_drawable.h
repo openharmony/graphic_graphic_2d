@@ -18,6 +18,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_effect_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 class RSEffectRenderNode;
@@ -42,17 +43,24 @@ private:
     static Registrar instance_;
     bool GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
         Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
-    inline bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
+    // Whether the background blur merge for this effect node can be skipped.
+    // Blur is forced (returns false) when:
+    // - UI capture is on;
+    // - there are effect children, and any merge trigger is set: non-empty-rect
+    //   children, parallel canvas, or cross-node draw.
+    bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
     {
-        if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
-            !RSFilterCacheManager::isCCMEffectMergeEnable_) {
+        if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSFilterCacheManager::IsEffectMergeEnabled()) {
             return true;
         }
         if (paintFilterCanvas->GetUICapture()) {
             return false;
         }
-        return !effectParams->GetHasEffectChildren() ||
-            (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !paintFilterCanvas->GetIsParallelCanvas());
+        if (!effectParams->GetHasEffectChildren()) {
+            return true;
+        }
+        return !(effectParams->GetHasEffectChildrenWithoutEmptyRect() ||
+            paintFilterCanvas->GetIsParallelCanvas() || paintFilterCanvas->IsCrossNodeDraw());
     }
 };
 } // namespace DrawableV2

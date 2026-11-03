@@ -49,7 +49,7 @@ struct CubicResampler {
     inline void Dump(std::string& out) const
     {
         out += "[cubicCoffB:" + std::to_string(cubicCoffB);
-        out += " cubicCoffC:" + std::to_string(cubicCoffB);
+        out += " cubicCoffC:" + std::to_string(cubicCoffC);
         out += ']';
     }
 };

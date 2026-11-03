@@ -299,6 +299,27 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList004, TestSize.Lev
 }
 
 /**
+ * @tc.name: DumpGlobalBlackList001
+ * @tc.desc: test DumpGlobalBlackList with empty and non-empty global blacklist
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, DumpGlobalBlackList001, TestSize.Level2)
+{
+    RSSpecialLayerUtils::DumpGlobalBlackList(__func__);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::GetGlobalBlackList().empty());
+
+    NodeId nodeId = GenerateNodeId();
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId> { nodeId });
+    RSSpecialLayerUtils::DumpGlobalBlackList(__func__);
+    const auto& globalBlackList = ScreenSpecialLayerInfo::GetGlobalBlackList();
+    ASSERT_EQ(globalBlackList.size(), 1);
+    ASSERT_TRUE(globalBlackList.count(nodeId));
+
+    ScreenSpecialLayerInfo::SetGlobalBlackList({});
+}
+
+/**
  * @tc.name: UpdateScreenSpecialLayer001
  * @tc.desc: test UpdateScreenSpecialLayer with basic properties
  * @tc.type: FUNC

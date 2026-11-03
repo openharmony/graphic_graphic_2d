@@ -235,26 +235,60 @@ tuple<bool, int64_t> NVal::ToInt64() const
     return make_tuple(status == napi_ok, res);
 }
 
+template<typename T>
+static tuple<bool, T> ToCheckedGLInteger(const NVal& val)
+{
+    auto [success, result] = val.ToInt64();
+    if (!success || result < static_cast<int64_t>(numeric_limits<T>::min()) ||
+        result > static_cast<int64_t>(numeric_limits<T>::max())) {
+        return make_tuple(false, 0);
+    }
+    return make_tuple(true, static_cast<T>(result));
+}
+
+tuple<bool, GLint> NVal::ToGLint() const
+{
+    return ToCheckedGLInteger<GLint>(*this);
+}
+
+tuple<bool, GLuint> NVal::ToGLuint() const
+{
+    auto [success, result] = ToInt64();
+    if (!success || result < 0 || static_cast<uint64_t>(result) > numeric_limits<GLuint>::max()) {
+        return make_tuple(false, 0);
+    }
+    return make_tuple(true, static_cast<GLuint>(result));
+}
+
+tuple<bool, GLintptr> NVal::ToGLintptr() const
+{
+    return ToCheckedGLInteger<GLintptr>(*this);
+}
+
+tuple<bool, GLsizeiptr> NVal::ToGLsizeiptr() const
+{
+    return ToCheckedGLInteger<GLsizeiptr>(*this);
+}
+
 tuple<bool, GLsizei> NVal::ToGLsizei() const
 {
-    int64_t res = 0;
-    if (IsNull()) {
-        return make_tuple(true, res);
-    }
-    napi_status status = napi_get_value_int64(env_, val_, &res);
-    return make_tuple(status == napi_ok, static_cast<GLsizei>(res));
+    return ToCheckedGLInteger<GLsizei>(*this);
 }
 
 tuple<bool, GLenum> NVal::ToGLenum() const
 {
     int64_t res = 0;
-    napi_valuetype valueType;
-    napi_typeof(env_, val_, &valueType);
+    napi_valuetype valueType = napi_undefined;
+    napi_status typeStatus = napi_typeof(env_, val_, &valueType);
     if (valueType == napi_null) {
         return make_tuple(true, static_cast<GLenum>(res));
     }
     napi_status status = napi_get_value_int64(env_, val_, &res);
-    return make_tuple(status == napi_ok, static_cast<GLenum>(res));
+    if (typeStatus != napi_ok || status != napi_ok || res < 0 ||
+        static_cast<uint64_t>(res) > numeric_limits<GLenum>::max()) {
+        return make_tuple(false, 0);
+    }
+    return make_tuple(true, static_cast<GLenum>(res));
 }
 
 tuple<bool, void *, size_t> NVal::ToArraybuffer() const

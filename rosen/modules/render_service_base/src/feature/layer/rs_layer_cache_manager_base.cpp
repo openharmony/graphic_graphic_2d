@@ -63,8 +63,8 @@ bool RSLayerCacheManagerBase::CheckNodeUnSupportLayer(RSRenderNode& node)
             properties.NeedFilter() || properties.GetUseEffect() || properties.HasHarmonium() ||
             node.ChildHasVisibleEffect() || properties.GetSandBox().has_value() || properties.IsShadowValid() ||
             properties.IsColorBlendModeValid() || properties.IsColorBlendApplyTypeOffscreen() ||
-            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBrightnessValid() ||
-            properties.GetForegroundFilter() != nullptr || properties.GetFilter() != nullptr ||
+            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBlenderEffectValid() ||
+            properties.GetForegroundFilter() != nullptr || properties.GetCompositingFilter() != nullptr ||
             node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
 }
 } // namespace Rosen

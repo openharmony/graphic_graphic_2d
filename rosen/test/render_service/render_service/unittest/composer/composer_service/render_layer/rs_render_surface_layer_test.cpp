@@ -746,6 +746,62 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesSelectedFields, TestSize.Le
 }
 
 /**
+ * Function: CopyLayerInfo_DelegateModeTrue_UpdatesCropRect
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: src has isDelegateMode=true; after CopyLayerInfo dst's
+ *                  delegateModeCropRect_ is updated to src's value
+ *                  (covers TRUE path of new `if (isDelegateMode_)` branch in CopyLayerInfo).
+ */
+HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_DelegateModeTrue_UpdatesCropRect, TestSize.Level1)
+{
+    auto src = std::make_shared<RSRenderSurfaceLayer>();
+    src->SetDelegateMode(true);
+    GraphicIRect expectedCrop{1, 2, 3, 4};
+    src->SetDelegateSrcRect(expectedCrop);
+
+    auto dst = std::make_shared<RSRenderSurfaceLayer>();
+    dst->SetDelegateMode(false);
+    dst->SetDelegateSrcRect({99, 99, 99, 99});
+
+    dst->CopyLayerInfo(src);
+
+    EXPECT_TRUE(dst->GetDelegateMode());
+    EXPECT_EQ(dst->GetDelegateSrcRect().x, expectedCrop.x);
+    EXPECT_EQ(dst->GetDelegateSrcRect().y, expectedCrop.y);
+    EXPECT_EQ(dst->GetDelegateSrcRect().w, expectedCrop.w);
+    EXPECT_EQ(dst->GetDelegateSrcRect().h, expectedCrop.h);
+}
+
+/**
+ * Function: CopyLayerInfo_DelegateModeFalse_PreservesCropRect
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: src has isDelegateMode=false; after CopyLayerInfo dst's
+ *                  delegateModeCropRect_ is NOT overwritten by src
+ *                  (covers FALSE path of new `if (isDelegateMode_)` branch in CopyLayerInfo).
+ */
+HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_DelegateModeFalse_PreservesCropRect, TestSize.Level1)
+{
+    auto src = std::make_shared<RSRenderSurfaceLayer>();
+    src->SetDelegateMode(false);
+    src->SetDelegateSrcRect({1, 2, 3, 4});
+
+    auto dst = std::make_shared<RSRenderSurfaceLayer>();
+    dst->SetDelegateMode(true);
+    GraphicIRect preservedCrop{9, 9, 9, 9};
+    dst->SetDelegateSrcRect(preservedCrop);
+
+    dst->CopyLayerInfo(src);
+
+    EXPECT_FALSE(dst->GetDelegateMode());
+    EXPECT_EQ(dst->GetDelegateSrcRect().x, preservedCrop.x);
+    EXPECT_EQ(dst->GetDelegateSrcRect().y, preservedCrop.y);
+    EXPECT_EQ(dst->GetDelegateSrcRect().w, preservedCrop.w);
+    EXPECT_EQ(dst->GetDelegateSrcRect().h, preservedCrop.h);
+}
+
+/**
  * Function: UpdateRSLayerCmd_Composition_And_Blend_Applied
  * Type: Function
  * Rank: Important(2)
@@ -765,6 +821,60 @@ HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_Composition_And_Blend_Applied,
     auto cmdBlend = std::make_shared<RSRenderLayerBlendTypeCmd>(propBlend);
     layer->UpdateRSLayerCmd(cmdBlend);
     EXPECT_EQ(layer->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_AlphaType_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: apply AlphaType command and verify SetAlphaType/GetAlphaType on RSRenderSurfaceLayer
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_AlphaType_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    // Default is PREMUL
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<GraphicAlphaType>>(
+        GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    auto cmd = std::make_shared<RSRenderLayerAlphaTypeCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+}
+
+/**
+ * Function: SetAlphaType_GetAlphaType_DirectSetter
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: directly call SetAlphaType and verify GetAlphaType returns the value
+ */
+HWTEST(RSRenderSurfaceLayerTest, SetAlphaType_GetAlphaType_DirectSetter, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+
+    layer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+    EXPECT_EQ(layer->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+}
+
+/**
+ * Function: CopyLayerInfo_CopiesAlphaType
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: set AlphaType on src, copy to dst, verify dst has the alphaType
+ *                  (covers new `alphaType_ = rsLayer->GetAlphaType()` line in CopyLayerInfo)
+ */
+HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesAlphaType, TestSize.Level1)
+{
+    auto src = std::make_shared<RSRenderSurfaceLayer>();
+    src->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+
+    auto dst = std::make_shared<RSRenderSurfaceLayer>();
+    EXPECT_EQ(dst->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL);
+
+    dst->CopyLayerInfo(src);
+    EXPECT_EQ(dst->GetAlphaType(), GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
 }
 
 /**

@@ -310,7 +310,7 @@ bool WebGLFramebuffer::CheckAttachmentComplete(bool isHighWebGL, WebGLAttachment
 }
 
 GLenum WebGLFramebuffer::CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context,
-    WebGLAttachmentInfo info, std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const
+    WebGLAttachmentInfo& info, std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const
 {
     if (!GetWebGLAttachmentInfo(env, context, attachedObject, info)) {
         LOGE("GetWebGLAttachmentInfo failed.");

@@ -87,6 +87,32 @@ typedef enum {
 } OH_Drawing_FontEdging;
 
 /**
+ * @brief Defines the typeface fallback info structure for a run of glyphs that share the same typeface.
+ *
+ * @since 26.0.1
+ */
+typedef struct {
+    /**
+     * @brief Pointer to the matched typeface.
+     *
+     * @since 26.0.1
+     */
+    OH_Drawing_Typeface *typeface;
+    /**
+     * @brief Pointer to the glyph ID array.
+     *
+     * @since 26.0.1
+     */
+    uint16_t *glyphIds;
+    /**
+     * @brief Number of glyph IDs the glyphIds array.
+     *
+     * @since 26.0.1
+     */
+    uint32_t glyphCount;
+} OH_Drawing_TypefaceFallbackInfo;
+
+/**
  * @brief Sets whether the font baselines and pixels alignment when the transformation matrix is ​​axis aligned.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -228,6 +254,34 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font*, const void* text, u
     OH_Drawing_TextEncoding encoding, uint16_t* glyphs, int maxGlyphCount);
 
 /**
+ * @brief Converts text into glyph indices with font fallback support.
+ * When the typeface of the current font does not support certain characters,
+ * it automatically finds fallback typefaces from the system.
+ * If no fallback typeface is found, the typeface of the current font is still used.
+ *
+ * @param font [in] Pointer to the {@link OH_Drawing_Font} object.
+ * @param text [in] Pointer to the start address of the storage.
+ * @param byteLength [in] Length of the text, in bytes.
+ * @param encoding [in] Encoding type of the text.
+ * @param typefaceFallbackInfo [out] Pointer to the first element of an <b>OH_Drawing_TypefaceFallbackInfo</b> array.
+ *        It is used as an output parameter.
+ *        Uses {@link OH_Drawing_FontTypefaceFallbackInfoDestroy} to release the array when it is no longer needed.
+ * @param infosCount [out] The size of typefaceFallbackInfo array. It is used as an output parameter.
+ * @return <ul>
+ *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of font, text, typefaceFallbackInfo and infosCount
+ *         is NULL, or byteLength is 0.</li>
+ *         <li>{@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if encoding is not set to
+ *         one of the enumerated values.</li>
+ *         </ul>
+ * @release drawing_font/OH_Drawing_FontFallbackDestroyArray {textBlobs}
+ * @since 26.0.1
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontTextToGlyphsWithFallback(const OH_Drawing_Font *cFont, const void *text,
+    uint32_t byteLength, OH_Drawing_TextEncoding encoding, OH_Drawing_TypefaceFallbackInfo **typefaceFallbackInfo,
+    uint32_t *infosCount);
+
+/**
  * @brief Retrieves the advance for each glyph in glyphs.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -296,6 +350,31 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* font, con
     OH_Drawing_TextEncoding encoding, OH_Drawing_Rect* bounds, float* textWidth);
 
 /**
+ * @brief Obtains the text width and bounding box with font fallback support.
+ * When the typeface of the current font does not support certain characters,
+ * it automatically finds fallback typefaces from the system.
+ * If no fallback typeface is found, the typeface of the current font is still used.
+ *
+ * @param cFont [in] Pointer to the {@link OH_Drawing_Font} object.
+ * @param text [in] Pointer to the text.
+ * @param byteLength [in] Length of the text, in bytes.
+ * @param encoding [in] Encoding type of the text.
+ * @param bounds [out] Used to carry the obtained bounding box. The value can be NULL. When it is NULL, the bounding
+ *        box information is not returned, and only the text width is returned. It is used as an output parameter.
+ * @param textWidth [out] Used to store the obtained text width as an output parameter. The unit is physical pixel (px).
+ *        It is used as an output parameter.
+ * @return <ul>
+ *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of font, text, and textWidth is NULL,
+ *         or byteLength is 0.</li>
+ *         <li>{@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if encoding is not set to
+ *         one of the enumerated values.</li>
+ *         </ul>
+ * @since 26.0.1
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithFallback(const OH_Drawing_Font *cFont, const void *text,
+    uint32_t byteLength, OH_Drawing_TextEncoding encoding, OH_Drawing_Rect *bounds, float *textWidth);
+/**
  * @brief Measures the width of text with brush or pen.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -317,6 +396,35 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* font, con
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_Font* font, const void* text,
     size_t byteLength, OH_Drawing_TextEncoding encoding, const OH_Drawing_Brush* brush, const OH_Drawing_Pen* pen,
     OH_Drawing_Rect* bounds, float* textWidth);
+
+/**
+ * @brief Obtains the width and bounding box of the text with a brush or pen and font fallback support.
+ * When the typeface of the current font does not support certain characters,
+ * it automatically finds fallback typefaces from the system.
+ * If no fallback typeface is found, the typeface of the current font is still used.
+ *
+ * @param cFont [in] Pointer to the {@link OH_Drawing_Font} object.
+ * @param text [in] Pointer to the text.
+ * @param byteLength [in] Length of the text, in bytes.
+ * @param encoding [in] Encoding type of the text.
+ * @param brush [in] Pointer to the {@link OH_Drawing_Brush} object.
+ * @param pen [in] Pointer to the {@link OH_Drawing_Pen} object.
+ * @param bounds [out] Used to carry the obtained bounding box. The value can be NULL. When it is NULL, the bounding
+ *        box information is not returned, and only the text width is returned. It is used as an output parameter.
+ * @param textWidth [out] Used to store the obtained text width as an output parameter. The unit is physical pixel (px).
+ *        It is used as an output parameter.
+ * @return <ul>
+ *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of font, text, and textWidth is NULL,
+ *         byteLength is 0, or a brush and a pen both exist.</li>
+ *         <li>{@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if encoding is not set to
+ *         one of the enumerated values.</li>
+ *         </ul>
+ * @since 26.0.1
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPenWithFallback(const OH_Drawing_Font *cFont,
+    const void *text, uint32_t byteLength, OH_Drawing_TextEncoding encoding, const OH_Drawing_Brush *brush,
+    const OH_Drawing_Pen *pen, OH_Drawing_Rect *bounds, float *textWidth);
 
 /**
  * @brief Retrieves the advance and bounding box for each glyph in glyphs.
@@ -708,6 +816,22 @@ OH_Drawing_ErrorCode OH_Drawing_FontFeaturesAddFeature(OH_Drawing_FontFeatures* 
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontFeaturesDestroy(OH_Drawing_FontFeatures* fontFeatures);
+
+/**
+ * @brief Releases an array of <b>OH_Drawing_TypefaceFallbackInfo</b> objects and reclaims the memory occupied by the
+ * array. This function destroys every typeface and glyphIds in the array and releases the array itself;
+ * <b>count</b> must be exactly the number reported when the array was created; passing any other value results
+ * in undefined behavior.
+ *
+ * @param infos [in] Pointer to the array of <b>OH_Drawing_TypefaceFallbackInfo</b> objects.
+ * @param count [in] The size of infos array.
+ * @return <ul>
+ *         <li>{@link OH_DRAWING_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if infos is NULL or count is 0.</li>
+ *         </ul>
+ * @since 26.0.1
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontTypefaceFallbackInfoDestroy(OH_Drawing_TypefaceFallbackInfo *infos, uint32_t count);
 
 /**
  * @brief Sets whether to follow the theme font. If the value is true, the theme font is used when typeface is not set.

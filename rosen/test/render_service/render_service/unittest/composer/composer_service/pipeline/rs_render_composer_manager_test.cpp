@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <dlfcn.h>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -24,8 +25,9 @@
 #include "rs_render_composer_manager.h"
 
 #include "screen_manager/rs_screen_property.h"
+#include "text/typeface.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 using namespace testing;
 using namespace testing::ext;
@@ -43,11 +45,22 @@ public:
 
 void RsRenderComposerManagerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
+    // Preload librender_service_client.z.so on the main thread to prevent BSS
+    // segment race when dlopen is triggered from a background CompThread.
+    dlopen("librender_service_client.z.so", RTLD_NOW);
 }
-void RsRenderComposerManagerTest::TearDownTestCase() {}
+
+void RsRenderComposerManagerTest::TearDownTestCase()
+{
+    // Reset Typeface callbacks to prevent use-after-free during process exit.
+    // The static TypefaceAutoRegister object in librender_service_client.z.so
+    // registers callbacks that capture references to RSInterfaces; C++ static
+    // destruction order is undefined, so these callbacks may fire after
+    // RSInterfaces has been destroyed.
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
+}
 void RsRenderComposerManagerTest::SetUp() {}
 void RsRenderComposerManagerTest::TearDown() {}
 

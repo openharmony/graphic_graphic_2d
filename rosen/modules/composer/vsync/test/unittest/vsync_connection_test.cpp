@@ -683,7 +683,7 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchInvalidValue, Function | MediumTe
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. Test OnRemoteRequest with valid fromWhom value
+ * CaseDescription: 1. Test OnRemoteRequest with valid fromWhom and disableReason value
  */
 HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchValidValue, Function | MediumTest| Level3)
 {
@@ -694,11 +694,122 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchValidValue, Function | MediumTest
     data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
     data.WriteBool(true);
     data.WriteUint8(0);
+    data.WriteUint8(static_cast<uint8_t>(DvsyncDisableReason::API_DISABLE));
 
     int32_t result = vsyncConnection->OnRemoteRequest(
         IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
 
     ASSERT_EQ(result, VSYNC_ERROR_OK);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchAllValidDisableReasons
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test OnRemoteRequest with each valid DvsyncDisableReason enum value
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchAllValidDisableReasons, Function | MediumTest| Level3)
+{
+    const uint8_t validReasons[] = {
+        static_cast<uint8_t>(DvsyncDisableReason::API_DISABLE),
+        static_cast<uint8_t>(DvsyncDisableReason::BACKGROUND_DISABLE),
+        static_cast<uint8_t>(DvsyncDisableReason::UNFOCUS_DISABLE),
+    };
+    for (size_t i = 0; i < sizeof(validReasons) / sizeof(validReasons[0]); i++) {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+
+        data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+        data.WriteBool(false);
+        data.WriteUint8(static_cast<uint8_t>(FromWhom::INNER));
+        data.WriteUint8(validReasons[i]);
+
+        int32_t result = vsyncConnection->OnRemoteRequest(
+            IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
+
+        EXPECT_EQ(result, VSYNC_ERROR_OK);
+    }
+}
+
+/**
+ * Function: SetUiDvsyncSwitchMissingDisableReason
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test OnRemoteRequest with valid fromWhom but missing disableReason field
+ *                  2. Verify VSYNC_ERROR_INVALID_ARGUMENTS is returned
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchMissingDisableReason, Function | MediumTest| Level3)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+    data.WriteBool(true);
+    data.WriteUint8(static_cast<uint8_t>(FromWhom::INNER));
+
+    int32_t result = vsyncConnection->OnRemoteRequest(
+        IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
+
+    ASSERT_EQ(result, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchInvalidDisableReason
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test OnRemoteRequest with invalid disableReason value (exceeds enum range)
+ *                  2. Verify VSYNC_ERROR_INVALID_ARGUMENTS is returned
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchInvalidDisableReason, Function | MediumTest| Level3)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+    data.WriteBool(true);
+    data.WriteUint8(static_cast<uint8_t>(FromWhom::INNER));
+    data.WriteUint8(static_cast<uint8_t>(DvsyncDisableReason::UNFOCUS_DISABLE) + 1);
+
+    int32_t result = vsyncConnection->OnRemoteRequest(
+        IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
+
+    ASSERT_EQ(result, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchProxyWithDisableReason001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Call SetUiDvsyncSwitch through proxy with explicit DvsyncDisableReason
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchProxyWithDisableReason001, Function | MediumTest| Level3)
+{
+    bool dvsyncSwitch = false;
+    auto res = vsyncConnectionProxy->SetUiDvsyncSwitch(dvsyncSwitch, FromWhom::API,
+        DvsyncDisableReason::BACKGROUND_DISABLE);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchProxyWithDisableReason002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Call SetUiDvsyncSwitch through proxy with DvsyncDisableReason::UNFOCUS_DISABLE
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchProxyWithDisableReason002, Function | MediumTest| Level3)
+{
+    bool dvsyncSwitch = false;
+    auto res = vsyncConnectionProxy->SetUiDvsyncSwitch(dvsyncSwitch, FromWhom::INNER,
+        DvsyncDisableReason::UNFOCUS_DISABLE);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 } // namespace
 } // namespace Rosen

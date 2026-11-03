@@ -37,12 +37,15 @@
 #include "filter/include/filter_distort_para.h"
 #include "filter/include/filter_edge_light_para.h"
 #include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_halo_bloom_para.h"
 #include "filter/include/filter_hdr_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
+#include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
 #include "filter/include/filter_water_ripple_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 
 namespace ANI::UIEffect {
 using namespace taihe;
@@ -83,6 +86,11 @@ public:
     Filter ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::uiEffect::Color> colors,
         taihe::array_view<uintptr_t> positions, taihe::array_view<double> strengths,
         taihe::optional_view<::ohos::graphics::uiEffect::uiEffect::Mask> alphaMask);
+    Filter SpinBlur(uintptr_t center, double angle, int32_t samples);
+    Filter HaloBloom(::ohos::graphics::uiEffect::uiEffect::Color const& tintColor, double bloomFactor,
+        double glowExposure);
+    Filter MapColorByBrightness(taihe::array_view<::ohos::graphics::uiEffect::uiEffect::Color> colors,
+        taihe::array_view<double> positions);
 
 private:
     bool IsFilterValid() const;

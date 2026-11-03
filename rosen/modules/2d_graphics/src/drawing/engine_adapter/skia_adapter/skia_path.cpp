@@ -382,6 +382,9 @@ std::vector<float> SkiaPath::GetConicWeightData() const
 {
     int32_t count = SkPathPriv::ConicWeightCnt(path_);
     std::vector<float> result;
+    if (count < 0) {
+        return {};
+    }
     result.resize(count);
 
     const SkScalar* weights = SkPathPriv::ConicWeightData(path_);

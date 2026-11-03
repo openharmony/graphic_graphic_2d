@@ -90,13 +90,9 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, RegisterCanvasCallbackAndNotifyTest, TestSi
     bufferCache.RegisterCanvasCallback(testPid, mockCallback);
     ASSERT_EQ(bufferCache.canvasSurfaceBufferCallbackMap_.size(), 1);
 
-    // Test 8: NotifyCanvasSurfaceBufferChanged when non null callback registered
-    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    bufferCache.NotifyCanvasSurfaceBufferChanged(testNodeId, buffer, 1);
-    // No assertion - just verify it doesn't crash
-
-    // Test 9: NotifyCanvasSurfaceBufferChanged when null callback registered
+    // Test 8: NotifyCanvasSurfaceBufferChanged when null callback registered
     bufferCache.canvasSurfaceBufferCallbackMap_[testPid] = nullptr;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     bufferCache.NotifyCanvasSurfaceBufferChanged(testNodeId, buffer, 1);
     // No assertion - just verify it doesn't crash
 }

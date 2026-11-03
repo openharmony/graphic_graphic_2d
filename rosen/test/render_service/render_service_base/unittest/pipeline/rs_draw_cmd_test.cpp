@@ -26,6 +26,7 @@
 
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -519,6 +520,35 @@ HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
         drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888);
     ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
     ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+}
+
+/**
+ * @tc.name: DrawSurfaceBufferOpItemPidOverride001
+ * @tc.desc: test forged pid in DrawSurfaceBufferOpItem is overridden by calling pid in uni render
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawCmdTest, DrawSurfaceBufferOpItemPidOverride001, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    Drawing::PaintHandle paintHandle;
+    Drawing::Rect srcRect { 0, 0, 1, 1 };
+    uint32_t surfaceBufferId = 1;
+    uint64_t uid = 1;
+    pid_t callingPid = 1234;
+    pid_t forgedPid = 9999;
+    RSMarshallingHelper::SetCallingPid(callingPid);
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(surfaceBufferId, 0, 0, 1, 1,
+        forgedPid, uid, GraphicTransformType::GRAPHIC_ROTATE_NONE, srcRect, false, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+    EXPECT_EQ(drawSurfaceBufferOpItem.surfaceBufferInfo_.pid_, callingPid);
+
+    // pid 0 means local drawing without remote callback, it must be kept untouched
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle zeroPidHandle(surfaceBufferId, 0, 0, 1, 1,
+        0, uid, GraphicTransformType::GRAPHIC_ROTATE_NONE, srcRect, false, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem zeroPidOpItem(list, &zeroPidHandle);
+    EXPECT_EQ(zeroPidOpItem.surfaceBufferInfo_.pid_, 0);
+    RSMarshallingHelper::SetCallingPid(0);
 }
 
 /**
@@ -1107,7 +1137,32 @@ HWTEST_F(RSDrawCmdTest, GetRsImageCacheTest, TestSize.Level1)
     auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMapT);
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
     extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
-    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, colorSpace);
+    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, Drawing::SamplingOptions(), colorSpace);
+}
+
+/**
+ * @tc.name: GetRsImageCacheNullColorSpace
+ * @tc.desc: test GetRsImageCache with null colorSpace does not dereference it
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawCmdTest, GetRsImageCacheNullColorSpaceTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    Drawing::Canvas canvas;
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = false;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMapT);
+    OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_TRUE(surfaceBuffer);
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
+    std::shared_ptr<Drawing::ColorSpace> nullColorSpace;
+    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, Drawing::SamplingOptions(), nullColorSpace);
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 #endif
 
@@ -1158,6 +1213,103 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
         extendImageObject.PurgeMipmapMem();
         ASSERT_EQ(extendImageObject.image_.use_count(), 2);
     }
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest003
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ (only RemoveImageMemForWindow resets it)
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest003, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    ASSERT_EQ(extendImageObject.image_.use_count(), 1);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_EQ(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest004
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image use_count > 1
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest004, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    auto imageHolder = extendImageObject.image_;
+    ASSERT_EQ(extendImageObject.image_.use_count(), 2);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_NE(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest005
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when lock is held by others
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest005, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    extendImageObject.SetImageInfoReserved(true);
+    std::unique_lock<std::mutex> lock(extendImageObject.drawingImageMutex_);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_NE(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: PurgeMipmapMemTest006
+ * @tc.desc: test PurgeMipmapMem does not reset imageInfoReserved_ when image_ is nullptr
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest006, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = nullptr;
+    extendImageObject.SetImageInfoReserved(true);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_EQ(extendImageObject.image_, nullptr);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: ImageInfoReservedInitialValueTest
+ * @tc.desc: test imageInfoReserved_ defaults to false via IsImageInfoReserved
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, ImageInfoReservedInitialValueTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+}
+
+/**
+ * @tc.name: ImageInfoReservedGetterSetterTest
+ * @tc.desc: test IsImageInfoReserved/SetImageInfoReserved round-trip
+ * @tc.type:FUNC
+ * @tc.require:issueIBZ6NM
+ */
+HWTEST_F(RSDrawCmdTest, ImageInfoReservedGetterSetterTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.SetImageInfoReserved(true);
+    ASSERT_TRUE(extendImageObject.IsImageInfoReserved());
+    extendImageObject.SetImageInfoReserved(false);
+    ASSERT_FALSE(extendImageObject.IsImageInfoReserved());
 }
 #endif
 

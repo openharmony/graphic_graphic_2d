@@ -23,10 +23,13 @@
 #include <mutex>
 #include <shared_mutex>
 #include <condition_variable>
+#include <initializer_list>
+#include <utility>
 #include "render_context/render_context.h"
 #include "event_handler.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "screen_manager/screen_types.h"
+#include "feature/round_corner_display/rs_rcd_image_loader.h"
 #include "feature/round_corner_display/rs_round_corner_config.h"
 
 namespace OHOS {
@@ -47,13 +50,6 @@ enum WindowNotchStatus {
     // Notch hidden setting fill the status bar with black, so
     // single/time/battery status show on the backgound of black.
     WINDOW_NOTCH_HIDDEN
-};
-
-enum ShowTopResourceType {
-    // choose type and then choose resource for harden or RS
-    TOP_PORTRAIT = 0,
-    TOP_LADS_ORIT,
-    TOP_HIDDEN
 };
 
 enum RoundCornerSurfaceType {
@@ -99,24 +95,17 @@ public:
         return supportHardware_;
     }
 
-    void RunHardwareTask(const std::function<void()>& task)
-    {
-        if (!supportHardware_) {
-            return;
-        }
-        UpdateParameter(updateFlag_);
-        task(); // do task
-    }
-
     rs_rcd::RoundCornerHardware GetHardwareInfo()
     {
         std::shared_lock<std::shared_mutex> lock(resourceMut_);
+        UpdateParameter(updateFlag_);
         return hardInfo_;
     }
 
     rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
     {
         std::unique_lock<std::shared_mutex> lock(resourceMut_);
+        UpdateParameter(updateFlag_);
         if (hardInfo_.resourceChanged) {
             hardInfo_.resourcePreparing = true;
         }
@@ -139,6 +128,7 @@ private:
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
     rs_rcd::ROGSetting* rog_ = nullptr;
+    std::shared_ptr<RCDImageLoader> imgLoader_ = nullptr;
 
     std::map<std::string, bool> updateFlag_ = {
         // true of change
@@ -147,17 +137,6 @@ private:
         {"orientation", false}
     };
 
-    // notch resources
-    std::shared_ptr<Drawing::Image> imgTopPortrait_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopLadsOrit_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopHidden_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgBottomPortrait_ = nullptr;
-
-    // notch resources for harden
-    Drawing::Bitmap bitmapTopPortrait_;
-    Drawing::Bitmap bitmapTopLadsOrit_;
-    Drawing::Bitmap bitmapTopHidden_;
-    Drawing::Bitmap bitmapBottomPortrait_;
     // current display resolution
     RectU displayRect_;
 
@@ -182,10 +161,6 @@ private:
     bool supportHardware_ = false;
     bool resourceChanged = false;
 
-    // the resource to be drawn
-    std::shared_ptr<Drawing::Image> curTop_ = nullptr;
-    std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
-
     std::shared_mutex resourceMut_;
 
     rs_rcd::RoundCornerHardware hardInfo_;
@@ -197,28 +172,16 @@ private:
     // choose LCD mode
     bool SeletedLcdModel(const char* lcdModelName);
 
-    // load single image as Drawingimage
-    static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
-
-    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution
     bool LoadImgsbyResolution(uint32_t width, uint32_t height);
-
-    bool GetTopSurfaceSource();
-
-    bool GetBottomSurfaceSource();
 
     // update resource
     void UpdateParameter(std::map<std::string, bool> &updateFlag);
 
     // choose top rcd resource type
     void RcdChooseTopResourceType();
-
-    void RcdChooseRSResource();
-
-    void RcdChooseHardwareResource();
 
     void PrintRCDInfo();
 

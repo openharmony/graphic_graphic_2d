@@ -68,7 +68,11 @@ public:
             case RSNGEffectType::DIRECTION_LIGHT: return "DirectionLight";
             case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
+            case RSNGEffectType::SPIN_BLUR: return "SpinBlur";
+            case RSNGEffectType::HALO_BLOOM: return "HaloBloom";
+            case RSNGEffectType::MAP_COLOR_BY_BRIGHTNESS: return "MapColorByBrightness";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
+            case RSNGEffectType::WARPED_RING_MASK: return "WarpedRingMask";
             case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";
             case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
             case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
@@ -128,6 +132,13 @@ public:
             case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
             case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
             case RSNGEffectType::MOTION_BLUR: return "MotionBlur";
+            case RSNGEffectType::FRACTAL_GLASS_MASK: return "FractalGlassMask";
+            case RSNGEffectType::BINOCULAR_MASK: return "BinocularMask";
+            case RSNGEffectType::SWEEP_REFRACTION_MASK: return "SweepRefractionMask";
+            case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
+            case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
+            case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
+            case RSNGEffectType::COSMOS_RING_SHADOW: return "CosmosRingShadow";
             default: return "UNKNOWN";
         }
     }
@@ -188,6 +199,9 @@ private:
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<RSPath> value);
 
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const AtlasInfo& value);
+
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, float value);
@@ -221,6 +235,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSPath> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const AtlasInfo& value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

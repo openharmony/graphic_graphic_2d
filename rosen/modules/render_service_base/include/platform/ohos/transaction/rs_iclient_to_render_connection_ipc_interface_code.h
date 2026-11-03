@@ -24,6 +24,9 @@ namespace Rosen {
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //If a command is not used and you want to delete it,
 //just COMMENT it - and never use this value anymore
+//If a new SYNCHRONOUS interface's reply can carry binder objects / fds / ashmem, also add
+//its code to IsReplyNotClonable() in rs_client_to_render_connection_proxy.cpp; otherwise
+//the sync-IPC timeout executor fails the call at runtime with UNKNOWN_ERROR.
 enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     COMMIT_TRANSACTION = 0x000000,
     CREATE_NODE = 0x000002,
@@ -32,6 +35,7 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     TAKE_SURFACE_CAPTURE = 0x00000D,
     SET_WINDOW_FREEZE_IMMEDIATELY = 0x00000E,
     SET_POINTER_POSITION = 0x00000F,
+    UNREGISTER_APPLICATION_AGENT = 0x000010,
     REGISTER_APPLICATION_AGENT = 0x000011,
     SET_BUFFER_AVAILABLE_LISTENER = 0x000012,
     SET_BUFFER_CLEAR_LISTENER = 0x000013,
@@ -51,6 +55,9 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     FREEZE_SCREEN = 0x000040,
     SET_GLOBAL_DARK_COLOR_MODE = 0x007005,
     SET_LOGICAL_CAMERA_ROTATION_CORRECTION = 0x007009,
+    SET_GLOBAL_BLACKLIST = 0x00700A,
+    ADD_GLOBAL_BLACKLIST = 0x00700B,
+    REMOVE_GLOBAL_BLACKLIST = 0x00700C,
     
     GET_BITMAP = 0x00800C,
     GET_PIXELMAP = 0x00800D,
@@ -66,6 +73,7 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     CREATE_CANVAS_DRAWING_NODE_SURFACE = 0x008013,
     RELEASE_CANVAS_DRAWING_NODE_SURFACE = 0x008014,
 #endif
+    BLUR_PIXEL_MAP = 0x008015,
     REGISTER_TRANSACTION_DATA_CALLBACK = 0x009002,
     SET_SURFACE_WATERMARK = 0X009003,
     CLEAR_SURFACE_WATERMARK_FOR_NODES = 0X009004,
@@ -73,7 +81,6 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
 
     EXECUTE_SYNCHRONOUS_TASK = 0x00C000,
     SET_HARDWARE_ENABLED = 0x00C002,
-    GET_HIGH_CONTRAST_TEXT_STATE = 0x012000,
 
     CLEAR_UIFIRST_CACHE = 0X15000,
     REGISTER_OCCLUSION_CHANGE_CALLBACK = 0x000015,
@@ -87,12 +94,12 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     UPDATE_FRAME_STABILITY_DETECTION = 0X16004,
     
     SET_FREE_MULTI_WINDOW_STATUS = 0X17000,
-    RECREATE_NODE_AND_SURFACE = 0X18000,
     REGISTER_SURFACE_TRANSACTION_LISTENER = 0x18001,
     UNREGISTER_SURFACE_TRANSACTION_LISTENER = 0x18002,
     REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER = 0x18003,
     UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER = 0x18004,
     MARK_WEB_NODE = 0x18005,
+    CLEAN_DELEGATE_BUFFER_CMD = 0x18006,
 };
 } // namespace Rosen
 } // namespace OHOS

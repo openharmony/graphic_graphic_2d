@@ -21,7 +21,9 @@
 
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -30,6 +32,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "image/gpu_context.h"
 #include "memory/rs_tag_tracker.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -39,8 +42,8 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
 
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 
 #endif
 
@@ -206,7 +209,7 @@ float CalculateLuminance(Drawing::ColorQuad color)
 }
 
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> weakManager,
-    std::unique_ptr<ColorPickerInfo> info, Drawing::GPUContext& gpuCtx)
+    std::unique_ptr<ColorPickerInfo> info, Drawing::GPUContext& gpuCtx, RenderEngineType renderEngineType)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ScheduleColorPickWithSemaphore");
     if (!info) {
@@ -216,14 +219,18 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
 
     // Create semaphore and fence for GPU task chaining
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (!RSSystemProperties::IsUseVulkan()) {
+        RS_LOGW("ScheduleColorPickWithSemaphore: Vulkan backend is not active");
+        return;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface();
     VkSemaphore semaphore;
-    if (NativeBufferUtils::CreateVkSemaphore(semaphore) != VK_SUCCESS) {
+    if (NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore) != VK_SUCCESS) {
         RS_LOGE("ScheduleColorPickWithSemaphore: Failed to create Vulkan semaphore");
         return;
     }
     GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+    auto* destroyInfo = new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
 
     Drawing::FlushInfo flushInfo;
     flushInfo.backendSurfaceAccess = true;
@@ -234,7 +241,7 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
     surface.Flush(&flushInfo);
     gpuCtx.Submit();
     // Get fence fd from semaphore right after flush
-    NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, info->fenceFd_);
+    NativeBufferUtils::GetFenceFdFromSemaphore(vkInterface, semaphore, info->fenceFd_);
     if (info->fenceFd_ == -1) {
         RS_LOGE("ScheduleColorPickWithSemaphore: failed to get fence fd from semaphore");
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
@@ -348,7 +355,8 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
     }
     auto weakManager = std::weak_ptr<IColorPickerManager>(manager);
     auto colorPickerInfo = CreateColorPickerInfo(drawingSurface, snapshot, weakManager);
-    ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo), *gpuCtx);
+    ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo), *gpuCtx,
+        canvas.GetRenderEngineType());
     return true;
 }
 
@@ -388,6 +396,15 @@ bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRec
     return dirtyRect.Intersect(GetColorPickerRect(filterNode));
 }
 
+bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect,
+    const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable)
+{
+    if (!drawable || drawable->GetState() != DrawableV2::ColorPickerState::PREPARING) {
+        return false;
+    }
+    return dirtyRect.Intersect(GetColorPickerRect(filterNode));
+}
+
 bool DirtyInSurfacesBelow(const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces)
 {
     if (!InPrepareState(filterNode)) {
@@ -416,5 +433,23 @@ bool DirtyInSurfacesBelow(const RSRenderNode& filterNode, const std::vector<std:
         }
     }
     return false;
+}
+
+void RestoreContrastColorScheme(RSRenderNode& node)
+{
+    auto context = node.GetContext().lock();
+    if (context == nullptr) {
+        return;
+    }
+
+    auto property = context->GetMutablePersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        node.GetId(), PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    if (property == nullptr) {
+        return;
+    }
+
+    auto contrastColorScheme = property->GetValue();
+    node.GetMutableRenderProperties().SetLastContrastColorScheme(contrastColorScheme);
+    context->GetMutablePersistentPropertyManager().Clear(node.GetId(), PersistentPropertyType::CONTRAST_COLOR_SCHEME);
 }
 } // namespace OHOS::Rosen::RSColorPickerUtils

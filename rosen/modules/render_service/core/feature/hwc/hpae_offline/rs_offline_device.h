@@ -21,11 +21,16 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.h"
 #include "feature/hwc/hpae_offline/rs_offline_result.h"
-#include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
+
+using OfflineDeviceType = enum class OfflineDevice : int32_t {
+    INVALID = 0,
+    HPAE_OFFLINE_DEVICE = 3,
+    GPU_OFFLINE_DEVICE = 7,
+};
 
 class RSOfflineDevice {
 public:

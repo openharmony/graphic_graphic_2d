@@ -117,7 +117,8 @@ public:
         std::is_same<U, GraphicColorDataSpace>,
         std::is_same<U, LayerMask>,
         std::is_same<U, GraphicLayerAlpha>,
-        std::is_same<U, GraphicCompositionType>>, bool>::type
+        std::is_same<U, GraphicCompositionType>,
+        std::is_same<U, GraphicAlphaType>>, bool>::type
     MarshallingValue(OHOS::MessageParcel& parcel, const U& value)
     {
         return parcel.WriteUnpadBuffer(&value, sizeof(U));
@@ -236,7 +237,8 @@ public:
         std::is_same<U, GraphicColorDataSpace>,
         std::is_same<U, LayerMask>,
         std::is_same<U, GraphicLayerAlpha>,
-        std::is_same<U, GraphicCompositionType>>, bool>::type
+        std::is_same<U, GraphicCompositionType>,
+        std::is_same<U, GraphicAlphaType>>, bool>::type
     UnmarshallingValue(OHOS::MessageParcel& parcel, U& value)
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(U))) {
@@ -481,6 +483,9 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         // originalTransformType
         uint32_t transformTypeVal = 0;
         if (!parcel.ReadUint32(transformTypeVal)) {
+            return false;
+        }
+        if (transformTypeVal > GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
             return false;
         }
         value.originalTransformType = static_cast<GraphicTransformType>(transformTypeVal);

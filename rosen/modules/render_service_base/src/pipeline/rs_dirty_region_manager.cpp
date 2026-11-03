@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include "common/rs_common_def.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_optional_trace.h"
 
@@ -82,12 +84,6 @@ void RSDirtyRegionManager::MergeHwcDirtyRect(const RectI& rect, RSSurfaceNodeTyp
             typeHwcDirtyRegion_.find(nodeType) == typeHwcDirtyRegion_.end() ?
             rect : typeHwcDirtyRegion_[nodeType].JoinRect(rect);
     }
-    Occlusion::Region tempRegion = Occlusion::Region(Occlusion::Rect(rect));
-    for (auto& r : advancedDirtyRegion_) {
-        Occlusion::Region region = Occlusion::Region(Occlusion::Rect(r));
-        tempRegion.OrSelf(region);
-    }
-    advancedDirtyRegion_ = tempRegion.GetRegionRectIs();
 }
 
 bool RSDirtyRegionManager::MergeDirtyRectIfIntersect(const RectI& rect)
@@ -193,21 +189,21 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->activeSurfaceRect_ = activeSurfaceRect_;
     ptr->surfaceRect_ = surfaceRect_;
     ptr->dirtyRegion_ = dirtyRegion_;
-    ptr->advancedDirtyRegion_ = advancedDirtyRegion_;
+    ptr->advancedDirtyRegion_ = std::move(advancedDirtyRegion_);
     ptr->advancedDirtyRegionType_ = advancedDirtyRegionType_;
     ptr->hwcDirtyRegion_ = hwcDirtyRegion_;
-    ptr->typeHwcDirtyRegion_ = typeHwcDirtyRegion_;
+    ptr->typeHwcDirtyRegion_ = std::move(typeHwcDirtyRegion_);
     ptr->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
     ptr->uifirstFrameDirtyRegion_ = uifirstFrameDirtyRegion_;
-    ptr->currentFrameAdvancedDirtyRegion_ = currentFrameAdvancedDirtyRegion_;
+    ptr->currentFrameAdvancedDirtyRegion_ = std::move(currentFrameAdvancedDirtyRegion_);
     ptr->maxNumOfDirtyRects_ = maxNumOfDirtyRects_;
     ptr->dirtyRegionForQuickReject_ = {};
     ptr->debugRect_ = debugRect_;
     filterCollector_.OnSync(ptr->filterCollector_);
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
-        ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
-        ptr->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
-        ptr->mergedDirtyRegions_ = mergedDirtyRegions_;
+        ptr->dirtySurfaceNodeInfo_ = std::move(dirtySurfaceNodeInfo_);
+        ptr->dirtyCanvasNodeInfo_ = std::move(dirtyCanvasNodeInfo_);
+        ptr->mergedDirtyRegions_ = std::move(mergedDirtyRegions_);
     }
     // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
     Clear();
@@ -366,6 +362,22 @@ bool RSDirtyRegionManager::SetBufferAge(const int age)
     return true;
 }
 
+void RSDirtyRegionManager::Scale(float scaleX, float scaleY)
+{
+    if (ROSEN_LE(scaleX, 0.f) || ROSEN_LE(scaleY, 0.f)) {
+        RS_LOGW("%{public}s invalid scale x:%{public}f y:%{public}f, skip dirty scale",
+            __func__, scaleX, scaleY);
+        return;
+    }
+    Drawing::Matrix scaleMatrix;
+    scaleMatrix.SetScale(scaleX, scaleY);
+    currentFrameDirtyRegion_ = RSObjAbsGeometry::MapRect(currentFrameDirtyRegion_.ConvertTo<float>(), scaleMatrix);
+    for (auto& rect : currentFrameAdvancedDirtyRegion_) {
+        rect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
+    }
+    filterCollector_.ScaleSyncedFilterRegions(scaleX, scaleY);
+}
+
 void RSDirtyRegionManager::MergeSurfaceRect()
 {
     return MergeDirtyRect(activeSurfaceRect_.IsEmpty() ? surfaceRect_ : activeSurfaceRect_);
@@ -454,7 +466,7 @@ void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
     }
     advancedDirtyRegion_ = {};
     Occlusion::Region tempRegion = Occlusion::Region();
-    for (auto& rect : currentFrameAdvancedDirtyRegion_) {
+    for (const auto& rect : currentFrameAdvancedDirtyRegion_) {
         if (rect.IsEmpty()) {
             continue;
         }
@@ -463,11 +475,11 @@ void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
     }
 
     for (unsigned int i = historySize_; i > historySize_ - age; --i) {
-        auto rects = GetAdvancedDirtyHistory((i - 1));
+        const auto& rects = GetAdvancedDirtyHistory((i - 1));
         if (rects.empty()) {
             continue;
         }
-        for (auto& rect : rects) {
+        for (const auto& rect : rects) {
             if (rect.IsEmpty()) {
                 continue;
             }
@@ -504,7 +516,7 @@ RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
     return dirtyHistory_[i];
 }
 
-std::vector<RectI> RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i) const
+const std::vector<RectI>& RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i) const
 {
     if (i >= HISTORY_QUEUE_MAX_SIZE) {
         i %= HISTORY_QUEUE_MAX_SIZE;

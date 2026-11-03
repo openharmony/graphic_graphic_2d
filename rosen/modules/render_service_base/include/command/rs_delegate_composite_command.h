@@ -27,6 +27,8 @@ namespace Rosen {
 enum RSDelegateCompositeCommandType : uint16_t {
     TRANSACTION_BUFFER = 0,
     SURFACE_TRANSACTION_CMD = 1,
+    TRANSACTION_BUFFER_SRC_RECT = 2,
+    TRANSACTION_BUFFER_DST_RECT = 3,
 };
 
 class RSB_EXPORT TransactionBufferCommand : public RSCommand {
@@ -34,7 +36,7 @@ public:
     TransactionBufferCommand();
     TransactionBufferCommand(NodeId nodeId);
     TransactionBufferCommand(std::vector<RSTransactionConfig>& configs, NodeId nodeId);
-    TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId);
+    TransactionBufferCommand(OHOS::Rosen::RectF rect, bool isSrcRect, NodeId nodeId);
 
     void Process(RSContext& context) override;
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
@@ -48,6 +50,22 @@ public:
         return nodeId_;
     }
 
+    // Expose every target node id so that RSTransactionData::CheckNonSystemCommand validates
+    // the inner config.nodeId list as well; a config pointing to another process's node makes
+    // the whole command invalid instead of being silently skipped in Process.
+    std::vector<NodeId> GetAllNodeIds() const override
+    {
+        std::vector<NodeId> nodeIds;
+        if (cmdType_ == CmdType::SET_BUFFER) {
+            for (const auto& config : configList_) {
+                nodeIds.push_back(config.nodeId);
+            }
+        } else if (cmdType_ == CmdType::SET_RECT) {
+            nodeIds.push_back(nodeId_);
+        }
+        return nodeIds;
+    }
+
     uint16_t GetType() const override
     {
         return RSCommandType::DELEGATE_COMPOSITE;
@@ -55,7 +73,7 @@ public:
 
     uint16_t GetSubType() const override
     {
-        return RSDelegateCompositeCommandType::TRANSACTION_BUFFER;
+        return cmdSubType_;
     }
 
     RSCommandPermissionType GetAccessPermission() const override
@@ -75,11 +93,12 @@ private:
     // common
     CmdType cmdType_ = CmdType::INVALID;
     NodeId nodeId_ = 0;
+    uint16_t cmdSubType_ = RSDelegateCompositeCommandType::TRANSACTION_BUFFER;
 
     // setBuffer
     void ProcessCmdTypeSetBuffer(RSContext& context);
     void ProcessCmdTypeSetBufferwithAttach(sptr<Transaction> transaction,
-        sptr<IConsumerSurface> consumer, const RSTransactionConfig& config);
+        sptr<IConsumerSurface> consumer, const RSTransactionConfig& config, bool isDelegateMode);
     static RSCommand* UnmarshallingCmdTypeSetBuffer(MessageParcel* messageParcel);
     bool MarshallingCmdTypeSetBuffer(MessageParcel* messageParcel) const;
     std::vector<RSTransactionConfig> configList_;
@@ -89,21 +108,34 @@ private:
     static RSCommand* UnmarshallingCmdTypeSetRect(MessageParcel* messageParcel);
     bool MarshallingCmdTypeSetRect(MessageParcel* messageParcel) const;
     bool isSrcRect_ = true;
-    RectF rect_;
+    OHOS::Rosen::RectF rect_;
 
     // rs command define
-    using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+    using RegisterTransactionBuffer = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
         RSDelegateCompositeCommandType::TRANSACTION_BUFFER, Unmarshalling>;
-    static Register instance_;
+    static RegisterTransactionBuffer transactionBufferInstance_;
+
+    using RegisterTransactionBufferSrcRect = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::TRANSACTION_BUFFER_SRC_RECT, Unmarshalling>;
+    static RegisterTransactionBufferSrcRect transactionBufferSrcRectInstance_;
+
+    using RegisterTransactionBufferDstRect = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::TRANSACTION_BUFFER_DST_RECT, Unmarshalling>;
+    static RegisterTransactionBufferDstRect transactionBufferDstRectInstance_;
 };
 
 class RSB_EXPORT SurfaceTransactionCommand : public RSCommand {
 public:
-    SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid);
+    SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid, NodeId nodeId);
 
     void Process(RSContext& context) override;
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
+
+    NodeId GetNodeId() const override
+    {
+        return nodeId_;
+    }
 
     uint16_t GetType() const override
     {
@@ -124,6 +156,7 @@ private:
     uint64_t commandSeqNum_ = 0;
     pid_t commandSendPid_ = 0;
     pid_t commandSendTid_ = 0;
+    NodeId nodeId_ = 0;
     using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
         RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD, Unmarshalling>;
     static Register instance_;

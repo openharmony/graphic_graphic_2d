@@ -21,7 +21,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "consumer_surface.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -58,27 +58,6 @@ inline std::vector<std::shared_ptr<RSLayer>>& GetRecordingComposerLayers()
 inline void ClearRecordingComposerLayers()
 {
     GetRecordingComposerLayers().clear();
-}
-
-inline std::unordered_set<NodeId>& GetTrackedTunnelTestNodeIds()
-{
-    static std::unordered_set<NodeId> nodeIds;
-    return nodeIds;
-}
-
-inline void TrackTunnelTestNode(NodeId nodeId)
-{
-    RSTunnelRuntimeStore::Erase(nodeId);
-    GetTrackedTunnelTestNodeIds().emplace(nodeId);
-}
-
-inline void ClearTrackedTunnelRuntimeStates()
-{
-    auto& nodeIds = GetTrackedTunnelTestNodeIds();
-    for (auto nodeId : nodeIds) {
-        RSTunnelRuntimeStore::Erase(nodeId);
-    }
-    nodeIds.clear();
 }
 
 inline TunnelLayerInfo MakeTunnelLayerInfo(TunnelTypeMask tunnelType = TUNNEL_TYPE_STYLUS)
@@ -153,20 +132,33 @@ public:
     void OnBufferAvailable() override {}
 };
 
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+
 class ScopedNewTunnelSwitch {
 public:
-    explicit ScopedNewTunnelSwitch(bool enabled) : oldValue_(Rosen::IsNewTunnelEnabled())
+    explicit ScopedNewTunnelSwitch(bool enabled)
     {
-        system::SetParameter("rosen.debug.new_tunnel", enabled ? "true" : "false");
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+        oldTunnelParamEnabled_ = TunnelLayerParam::IsNewTunnelEnabled();
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(enabled);
     }
 
     ~ScopedNewTunnelSwitch()
     {
-        system::SetParameter("rosen.debug.new_tunnel", oldValue_ ? "true" : "false");
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(oldTunnelParamEnabled_);
     }
 
 private:
-    bool oldValue_;
+    bool oldValue_ = false;
+    bool oldTunnelParamEnabled_ = false;
 };
 
 class RecordingRenderToComposerConnection final : public RSRenderToComposerConnectionStub {
@@ -224,6 +216,17 @@ public:
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override
     {
         (void)surfaceId;
+    }
+
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override
+    {
+        (void)flag;
+        (void)activeRect;
+    }
+
+    void SetSkipDelay(bool skipDelay) override
+    {
+        (void)skipDelay;
     }
 
     bool commitTunnelCalled = false;
@@ -286,7 +289,6 @@ inline TunnelTestContext CreateTunnelTestContext(bool withProducer)
     if (context.node == nullptr) {
         return context;
     }
-    TrackTunnelTestNode(context.node->GetId());
     context.surfaceHandler = context.node->GetMutableRSSurfaceHandler();
     if (context.surfaceHandler == nullptr) {
         return context;

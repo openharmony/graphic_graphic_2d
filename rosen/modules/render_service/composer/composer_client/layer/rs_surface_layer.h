@@ -159,6 +159,7 @@ public:
     void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount,
         bool needUpdate) override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override;
+    bool HasBufferOwnerCountById(uint64_t bufferId) const override;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;
@@ -185,8 +186,11 @@ public:
     void SetSplitLayerTag(bool splitLayerTag) override;
     bool GetSplitLayerTag() const override;
 
-    void SetDelegateModeCropRect(const GraphicIRect& crop) override;
-    GraphicIRect GetDelegateModeCropRect() override;
+    void SetDelegateSrcRect(const GraphicIRect& crop) override;
+    GraphicIRect GetDelegateSrcRect() override;
+    void SetAlphaType(GraphicAlphaType alphaType) override;
+    GraphicAlphaType GetAlphaType() const override;
+
 protected:
     bool AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
 
@@ -196,10 +200,10 @@ private:
     void SetRSLayerCmd(const T& value);
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
-    RSLayerId rsLayerId_ = 0;
     bool isNeedComposition_ = false;
 
     // rs layer property info
+    RSLayerId rsLayerId_ = 0;
     int32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_ = {0};
@@ -207,13 +211,14 @@ private:
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
     GraphicIRect cropRect_ = {0};
-    GraphicIRect delegateModeCropRect_ = {0};
+    GraphicIRect delegateSrcRect_ = {0};
     GraphicMatrix matrix_ = {0.0}; // matrix used for uni render redraw
     int32_t gravity_ = 0; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
     GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicAlphaType alphaType_ = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_ = {0};

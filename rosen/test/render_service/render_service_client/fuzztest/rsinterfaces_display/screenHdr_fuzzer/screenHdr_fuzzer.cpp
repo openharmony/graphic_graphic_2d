@@ -32,7 +32,9 @@ const uint8_t DO_GET_SCREEN_HDR_CAPABILITY = 1;
 const uint8_t DO_GET_SCREEN_SUPPORTED_HDR_FORMATS = 2;
 const uint8_t DO_GET_SCREEN_HDR_FORMAT = 3;
 const uint8_t DO_SET_SCREEN_HDR_FORMAT = 4;
-const uint8_t TARGET_SIZE = 5;
+const uint8_t DO_SET_VIRTUAL_SCREEN_HDR_MODE = 5;
+const uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 6;
+const uint8_t TARGET_SIZE = 7;
 
 void DoGetScreenHdrStatus(FuzzedDataProvider& fdp)
 {
@@ -69,6 +71,20 @@ void DoSetScreenHdrFormat(FuzzedDataProvider& fdp)
     g_rsInterfaces->SetScreenHDRFormat(id, modeIdx);
 }
 
+void DoSetVirtualScreenHdrMode(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    HDRMode mode = static_cast<HDRMode>(fdp.ConsumeIntegral<uint32_t>());
+    g_rsInterfaces->SetVirtualScreenHDRMode(id, mode);
+}
+
+void DoGetVirtualScreenHdrMode(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    HDRMode mode;
+    g_rsInterfaces->GetVirtualScreenHDRMode(id, mode);
+}
+
 } // namespace
 
 } // namespace Rosen
@@ -103,6 +119,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_HDR_FORMAT:
             OHOS::Rosen::DoSetScreenHdrFormat(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoSetVirtualScreenHdrMode(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoGetVirtualScreenHdrMode(fdp);
             break;
         default:
             return -1;

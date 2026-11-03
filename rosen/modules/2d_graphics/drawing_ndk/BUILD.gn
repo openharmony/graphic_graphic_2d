@@ -153,7 +153,7 @@ template("drawing_ndk_source_set") {
         "$rosen_text_root/adapter",
         "$rosen_text_root/interface/export",
       ]
-      external_deps += [ "bounds_checking_function:libsec_static" ]
+      external_deps += [ "bounds_checking_function:libsec_shared" ]
     } else {
       include_dirs += [
         "$ace_napi_frameworks/frameworks",
@@ -169,7 +169,7 @@ template("drawing_ndk_source_set") {
       public_deps += ["$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager"]
       defines += [ "OHOS_PLATFORM" ]
       external_deps += [
-        "bounds_checking_function:libsec_static",
+        "bounds_checking_function:libsec_shared",
         "hilog:libhilog",
         "icu:shared_icuuc",
         "image_framework:image_native",
@@ -187,7 +187,7 @@ template("drawing_ndk_source_set") {
         deps += [ "$rosen_root/modules/platform:hilog" ]
       }
 
-      external_deps += [ "bounds_checking_function:libsec_static" ]
+      external_deps += [ "bounds_checking_function:libsec_shared" ]
       defines += [ "MODULE_DRAWING" ]
     }
     if (enable_text_gine) {
@@ -200,6 +200,57 @@ template("drawing_ndk_source_set") {
       include_dirs += [ "$graphic_2d_root/interfaces/inner_api/surface" ]
       external_deps += [ "c_utils:utils" ]
     }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
+
+if (is_arkui_x) {
+  ohos_source_set("drawing_ndk_core_arkui_x") {
+    platform = current_os
+
+    branch_protector_ret = "pac_ret"
+    cflags_cc = [ "-std=c++17" ]
+
+    sources = [
+      "$drawing_ndk_src_dir/drawing_bitmap.cpp",
+      "$drawing_ndk_src_dir/drawing_brush.cpp",
+      "$drawing_ndk_src_dir/drawing_canvas.cpp",
+      "$drawing_ndk_src_dir/drawing_error_code.cpp",
+      "$drawing_ndk_src_dir/drawing_pen.cpp",
+      "$drawing_ndk_src_dir/drawing_rect.cpp",
+      "$drawing_ndk_src_dir/drawing_round_rect.cpp",
+      "$drawing_utils_root/drawing_font_utils.cpp",
+    ]
+
+    defines = [
+      "ROSEN_ARKUI_X",
+      "ROSEN_CROSS_PLATFORM",
+      "CROSS_PLATFORM",
+      "MODULE_DRAWING",
+      "USE_ACE_SKIA",
+      "USE_M133_SKIA",
+    ]
+    configs = [
+      ":export_config",
+      "$drawing_root:export_config",
+    ]
+
+    # arkui-x: include-only, same as text_ndk — engine symbols (2d_graphics /
+    # rosen_text) live in libarkui_<platform>.so and are resolved at runtime
+    # through its DT_NEEDED edge. Linking their sources here would duplicate
+    # engine state (typeface registry, font collections) across DSOs.
+    deps = [
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+
+    include_dirs = [
+      "$drawing_utils_root",
+      "$rosen_text_root/adapter/skia",
+      "//third_party/bounds_checking_function/include",
+    ]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"

@@ -258,3 +258,146 @@ HWTEST(RSLayerParcelHelperTest, UpdateRSSolidFilledColorLayerCmd_MultipleUpdates
     ASSERT_NE(layer, nullptr);
     EXPECT_TRUE(layer->IsSolidFilledColorLayer());
 }
+
+/**
+ * Function: UpdateRSLayerCmd_CommandNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context but a nullptr command
+ *                  2. call UpdateRSLayerCmd
+ *                  3. verify early return: no layer is created
+ *                     (true branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSLayerCmd_CommandNullptr_TrueBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1100;
+    std::shared_ptr<RSRenderLayerCmd> nullCmd = nullptr;
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSLayerCmd(ctx, id, nullCmd);
+    // True branch: command == nullptr, early return keeps the layer count at 0
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 0u);
+    EXPECT_EQ(ctx->GetRSRenderLayer(id), nullptr);
+}
+
+/**
+ * Function: UpdateRSLayerCmd_CommandNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context and a valid (non-null) command
+ *                  2. call UpdateRSLayerCmd
+ *                  3. verify the function proceeds and creates a layer
+ *                     (false branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSLayerCmd_CommandNotNull_FalseBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1101;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(11);
+    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSLayerCmd(ctx, id, cmd);
+    // False branch: command != nullptr, the function proceeds and creates a layer
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    auto layer = ctx->GetRSRenderLayer(id);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_EQ(layer->GetZorder(), 11u);
+}
+
+/**
+ * Function: UpdateRSRCDLayerCmd_CommandNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context but a nullptr command
+ *                  2. call UpdateRSRCDLayerCmd
+ *                  3. verify early return: no layer is created
+ *                     (true branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSRCDLayerCmd_CommandNullptr_TrueBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1200;
+    std::shared_ptr<RSRenderLayerCmd> nullCmd = nullptr;
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSRCDLayerCmd(ctx, id, nullCmd);
+    // True branch: command == nullptr, early return keeps the layer count at 0
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 0u);
+    EXPECT_EQ(ctx->GetRSRenderLayer(id), nullptr);
+}
+
+/**
+ * Function: UpdateRSRCDLayerCmd_CommandNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context and a valid (non-null) command
+ *                  2. call UpdateRSRCDLayerCmd
+ *                  3. verify the function proceeds and creates an RCD layer
+ *                     (false branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSRCDLayerCmd_CommandNotNull_FalseBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1201;
+    std::shared_ptr<Media::PixelMap> pm = nullptr;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<std::shared_ptr<Media::PixelMap>>>(pm);
+    auto cmd = std::make_shared<RSRenderLayerPixelMapCmd>(prop);
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSRCDLayerCmd(ctx, id, cmd);
+    // False branch: command != nullptr, the function proceeds and creates an RCD layer
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    auto layer = ctx->GetRSRenderLayer(id);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_TRUE(layer->IsScreenRCDLayer());
+}
+
+/**
+ * Function: UpdateRSSolidFilledColorLayerCmd_CommandNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context but a nullptr command
+ *                  2. call UpdateRSSolidFilledColorLayerCmd
+ *                  3. verify early return: no layer is created
+ *                     (true branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSSolidFilledColorLayerCmd_CommandNullptr_TrueBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1300;
+    std::shared_ptr<RSRenderLayerCmd> nullCmd = nullptr;
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(ctx, id, nullCmd);
+    // True branch: command == nullptr, early return keeps the layer count at 0
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 0u);
+    EXPECT_EQ(ctx->GetRSRenderLayer(id), nullptr);
+}
+
+/**
+ * Function: UpdateRSSolidFilledColorLayerCmd_CommandNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. provide a valid context and a valid (non-null) command
+ *                  2. call UpdateRSSolidFilledColorLayerCmd
+ *                  3. verify the function proceeds and creates a solid filled color layer
+ *                     (false branch of the new (command == nullptr) condition added in the fix commit)
+ */
+HWTEST(RSLayerParcelHelperTest, UpdateRSSolidFilledColorLayerCmd_CommandNotNull_FalseBranch, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSRenderComposerContext>();
+    RSLayerId id = 1301;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(22);
+    auto cmd = std::make_shared<RSRenderLayerZorderCmd>(prop);
+
+    OHOS::Rosen::RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(ctx, id, cmd);
+    // False branch: command != nullptr, the function proceeds and creates a solid filled color layer
+    EXPECT_EQ(ctx->GetRSRenderLayerCount(), 1u);
+    auto layer = ctx->GetRSRenderLayer(id);
+    ASSERT_NE(layer, nullptr);
+    EXPECT_TRUE(layer->IsSolidFilledColorLayer());
+    EXPECT_EQ(layer->GetZorder(), 22u);
+}

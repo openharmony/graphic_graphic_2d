@@ -146,6 +146,29 @@ HWTEST_F(CmdListHelperTest, GetBitmapFromCmdList001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBitmapFromCmdList002
+ * @tc.desc: Test GetBitmapFromCmdList when bitmap GetPixels returns null (0x0 dimensions).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, GetBitmapFromCmdList002, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    // create a valid 100x100 bitmap and add to cmdList to get real pixel data
+    Bitmap bitmap;
+    BitmapFormat format = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_PREMUL };
+    bitmap.Build(100, 100, format);
+    ImageHandle handle = CmdListHelper::AddBitmapToCmdList(*cmdList, bitmap);
+    EXPECT_NE(handle.size, 0);
+
+    // set dimensions to 0x0: Build(0,0) succeeds but GetPixels() returns null
+    handle.width = 0;
+    handle.height = 0;
+    auto result = CmdListHelper::GetBitmapFromCmdList(*cmdList, handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
  * @tc.name: GetPictureFromCmdList001
  * @tc.desc: Test the GetPictureFromCmdList function.
  * @tc.type: FUNC

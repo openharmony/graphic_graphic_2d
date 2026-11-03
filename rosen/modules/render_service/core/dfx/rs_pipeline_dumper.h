@@ -73,6 +73,7 @@ private:
     void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterContextStatesFuncs(std::shared_ptr<RSPipelineDumpManager> rsDumpManager);
+    void RegisterFrameStatsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;

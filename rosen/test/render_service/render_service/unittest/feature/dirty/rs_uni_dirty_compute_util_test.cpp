@@ -178,7 +178,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_ColorPickerDrawable, Te
     ASSERT_TRUE(filterRect.IsEmpty());
 
     // Now add a real filter to the node (background filter)
-    colorPickerOnlyNode->renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    colorPickerOnlyNode->renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     colorPickerOnlyNode->renderProperties_.needFilter_ = true;
 
     // GetVisibleFilterRect should now include the node since it has a real filter
@@ -354,10 +354,10 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     displayParams->specialLayerManager_ = specialLayerManager;
     screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    sptr<RSScreenManager> screenManager = screenManager_;
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
 
-    std::unordered_set<NodeId> blackListVector({1, 2, 3});
+    std::unordered_set<NodeId> blackListVector({ 1, 2, 3 });
     params->SetLastBlackList(blackListVector);
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
     std::unordered_set<NodeId> blackListVector2({});
@@ -461,6 +461,38 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip004, TestSize.Le
     params->SetAccumulatedDirty(true);
     bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandScreenSkip005
+ * @tc.desc: CheckVirtualExpandScreenSkip skip null drawable and null renderParams in displayDrawables
+ * @tc.type: FUNC
+ * @tc.require: issue26280
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip005, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->firstFrameFlushed_ = true;
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetAccumulatedDirty(false);
+    params->SetAccumulatedHdrStatusChanged(false);
+    // null shared_ptr entry covers displayDrawable == nullptr branch
+    params->logicalDisplayNodeDrawables_.emplace_back(nullptr);
+    // drawable with null renderParams_ covers displayParams == nullptr branch
+    RSLogicalDisplayRenderNodeDrawable* displayDrawable = GenerateLogicalscreenDrawableById(DEFAULT_ID + 1, context);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = nullptr;
+    params->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
+    EXPECT_TRUE(result);
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", type);
 }
 
 /*
@@ -1033,6 +1065,21 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     screenDrawable = nullptr;
     mirroredScreenDrawable = nullptr;
     displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: CheckCurrentFrameHasDirtyInVirtual002
+ * @tc.desc: CheckCurrentFrameHasDirtyInVirtual return false when mirrorScreenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue26280
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual002, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* mirroredScreenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(mirroredScreenDrawable, nullptr);
+    mirroredScreenDrawable->renderParams_ = nullptr;
+    EXPECT_FALSE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
 }
 
 /**

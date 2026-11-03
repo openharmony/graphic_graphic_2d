@@ -162,8 +162,8 @@ napi_value JsSendableColorSpaceManagerInit(napi_env env, napi_value exportObj)
     }
 
     std::unique_ptr<JsSendableColorSpaceManager> jsColorSpaceManager = std::make_unique<JsSendableColorSpaceManager>();
-    NAPI_CALL_DEFAULT(napi_wrap(env, exportObj, jsColorSpaceManager.release(),
-        JsSendableColorSpaceManager::Finalizer, nullptr, nullptr));
+    NAPI_CALL_DEFAULT(napi_wrap_s(env, exportObj, jsColorSpaceManager.release(),
+        JsSendableColorSpaceManager::Finalizer, nullptr, &JsSendableColorSpaceManager::NAPI_TYPE_TAG, nullptr));
     if (BindNativeFunction(env, exportObj, "create", nullptr,
         JsSendableColorSpaceManager::CreateSendableColorSpace) != napi_ok) {
         return nullptr;

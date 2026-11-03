@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation_manager.h"
 #include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -263,35 +264,35 @@ HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode001
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized001
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: issueIAI1VN
  */
-HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode001, TestSize.Level1)
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionAuthorized001, TestSize.Level1)
 {
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    bool isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode002
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized002
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: issueIAI1VN
  */
-HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode002, TestSize.Level1)
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionAuthorized002, TestSize.Level1)
 {
     NodeId id = 1;
     RSSurfaceRenderNodeConfig config = { .id = id };
@@ -300,55 +301,149 @@ HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode002, TestSize.Level1)
     RSRenderNodeMap rsRenderNodeMap;
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    bool isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    isUIExtensionAuthorized = rsRenderNodeMap.IsUIExtensionAuthorized(id, 1);
+    EXPECT_FALSE(isUIExtensionAuthorized);
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode003
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized003
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: issueIAI1VN
  */
-HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode003, TestSize.Level1)
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionAuthorized003, TestSize.Level1)
 {
-    NodeId id = 1;
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    NodeId id = (static_cast<NodeId>(hostPid) << 32) | 1;
     RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    // registration alone does not grant any authorization
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    EXPECT_TRUE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), guestPid);
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, hostPid));
+    EXPECT_TRUE(rsRenderNodeMap.RevokeUIExtensionPid(id, guestPid));
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
 }
 
 /**
- * @tc.name: IsUIExtensionSurfaceNode004
- * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.name: IsUIExtensionAuthorized004
+ * @tc.desc: test results of IsUIExtensionAuthorized
  * @tc.type: FUNC
  * @tc.require: issueIAI1VN
  */
-HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionAuthorized004, TestSize.Level1)
 {
-    NodeId id = 1;
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    NodeId id = (static_cast<NodeId>(hostPid) << 32) | 1;
     RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
     RSRenderNodeMap rsRenderNodeMap;
+    // pre-authorization before node registration must survive the registration
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
     bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(isRegisterSuccess);
-    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    EXPECT_TRUE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), guestPid);
     rsRenderNodeMap.UnregisterRenderNode(id);
-    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
-    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    EXPECT_FALSE(rsRenderNodeMap.IsUIExtensionAuthorized(id, guestPid));
+    EXPECT_EQ(rsRenderNodeMap.GetUIExtensionGuestPid(id), 0);
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPid001
+ * @tc.desc: test invalid params of AuthorizeUIExtensionPid and RevokeUIExtensionPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AuthorizeUIExtensionPid001, TestSize.Level1)
+{
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    NodeId id = (static_cast<NodeId>(hostPid) << 32) | 1;
+    RSRenderNodeMap rsRenderNodeMap;
+    // invalid guest pid
+    EXPECT_FALSE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, 0, true));
+    EXPECT_FALSE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, -1, true));
+    // guest pid must differ from host pid
+    EXPECT_FALSE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, hostPid, true));
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    // revoke with mismatched pid or unknown node fails
+    EXPECT_FALSE(rsRenderNodeMap.RevokeUIExtensionPid(id, hostPid));
+    EXPECT_FALSE(rsRenderNodeMap.RevokeUIExtensionPid(id + 1, guestPid));
+    EXPECT_TRUE(rsRenderNodeMap.RevokeUIExtensionPid(id, guestPid));
+    EXPECT_FALSE(rsRenderNodeMap.RevokeUIExtensionPid(id, guestPid));
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPid002
+ * @tc.desc: test per-host quota of AuthorizeUIExtensionPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AuthorizeUIExtensionPid002, TestSize.Level1)
+{
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t otherHostPid = 1001;
+    constexpr pid_t guestPid = 2000;
+    constexpr uint32_t perHostQuota = 500;
+    RSRenderNodeMap rsRenderNodeMap;
+    // fill the per-host quota for hostPid
+    for (uint32_t i = 1; i <= perHostQuota; i++) {
+        NodeId id = (static_cast<NodeId>(hostPid) << 32) | i;
+        EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    }
+    // the quota blocks further entries of the same host, but not of other hosts
+    NodeId blockedId = (static_cast<NodeId>(hostPid) << 32) | (perHostQuota + 1);
+    EXPECT_FALSE(rsRenderNodeMap.AuthorizeUIExtensionPid(blockedId, guestPid, true));
+    NodeId otherHostId = (static_cast<NodeId>(otherHostPid) << 32) | 1;
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(otherHostId, guestPid, true));
+    // re-authorizing an existing entry is not a new entry and bypasses the quota
+    NodeId existingId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(existingId, guestPid + 1, true));
+    // a revoked entry frees the host's quota
+    NodeId revokeId = (static_cast<NodeId>(hostPid) << 32) | 2; // id 2: an entry to revoke
+    EXPECT_TRUE(rsRenderNodeMap.RevokeUIExtensionPid(revokeId, guestPid));
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(blockedId, guestPid, true));
+    // quota is not enforced when the flag is false (system callers)
+    NodeId anotherId = (static_cast<NodeId>(hostPid) << 32) | (perHostQuota + 2);
+    EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(anotherId, guestPid, false));
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPid003
+ * @tc.desc: test that FilterNodeByPid frees the per-host authorization quota
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AuthorizeUIExtensionPid003, TestSize.Level1)
+{
+    constexpr pid_t hostPid = 1000;
+    constexpr pid_t guestPid = 2000;
+    constexpr uint32_t perHostQuota = 500;
+    RSRenderNodeMap rsRenderNodeMap;
+    for (uint32_t i = 1; i <= perHostQuota; i++) {
+        NodeId id = (static_cast<NodeId>(hostPid) << 32) | i;
+        EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    }
+    // guest process death removes every entry it was authorized for and frees the host's quota
+    rsRenderNodeMap.FilterNodeByPid(guestPid);
+    for (uint32_t i = 1; i <= perHostQuota; i++) {
+        NodeId id = (static_cast<NodeId>(hostPid) << 32) | i;
+        EXPECT_TRUE(rsRenderNodeMap.AuthorizeUIExtensionPid(id, guestPid, true));
+    }
 }
 
 /**
@@ -1020,22 +1115,33 @@ HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeExceedLimit, TestSize.Level1)
 
 /**
  * @tc.name: AddPendingUIBufferEntryTest001
- * @tc.desc: Cover branch: leashParent is LeashWindow, entry added to map.
+ * @tc.desc: Cover branch: has sibling with different token, self and sibling both added.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest001, TestSize.Level1)
 {
     RSRenderNodeMap rsRenderNodeMap;
     constexpr NodeId leashId = 1;
-    constexpr NodeId appId = 2;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    constexpr uint64_t token1 = 100;
+    constexpr uint64_t token2 = 200;
     RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
-    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
-    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
-    leashNode->AddChild(appNode);
-    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
-    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
-    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appId), leashId);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(token1);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(token2);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    // Call with app1 (token1): app2 has different token, so both added
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app1Id), leashId);
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app2Id), leashId);
 }
 
 /**
@@ -1051,6 +1157,83 @@ HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest002, TestSize.Level1)
     auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
     rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
     EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest003
+ * @tc.desc: Cover branch: already in map, skip without re-traversing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest003, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(100);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(200);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    // Second call should be skipped — app1 already in map, no re-traversal of siblings
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
+    EXPECT_EQ(rsRenderNodeMap.hasDestoryRebuildAppWindowMap_.size(), 2u);
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest004
+ * @tc.desc: Cover branch: only one child under LeashWindow, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest004, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId appId = 2;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    leashNode->AddChild(appNode);
+    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest005
+ * @tc.desc: Cover branch: all siblings have same token, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest005, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId app1Id = 2;
+    constexpr NodeId app2Id = 3;
+    constexpr uint64_t sameToken = 100;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(sameToken);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2Id, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(sameToken);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    rsRenderNodeMap.AddPendingUIBufferEntry(app1Node);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(app1Id));
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(app2Id));
 }
 
 /**
@@ -1141,32 +1324,43 @@ HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferAppWindowsByLeashIdTest002, Test
 
 /**
  * @tc.name: DestroyTokenNodeTest001
- * @tc.desc: Cover branch: RootNode under AppWindow under LeashWindow, entry added.
+ * @tc.desc: Cover branch: RootNode under AppWindow under LeashWindow with different-token sibling,
+ *           both AppWindows added to pending map.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest001, TestSize.Level1)
 {
     RSRenderNodeMap rsRenderNodeMap;
     constexpr pid_t pid = 1;
-    constexpr uint64_t token = 1;
-    constexpr NodeId appNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr uint64_t token1 = 1;
+    constexpr uint64_t token2 = 2;
+    constexpr NodeId app1NodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId app2NodeId = (static_cast<NodeId>(pid) << 32) | 4;
     constexpr NodeId leashNodeId = (static_cast<NodeId>(pid) << 32) | 2;
     constexpr NodeId rootNodeId = (static_cast<NodeId>(pid) << 32) | 3;
     RSSurfaceRenderNodeConfig leashCfg = { .id = leashNodeId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
-    RSSurfaceRenderNodeConfig appCfg = { .id = appNodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
-    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    RSSurfaceRenderNodeConfig app1Cfg = { .id = app1NodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app1Node = std::make_shared<RSSurfaceRenderNode>(app1Cfg);
+    app1Node->SetUIContextToken(token1);
+    RSSurfaceRenderNodeConfig app2Cfg = { .id = app2NodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto app2Node = std::make_shared<RSSurfaceRenderNode>(app2Cfg);
+    app2Node->SetUIContextToken(token2);
     auto rootNode = std::make_shared<RSRootRenderNode>(rootNodeId);
-    appNode->SetUIContextToken(token);
-    rootNode->SetUIContextToken(token);
-    leashNode->AddChild(appNode);
-    appNode->AddChild(rootNode);
-    rsRenderNodeMap.RegisterRenderNode(appNode);
+    rootNode->SetUIContextToken(token1);
+    leashNode->AddChild(app1Node);
+    leashNode->AddChild(app2Node);
+    app1Node->AddChild(rootNode);
+    rsRenderNodeMap.RegisterRenderNode(app1Node);
+    rsRenderNodeMap.RegisterRenderNode(app2Node);
     rsRenderNodeMap.RegisterRenderNode(rootNode);
-    rsRenderNodeMap.DestroyTokenNode(pid, token);
-    EXPECT_TRUE(appNode->HasDestoryRebuild());
-    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appNodeId));
-    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appNodeId), leashNodeId);
+    rsRenderNodeMap.DestroyTokenNode(pid, token1);
+    EXPECT_TRUE(app1Node->HasDestoryRebuild());
+    // Both app1 and app2 should be in pending map (different tokens)
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app1NodeId));
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(app2NodeId));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app1NodeId), leashNodeId);
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(app2NodeId), leashNodeId);
 }
 
 /**
@@ -1191,6 +1385,272 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest002, TestSize.Level1)
     rsRenderNodeMap.RegisterRenderNode(rootNode);
     rsRenderNodeMap.DestroyTokenNode(pid, token);
     EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(nonAppNodeId));
+}
+
+/**
+ * @tc.name: RemoveSurfaceNodeMapKeepsNonMatchingNodes
+ * @tc.desc: Cover RemoveSurfaceNodeMap predicate branches: mismatched pid/token, null node entry,
+ *           non-self-drawing type and texture export node are all kept in surfaceNodeMap_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RemoveSurfaceNodeMapKeepsNonMatchingNodes, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId baseId = static_cast<NodeId>(pid) << 32;
+
+    // pid mismatch
+    RSSurfaceRenderNodeConfig otherPidCfg = { .id = (static_cast<NodeId>(2) << 32) | 1,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto otherPidNode = std::make_shared<RSSurfaceRenderNode>(otherPidCfg);
+    otherPidNode->SetUIContextToken(token);
+    // token mismatch
+    RSSurfaceRenderNodeConfig otherTokenCfg = { .id = baseId | 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto otherTokenNode = std::make_shared<RSSurfaceRenderNode>(otherTokenCfg);
+    otherTokenNode->SetUIContextToken(token + 1);
+    // non-self-drawing type
+    RSSurfaceRenderNodeConfig appCfg = { .id = baseId | 2, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    appNode->SetUIContextToken(token);
+    // texture export node
+    RSSurfaceRenderNodeConfig exportCfg = { .id = baseId | 3, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto exportNode = std::make_shared<RSSurfaceRenderNode>(exportCfg);
+    exportNode->SetUIContextToken(token);
+    exportNode->SetIsTextureExportNode(true);
+
+    rsRenderNodeMap.surfaceNodeMap_[otherPidNode->GetId()] = otherPidNode;
+    rsRenderNodeMap.surfaceNodeMap_[otherTokenNode->GetId()] = otherTokenNode;
+    rsRenderNodeMap.surfaceNodeMap_[appNode->GetId()] = appNode;
+    rsRenderNodeMap.surfaceNodeMap_[exportNode->GetId()] = exportNode;
+    rsRenderNodeMap.surfaceNodeMap_[baseId | 4] = nullptr; // null node entry is skipped
+
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.size(), 5);
+    EXPECT_TRUE(rsRenderNodeMap.backgroundSurfaceNodeMap_.empty());
+    EXPECT_FALSE(otherPidNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(otherTokenNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(appNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(exportNode->IsUIRenderDirectorStopped());
+}
+
+/**
+ * @tc.name: RemoveAndRegisterSurfaceNodeMapRoundTrip
+ * @tc.desc: Cover RemoveSurfaceNodeMap stash and RegisterSurfaceRenderNode restore with multiple nodes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RemoveAndRegisterSurfaceNodeMapRoundTrip, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId baseId = static_cast<NodeId>(pid) << 32;
+
+    RSSurfaceRenderNodeConfig cfg1 = { .id = baseId | 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg1);
+    node1->SetUIContextToken(token);
+    RSSurfaceRenderNodeConfig cfg2 = { .id = baseId | 2, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(cfg2);
+    node2->SetUIContextToken(token);
+    rsRenderNodeMap.surfaceNodeMap_[node1->GetId()] = node1;
+    rsRenderNodeMap.surfaceNodeMap_[node2->GetId()] = node2;
+
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+    EXPECT_TRUE(rsRenderNodeMap.surfaceNodeMap_.empty());
+    ASSERT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_[pid][token].size(), 2);
+    EXPECT_TRUE(node1->IsUIRenderDirectorStopped());
+    EXPECT_TRUE(node2->IsUIRenderDirectorStopped());
+
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.size(), 2);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node1->GetId()), 1);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node2->GetId()), 1);
+    // the token entry is erased, and the pid key is also removed when sub map becomes empty
+    EXPECT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_.count(pid), 0);
+    EXPECT_FALSE(node1->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(node2->IsUIRenderDirectorStopped());
+}
+
+/**
+ * @tc.name: RegisterSurfaceRenderNodeNoMatch
+ * @tc.desc: Cover RegisterSurfaceRenderNode no-op branches: unknown pid and unknown token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterSurfaceRenderNodeNoMatch, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId nodeId = (static_cast<NodeId>(pid) << 32) | 1;
+
+    // unknown pid: no-op, must not crash
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token);
+
+    // stash one node, then restore with an unknown token: node must stay stashed
+    RSSurfaceRenderNodeConfig cfg = { .id = nodeId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(cfg);
+    node->SetUIContextToken(token);
+    rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+    ASSERT_TRUE(node->IsUIRenderDirectorStopped());
+
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token + 1);
+    EXPECT_TRUE(node->IsUIRenderDirectorStopped());
+    EXPECT_TRUE(rsRenderNodeMap.surfaceNodeMap_.empty());
+    EXPECT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_.at(pid).size(), 1);
+}
+
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInRenderNodeMap
+ * @tc.desc: Verify ANCO surface node is protected from erasure in renderNodeMap_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInRenderNodeMap, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsRenderNodeMap.RegisterRenderNode(ancoNode);
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(normalNode);
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.GetRenderNode(ancoNodeId), nullptr);
+    EXPECT_EQ(rsRenderNodeMap.GetRenderNode(normalNodeId), nullptr);
+}
+
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInSurfaceNodeMap
+ * @tc.desc: Verify ANCO self-drawing surface node is protected in surfaceNodeMap_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInSurfaceNodeMap, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsRenderNodeMap.RegisterRenderNode(ancoNode);
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(normalNode);
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.surfaceNodeMap_.find(ancoNodeId), rsRenderNodeMap.surfaceNodeMap_.end());
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.find(normalNodeId), rsRenderNodeMap.surfaceNodeMap_.end());
+}
+
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInSelfDrawing
+ * @tc.desc: Verify ANCO surface node is protected in selfDrawingNodeInProcess_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInSelfDrawing, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+    constexpr NodeId parentId = (static_cast<NodeId>(pid) << 32) | 3;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+
+    auto parent = std::make_shared<RSRenderNode>(parentId);
+    parent->AddChild(normalNode);
+
+    rsRenderNodeMap.selfDrawingNodeInProcess_[pid][ancoNodeId] = ancoNode;
+    rsRenderNodeMap.selfDrawingNodeInProcess_[pid][normalNodeId] = normalNode;
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(ancoNodeId),
+              rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+    EXPECT_EQ(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(normalNodeId),
+              rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+}
+
+/**
+ * @tc.name: DestroyTokenNodeSkipInfiniteGroupChild
+ * @tc.desc: Verify DestroyTokenNode skips node with infinite group animation child
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSkipInfiniteGroupChild, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId nodeId = (static_cast<NodeId>(pid) << 32) | 1;
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    node->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(node);
+
+    // Inject animation manager with infinite group child via private member access
+    auto animationManager = std::make_shared<RSAnimationManager>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    animation->isGroupAnimationChild_ = true;
+    animation->SetGroupRepeatCount(-1);
+    animationManager->animations_[1] = animation;
+    node->animationManager_ = animationManager;
+    ASSERT_TRUE(node->HasInfiniteGroupAnimationChild());
+
+    // DestroyTokenNode should skip this node (return false in EraseIf lambda)
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+    // Node should still exist because it was skipped
+    EXPECT_NE(rsRenderNodeMap.GetRenderNode(nodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen

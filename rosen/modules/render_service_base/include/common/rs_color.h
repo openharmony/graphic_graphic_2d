@@ -76,11 +76,16 @@ public:
         return !operator==(rhs);
     }
     bool IsNearEqual(const RSColor& other, int16_t threshold = std::numeric_limits<int16_t>::epsilon()) const;
+    bool IsAbsNearEqual(const RSColor& target, const RSColor& threshold) const;
+    void TakeAbsMaxFrom(const RSColor& target);
     RSColor operator+(const RSColor& rhs) const;
     RSColor operator-(const RSColor& rhs) const;
     RSColor operator*(float scale) const;
+    RSColor operator*(const RSColor& other) const;
     RSColor operator/(float scale) const;
     RSColor& operator*=(float scale);
+    RSColor& operator*=(const RSColor& other);
+    RSColor Sqrt() const;
     uint32_t AsRgbaInt() const;
     static RSColor FromRgbaInt(uint32_t rgba);
     uint32_t AsArgbInt() const;
@@ -149,7 +154,7 @@ private:
     
     int8_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint8_t placeholder_ = 0; // enum ColorPlaceholder
-    float16 headroom_ = Float32ToFloat16(1.0f); // brightness ratio, range [1, 1+]
+    float16 headroom_ = 0x3C00; // brightness ratio, range [1, 1+]
 };
 } // namespace Rosen
 } // namespace OHOS

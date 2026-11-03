@@ -66,27 +66,27 @@ void RSPaintFilterCanvasBase::SetParallelRender(bool parallelEnable)
 
 Drawing::Matrix RSPaintFilterCanvasBase::GetTotalMatrix() const
 {
-    return canvas_->GetTotalMatrix();
+    return canvas_ ? canvas_->GetTotalMatrix() : Drawing::Matrix();
 }
 
 Drawing::Rect RSPaintFilterCanvasBase::GetLocalClipBounds() const
 {
-    return canvas_->GetLocalClipBounds();
+    return canvas_ ? canvas_->GetLocalClipBounds() : Drawing::Rect();
 }
 
 Drawing::RectI RSPaintFilterCanvasBase::GetDeviceClipBounds() const
 {
-    return canvas_->GetDeviceClipBounds();
+    return canvas_ ? canvas_->GetDeviceClipBounds() : Drawing::RectI();
 }
 
 Drawing::RectI RSPaintFilterCanvasBase::GetRoundInDeviceClipBounds() const
 {
-    return canvas_->GetRoundInDeviceClipBounds();
+    return canvas_ ? canvas_->GetRoundInDeviceClipBounds() : Drawing::RectI();
 }
 
 CM_INLINE uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
 {
-    return canvas_->GetSaveCount();
+    return canvas_ ? canvas_->GetSaveCount() : 0;
 }
 
 #ifdef RS_ENABLE_GPU
@@ -1622,8 +1622,10 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
         SetCacheType(other.GetCacheType());
     }
     isParallelCanvas_ = other.isParallelCanvas_;
+    isCrossNodeDraw_ = other.isCrossNodeDraw_;
     disableFilterCache_ = other.disableFilterCache_;
     threadIndex_ = other.threadIndex_;
+    SetRenderEngineType(other.GetRenderEngineType());
 }
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)
@@ -1803,7 +1805,8 @@ std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
     std::string ss;
     ss += " cachedRect: " + cachedRect_.ToString() +
         ", CacheImageWidth: " + std::to_string(cachedImage_->GetWidth()) +
-        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight());
+        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight()) +
+        ", timestamp: " + std::to_string(timestamp_);
     return ss;
 }
 
@@ -1815,6 +1818,16 @@ void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 bool RSPaintFilterCanvas::GetIsParallelCanvas() const
 {
     return isParallelCanvas_;
+}
+
+void RSPaintFilterCanvas::SetCrossNodeDraw(bool isCrossNodeDraw)
+{
+    isCrossNodeDraw_ = isCrossNodeDraw;
+}
+
+bool RSPaintFilterCanvas::IsCrossNodeDraw() const
+{
+    return isCrossNodeDraw_;
 }
 
 // UNI_MAIN_THREAD_INDEX, UNI_RENDER_THREAD_INDEX, subthread 0 1 2.
@@ -1896,6 +1909,16 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
     screenId_ = screenId;
 }
 
+::pid_t RSPaintFilterCanvas::GetPid() const
+{
+    return pid_;
+}
+ 
+void RSPaintFilterCanvas::SetPid(::pid_t pid)
+{
+    pid_ = pid;
+}
+
 bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 {
     return hdrProperties_.isHDREnabledVirtualScreen;
@@ -1904,6 +1927,26 @@ bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
 {
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+}
+
+RSPaintFilterCanvas::DisplaySceneType RSPaintFilterCanvas::GetDisplaySceneType() const
+{
+    return hdrProperties_.displaySceneType;
+}
+ 
+void RSPaintFilterCanvas::SetDisplaySceneType(RSPaintFilterCanvas::DisplaySceneType displaySceneType)
+{
+    hdrProperties_.displaySceneType = displaySceneType;
+}
+ 
+void RSPaintFilterCanvas::UpdateDisplaySceneType()
+{
+    bool isVirtualScreen = IsOnMultipleScreen() || hdrProperties_.isHDREnabledVirtualScreen;
+    if (hdrProperties_.screenshotType != ScreenshotType::NON_SHOT) {
+        hdrProperties_.displaySceneType = DisplaySceneType::SCREEN_SHOT;
+    } else if (isVirtualScreen) {
+        hdrProperties_.displaySceneType = DisplaySceneType::VIRTUAL_SCREEN;
+    }
 }
 
 bool RSPaintFilterCanvas::IsEDRSurface() const
@@ -1969,6 +2012,16 @@ GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const
 void RSPaintFilterCanvas::SetTargetColorGamut(GraphicColorGamut colorGamut)
 {
     targetColorGamut_ = colorGamut;
+}
+
+bool RSPaintFilterCanvas::GetSkipColorSpaceConversion() const
+{
+    return skipColorSpaceConversion_;
+}
+
+void RSPaintFilterCanvas::SetSkipColorSpaceConversion(bool skipColorSpaceConversion)
+{
+    skipColorSpaceConversion_ = skipColorSpaceConversion;
 }
 
 float RSPaintFilterCanvas::GetBrightnessRatio() const

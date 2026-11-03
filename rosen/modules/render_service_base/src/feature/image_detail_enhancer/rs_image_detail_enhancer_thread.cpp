@@ -35,8 +35,8 @@
 
 #ifdef RS_ENABLE_VK
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
@@ -109,12 +109,16 @@ bool RSImageDetailEnhancerThread::RegisterCallback(const std::function<void(uint
 
 void RSImageDetailEnhancerThread::MarkScaledImageDirty(uint64_t nodeId)
 {
-    std::lock_guard<std::mutex> lock(callbackMutex_);
-    if (callback_ == nullptr) {
+    std::function<void(uint64_t)> callback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callback = callback_;
+    }
+    if (callback == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread MarkScaledImageDirty failed!");
         return;
     }
-    callback_(nodeId);
+    callback(nodeId);
 }
 
 bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
@@ -159,19 +163,23 @@ bool RSImageDetailEnhancerThread::GetSharpness(RSImageDetailEnhanceAlgoParams& p
 }
 
 void RSImageDetailEnhancerThread::ResetStatus(int srcWidth, int srcHeight,
-    int dstWidth, int dstHeight, uint64_t imageId)
+    int dstWidth, int dstHeight, ImageKey imageKey)
 {
-    if (GetProcessStatus(imageId) && GetProcessReady(imageId) &&
+    if (GetProcessStatus(imageKey) && GetProcessReady(imageKey) &&
         IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight)) {
-        std::shared_ptr<Drawing::Image> dstImage = GetScaledImage(imageId);
+        std::shared_ptr<Drawing::Image> dstImage = nullptr;
+        {
+            std::lock_guard<std::mutex> mapMutex(mapMutex_);
+            dstImage = GetScaledImageLocked(imageKey.imageId, imageKey.nodeId);
+        }
         if (dstImage != nullptr) {
             int dstImageWidth = dstImage->GetWidth();
             int dstImageHeight = dstImage->GetHeight();
             if (dstImageWidth != dstWidth && dstImageHeight != dstHeight &&
                 abs(dstImageWidth - dstWidth) > IMAGE_DIFF_VALUE &&
                 abs(dstImageHeight - dstHeight) > IMAGE_DIFF_VALUE) {
-                SetProcessStatus(imageId, false);
-                SetProcessReady(imageId, false);
+                SetProcessStatus(imageKey, false);
+                SetProcessReady(imageKey, false);
             }
         }
     }
@@ -300,7 +308,7 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
     if (dstImage != nullptr) {
         RS_LOGD("RSImageDetailEnhancerThread SetOutImage, imageId=%{public}" PRIu64 ", srcSize=(%{public}d,%{public}d),"
             "dstSize=(%{public}d,%{public}d)", imageId, srcWidth, srcHeight, dstWidth, dstHeight);
-        SetScaledImage(imageId, dstImage);
+        SetScaledImage(imageId, nodeId, dstImage);
         DumpImage(dstImage, imageId);
         MarkScaledImageDirty(nodeId);
     }
@@ -318,7 +326,11 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(b
     }
     ScaleImageAsync(RSImageParams.mPixelMap, RSImageParams.mDst,
         RSImageParams.mNodeId, RSImageParams.mUniqueId, RSImageParams.mImage);
-    std::shared_ptr<Drawing::Image> dstImage = GetScaledImage(RSImageParams.mUniqueId);
+    std::shared_ptr<Drawing::Image> dstImage = nullptr;
+    {
+        std::lock_guard<std::mutex> mapMutex(mapMutex_);
+        dstImage = GetScaledImageLocked(RSImageParams.mUniqueId, RSImageParams.mNodeId);
+    }
     if (dstImage == nullptr) {
         isScaledImageAsync = false;
         return nullptr;
@@ -348,9 +360,9 @@ void RSImageDetailEnhancerThread::ScaleImageAsync(const std::shared_ptr<Media::P
     int srcHeight = image->GetHeight();
     int dstWidth = static_cast<int>(dst.GetWidth());
     int dstHeight = static_cast<int>(dst.GetHeight());
-    ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
-    if (IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight) && !GetProcessStatus(imageId)) {
-        SetProcessStatus(imageId, true);
+    ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, {imageId, nodeId});
+    if (IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight) && !GetProcessStatus({imageId, nodeId})) {
+        SetProcessStatus({imageId, nodeId}, true);
         auto asyncEnhancerTask = [this, dst, image, nodeId, imageId, pixelMap]() {
             ExecuteTaskAsync(dst, image, nodeId, imageId, pixelMap);
         };
@@ -373,10 +385,14 @@ void RSImageDetailEnhancerThread::DumpImage(const std::shared_ptr<Drawing::Image
     DetailEnhancerUtils::Instance().SavePixelmapToFile(bitmap, "/data/scaledPixelmap_");
 }
 
-void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId)
+void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId, uint64_t nodeId)
 {
     RS_TRACE_NAME("RSImageDetailEnhancerThread::ImageSamplingDump");
-    std::shared_ptr<Drawing::Image> image = GetScaledImage(imageId);
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    {
+        std::lock_guard<std::mutex> mapMutex(mapMutex_);
+        image = GetScaledImageLocked(imageId, nodeId);
+    }
     if (image == nullptr) {
         return;
     }
@@ -409,62 +425,107 @@ void RSImageDetailEnhancerThread::ImageSamplingDump(uint64_t imageId)
 }
 #endif
 
-void RSImageDetailEnhancerThread::SetScaledImage(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image)
+void RSImageDetailEnhancerThread::SetScaledImage(uint64_t imageId, uint64_t nodeId,
+    const std::shared_ptr<Drawing::Image>& image)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
     if (image == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread image is nullptr!");
         return;
     }
-    if (keyMap_.find(imageId) != keyMap_.end()) {
-        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageId]->second;
+    ImageKey imageKey = {imageId, nodeId};
+    if (keyMap_.find(imageKey) != keyMap_.end()) {
+        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageKey]->second;
         curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
-        imageList_.erase(keyMap_[imageId]);
+        imageList_.erase(keyMap_[imageKey]);
+        keyMap_.erase(imageKey);
     }
-    PushImageList(imageId, image);
+    PushImageList(imageId, nodeId, image);
     RS_LOGD("RSImageDetailEnhancerThreadTest SetOutImage2,imageId=%{public}" PRIu64
         ",mapSize=%{public}zu, curCacheSize2=%{public}f M ", imageId, imageList_.size(), curCache_);
 }
 
-void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image)
+void RSImageDetailEnhancerThread::PushImageList(uint64_t imageId, uint64_t nodeId,
+    const std::shared_ptr<Drawing::Image>& image)
 {
-    processStatusMap_[imageId] = true;
-    processReadyMap_[imageId] = true;
+    imageNodeMap_[imageId].insert(nodeId);
+    processStatusMap_[{imageId, nodeId}] = true;
+    processReadyMap_[{imageId, nodeId}] = true;
     curCache_ += DetailEnhancerUtils::Instance().GetImageSize(image);
     while (static_cast<int>(curCache_) >= static_cast<int>(MAX_IMAGE_CACHE) && imageList_.size() > 0) {
         std::shared_ptr<Drawing::Image> cachedImage = imageList_.back().second;
         if (cachedImage) {
             curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
         }
-        keyMap_.erase(imageList_.back().first);
+        auto evictedKey = imageList_.back().first;
+        keyMap_.erase(evictedKey);
+        processStatusMap_.erase(evictedKey);
+        processReadyMap_.erase(evictedKey);
+        auto it = imageNodeMap_.find(evictedKey.imageId);
+        if (it != imageNodeMap_.end()) {
+            it->second.erase(evictedKey.nodeId);
+            if (it->second.empty()) {
+                imageNodeMap_.erase(it);
+            }
+        }
         imageList_.pop_back();
     }
-    imageList_.emplace_front(imageId, image);
-    keyMap_[imageId] = imageList_.begin();
+    imageList_.emplace_front(ImageKey{imageId, nodeId}, image);
+    keyMap_[{imageId, nodeId}] = imageList_.begin();
 }
 
 std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::GetScaledImage(uint64_t imageId)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    if (keyMap_.find(imageId) == keyMap_.end()) {
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    if (imageNodeMap_.find(imageId) != imageNodeMap_.end()) {
+        auto nodeList = imageNodeMap_[imageId];
+        for (uint64_t nodeId : nodeList) {
+            image = GetScaledImageLocked(imageId, nodeId);
+            if (image != nullptr) {
+                break;
+            }
+        }
+    }
+    return image;
+}
+ 
+std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::GetScaledImageLocked(uint64_t imageId, uint64_t nodeId)
+{
+    if (keyMap_.find({imageId, nodeId}) == keyMap_.end()) {
         return nullptr;
     }
-    imageList_.splice(imageList_.begin(), imageList_, keyMap_[imageId]);
-    return keyMap_[imageId]->second;
+    imageList_.splice(imageList_.begin(), imageList_, keyMap_[{imageId, nodeId}]);
+    return keyMap_[{imageId, nodeId}]->second;
 }
 
 void RSImageDetailEnhancerThread::ReleaseScaledImage(uint64_t imageId)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    if (keyMap_.find(imageId) != keyMap_.end()) {
-        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[imageId]->second;
+    if (imageNodeMap_.find(imageId) != imageNodeMap_.end()) {
+        const auto& nodeList = imageNodeMap_[imageId];
+        for (uint64_t nodeId : nodeList) {
+            ReleaseScaledImageLocked(imageId, nodeId);
+        }
+        imageNodeMap_.erase(imageId);
+    }
+}
+ 
+void RSImageDetailEnhancerThread::ReleaseScaledImageLocked(uint64_t imageId, uint64_t nodeId)
+{
+    if (keyMap_.find({imageId, nodeId}) != keyMap_.end()) {
+        std::shared_ptr<Drawing::Image> cachedImage = keyMap_[{imageId, nodeId}]->second;
         curCache_ -= DetailEnhancerUtils::Instance().GetImageSize(cachedImage);
-        imageList_.erase(keyMap_[imageId]);
-        keyMap_.erase(imageId);
-        processStatusMap_.erase(imageId);
-        processReadyMap_.erase(imageId);
+        imageList_.erase(keyMap_[{imageId, nodeId}]);
+        keyMap_.erase({imageId, nodeId});
+        processStatusMap_.erase({imageId, nodeId});
+        processReadyMap_.erase({imageId, nodeId});
         RS_LOGD("RSImageDetailEnhancerThreadTest ReleaseScaledImage, imageId=%{public}" PRIu64
             ",mapSize=%{public}zu, curCacheSize=%{public}f M", imageId, imageList_.size(), curCache_);
+        auto it = imageNodeMap_.find(imageId);
+        if (it != imageNodeMap_.end()) {
+            it->second.erase(nodeId);
+        }
     }
 }
 
@@ -483,34 +544,35 @@ void RSImageDetailEnhancerThread::ReleaseAllScaledImage()
         keyMap_.clear();
         processStatusMap_.clear();
         processReadyMap_.clear();
+        imageNodeMap_.clear();
         releaseTime_ = 0;
         RS_LOGE("RSImageDetailEnhancerThreadTest ReleaseAllScaledImage");
     }
 }
 
-void RSImageDetailEnhancerThread::SetProcessStatus(uint64_t imageId, bool flag)
+void RSImageDetailEnhancerThread::SetProcessStatus(ImageKey imageKey, bool flag)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    processStatusMap_[imageId] = flag;
+    processStatusMap_[imageKey] = flag;
 }
 
-bool RSImageDetailEnhancerThread::GetProcessStatus(uint64_t imageId) const
+bool RSImageDetailEnhancerThread::GetProcessStatus(ImageKey imageKey) const
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    auto it = processStatusMap_.find(imageId);
+    auto it = processStatusMap_.find(imageKey);
     return it != processStatusMap_.end() ? it->second : false;
 }
 
-void RSImageDetailEnhancerThread::SetProcessReady(uint64_t imageId, bool flag)
+void RSImageDetailEnhancerThread::SetProcessReady(ImageKey imageKey, bool flag)
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    processReadyMap_[imageId] = flag;
+    processReadyMap_[imageKey] = flag;
 }
 
-bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
+bool RSImageDetailEnhancerThread::GetProcessReady(ImageKey imageKey) const
 {
     std::lock_guard<std::mutex> mapMutex(mapMutex_);
-    auto it = processReadyMap_.find(imageId);
+    auto it = processReadyMap_.find(imageKey);
     return it != processReadyMap_.end() ? it->second : false;
 }
 
@@ -549,6 +611,15 @@ DetailEnhancerUtils& DetailEnhancerUtils::Instance()
     return instance;
 }
 
+DetailEnhancerUtils::DetailEnhancerUtils()
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        gpuContext_ = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).CreateDrawingGPUContext();
+    }
+#endif
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth, int dstHeight,
     sptr<SurfaceBuffer>& dstSurfaceBuffer, const std::shared_ptr<Drawing::Image>& image)
@@ -563,7 +634,6 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     }
     Drawing::ImageInfo imageInfoForRenderTarget(dstWidth, dstHeight, image->GetColorType(),
         image->GetAlphaType(), image->GetColorSpace());
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
     std::unique_ptr<NativeBufferUtils::NativeSurfaceInfo> nativeSurfaceInfo =
         std::make_unique<NativeBufferUtils::NativeSurfaceInfo>();
     if (nativeSurfaceInfo == nullptr) {
@@ -576,8 +646,9 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
         return nullptr;
     }
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
-    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBufferImpl(context.get(),
-        imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
+    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        gpuContext_.get(), imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
     return newSurface;
 }
 
@@ -589,9 +660,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, GpuApiType is not support!");
         return nullptr;
     }
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
-    if (!surfaceBuffer || !image || !gpuContext) {
+    if (!surfaceBuffer || !image || !gpuContext_) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, input is invalid!");
         return nullptr;
     }
@@ -601,6 +670,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     Drawing::BackendTexture backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     if (!backendTexture.IsValid()) {
@@ -613,7 +683,8 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     if (cleanUpHelper == nullptr || dmaImage == nullptr) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
@@ -622,7 +693,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
-    if (!dmaImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(), origin,
+    if (!dmaImage->BuildFromTexture(*gpuContext_, backendTexture.GetTextureInfo(), origin,
         bitmapFormat, image->GetColorSpace(), NativeBufferUtils::DeleteVkImage, cleanUpHelper->Ref())) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer build image failed!");
         NativeBufferUtils::DeleteVkImage(cleanUpHelper);

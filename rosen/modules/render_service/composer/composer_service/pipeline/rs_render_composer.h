@@ -93,7 +93,9 @@ protected:
     void HandlePowerStatus(ScreenPowerStatus status);
     void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
+    void SetSkipDelay(bool skipDelay);
     void DumpVKImageInfo(std::string& dumpString);
+    void SetFrameTimeInterval(const int64_t idealPeriod, const int64_t actualTimestamp);
 
 private:
     struct LayerCreatedCallbackContext {
@@ -158,6 +160,7 @@ private:
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
     void SetScreenBacklight(uint32_t level);
     void SetScreenLinearMatrix(const std::vector<float>& matrix);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
     void ReInit(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void RegisterLayerCreatedCallbackToOutput();
     void ClearLayerCreatedCallbackFromOutput() const;
@@ -166,6 +169,8 @@ private:
         GraphicColorGamut& colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    // guards cross-thread read/write of hdiOutput_ (composer thread writes, binder/ffrt threads read)
+    std::mutex hdiOutputMutex_;
     std::shared_ptr<HdiOutput> hdiOutput_;
     int32_t threadTid_ = -1;
     ScreenId screenId_ = INVALID_SCREEN_ID;
@@ -179,6 +184,8 @@ private:
     std::mutex preAllocMutex_;
     std::atomic<int32_t> unExecuteTaskNum_ = 0;
     std::atomic<int64_t> delayTime_ = 0;
+    std::atomic<ScreenPowerStatus> screenPowerStatus_ = ScreenPowerStatus::POWER_STATUS_ON;
+    std::atomic<bool> skipDelay_ = false;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     int64_t lastActualTime_ = 0;
@@ -189,6 +196,8 @@ private:
     std::shared_ptr<LayerCreatedCallbackContext> layerCreatedCallbackContext =
         std::make_shared<LayerCreatedCallbackContext>();
     ComposerScreenInfo composerScreenInfo_;
+    // latest active rect pushed by render thread, used to decide whether dirty frame should be dropped
+    RectI activeRect_;
     SetHardwareTaskNumCallback setHardwareTaskNumCb_;
     SetTaskEndWithTimeCallback setTaskEndWithTimeCb_;
     GetRealTimeOffsetOfDvsyncCallback getRealTimeOffsetOfDvsyncCb_;

@@ -22,19 +22,25 @@
 
 #include "animation/rs_animation_common.h"
 #include "animation/rs_interpolator.h"
+#include "common/rs_atlas_info.h"
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "modifier/rs_render_property.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderPropertyBase;
-template<typename T>
-class RSRenderAnimatableProperty;
+
+enum class RSValueEstimatorType : int16_t {
+    INVALID = 0,
+    CURVE_VALUE_ESTIMATOR,
+    KEYFRAME_VALUE_ESTIMATOR,
+    PATH_VALUE_ESTIMATOR,
+};
 
 class RSB_EXPORT RSValueEstimator {
 public:
@@ -74,7 +80,14 @@ public:
 
     virtual void RebuildValue(float interpolatedFraction) {}
 
+    virtual void ResetLastValue(bool isAdditive) {}
+
     virtual void UpdateAnimationValue(const float fraction, const bool isAdditive) = 0;
+
+    virtual RSValueEstimatorType GetEstimatorType() const
+    {
+        return RSValueEstimatorType::INVALID;
+    }
 };
 
 template<typename T>
@@ -83,15 +96,20 @@ public:
     RSCurveValueEstimator() = default;
     virtual ~RSCurveValueEstimator() = default;
 
+    RSValueEstimatorType GetEstimatorType() const override
+    {
+        return RSValueEstimatorType::CURVE_VALUE_ESTIMATOR;
+    }
+
     void InitCurveAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
         const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& endValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(endValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableEndValue = endValue ? endValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableStartValue && animatableEndValue && animatableLastValue) {
             property_ = animatableProperty;
             startValue_ = animatableStartValue->Get();
@@ -135,28 +153,63 @@ public:
             return FRACTION_MIN;
         }
         auto frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
-        float lastFraction = FRACTION_MIN;
-        for (int time = 1; time <= frameTimes; time++) {
-            float frameFraction = static_cast<float>(time) / frameTimes;
-            frameFraction = std::clamp(frameFraction, 0.0f, 1.0f);
-            float fraction = interpolator->Interpolate(frameFraction);
-            if (lastFraction <= targetFraction && fraction >= targetFraction) {
-                return frameFraction;
-            }
-            lastFraction = fraction;
-        }
-        return FRACTION_MIN;
+        int coarseSamples = std::max(static_cast<int>(std::sqrt(frameTimes)), 1);
+        int refineSamples = std::max(static_cast<int>(std::ceil(static_cast<double>(frameTimes) / coarseSamples)), 1);
+        return EstimateFractionByCoarseToFine(interpolator, targetFraction, coarseSamples, refineSamples);
     }
 
     void RebuildValue(float interpolatedFraction) override
     {
         lastValue_ = RSValueEstimator::Estimate(interpolatedFraction, startValue_, endValue_);
+        if (property_ == nullptr) {
+            return;
+        }
         T baseValue = property_->Get() - static_cast<T>(endValue_ - startValue_);
         auto interpolationValue = RSValueEstimator::Estimate(interpolatedFraction, baseValue, property_->Get());
         property_->Set(interpolationValue);
     }
 
+    void ResetLastValue(bool isAdditive) override
+    {
+        if (isAdditive && property_ != nullptr) {
+            property_->Set(property_->Get() + (startValue_ - lastValue_));
+        }
+        lastValue_ = startValue_;
+    }
+
 private:
+    float EstimateFractionByCoarseToFine(const std::shared_ptr<RSInterpolator>& interpolator,
+        float targetFraction, int coarseSamples, int refineSamples)
+    {
+        auto IsCrossingTarget = [](float prev, float curr, float target) -> bool {
+            return (prev <= target && curr >= target) || (prev >= target && curr <= target);
+        };
+        float prevInputFraction = 0.0f;
+        float prevOutputFraction = FRACTION_MIN;
+        // Phase 1: coarse sampling to locate the interval where output crosses targetFraction
+        for (int coarseIdx = 1; coarseIdx <= coarseSamples; coarseIdx++) {
+            float inputFraction = static_cast<float>(coarseIdx) / coarseSamples;
+            float outputFraction = interpolator->Interpolate(inputFraction);
+            if (IsCrossingTarget(prevOutputFraction, outputFraction, targetFraction)) {
+                // Phase 2: refine within the crossing interval [prevInputFraction, inputFraction]
+                float refinePrevOutput = prevOutputFraction;
+                for (int refineIdx = 1; refineIdx <= refineSamples; refineIdx++) {
+                    float refineInput = prevInputFraction +
+                        (inputFraction - prevInputFraction) * static_cast<float>(refineIdx) / refineSamples;
+                    float refineOutput = interpolator->Interpolate(refineInput);
+                    if (IsCrossingTarget(refinePrevOutput, refineOutput, targetFraction)) {
+                        return refineInput;
+                    }
+                    refinePrevOutput = refineOutput;
+                }
+            }
+            prevInputFraction = inputFraction;
+            prevOutputFraction = outputFraction;
+        }
+        // targetFraction not found, e.g. extremely narrow spike missed by coarse sampling
+        return FRACTION_MIN;
+    }
+
     T startValue_ {};
     T endValue_ {};
     T lastValue_ {};
@@ -180,21 +233,29 @@ public:
     RSKeyframeValueEstimator() = default;
     virtual ~RSKeyframeValueEstimator() = default;
 
+    RSValueEstimatorType GetEstimatorType() const override
+    {
+        return RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR;
+    }
+
     void InitKeyframeAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
         std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSInterpolator>>>& keyframes,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableLastValue) {
             property_ = animatableProperty;
             lastValue_ = animatableLastValue->Get();
         }
         for (const auto& keyframe : keyframes) {
-            auto keyframeValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(std::get<1>(keyframe));
+            auto& keyframeProp = std::get<1>(keyframe);
+            auto keyframeValue = keyframeProp ?
+                keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
-                keyframes_.push_back({ std::get<0>(keyframe), keyframeValue->Get(), std::get<2>(keyframe) });
+                keyframes_.push_back(
+                    { std::get<0>(keyframe), keyframeValue->Get(), std::get<keyframeInterpolatorIndex>(keyframe) });
             }
         }
     }
@@ -204,17 +265,19 @@ public:
         std::shared_ptr<RSInterpolator>>>& keyframes,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableLastValue) {
             property_ = animatableProperty;
             lastValue_ = animatableLastValue->Get();
         }
         for (const auto& keyframe : keyframes) {
-            auto keyframeValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(std::get<2>(keyframe));
+            auto& keyframeProp = std::get<durationKeyframeValueIndex>(keyframe);
+            auto keyframeValue = keyframeProp ?
+                keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
-                durationKeyframes_.push_back(
-                    { std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(), std::get<3>(keyframe) });
+                durationKeyframes_.push_back({ std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(),
+                    std::get<durationKeyframeInterpolatorIndex>(keyframe) });
             }
         }
     }
@@ -241,9 +304,12 @@ public:
             // the index of tuple
             float keyframeFraction = std::get<0>(keyframe);
             auto keyframeValue = std::get<1>(keyframe);
-            auto keyframeInterpolator = std::get<2>(keyframe);
+            auto keyframeInterpolator = std::get<keyframeInterpolatorIndex>(keyframe);
             if (fraction <= keyframeFraction) {
                 if (ROSEN_EQ(keyframeFraction, preKeyframeFraction)) {
+                    continue;
+                }
+                if (keyframeInterpolator == nullptr) {
                     continue;
                 }
 
@@ -266,18 +332,33 @@ public:
 
     T GetDurationKeyframeAnimationValue(const float fraction, const bool isAdditive)
     {
-        auto preKeyframeValue = std::get<2>(durationKeyframes_.front());
+        auto preKeyframeValue = std::get<durationKeyframeValueIndex>(durationKeyframes_.front());
         auto animationValue = preKeyframeValue;
         bool bInFraction = false;
         for (const auto& keyframe : durationKeyframes_) {
             float startFraction = std::get<0>(keyframe);
             float endFraction = std::get<1>(keyframe);
-            auto keyframeValue = std::get<2>(keyframe);
-            auto keyframeInterpolator = std::get<3>(keyframe);
+            auto keyframeValue = std::get<durationKeyframeValueIndex>(keyframe);
+            auto keyframeInterpolator = std::get<durationKeyframeInterpolatorIndex>(keyframe);
             if (fraction < startFraction) {
                 break;
             }
-            if ((fraction > startFraction) && (fraction <= endFraction)) {
+            // Check zero-duration keyframe first
+            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
+                bInFraction = true;
+                animationValue = keyframeValue;
+                if (isAdditive && property_ != nullptr) {
+                    animationValue = property_->Get() + (keyframeValue - lastValue_);
+                }
+                preKeyframeValue = keyframeValue;
+                lastValue_ = keyframeValue;
+                break;
+            }
+            // Check normal interval
+            if ((fraction >= startFraction) && (fraction <= endFraction)) {
+                if (keyframeInterpolator == nullptr) {
+                    continue;
+                }
                 bInFraction = true;
                 float intervalFraction = (fraction - startFraction) / (endFraction - startFraction);
                 auto interpolationValue = RSValueEstimator::Estimate(
@@ -290,13 +371,6 @@ public:
                 preKeyframeValue = animationValue;
                 continue;
             }
-            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
-                bInFraction = true;
-                animationValue = keyframeValue;
-                preKeyframeValue = keyframeValue;
-                lastValue_ = keyframeValue;
-                continue;
-            }
             preKeyframeValue = keyframeValue;
         }
         if (!bInFraction) {
@@ -306,18 +380,31 @@ public:
         return animationValue;
     }
 
+    void ResetLastValue(bool isAdditive) override
+    {
+        T firstValue = lastValue_;
+        if (!durationKeyframes_.empty()) {
+            firstValue = std::get<durationKeyframeValueIndex>(durationKeyframes_.front());
+        } else if (!keyframes_.empty()) {
+            firstValue = std::get<1>(keyframes_.front());
+        }
+        if (isAdditive && property_ != nullptr) {
+            property_->Set(property_->Get() + (firstValue - lastValue_));
+        }
+        lastValue_ = firstValue;
+    }
+
 private:
+    // KeyframeTuple: <fraction, value, interpolator>
+    static constexpr size_t keyframeInterpolatorIndex = 2;
+    // DurationKeyframeTuple: <startFraction, endFraction, value, interpolator>
+    static constexpr size_t durationKeyframeValueIndex = 2;
+    static constexpr size_t durationKeyframeInterpolatorIndex = 3;
+
     std::vector<std::tuple<float, T, std::shared_ptr<RSInterpolator>>> keyframes_;
     std::vector<std::tuple<float, float, T, std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     T lastValue_ {};
     std::shared_ptr<RSRenderAnimatableProperty<T>> property_;
-};
-
-enum class RSValueEstimatorType : int16_t {
-    INVALID = 0,
-    CURVE_VALUE_ESTIMATOR,
-    KEYFRAME_VALUE_ESTIMATOR,
-    PATH_VALUE_ESTIMATOR,
 };
 
 class RSB_EXPORT RSSpringValueEstimatorBase {
@@ -349,6 +436,14 @@ public:
     {
         return nullptr;
     }
+    virtual std::shared_ptr<RSRenderPropertyBase> GetInitialOffset() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSRenderPropertyBase> GetFrameThreshold(float time) const
+    {
+        return nullptr;
+    }
     virtual std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const
     {
         return nullptr;
@@ -358,6 +453,8 @@ public:
         return 0.0f;
     }
     virtual void UpdateSpringParameters() {}
+    virtual bool IsStartConverging(float time, float convergeProgressThreshold) const { return false; }
+    virtual bool WillOverShoot() const { return false; }
 };
 
 template<typename T>
@@ -416,7 +513,8 @@ public:
 
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& initialVelocity) override
     {
-        auto animatableInitialVelocity = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(initialVelocity);
+        auto animatableInitialVelocity =
+            initialVelocity ? initialVelocity->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableInitialVelocity != nullptr && springModel_ != nullptr) {
             springModel_->initialVelocity_ = animatableInitialVelocity->Get();
         }
@@ -426,10 +524,10 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(endValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableEndValue = endValue ? endValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableStartValue && animatableEndValue && animatableLastValue) {
             property_ = animatableProperty;
             startValue_ = animatableStartValue->Get();
@@ -444,8 +542,8 @@ public:
     void UpdateStartValueAndLastValue(const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableStartValue && animatableLastValue) {
             startValue_ = animatableStartValue->Get();
             lastValue_ = animatableLastValue->Get();
@@ -486,6 +584,22 @@ public:
         return std::make_shared<RSRenderAnimatableProperty<T>>(lastValue_);
     }
 
+    std::shared_ptr<RSRenderPropertyBase> GetInitialOffset() const override
+    {
+        if (!springModel_) {
+            return nullptr;
+        }
+        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->initialOffset_);
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetFrameThreshold(float time) const override
+    {
+        if (!springModel_) {
+            return nullptr;
+        }
+        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->GetFrameThreshold(time));
+    }
+
     std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const override
     {
         if (!springModel_ || ROSEN_LE(springModel_->dampingRatio_, 0.0f, SPRING_MIN_DAMPING_RATIO)) {
@@ -512,6 +626,34 @@ public:
         }
     }
 
+    bool IsStartConverging(float time, float convergeProgressThreshold) const override
+    {
+        if (!springModel_) {
+            return false;
+        }
+        // The progress of the critical damping/overdamping model is determined by the distance to the end.
+        if (ROSEN_GE(springModel_->dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+            auto currentValue = GetAnimationProperty();
+            auto startValue = std::make_shared<RSRenderAnimatableProperty<T>>(startValue_);
+            auto endValue = std::make_shared<RSRenderAnimatableProperty<T>>(endValue_);
+            if (!currentValue || !startValue || !endValue) {
+                return false;
+            }
+            return currentValue->IsReachProgress(startValue, endValue, 1 - convergeProgressThreshold);
+        }
+        // The progress of the underdamped model is determined by the amplitude.
+        double expCoeffDecay = exp(springModel_->coeffDecay_ * time);
+        return 1 - expCoeffDecay >= convergeProgressThreshold;
+    }
+
+    bool WillOverShoot() const override
+    {
+        if (!springModel_) {
+            return false;
+        }
+        return springModel_->WillOverShoot();
+    }
+
 private:
     T startValue_ {};
     T endValue_ {};
@@ -531,6 +673,35 @@ private:
 
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
+
+} // namespace Rosen
+} // namespace OHOS
+
+namespace OHOS {
+namespace Rosen {
+
+template<typename T>
+std::shared_ptr<RSValueEstimator> RSRenderAnimatableProperty<T>::CreateRSValueEstimator(
+    const RSValueEstimatorType type)
+{
+    switch (type) {
+        case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
+            return std::make_shared<RSCurveValueEstimator<T>>();
+        }
+        case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
+            return std::make_shared<RSKeyframeValueEstimator<T>>();
+        }
+        default: {
+            return nullptr;
+        }
+    }
+}
+
+template<typename T>
+std::shared_ptr<RSSpringValueEstimatorBase> RSRenderAnimatableProperty<T>::CreateRSSpringValueEstimator()
+{
+    return std::make_shared<RSSpringValueEstimator<T>>();
+}
 
 } // namespace Rosen
 } // namespace OHOS

@@ -24,7 +24,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_misc_drawable.h"
-#include "drawable/rs_overlay_ng_shader_drawable.h"
+#include "drawable/rs_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
@@ -42,7 +42,6 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -670,7 +669,7 @@ HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node->renderProperties_.filter_ = filter;
+    node->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     node->InitRenderParams();
     node->OnTreeStateChanged();
     EXPECT_FALSE(node->isOnTheTree_);
@@ -749,11 +748,11 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->IsContainBootAnimation());
+    EXPECT_FALSE(node->isContainBootAnimation_);
 
     node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->IsContainBootAnimation());
+    EXPECT_FALSE(node->isContainBootAnimation_);
 }
 
 /**
@@ -849,7 +848,7 @@ HWTEST_F(RSRenderNodeTest, UpdateVisibleEffectChildTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
-    childNode->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    childNode->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     childNode->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     EXPECT_TRUE(childNode->GetRenderProperties().GetUseEffect());
     node->UpdateVisibleEffectChild(*childNode);
@@ -937,6 +936,35 @@ HWTEST_F(RSRenderNodeTest, RemoveUIExtensionChildTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UIExtensionChildWithInvalidParentTest
+ * @tc.desc: Verify that removing or moving an unobscured UIExtension whose parent is not a main
+ *           window terminates instead of recursing infinitely between the routing helpers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UIExtensionChildWithInvalidParentTest, TestSize.Level1)
+{
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    uiExtension->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    // abnormal tree state: the unobscured UIExtension's parent is not a main window
+    auto invalidParent = std::make_shared<RSRenderNode>(id + 2, context);
+    invalidParent->children_.emplace_back(uiExtension);
+    uiExtension->SetParent(invalidParent);
+    // must terminate instead of infinite mutual recursion, and remove the child locally
+    invalidParent->RemoveChild(uiExtension);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 0);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+    // move path must also terminate
+    invalidParent->children_.emplace_back(uiExtension);
+    uiExtension->SetParent(invalidParent);
+    invalidParent->MoveChild(uiExtension, 0);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 1);
+    invalidParent->RemoveUIExtensionChild(uiExtension);
+    EXPECT_EQ(invalidParent->GetChildrenCount(), 0);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+}
+
+/**
  * @tc.name: NeedRoutedBasedOnUIExtensionTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -1016,18 +1044,18 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     selfDrawNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     leashNode->AddChild(selfDrawNode);
-    leashNode->UpdateSubSurfaceCnt(selfDrawNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     rootNode->RemoveChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(-leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
+    rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
 }
 
 /**
@@ -1044,25 +1072,25 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest002, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     auto appNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     leashNode->AddChild(appNode);
-    leashNode->UpdateSubSurfaceCnt(appNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
+    leashNode->UpdateSubSurfaceCnt(appNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
 
     auto antherApp = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 3);
     antherApp->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     appNode->AddChild(antherApp);
-    appNode->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
+    appNode->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 
     // loop tree
     antherApp->AddChild(leashNode);
-    antherApp->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
+    antherApp->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 }
 
 /**
@@ -1192,7 +1220,7 @@ HWTEST_F(RSRenderNodeTest, IsNodeParentHasUIFirstCacheTest, TestSize.Level1)
     EXPECT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
 
     auto uiFirstRootNode =
-        node->uiFirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
+        node->uifirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
     EXPECT_TRUE(uiFirstRootNode);
 
     surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
@@ -1449,7 +1477,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionNullManagerMarksOpinc
     ASSERT_NE(parent, nullptr);
     ASSERT_NE(child, nullptr);
     child->SetParent(parent);
-    child->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    child->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
 
     std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
     EXPECT_FALSE(child->GetOpincCache().IsMaterialNode());
@@ -1477,7 +1506,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionNoLayerCacheMarksOpin
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_EQ(node->TryGetLayerPartRenderCachePtr(), nullptr);
 
-    node->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
     EXPECT_FALSE(node->GetOpincCache().IsMaterialNode());
 
     EXPECT_FALSE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
@@ -1552,7 +1582,8 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionMaterialFilterPropaga
     ASSERT_NE(dirtyManager, nullptr);
 
     child->absDrawRect_ = RectI(6, 7, 8, 9);
-    child->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    child->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
+        std::make_shared<RSFilter>();
 
     EXPECT_FALSE(child->GetOpincCache().IsMaterialNode());
     EXPECT_FALSE(parent->GetOpincCache().IsMaterialNode());
@@ -1825,12 +1856,12 @@ HWTEST_F(RSRenderNodeTest, ValidateLightResourcesTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto& properties = node->GetMutableRenderProperties();
-    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    properties.GetEffect().lightSourcePtr_->intensity_ = floatData[1];
-    EXPECT_TRUE(properties.GetEffect().lightSourcePtr_->IsLightSourceValid());
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
-    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->IsIlluminatedValid());
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->intensity_ = floatData[1];
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->IsLightSourceValid());
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->IsIlluminatedValid());
     node->ValidateLightResources();
 }
 
@@ -1952,15 +1983,13 @@ HWTEST_F(RSRenderNodeTest, HasBlurFilterTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     EXPECT_FALSE(node.HasBlurFilter());
-    node.renderProperties_.effect_ = std::make_unique<RSProperties::CommonEffectParams>();
-
-    node.renderProperties_.effect_->materialFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.filter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
     EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
 }
@@ -2250,6 +2279,76 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRenderNodeDirtyTest003a
+ * @tc.desc: SetParentTreeStateChangeDirty cycle guard test - parent chain cycle with
+ *           isUpdateAllParentNode=true must terminate instead of infinite recursion
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003a, TestSize.Level1)
+{
+    // Construct a 2-node parent-chain cycle: A.parent_ = B, B.parent_ = A
+    std::shared_ptr<RSRenderNode> nodeA = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(nodeA, nullptr);
+    std::shared_ptr<RSRenderNode> nodeB = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(nodeB, nullptr);
+    nodeA->parent_ = nodeB;
+    nodeB->parent_ = nodeA;
+
+    // With isUpdateAllParentNode=true, the dirty-flag termination is short-circuited;
+    // the cycle guard must detect the cycle and return early (no crash / stack overflow)
+    nodeA->SetParentTreeStateChangeDirty(true);
+    // Both nodes on the cycle should still be marked dirty before the guard fires
+    EXPECT_TRUE(nodeA->IsTreeStateChangeDirty());
+    EXPECT_TRUE(nodeB->IsTreeStateChangeDirty());
+    // Guard flags must be restored to false after unwinding
+    EXPECT_FALSE(nodeA->inParentChainTraversal_);
+    EXPECT_FALSE(nodeB->inParentChainTraversal_);
+}
+
+/**
+ * @tc.name: RSRenderNodeDirtyTest003b
+ * @tc.desc: SetParentTreeStateChangeDirty with no parent should return early
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003b, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    // No parent set; parentNode.lock() returns nullptr -> early return, no crash
+    node->SetParentTreeStateChangeDirty(true);
+    EXPECT_FALSE(node->IsTreeStateChangeDirty());
+}
+
+/**
+ * @tc.name: RSRenderNodeDirtyTest003c
+ * @tc.desc: SetParentTreeStateChangeDirty with isUpdateAllParentNode=false stops at
+ *           already-dirty parent (dirty-flag termination branch)
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003c, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> root = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(root, nullptr);
+    std::shared_ptr<RSRenderNode> mid = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(mid, nullptr);
+    std::shared_ptr<RSRenderNode> leaf = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(leaf, nullptr);
+    mid->parent_ = root;
+    leaf->parent_ = mid;
+
+    // Pre-mark root as dirty so the dirty-flag termination condition triggers at mid->root
+    root->SetTreeStateChangeDirty(true);
+    leaf->SetParentTreeStateChangeDirty(false);
+    // mid should be marked dirty (propagated from leaf)
+    EXPECT_TRUE(mid->IsTreeStateChangeDirty());
+    // root was already dirty; the recursion should stop at root (no crash)
+    EXPECT_TRUE(root->IsTreeStateChangeDirty());
+}
+
+/**
  * @tc.name: SetChildrenTreeStateChangeDirty
  * @tc.desc: SetChildrenTreeStateChangeDirty test
  * @tc.type: FUNC
@@ -2388,37 +2487,37 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest003, TestSize.Level1)
     parent->SetChildHasVisibleFilter(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 
     parent->childHasSharedTransition_ = true;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 }
@@ -2481,7 +2580,7 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest005, TestSize.Level1)
     parent->SetSubTreeDirty(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0);
+    parent->subSurfaceCnt_ = 0;
     parent->SetChildHasVisibleFilter(false);
 
     // childHasSpatialEffect_ = true + isAccumGeoDirty = true → prepare
@@ -3517,7 +3616,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RSShadow rsShadow;
     std::optional<RSShadow> shadow(rsShadow);
     shadow->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
-    renderNodeTest->renderProperties_.GetEffect().shadow_ = shadow;
+    renderNodeTest->renderProperties_.GetEffectProperties().GetFilterEffect().shadow_ = shadow;
     renderNodeTest->UpdateDrawableVecV2();
     EXPECT_GE(renderNodeTest->dirtySlots_.size(), 2);
 }
@@ -3574,7 +3673,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     Drawing::RectI rectI;
     region = rectI;
     nodeTest->UpdateEffectRegion(region, false);
-    nodeTest->renderProperties_.GetEffect().useEffect_ = true;
+    nodeTest->renderProperties_.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     nodeTest->UpdateEffectRegion(region, true);
     nodeTest->renderProperties_.hasHarmonium_ = true;
     nodeTest->UpdateEffectRegion(region, true);
@@ -3585,7 +3684,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     // UpdateShouldPaint test
     nodeTest->renderProperties_.alpha_ = -1.0f;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(0.0f, 0.1f);
-    nodeTest->renderProperties_.filter_ = filter;
+    nodeTest->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     nodeTest->sharedTransitionParam_ = nullptr;
     nodeTest->UpdateShouldPaint();
 
@@ -3620,8 +3719,8 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->stagingCacheManager_->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -3643,8 +3742,8 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     filterDrawable->MarkFilterRegionInteractWithDirty();
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
 }
@@ -3726,19 +3825,19 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
     // forground filter
     RSRenderNode foregroundNode(id, context);
     auto& fgProperties = foregroundNode.GetMutableRenderProperties();
-    fgProperties.filter_ = std::make_shared<RSFilter>();
+    fgProperties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     foregroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(foregroundNode.IsBackgroundInAppOrNodeSelfDirty());
     // background filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
-    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     backgroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(backgroundNode.IsBackgroundInAppOrNodeSelfDirty());
     // material filter
     RSRenderNode materialNode(id, context);
     auto& materialProperties = materialNode.GetMutableRenderProperties();
-    materialProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    materialProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     materialNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(materialNode.IsBackgroundInAppOrNodeSelfDirty());
 }
@@ -3789,9 +3888,9 @@ HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Leve
     RSRenderNode node(id, context);
     auto& properties = node.GetMutableRenderProperties();
     node.MarkForceClearFilterCacheWithInvisible();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
-    properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
+    properties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     node.MarkForceClearFilterCacheWithInvisible();
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
@@ -4162,7 +4261,8 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
     auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
         = backgroundColorDrawable;
-    renderNode->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    renderNode->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_
+        = std::make_shared<RSFilter>();
     renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
@@ -4236,7 +4336,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_COLOR);
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
@@ -4250,6 +4350,93 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
 }
 
 /**
+ * @tc.name: HasValidModifierInOpincSplit_InvalidSlot_ReturnsFalse
+ * @tc.desc: Check HasValidModifierInOpincSplit returns false for slots other than CONTENT_STYLE and OVERLAY
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_InvalidSlot_ReturnsFalse, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BLENDER)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::MASK)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BORDER)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ValidSlot_NoModifier_ReturnsTrue
+ * @tc.desc: Check HasValidModifierInOpincSplit returns true for CONTENT_STYLE and OVERLAY slots
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ValidSlot_NoModifier_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_AllOtherSlots_ReturnsFalse
+ * @tc.desc: Verify all other slots return false
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_AllOtherSlots_ReturnsFalse, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (i != static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE) &&
+            i != static_cast<int8_t>(RSDrawableSlot::OVERLAY)) {
+            EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(i));
+        }
+    }
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyleSlot_ReturnsTrue
+ * @tc.desc: Check CONTENT_STYLE slot returns true
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyleSlot_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_OverlaySlot_ReturnsTrue
+ * @tc.desc: Check OVERLAY slot returns true
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_OverlaySlot_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
  * @tc.name: ForceClearForegroundFilterCacheWhenDirty
  * @tc.desc: Test function CheckBlurFilterCacheNeedForceClearOrSave
  * @tc.type: FUNC
@@ -4260,7 +4447,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
-    properties.filter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::CHILDREN);
     auto compositingFilterDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
@@ -4464,38 +4651,6 @@ HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
     ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
 }
 
-/*
- * @tc.name: IsUIRenderDirectorStopped
- * @tc.desc: Test IsUIRenderDirectorStopped returns true only when the context director is in STOP state
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, IsUIRenderDirectorStopped, TestSize.Level1)
-{
-    constexpr pid_t pid = 600;
-    constexpr uint64_t token = 601;
-    constexpr NodeId nodeId = MakeNodeId(pid, 0);
-    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(renderNode, nullptr);
-
-    // no context injected
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    renderNode->OnRegister(context);
-    // no director created yet
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    renderNode->SetUIContextToken(token);
-    context->CreateUIRenderDirector(pid, token);
-    auto director = context->GetUIRenderDirector(pid, token);
-    ASSERT_NE(director, nullptr);
-    // director is not in STOP state
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
-    EXPECT_TRUE(renderNode->IsUIRenderDirectorStopped());
-}
-
 #ifdef SUBTREE_PARALLEL_ENABLE
 /*
  * @tc.name: UpdateSubTreeParallelNodes
@@ -4573,9 +4728,8 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    SimpleDrawCmdListPtr drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    property->GetRef() = 0.0f;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
         ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS);
@@ -4712,7 +4866,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Set a background filter to make DisableHWCForFilter return true
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     node.renderProperties_.needFilter_ = true;
 
     // With both ColorPickerDrawable and a real filter, should return false
@@ -4730,7 +4884,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode004, TestSize.Level1)
     RSRenderNode node(1);
 
     // Set a background filter without ColorPickerDrawable
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
 
     // With real filter but no ColorPickerDrawable, should return false
     EXPECT_FALSE(node.IsColorPickerOnlyNode());
@@ -5055,23 +5209,39 @@ HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Le
 }
 
 /**
- * @tc.name: MarkAccessibilityConfigChangedTest
- * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
+ * @tc.name: ChildHasSpatialEffect001
+ * @tc.desc: test SetChildHasSpatialEffect and ChildHasSpatialEffect
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, MarkAccessibilityConfigChangedTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, ChildHasSpatialEffect001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(true);
+    EXPECT_TRUE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(false);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+}
+
+/**
+ * @tc.name: SetIsAccessibilityConfigChangedTest
+ * @tc.desc: Verify SetIsAccessibilityConfigChanged sets isAccessibilityConfigChanged_ correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetIsAccessibilityConfigChangedTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
     ASSERT_NE(node->stagingRenderParams_, nullptr);
 
-    node->MarkAccessibilityConfigChanged(true);
-    ASSERT_TRUE(node->IsAccessibilityConfigChangedNode());
+    node->SetIsAccessibilityConfigChanged(true);
+    ASSERT_TRUE(node->IsAccessibilityConfigChanged());
 
-    node->MarkAccessibilityConfigChanged(false);
-    ASSERT_FALSE(node->IsAccessibilityConfigChangedNode());
+    node->SetIsAccessibilityConfigChanged(false);
+    ASSERT_FALSE(node->IsAccessibilityConfigChanged());
 }
 
 /**
@@ -5143,39 +5313,39 @@ HWTEST_F(RSRenderNodeTest, SetGlobalAlphaInitParamsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSubSurfaceCntEraseWhenZeroTest
- * @tc.desc: Verify SetSubSurfaceCnt erases entry when cnt is 0
+ * @tc.name: SubSurfaceCntEraseWhenZeroTest
+ * @tc.desc: Verify subSurfaceCnt_ is 0 when set to 0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntEraseWhenZeroTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SubSurfaceCntEraseWhenZeroTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    node->SetSubSurfaceCnt(5);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 5);
+    node->subSurfaceCnt_ = 5;
+    ASSERT_EQ(node->subSurfaceCnt_, 5);
 
-    node->SetSubSurfaceCnt(0);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 0);
+    node->subSurfaceCnt_ = 0;
+    ASSERT_EQ(node->subSurfaceCnt_, 0);
 }
 
 /**
- * @tc.name: SetSubSurfaceCntNonZeroTest
- * @tc.desc: Verify SetSubSurfaceCnt stores non-zero value correctly
+ * @tc.name: SubSurfaceCntNonZeroTest
+ * @tc.desc: Verify subSurfaceCnt_ stores non-zero value correctly
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntNonZeroTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SubSurfaceCntNonZeroTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    node->SetSubSurfaceCnt(10);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 10);
+    node->subSurfaceCnt_ = 10;
+    ASSERT_EQ(node->subSurfaceCnt_, 10);
 
-    node->SetSubSurfaceCnt(3);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 3);
+    node->subSurfaceCnt_ = 3;
+    ASSERT_EQ(node->subSurfaceCnt_, 3);
 }
 
 /**
@@ -5211,10 +5381,10 @@ HWTEST_F(RSRenderNodeTest, SetContainBootAnimationScreenNodeNoParentTest, TestSi
     node->stagingRenderParams_->SetNodeType(RSRenderNodeType::SCREEN_NODE);
 
     node->SetContainBootAnimation(true);
-    ASSERT_TRUE(node->IsContainBootAnimation());
+    ASSERT_TRUE(node->isContainBootAnimation_);
 
     node->SetContainBootAnimation(false);
-    ASSERT_FALSE(node->IsContainBootAnimation());
+    ASSERT_FALSE(node->isContainBootAnimation_);
 }
 
 /**
@@ -5384,6 +5554,294 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree003, TestSiz
     EXPECT_EQ(filterContext.absMatrix.Get(0), identityMatrix.Get(0));
 }
 
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotNoModifier
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true and a non-pure slot that has no modifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotNoModifier, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, CONTENT_STYLE slot exist (not in pure set),
+    //            HasValidModifierInOpincSplit returns true (no modifier) → continue on line 173
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    // Set CONTENT_STYLE slot (not in pureBackgroundColorSlots) with a drawable
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+    // No modifiers set → HasValidModifierInOpincSplit returns true → continue is hit
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithoutModifier
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true and OVERLAY slot (not in pure set)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithoutModifier, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, OVERLAY slot exist (not in pure set),
+    //            HasValidModifierInOpincSplit returns true (no modifier) → continue
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::OVERLAY)] = std::make_shared<DrawableTest>();
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotClipRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with CLIP_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotClipRect, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems has single CLIP_RECT → returns true (valid for opinc)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    auto clipRectOpItem = std::make_shared<Drawing::ClipRectOpItem>(rect, Drawing::ClipOp::INTERSECT, false);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { clipRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotNonClipRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with non-CLIP_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotNonClipRect, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems has single non-CLIP_RECT → returns false
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also add OVERLAY_STYLE modifier with non-ROUND_RECT to avoid short-circuit OR returning true
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_Overlay_NonEmptySlotRoundRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with OVERLAY slot having modifier with ROUND_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_Overlay_NonEmptySlotRoundRect, TestSize.Level1)
+{
+    // Test Case: slot=OVERLAY, GetModifiersNG returns non-empty,
+    //            drawOpItems has single ROUND_RECT → returns true (valid for opinc)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::RoundRect rrect(Drawing::Rect(0, 0, 100, 100), 10, 10);
+    Drawing::Paint paint;
+    auto roundRectOpItem = std::make_shared<Drawing::DrawRoundRectOpItem>(rrect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { roundRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_Overlay_NonEmptySlotNonRoundRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with OVERLAY slot having modifier with non-ROUND_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_Overlay_NonEmptySlotNonRoundRect, TestSize.Level1)
+{
+    // Test Case: slot=OVERLAY, GetModifiersNG returns non-empty,
+    //            drawOpItems has single non-ROUND_RECT → returns false
+    // Also need CONTENT_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiers);
+
+    // Also add CONTENT_STYLE modifier with non-CLIP_RECT to avoid short-circuit OR returning true
+    auto drawCmdListContent = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyContent = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListContent, 0);
+    auto modifierContent =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifierContent->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyContent);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersContent = { modifierContent };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiersContent);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotMultipleOpItems
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with multiple opitems
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotMultipleOpItems, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems.size() > 1 (even if one is CLIP_RECT) → returns false
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto clipRectOpItem = std::make_shared<Drawing::ClipRectOpItem>(rect, Drawing::ClipOp::INTERSECT, false);
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { clipRectOpItem, drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also add OVERLAY_STYLE modifier with non-ROUND_RECT to avoid short-circuit OR returning true
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItemsOverlay = { drawRectOpItem };
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItemsOverlay);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithModifierInvalid
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true, CONTENT_STYLE slot with modifier that has
+ *            non-CLIP_RECT opitem → HasValidModifierInOpincSplit returns false → return false from line 175
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithModifierInvalid, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, CONTENT_STYLE slot with drawable,
+    //            HasValidModifierInOpincSplit returns false (modifier has non-CLIP_RECT opitem)
+    //            → return false from line 175
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+
+    // Add modifier with non-CLIP_RECT draw op → CheckModifier(CONTENT_STYLE, CLIP_RECT) returns false
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_EmptyDrawOpItems
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with empty drawOpItems
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_EmptyDrawOpItems, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems is empty → returns true (drawOpItems.empty() path)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
 /**
  * @tc.name: GetDrawableVecTest001
  * @tc.desc: Test GetDrawableVec lazy initialization and reference stability
@@ -5480,6 +5938,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     // SHADOW(7)≤MATERIAL_SHADER, BG_COLOR(14)≤CONTENT_STYLE, CONTENT_STYLE(28)→contentIndex_!=-1,
     // CHILDREN(29)>CONTENT_STYLE, FG_COLOR(39) unmapped+>RESTORE_FRAME, RESTORE_ALL(51)>RESTORE_BLENDER
+    vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5489,6 +5948,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     node->UpdateDisplayListExt();
     EXPECT_FALSE(node->stagingDrawCmdList_.empty());
+    EXPECT_NE(node->stagingDrawCmdIndex_.maskIndex_, -1);
     EXPECT_GT(node->stagingDrawCmdIndex_.renderGroupBeginIndex_, 0);
     EXPECT_EQ(node->stagingDrawCmdIndex_.contentIndex_,
         node->stagingDrawCmdIndex_.backgroundEndIndex_);
@@ -5542,6 +6002,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         auto params = std::make_unique<RSRenderParams>(node->GetId());
         node->stagingRenderParams_ = std::move(params);
         node->drawableVecStatus_ = status;
+        vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5549,6 +6010,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
     };
     auto assertIndexEqual = [](const DrawCmdIndex& a, const DrawCmdIndex& b) {
+        EXPECT_EQ(a.maskIndex_, b.maskIndex_);
         EXPECT_EQ(a.transitionIndex_, b.transitionIndex_);
         EXPECT_EQ(a.shadowIndex_, b.shadowIndex_);
         EXPECT_EQ(a.backgroundColorIndex_, b.backgroundColorIndex_);
@@ -5596,5 +6058,54 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
     EXPECT_EQ(n3->stagingDrawCmdList_.size(), n4->stagingDrawCmdList_.size());
 }
 #endif
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild001
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns false when no animation manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    EXPECT_FALSE(node->HasInfiniteGroupAnimationChild());
+}
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild002
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns false for non-group-child animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    EXPECT_FALSE(node->HasInfiniteGroupAnimationChild());
+}
+
+/**
+ * @tc.name: HasInfiniteGroupAnimationChild003
+ * @tc.desc: Verify HasInfiniteGroupAnimationChild returns true for infinite group child
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, HasInfiniteGroupAnimationChild003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    // Mark as group child with infinite repeat
+    animation->isGroupAnimationChild_ = true;
+    animation->SetGroupRepeatCount(-1);
+    EXPECT_TRUE(node->HasInfiniteGroupAnimationChild());
+}
+
 } // namespace Rosen
 } // namespace OHOS

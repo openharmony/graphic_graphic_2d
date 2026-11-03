@@ -48,7 +48,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 #endif
 
 namespace OHOS {
@@ -231,7 +231,9 @@ bool RSUiCaptureSoloTaskParallel::Run()
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, acquireFence,
+    RSUniRenderUtil::OptimizedFlushAndSubmit(
+        renderContext->GetType(),
+        surface, grContext, acquireFence,
         GetFeatureParamValue("UICaptureConfig", &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
     bufferGuard.SetAcquireFence(acquireFence);
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
@@ -308,7 +310,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureSoloTaskParallel::CreateSurface(
             RS_LOGE("RSUiCaptureSoloTaskParallel::CreateSurface: renderContext is nullptr");
             return nullptr;
         }
-        renderContext->SetUpGpuContext(nullptr);
+        renderContext->SetUpGpuContext();
         return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
     }
 #endif

@@ -98,6 +98,12 @@ bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::Pixel
     return {};
 }
 
+std::shared_ptr<Media::PixelMap> RSRenderPipelineClient::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    return nullptr;
+}
+
 bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};
@@ -307,6 +313,21 @@ int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
     return 0;
 }
 
+int32_t RSRenderPipelineClient::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    return 0;
+}
+
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
 }
@@ -334,6 +355,11 @@ bool RSRenderPipelineClient::RegisterSurfaceNodeBufferReleaseListener(
 }
 
 bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
+{
+    return false;
+}
+
+bool RSRenderPipelineClient::CleanDelegateModeBufferCmd(NodeId id)
 {
     return false;
 }

@@ -27,6 +27,7 @@ public:
     ~HWCParam() = default;
 
     static bool IsDisableHwcOnExpandScreen();
+    static bool IsEnableHwcOnWiredMirror();
     static bool IsSolidLayerEnable();
     static bool IsSolidLayerInMultiWindowEnable();
     static bool IsDisableHwcInScaleScene();
@@ -41,6 +42,7 @@ protected:
     static void SetSolidColorLayerForApp(std::string appName, std::string val);
     static void SetSolidLayerEnable(bool isEnable);
     static void SetDisableHwcOnExpandScreen(bool isEnable);
+    static void SetEnableHwcOnWiredMirror(bool isEnable);
     static void SetSolidLayerInMultiWindowEnable(bool isEnable);
     static void SetDisableHwcInScaleScene(bool isEnable);
     static void SetSplitScreenSourceTuning(bool isEnable);
@@ -49,6 +51,7 @@ private:
     inline static bool isSolidLayerEnable_ = false;
     inline static bool isSolidLayerInMultiWindowEnable_ = false;
     inline static bool isDisableHwcOnExpandScreen_ = false;
+    inline static bool isEnableHwcOnWiredMirror_ = false;
     inline static bool isDisableHwcInScaleScene_ = false;
     inline static bool isSplitScreenSourceTuning_ = false;
     inline static std::unordered_map<std::string, std::string> sourceTuningMap_;

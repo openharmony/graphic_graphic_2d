@@ -15,6 +15,8 @@
 
 #include "rs_multi_screen_util.h"
 
+#include <algorithm>
+
 #include "common/rs_optional_trace.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
@@ -137,6 +139,7 @@ void RSMultiScreenUtil::HandleVirtualExtendDisplay(
     uniParam->SetSecurityDisplay(params.IsSecurityDisplay());
     drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(screenProperty);
     RSUniRenderThread::Instance().SetBlackList(drawable.currentBlackList_);
+    RSUniRenderThread::Instance().SetTypeBlackList(screenProperty.GetTypeBlackList());
     RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
     drawable.curSecExemption_ = params.GetSecurityExemption();
     uniParam->SetSecExemption(drawable.curSecExemption_);
@@ -425,8 +428,33 @@ void RSMultiScreenUtil::DrawPhysicalMirrorFromCache(
     auto cacheImage = mirrorSourceScreenDrawable->GetCacheImgForCapture();
     bool enableVisibleRect = drawable.enableVisibleRect_;
     const auto& curVisibleRect = drawable.curVisibleRect_;
+
+    // Hardware-enabled nodes are composed as separate layers on the mirror source screen, so
+    // neither the cache image nor the display surface contains their content. Draw them below
+    // the frame content (which has transparent holes at their positions) and the top ones above
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcNodes;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcTopNodes;
+    RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(hwcNodes, hwcTopNodes,
+        mirrorSourceDisplayDrawable->GetId());
+
+    curCanvas->Save();
+    if (drawable.isMirrorSLRCopy_ && scaleManager) {
+        auto scaleNum = scaleManager->GetScaleNum();
+        curCanvas->Scale(scaleNum, scaleNum);
+    }
+    if (!enableVisibleRect) {
+        // layer matrices are absolute in the source screen render frame; shift the canvas origin
+        // from source display logical space to screen space, same as DrawPhysicalMirrorRebuild.
+        // Visible-rect mode needs no shift: layer matrices are mapped inside
+        // RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode.
+        curCanvas->Translate(-mirrorSourceDisplayParams->GetOffsetX(), -mirrorSourceDisplayParams->GetOffsetY());
+    }
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcNodes, *curCanvas, *mirrorSourceScreenParams);
+    curCanvas->Restore();
+
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
-        RS_TRACE_NAME_FMT("%s, use cacheImage", __func__);
+        RS_TRACE_NAME_FMT("%s, use cacheImage, hwcNodes[%zu], hwcTopNodes[%zu], scaleManager[%d]", __func__,
+            hwcNodes.size(), hwcTopNodes.size(), scaleManager != nullptr);
         if (drawable.isMirrorSLRCopy_) {
             RS_TRACE_NAME_FMT("%s, use SLRScale", __func__);
             scaleManager->ProcessCacheImage(*curCanvas, *cacheImage);
@@ -444,7 +472,8 @@ void RSMultiScreenUtil::DrawPhysicalMirrorFromCache(
                 Drawing::Rect(0, 0, curVisibleRect.GetWidth(), curVisibleRect.GetHeight()));
         }
     } else {
-        RS_TRACE_NAME_FMT("%s, use displaySurface", __func__);
+        RS_TRACE_NAME_FMT("%s, use displaySurface, hwcNodes[%zu], hwcTopNodes[%zu], scaleManager[%d]", __func__,
+            hwcNodes.size(), hwcTopNodes.size(), scaleManager != nullptr);
         auto surfaceHandler = mirrorSourceScreenDrawable->GetRSSurfaceHandlerOnDraw();
         auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandler, false); // false: draw with gpu
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -460,6 +489,27 @@ void RSMultiScreenUtil::DrawPhysicalMirrorFromCache(
         renderEngine->DrawScreenNodeWithParams(*curCanvas, *surfaceHandler, drawParams);
         RSMainThread::Instance()->RequestNextVSync();
     }
+
+    curCanvas->Save();
+    if (drawable.isMirrorSLRCopy_ && scaleManager) {
+        auto scaleNum = scaleManager->GetScaleNum();
+        curCanvas->Scale(scaleNum, scaleNum);
+    }
+    if (!enableVisibleRect) {
+        // layer matrices are absolute in the source screen render frame; shift the canvas origin
+        // from source display logical space to screen space, same as DrawPhysicalMirrorRebuild.
+        // Visible-rect mode needs no shift: layer matrices are mapped inside
+        // RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode.
+        curCanvas->Translate(-mirrorSourceDisplayParams->GetOffsetX(), -mirrorSourceDisplayParams->GetOffsetY());
+    }
+    // exclude hard cursor of source screen, because physical mirror screen has its own hard cursor
+    hwcTopNodes.erase(std::remove_if(hwcTopNodes.begin(), hwcTopNodes.end(), [](const auto& adapter) {
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(adapter);
+        return surfaceDrawable && surfaceDrawable->IsHardwareEnabledTopSurface();
+        }), hwcTopNodes.end());
+    RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, *curCanvas, *mirrorSourceScreenParams);
+    curCanvas->Restore();
+
     curCanvas->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas);
 }
@@ -568,9 +618,12 @@ void RSMultiScreenUtil::DrawVirtualMirrorDisplay(
     // if specialLayer is visible and no CacheImg
     bool needProcessSpecialLayer = mirrorSourceDisplayParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
         specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER;
+    bool needProcessSecLayer = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(
+        drawable.enableVisibleRect_, *screenParams, params, *mirrorSourceDisplayParams);
 
     std::bitset<RebuildReason::MAX_VALUE> rebuildReasonFlag;
     rebuildReasonFlag.set(RebuildReason::PROCESS_SPECIAL_LAYER, needProcessSpecialLayer);
+    rebuildReasonFlag.set(RebuildReason::DRAW_SEC_MASK, needProcessSecLayer);
     rebuildReasonFlag.set(RebuildReason::MIRROR_SCREEN_HDR_PRESENT, screenParams->GetHDRPresent());
     rebuildReasonFlag.set(RebuildReason::MIRROR_SOURCE_HDR_PRESENT, mirrorSourceScreenParams->GetHDRPresent());
     rebuildReasonFlag.set(RebuildReason::CACHE_IMAGE_NULL, cacheImage == nullptr);
@@ -656,21 +709,30 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
     // Clean up the content of the previous frame
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
+    auto mirrorSourceScreenInfo = mirrorSourceScreenParams->GetScreenInfo();
+    // When mirror scale (SLR or source sampling) is active, the single-self-drawing optimization
+    // would draw without the scale and cause display inconsistency. Fall back to normal path.
+    bool hasMirrorScale = (slrManager != nullptr) || mirrorSourceScreenInfo.isSamplingOn;
     // If the self-drawing node is not fullscreen, need to re-adaptation curCanvas_ clear
-    if (RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas, *mirrorSourceScreenParams, params)) {
+    if (!hasMirrorScale &&
+        RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas, *mirrorSourceScreenParams, params)) {
         return;
     }
     processor->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
 
-    auto mirrorSourceScreenInfo = mirrorSourceScreenParams->GetScreenInfo();
     float mirrorSourceSamplingScale = mirrorSourceScreenInfo.isSamplingOn ? mirrorSourceScreenInfo.samplingScale : 1.0f;
 
     curCanvas->Save();
     if (slrManager) {
+        // slrScaleNum maps the sampled source space to the virtual screen while layer matrices are
+        // in logical coordinates; the extra samplingScale factor bridges logical -> sampled first.
         auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas->Scale(scaleNum, scaleNum);
     } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        // Layer matrices are collected in logical (pre-sampling) coordinates during the source
+        // traversal, while this canvas is based on the sampled source space (mirrored size is
+        // multiplied by samplingScale in UpdateMirrorInfo); scale to bridge logical -> sampled.
         curCanvas->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcNodes;
@@ -679,6 +741,13 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
         mirrorSourceDisplayDrawable->GetId());
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcNodes, *curCanvas, *mirrorSourceScreenParams);
     curCanvas->Restore();
+    const auto& mirroredScreenProperty = mirrorSourceScreenParams->GetScreenProperty();
+    auto widthRatio = mirroredScreenProperty.GetRogWidthRatio();
+    auto heightRatio = mirroredScreenProperty.GetRogHeightRatio();
+    if (mirroredScreenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
+        curCanvas->Scale(1.0f / widthRatio, 1.0f / heightRatio);
+    }
 
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME_FMT("%s, use cacheImage, hwcNodes[%zu], hwcTopNodes[%zu], slrManager[%d]",
@@ -694,12 +763,21 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
             __func__, hwcNodes.size(), hwcTopNodes.size(), slrManager != nullptr);
         processor->ProcessScreenSurfaceForRenderThread(*mirrorSourceScreenDrawable);
     }
+    if (mirroredScreenProperty.GetSamplingMode() == ScreenSamplingMode::DEVICE_GPU &&
+        ROSEN_GNE(widthRatio, 0.f) && ROSEN_GNE(heightRatio, 0.f)) {
+        curCanvas->Scale(widthRatio, heightRatio);
+    }
 
     curCanvas->Save();
     if (slrManager) {
+        // slrScaleNum maps the sampled source space to the virtual screen while layer matrices are
+        // in logical coordinates; the extra samplingScale factor bridges logical -> sampled first.
         auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas->Scale(scaleNum, scaleNum);
     } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        // Layer matrices are collected in logical (pre-sampling) coordinates during the source
+        // traversal, while this canvas is based on the sampled source space (mirrored size is
+        // multiplied by samplingScale in UpdateMirrorInfo); scale to bridge logical -> sampled.
         curCanvas->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, *curCanvas, *mirrorSourceScreenParams);

@@ -16,13 +16,16 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <fcntl.h>
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
 #include <mutex>
 #include <system_ability_definition.h>
+#include <thread>
 #include <unistd.h>
 
+#include "common/rs_common_def.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "file_ex.h"
 #include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
@@ -278,6 +281,35 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetGlobalDarkColorMode, TestSize.L
 }
 
 /**
+ * @tc.name: SetGlobalBlackList Test
+ * @tc.desc: SetGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SetGlobalBlackList, TestSize.Level1)
+{
+    std::vector<NodeId> blackList = {1, 2, 3};
+    ASSERT_EQ(proxy->SetGlobalBlackList(blackList), ERR_OK);
+    // reset
+    ASSERT_EQ(proxy->SetGlobalBlackList({}), ERR_OK);
+}
+
+/**
+ * @tc.name: AddRemoveGlobalBlackList Test
+ * @tc.desc: AddGlobalBlackList and RemoveGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, AddRemoveGlobalBlackList, TestSize.Level1)
+{
+    std::vector<NodeId> blackList = {1};
+    ASSERT_EQ(proxy->AddGlobalBlackList(blackList), ERR_OK);
+    ASSERT_EQ(proxy->RemoveGlobalBlackList(blackList), ERR_OK);
+    // reset
+    ASSERT_EQ(proxy->SetGlobalBlackList({}), ERR_OK);
+}
+
+/**
  * @tc.name: GetPixelmap Test
  * @tc.desc: GetPixelmap Test
  * @tc.type:FUNC
@@ -292,6 +324,80 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, GetPixelmap, TestSize.Level1)
     bool result;
     ASSERT_EQ(proxy->GetPixelmap(id, pixelmap, &rect, drawCmdList, result), ERR_INVALID_VALUE);
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy001
+ * @tc.desc: Test BlurPixelMap with nullptr remote object (WriteInterfaceToken fails)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy001, TestSize.Level1)
+{
+    auto nullProxy = std::make_shared<RSClientToRenderConnectionProxy>(nullptr);
+    ASSERT_NE(nullProxy, nullptr);
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = nullProxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy002
+ * @tc.desc: Test BlurPixelMap with mock remote returning SendRequest error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> mockRemote = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(mockRemote);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*mockRemote, SendRequest(_, _, _, _)).WillOnce(Return(1));
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = mockProxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMapProxy003
+ * @tc.desc: Test BlurPixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, BlurPixelMapProxy003, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    proxy->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_FALSE(success);
 }
 
 /**
@@ -451,7 +557,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
 {
     NodeId id = 1;
     proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
@@ -690,7 +795,38 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, UpdateFrameStabilityDetectionTest0
     FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
     FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
     int32_t ret = proxy->UpdateFrameStabilityDetection(oldTarget, newTarget);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: TransactionDataIndexSeed001
+ * @tc.desc: Seed succeeds while the counter still holds the default value, Get returns it
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed001, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), 0u);
+    constexpr uint32_t seededIndex = 7;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(seededIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), seededIndex);
+}
+
+/**
+ * @tc.name: TransactionDataIndexSeed002
+ * @tc.desc: Seed fails once the counter has issued indices of its own, value is kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(remoteObject);
+    constexpr uint32_t ownIndex = 3;
+    constexpr uint32_t otherIndex = 9;
+    ASSERT_TRUE(mockProxy->SeedTransactionDataIndex(ownIndex));
+    ASSERT_FALSE(mockProxy->SeedTransactionDataIndex(otherIndex));
+    ASSERT_EQ(mockProxy->GetTransactionDataIndex(), ownIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

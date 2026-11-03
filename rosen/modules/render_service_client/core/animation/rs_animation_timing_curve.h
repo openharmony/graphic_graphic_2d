@@ -41,8 +41,8 @@ constexpr float DEFAULT_BLEND_DURATION = 0.0f;
 
 struct SpringParams {
     struct ConvergeParams {
-        float convergeResponseFactor_ { 0.0f };
         float convergeProgressThreshold_ { 0.0f };
+        float convergeResponseFactor_ { 0.0f };
     };
 
     float response_ { 0.0f };
@@ -82,6 +82,8 @@ public:
     static RSAnimationTimingCurve CreateSpring(float response, float dampingRatio, float blendDuration = 0.0f,
         float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO_SPRING,
         std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
+
+    static void Init();
 
     RSAnimationTimingCurve();
     RSAnimationTimingCurve(const RSAnimationTimingCurve& timingCurve) = default;

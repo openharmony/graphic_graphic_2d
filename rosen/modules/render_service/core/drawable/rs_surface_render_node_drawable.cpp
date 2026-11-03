@@ -33,11 +33,13 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/uifirst/rs_drawable_updater.h"
 #include "graphic_feature_param_manager.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -65,8 +67,8 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_pixel_map_util.h"
@@ -123,6 +125,7 @@ RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
             AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
         });
     }
+    RSFrameStabilityManager::GetInstance().CleanResourcesByNodeId(id_);
 }
 
 void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(
@@ -162,6 +165,10 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
             SetNeedCacheRelatedSourceNode(true);
             return true;
         }
+        if (surfaceParams.IsCrossNode()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s crossNode not needCacheSurface, need clearCache", __func__);
+            subThreadCache_.GetRSDrawWindowCache().ClearCache();
+        }
         return false;
     }
 
@@ -173,6 +180,7 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
     }
+    subThreadCache_.GetRSDrawWindowCache().ClearCache();
     return false;
 }
 
@@ -715,6 +723,36 @@ void RSSurfaceRenderNodeDrawable::SyncUifirstDrawCmds()
     renderParams_->OnSync(GetUifirstRenderParams());
 }
 
+// RAII guard: enforce atlas-based text cache rendering under perspective to avoid
+// slow per-glyph path. No-op when GPU context is unavailable. Used via std::optional.
+class AutoTextCacheRestore {
+public:
+    explicit AutoTextCacheRestore(RSPaintFilterCanvas& canvas) : canvas_(canvas)
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(true);
+    }
+    ~AutoTextCacheRestore()
+    {
+        auto context = canvas_.GetGPUContext();
+        if (!context) {
+            return;
+        }
+        context->SetTextCacheEnforced(false);
+    }
+
+    AutoTextCacheRestore(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore(const AutoTextCacheRestore&) = delete;
+    AutoTextCacheRestore& operator=(AutoTextCacheRestore&&) = delete;
+    AutoTextCacheRestore& operator=(const AutoTextCacheRestore&) = delete;
+
+private:
+    RSPaintFilterCanvas& canvas_;
+};
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -752,6 +790,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isRebuildingState = surfaceParams->GetRebuildingState();
+    if (isRebuildingState) {
+        SetDrawSkipType(DrawSkipType::REBUILDING_SKIP);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw isRebuildingState");
+        return;
+    }
+
     if (layerSplitterProcessor_) {
         layerSplitterProcessor_->RequestFrame(*surfaceParams);
     }
@@ -782,11 +827,29 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
         return;
     }
-    auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        surfaceParams->GetCloneSourceDrawable().lock());
+    // Enforce text cache when animation-overlap-blocked surface is drawn under perspective.
+    // baseMatrix = (sandbox ? parent matrix : canvas matrix) concat with surface matrix.
+    std::optional<AutoTextCacheRestore> textCacheRestore;
+
+    if (surfaceParams->GetUifirstDisabledByAnimationOverlap()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw GetUifirstDisabledByAnimationOverlap() is true");
+        Drawing::Matrix baseMatrix =
+            surfaceParams->HasSandBox() ? RSRenderParams::GetParentSurfaceMatrix() : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (baseMatrix.HasPerspective()) {
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw baseMatrix.HasPerspective() is true");
+            textCacheRestore.emplace(*rscanvas);
+        }
+    }
+
+    auto cloneSourceDrawable =
+        std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceParams->GetCloneSourceDrawable().lock());
     auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
     if (cloneSourceParams) {
+        bool prevCrossNodeDraw = rscanvas->IsCrossNodeDraw();
+        rscanvas->SetCrossNodeDraw(true);
         cloneSourceDrawable->OnDraw(*rscanvas);
+        rscanvas->SetCrossNodeDraw(prevCrossNodeDraw);
         return;
     }
     if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, false)) {
@@ -1078,6 +1141,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
+        if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                name_, "ProcessedNodes", RSRenderNodeDrawable::GetTotalProcessedNodeCount());
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(name_, "SurfaceNodeCount");
+        }
         RSUniRenderThread::Instance().CollectProcessNodeNum(
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
         const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
@@ -1196,8 +1264,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_) ||
         surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
         RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
-        RS_LOGW("RSSurfaceRenderNodeDrawable::OnCapture surfaceNode marked as privacy or special layer, "
-            "nodeId:[%{public}" PRIu64 "].", nodeId_);
+        RS_LOGD("Marked as privacy or special layer, nodeId:[%{public}" PRIu64 "].", nodeId_);
     }
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -1537,7 +1604,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         }
     }
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
-        !RSUniRenderThread::IsInCaptureProcess()) {
+        !RSUniRenderThread::IsInCaptureProcess() &&
+        (!canvas.IsOnMultipleScreen() || surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED))) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
@@ -1748,12 +1816,8 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(
     uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
-    auto bRet = virtualScreenParallelManager->GetRenderEngineByTid(
-        -canvas.GetParallelThreadIdx(), renderEngine);
-    if (!bRet) {
-        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    }
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    virtualScreenParallelManager->GetRenderEngineByTid(-canvas.GetParallelThreadIdx(), renderEngine);
     renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }
@@ -1915,15 +1979,14 @@ void RSSurfaceRenderNodeDrawable::UpdateRectForDelegateMode(const RSSurfaceRende
     BufferDrawParam& params)
 {
     if (surfaceParams.GetDelegateMode()) {
-        auto& nodeParams = GetRenderParams();
-        if (nodeParams) {
-            const GraphicIRect srcRect = nodeParams->GetLayerInfo().srcRect;
-            params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
-            params.dstRect = Drawing::Rect(0, 0, nodeParams->GetBounds().GetWidth(),
-                nodeParams->GetBounds().GetHeight());
-            RS_TRACE_NAME_FMT("update rect for delegate mode: src=[%s], dst=[%s]",
-                params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
-        }
+        auto oldSrcRect = params.srcRect;
+        auto delegateSrcRect = surfaceParams.GetDelegateSrcRect();
+        params.srcRect = Drawing::Rect(delegateSrcRect.GetLeft(), delegateSrcRect.GetTop(),
+            delegateSrcRect.GetRight(), delegateSrcRect.GetBottom());
+        RS_TRACE_NAME_FMT("update rect for delegate mode: oldSrcRect=[%s], newSrcRect=[%s], dstRect=[%s],"
+            "delegateSrcRect=[%s], delegateDstRect=%s",
+            oldSrcRect.ToString().c_str(), params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str(),
+            delegateSrcRect.ToString().c_str(), surfaceParams.GetDelegateDstRect().ToString().c_str());
     }
 }
 } // namespace OHOS::Rosen::DrawableV2

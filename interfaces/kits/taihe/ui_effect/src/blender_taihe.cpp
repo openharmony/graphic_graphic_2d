@@ -55,8 +55,7 @@ BrightnessBlenderImpl::BrightnessBlenderImpl()
 }
 
 BrightnessBlenderImpl::BrightnessBlenderImpl(std::shared_ptr<OHOS::Rosen::BrightnessBlender> blender)
-    : BlenderImpl(blender ? std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender))
-                          : std::make_shared<OHOS::Rosen::BrightnessBlender>())
+    : BlenderImpl(blender ? std::move(blender) : std::make_shared<OHOS::Rosen::BrightnessBlender>())
 {
 }
 
@@ -333,8 +332,7 @@ HdrDarkenBlenderImpl::HdrDarkenBlenderImpl()
 }
 
 HdrDarkenBlenderImpl::HdrDarkenBlenderImpl(std::shared_ptr<OHOS::Rosen::HdrDarkenBlender> blender)
-    : BlenderImpl(blender ? std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender))
-                          : std::make_shared<OHOS::Rosen::HdrDarkenBlender>())
+    : BlenderImpl(blender ? std::move(blender) : std::make_shared<OHOS::Rosen::HdrDarkenBlender>())
 {
 }
 

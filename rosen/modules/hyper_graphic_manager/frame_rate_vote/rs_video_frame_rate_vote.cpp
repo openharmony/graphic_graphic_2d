@@ -47,9 +47,7 @@ RSVideoFrameRateVote::~RSVideoFrameRateVote()
 
 void RSVideoFrameRateVote::StartVideoFrameRateVote(uint32_t videoRate)
 {
-    CancelDelayTask();
     VoteVideoFrameRate(videoRate);
-    SendDelayTask();
 }
 
 void RSVideoFrameRateVote::ReSetLastRate()

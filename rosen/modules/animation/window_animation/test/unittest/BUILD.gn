@@ -20,34 +20,48 @@ ohos_unittest("RSWindowAnimationTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_window_animation_controller_test.cpp",
     "rs_window_animation_finished_callback_proxy_test.cpp",
     "rs_window_animation_finished_callback_stub_test.cpp",
     "rs_window_animation_proxy_test.cpp",
     "rs_window_animation_stub_test.cpp",
     "rs_window_animation_target_test.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/animation/window_animation_manager/rs_window_animation_callback.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/animation/window_animation_manager/rs_window_animation_controller.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/animation/window_animation_manager/rs_window_animation_utils.cpp",
   ]
 
   configs = [ ":rs_window_animation_test_config" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/animation/window_animation:window_animation",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
+    "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:libdbinder",
-    "googletest:gtest_main",
+    "napi:ace_napi",
+    "node:node_header_notice",
+    "samgr:samgr_proxy",
     "window_manager:libwm",
+    "window_manager:libwmutil",
+    "window_manager:libwmutil_base",
+    "window_manager:sms",
   ]
 
   subsystem_name = "graphic"
@@ -58,6 +72,11 @@ config("rs_window_animation_test_config") {
   include_dirs = [
     "//foundation/window/window_manager/interfaces/innerkits",
     "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include",
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/animation/window_animation_manager",
+  ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 }
 

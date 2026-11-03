@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_ANIMATION_COMMAND_H
 
 #include "animation/rs_render_animation.h"
+#include "animation/rs_render_atlas_info_animation.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -50,6 +51,8 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_INTERPOLATING_SPRING = 0x0106,
     // particle animation NG
     ANIMATION_CREATE_PARTICLE_NG = 0x0107,
+    // atlas info animation
+    ANIMATION_CREATE_ATLAS_INFO = 0x0108,
 
     // operations
     ANIMATION_START = 0x0200,
@@ -64,6 +67,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_REBUILD_KEYFRAME = 0x0209,
     ANIMATION_REBUILD_PATH = 0x020a,
     ANIMATION_REBUILD_INTERPOLATING_SPRING = 0x020b,
+    ANIMATION_REBUILD_ATLAS_INFO = 0x020c,
 
     // UI operation
     ANIMATION_CALLBACK = 0x0300,
@@ -224,6 +228,12 @@ ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
         AnimationCommandHelper::CreateAnimation,
         NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
 
+// create atlas info animation
+ADD_COMMAND(RSAnimationCreateAtlasInfo,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, ANIMATION, ANIMATION_CREATE_ATLAS_INFO,
+        AnimationCommandHelper::CreateAnimation,
+        NodeId, std::shared_ptr<RSRenderAtlasInfoAnimation>))
+
 // rebuild curve animation
 ADD_COMMAND(RSAnimationRebuildCurve,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, ANIMATION, ANIMATION_REBUILD_CURVE, AnimationCommandHelper::RebuildAnimation,
@@ -250,6 +260,12 @@ ADD_COMMAND(RSAnimationRebuildInterpolatingSpring,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, ANIMATION, ANIMATION_REBUILD_INTERPOLATING_SPRING,
         AnimationCommandHelper::RebuildAnimation,
         NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>, float, bool))
+
+// rebuild atlas info animation
+ADD_COMMAND(RSAnimationRebuildAtlasInfo,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, ANIMATION, ANIMATION_REBUILD_ATLAS_INFO,
+        AnimationCommandHelper::RebuildAnimation,
+        NodeId, std::shared_ptr<RSRenderAtlasInfoAnimation>, float, bool))
 
 // interactive implict animator operation
 ADD_COMMAND(RSInteractiveAnimatorCreate,

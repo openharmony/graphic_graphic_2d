@@ -98,6 +98,56 @@ HWTEST_F(RSProfilerUtilsTest, UtilsFileInMemoryTest, testing::ext::TestSize.Leve
 }
 
 /*
+ * @tc.name: UtilsIsSandboxPathTest
+ * @tc.desc: RSProfiler Utils IsSandboxPath comprehensive test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerUtilsTest, UtilsIsSandboxPathTest, testing::ext::TestSize.Level1)
+{
+    // Allowed path
+    EXPECT_TRUE(Utils::IsSandboxPath("/data/file"));
+
+    // Empty path
+    EXPECT_FALSE(Utils::IsSandboxPath(""));
+
+    // Path doesn't start with /data/
+    EXPECT_FALSE(Utils::IsSandboxPath("/data"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/datax/file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("x/data/file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/Data/file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/DATABASE/file"));
+
+    // Edge cases with /data/ prefix
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/."));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/./file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/././file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/.."));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/../file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/../../file"));
+
+    // Backslash variants (windows-style separators on linux)
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/..\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/..\\..\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/.\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/.\\.\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/\\.\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/..\\."));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/\\.\\."));
+
+    // Mixed forward/backward slashes
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/..\\file/"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/../\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/./\\file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/\\.\\../file"));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/..\\./file"));
+
+    // Backslash at end
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/."));
+    EXPECT_FALSE(Utils::IsSandboxPath("/data/.."));
+}
+
+/*
  * @tc.name: UtilsSplitTest
  * @tc.desc: RSProfiler Utils string split Test
  * @tc.type: FUNC

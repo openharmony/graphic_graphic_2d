@@ -55,6 +55,8 @@ constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 constexpr int64_t MAX_SIZE_OF_DIGIT_NUM_FOR_PID = 8;
 constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
 constexpr int32_t MAX_PID = 65536;
+constexpr int32_t ONE_SECOND = 1000000000;
+constexpr int64_t JITTER_TOLERANCE_NS = 1000000;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -225,7 +227,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         int64_t receiveData[3];
         socketPair->ReceiveData(receiveData, sizeof(receiveData));
         ret = socketPair->SendData(data, sizeof(data));
-        VLOGW("vsync signal is not processed in time, please check pid:%{public}d, ret:%{public}d", proxyPid_, ret);
+        VLOGW("check pid:%{public}d", proxyPid_);
     }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
@@ -362,7 +364,8 @@ bool VSyncConnection::NeedTriggeredVsyncLocked(const int64_t& currentTime)
     return isNeedTriggered;
 }
 
-VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
+VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom,
+    DvsyncDisableReason disableReason)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -379,7 +382,7 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWh
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom);
+    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom, disableReason);
 }
 
 VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -603,6 +606,19 @@ void VSyncDistributor::DisableVSync()
 void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
     uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
+    {
+        std::lock_guard<std::mutex> locker(thermalLimitMtx_);
+        if (thermalRateLimit_ > 0 && period > 0) {
+            uint32_t beats = (static_cast<uint32_t>(ONE_SECOND / period) + thermalRateLimit_ - 1) / thermalRateLimit_;
+            int64_t minInterval = static_cast<int64_t>(beats) * period;
+            if (lastThermalTrigTime_ > 0 && ((now - lastThermalTrigTime_) < (minInterval - JITTER_TOLERANCE_NS))) {
+                VLOGD("Thermal Limit rate %{public}u", thermalRateLimit_);
+                return;
+            }
+            lastThermalTrigTime_ = now;
+        }
+    }
+
     std::vector<sptr<VSyncConnection>> conns;
     uint32_t generatorRefreshRate;
     int64_t vsyncCount;
@@ -612,7 +628,6 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         std::lock_guard<std::mutex> locker(mutex_);
         if (isFirstSend_) {
             isFirstSend_ = false;
-            VLOGI("F send");
         }
         // Start of DVSync
         DVSyncRecordVSync(now, period, refreshRate, false);
@@ -646,6 +661,13 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         generatorRefreshRate = generatorRefreshRate_;
     }
     ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, false);
+}
+
+void VSyncDistributor::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    std::lock_guard<std::mutex> locker(thermalLimitMtx_);
+    thermalRateLimit_ = frameRate;
+    VLOGI("SetThermalRateLimit, limit framerate %{public}u success", thermalRateLimit_);
 }
 
 void VSyncDistributor::TriggerNext(sptr<VSyncConnection> con)
@@ -1243,9 +1265,9 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
 }
 
 VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection,
-    FromWhom fromWhom)
+    FromWhom fromWhom, DvsyncDisableReason disableReason)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom, disableReason);
     return VSYNC_ERROR_OK;
 }
 

@@ -19,6 +19,7 @@
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "params/rs_effect_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
@@ -118,7 +119,7 @@ HWTEST_F(RSEffectRenderNodeTest, ProcessRenderBeforeChildren, TestSize.Level1)
     rsEffectRenderNode.renderProperties_.SetHaveEffectRegion(true);
     rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
     auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
-    rsEffectRenderNode.renderProperties_.backgroundFilter_ = backgroundFilter;
+    rsEffectRenderNode.renderProperties_.GetEffectProperties().SetBackgroundFilter(backgroundFilter);
     paintFilterCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
     rsEffectRenderNode.ProcessRenderBeforeChildren(paintFilterCanvas);
     paintFilterCanvas.SetCacheType(RSPaintFilterCanvas::CacheType::UNDEFINED);
@@ -180,7 +181,7 @@ HWTEST_F(RSEffectRenderNodeTest, CheckBlurFilterCacheNeedForceClearOrSaveTest, T
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, false);
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, true);
     auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
-    rsEffectRenderNode.renderProperties_.backgroundFilter_ = backgroundFilter;
+    rsEffectRenderNode.renderProperties_.GetEffectProperties().SetBackgroundFilter(backgroundFilter);
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, false);
     rsEffectRenderNode.CheckBlurFilterCacheNeedForceClearOrSave(false, true);
     EXPECT_EQ(rsEffectRenderNode.GetFilterDrawable(false), nullptr);
@@ -242,11 +243,17 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize
         std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
     backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
     } else {
         EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
     }
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**
@@ -302,11 +309,18 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterHasEffectChildrenTest, TestSize.Level
     RSEffectRenderNode rsEffectRenderNode(nodeId);
     rsEffectRenderNode.MarkFilterHasEffectChildren();
     auto backgroundFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
-    rsEffectRenderNode.renderProperties_.backgroundFilter_ = backgroundFilter;
+    rsEffectRenderNode.renderProperties_.GetEffectProperties().SetBackgroundFilter(backgroundFilter);
     rsEffectRenderNode.MarkFilterHasEffectChildren();
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
     rsEffectRenderNode.MarkFilterHasEffectChildren();
     EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**
@@ -350,8 +364,8 @@ HWTEST_F(RSEffectRenderNodeTest, MarkClearFilterCacheIfEffectChildrenChangedTest
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
     auto& bgProperties = rsEffectRenderNode.GetMutableRenderProperties();
-    bgProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
-    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
+    bgProperties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
     rsEffectRenderNode.lastFrameHasVisibleEffectWithoutEmptyRect_ = true;
@@ -450,7 +464,7 @@ HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestS
     auto renderNode = std::make_shared<RSEffectRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
 
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     EXPECT_NE(backgroundFilterDrawable, nullptr);

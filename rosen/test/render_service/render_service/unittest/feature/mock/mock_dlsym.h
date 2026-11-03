@@ -20,7 +20,7 @@ namespace Rosen {
 
 extern bool g_handleEventFuncNull;
 extern bool g_preValidateFuncNull;
-
+extern bool g_dlopenNull;
 }  // namespace Rosen
 }  // namespace OHOS
 #endif // GRAPHIC_DLSYM_MOCK_H

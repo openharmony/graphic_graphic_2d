@@ -146,6 +146,9 @@ bool SkiaVertices::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
+    if (skiaVertices_ == nullptr) {
+        return false;
+    }
     skiaVertices_ = skiaVertices_->priv().Decode(reader);
     return skiaVertices_ != nullptr;
 }

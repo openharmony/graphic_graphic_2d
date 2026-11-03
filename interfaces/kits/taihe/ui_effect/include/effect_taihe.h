@@ -43,6 +43,10 @@ public:
         ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam const& liquidMaterialEffectParam,
         Mask useEffectMask, optional_view<Mask> distortMask,
         optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam);
+    VisualEffect GlassMarbleEffect(
+        ::ohos::graphics::uiEffect::uiEffect::GlassMarbleMaterialParam const& material,
+        ::ohos::graphics::uiEffect::uiEffect::GlassMarbleShell const& marbleShell,
+        optional_view<::ohos::graphics::uiEffect::uiEffect::GlassMarbleContentParam> content);
 
 private:
     bool IsVisualEffectValid() const;

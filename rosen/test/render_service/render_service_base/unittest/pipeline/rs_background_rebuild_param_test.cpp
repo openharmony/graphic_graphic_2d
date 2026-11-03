@@ -82,5 +82,34 @@ HWTEST_F(RSBackgroundRebuildParamTest, IsBackgroundRebuildEnabledDefault, Functi
     RSBackgroundRebuildParam::Instance().SetBackgroundRebuildEnabled(false);
     EXPECT_EQ(RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled(), false);
 }
+
+/**
+ * @tc.name: GoStopNodeMapModeDefault
+ * @tc.desc: Verify GoStopNodeMapMode defaults to REMOVE_SURFACE_NODE_MAP
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBackgroundRebuildParamTest, GoStopNodeMapModeDefault, Function | SmallTest | Level1)
+{
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
+/**
+ * @tc.name: SetGoStopNodeMapMode
+ * @tc.desc: Verify SetGoStopNodeMapMode and GetGoStopNodeMapMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBackgroundRebuildParamTest, SetGoStopNodeMapMode, Function | SmallTest | Level1)
+{
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::NONE);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::NONE);
+
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::DESTROY_TOKEN_NODE);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::DESTROY_TOKEN_NODE);
+
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
 } // namespace Rosen
 } // namespace OHOS

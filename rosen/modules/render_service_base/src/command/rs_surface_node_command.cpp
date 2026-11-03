@@ -170,11 +170,10 @@ void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, Node
     }
 }
 
-void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(
-    RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender)
+void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->ConnectToNodeInRenderService(connectToRender);
+        node->ConnectToNodeInRenderService();
     }
 }
 
@@ -539,6 +538,15 @@ void SurfaceNodeCommandHelper::SetHardwareEnabled(RSContext& context, NodeId nod
     }
 }
 
+void SurfaceNodeCommandHelper::SetSolidLayerEnabled(RSContext& context, NodeId nodeId, bool isSolidLayerEnabled)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        RS_TRACE_NAME_FMT("SetSolidLayerEnabled id:%" PRIu64 " enabled:%d", nodeId, isSolidLayerEnabled);
+        ROSEN_LOGI("SetSolidLayerEnabled id:%{public}" PRIu64 " enabled:%{public}d", nodeId, isSolidLayerEnabled);
+        node->SetSolidLayerEnabled(isSolidLayerEnabled);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent)
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
@@ -581,8 +589,14 @@ void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId 
             nodeId);
         return;
     }
-    RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId : %" PRId64 " , uniqueId : %" PRId64,
-        nodeId, consumer->GetUniqueId());
+    // Compensate bundleName lost during rebuild: rebuild command carries an empty bundleName,
+    // mirror the first-create path which queries by pid for SELF_DRAWING_NODE.
+    if (node->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        auto bundleName = context.QueryBundleName(ExtractPid(nodeId));
+        if (!bundleName.empty()) {
+            node->SetBundleName(bundleName);
+        }
+    }
 
     context.InvokeRecreateNodeCallBack(nodeId, std::weak_ptr<RSSurfaceBufferInterface>(node));
     context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -590,8 +604,8 @@ void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId 
         surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), surfaceHandler->GetPreBuffer(),
         surfaceHandler->GetPreBufferOwnerCount());
     ROSEN_LOGI("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId:%{public}" PRIu64
-               " reuse consumer:%{public}" PRIu64 " unobscured:%{public}d",
-        nodeId, consumer->GetUniqueId(), unobscured);
+               " reuse consumer:%{public}" PRIu64 " unobscured:%{public}d bundleName:%{public}s",
+        nodeId, consumer->GetUniqueId(), unobscured, node->GetBundleName().c_str());
 }
 #endif
 void SurfaceNodeCommandHelper::SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode)

@@ -28,6 +28,7 @@ using ScreenId = uint64_t;
 using ScreenPhysicalId = uint32_t;
 
 constexpr ScreenId INVALID_SCREEN_ID = ~(static_cast<ScreenId>(0));
+constexpr ScreenId NONE_PHYSICAL_SCREEN_ID = ~(static_cast<ScreenId>(0)) - 1;
 
 constexpr int32_t INVALID_BACKLIGHT_VALUE = -1;
 
@@ -91,6 +92,12 @@ enum class ScreenScaleMode : uint32_t {
     INVALID_MODE,
 };
 
+enum class ScreenSamplingMode : uint32_t {
+    DEVICE_DSS = 0,
+    DEVICE_GPU,
+    OFFSCREEN,
+};
+
 typedef enum : uint32_t {
     BUILT_IN_TYPE_SCREEN = 0,
     EXTERNAL_TYPE_SCREEN,
@@ -109,6 +116,7 @@ typedef enum : uint32_t {
     POWER_STATUS_DOZE,
     POWER_STATUS_DOZE_SUSPEND,
     POWER_STATUS_BUTT,
+    POWER_STATUS_OFFING,
     INVALID_POWER_STATUS,
 } ScreenPowerStatus;
 
@@ -238,6 +246,21 @@ typedef enum : uint32_t {
     VIRTUAL_SCREEN_PAUSE,
     VIRTUAL_SCREEN_INVALID_STATUS,
 } VirtualScreenStatus;
+
+/*
+ * @brief Enumerates the HDR mode of a virtual screen.
+ * NONE: HDR off, the virtual screen goes the SDR path.
+ * HDR_DYNAMIC: the HDR output follows the HDR status of the screen content dynamically, the color
+ *              gamut of the virtual screen output switches when the content switches HDR/SDR.
+ * HDR_STATIC: the HDR output keeps unchanged during recording, the color gamut of the virtual
+ *             screen output does not switch when the content switches HDR/SDR.
+ */
+enum class HDRMode : uint32_t {
+    NONE = 0,
+    HDR_DYNAMIC,
+    HDR_STATIC,
+    HDR_MODE_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
+};
 
 enum class DualScreenStatus : uint64_t {
     DUAL_SCREEN_EXIT = 0,

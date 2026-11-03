@@ -81,6 +81,19 @@ protected:
         return RectI(-HALF_INT16_MAX, -HALF_INT16_MAX, INT16_MAX, INT16_MAX);
     }
 
+    bool ContainsNonRectangularTransform(const RSProperties& renderProperties) const
+    {
+        const auto& skew = renderProperties.GetSkew();
+        const auto& perspective = renderProperties.GetPersp();
+        const auto& rotation = renderProperties.GetRotation();
+        const auto& rotationX = renderProperties.GetRotationX();
+        const auto& rotationY = renderProperties.GetRotationY();
+        return !ROSEN_EQ(skew[0], 0.f) || !ROSEN_EQ(skew[1], 0.f) ||
+            !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
+            !ROSEN_EQ(rotation, 0.f) || !ROSEN_EQ(rotationX, 0.f) || !ROSEN_EQ(rotationY, 0.f) ||
+            renderProperties.GetClipBounds();
+    }
+
     bool Contains3dTransformation(const RSProperties& renderProperties) const
     {
         return !ROSEN_EQ(renderProperties.GetTranslateZ(), 0.f) || !ROSEN_EQ(renderProperties.GetRotationX(), 0.f) ||
@@ -88,6 +101,17 @@ protected:
             !ROSEN_EQ(renderProperties.GetScaleZ(), 1.f) || !ROSEN_EQ(renderProperties.GetSkewZ(), 0.f) ||
             !ROSEN_EQ(renderProperties.GetPivotZ(), 0.f) || !ROSEN_EQ(renderProperties.GetCameraDistance(), 0.f) ||
             !ROSEN_EQ(renderProperties.GetPerspZ(), 0.f) || !ROSEN_EQ(renderProperties.GetPerspW(), 1.f);
+    }
+
+    bool IsBlendOpaque(const RSProperties& renderProperties) const
+    {
+        if (renderProperties.IsFgBlenderEffectValid()) {
+            return false;
+        }
+        auto blendMode = static_cast<RSColorBlendMode>(renderProperties.GetColorBlendMode());
+        // NONE, SRC_OVER, SRC do not alter destination pixels in a way that affects occlusion
+        return blendMode == RSColorBlendMode::NONE || blendMode == RSColorBlendMode::SRC_OVER ||
+            blendMode == RSColorBlendMode::SRC;
     }
 
     RectI16 ComputeOuter(const RectF& drawRect) const
@@ -158,7 +182,7 @@ private:
     bool IsOutOfRootRect(const RectI16 &rect);
     bool IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties);
     bool IsOpaque() const {
-        return isBgOpaque_ && !isAlphaNeed_ && !isSubTreeIgnored_;
+        return isBgOpaque_ && !isAlphaNeed_ && !isSubTreeIgnored_ && isBlendOpaque_;
     }
     OcclusionCoverageInfo DetectOcclusionInner(OcclusionCoverageInfo& globalCoverInfo,
         std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& culledEntireSubtree,
@@ -173,6 +197,7 @@ private:
     uint64_t occludedById_ = INVALID_NODEID;
     uint64_t occludedSubTreeById_ = INVALID_NODEID;
     RSRenderNodeType type_ = RSRenderNodeType::UNKNOW;
+    bool isBlendOpaque_ = true;
     bool isSubTreeIgnored_ = false;
     bool hasChildrenOutOfRect_ = false;
     bool isNeedClip_ = false;

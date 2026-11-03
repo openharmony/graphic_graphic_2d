@@ -35,9 +35,6 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
         .isTextureExportNode = true,
         .surfaceId = surfaceId_
     };
-    if (rootNode_ == nullptr) {
-        return;
-    }
     virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rootNode_->GetRSUIContext());
     rootNode_->SyncTextureExport(true);
 }
@@ -53,6 +50,10 @@ RSTextureExport::~RSTextureExport()
 
 bool RSTextureExport::DoTextureExport()
 {
+    if (!rootNode_) {
+        ROSEN_LOGE("RSTextureExport::DoTextureExport rootNode_ is nullptr");
+        return false;
+    }
     if (!rootNode_->IsTextureExportNode()) {
         rootNode_->SyncTextureExport(true);
     }
@@ -91,6 +92,10 @@ void RSTextureExport::UpdateBufferInfo(float x, float y, float width, float heig
 
 void RSTextureExport::StopTextureExport()
 {
+    if (!rootNode_) {
+        ROSEN_LOGE("RSTextureExport::StopTextureExport rootNode_ is nullptr");
+        return;
+    }
     rsUiDirector_->Destroy(true);
     rootNode_->RemoveFromTree();
 }

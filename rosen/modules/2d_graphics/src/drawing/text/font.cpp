@@ -380,6 +380,119 @@ void Font::GetTextPath(const void* text, size_t byteLength, TextEncoding encodin
     fontImpl_->GetTextPath(text, byteLength, encoding, x, y, path);
 }
 
+std::vector<FontFallbackInfo> Font::TextToGlyphsWithFallback(const void* text, size_t byteLength,
+    TextEncoding encoding) const
+{
+    if (text == nullptr || byteLength == 0) {
+        return {};
+    }
+    if (encoding != TextEncoding::GLYPH_ID) {
+        std::vector<int32_t> codepoints;
+        size_t len = std::min(GetByteLength(text, byteLength, encoding), byteLength);
+        if (!DecodeTextToCodepoints(text, len, encoding, codepoints) || codepoints.empty()) {
+            return {};
+        }
+        std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+        if (fontMgr != nullptr) {
+            std::shared_ptr<Typeface> currentTypeface = GetTypeface();
+            std::vector<FontFallbackInfo> fallbacks = fontMgr->GetFallbacksForString(codepoints, currentTypeface,
+                currentTypeface ? currentTypeface->GetFontStyle() : FontStyle());
+            if (!fallbacks.empty()) {
+                return fallbacks;
+            }
+        }
+        // Fallback infrastructure unavailable; fall through to a best-effort run of the current font.
+    }
+    // GLYPH_ID has no characters to fall back on; report the glyph ids as a single run.
+    int count = CountText(text, byteLength, encoding);
+    if (count <= 0) {
+        return {};
+    }
+    std::vector<uint16_t> glyphs(count);
+    TextToGlyphs(text, byteLength, encoding, glyphs.data(), count);
+    return { FontFallbackInfo { GetTypeface(), std::move(glyphs) } };
+}
+
+scalar Font::MeasureTextWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+    Rect* bounds) const
+{
+    if (text == nullptr || byteLength == 0) {
+        return 0.f;
+    }
+    if (encoding == TextEncoding::GLYPH_ID) {
+        return MeasureText(text, byteLength, encoding, bounds);
+    }
+    std::vector<FontFallbackInfo> fallbacks = TextToGlyphsWithFallback(text, byteLength, encoding);
+    if (fallbacks.empty()) {
+        return 0.f;
+    }
+    // Runs are laid out like TextBlob::MakeFromTextWithFallback: each run starts at the advance
+    // accumulated from the preceding runs, so the union bounds live in whole-string coordinates.
+    scalar width = 0.f;
+    Rect totalBounds;
+    for (const auto& run : fallbacks) {
+        if (run.glyphIds.empty()) {
+            continue;
+        }
+        Font runFont(*this);
+        if (run.typeface != nullptr) {
+            runFont.SetTypeface(run.typeface);
+        }
+        Rect runBounds;
+        scalar runWidth = runFont.MeasureText(run.glyphIds.data(), run.glyphIds.size() * sizeof(uint16_t),
+            TextEncoding::GLYPH_ID, bounds != nullptr ? &runBounds : nullptr);
+        if (bounds != nullptr) {
+            runBounds.Offset(width, 0.f);
+            totalBounds.Join(runBounds);
+        }
+        width += runWidth;
+    }
+    if (bounds != nullptr) {
+        *bounds = totalBounds;
+    }
+    return width;
+}
+
+scalar Font::MeasureTextWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+    Rect* bounds, const Brush* brush, const Pen* pen) const
+{
+    if (text == nullptr || byteLength == 0) {
+        return 0.f;
+    }
+    if (encoding == TextEncoding::GLYPH_ID) {
+        return MeasureText(text, byteLength, encoding, bounds, brush, pen);
+    }
+    std::vector<FontFallbackInfo> fallbacks = TextToGlyphsWithFallback(text, byteLength, encoding);
+    if (fallbacks.empty()) {
+        return 0.f;
+    }
+    // Runs are laid out like TextBlob::MakeFromTextWithFallback: each run starts at the advance
+    // accumulated from the preceding runs, so the union bounds live in whole-string coordinates.
+    scalar width = 0.f;
+    Rect totalBounds;
+    for (const auto& run : fallbacks) {
+        if (run.glyphIds.empty()) {
+            continue;
+        }
+        Font runFont(*this);
+        if (run.typeface != nullptr) {
+            runFont.SetTypeface(run.typeface);
+        }
+        Rect runBounds;
+        scalar runWidth = runFont.MeasureText(run.glyphIds.data(), run.glyphIds.size() * sizeof(uint16_t),
+            TextEncoding::GLYPH_ID, bounds != nullptr ? &runBounds : nullptr, brush, pen);
+        if (bounds != nullptr) {
+            runBounds.Offset(width, 0.f);
+            totalBounds.Join(runBounds);
+        }
+        width += runWidth;
+    }
+    if (bounds != nullptr) {
+        *bounds = totalBounds;
+    }
+    return width;
+}
+
 void Font::GetTextPathWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
     float x, float y, Path* path) const
 {

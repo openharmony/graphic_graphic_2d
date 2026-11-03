@@ -55,12 +55,6 @@ public:
     static int32_t GetOrClearContinuousUpdateCount(
         NodeId nodeId, uint64_t currentVsyncId, bool needUpdateCache);
 
-    void SetLastFrameCacheRootHasExcludedChild(bool hasFilter);
-    bool IsLastFrameCacheRootHasExcludedChild() const
-    {
-        return isLastFrameCacheRootHasExcludedChild_;
-    }
-
     void SetShouldClipHole(bool value)
     {
         shouldClipHole_ = value;
@@ -98,7 +92,6 @@ private:
     std::shared_ptr<Drawing::Image> renderGroupCachedImage_ = nullptr;
     std::atomic<pid_t> renderGroupCacheThreadId_ = 0;
     std::atomic<DrawableCacheType> drawableCacheType_ = DrawableCacheType::NONE;
-    bool isLastFrameCacheRootHasExcludedChild_ = false;
     bool shouldClipHole_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

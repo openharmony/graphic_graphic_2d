@@ -33,7 +33,7 @@
 #ifdef RS_ENABLE_UNI_RENDER
 #include "feature/color_picker/rs_color_picker_thread.h"
 
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;

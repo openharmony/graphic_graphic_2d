@@ -32,6 +32,10 @@ int RSExposedEventCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSIExposedEventCallbackInterfaceCode::ON_EXPOSED_EVENT): {
             std::shared_ptr<RSExposedEventDataBase> eventData(data.ReadParcelable<RSExposedEventDataBase>());
+            if (eventData == nullptr) {
+                RS_LOGE("RSExposedEventCallbackStub::OnRemoteRequest eventData is nullptr");
+                return ERR_NULL_OBJECT;
+            }
             OnDisplayEvent(eventData);
             break;
         }

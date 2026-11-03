@@ -37,6 +37,19 @@
 
 namespace OHOS {
 namespace Rosen {
+/*
+ * Trust model of the IPC interface-code access verifier framework:
+ * - Forward, app-facing services (RSIRenderService, RSIClientToServiceConnection,
+ *   RSIClientToRenderConnection) are reachable by untrusted applications, so each interface
+ *   code must pass IsInterfaceCodeAccessible (common + per-stub exclusive verification)
+ *   before dispatch.
+ * - Reverse callbacks (render service -> app, the *_stub.cpp files under ipc_callbacks/) and
+ *   channels (render <-> composer, window animation) are intentionally not verified per code:
+ *   the binder handle is only handed to the intended peer and each request carries a checked
+ *   interface token (ReadInterfaceToken). Handle confidentiality is the security boundary on
+ *   these paths; render <-> render-server stubs additionally reject non-system callers via
+ *   GetAccessType as defense in depth.
+ */
 class RSB_EXPORT RSInterfaceCodeAccessVerifierBase {
 public:
     virtual ~RSInterfaceCodeAccessVerifierBase() noexcept = default;
@@ -52,6 +65,9 @@ protected:
 
     /* specify the exclusive verification rules in the derived class */
     virtual bool IsExclusiveVerificationPassed(CodeUnderlyingType code) = 0;
+
+    /* specify the feature verification rules in the derived class (runs regardless of ENABLE_IPC_SECURITY) */
+    virtual bool IsFeatureVerificationPassed(CodeUnderlyingType code);
 
     /* specify tools for verifying the access right */
 #ifdef ENABLE_IPC_SECURITY
@@ -71,6 +87,7 @@ protected:
     bool CheckPermission(CodeUnderlyingType code) const;
     bool IsStylusServiceCalling(const std::string& callingCode) const;
     bool IsExfusionServiceCalling(const std::string& callingCode) const;
+    bool IsGameServiceCalling(const std::string& callingCode) const;
     bool IsTaskManagerCalling(const std::string& callingCode) const;
     bool IsRssCalling(const std::string& callingCode) const;
 

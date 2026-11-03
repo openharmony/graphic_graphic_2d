@@ -43,11 +43,17 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
   include_dirs = [
     "mock",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
   ]
   sources = [
     "mock/mock_accesstoken_kit.cpp",
     "rs_irender_service_connection_ipc_interface_code_access_verifier_test.cpp",
   ]
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    sources +=
+        [ "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_base.cpp" ]
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -55,6 +61,9 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -64,6 +73,10 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   if (defined(enable_ipc_security) && enable_ipc_security) {
     defines += [ "ENABLE_IPC_SECURITY" ]
     external_deps += [ "access_token:libaccesstoken_sdk" ]
+  }
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
   }
 }
 
@@ -78,6 +91,9 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
 }
 
@@ -110,13 +126,25 @@ ohos_unittest("RSClientToServiceConnectionStubTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
   cflags = [
     "-Wall",
     "-Werror",
@@ -131,7 +159,15 @@ ohos_unittest("RSClientToRenderConnectionStubTest") {
   module_out_path = module_output_path
   sources = [
     "../pipeline/mock/mock_hdi_device.cpp",
+    "mock/mock_accesstoken_kit.cpp",
     "rs_client_to_render_connection_stub_test.cpp",
+    "${rosen_root}/modules/render_service_base/src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
+  ]
+  include_dirs = [
+    "mock",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
   deps = [
     ":rs_test_common",
@@ -142,16 +178,34 @@ ohos_unittest("RSClientToRenderConnectionStubTest") {
   ]
   external_deps = [
     "googletest:gmock_main",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "libxml2:libxml2",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
   defines = []
   defines += gpu_defines
+  if (defined(enable_ipc_security) && enable_ipc_security) {
+    defines += [ "ENABLE_IPC_SECURITY" ]
+  }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 ## Build RSRenderServiceStubTest
@@ -168,7 +222,11 @@ ohos_unittest("RSRenderServiceStubTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
     "opengles:libGLES",
+    "libxml2:libxml2",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -185,7 +243,11 @@ ohos_unittest("RSConnectToRenderProcessTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -204,7 +266,11 @@ ohos_unittest("RSConnectToRenderProcessProxyTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -223,7 +289,11 @@ ohos_unittest("RSConnectToRenderProcessStubTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  external_deps = []
+  external_deps = [
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -301,6 +371,9 @@ ohos_unittest("RSUnmarshalThreadTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
   ]
   defines = []
   defines += gpu_defines
@@ -351,7 +424,11 @@ ohos_static_library("rs_test_common") {
 
   deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
 
-  external_deps = [ "hisysevent:libhisysevent" ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
+  ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

@@ -313,7 +313,9 @@ sptr<SurfaceBuffer> RSGPUOfflineBuffer::ConsumeAndGetBuffer()
     if (surfaceHandler_->IsCurrentFrameBufferConsumed()) {
         auto offlinePreBufferCount = surfaceHandler_->GetPreBufferOwnerCount();
         if (offlinePreBufferCount) {
-            offlinePreBufferCount->DecRef();
+            if (offlinePreBufferCount->DecRef()) {
+                surfaceHandler_->ResetPreBuffer();
+            }
         }
     }
     return surfaceHandler_->GetBuffer();

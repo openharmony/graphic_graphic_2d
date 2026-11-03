@@ -47,16 +47,19 @@
 #include "matrix_napi/js_matrix.h"
 #include "pen_napi/js_pen.h"
 #include "path_napi/js_path.h"
+#include "record_cmd_napi/js_record_cmd.h"
 #include "region_napi/js_region.h"
 #include "sampling_options_napi/js_sampling_options.h"
 #include "text_blob_napi/js_text_blob.h"
 #include "roundRect_napi/js_roundrect.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "js_native_api.h"
 #include "utils/performanceCaculate.h"
 #if defined(OHOS_PLATFORM) || defined(ROSEN_ARKUI_X)
 #include "pipeline/rs_recording_canvas.h"
 #endif
+#include "record_cmd_utils_napi/js_record_cmd_utils.h"
 
 namespace OHOS::Rosen {
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -235,8 +238,8 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
     DECLARE_NAPI_FUNCTION("isOpaque", JsCanvas::IsOpaque),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
     DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
+    DECLARE_NAPI_FUNCTION("drawRecordCmd", JsCanvas::DrawRecordCmd),
 };
 
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
@@ -249,6 +252,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
     if (status != napi_ok) {
         ROSEN_LOGE("Drawing_napi: failed to napi_get_cb_info");
         return nullptr;
+    }
+
+    if (argc == ARGC_ZERO) {
+        return jsThis;
     }
 
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -277,7 +284,7 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     jsCanvas->mPixelMap_ = pixelMapNapi->GetPixelNapiInner();
-    status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
@@ -332,22 +339,52 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("Drawing_napi: canvas is nullptr");
         return nullptr;
     }
-    JsCanvas *jsCanvas = new JsCanvas(canvas);
-    napi_create_object(env, &result);
-    if (result == nullptr) {
+    JsCanvas* jsCanvas = new JsCanvas(canvas);
+    status = napi_new_instance(env, constructor, 0, nullptr, &result);
+    if (status != napi_ok || result == nullptr) {
         delete jsCanvas;
-        ROSEN_LOGE("jsCanvas::CreateJsCanvas Create canvas object failed!");
+        ROSEN_LOGE("Drawing_napi: CreateJsCanvas napi_new_instance failed");
         return nullptr;
     }
-    status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &JsCanvas::NAPI_TYPE_TAG, nullptr);
+    status = napi_wrap_s(env, result, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
         return nullptr;
     }
-    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
+
+#if defined(ROSEN_OHOS)
+napi_value JsCanvas::CreateJsCanvasDynamic(
+    napi_env env, Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic canvas is nullptr");
+        return nullptr;
+    }
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic napi_create_object failed");
+        return nullptr;
+    }
+    JsCanvas* jsCanvas = new JsCanvas(canvas);
+    jsCanvas->mPixelMap_ = pixelMap;
+    status = napi_wrap_s(env, objValue, jsCanvas, JsCanvas::Destructor, nullptr, &CANVAS_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic failed to wrap native instance");
+        return nullptr;
+    }
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic failed to define properties");
+        return nullptr;
+    }
+    return objValue;
+}
+#endif
 
 void JsCanvas::Destructor(napi_env env, void *nativeObject, void *finalize)
 {
@@ -388,6 +425,9 @@ napi_value JsCanvas::Init(napi_env env, napi_value exportObj)
 
 JsCanvas::~JsCanvas()
 {
+    if (creator_ != nullptr) {
+        creator_->OnCanvasDestroyed(this);
+    }
     if (owned_) {
         delete m_canvas;
     }
@@ -396,7 +436,7 @@ JsCanvas::~JsCanvas()
 
 napi_value JsCanvas::Clear(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClear(env, info) : nullptr;
 }
 
@@ -404,7 +444,8 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnClear canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -414,7 +455,7 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
         ROSEN_LOGE("JsCanvas::OnClear Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
 
     JS_CALL_DRAWING_FUNC(m_canvas->Clear(color));
@@ -428,7 +469,7 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawShadow(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawShadow(env, info) : nullptr;
 }
 
@@ -436,12 +477,13 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow canvas is null.");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     napi_value argv[ARGC_SEVEN] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SEVEN);
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     Point3 offset;
     Point3 lightPos;
@@ -485,7 +527,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawArc(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawArc(env, info) : nullptr;
 }
 
@@ -493,7 +535,8 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawArc canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -502,7 +545,7 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -523,7 +566,7 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawArcWithCenter(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawArcWithCenter(env, info) : nullptr;
 }
 
@@ -531,7 +574,8 @@ napi_value JsCanvas::OnDrawArcWithCenter(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawArcWithCenter canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -540,7 +584,7 @@ napi_value JsCanvas::OnDrawArcWithCenter(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -568,7 +612,7 @@ napi_value JsCanvas::OnDrawArcWithCenter(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawRect(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRect(env, info) : nullptr;
 }
 
@@ -576,7 +620,8 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRect canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     size_t argc = ARGC_FOUR;
@@ -587,7 +632,7 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
         double ltrb[ARGC_FOUR] = {0};
         if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+                "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
         }
 
         drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
@@ -602,7 +647,9 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
         GET_DOUBLE_PARAM(ARGC_THREE, bottom);
         drawingRect = Drawing::Rect(left, top, right, bottom);
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect parameter count. Expected: 1 or 4, Actual: " +
+            std::to_string(argc));
     }
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
@@ -618,7 +665,7 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
 napi_value JsCanvas::QuickRejectPath(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectPath(env, info) : nullptr;
 }
 
@@ -626,14 +673,15 @@ napi_value JsCanvas::OnQuickRejectPath(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnQuickRejectPath canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     if (jsPath == nullptr || jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnQuickRejectPath path is nullptr");
@@ -647,7 +695,7 @@ napi_value JsCanvas::OnQuickRejectPath(napi_env env, napi_callback_info info)
 napi_value JsCanvas::QuickRejectRect(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectRect(env, info) : nullptr;
 }
 
@@ -655,7 +703,8 @@ napi_value JsCanvas::OnQuickRejectRect(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnQuickRejectRect canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = { nullptr };
@@ -664,7 +713,7 @@ napi_value JsCanvas::OnQuickRejectRect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -675,7 +724,7 @@ napi_value JsCanvas::OnQuickRejectRect(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawCircle(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawCircle(env, info) : nullptr;
 }
 
@@ -683,7 +732,8 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawCircle canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -710,7 +760,7 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawImage(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImage(env, info) : nullptr;
 }
 
@@ -719,7 +769,8 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImage canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_FOUR;
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -756,7 +807,7 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         m_canvas->DrawImage(*image, px, py, Drawing::SamplingOptions());
     } else {
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
 
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
@@ -784,7 +835,7 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawColor(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawColor(env, info) : nullptr;
 }
 
@@ -792,7 +843,8 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawColor canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     size_t argc = ARGC_FIVE;
@@ -804,7 +856,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
         if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
             ROSEN_LOGE("JsCanvas::OnDrawColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The range of color channels must be [0, 255].");
+                "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
         }
         if (argc == ARGC_ONE) {
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
@@ -835,7 +887,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color, static_cast<BlendMode>(jsMode));
         }
     } else {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect parameter count. Expected: 1, 2, 4, or 5, Actual: " +
+            std::to_string(argc));
     }
 
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -848,7 +902,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawOval(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawOval(env, info) : nullptr;
 }
 
@@ -856,7 +910,8 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawOval canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
@@ -864,7 +919,7 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -880,7 +935,7 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawPoint(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPoint(env, info) : nullptr;
 }
 
@@ -888,7 +943,8 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPoint canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -935,7 +991,7 @@ static bool OnMakePoints(napi_env& env, Point* point, uint32_t size, napi_value&
 
 napi_value JsCanvas::DrawPoints(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPoints(env, info) : nullptr;
 }
 
@@ -943,7 +999,8 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPoints canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -951,7 +1008,11 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
     if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect src array size.");
+    }
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsCanvas::OnDrawPoints size exceeds the upper limit");
+        return nullptr;
     }
     if (argc == ARGC_ONE) {
         Point* points = new(std::nothrow) Point[size];
@@ -997,7 +1058,7 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawPath(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPath(env, info) : nullptr;
 }
 
@@ -1005,14 +1066,15 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPath canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPath path is nullptr");
@@ -1032,7 +1094,7 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawLine(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawLine(env, info) : nullptr;
 }
 
@@ -1040,7 +1102,8 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawLine canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -1068,7 +1131,7 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawText(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawText(env, info) : nullptr;
 }
 
@@ -1076,14 +1139,15 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawText canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
 
     JsTextBlob* jsTextBlob = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsTextBlob);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsTextBlob, &TEXT_BLOB_TYPE_TAG);
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, x);
     double y = 0.0;
@@ -1108,7 +1172,11 @@ bool GetGlyphIds(napi_env env, napi_value& jsGlyphIds, uint32_t size, std::uniqu
     glyphIds = std::make_unique<uint16_t[]>(size);
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempGlyphIds = nullptr;
-        napi_get_element(env, jsGlyphIds, i, &tempGlyphIds);
+        if (napi_get_element(env, jsGlyphIds, i, &tempGlyphIds) != napi_ok || tempGlyphIds == nullptr) {
+            ROSEN_LOGE("GetGlyphIds element access failed at index %{public}u", i);
+            glyphIds[i] = 0;
+            continue;
+        }
         uint32_t glyphId = 0;
         if (napi_get_value_uint32(env, tempGlyphIds, &glyphId) != napi_ok) {
             ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
@@ -1143,7 +1211,7 @@ bool GetGlyphPositions(napi_env env, napi_value& jsPosition, uint32_t size,
 napi_value JsCanvas::DrawGlyphs(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawGlyphs(env, info) : nullptr;
 }
 
@@ -1176,7 +1244,8 @@ std::shared_ptr<Font> GetValidFont(const std::shared_ptr<Font>& font)
 napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     napi_value argv[ARGC_SIX] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SIX);
@@ -1187,10 +1256,11 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     int32_t glyphCount = 0;
     GET_INT32_PARAM(ARGC_FOUR, glyphCount);
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_FIVE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_FIVE, jsFont, &FONT_TYPE_TAG);
     std::shared_ptr<Font> font = GetValidFont(jsFont->GetFont());
     if (font == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Font object is invalid.");
     }
     napi_value jsGlyphIds = argv[ARGC_ZERO];
     napi_value jsPosition = argv[ARGC_TWO];
@@ -1198,7 +1268,7 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     uint32_t positionsSize = 0;
     if (napi_get_array_length(env, jsGlyphIds, &glyphIdsSize) != napi_ok || (glyphIdsSize == 0) ||
         napi_get_array_length(env, jsPosition, &positionsSize) != napi_ok || (positionsSize == 0)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect array size.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect array size.");
     }
     if (glyphCount <= 0 || glyphIdOffSet < 0 || positionOffSet < 0 ||
         (glyphIdsSize < static_cast<uint32_t>(GlyphSafeAdd(glyphIdOffSet, glyphCount))) ||
@@ -1225,7 +1295,7 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawSingleCharacter(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawSingleCharacter(env, info) : nullptr;
 }
 
@@ -1233,24 +1303,25 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Invalid m_canvas object.");
     }
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
     size_t len = 0;
+    std::string exceptionMsg = "Parameter error. Param[0] is not a single character.";
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, exceptionMsg);
     }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. Input parameter0 should be single character.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, exceptionMsg);
     }
     char str[len + 1];
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], str, len + 1, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the character.");
     }
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, x);
     double y = 0.0;
@@ -1269,7 +1340,7 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
     size_t byteLen = currentStr - str;
     if (byteLen != len) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. Input parameter0 should be single character.");
+            "Parameter error. Param[0] is not a single character.");
     }
     m_canvas->DrawSingleCharacter(unicode, *font, x, y);
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -1283,14 +1354,15 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
 napi_value JsCanvas::DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawSingleCharacterWithFeatures(env, info) : nullptr;
 }
 
 napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_FIVE] = {nullptr};
@@ -1298,15 +1370,17 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
 
     size_t len = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Error occurred while retrieving character content.");
     }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
-            "Input parameter0 should be single character.");
+            "Parameter error. Param[0] should be a single character.");
     }
     std::vector<char> strBuffer(len + 1);
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], strBuffer.data(), len + 1, &len) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Error occurred while retrieving character content.");
     }
     strBuffer[len] = 0;
 
@@ -1316,11 +1390,11 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
     size_t byteLen = currentPtr - strBuffer.data();
     if (byteLen != len) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
-            "Parameter verification failed. Input parameter0 should be single character.");
+            "Parameter error. Param[0] should be a single character.");
     }
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
 
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, x);
@@ -1342,7 +1416,8 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
     napi_value array = argv[ARGC_FOUR];
     uint32_t size = 0;
     if (napi_get_array_length(env, array, &size) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Param[4] type mismatch. Expected: Array, Actual: Invalid Array");
     }
 
     std::shared_ptr<DrawingFontFeatures> featuresPtr = std::make_shared<DrawingFontFeatures>();
@@ -1358,7 +1433,7 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
 
 napi_value JsCanvas::DrawPixelMapMesh(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawPixelMapMesh(env, info) : nullptr;
 }
 
@@ -1367,7 +1442,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_SEVEN] = {nullptr};
@@ -1393,7 +1469,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 
     if (column == 0 || row == 0) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh column or row is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid column or row params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Param[1] and Param[2] must be greater than 0.");
     }
 
     napi_value verticesArray = argv[ARGC_THREE];
@@ -1405,13 +1482,16 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     tempVerticesSize *= coordinateDim;
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertices are invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect Param[3] array count. Expected: " + std::to_string(tempVerticesSize) +
+            ", Actual: " + std::to_string(verticesSize));
     }
 
     auto vertices = new (std::nothrow) float[verticesSize];
     if (!vertices) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh create array with size of vertices failed");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Size of vertices exceed memory limit.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Size of vertices exceed memory limit.");
     }
 
     for (uint32_t i = 0; i < verticesSize; i++) {
@@ -1422,7 +1502,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
             ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertex is invalid");
             delete []vertices;
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect DrawPixelMapMesh parameter vertex type.");
+                "Parameter error. Param[3] array element type mismatch. Expected: number. Actual: " +
+                GetNapiValueTypeString(env, tempVertex));
         }
         vertices[i] = vertex;
     }
@@ -1438,7 +1519,9 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
         delete []vertices;
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter5 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect Param[5] array count. Expected: 0 or " + std::to_string(tempColorsSize) +
+            ", Actual: " + std::to_string(colorsSize));
     }
 
     if (colorsSize == 0) {
@@ -1454,7 +1537,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     if (!colors) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh create array with size of colors failed");
         delete []vertices;
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Size of colors exceed memory limit.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Size of colors exceed memory limit.");
     }
     for (uint32_t i = 0; i < colorsSize; i++) {
         napi_value tempColor = nullptr;
@@ -1464,8 +1548,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
             ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh color is invalid");
             delete []vertices;
             delete []colors;
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect DrawPixelMapMesh parameter color type.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Param[5] array element"
+                " type mismatch. Expected: number, Actual: get value failed.");
         }
         colors[i] = color;
     }
@@ -1489,7 +1573,7 @@ bool GetPositions(napi_env env, uint32_t pointLength, napi_value& positionsArray
     uint32_t positionsSize = 0;
     if (napi_get_array_length(env, positionsArray, &positionsSize) != napi_ok) {
         ROSEN_LOGE("JsCanvas::OnDrawVertices positionsArray is invalid");
-        NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid positions params.");
+        NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect array size.");
         return false;
     };
     if (positionsSize != pointLength) {
@@ -1552,7 +1636,8 @@ bool GetColors(napi_env env, uint32_t pointLength, napi_value& colorsArray,
             uint32_t vertex = 0;
             if (napi_get_value_uint32(env, tempVertex, &vertex) != napi_ok) {
                 ROSEN_LOGE("JsCanvas::OnDrawVertices colors is invalid");
-                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
+                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                    "Parameter error. Failed to obtain the " + std::to_string(i) +"th value from the colorsArray");
                 return false;
             }
             colorsPtr[i] = vertex;
@@ -1580,12 +1665,14 @@ bool GetIndices(napi_env env, uint32_t indicesLength, napi_value& indicesArray,
             uint32_t vertex = 0;
             if (napi_get_value_uint32(env, tempVertex, &vertex) != napi_ok) {
                 ROSEN_LOGE("JsCanvas::OnDrawVertices indices is Invalid");
-                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid indices params.");
+                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                    "Parameter error. Failed to obtain the " + std::to_string(i) +"th value from the indicesArray");
                 return false;
             }
             if (vertex > std::numeric_limits<uint16_t>::max()) {
                 ROSEN_LOGE("JsCanvas::OnDrawVertices indices value exceeds uint16_t range");
-                NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
+                NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                    "Parameter error. Param[6] array element value exceeds uint16_t range.");
                 return false;
             }
             indicesPtr[i] = static_cast<uint16_t>(vertex);
@@ -1596,14 +1683,15 @@ bool GetIndices(napi_env env, uint32_t indicesLength, napi_value& indicesArray,
 
 napi_value JsCanvas::DrawVertices(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawVertices(env, info) : nullptr;
 }
 
 napi_value JsCanvas::OnDrawVertices(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     napi_value argv[ARGC_EIGHT] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_EIGHT);
@@ -1646,7 +1734,7 @@ napi_value JsCanvas::OnDrawVertices(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawRegion(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRegion(env, info) : nullptr;
 }
 
@@ -1654,13 +1742,14 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRegion canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     if (jsRegion->GetRegion() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRegion region is nullptr");
         return nullptr;
@@ -1676,7 +1765,7 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawBackground(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawBackground(env, info) : nullptr;
 }
 
@@ -1684,14 +1773,15 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawBackground canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsBrush* jsBrush = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsBrush);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsBrush, &BRUSH_TYPE_TAG);
     if (jsBrush->GetBrush() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawBackground brush is nullptr");
         return nullptr;
@@ -1708,7 +1798,7 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawRoundRect(env, info) : nullptr;
 }
 
@@ -1716,14 +1806,15 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRoundRect canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRoundRect* jsRoundRect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRoundRect, &ROUND_RECT_TYPE_TAG);
 
     m_canvas->DrawRoundRect(jsRoundRect->GetRoundRect());
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -1736,7 +1827,7 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawNestedRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawNestedRoundRect(env, info) : nullptr;
 }
 
@@ -1744,17 +1835,18 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawNestedRoundRect canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsRoundRect* jsOuter = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsOuter);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsOuter, &ROUND_RECT_TYPE_TAG);
 
     JsRoundRect* jsInner = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsInner);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsInner, &ROUND_RECT_TYPE_TAG);
 
     m_canvas->DrawNestedRoundRect(jsOuter->GetRoundRect(), jsInner->GetRoundRect());
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
@@ -1767,7 +1859,7 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
 
 napi_value JsCanvas::GetTotalMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetTotalMatrix(env, info) : nullptr;
 }
 
@@ -1775,7 +1867,8 @@ napi_value JsCanvas::OnGetTotalMatrix(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::GetTotalMatrix canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     Matrix matrix = m_canvas->GetTotalMatrix();
@@ -1787,21 +1880,22 @@ napi_value JsCanvas::OnGetTotalMatrix(napi_env env, napi_callback_info info)
 napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
     Canvas* canvas = me->GetCanvas();
     if (canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachPen canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPen* jsPen = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPen);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPen, &PEN_TYPE_TAG);
 
     if (jsPen->GetPen() == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachPen pen is nullptr");
@@ -1815,21 +1909,22 @@ napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)
 napi_value JsCanvas::AttachBrush(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
     Canvas* canvas = me->GetCanvas();
     if (canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachBrush canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsBrush* jsBrush = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsBrush);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsBrush, &BRUSH_TYPE_TAG);
 
     if (jsBrush->GetBrush() == nullptr) {
         ROSEN_LOGE("JsCanvas::AttachBrush brush is nullptr");
@@ -1843,14 +1938,15 @@ napi_value JsCanvas::AttachBrush(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DetachPen(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
     Canvas* canvas = me->GetCanvas();
     if (canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::DetachPen canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     canvas->DetachPen();
@@ -1860,14 +1956,15 @@ napi_value JsCanvas::DetachPen(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DetachBrush(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     if (me == nullptr) {
         return nullptr;
     }
     Canvas* canvas = me->GetCanvas();
     if (canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::DetachBrush canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     canvas->DetachBrush();
@@ -1876,7 +1973,7 @@ napi_value JsCanvas::DetachBrush(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Skew(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSkew(env, info) : nullptr;
 }
 
@@ -1884,7 +1981,8 @@ napi_value JsCanvas::OnSkew(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSkew m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -1901,7 +1999,7 @@ napi_value JsCanvas::OnSkew(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Rotate(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRotate(env, info) : nullptr;
 }
 
@@ -1909,7 +2007,8 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnRotate m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -1928,7 +2027,7 @@ napi_value JsCanvas::OnRotate(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetSaveCount(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetSaveCount(env, info) : nullptr;
 }
 
@@ -1936,14 +2035,15 @@ napi_value JsCanvas::OnGetSaveCount(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnGetSaveCount canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     return CreateJsNumber(env, m_canvas->GetSaveCount());
 }
 
 napi_value JsCanvas::GetWidth(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetWidth(env, info) : nullptr;
 }
 
@@ -1951,14 +2051,15 @@ napi_value JsCanvas::OnGetWidth(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnGetWidth canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     return CreateJsNumber(env, m_canvas->GetWidth());
 }
 
 napi_value JsCanvas::GetHeight(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetHeight(env, info) : nullptr;
 }
 
@@ -1966,14 +2067,15 @@ napi_value JsCanvas::OnGetHeight(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnGetHeight canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     return CreateJsNumber(env, m_canvas->GetHeight());
 }
 
 napi_value JsCanvas::ClipPath(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipPath(env, info) : nullptr;
 }
 
@@ -1981,14 +2083,15 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnClipPath m_canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
 
     Path* path = jsPath->GetPath();
     if (path == nullptr) {
@@ -2001,7 +2104,7 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
     }
 
     int32_t jsClipOp = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsClipOp);
+    GET_ENUM_PARAM(ARGC_ONE, jsClipOp, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     if (argc == ARGC_TWO) {
         m_canvas->ClipPath(*path, static_cast<ClipOp>(jsClipOp));
@@ -2017,7 +2120,7 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRegion(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRegion(env, info) : nullptr;
 }
 
@@ -2025,14 +2128,15 @@ napi_value JsCanvas::OnClipRegion(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnClipRegion m_canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
 
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
@@ -2053,7 +2157,7 @@ napi_value JsCanvas::OnClipRegion(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Translate(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnTranslate(env, info) : nullptr;
 }
 
@@ -2061,7 +2165,8 @@ napi_value JsCanvas::OnTranslate(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnTranslate m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -2078,7 +2183,7 @@ napi_value JsCanvas::OnTranslate(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Save(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSave(env, info) : nullptr;
 }
 
@@ -2086,14 +2191,15 @@ napi_value JsCanvas::OnSave(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSave canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     return CreateJsNumber(env, m_canvas->Save());
 }
 
 napi_value JsCanvas::SaveLayer(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSaveLayer(env, info) : nullptr;
 }
 
@@ -2101,7 +2207,8 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSaveLayer canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -2117,14 +2224,15 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok ||
         (valueType != napi_null && valueType != napi_object)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnSaveLayer parameter0 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. param[0] type mismatch. "
+            "Expected: object or null, Actual: " + GetNapiValueTypeString(env, argv[ARGC_ZERO]));
     }
     Drawing::Rect* drawingRectPtr = nullptr;
     double ltrb[ARGC_FOUR] = {0};
     if (valueType == napi_object) {
         if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+                BuildParamTypeMismatchMsg(ARGC_ZERO, "Rect", env, argv[ARGC_ZERO]));
         }
         drawingRectPtr = new Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
     }
@@ -2143,12 +2251,13 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
         if (drawingRectPtr != nullptr) {
             delete drawingRectPtr;
         }
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnSaveLayer parameter1 type.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            BuildParamTypeMismatchMsg(ARGC_ONE, "object or null", env, argv[ARGC_ONE]));
     }
     Drawing::Brush* drawingBrushPtr = nullptr;
     if (valueType == napi_object) {
         JsBrush* jsBrush = nullptr;
-        napi_status status = napi_unwrap(env, argv[ARGC_ONE], reinterpret_cast<void**>(&jsBrush));
+        napi_status status = napi_unwrap_s(env, argv[ARGC_ONE], &BRUSH_TYPE_TAG, reinterpret_cast<void**>(&jsBrush));
         if (status != napi_ok || jsBrush == nullptr) {
             if (drawingRectPtr != nullptr) {
                 delete drawingRectPtr;
@@ -2171,7 +2280,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::RestoreToCount(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRestoreToCount(env, info) : nullptr;
 }
 
@@ -2179,7 +2288,8 @@ napi_value JsCanvas::OnRestoreToCount(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnRestoreToCount canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
@@ -2194,7 +2304,7 @@ napi_value JsCanvas::OnRestoreToCount(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Restore(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnRestore(env, info) : nullptr;
 }
 
@@ -2202,7 +2312,8 @@ napi_value JsCanvas::OnRestore(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnRestore m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     m_canvas->Restore();
     return nullptr;
@@ -2210,7 +2321,7 @@ napi_value JsCanvas::OnRestore(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRect(env, info) : nullptr;
 }
 
@@ -2218,7 +2329,8 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnClipRect m_canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
@@ -2227,7 +2339,7 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[0] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -2237,7 +2349,7 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
     }
 
     int32_t clipOpInt = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, clipOpInt);
+    GET_ENUM_PARAM(ARGC_ONE, clipOpInt, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     if (argc == ARGC_TWO) {
         m_canvas->ClipRect(drawingRect, static_cast<ClipOp>(clipOpInt));
@@ -2253,7 +2365,7 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ClipRoundRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnClipRoundRect(env, info) : nullptr;
 }
 
@@ -2261,7 +2373,8 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnClipRoundRect m_canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     size_t argc = ARGC_THREE;
@@ -2269,7 +2382,7 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);
 
     JsRoundRect* jsRoundRect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRoundRect, &ROUND_RECT_TYPE_TAG);
     if (jsRoundRect == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawRegion jsRoundRect is nullptr");
         return nullptr;
@@ -2297,7 +2410,7 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::SetMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnSetMatrix(env, info) : nullptr;
 }
 
@@ -2305,14 +2418,15 @@ napi_value JsCanvas::OnSetMatrix(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSetMatrix canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnSetMatrix matrix is nullptr");
@@ -2325,7 +2439,7 @@ napi_value JsCanvas::OnSetMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::Scale(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnScale(env, info) : nullptr;
 }
 
@@ -2333,7 +2447,8 @@ napi_value JsCanvas::OnScale(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnScale canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -2350,7 +2465,7 @@ napi_value JsCanvas::OnScale(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ConcatMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnConcatMatrix(env, info) : nullptr;
 }
 
@@ -2358,14 +2473,15 @@ napi_value JsCanvas::OnConcatMatrix(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnConcatMatrix canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsCanvas::OnConcatMatrix matrix is nullptr");
@@ -2378,7 +2494,7 @@ napi_value JsCanvas::OnConcatMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::IsClipEmpty(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnIsClipEmpty(env, info) : nullptr;
 }
 
@@ -2386,7 +2502,8 @@ napi_value JsCanvas::OnIsClipEmpty(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnIsClipEmpty canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     return CreateJsValue(env, m_canvas->IsClipEmpty());
@@ -2394,7 +2511,7 @@ napi_value JsCanvas::OnIsClipEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::GetLocalClipBounds(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnGetLocalClipBounds(env, info) : nullptr;
 }
 
@@ -2402,7 +2519,8 @@ napi_value JsCanvas::OnGetLocalClipBounds(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnGetLocalClipBounds canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     return GetRectAndConvertToJsValue(env, m_canvas->GetLocalClipBounds());
 }
@@ -2442,7 +2560,7 @@ void JsCanvas::RestoreCanvas()
 napi_value JsCanvas::DrawImageNine(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageNine(env, info) : nullptr;
 }
 
@@ -2451,7 +2569,8 @@ napi_value JsCanvas::OnDrawImageNine(napi_env env, napi_callback_info info)
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageNine canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = { nullptr };
@@ -2468,13 +2587,13 @@ napi_value JsCanvas::OnDrawImageNine(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) { // arg #1: centerRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect src parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[1] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::RectI centerRectI = Drawing::RectI(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) { // arg #2: dstRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect dst parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[2] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -2500,7 +2619,7 @@ napi_value JsCanvas::OnDrawImageNine(napi_env env, napi_callback_info info)
 napi_value JsCanvas::DrawImageLattice(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageLattice(env, info) : nullptr;
 }
 
@@ -2509,7 +2628,8 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageLattice canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = { nullptr };
@@ -2524,7 +2644,7 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
     }
 
     JsLattice* jsLattice = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsLattice);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsLattice, &LATTICE_TYPE_TAG);
     std::shared_ptr<Lattice> lattice = jsLattice->GetLattice();
     if (lattice == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageLattice lattice is nullptr");
@@ -2534,7 +2654,7 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) { // arg #2: dstRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect dst parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[2] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -2559,7 +2679,7 @@ napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawImageRect(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageRect(env, info) : nullptr;
 }
 
@@ -2568,7 +2688,8 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     size_t argc = ARGC_THREE;
@@ -2586,7 +2707,7 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) { // arg #1: dstRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect dst parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[1] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -2607,7 +2728,8 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
         m_canvas->DrawImageRect(*image, dstRect, Drawing::SamplingOptions());
     } else {
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_TWO, jsSamplingOptions); // (optional) arg #2: samplingOptions
+        // (optional) arg #2: samplingOptions
+        GET_UNWRAP_PARAM_S(ARGC_TWO, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImageRect get samplingOptions is nullptr");
@@ -2637,7 +2759,7 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::DrawImageRectWithSrc(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnDrawImageRectWithSrc(env, info) : nullptr;
 }
 
@@ -2661,10 +2783,11 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions());
     } else if (argc == ARGC_FOUR) { // without optional arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter error. param[3] type mismatch. Expected: SamplingOptions object, Actual: nullptr");
         }
         if (canvas.GetDrawingType() == Drawing::DrawingType::RECORDING) {
             ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(&canvas);
@@ -2680,10 +2803,11 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         canvas.DrawImageRect(*image, srcRect, dstRect, *samplingOptions.get());
     } else if (argc == ARGC_FIVE) {  // with optional arg #3 (samplingOptions) and arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
-        GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+        GET_UNWRAP_PARAM_S(ARGC_THREE, jsSamplingOptions, &SAMPLING_OPTIONS_TYPE_TAG);
         std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
         if (samplingOptions == nullptr) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter error. param[3] type mismatch. Expected: SamplingOptions object, Actual: nullptr");
         }
         int32_t constraint = 0;
         GET_ENUM_PARAM(ARGC_FOUR,
@@ -2705,7 +2829,9 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         canvas.DrawImageRect(*image, srcRect, dstRect,
             *samplingOptions.get(), static_cast<SrcRectConstraint>(constraint));
     } else { // argc > 5:
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "More than 5 parameters are not supported");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Incorrect parameter count. Expected: 3-5, Actual: " +
+            std::to_string(argc));
     }
     return nullptr;
 }
@@ -2716,7 +2842,8 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     size_t argc = ARGC_FIVE;
@@ -2734,13 +2861,13 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
     double ltrb[ARGC_FOUR] = {0};
     if (!ConvertFromJsRect(env, argv[ARGC_ONE], ltrb, ARGC_FOUR)) { // arg #1: srcRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect src parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[1] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect srcRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     if (!ConvertFromJsRect(env, argv[ARGC_TWO], ltrb, ARGC_FOUR)) { // arg #2: dstRect
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect rect dst parameter type. The type of left, top, right and bottom must be number.");
+            "Parameter error. param[2] type mismatch. The type of left, top, right and bottom must be number.");
     }
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
@@ -2756,7 +2883,7 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
 
 napi_value JsCanvas::ResetMatrix(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnResetMatrix(env, info) : nullptr;
 }
 
@@ -2764,7 +2891,8 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnResetMatrix m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     m_canvas->ResetMatrix();
     return nullptr;
@@ -2772,7 +2900,7 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::ResetClip(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnResetClip(env, info) : nullptr;
 }
 
@@ -2780,65 +2908,16 @@ napi_value JsCanvas::OnResetClip(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnResetClip m_canvas is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
     m_canvas->ResetClip();
     return nullptr;
 }
 
-napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 3;
-    napi_value argv[ARGC_THREE] = {nullptr};
-    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_THREE) {
-        return nullptr;
-    }
-    int64_t canvasAddr = 0;
-    if (napi_get_value_int64(env, argv[ARGC_ZERO], &canvasAddr) != napi_ok) {
-        return nullptr;
-    }
-    Canvas* canvas = reinterpret_cast<Canvas*>(canvasAddr);
-    if (canvas == nullptr) {
-        return nullptr;
-    }
-    bool owned = false;
-    if (napi_get_value_bool(env, argv[ARGC_TWO], &owned) != napi_ok) {
-        return nullptr;
-    }
-#ifdef ROSEN_OHOS
-    int64_t pixelMapAddr = 0;
-    if (napi_get_value_int64(env, argv[ARGC_ONE], &pixelMapAddr) != napi_ok) {
-        return nullptr;
-    }
-    std::shared_ptr<Media::PixelMap> pixelMap = *reinterpret_cast<std::shared_ptr<Media::PixelMap>*>(pixelMapAddr);
-    if (pixelMap == nullptr) {
-        return nullptr;
-    }
-#endif
-    JsCanvas* jsCanvas = new JsCanvas(canvas, owned);
-#ifdef ROSEN_OHOS
-    jsCanvas->mPixelMap_ = pixelMap;
-#endif
-    napi_value result = nullptr;
-    napi_create_object(env, &result);
-    if (result == nullptr) {
-        delete jsCanvas;
-        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Create canvas object failed!");
-        return nullptr;
-    }
-    napi_status status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete jsCanvas;
-        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Failed to wrap native instance");
-        return nullptr;
-    }
-    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
-    return result;
-}
-
 napi_value JsCanvas::IsOpaque(napi_env env, napi_callback_info info)
 {
-    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    JsCanvas* me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
     return (me != nullptr) ? me->OnIsOpaque(env, info) : nullptr;
 }
 
@@ -2846,10 +2925,48 @@ napi_value JsCanvas::OnIsOpaque(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnIsOpaque canvas is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
     }
 
     return CreateJsValue(env, m_canvas->IsOpaque());
+}
+
+napi_value JsCanvas::DrawRecordCmd(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas *me = CheckParamsAndGetThisWithTag<JsCanvas>(env, info, &CANVAS_TYPE_TAG);
+    return (me != nullptr) ? me->OnDrawRecordCmd(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawRecordCmd(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawRecordCmd canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Canvas object is invalid.");
+    }
+
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsRecordCmd *jsRecordCmd = nullptr;
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRecordCmd, &RECORD_CMD_TYPE_TAG);
+
+    if (jsRecordCmd == nullptr || jsRecordCmd->GetRecordCmd() == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawRecordCmd recordCmd is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. param[0] type mismatch. Expected: RecordCmd object, Actual: nullptr");
+    }
+
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    m_canvas->DrawRecordCmd(jsRecordCmd->GetRecordCmd());
+#ifdef ROSEN_OHOS
+    if (mPixelMap_ != nullptr) {
+        mPixelMap_->MarkDirty();
+    }
+#endif
+    return nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

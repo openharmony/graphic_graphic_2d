@@ -402,6 +402,15 @@ void RSRenderComposerAgent::HandlePowerStatus(ScreenPowerStatus status)
     rsRenderComposer_->HandlePowerStatus(status);
 }
 
+void RSRenderComposerAgent::SetSkipDelay(bool skipDelay)
+{
+    if (rsRenderComposer_ == nullptr) {
+        RS_LOGE("rsRenderComposer is nullptr");
+        return;
+    }
+    rsRenderComposer_->SetSkipDelay(skipDelay);
+}
+
 void RSRenderComposerAgent::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     if (buffer && rsRenderComposer_) {
@@ -469,6 +478,26 @@ void RSRenderComposerAgent::DumpVKImageInfo(std::string& dumpString)
             renderComposerAgent->rsRenderComposer_->DumpVKImageInfo(dumpString);
         }
     ).wait();
+}
+
+void RSRenderComposerAgent::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    if (rsRenderComposer_ == nullptr) {
+        RS_LOGE("%{public}s rsRenderComposer is nullptr", __func__);
+        return;
+    }
+
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, flag, activeRect]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                RS_LOGE("%{public}s renderComposerAgent is nullptr", __func__);
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetActiveRectSwitchStatus(flag, activeRect);
+        }
+    );
 }
 } // namespace Rosen
 } // namespace OHOS

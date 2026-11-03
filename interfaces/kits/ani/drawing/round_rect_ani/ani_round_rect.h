@@ -39,8 +39,7 @@ public:
 
 private:
     static ani_object RoundRectTransferStatic(ani_env*  env, [[maybe_unused]]ani_object obj, ani_object input);
-    static ani_long GetRoundRectAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<RoundRect>* GetRoundRectPtrAddr();
+    static ani_object RoundRectTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<RoundRect> roundRect_ = nullptr;
 };
 } // namespace Drawing

@@ -234,6 +234,7 @@ public:
     void SetStaticCached(bool isFreeze);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
+    void SetSolidLayerEnabled(bool isEnabled);
 
     /**
      * @brief Enable Camera Rotation Unchanged
@@ -336,6 +337,7 @@ public:
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
+    uint32_t GetAncoFlags() const;
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetDarkColorMode(bool isDark);
@@ -385,7 +387,6 @@ public:
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
 
-    void RecreateNodeAndSurface(SurfaceId surfaceId = 0, bool unobscured = false);
     void SetIsDepthResource(bool isDepthResource);
 #ifndef ROSEN_CROSS_PLATFORM
     using BufferReleaseCallback = std::function<void(int release_fence_fd)>;
@@ -395,8 +396,8 @@ public:
     void SetDesiredPresentTime(int64_t desiredPresentTime);
     void SetDamageRegion(std::vector<Rect> rects);
     void SetBufferTransform(GraphicTransformType transform);
-    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
+    void SetDelegateDstRect(float x, float y, float w, float h);
+    void SetDelegateSrcRect(float x, float y, float w, float h);
     bool SetDelegateMode(bool isDelegateMode);
 #endif
 
@@ -482,6 +483,7 @@ private:
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;
+    std::atomic<int32_t> ancoFlags_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;

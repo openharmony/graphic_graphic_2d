@@ -38,8 +38,10 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {

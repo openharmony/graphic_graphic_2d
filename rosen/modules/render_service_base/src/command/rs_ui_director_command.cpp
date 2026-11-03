@@ -16,10 +16,10 @@
 #include "command/rs_ui_director_command.h"
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_background_rebuild_param.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +43,13 @@ void RSUIDirectorCommandHelper::GoCreate(RSContext& context, NodeId nodeId, uint
 
 void RSUIDirectorCommandHelper::GoResume(RSContext& context, NodeId nodeId, uint64_t token)
 {
-    auto director = context.GetUIRenderDirector(ExtractPid(nodeId), token);
+    pid_t pid = ExtractPid(nodeId);
+    auto director = context.GetUIRenderDirector(pid, token);
+    // Restore stashed surface nodes only when GoStop stashed them; keep both sides paired on the
+    // same tiered switch instead of the BackgroundRebuildEnabled bool.
+    if (RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode() == GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP) {
+        context.GetMutableNodeMap().RegisterSurfaceRenderNode(pid, token);
+    }
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoResume failed to find director for token: %{public}" PRIu64, token);
         return;
@@ -74,8 +80,27 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
-    if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
-        context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+    // pid_t varies across platforms, cast to int32_t for the log format specifier
+    auto logPid = static_cast<int32_t>(pid);
+    // Node map cleanup is dispatched by the tiered GoStopNodeMapMode instead of the BackgroundRebuildEnabled
+    // bool: NONE is a debug tier that keeps the node map untouched for comparison, and the default
+    // REMOVE_SURFACE_NODE_MAP keeps the historical disabled-rebuild behavior.
+    switch (RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode()) {
+        case GoStopNodeMapMode::DESTROY_TOKEN_NODE:
+            RS_LOGI("RSUIDirectorCommandHelper::GoStop DestroyTokenNode, pid: %{public}d, token: %{public}" PRIu64,
+                logPid, token);
+            context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+            break;
+        case GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP:
+            RS_LOGI("RSUIDirectorCommandHelper::GoStop RemoveSurfaceNodeMap, pid: %{public}d, token: %{public}" PRIu64,
+                logPid, token);
+            context.GetMutableNodeMap().RemoveSurfaceNodeMap(pid, token);
+            break;
+        case GoStopNodeMapMode::NONE:
+        default:
+            RS_LOGD("RSUIDirectorCommandHelper::GoStop skip node map operation, pid: %{public}d, "
+                "token: %{public}" PRIu64, logPid, token);
+            break;
     }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {

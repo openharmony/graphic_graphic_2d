@@ -240,6 +240,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         scaler = 1.0f;
     }
 
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::ColorSpaceConvertor displaySceneType:%{public}d",
+        hdrProperties.displaySceneType);
+ 
+    RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(hdrProperties.displaySceneType, parameter);
+
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
     parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
@@ -288,6 +293,19 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         "hdrBrightness:%{public}f", parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits,
         dynamicRangeMode, hdrProperties.hdrBrightness);
     return true;
+}
+
+void RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(
+    const RSPaintFilterCanvas::DisplaySceneType& displaySceneType,
+    VPEParameter& parameter)
+{
+    if (displaySceneType == RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT) {
+        parameter.scene = Media::VideoProcessingEngine::DisplaySceneType::SCREEN_SHOT;
+    } else if (displaySceneType == RSPaintFilterCanvas::DisplaySceneType::VIRTUAL_SCREEN) {
+        parameter.scene = Media::VideoProcessingEngine::DisplaySceneType::VIRTUAL_SCREEN;
+    } else {
+        parameter.scene = Media::VideoProcessingEngine::DisplaySceneType::MAIN_SCREEN;
+    }
 }
 
 bool RSColorSpaceConvert::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,

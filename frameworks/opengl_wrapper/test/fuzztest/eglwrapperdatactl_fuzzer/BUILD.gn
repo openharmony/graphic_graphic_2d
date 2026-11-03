@@ -39,6 +39,7 @@ ohos_fuzztest("EGLWrapperDataCtlFuzzTest") {
     "graphic_surface:surface",
     "egl:libEGL",
     "opengles:libGLES",
+    "bounds_checking_function:libsec_shared",
   ]
 }
 

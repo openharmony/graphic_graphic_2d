@@ -56,6 +56,7 @@
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
+#include "iconsumer_surface.h"
 #include "message_parcel.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #endif
@@ -1508,6 +1509,53 @@ HWTEST_F(RSMarshallingHelperTest, SkipPixelMapReadInt32FailTest, TestSize.Level1
 }
 
 /**
+ * @tc.name: SkipPixelMapNegativeSizeTest
+ * @tc.desc: Verify SkipPixelMap returns false when size is negative except -1
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapNegativeSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-2);
+    EXPECT_FALSE(RSMarshallingHelper::SkipPixelMap(parcel));
+}
+
+/**
+ * @tc.name: SkipPixelMapValidSizeTest
+ * @tc.desc: Verify SkipPixelMap skips pixelmap blob and keeps stream aligned
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapValidSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    constexpr int32_t blobSize = 8;
+    constexpr int32_t nextFieldValue = 100;
+    parcel.WriteInt32(blobSize);
+    parcel.WriteInt64(0);
+    parcel.WriteInt32(nextFieldValue);
+    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+    EXPECT_EQ(parcel.ReadInt32(), nextFieldValue);
+}
+
+/**
+ * @tc.name: SkipPixelMapZeroSizeTest
+ * @tc.desc: Verify SkipPixelMap returns true and keeps stream aligned when size is 0
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapZeroSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    constexpr int32_t nextFieldValue = 200;
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(nextFieldValue);
+    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+    EXPECT_EQ(parcel.ReadInt32(), nextFieldValue);
+}
+
+/**
  * @tc.name: MarshallingTest025
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC
@@ -2093,7 +2141,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest050, TestSize.Level1)
     int32_t height = 20;
     auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
     auto p = Drawing::Point(width, height);
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     for (int i = 0; i < Drawing::MAX_OPITEMSIZE - 1; i++) {
         rootCanvas->DrawPoint(p);
     }
@@ -2135,7 +2183,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest051, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2190,7 +2238,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2263,7 +2311,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
     int32_t width = 10;
     int32_t height = 20;
     auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
-    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
     Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
     auto p = Drawing::Point(width, height);
     recordCanvasTmp->DrawPoint(p);
@@ -2289,6 +2337,112 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
     // test max depth
     EXPECT_FALSE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
     RSMarshallingHelper::EndNoSharedMem();
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest001
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest001, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
+    EXPECT_TRUE(recordCanvasTmp != nullptr);
+    auto width1 = recordCmdUtils->GetWidth();
+    EXPECT_EQ(width1, 10);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest002
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest002, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+    Drawing::RectI rect = Drawing::RectI(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtils->BeginRecording(rect);
+    EXPECT_TRUE(recordCanvasTmp != nullptr);
+    auto height1 = recordCmdUtils->GetHeight();
+    EXPECT_EQ(height1, 20);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest003
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest003, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    canvas->DrawRecordCmd(recordCmd2);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest004
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest004, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    Drawing::Matrix matrix;
+    canvas->DrawRecordCmd(recordCmd2, &matrix);
+}
+
+/**
+ * @tc.name: RSRecordCmdUtilsTest005
+ * @tc.desc: Verify that the width of the recordCmd function is correct.
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RSRecordCmdUtilsTest005, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>(200, 200);
+    ASSERT_TRUE(canvas != nullptr);
+    auto p = Drawing::Point(200, 200);
+    Drawing::RectI rect = Drawing::RectI(0, 0, 200, 200);
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    ASSERT_TRUE(recordCmdUtils2 != nullptr);
+    Drawing::Canvas* recordCanvas = recordCmdUtils2->BeginRecording(rect);
+    ASSERT_TRUE(recordCanvas != nullptr);
+    recordCanvas->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+    ASSERT_TRUE(recordCmd2 != nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0.8, 0, 0, 0, 1.5, 0, 0.01, -0.003, 1); // custom matrix values
+    Drawing::Brush brush(Drawing::Color::COLOR_RED);
+    canvas->DrawRecordCmd(recordCmd2, &matrix, &brush);
 }
 
 /**
@@ -2681,95 +2835,77 @@ HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigUnmarshallingFailTest, Test
 }
 
 #ifdef ROSEN_OHOS
+// The sptr<IRemoteObject> marshalling path was removed from RSMarshallingHelper:
+// transaction data must not carry remote objects anymore.
+
 /**
- * @tc.name: IRemoteObjectMarshallingNullTest
- * @tc.desc: Verify Marshalling of sptr<IRemoteObject> with null value
+ * @tc.name: UnmarshallingSurfaceTypeConfusionTest
+ * @tc.desc: Remote object that is not an IBufferProducer: iface_cast returns null, so
+ *           CreateSurfaceAsProducer returns null; Unmarshalling must fail closed (false, nullptr).
  * @tc.type: FUNC
  */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingNullTest, TestSize.Level1)
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceTypeConfusionTest, TestSize.Level1)
 {
     MessageParcel parcel;
-    sptr<IRemoteObject> val = nullptr;
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
-    bool hasObject = false;
-    ASSERT_TRUE(parcel.ReadBool(hasObject));
-    EXPECT_FALSE(hasObject);
+    ASSERT_TRUE(parcel.WriteBool(true)); // hasSurface = true
+    // Stub of a foreign interface: iface_cast<IBufferProducer> on it returns null (type confusion).
+    sptr<RSBufferAvailableCallbackStub> stub = new RSBufferAvailableCallbackStubMock();
+    ASSERT_NE(stub, nullptr);
+    ASSERT_NE(stub->AsObject(), nullptr);
+    ASSERT_TRUE(parcel.WriteRemoteObject(stub->AsObject()));
+
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
 }
 
 /**
- * @tc.name: IRemoteObjectMarshallingNonNullTest
- * @tc.desc: Verify Marshalling of sptr<IRemoteObject> with non-null value
+ * @tc.name: UnmarshallingSurfaceReadBoolFailTest
+ * @tc.desc: Empty parcel: ReadBool(hasSurface) fails, Unmarshalling returns false and surface stays null.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingNonNullTest, TestSize.Level1)
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceReadBoolFailTest, TestSize.Level1)
 {
-    MessageParcel parcel;
-    sptr<IRemoteObject> val = new RSBufferAvailableCallbackStubMock();
-    ASSERT_TRUE(val != nullptr);
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
-    bool hasObject = false;
-    ASSERT_TRUE(parcel.ReadBool(hasObject));
-    EXPECT_TRUE(hasObject);
+    Parcel parcel;
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
 }
 
 /**
- * @tc.name: IRemoteObjectUnmarshallingNoObjectTest
- * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> when parcel contains no object
+ * @tc.name: UnmarshallingSurfaceNoRemoteObjectTest
+ * @tc.desc: hasSurface=true but no remote object written; ReadRemoteObject returns null, Unmarshalling returns false.
  * @tc.type: FUNC
  */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingNoObjectTest, TestSize.Level1)
-{
-    MessageParcel parcel;
-    sptr<IRemoteObject> srcVal = nullptr;
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, srcVal));
-
-    sptr<IRemoteObject> dstVal;
-    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dstVal));
-    EXPECT_EQ(dstVal, nullptr);
-}
-
-/**
- * @tc.name: IRemoteObjectUnmarshallingReadBoolFailTest
- * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> fails with empty parcel
- * @tc.type: FUNC
- */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingReadBoolFailTest, TestSize.Level1)
-{
-    MessageParcel parcel;
-    sptr<IRemoteObject> val = new RSBufferAvailableCallbackStubMock();
-    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
-    EXPECT_EQ(val, nullptr);
-}
-
-/**
- * @tc.name: IRemoteObjectUnmarshallingHasObjectButReadFailTest
- * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> fails when hasObject is true but no remote object data
- * @tc.type: FUNC
- */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingHasObjectButReadFailTest, TestSize.Level1)
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceNoRemoteObjectTest, TestSize.Level1)
 {
     MessageParcel parcel;
     ASSERT_TRUE(parcel.WriteBool(true));
-    sptr<IRemoteObject> val;
-    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
-    EXPECT_EQ(val, nullptr);
+    sptr<Surface> surface = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_EQ(surface, nullptr);
 }
 
 /**
- * @tc.name: IRemoteObjectMarshallingRoundTripTest
- * @tc.desc: Verify Marshalling/Unmarshalling round trip of sptr<IRemoteObject>
+ * @tc.name: UnmarshallingSurfaceSuccessTest
+ * @tc.desc: Real producer round-trip: CreateSurfaceAsProducer returns non-null,
+ *           Unmarshalling returns true (covers surface==nullptr false-side).
  * @tc.type: FUNC
  */
-HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingRoundTripTest, TestSize.Level1)
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSurfaceSuccessTest, TestSize.Level1)
 {
-    MessageParcel parcel;
-    sptr<IRemoteObject> srcVal = new RSBufferAvailableCallbackStubMock();
-    ASSERT_TRUE(srcVal != nullptr);
-    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, srcVal));
+    auto consumer = IConsumerSurface::Create();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
 
-    sptr<IRemoteObject> dstVal;
-    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dstVal));
-    ASSERT_TRUE(dstVal != nullptr);
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteBool(true));
+    ASSERT_TRUE(parcel.WriteRemoteObject(producer->AsObject()));
+
+    sptr<Surface> surface = nullptr;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, surface));
+    EXPECT_NE(surface, nullptr);
 }
 #endif
 

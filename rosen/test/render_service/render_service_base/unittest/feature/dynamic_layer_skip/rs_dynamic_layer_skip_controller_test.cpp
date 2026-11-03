@@ -107,6 +107,28 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, LayerSkipContextSyncTest, TestSize.Le
         EXPECT_FALSE(context.relevantSurfaceNodeIds_.empty());
         EXPECT_EQ(context.relevantSurfaceNodeIds_.size(), 1);
     }
+    // case 3: SyncFrom with empty virtual target resets rootLeashPersistId_ to invalid.
+    {
+        controller.virtualTargetSelfDrawingSurface_.clear();
+        context.SyncFrom(controller);
+        EXPECT_EQ(context.rootLeashPersistId_, INVALID_LEASH_PERSISTENTID);
+    }
+    // case 4: SyncFrom with one virtual target captures the leash persistent id of the
+    // first-level leash surface.
+    {
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        controller.virtualTargetSelfDrawingSurface_.emplace_back(surfaceNode);
+        context.SyncFrom(controller);
+        EXPECT_EQ(context.virtualRelevantSurfaceNodeIds_.size(), 1u);
+        EXPECT_EQ(context.rootLeashPersistId_, surfaceNode->GetLeashPersistentId());
+    }
+    // case 5: a previously-synced rootLeashPersistId_ is reset on next SyncFrom (proves
+    // the reset is colocated with SyncFrom rather than Reset()).
+    {
+        controller.virtualTargetSelfDrawingSurface_.clear();
+        context.SyncFrom(controller);
+        EXPECT_EQ(context.rootLeashPersistId_, INVALID_LEASH_PERSISTENTID);
+    }
 }
 
 /**
@@ -178,6 +200,25 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, HasFullScreenSelfDrawingSurface001, T
 }
 
 /**
+ * @tc.name: HasFullScreenSelfDrawingSurface002
+ * @tc.desc: test HasFullScreenSelfDrawingSurface with surfaceWindowType > SYSTEM_SCB_WINDOW (return false)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, HasFullScreenSelfDrawingSurface002, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    RSSurfaceRenderNodeConfig config;
+    config.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rootNode, nullptr);
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    EXPECT_FALSE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+}
+
+/**
  * @tc.name: DetectScreenLayerValidity001
  * @tc.desc: test DetectScreenLayerValidity func
  * @tc.type:FUNC
@@ -215,6 +256,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity002, TestSiz
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
         AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
         EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
         controller.DetectScreenLayerValidity(*rootNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_TRUE(controller.IsScreenLayerInvalid());
@@ -264,6 +306,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity004, TestSiz
         EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
         AddRenderNodeChild(rootNode, true, false,
             fullscreenRect.Offset(fullscreenRect.GetWidth() + 1, fullscreenRect.GetHeight() + 1));
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
         controller.DetectScreenLayerValidity(*rootNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_TRUE(controller.IsScreenLayerInvalid());
@@ -288,6 +331,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity005, TestSiz
         AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
         EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
         AddRenderNodeChild(rootNode, false, false, fullscreenRect);
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
         controller.DetectScreenLayerValidity(*rootNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_TRUE(controller.IsScreenLayerInvalid());
@@ -313,6 +357,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity006, TestSiz
         AddRenderNodeChild(rootNode, true, false, fullscreenRect);
         AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
         AddRenderNodeChild(rootNode, false, false, fullscreenRect);
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
         controller.DetectScreenLayerValidity(*rootNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_TRUE(controller.IsScreenLayerInvalid());
@@ -339,6 +384,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity007, TestSiz
         AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
         AddRenderNodeChild(rootNode, true, false, partialRect);
         AddSelfDrawingSurfaceNodeChild(rootNode, partialRect);
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
         controller.DetectScreenLayerValidity(*rootNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_TRUE(controller.IsScreenLayerInvalid());
@@ -516,5 +562,424 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNodeInner_001, TestSize.Le
         controller.VisitRenderNodeInner(rootNode, true);
         ASSERT_TRUE(controller.globalOccluderDetected_);
     }
+}
+
+/**
+ * @tc.name: LayerSkipContextSyncVirtualTest
+ * @tc.desc: test LayerSkipContext::SyncFrom syncs virtual-* fields from controller.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, LayerSkipContextSyncVirtualTest, TestSize.Level1)
+{
+    LayerSkipContext context;
+    RSDynamicLayerSkipController controller;
+    controller.virtualScreenLayerInvalid_ = true;
+    // one valid surface and one expired weak_ptr to verify only valid ids are collected.
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    controller.virtualTargetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.virtualTargetSelfDrawingSurface_.emplace_back();
+    context.SyncFrom(controller);
+    EXPECT_TRUE(context.virtualScreenLayerInvalid_);
+    ASSERT_EQ(context.virtualRelevantSurfaceNodeIds_.size(), 1u);
+    EXPECT_EQ(context.virtualRelevantSurfaceNodeIds_[0], surfaceNode->GetId());
+}
+
+/**
+ * @tc.name: LayerSkipContextResetTest
+ * @tc.desc: test LayerSkipContext::Reset clears both primary and virtual fields.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, LayerSkipContextResetTest, TestSize.Level1)
+{
+    LayerSkipContext context;
+    context.screenLayerInvalid_ = true;
+    context.virtualScreenLayerInvalid_ = true;
+    context.relevantSurfaceNodeIds_.push_back(1);
+    context.virtualRelevantSurfaceNodeIds_.push_back(2);
+    context.Reset();
+    EXPECT_FALSE(context.screenLayerInvalid_);
+    EXPECT_FALSE(context.virtualScreenLayerInvalid_);
+    EXPECT_TRUE(context.relevantSurfaceNodeIds_.empty());
+    EXPECT_TRUE(context.virtualRelevantSurfaceNodeIds_.empty());
+}
+
+/**
+ * @tc.name: InitVirtualFieldsTest
+ * @tc.desc: test Init resets virtual-* controller fields.
+ * @tc.type: FUNC
+ *
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, InitVirtualFieldsTest, TestSize.Level1)
+{
+    RSDynamicLayerSkipController controller;
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    controller.virtualScreenLayerInvalid_ = true;
+    controller.virtualGlobalOccluderDetected_ = true;
+    controller.virtualOccluderInstanceRootNodeId_ = 999;
+    controller.virtualTargetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.Init({ 0, 0, 1080, 1920 }, false);
+    EXPECT_FALSE(controller.virtualScreenLayerInvalid_);
+    EXPECT_FALSE(controller.virtualGlobalOccluderDetected_);
+    EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, INVALID_NODEID);
+    EXPECT_TRUE(controller.virtualTargetSelfDrawingSurface_.empty());
+}
+
+/**
+ * @tc.name: VisitRenderNodeInner_VirtualOccluder001
+ * @tc.desc: test VisitRenderNodeInner virtual occluder detection branches.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNodeInner_VirtualOccluder001, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // case1: surface node without SKIP, needTraverse+SELF -> virtual occluder detected.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surfaceNode->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+        ASSERT_FALSE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+        controller.VisitRenderNodeInner(surfaceNode, true);
+        EXPECT_TRUE(controller.virtualGlobalOccluderDetected_);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, surfaceNode->GetId());
+        EXPECT_TRUE(controller.globalOccluderDetected_);
+        EXPECT_EQ(controller.occluderInstanceRootNodeId_, surfaceNode->GetId());
+    }
+    // case2: surface node with SKIP -> virtual occluder suppressed, primary still detected.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surfaceNode->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+        surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+        ASSERT_TRUE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+        controller.VisitRenderNodeInner(surfaceNode, true);
+        EXPECT_FALSE(controller.virtualGlobalOccluderDetected_);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, INVALID_NODEID);
+        EXPECT_TRUE(controller.globalOccluderDetected_);
+    }
+}
+
+/**
+ * @tc.name: VisitRenderNodeInner_VirtualOccluder002
+ * @tc.desc: test VisitRenderNodeInner virtual occluder detection branches.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNodeInner_VirtualOccluder002, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // case1: needTraverse=false -> virtual occluder suppressed (needTraverse guard), primary detected.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surfaceNode->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+        controller.VisitRenderNodeInner(surfaceNode, false);
+        EXPECT_FALSE(controller.virtualGlobalOccluderDetected_);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, INVALID_NODEID);
+        EXPECT_TRUE(controller.globalOccluderDetected_);
+    }
+    // case2: primary already detected, virtual not -> only virtual branch entered.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surfaceNode->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+        controller.globalOccluderDetected_ = true;
+        controller.occluderInstanceRootNodeId_ = 12345;
+        controller.VisitRenderNodeInner(surfaceNode, true);
+        EXPECT_EQ(controller.occluderInstanceRootNodeId_, 12345); // primary guard held
+        EXPECT_TRUE(controller.virtualGlobalOccluderDetected_);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, surfaceNode->GetId());
+    }
+}
+
+/**
+ * @tc.name: VisitRenderNode_VirtualBranch
+ * @tc.desc: test VisitRenderNode early-return when both occluders detected, proceed otherwise.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNode_VirtualBranch, TestSize.Level1)
+{
+    // case1: both occluders detected -> early return, Inner not entered.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.lastFrameHasFullScreenSurface_ = true;
+        controller.globalOccluderDetected_ = true;
+        controller.virtualGlobalOccluderDetected_ = true;
+        controller.occluderInstanceRootNodeId_ = 100;
+        controller.virtualOccluderInstanceRootNodeId_ = 200;
+        auto node = GetRenderNode();
+        node->layerContentBits_[LayerDrawContent::SELF] = true;
+        node->instanceRootNodeId_ = node->GetId();
+        controller.VisitRenderNode(nullptr, *node);
+        EXPECT_EQ(controller.occluderInstanceRootNodeId_, 100);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, 200);
+    }
+    // case2: primary detected, virtual not -> proceed to Inner, primary guard holds, virtual detected.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.lastFrameHasFullScreenSurface_ = true;
+        controller.globalOccluderDetected_ = true;
+        controller.virtualGlobalOccluderDetected_ = false;
+        controller.occluderInstanceRootNodeId_ = 100;
+        controller.virtualOccluderInstanceRootNodeId_ = INVALID_NODEID;
+        auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surfaceNode->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+        controller.VisitRenderNode(surfaceNode, *surfaceNode);
+        EXPECT_EQ(controller.occluderInstanceRootNodeId_, 100); // primary guard held
+        EXPECT_TRUE(controller.virtualGlobalOccluderDetected_);
+        EXPECT_EQ(controller.virtualOccluderInstanceRootNodeId_, surfaceNode->GetId());
+    }
+}
+
+/**
+ * @tc.name: DetectScreenLayerValidity_VirtualFields001
+ * @tc.desc: test DetectScreenLayerValidity virtual surface copy and validity branches.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity_VirtualFields001, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // case1: both occluders match root -> both surfaces retained.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        controller.lastFrameHasFullScreenSurface_ = true;
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+        EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();
+        controller.virtualOccluderInstanceRootNodeId_ = rootNode->GetId();
+        controller.DetectScreenLayerValidity(*rootNode);
+        EXPECT_FALSE(controller.targetSelfDrawingSurface_.empty());
+        EXPECT_FALSE(controller.virtualTargetSelfDrawingSurface_.empty());
+    }
+    // case2: primary mismatch, virtual match -> primary cleared, virtual retained.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        controller.lastFrameHasFullScreenSurface_ = true;
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+        EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+        controller.globalOccluderDetected_ = true;
+        controller.virtualGlobalOccluderDetected_ = true;
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId() + 999;  // mismatch
+        controller.virtualOccluderInstanceRootNodeId_ = rootNode->GetId(); // match
+        controller.DetectScreenLayerValidity(*rootNode);
+        EXPECT_TRUE(controller.targetSelfDrawingSurface_.empty());
+        EXPECT_FALSE(controller.virtualTargetSelfDrawingSurface_.empty());
+    }
+}
+
+/**
+ * @tc.name: DetectScreenLayerValidity_VirtualFields002
+ * @tc.desc: test DetectScreenLayerValidity virtual surface copy and validity branches.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity_VirtualFields002, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // case1: primary match, virtual mismatch -> primary retained, virtual cleared.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        controller.lastFrameHasFullScreenSurface_ = true;
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+        EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+        controller.globalOccluderDetected_ = true;
+        controller.virtualGlobalOccluderDetected_ = true;
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId();              // match
+        controller.virtualOccluderInstanceRootNodeId_ = rootNode->GetId() + 999; // mismatch
+        controller.DetectScreenLayerValidity(*rootNode);
+        EXPECT_FALSE(controller.targetSelfDrawingSurface_.empty());
+        EXPECT_TRUE(controller.virtualTargetSelfDrawingSurface_.empty());
+    }
+    // case2: both detected and both mismatch -> shouldProceedDetection false, skip detection.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        controller.lastFrameHasFullScreenSurface_ = true;
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+        EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+        controller.globalOccluderDetected_ = true;
+        controller.virtualGlobalOccluderDetected_ = true;
+        controller.occluderInstanceRootNodeId_ = rootNode->GetId() + 999;
+        controller.virtualOccluderInstanceRootNodeId_ = rootNode->GetId() + 998;
+        controller.DetectScreenLayerValidity(*rootNode);
+        EXPECT_TRUE(controller.targetSelfDrawingSurface_.empty());
+        EXPECT_TRUE(controller.virtualTargetSelfDrawingSurface_.empty());
+    }
+}
+
+/**
+ * @tc.name: VerifyScreenLayerValidity_VirtualFields
+ * @tc.desc: test VerifyScreenLayerValidity virtual screen layer invalidity branches.
+ * @tc.type: FUNC
+ * @tc.require: issue25923
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_VirtualFields, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // case1: both surfaces non-empty and hardware enabled -> both invalid.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surface1 = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surface1->isHardwareForcedDisabled_ = false;
+        auto surface2 = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surface2->isHardwareForcedDisabled_ = false;
+        controller.targetSelfDrawingSurface_.emplace_back(surface1);
+        controller.virtualTargetSelfDrawingSurface_.emplace_back(surface2);
+        controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
+        EXPECT_TRUE(controller.screenLayerInvalid_);
+        EXPECT_TRUE(controller.virtualScreenLayerInvalid_);
+    }
+    // case2: primary empty, virtual hardware disabled -> not skipped, virtual invalid false.
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        auto surface = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+        surface->isHardwareForcedDisabled_ = true;
+        controller.virtualTargetSelfDrawingSurface_.emplace_back(surface);
+        controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
+        EXPECT_FALSE(controller.screenLayerInvalid_);
+        EXPECT_FALSE(controller.virtualScreenLayerInvalid_);
+    }
+    // case3: both empty -> skipped (boundary of new && condition).
+    {
+        RSDynamicLayerSkipController controller;
+        controller.Init(fullscreenRect, false);
+        controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
+        EXPECT_FALSE(controller.screenLayerInvalid_);
+        EXPECT_FALSE(controller.virtualScreenLayerInvalid_);
+    }
+}
+
+/**
+ * @tc.name: VerifyScreenLayerValidity_ColorGamutMismatch
+ * @tc.desc: test VerifyScreenLayerValidity func when surface color gamut differs from screen color gamut.
+ * @tc.type: FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_ColorGamutMismatch, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // surface color gamut (SRGB) differs from screen color gamut (DISPLAY_P3) -> screen layer is not invalid.
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareForcedDisabled_ = false;
+    controller.targetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_FALSE(controller.IsScreenLayerInvalid());
+}
+
+/**
+ * @tc.name: VerifyScreenLayerValidity_ColorGamutMatch
+ * @tc.desc: test VerifyScreenLayerValidity func when surface color gamut matches screen color gamut.
+ * @tc.type: FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity_ColorGamutMatch, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    // surface color gamut matches screen color gamut -> screen layer is invalid.
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareForcedDisabled_ = false;
+    surfaceNode->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    controller.targetSelfDrawingSurface_.emplace_back(surfaceNode);
+    controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_TRUE(controller.IsScreenLayerInvalid());
+}
+
+/**
+ * @tc.name: GlobalDisabledInitTest
+ * @tc.desc: test that globalDisabled=true (e.g. show-refresh-rate enabled) suppresses all skip detection
+ * @tc.type: FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, GlobalDisabledInitTest, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, true);  // global disabled
+    EXPECT_FALSE(controller.MeetsPreliminarySkipCriteria());
+
+    // Verify that detection is suppressed
+    auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    controller.lastFrameHasFullScreenSurface_ = true;
+    EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+    controller.DetectScreenLayerValidity(*rootNode);
+    EXPECT_TRUE(controller.targetSelfDrawingSurface_.empty());
+
+    // Verify that verification is suppressed
+    controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
+    EXPECT_FALSE(controller.IsScreenLayerInvalid());
+}
+
+/**
+ * @tc.name: GlobalEnabledInitTest
+ * @tc.desc: test that globalDisabled=false allows normal detection flow
+ * @tc.type: FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, GlobalEnabledInitTest, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);  // not disabled
+    auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    controller.lastFrameHasFullScreenSurface_ = true;
+    EXPECT_TRUE(controller.HasFullScreenSelfDrawingSurface(*rootNode));
+    controller.globalOccluderDetected_ = true;
+    controller.occluderInstanceRootNodeId_ = rootNode->GetId();
+    controller.DetectScreenLayerValidity(*rootNode);
+    EXPECT_FALSE(controller.targetSelfDrawingSurface_.empty());
+}
+
+/**
+ * @tc.name: DetectScreenLayerValidity_VirtualSizeCapTest
+ * @tc.desc: test that virtualTargetSelfDrawingSurface_ is cleared when size > 1 so that
+ *          the direct pass-through optimization only applies to single-target cases.
+ * @tc.type: FUNC
+ * @tc.require: issue25950
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity_VirtualSizeCapTest, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
+    auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+    // Two fullscreen self-drawing surfaces -> targetSelfDrawingSurface_ has 2 elements.
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    AddSelfDrawingSurfaceNodeChild(rootNode, fullscreenRect);
+    controller.globalOccluderDetected_ = true;
+    controller.occluderInstanceRootNodeId_ = rootNode->GetId();
+    controller.virtualOccluderInstanceRootNodeId_ = rootNode->GetId();
+    controller.DetectScreenLayerValidity(*rootNode);
+    // size > 1 must trigger the size cap and clear virtualTargetSelfDrawingSurface_.
+    EXPECT_TRUE(controller.virtualTargetSelfDrawingSurface_.empty());
 }
 } // namespace OHOS::Rosen

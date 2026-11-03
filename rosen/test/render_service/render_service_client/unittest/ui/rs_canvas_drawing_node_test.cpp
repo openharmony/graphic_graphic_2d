@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "command/rs_canvas_drawing_node_command.h"
 #include "common/rs_obj_geometry.h"
@@ -26,7 +27,12 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
+#include "ui/rs_ui_director.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include <ffrt.h>
 #include "ui/rs_canvas_callback_router.h"
 #endif
 
@@ -40,6 +46,14 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIDirector> CreateRSUIDirector() const
+    {
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        std::shared_ptr<RSUIDirector> rsUiDirector = OHOS::Rosen::RSUIDirector::Create(connectToRender, rsUIContext);
+        return rsUiDirector;
+    }
 };
 
 void RSCanvasDrawingNodeTest::SetUpTestCase() {}
@@ -171,7 +185,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapInvalidBitmapTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPixelmapTest
  * @tc.desc: test results of GetPixelmap
  * @tc.type: FUNC
  * @tc.require: issueI9KDPI
@@ -270,6 +283,87 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_HybridEnabledPath, TestSize.Level
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: PreAllocateDMABufferTest
+ * @tc.desc: test results of PreAllocateDMABuffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
+{
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = uidirector->GetRSUIContext();
+    auto node = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    auto nodeId = node->GetId();
+    std::weak_ptr<RSCanvasDrawingNode> weakNode = node;
+    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = RSCanvasDrawingNode::GenerateResetSurfaceIndex();
+    node->PreAllocateDMABuffer(weakNode, nodeId, 0, 0, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, node->resetSurfaceIndex_);
+    ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = 10;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 0, 0, 10);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = 0;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = 0;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+}
+
+/**
+ * @tc.name: CheckNodeAndSurfaceBufferStateTest
+ * @tc.desc: test results of CheckNodeAndSurfaceBufferState
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, CheckNodeAndSurfaceBufferStateTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    node->resetSurfaceIndex_ = 1;
+    auto buffer = SurfaceBuffer::Create();
+    node->canvasSurfaceBuffer_ = buffer;
+    auto nodeId = node->GetId();
+    std::weak_ptr<RSCanvasDrawingNode> weakNode = node;
+    auto ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 1);
+    ASSERT_FALSE(ret);
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+    node->canvasSurfaceBuffer_ = nullptr;
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 1);
+    ASSERT_TRUE(ret);
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+    std::shared_ptr<RSCanvasDrawingNode> nullNode = nullptr;
+    ret = node->CheckNodeAndSurfaceBufferState(nullNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: OnSurfaceBufferChangedTest
+ * @tc.desc: test results of OnSurfaceBufferChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnSurfaceBufferChangedTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    node->resetSurfaceIndex_ = 1;
+    auto buffer = SurfaceBuffer::Create();
+    node->canvasSurfaceBuffer_ = buffer;
+    node->OnSurfaceBufferChanged(nullptr, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->OnSurfaceBufferChanged(buffer, 2);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+}
+
 /**
  * @tc.name: SetIsOnTheTreeTest
  * @tc.desc: test results of SetIsOnTheTree
@@ -414,8 +508,28 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
 
     drawingNode = RSCanvasDrawingNode::Create(true);
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawingNode->RenderInClient(drawCmdList);
+    ret = drawingNode->RenderInClient(drawCmdList);
     EXPECT_FALSE(ret);
+
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = uidirector->GetRSUIContext();
+    rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+    drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    drawingNode->hybridEnabled_ = true;
+    drawingNode->sizeOutOfGpuLimit_ = false;
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_FALSE(ret);
+    auto opItem = std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 5, 5), Drawing::Paint());
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>(5, 5, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList->AddDrawOp(opItem);
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_TRUE(ret);
+    ret = drawingNode->RenderInClient(nullptr);
+    EXPECT_FALSE(ret);
+    rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
+    rsUIContext->canvasModifiersDrawAgent_->Destroy();
+    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
 }
 
 /**
@@ -443,9 +557,128 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
     auto ret = canvasNode->ResetSurface(width, height);
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: ResetSurface_ForceDisableDmaPreAllocateTest
+ * @tc.desc: Test ResetSurface with forceDisableDmaPreAllocate parameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_ForceDisableDmaPreAllocateTest, TestSize.Level1)
+{
+    auto node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
+    bool ret = node->ResetSurface(100, 100, true);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(node->preAllocateDmaCcm_);
+
+    node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
+    ret = node->ResetSurface(100, 100, false);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(node->preAllocateDmaCcm_);
+
+    node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    ret = node->ResetSurface(100, 100, true);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(node->preAllocateDmaCcm_);
+
+    node = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    ret = node->ResetSurface(100, 100, false);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(node->preAllocateDmaCcm_);
+}
 #endif
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: OnCreate_NullCheckEarlyReturn
+ * @tc.desc: Test OnCreate returns early on null uiContext/agent/renderInterface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NullCheckEarlyReturn, TestSize.Level1)
+{
+    // Disable DMA pre-allocation to avoid VK path in destructor accessing uninitialized surfaceBufferMutex_
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+
+    // Branch 1: uiContext == nullptr → early return
+    auto nodeNoCtx = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(nodeNoCtx, nullptr);
+    nodeNoCtx->OnCreate();
+    EXPECT_EQ(nodeNoCtx->GetRSUIContext(), nullptr);
+
+    // Branch 2 & 3: use texture export nodes (hybridEnabled_=false) so Create() won't
+    // call OnCreate() internally, avoiding GPU init and DDGR process-exit crash.
+    // Then manually call OnCreate() to test null-check early returns.
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+
+    // Branch 2: uiContext != nullptr but canvasModifiersDrawAgent == nullptr
+    auto nodeNullAgent = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullAgent, nullptr);
+    auto ctx = nodeNullAgent->GetRSUIContext();
+    if (ctx != nullptr) {
+        auto savedAgent = ctx->canvasModifiersDrawAgent_;
+        ctx->canvasModifiersDrawAgent_ = nullptr;
+        nodeNullAgent->OnCreate();
+        ctx->canvasModifiersDrawAgent_ = savedAgent;
+        EXPECT_EQ(nodeNullAgent->GetRSUIContext(), ctx);
+    }
+
+    // Branch 3: agent != nullptr but renderInterface == nullptr
+    auto nodeNullRI = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullRI, nullptr);
+    auto ctx2 = nodeNullRI->GetRSUIContext();
+    if (ctx2 != nullptr && ctx2->canvasModifiersDrawAgent_ != nullptr) {
+        auto savedRI = ctx2->rsRenderInterface_;
+        ctx2->rsRenderInterface_ = nullptr;
+        nodeNullRI->OnCreate();
+        ctx2->rsRenderInterface_ = savedRI;
+        EXPECT_NE(ctx2->canvasModifiersDrawAgent_, nullptr);
+    }
+    EXPECT_NE(nodeNullRI, nullptr);
+}
+
+/**
+ * @tc.name: OnCreate_NormalPath
+ * @tc.desc: Test OnCreate normal path where all dependencies are non-null (line 189)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NormalPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+    if (rsUIContext == nullptr) {
+        GTEST_SKIP() << "RSUIContext not available";
+    }
+    auto node = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    auto uiContext = node->GetRSUIContext();
+    if (uiContext != nullptr && uiContext->GetCanvasModifiersDrawAgent() != nullptr) {
+        // OnCreate was already called by Create(), verify it completed without crash
+        EXPECT_NE(uiContext->GetCanvasModifiersDrawAgent(), nullptr);
+        // Wait for async OnNodeCreate task to finish on worker thread
+        usleep(1000000); // 1s
+        // Proactively destroy CanvasModifiersDraw before test exits
+        uiContext->DestroyModifiersDraw();
+    }
+    EXPECT_NE(node, nullptr);
+}
+
 /**
  * @tc.name: ResetSurfaceForClientRender_MaxGpuSizeTest
  * @tc.desc: Test ResetSurfaceForClientRender with sizeOutOfGpuLimit when exceeding max GPU buffer size
@@ -485,6 +718,57 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRender_InvalidSizeTest, T
     EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
     canvasNode->ResetSurfaceForClientRender(-1, 100);
     EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+}
+
+/**
+ * @tc.name: OnFinishRecordingNonContentStyleTest
+ * @tc.desc: Test OnFinishRecording with non-CONTENT_STYLE modifierType delegates to base
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnFinishRecordingNonContentStyleTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    Drawing::DrawCmdListPtr cmdList = drawCmdList;
+    canvasNode->OnFinishRecording(cmdList, ModifierNG::RSModifierType::ALPHA);
+    ASSERT_NE(cmdList, drawCmdList);
+}
+
+/**
+ * @tc.name: OnFinishRecordingContentStyleNotHybridTest
+ * @tc.desc: Test OnFinishRecording with CONTENT_STYLE and not hybrid render
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnFinishRecordingContentStyleNotHybridTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(false);
+    ASSERT_NE(canvasNode, nullptr);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    Drawing::DrawCmdListPtr cmdList = drawCmdList;
+    canvasNode->OnFinishRecording(cmdList, ModifierNG::RSModifierType::CONTENT_STYLE);
+    ASSERT_NE(cmdList, nullptr);
+}
+
+/**
+ * @tc.name: OnFinishRecordingContentStyleHybridTest
+ * @tc.desc: Test OnFinishRecording with CONTENT_STYLE and hybrid render always calls base class
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnFinishRecordingContentStyleHybridTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->sizeOutOfGpuLimit_ = false;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    Drawing::DrawCmdListPtr cmdList = drawCmdList;
+    canvasNode->OnFinishRecording(cmdList, ModifierNG::RSModifierType::CONTENT_STYLE);
+    if (canvasNode->GetRSUIContext() != nullptr && !canvasNode->sizeOutOfGpuLimit_) {
+        ASSERT_EQ(cmdList, nullptr);
+    } else {
+        ASSERT_NE(cmdList, nullptr);
+    }
+    ASSERT_NE(canvasNode, nullptr);
 }
 #endif
 } // namespace OHOS::Rosen

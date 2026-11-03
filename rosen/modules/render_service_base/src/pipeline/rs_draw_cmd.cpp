@@ -24,6 +24,7 @@
 #include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "rs_trace.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
@@ -46,8 +47,8 @@
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #else
 #include "rs_vulkan_context.h"
 #endif
@@ -371,6 +372,9 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     if (rsImage_ == nullptr) {
         return false;
     }
+    if (colorSpace == nullptr) {
+        return false;
+    }
     std::shared_ptr<Drawing::Image> imageCache = nullptr;
     pid_t threadId = gettid();
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -480,6 +484,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return false;
     }
+    auto renderEngineType = canvas.GetRenderEngineType();
     if (nativeWindowBuffer_ == nullptr) {
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
@@ -489,14 +494,16 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         }
     }
     if (!backendTexture_.IsValid()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             if (!vkTextureInfo) {
                 return false;
             }
-            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
                 vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return false;
@@ -524,7 +531,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         return false;
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
+    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE && !imageInfoReserved_) {
         RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this());
     }
 #endif
@@ -539,6 +546,16 @@ void RSExtendImageObject::PurgeMipmapMem()
         }
         drawingImageMutex_.unlock();
     }
+}
+
+bool RSExtendImageObject::IsImageInfoReserved() const
+{
+    return imageInfoReserved_;
+}
+
+void RSExtendImageObject::SetImageInfoReserved(bool reserved)
+{
+    imageInfoReserved_ = reserved;
 }
 #endif
 
@@ -1357,6 +1374,21 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
       isNeedDrawDirectly_(!IsValidRemoteAddress(handle->surfaceBufferInfo.pid_,
           handle->surfaceBufferInfo.uid_))
 {
+    // The pid carried by the op item is client-marshalled data and cannot be trusted. Bind it to the
+    // real sender so a forged pid cannot trigger another process's surface buffer callback.
+    if (contextIsUniRender) {
+        pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+        if (callingPid > 0 && surfaceBufferInfo_.pid_ != 0 && surfaceBufferInfo_.pid_ != callingPid) {
+            RS_LOGW("DrawSurfaceBufferOpItem pid %{public}d mismatches calling pid %{public}d, override",
+                surfaceBufferInfo_.pid_, callingPid);
+            surfaceBufferInfo_.pid_ = callingPid;
+        }
+    } else {
+        static auto pid = getpid();
+        if (surfaceBufferInfo_.pid_ != 0 && surfaceBufferInfo_.pid_ != pid) {
+            surfaceBufferInfo_.pid_ = pid;
+        }
+    }
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
         surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
@@ -1699,8 +1731,11 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
             OnAfterAcquireBuffer();
         }
     }
-    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.surfaceBuffer_->GetWidth(), surfaceBufferInfo_.surfaceBuffer_->GetHeight());
+    auto renderEngineType = canvas->GetRenderEngineType();
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+        nativeWindowBuffer_, surfaceBufferInfo_.surfaceBuffer_->GetWidth(),
+        surfaceBufferInfo_.surfaceBuffer_->GetHeight());
     if (!backendTexture.IsValid()) {
         LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
         return;
@@ -1714,7 +1749,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage,
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(), vkTextureInfo->vkImage,
             vkTextureInfo->vkAlloc.memory), surfaceBufferInfo_.isIgnoreAlpha_)) {
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;

@@ -88,7 +88,7 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateCubicCurve(float ctrlX1, fl
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
-    if (ROSEN_LE(stiffness, 0.0f, 0.0f) || ROSEN_LE(mass * stiffness, 0.0f, 0.0f)) {
+    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
         ROSEN_LOGE("RSAnimationTimingCurve::CreateSpringCurve, invalid parameters.");
         return { std::make_shared<RSSpringInterpolator>(DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity) };
     }
@@ -106,7 +106,7 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(float m
         return { DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, 0.0f, CurveType::INTERPOLATING_SPRING,
             DEFAULT_AMPLITUDE_RATIO, convergeParams };
     }
-    if (ROSEN_LE(stiffness, 0.0f, 0.0f) || ROSEN_LE(mass * stiffness, 0.0f, 0.0f)) {
+    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
         ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
         return { DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity, CurveType::INTERPOLATING_SPRING,
             minimumAmplitudeRatio, convergeParams };
@@ -121,8 +121,9 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, S
     return { std::make_shared<RSStepsInterpolator>(steps, position) };
 }
 
-RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(float response, float dampingRatio, float blendDuration,
-    float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio,
+    std::optional<SpringParams::ConvergeParams> convergeParams)
 {
     if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(blendDuration) ||
         !std::isfinite(minimumAmplitudeRatio)) {
@@ -140,6 +141,19 @@ std::shared_ptr<RSInterpolator> RSAnimationTimingCurve::GetInterpolator(int dura
     }
 
     return interpolator_;
+}
+
+void RSAnimationTimingCurve::Init()
+{
+    auto updateId = [](const RSAnimationTimingCurve& curve) {
+        curve.interpolator_->UpdateId();
+    };
+    updateId(LINEAR);
+    updateId(SHARP);
+    updateId(EASE);
+    updateId(EASE_IN);
+    updateId(EASE_OUT);
+    updateId(EASE_IN_OUT);
 }
 } // namespace Rosen
 } // namespace OHOS

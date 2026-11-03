@@ -74,6 +74,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DEPTH_LIGHT_PARA = 0x012F,
     // 0x0130 deleted, do not use this value never
     UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
+    UPDATE_MODIFIER_ATLAS_INFO = 0x0132,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -124,7 +125,6 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_COLORSPACE = 0x0d00,
 
     COLOR_PICKER_CALLBACK = 0x0e00,
-    COLOR_PICKER_DESTROY_IN_RENDER = 0x0e01,
 
     SORT_CHILDREN_BY_INDEX = 0x0f00,
 };
@@ -145,10 +145,11 @@ public:
             }
         }
         if (auto property = node->GetProperty(id)) {
-            if (UNLIKELY(!CheckPropertyType(__func__, *property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
+            auto prop = property->CastToPropertyOf<T>(__func__);
+            if (!prop) {
                 return;
             }
-            std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
+            prop->Set(value, type);
         }
     }
 
@@ -208,10 +209,6 @@ public:
     using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
     static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
-    using ColorPickerDestroyInRenderProcessor = void (*)(NodeId, uint64_t, ContrastColorScheme);
-    static void ColorPickerDestroyInRender(
-        RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint8_t lastContrastColorScheme);
-    static RSB_EXPORT void SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor);
 
     static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
 private:
@@ -481,9 +478,6 @@ ADD_COMMAND(RSRemoveAllModifiersNG,
 ADD_COMMAND(RSColorPickerCallback,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, COLOR_PICKER_CALLBACK,
         RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
-ADD_COMMAND(RSColorPickerDestroyInRender,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, COLOR_PICKER_DESTROY_IN_RENDER,
-        RSNodeCommandHelper::ColorPickerDestroyInRender, NodeId, pid_t, uint64_t, uint8_t))
 
 ADD_COMMAND(RSUpdatePropertyDepthCameraPara,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_CAMERA_PARA,
@@ -494,6 +488,11 @@ ADD_COMMAND(RSUpdatePropertyDepthLightPara,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_LIGHT_PARA,
         RSNodeCommandHelper::UpdateProperty<DepthLightPara>,
         NodeId, DepthLightPara, PropertyId, PropertyUpdateType))
+
+ADD_COMMAND(RSUpdatePropertyAtlasInfo,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_ATLAS_INFO,
+        RSNodeCommandHelper::UpdateProperty<AtlasInfo>,
+        NodeId, AtlasInfo, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSortChildrenByZIndex,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SORT_CHILDREN_BY_INDEX,

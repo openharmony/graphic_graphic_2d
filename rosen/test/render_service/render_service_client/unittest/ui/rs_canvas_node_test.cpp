@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
-#include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
+#include "gtest/gtest.h"
+
+#include "animation/rs_animation.h"
+#include "draw/paint.h"
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
-#include "draw/paint.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3047,6 +3049,20 @@ HWTEST_F(RSCanvasNodeTest, SetandGetRotationVector001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetTranslateVector001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetandGetTranslateVector001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    Vector2f quaternion(std::numeric_limits<int>::max(), 2.f);
+    canvasNode->SetTranslate(quaternion);
+    ASSERT_FALSE(canvasNode->modifiersNGCreatedBySetter_.empty());
+}
+
+/**
  * @tc.name: CreateBlurFilter001
  * @tc.desc:
  * @tc.type:FUNC
@@ -3754,5 +3770,129 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
         node->SetRSUIContext(uiDirector2->GetRSUIContext());
         ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
     }
+}
+
+/**
+ * @tc.name: SetIsOnTheTree_WhenOnTree_FlushesModifiers001
+ * @tc.desc: Test RSCanvasNode::SetIsOnTheTree(true) flushes cached custom modifier properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetIsOnTheTree_WhenOnTree_FlushesModifiers001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_FALSE(node->GetIsOnTheTree());
+    // Set off-tree first, then on-tree should trigger flush
+    node->SetIsOnTheTree(true);
+    EXPECT_TRUE(node->GetIsOnTheTree());
+}
+
+/**
+ * @tc.name: SetIsOnTheTree_WhenOffTree_NoFlush001
+ * @tc.desc: Test RSCanvasNode::SetIsOnTheTree(false) does not flush cached properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, SetIsOnTheTree_WhenOffTree_NoFlush001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    // Set on-tree first
+    node->SetIsOnTheTree(true);
+    ASSERT_TRUE(node->GetIsOnTheTree());
+    // Now set off-tree - should not trigger flush
+    node->SetIsOnTheTree(false);
+    EXPECT_FALSE(node->GetIsOnTheTree());
+}
+
+/**
+ * @tc.name: FlushCachedModifiers_IteratesAllModifiers001
+ * @tc.desc: Test FlushCachedModifiers iterates all modifiers and calls FlushCachedProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, FlushCachedModifiers_IteratesAllModifiers001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    // Create a custom modifier, set cache state, then call FlushCachedModifiers
+    auto contentModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    contentModifier->cachedPropertyId_ = 42;
+    contentModifier->cachedDrawCmdList_ = drawCmdList;
+    contentModifier->node_ = node;
+    // Add modifier to node's modifiersNG_ map via base class pointer
+    auto baseModifier = std::static_pointer_cast<ModifierNG::RSModifier>(contentModifier);
+    node->modifiersNG_[1] = baseModifier;
+    // Before flush: cache should be set
+    ASSERT_NE(contentModifier->cachedPropertyId_, 0);
+    ASSERT_NE(contentModifier->cachedDrawCmdList_, nullptr);
+    // Call flush
+    bool result = node->FlushCachedModifiers();
+    EXPECT_TRUE(result);
+    // After flush: cache should be cleared (FlushCachedProperty called)
+    EXPECT_EQ(contentModifier->cachedPropertyId_, 0);
+    EXPECT_EQ(contentModifier->cachedDrawCmdList_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCachedModifiers_EmptyModifiers_NoCrash001
+ * @tc.desc: Test FlushCachedModifiers with no modifiers does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, FlushCachedModifiers_EmptyModifiers_NoCrash001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_TRUE(node->modifiersNG_.empty());
+    bool result = node->FlushCachedModifiers();
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(node->modifiersNG_.empty());
+}
+
+// CreateRenderNode series: cover RSCanvasNode::CreateRenderNode branches.
+// IsTextureExportNode controls RSCanvasNodeCreate arg, IsRenderServiceNode
+// controls AddCommand flag.
+
+/**
+ * @tc.name: CreateRenderNode001
+ * @tc.desc: Default create — not texture export, IsRenderServiceNode true under uni-render.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode001, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode002
+ * @tc.desc: isRenderServiceNode=true — IsRenderServiceNode true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode002, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode003
+ * @tc.desc: isTextureExportNode=true — IsRenderServiceNode false, texture export in command.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode003, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(false, true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode004
+ * @tc.desc: isRenderServiceNode=true + isTextureExportNode=true — IsRenderServiceNode false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, CreateRenderNode004, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create(true, true);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(canvasNode->CreateRenderNode());
 }
 } // namespace OHOS::Rosen

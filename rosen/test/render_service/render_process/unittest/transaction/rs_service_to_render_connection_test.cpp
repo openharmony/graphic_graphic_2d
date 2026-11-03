@@ -102,12 +102,43 @@ void RSServiceToRenderConnectionTest::TearDownTestCase()
 
     renderPipeline->mainThread_->handler_ = nullptr;
     renderPipeline->mainThread_->receiver_ = nullptr;
+    if (renderPipeline->mainThread_->renderEngine_) {
+        if (renderPipeline->mainThread_->renderEngine_->renderContext_) {
+            renderPipeline->mainThread_->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->mainThread_->renderEngine_->renderContext_ = nullptr;
+        }
+        if (renderPipeline->mainThread_->renderEngine_->protectedRenderContext_) {
+            renderPipeline->mainThread_->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            renderPipeline->mainThread_->renderEngine_->protectedRenderContext_ = nullptr;
+        }
+        renderPipeline->mainThread_->renderEngine_->skContext_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->imageManager_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->mainThread_->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->mainThread_->renderEngine_ = nullptr;
 
     renderPipeline->uniRenderThread_->handler_ = nullptr;
     renderPipeline->uniRenderThread_->runner_ = nullptr;
-    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
-    renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
+    if (renderPipeline->uniRenderThread_->uniRenderEngine_) {
+        if (renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_) {
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (renderPipeline->uniRenderThread_->uniRenderEngine_->protectedRenderContext_) {
+            renderPipeline->uniRenderThread_->uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            renderPipeline->uniRenderThread_->uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        renderPipeline->uniRenderThread_->uniRenderEngine_->skContext_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->imageManager_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->uniRenderThread_->uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
+    }
     renderPipeline->uniRenderThread_ = nullptr;
 
     renderProcess->handler_ = nullptr;
@@ -168,21 +199,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetRealtimeRefreshRateTest, TestSize.L
 }
 
 /**
- * @tc.name: SetBehindWindowFilterEnabledTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
-{
-    bool enabled = true;
-    bool enabled1 = false;
-    g_rsConn->SetBehindWindowFilterEnabled(enabled);
-    g_rsConn->SetBehindWindowFilterEnabled(enabled1);
-    ASSERT_TRUE(g_rsConn);
-}
-
-/**
  * @tc.name: GetBehindWindowFilterEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -194,22 +210,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetBehindWindowFilterEnabledTest, Test
     bool enabled1 = false;
     g_rsConn->GetBehindWindowFilterEnabled(enabled);
     g_rsConn->GetBehindWindowFilterEnabled(enabled1);
-    ASSERT_TRUE(g_rsConn);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabledTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionTest, SetShowRefreshRateEnabledTest, TestSize.Level1)
-{
-    bool enabled = true;
-    bool enabled1 = false;
-    int32_t type = 1;
-    g_rsConn->SetShowRefreshRateEnabled(enabled, type);
-    g_rsConn->SetShowRefreshRateEnabled(enabled1, type);
     ASSERT_TRUE(g_rsConn);
 }
 
@@ -271,7 +271,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest001, TestSiz
     constexpr uint32_t kWidth = 1920;
     constexpr uint32_t kHeight = 1080;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight);
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -286,7 +287,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest002, TestSiz
     constexpr uint32_t kWidth = 0;
     constexpr uint32_t kHeight = 0;
     constexpr ScreenId screenId = 0;
-    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight);
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, kWidth, kHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
 }
 

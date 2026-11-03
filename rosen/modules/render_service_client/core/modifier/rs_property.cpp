@@ -116,6 +116,16 @@ bool RSPropertyBase::IsDeduplicationEnabled() const
     return modifier && modifier->IsDeduplicationEnabled();
 }
 
+bool RSPropertyBase::CheckPropertyType(RSPropertyType type, const char* funcName) const
+{
+    if (type != GetPropertyType()) {
+        ROSEN_LOGE("%{public}s: property type mismatch, expected:%{public}d, actual:%{public}d",
+            funcName, static_cast<int>(type), static_cast<int>(GetPropertyType()));
+        return false;
+    }
+    return true;
+}
+
 float RSPropertyBase::GetThresholdByThresholdType(ThresholdType thresholdType) const
 {
     switch (thresholdType) {
@@ -243,13 +253,15 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value)
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for filter properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -297,13 +309,15 @@ void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value)
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for filter properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -349,13 +363,15 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnDetach()
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value)
+void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for mask properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -403,13 +419,15 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value)
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for mask properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -696,6 +714,12 @@ void RSProperty<DepthLightPara>::UpdateToRender(const DepthLightPara& value, Pro
 }
 
 template<>
+void RSProperty<AtlasInfo>::UpdateToRender(const AtlasInfo& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyAtlasInfo, value, type);
+}
+
+template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
@@ -726,7 +750,7 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::UpdateToRender(
 template<>
 bool RSProperty<float>::IsValid(const float& value)
 {
-    return !std::isinf(value);
+    return !std::isinf(value) && !std::isnan(value);
 }
 template<>
 bool RSProperty<Vector2f>::IsValid(const Vector2f& value)

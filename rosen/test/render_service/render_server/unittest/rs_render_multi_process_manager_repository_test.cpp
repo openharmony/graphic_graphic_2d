@@ -23,7 +23,9 @@
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
 #include "render_server/rs_render_multi_process_manager_repository.h"
+#include "rs_render_pipeline_agent.h"
 #include "screen_manager/rs_screen_property.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -39,6 +41,7 @@ constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
 constexpr ScreenId TEST_SCREEN_ID = 100;
 constexpr ScreenId TEST_SCREEN_ID_2 = 200;
+constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 300;
 constexpr GroupId TEST_GROUP_ID = 1;
 const ProcessUniqueId TEST_UID{TEST_PID};
 } // namespace
@@ -277,7 +280,8 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise
 
 /**
  * @tc.name: SetRenderProcessReadyPromise006
- * @tc.desc: Test deathRecipient replacement in map after SetRenderProcessReadyPromise with null binderObject
+ * @tc.desc: deathRecipient replacement path: when AddDeathRecipient on the binder object fails
+ *           (local stub objects reject death recipients), the previously registered recipient is kept
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise006, TestSize.Level1)
@@ -288,22 +292,27 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, SetRenderProcessReadyPromise
     auto future = promise.get_future();
     auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
         { TEST_SCREEN_ID, output, property }, std::move(promise));
-    
+
     auto oldDeathRecipient = sptr<MockDeathRecipient>::MakeSptr();
     store_->deathRecipients_[uid] = oldDeathRecipient;
 
-    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSIServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
     sptr<RSIConnectToRenderProcess> connectConn = nullptr;
     auto newDeathRecipient = sptr<MockDeathRecipient>::MakeSptr();
     auto factory = [newDeathRecipient](ProcessUniqueId) -> sptr<IRemoteObject::DeathRecipient> {
         return newDeathRecipient;
     };
 
-    bool result = store_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn, factory, nullptr);
+    // A local stub's AsObject() cannot take a death recipient (AddDeathRecipient returns false),
+    // so the failure branch must keep the previously registered recipient untouched.
+    bool result = store_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn, factory,
+        serviceConn->AsObject());
     EXPECT_TRUE(result);
     EXPECT_EQ(store_->deathRecipients_[uid].GetRefPtr(), oldDeathRecipient.GetRefPtr());
-    store_->deathRecipients_[uid] = newDeathRecipient;
-    EXPECT_EQ(store_->deathRecipients_[uid].GetRefPtr(), oldDeathRecipient.GetRefPtr());
+    EXPECT_NE(store_->deathRecipients_[uid].GetRefPtr(), newDeathRecipient.GetRefPtr());
 
     auto status = future.wait_for(std::chrono::seconds(1));
     EXPECT_EQ(status, std::future_status::ready);
@@ -346,14 +355,144 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, IsValidRenderProcessPid003, 
     auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
     auto property = sptr<RSScreenProperty>::MakeSptr();
     std::promise<bool> promise;
-    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+    // Register the real forked child pid: only a registered direct child passes the
+    // ppid check AND the processToScreenOutputMap wait.
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, pid,
         { TEST_SCREEN_ID, output, property }, std::move(promise));
     EXPECT_TRUE(store_->IsValidRenderProcessPid(pid));
     store_->HandleRenderProcessDeath(uid);
-    EXPECT_FALSE(store_->IsValidRenderProcessPid(pid));
-
+    EXPECT_EQ(store_->processToScreenOutputMap_.count(uid), 0u);
     int status = 0;
     waitpid(pid, &status, 0);
+    // The reaped child no longer has a /proc entry, so the ppid check fails immediately
+    // (no 5s condition-variable wait) and IsValidRenderProcessPid returns false.
+    EXPECT_FALSE(store_->IsValidRenderProcessPid(pid));
+}
+
+/**
+ * @tc.name: ReadPpidFromProc004
+ * @tc.desc: Test ReadPpidFromProc read correct ppid from a forked child process
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, ReadPpidFromProc004, TestSize.Level1)
+{
+    pid_t pid = fork();
+    ASSERT_GE(pid, 0);
+    if (pid == 0) {
+        _exit(0);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    pid_t pid2 = fork();
+    ASSERT_GE(pid2, 0);
+    if (pid2 == 0) {
+        pause();
+        _exit(0);
+    }
+    auto ppidOpt = store_->ReadPpidFromProc(pid2);
+    ASSERT_TRUE(ppidOpt.has_value());
+    EXPECT_EQ(ppidOpt.value(), getpid());
+    kill(pid2, SIGKILL);
+    waitpid(pid2, &status, 0);
+}
+
+/**
+ * @tc.name: IsValidRenderProcessPid006
+ * @tc.desc: Test IsValidRenderProcessPid ppid check runs before condition_variable wait
+ *           For a PID that is NOT a child of current process, the function should return false
+ *           immediately without blocking for 5 seconds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, IsValidRenderProcessPid006, TestSize.Level1)
+{
+    auto start = std::chrono::steady_clock::now();
+    bool result = store_->IsValidRenderProcessPid(999999);
+    auto elapsed = std::chrono::steady_clock::now() - start;
+    EXPECT_FALSE(result);
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+    EXPECT_LT(elapsedMs, 1000);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess002
+ * @tc.desc: Test AddScreenOutputToProcess with same screenId updates exising entry (if branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess002, TestSize.Level1)
+{
+    auto output1 = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output1, property }, std::move(promise));
+
+    auto output2 = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    store_->AddScreenOutputToProcess(uid, TEST_SCREEN_ID, output2);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 1u);
+    EXPECT_EQ(affected[0].first, TEST_SCREEN_ID);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess003
+ * @tc.desc: Test AddScreenOutputToProcess with null output emplace_back (else branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+
+    store_->AddScreenOutputToProcess(uid, TEST_VIRTUAL_SCREEN_ID, nullptr);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 2u);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess004
+ * @tc.desc: Test AddScreenOutputToProcess multiple emplace_back calls don't cause iterator issues
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess004, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+
+    for (ScreenId id = TEST_SCREEN_ID + 1; id <= TEST_SCREEN_ID + 10; id++) {
+        auto extraOutput = std::make_shared<HdiOutput>(id);
+        store_->AddScreenOutputToProcess(uid, id, extraOutput);
+    }
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 11u);
+}
+
+/**
+ * @tc.name: RemoveScreenOutputFromProcess003
+ * @tc.desc: Test RemoveScreenOutputFromProcess with unknown screenId (else branch - not found)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, RemoveScreenOutputFromProcess003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+    
+    store_->RemoveScreenOutputFromProcess(uid, TEST_VIRTUAL_SCREEN_ID);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 1u);
+    EXPECT_EQ(affected[0].first, TEST_SCREEN_ID);
 }
 
 } // namespace OHOS::Rosen

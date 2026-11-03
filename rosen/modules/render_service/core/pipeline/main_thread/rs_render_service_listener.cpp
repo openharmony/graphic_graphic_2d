@@ -16,11 +16,12 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 
 #include "common/rs_optional_trace.h"
-#include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_utils.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
+#include "rs_trace.h"
 #include "sync_fence.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 namespace OHOS {
@@ -55,7 +56,7 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, nodeId_);
-    auto *surfaceNodeRaw = node->AsRSSurfaceRenderNode();
+    auto* surfaceNodeRaw = node->AsRSSurfaceRenderNode();
     if (surfaceNodeRaw != nullptr && surfaceNodeRaw->IsUIRenderDirectorStopped()) {
         ConsumeBufferToKeepQueueRunning(surfaceHandler_);
         return;
@@ -130,7 +131,8 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
         int64_t desiredPresentTimestamp = 0;
-        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+        int32_t pid = ExtractPid(surfaceHandler->GetNodeId());
+        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
         auto node = surfaceBufferInterface_.lock();
         if (node != nullptr && !node->GetDelegateMode()) {
             RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0, desiredPresentTimestamp);
@@ -142,12 +144,12 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange surfaceHandler is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange surfaceHandler is nullptr");
         return;
     }
     auto node = surfaceBufferInterface_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
         return;
     }
     node->OnTunnelHandleChange();
@@ -156,14 +158,30 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 
 void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& state)
 {
-    RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
-    RSTunnelLayerHelper::BeginTunnelBuilding(nodeId_, state.tunnelLayerId, state.property);
-    if (auto handler = surfaceHandler_.lock()) {
-        handler->MarkTunnelLayerInfoReceived();
+    if (!Rosen::IsNewTunnelEnabled()) {
+        return;
     }
-    RS_LOGD_IF(DEBUG_PIPELINE, "TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
-        ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
-        nodeId_, state.tunnelLayerId, state.property);
+    auto node = surfaceBufferInterface_.lock();
+    if (node == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnTunnelLayerInfoChanged node is nullptr");
+        return;
+    }
+    auto* surfaceNode = node->AsRSSurfaceRenderNode();
+    if (surfaceNode == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnTunnelLayerInfoChanged surfaceNode is nullptr");
+        return;
+    }
+    auto tunnelState = surfaceNode->GetTunnelRuntimeState();
+    tunnelState->SetLayerInfo(state.tunnelLayerId, state.property);
+    RSTunnelLayerHelper::BeginTunnelBuilding(*surfaceNode, state.tunnelLayerId, state.property);
+    auto surfaceHandler = surfaceHandler_.lock();
+    if (surfaceHandler != nullptr) {
+        surfaceHandler->MarkTunnelLayerInfoReceived();
+    }
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s tunnelLayerId=%" PRIu64 ", property=%u",
+        __func__, state.tunnelLayerId, state.property);
+    RS_LOGI("%{public}s %{public}s tunnelLayerId:%{public}" PRIu64 ", property:%{public}u",
+        TUNNEL_DEBUG_PREFIX, __func__, state.tunnelLayerId, state.property);
 }
 
 void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
@@ -174,8 +192,11 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         return;
     }
 
-    std::lock_guard<std::mutex> lock(pendingStateMutex_);
-    pendingCallbackBits_ |= PENDING_ON_CLEAN_CACHE_BIT;
+    auto node = surfaceBufferInterface_.lock();
+    if (node == nullptr) {
+        std::lock_guard<std::mutex> lock(pendingStateMutex_);
+        pendingCallbackBits_ |= PENDING_ON_CLEAN_CACHE_BIT;
+    }
 
     uint64_t curBufferId = 0;
     auto curBuffer = surfaceHandler->GetBuffer();
@@ -326,18 +347,13 @@ void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSu
             surfaceBuffer->buffer = returnValue.buffer;
             surfaceBuffer->acquireFence = returnValue.fence;
             surfaceBuffer->timestamp = returnValue.timestamp;
+            // When the reference count drops to zero, ReleaseBuffer is automatically called.
             surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
                 RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
             });
             RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
                 SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
             handler->ConsumeAndUpdateBuffer(*surfaceBuffer);
-
-            ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
-            if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("ReleaseBuffer failed, nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
-                return;
-            }
         });
     }
     return;
@@ -366,6 +382,10 @@ void RSRenderServiceListener::ProcessPendingCallbacks()
     }
 
     if ((pendingCallbackBits & PENDING_ON_CLEAN_CACHE_BIT) != 0) {
+        auto curBuffer = surfaceHandler->GetBuffer();
+        if (curBuffer == nullptr || curBuffer->GetSeqNum() != cleanCacheBufSeqNum) {
+            return;
+        }
         OnCleanCache(&cleanCacheBufSeqNum);
     }
 }
@@ -384,7 +404,7 @@ void RSRenderServiceListener::SetRSSurfaceBufferInterface(
 
 void RSRenderServiceListener::OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos)
 {
-#ifndef ROSEN_CROSS_PLATFORM
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr || !node->GetDelegateMode()) {
         return;

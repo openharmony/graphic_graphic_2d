@@ -106,7 +106,27 @@ int32_t RSRenderModeConfigParser::Parse()
         return RENDER_MODE_PARSE_GET_ROOT_FAIL;
     }
 
-    if (!ParseInternal(*root)) {
+    xmlNode* renderModeConfigNode = nullptr;
+    if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("Configs")) == 0) {
+        for (xmlNode* node = root->xmlChildrenNode; node; node = node->next) {
+            if (node->type != XML_ELEMENT_NODE) {
+                continue;
+            }
+            if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("render_mode_config")) == 0) {
+                renderModeConfigNode = node;
+                break;
+            }
+        }
+    } else if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("render_mode_config")) == 0) {
+        renderModeConfigNode = root;
+    }
+    
+    if (!renderModeConfigNode) {
+        RS_LOGE("%{public}s: xmlDocRenderModeConfigNodeElement failed", __func__);
+        return RENDER_MODE_PARSE_INTERNAL_FAIL;
+    }
+
+    if (!ParseInternal(*renderModeConfigNode)) {
         return RENDER_MODE_PARSE_INTERNAL_FAIL;
     }
 

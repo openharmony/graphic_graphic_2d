@@ -90,6 +90,7 @@ ohos_unittest("RSOpincCacheTest") {
   external_deps = [
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
   subsystem_name = "graphic"
 }
@@ -120,6 +121,7 @@ ohos_unittest("RSOpincRootCacheTest") {
   external_deps = [
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
   subsystem_name = "graphic"
 }
@@ -154,6 +156,7 @@ ohos_unittest("RSFrameControlToolTest") {
   external_deps = [
     "c_utils:utils",
     "googletest:gtest_main",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -185,6 +188,11 @@ ohos_unittest("RSOpincManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
+  external_deps = [
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
   subsystem_name = "graphic"
 }
 
@@ -213,14 +221,19 @@ ohos_unittest("RSOpincManagerLayerPartTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
+  external_deps = [
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
   subsystem_name = "graphic"
 }
 
-##############################  RSUiCaptureHelperTest  ##################################
-ohos_unittest("RSUiCaptureHelperTest") {
+##############################  RSSyncCaptureHelperTest  ##################################
+ohos_unittest("RSSyncCaptureHelperTest") {
   module_out_path = module_output_path
 
-  sources = [ "capture/rs_ui_capture_helper_test.cpp" ]
+  sources = [ "capture/rs_sync_capture_helper_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -240,6 +253,9 @@ ohos_unittest("RSUiCaptureHelperTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
+  external_deps = [
+    "init:libbegetutil",
+  ]
   subsystem_name = "graphic"
 }
 
@@ -251,6 +267,7 @@ ohos_unittest("RSColorPickerTest") {
     "color_picker/rs_color_picker_manager_test.cpp",
     "color_picker/rs_color_picker_thread_test.cpp",
     "color_picker/rs_color_picker_utils_test.cpp",
+    "color_picker/rs_persistent_contrast_color_scheme_test.cpp",
     "color_picker/rs_hetero_color_picker_test.cpp",
   ]
 
@@ -277,8 +294,12 @@ ohos_unittest("RSColorPickerTest") {
   ]
 
   external_deps = [
+    "egl:libEGL",
     "googletest:gmock_main",
-    "ffrt:libffrt"
+    "hilog:libhilog",
+    "ffrt:libffrt",
+    "init:libbegetutil",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"
@@ -312,6 +333,8 @@ ohos_unittest("RSColorSpaceUtilTest") {
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "hilog:libhilog",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   subsystem_name = "graphic"
@@ -345,6 +368,10 @@ ohos_unittest("RSMemoryInfoManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
+  external_deps = [
+    "hilog:libhilog",
+  ]
+
   subsystem_name = "graphic"
 }
 
@@ -374,14 +401,28 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
     "$rosen_root/modules/platform:eventhandler",
+    #"$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 
+  defines = []
+  defines += gpu_defines
+  defines += [ "RS_ENABLE_GPU" ]
+
   external_deps = [
+    "egl:libEGL",
     "init:libbegetutil",
+    "opengles:libGLES",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "skia:skia_canvaskit",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {
     external_deps += [ "vulkan-loader:vulkan_loader" ]
+    defines += [ "RS_ENABLE_VK" ]
   }
 
   if (graphic_2d_feature_enable_image_detail_enhancer) {
@@ -425,6 +466,7 @@ ohos_unittest("RSWindowKeyFrameRenderNodeTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 }
 
@@ -459,8 +501,11 @@ ohos_unittest("RSBufferReclaimTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
-    "googletest:gtest_main",
+    "ffrt:libffrt",
+    "googletest:gmock_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 }
 
@@ -501,6 +546,12 @@ ohos_unittest("RSPowerOffRenderSkipTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"
@@ -538,6 +589,123 @@ ohos_unittest("RSDynamicLayerSkipControllerTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSPersistentPropertyManagerTest  ##################################
+ohos_unittest("RSPersistentPropertyManagerTest") {
+  module_out_path = module_output_path
+
+  sources =
+      [ "persistent_property/rs_persistent_property_manager_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps =
+      [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  subsystem_name = "graphic"
+}
+
+##############################  RSDelegateCompositeCallbackManagerTest  ##################################
+ohos_unittest("RSDelegateCompositeCallbackManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [ "delegate_composite/rs_delegate_composite_callback_manager_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+  subsystem_name = "graphic"
+}
+
+##############################  RSFilterCacheManagerTest  ##################################
+ohos_unittest("RSFilterCacheManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "filter_cache_manager/rs_filter_cache_manager_test.cpp",
+    "filter_cache_manager/rs_filter_cache_memory_controller_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
   ]
 
   subsystem_name = "graphic"
@@ -558,7 +726,7 @@ group("unittest") {
     ":RSOpincRootCacheTest",
     ":RSOpincManagerTest",
     ":RSOpincManagerLayerPartTest",
-    ":RSUiCaptureHelperTest",
+    ":RSSyncCaptureHelperTest",
     ":RSColorSpaceUtilTest",
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",
@@ -566,5 +734,8 @@ group("unittest") {
     ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
     ":RSDynamicLayerSkipControllerTest",
+    ":RSPersistentPropertyManagerTest",
+    ":RSDelegateCompositeCallbackManagerTest",
+    ":RSFilterCacheManagerTest",
   ]
 }

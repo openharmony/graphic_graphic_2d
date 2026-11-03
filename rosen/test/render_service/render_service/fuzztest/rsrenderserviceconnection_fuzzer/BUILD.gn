@@ -88,6 +88,8 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
   sources = [ "rsrenderserviceconnection_fuzzer.cpp" ]
 
   external_deps = [
+    "drivers_interface_display:display_commontype_idl_headers",
+    "libxml2:libxml2",
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:abilitykit_native",

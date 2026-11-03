@@ -14,13 +14,20 @@
  */
 
 #include <memory>
+#include <unordered_set>
 
+#include <iremote_stub.h>
 #include "gtest/gtest.h"
+
+#include "memory/rs_memory_snapshot.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
+#include "surface_buffer_impl.h"
+#include "buffer_handle_utils.h"
 #endif
 
+#include "common/rs_special_layer_manager.h"
 #include "consumer_surface.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
@@ -29,6 +36,7 @@
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
 #include "surface_utils.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_frame_stability_types.h"
 
 using namespace testing;
@@ -69,6 +77,14 @@ void AddForceTunnelConfig()
     surfaceUtils->AddTunnelLayerConfig(FORCE_TUNNEL_CONFIG_KEY);
 }
 
+std::unordered_set<NodeId> GetGlobalBlackListOnMainThread()
+{
+    std::unordered_set<NodeId> blackList;
+    RSMainThread::Instance()->PostSyncTask(
+        [&blackList]() { blackList = ScreenSpecialLayerInfo::GetGlobalBlackList(); });
+    return blackList;
+}
+
 class RSFrameStabilityCallbackStubMock : public RSFrameStabilityCallbackStub {
 public:
     RSFrameStabilityCallbackStubMock() = default;
@@ -82,7 +98,11 @@ public:
     static inline std::shared_ptr<RSScreenRenderNode> screenNode_ = nullptr;
     static void SetUpTestCase();
     static void TearDownTestCase();
-    void SetUp() override {}
+    void SetUp() override
+    {
+        RSMainThread::Instance()->PostSyncTask(
+            []() { ScreenSpecialLayerInfo::SetGlobalBlackList({}); });
+    }
     void TearDown() override
     {
         ClearForceTunnelConfig();
@@ -335,6 +355,27 @@ HWTEST_F(RSRenderPipelineAgentTest, GetMaxGpuBufferSize_NullPipeline, TestSize.L
 }
 
 /**
+ * @tc.name: SetApsConfigParams
+ * @tc.desc: Verify function SetApsConfigParams
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < 129; i++) {
+        params["key" + std::to_string(i)] = "value" + std::to_string(i);
+    }
+
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::HVE, params), 0);
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params), 0);
+}
+
+/**
  * @tc.name: RegisterFrameStabilityDetection001
  * @tc.desc: Verify RegisterFrameStabilityDetection returns error when pipeline is null
  * @tc.type: FUNC
@@ -554,6 +595,54 @@ HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync002, TestSize.Le
 #endif
     nodeMap.UnregisterRenderNode(nodeId);
     mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureIsSync001
+ * @tc.desc: Test TakeSurfaceCapture with isSync enabled posts sync window capture task
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureIsSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    while (!mainThread->syncWindowCaptureTasks_.empty()) {
+        mainThread->syncWindowCaptureTasks_.pop();
+    }
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000310;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
+    captureConfig.isSync = true;
+    captureConfig.isSyncRender = false;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    permissions.selfCapture = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+    usleep(DEFAULT_TIME);
+    EXPECT_FALSE(mainThread->pendingSyncWindowCaptureTasks_.empty());
+
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
 }
 
 /**
@@ -1478,6 +1567,167 @@ HWTEST_F(RSRenderPipelineAgentTest, GetBitmap001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BlurPixelMap001
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap002
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pipeline is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap003
+ * @tc.desc: Verify BlurPixelMap posts task to render thread and returns ERR_OK
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+ 
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    // In test env, renderEngine is null so BlurPixelMapOnRenderThread returns false
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
+ * @tc.name: BlurPixelMap004
+ * @tc.desc: Verify BlurPixelMap with zero blurRadius (too small, skip blur)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap004, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 0.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
+ * @tc.name: BlurPixelMap005
+ * @tc.desc: Verify BlurPixelMap with negative blurRadius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, -5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
  * @tc.name: ReportJankStats001
  * @tc.desc: Verify ReportJankStats when pipeline is null
  * @tc.type: FUNC
@@ -1575,6 +1825,40 @@ HWTEST_F(RSRenderPipelineAgentTest, ReportRsSceneJankStart001, TestSize.Level1)
     AppInfo info;
     auto ret = agent->ReportRsSceneJankStart(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Verify SetUIMode3D returns ERR_INVALID_VALUE when pipeline is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Verify SetUIMode3D returns ERR_OK when pipeline exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret2D = agent->SetUIMode3D(UIMode3D::MODE_2D);
+    ErrCode retShutter = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ErrCode retGlassesFree = agent->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(ret2D, ERR_OK);
+    EXPECT_EQ(retShutter, ERR_OK);
+    EXPECT_EQ(retGlassesFree, ERR_OK);
 }
 
 /**
@@ -1755,7 +2039,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetRogScreenResolution_NonMatchingScreenId, 
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.screenNodeMap_[nodeId] = screenNode;
  
-    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.screenNodeMap_.erase(nodeId);
@@ -1785,12 +2070,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithBootAnimationN
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: AdjustBootAnimationBounds_WithoutBootAnimationNode
  * @tc.desc: Verify AdjustBootAnimationBounds handles case when no boot animation node exists.
@@ -1815,12 +2101,13 @@ HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithoutBootAnimati
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
- 
+
     nodeMap.UnregisterRenderNode(surfaceNodeId);
 }
- 
+
 /**
  * @tc.name: SetBootAnimationBounds_NullModifier
  * @tc.desc: Verify SetBootAnimationBounds handles null modifier gracefully.
@@ -1845,7 +2132,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetBootAnimationBounds_NullModifier, TestSiz
     auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
  
-    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight,
+        ScreenSamplingMode::DEVICE_DSS);
     EXPECT_EQ(ret, ERR_OK);
  
     nodeMap.UnregisterRenderNode(surfaceNodeId);
@@ -1883,12 +2171,12 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize
     ASSERT_NE(agent, nullptr);
     ASSERT_NE(mainThread_, nullptr);
     renderPipeline->mainThread_ = mainThread_;
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
-    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
-    EXPECT_NE(ret, 0);
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
-    ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
-    EXPECT_NE(ret, 0);
+    // nullptr buffer is valid (used for clearing pending buffer), should succeed
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    EXPECT_EQ(ret, 0);
+    // Duplicate nodeId + resetSurfaceIndex causes AddPendingBuffer to fail
+    ret = agent->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    ASSERT_NE(ret, 0);
 }
 
 /**
@@ -1903,16 +2191,164 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBuffer_NodeTypeCheck
     ASSERT_NE(agent, nullptr);
     ASSERT_NE(mainThread_, nullptr);
     renderPipeline->mainThread_ = mainThread_;
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
     // Register a non-CANVAS_DRAWING_NODE (SURFACE_NODE) in the node map
     pid_t pid = 1;
     NodeId surfaceNodeId = static_cast<NodeId>(pid) << 32 | 100;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
-    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    auto ret = agent->SubmitCanvasPreAllocatedBuffer(pid, surfaceNodeId, buffer, 1);
+    // nullptr buffer passes IsBufferConfigValid, execution reaches node type check
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(surfaceNodeId, nullptr, 1);
     ASSERT_EQ(ret, INVALID_ARGUMENTS);
     mainThread_->GetContext().GetMutableNodeMap().UnregisterRenderNode(surfaceNodeId);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBuffer_InvalidBufferConfig
+ * @tc.desc: Verify SubmitCanvasPreAllocatedBuffer rejects buffer with invalid config
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBuffer_InvalidBufferConfig, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    // SurfaceBuffer::Create() has no handle, GetWidth()/GetHeight() return -1 -> IsBufferConfigValid fails
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    ASSERT_EQ(ret, INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid001
+ * @tc.desc: Verify IsBufferConfigValid returns true for nullptr buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = nullptr;
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    EXPECT_TRUE(ret);
+    ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid002
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with invalid dimensions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid002, TestSize.Level1)
+{
+    // SurfaceBuffer::Create() has no handle, GetWidth/Height return -1
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    EXPECT_LT(buffer->GetWidth(), 1);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid003
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with non-RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGB_565;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_NE(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid004
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with stride less than width * bpp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid004, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 100; // stride < width * 4 = 400
+    handle->size = 10000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_LT(buffer->GetStride(), buffer->GetWidth() * 4);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid005
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with size less than stride * height
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid005, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 100; // size < stride * height = 40000
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    uint64_t minSize = static_cast<uint64_t>(buffer->GetStride()) * static_cast<uint64_t>(buffer->GetHeight());
+    EXPECT_LT(static_cast<uint64_t>(buffer->GetSize()), minSize);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid006
+ * @tc.desc: Verify IsBufferConfigValid accepts valid RGBA_8888 buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid006, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_EQ(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_TRUE(ret);
 }
 #endif
 
@@ -1966,6 +2402,313 @@ HWTEST_F(RSRenderPipelineAgentTest, OnGlobalBlacklistChangedWithValidPipeline, T
     }
 
     agent->OnGlobalBlacklistChanged({});
-    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+    ASSERT_EQ(GetGlobalBlackListOnMainThread().size(), 0);
+}
+
+/**
+ * @tc.name: GlobalBlackList_NullPipeline_ReturnInvalidValue
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList return ERR_INVALID_VALUE when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_NullPipeline_ReturnInvalidValue, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<NodeId> blackList = {DEFAULT_ID};
+    ASSERT_EQ(agent->SetGlobalBlackList(blackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->AddGlobalBlackList(blackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->RemoveGlobalBlackList(blackList), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GlobalBlackList_ValidPipeline_SetAddRemove
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList update the render-side global blacklist with valid pipeline
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_ValidPipeline_SetAddRemove, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    ASSERT_EQ(agent->SetGlobalBlackList({DEFAULT_ID}), ERR_OK);
+
+    ASSERT_EQ(agent->AddGlobalBlackList({DEFAULT_ID + 1}), ERR_OK);
+
+    ASSERT_EQ(agent->RemoveGlobalBlackList({DEFAULT_ID, DEFAULT_ID + 1}), ERR_OK);
+}
+
+/**
+ * @tc.name: GlobalBlackList_OverMaxInputSize_ReturnInvalidValue
+ * @tc.desc: Verify Set/Add/RemoveGlobalBlackList reject input larger than MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GlobalBlackList_OverMaxInputSize_ReturnInvalidValue, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<NodeId> overSizedBlackList;
+    for (NodeId nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM; nodeId++) {
+        overSizedBlackList.push_back(nodeId + 1);
+    }
+    ASSERT_EQ(agent->SetGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->AddGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+    ASSERT_EQ(agent->RemoveGlobalBlackList(overSizedBlackList), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AddGlobalBlackList_AccumulatedOverMaxSize_NotInserted
+ * @tc.desc: Verify AddGlobalBlackList skips insertion when accumulated size exceeds MAX_SPECIAL_LAYER_NUM
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AddGlobalBlackList_AccumulatedOverMaxSize_NotInserted, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    std::vector<NodeId> fullBlackList;
+    for (NodeId nodeId = 0; nodeId < MAX_SPECIAL_LAYER_NUM; nodeId++) {
+        fullBlackList.push_back(nodeId + 1);
+    }
+    ASSERT_EQ(agent->SetGlobalBlackList(fullBlackList), ERR_OK);
+
+    constexpr NodeId extraNodeId = 90003;
+    ASSERT_EQ(agent->AddGlobalBlackList({extraNodeId}), ERR_OK);
+    ASSERT_EQ(GetGlobalBlackListOnMainThread().size(), MAX_SPECIAL_LAYER_NUM);
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidNullPipeline
+ * @tc.desc: Verify AuthorizeUIExtensionPid returns ERR_INVALID_VALUE when pipeline is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidNullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6100;
+    constexpr pid_t guestPid = 6200;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, false), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidSingleProcessNoGuestConnection
+ * @tc.desc: Verify authorize/revoke succeed without any guest client-to-render connection when the
+ *           guest-connection check is disabled (single-process pipeline, e.g. divided render where
+ *           clients never call CreateRenderConnection).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidSingleProcessNoGuestConnection, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6101;
+    constexpr pid_t guestPid = 6201;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, false), ERR_OK);
+    EXPECT_TRUE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, false, true, false), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+}
+
+/**
+ * @tc.name: AuthorizeUIExtensionPidMultiProcessGuestConnectionRequired
+ * @tc.desc: Verify authorize is skipped when the guest has no client-to-render connection in this
+ *           process while the guest-connection check is enabled (multi-process render subprocess),
+ *           and takes effect once the guest connection is added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AuthorizeUIExtensionPidMultiProcessGuestConnectionRequired, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    constexpr pid_t hostPid = 6102;
+    constexpr pid_t guestPid = 6202;
+    constexpr uint64_t tokenMaskId = 1;
+    NodeId nodeId = (static_cast<NodeId>(hostPid) << 32) | 1;
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+
+    // guest has no client-to-render connection: authorize is skipped without failing
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, true), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+
+    // after the guest establishes its connection, authorize takes effect
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<IRemoteObject> tokenObj = token->AsObject();
+    sptr<RSIClientToRenderConnection> guestConn =
+        new RSClientToRenderConnection(guestPid, nullptr, tokenObj);
+    auto addResult = agent->AddConnection(guestPid, tokenMaskId, tokenObj, guestConn);
+    EXPECT_NE(addResult.first, nullptr);
+
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, true, true, true), ERR_OK);
+    EXPECT_TRUE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+    EXPECT_EQ(agent->AuthorizeUIExtensionPid(nodeId, guestPid, false, true, true), ERR_OK);
+    EXPECT_FALSE(nodeMap.IsUIExtensionAuthorized(nodeId, guestPid));
+
+    EXPECT_TRUE(agent->RemoveConnection(guestPid, token));
+}
+
+class MockSyncTask : public RSSyncTask {
+public:
+    explicit MockSyncTask(uint64_t timeoutNS) : RSSyncTask(timeoutNS) {}
+    bool Marshalling(Parcel&) const override { return true; }
+    bool CheckHeader(Parcel&) const override { return true; }
+    bool ReadFromParcel(Parcel&) override { return true; }
+    void Process(RSContext&) override { success_ = true; }
+};
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullTask_NoCrash
+ * @tc.desc: Verify ExecuteSynchronousTask does not crash when task is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullTask_NoCrash, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    agent->ExecuteSynchronousTask(nullptr);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullPipeline_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask does not execute task when pipeline is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullPipeline_TaskNotExecuted, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NormalPath_TaskExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask executes task when it completes before timeout
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NormalPath_TaskExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_TRUE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_Timeout_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask skips Process() when timeout occurs
+ *           before the task is picked up by the main thread, and returns ERR_TIMED_OUT
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_Timeout_TaskNotExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto blockDone = std::make_shared<std::promise<void>>();
+    auto blockFuture = blockDone->get_future();
+    mainThread_->handler_->PostTask([blockDone]() {
+        blockDone->set_value();
+        usleep(200000);
+    });
+    blockFuture.wait();
+
+    auto task = std::make_shared<MockSyncTask>(1000000);
+    auto ret = agent->ExecuteSynchronousTask(task);
+    EXPECT_EQ(ret, ERR_TIMED_OUT);
+    EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask_NullMainThread_TaskNotExecuted
+ * @tc.desc: Verify ExecuteSynchronousTask does not execute task when mainThread is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullMainThread_TaskNotExecuted, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto task = std::make_shared<MockSyncTask>(1000000000);
+    agent->ExecuteSynchronousTask(task);
+    EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: GetMemoryGraphics_FiltersPid0AndSelfPid
+ * @tc.desc: Verify GetMemoryGraphics filters pid=0 and self pid from snapshot without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetMemoryGraphics_FiltersPid0AndSelfPid, TestSize.Level1)
+{
+    pid_t selfPid = getpid();
+    pid_t normalPid = 99001;
+    size_t testSize = 1024;
+
+    MemorySnapshot::Instance().AddCpuMemory(0, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(selfPid, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(normalPid, testSize);
+
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<MemoryGraphic> memoryGraphics;
+    ErrCode ret = agent->GetMemoryGraphics(memoryGraphics);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
+    EXPECT_TRUE(snapshotMap.find(0) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(selfPid) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(normalPid) != snapshotMap.end());
+
+    std::set<pid_t> exitedPids = {0, selfPid, normalPid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 } // namespace OHOS::Rosen

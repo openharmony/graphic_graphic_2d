@@ -52,6 +52,12 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
+void HgmFrameVoter::SetSkipVirtualDisplay(bool isSkipVirtualDisplay)
+{
+    prevSkipVirtualDisplay_ = isSkipVirtualDisplay_;
+    isSkipVirtualDisplay_ = isSkipVirtualDisplay;
+}
+
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
@@ -117,6 +123,9 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
             MarkVoteChange(voter);
         } else if (voteInfo.voterName == "VOTER_PACKAGES") {
             // force update cause VOTER_PACKAGES is flag of safe_voter
+            MarkVoteChange(voter);
+        } else if (voteInfo.voterName == "VOTER_GAMES" && IsSkipVirtualDisplayChanged()) {
+            // refresh rate unchanged but skip virtual display toggled, force reprocess
             MarkVoteChange(voter);
         }
         return;
@@ -205,6 +214,9 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
         return false;
     }
     voteRecord_[voter].second = true;
+    if (isSkipVirtualDisplay_ && voter == "VOTER_VIRTUALDISPLAY") {
+        return false;
+    }
     auto& voteInfos = voteRecord_[voter].first;
     auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this](auto& voteInfo) {
         if (!multiAppStrategy_.CheckPidValid(voteInfo.pid)) {

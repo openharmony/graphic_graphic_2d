@@ -32,6 +32,7 @@ enum class OpincUnsupportType : uint8_t {
     CHILD_HAS_FILTER,
     CHILD_HAS_EFFECT,
     HAS_HARMONIUM,
+    HAS_GLASS_EFFECT,
 };
 constexpr int64_t COLOR_CHANNEL = 4;
 constexpr int64_t SCREEN_RATIO = 2;
@@ -57,10 +58,11 @@ public:
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
     void QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-        bool isAccessibilityConfigChanged);
+        bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup = false);
     void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
     void QuickCheckOpincStable(
-        RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode);
+        RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+        bool& hasUnstableOpincNode, bool hasAncestorRenderGroup = false);
     OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
     std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 

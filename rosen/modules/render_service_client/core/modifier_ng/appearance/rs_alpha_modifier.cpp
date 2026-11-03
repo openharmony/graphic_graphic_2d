@@ -18,21 +18,22 @@
 namespace OHOS::Rosen::ModifierNG {
 void RSAlphaModifier::SetAlpha(float alpha)
 {
-    Setter(RSPropertyType::ALPHA, alpha);
+    Setter(RSPropertyType::ALPHA, alpha, alpha != DEFAULT_ALPHA);
 }
 
 float RSAlphaModifier::GetAlpha() const
 {
-    return Getter(RSPropertyType::ALPHA, 1.f);
+    return Getter(RSPropertyType::ALPHA, DEFAULT_ALPHA);
 }
 
 void RSAlphaModifier::SetAlphaOffscreen(bool alphaOffscreen)
 {
-    Setter<RSProperty>(RSPropertyType::ALPHA_OFFSCREEN, alphaOffscreen);
+    Setter<RSProperty>(RSPropertyType::ALPHA_OFFSCREEN, alphaOffscreen,
+        alphaOffscreen != DEFAULT_ALPHA_OFFSCREEN);
 }
 
 bool RSAlphaModifier::GetAlphaOffscreen() const
 {
-    return Getter(RSPropertyType::ALPHA_OFFSCREEN, false);
+    return Getter(RSPropertyType::ALPHA_OFFSCREEN, DEFAULT_ALPHA_OFFSCREEN);
 }
 } // namespace OHOS::Rosen::ModifierNG

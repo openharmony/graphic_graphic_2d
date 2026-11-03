@@ -14,6 +14,7 @@
  */
 
 #include "ani_round_rect.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -52,7 +53,8 @@ ani_status AniRoundRect::AniInit(ani_env *env)
     std::array staticMethods = {
         ani_native_function { "roundRectTransferStaticNative", nullptr,
             reinterpret_cast<void*>(RoundRectTransferStatic) },
-        ani_native_function { "getRoundRectAddr", nullptr, reinterpret_cast<void*>(GetRoundRectAddr) },
+        ani_native_function { "roundRectTransferDynamicNative", nullptr,
+            reinterpret_cast<void*>(RoundRectTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -154,46 +156,40 @@ void AniRoundRect::Offset(ani_env* env, ani_object obj, ani_double x, ani_double
 
 ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsRoundRect = reinterpret_cast<JsRoundRect*>(unwrapResult);
-    if (jsRoundRect->GetRoundRectPtr() == nullptr) {
-        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic jsRoundRect is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsRoundRect = reinterpret_cast<JsRoundRect*>(unwrapResult);
+        if (jsRoundRect == nullptr || jsRoundRect->GetRoundRectPtr() == nullptr) {
+            ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic jsRoundRect is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
-    ani_object aniRoundRectObj = CreateAniObject(env, AniGlobalClass::GetInstance().roundRect,
-        AniGlobalMethod::GetInstance().roundRectCtorWithPtr, reinterpret_cast<ani_long>(aniRoundRect));
-    if (IsUndefined(env, aniRoundRectObj)) {
-        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
-        delete aniRoundRect;
-        return CreateAniUndefined(env);
-    }
-    return aniRoundRectObj;
+        auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
+        ani_object aniRoundRectObj = CreateAniObject(env, AniGlobalClass::GetInstance().roundRect,
+            AniGlobalMethod::GetInstance().roundRectCtorWithPtr, reinterpret_cast<ani_long>(aniRoundRect));
+        if (IsUndefined(env, aniRoundRectObj)) {
+            delete aniRoundRect;
+            ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed cause aniObj is undefined");
+        }
+        return aniRoundRectObj;
+    });
 }
 
-ani_long AniRoundRect::GetRoundRectAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniRoundRect::RoundRectTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, input, AniGlobalField::GetInstance().roundRectNativeObj);
-    if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
-        ROSEN_LOGE("AniRoundRect::GetRoundRectAddr aniRoundRect is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().roundRect)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniRoundRect->GetRoundRectPtrAddr());
-}
-
-std::shared_ptr<RoundRect>* AniRoundRect::GetRoundRectPtrAddr()
-{
-    return &roundRect_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniRoundRect = GetNativeFromObj<AniRoundRect>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().roundRectNativeObj);
+            if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
+                ROSEN_LOGE("AniRoundRect::RoundRectTransferDynamic null aniRoundRect");
+                return nullptr;
+            }
+            return JsRoundRect::CreateJsRoundRectDynamic(napiEnv, aniRoundRect->GetRoundRect());
+        });
 }
 
 std::shared_ptr<RoundRect> AniRoundRect::GetRoundRect()

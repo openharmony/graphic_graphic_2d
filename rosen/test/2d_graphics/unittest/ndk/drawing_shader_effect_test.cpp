@@ -24,7 +24,7 @@
 #include "image/pixelmap_native.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -43,12 +43,7 @@ public:
 
 constexpr uint32_t POINT_NUM = 3;
 
-void NativeDrawingShaderEffectTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingShaderEffectTest::SetUpTestCase() {}
 void NativeDrawingShaderEffectTest::TearDownTestCase() {}
 void NativeDrawingShaderEffectTest::SetUp() {}
 void NativeDrawingShaderEffectTest::TearDown() {}

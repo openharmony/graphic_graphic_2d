@@ -49,7 +49,7 @@ public:
     static napi_value SetShadowLayer(napi_env env, napi_callback_info info);
     static napi_value SetShaderEffect(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
-    static napi_value BrushTransferDynamic(napi_env env, napi_callback_info info);
+    static napi_value CreateJsBrushDynamic(napi_env env, const std::shared_ptr<Brush> brush);
 
     std::shared_ptr<Brush> GetBrush()
     {
@@ -57,7 +57,6 @@ public:
     }
 
 private:
-    static napi_value CreateJsBrushDynamic(napi_env env, const std::shared_ptr<Brush> brush);
     static thread_local napi_ref constructor_;
     std::shared_ptr<Brush> brush_ = nullptr;
 };

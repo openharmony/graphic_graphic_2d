@@ -16,16 +16,17 @@
 
 #include "gtest/gtest.h"
 
+#include "rs_animation_base_test.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_keyframe_animation.h"
 #include "animation/rs_motion_path_option.h"
 #include "common/rs_vector2.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
 #include "ui/rs_ui_context.h"
-#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -221,7 +222,8 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity001, 
 
     implicitAnimator->CreateImplicitAnimationWithInitialVelocity(node, prop, prop_start, prop_end, velocity);
 
-    auto node1 = RSCanvasNode::Create();
+    auto rsUIContext = CreateRSUIContext();
+    auto node1 = RSCanvasNode::Create(false, false, rsUIContext);
     implicitAnimator->OpenImplicitAnimation(RSAnimationTimingProtocol::DEFAULT, RSAnimationTimingCurve::DEFAULT);
     implicitAnimator->CreateImplicitAnimationWithInitialVelocity(node1, prop, prop_start, prop_end, velocity);
 
@@ -256,7 +258,8 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
     implicitAnimator->ProcessEmptyAnimations(finishCallback);
 
     auto implicitAnimator2 = std::make_shared<RSImplicitAnimator>();
-    auto canvasNode = RSCanvasNode::Create();
+    auto rsUIContext = CreateRSUIContext();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     implicitAnimator2->CreateImplicitTransition(*canvasNode.get());
     finishCallback = std::make_shared<AnimationFinishCallback>(nullptr);
     implicitAnimator2->OpenImplicitAnimation(std::move(finishCallback));
@@ -293,8 +296,8 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest002, TestSize.Level1)
 {
-    auto rsUIContext = CreateRSUIContext();
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    auto rsUIContext = CreateRSUIContext();
     implicitAnimator->SetRSUIContext(rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -715,7 +718,8 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest001, TestSize.Level1
     ASSERT_FALSE(implicitAnimator.implicitAnimationParams_.empty());
     ASSERT_NE(protocol.GetRepeatCount(), -1); // finite
 
-    auto target = RSCanvasNode::Create();
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
@@ -743,7 +747,8 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest002, TestSize.Level1
     ASSERT_FALSE(implicitAnimator.implicitAnimationParams_.empty());
     ASSERT_NE(protocol.GetRepeatCount(), -1); // finite
 
-    auto target = RSCanvasNode::Create();
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.5f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(0.5f);

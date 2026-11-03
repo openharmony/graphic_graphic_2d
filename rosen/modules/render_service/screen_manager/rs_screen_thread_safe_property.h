@@ -37,6 +37,7 @@ public:
     ResType SetOffset(int32_t offsetX, int32_t offsetY);
     ResType SetSamplingOption(bool isSamplingOn, float translateX, float translateY, float samplingScale);
     ResType SetScreenColorGamut(ScreenColorGamut colorGamut);
+    ResType SetVirtualScreenHDRMode(HDRMode mode);
     ResType SetScreenGamutMap(ScreenGamutMap gamutMap);
     ResType SetState(ScreenState state);
     ResType SetScreenCorrection(ScreenRotation correction);
@@ -48,12 +49,12 @@ public:
     ResType SetPixelFormat(GraphicPixelFormat pixelFormat);
     ResType SetScreenHDRFormat(ScreenHDRFormat hdrFormat);
     ResType SetVisibleRectOption(bool enableVisibleRect, const Rect& mainScreenRect, bool supportRotation);
-    ResType SetWhiteList(const std::unordered_set<NodeId>& whiteList);
-    ResType AddWhiteList(const std::vector<NodeId>& whiteList);
-    ResType RemoveWhiteList(const std::vector<NodeId>& whiteList);
-    ResType SetBlackList(const std::unordered_set<NodeId>& blackList);
-    ResType AddBlackList(const std::vector<NodeId>& blackList);
-    ResType RemoveBlackList(const std::vector<NodeId>& blackList);
+    ResType SetWhiteList(const std::unordered_set<uint64_t>& whiteList);
+    ResType AddWhiteList(const std::vector<uint64_t>& whiteList);
+    ResType RemoveWhiteList(const std::vector<uint64_t>& whiteList);
+    ResType SetBlackList(const std::unordered_set<uint64_t>& blackList);
+    ResType AddBlackList(const std::vector<uint64_t>& blackList);
+    ResType RemoveBlackList(const std::vector<uint64_t>& blackList);
     ResType SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
     ResType SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     ResType SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask);
@@ -69,12 +70,15 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+    ResType SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
+    ResType SetAsMainScreen(bool isMainScreen);
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
-    ResType SetAsMainScreen(bool isMainScreen);
     ResType SetIsRogResolution(bool isRogResolution);
     ResType SetHdiRogEnable(bool isHdiRogEnable);
+    ResType SetDualScreenState(DualScreenStatus dualScreenStatus);
+    ResType SetSamplingMode(ScreenSamplingMode samplingMode);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -91,6 +95,7 @@ public:
     float GetSamplingTranslateY() const;
     float GetSamplingScale() const;
     ScreenColorGamut GetScreenColorGamut() const;
+    HDRMode GetVirtualScreenHDRMode() const;
     ScreenGamutMap GetScreenGamutMap() const;
     ScreenState GetState() const;
     ScreenRotation GetScreenCorrection() const;
@@ -125,6 +130,8 @@ public:
     bool IsMainScreen() const;
     bool IsRogResolution() const;
     bool GetHdiRogEnable() const;
+    DualScreenStatus GetDualScreenState() const;
+    ScreenSamplingMode GetSamplingMode() const;
 
     ScreenInfo GetScreenInfo() const;
 

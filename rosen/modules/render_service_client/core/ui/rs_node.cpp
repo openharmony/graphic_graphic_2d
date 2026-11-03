@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <limits>
 #include <numeric>
 #include <vector>
@@ -34,6 +35,7 @@
 #include "sandbox_utils.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
 #include "ui_effect/effect/include/border_light_effect_para.h"
+#include "ui_effect/effect/include/colorful_brightness_blender.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
@@ -379,6 +381,7 @@ std::string RSNode::GetFrameNodeTag()
 void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddKeyFrame fraction[%f]", fraction);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
@@ -397,6 +400,7 @@ void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float f
 void RSNode::AddKeyFrame(
     const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddKeyFrame fraction[%f]", fraction);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
@@ -415,6 +419,7 @@ void RSNode::AddKeyFrame(
 void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_NAME_FMT("AddDurationKeyFrame duration[%d]", duration);
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
         return;
@@ -840,10 +845,6 @@ void RSNode::SetUIFilterPropertyNG(T value)
 void RSNode::SetAlpha(float alpha)
 {
     SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlpha>(alpha);
-    if (alpha < 1) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
     OnAlphaValueChanged();
 }
 
@@ -878,10 +879,6 @@ void RSNode::SetBoundsAndFrame(const Vector4f& bounds, const Vector4f& frame)
     }
 
     OnBoundsSizeChanged();
-    if (bounds.x_ != 0 || bounds.y_ != 0 || frame.x_ != 0 || frame.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 // Bounds
@@ -910,10 +907,6 @@ void RSNode::SetBounds(const Vector4f& bounds)
     }
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetBounds>(bounds);
     OnBoundsSizeChanged();
-    if (bounds.x_ != 0 || bounds.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 void RSNode::SetBounds(float positionX, float positionY, float width, float height)
@@ -988,10 +981,6 @@ void RSNode::SetFrameInner(const Vector4f& frame)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetPropertyNG<ModifierNG::RSFrameModifier, &ModifierNG::RSFrameModifier::SetFrame>(bounds);
-    if (bounds.x_ != 0 || bounds.y_ != 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::MergeableType);
-    }
 }
 
 void RSNode::SetFrame(float positionX, float positionY, float width, float height)
@@ -1020,8 +1009,6 @@ void RSNode::SetFramePositionX(float positionX)
     auto frame = property->Get();
     frame.x_ = positionX;
     property->Set(frame);
-    SetDrawNode();
-    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -1045,8 +1032,6 @@ void RSNode::SetFramePositionY(float positionY)
     auto frame = property->Get();
     frame.y_ = positionY;
     property->Set(frame);
-    SetDrawNode();
-    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
@@ -1058,6 +1043,7 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::SANDBOX);
         }
+        ResetTransitionPairInfoBoth();
         return;
     }
     SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetSandBox>(
@@ -1747,10 +1733,6 @@ void RSNode::SetBackgroundColor(RSColor color)
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
-    if (color.GetAlpha() > 0) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
@@ -2110,7 +2092,7 @@ void ReportSetUIXXFilterCascade(SetUIXXFilterCascadeParams& params)
 
     std::lock_guard<std::mutex> lock(sRateMutex);
     int64_t nowMs =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
     if (sWindowStartMsHour == 0 || nowMs - sWindowStartMsHour >= kHourMs) {
         sWindowStartMsHour = nowMs;
@@ -2403,7 +2385,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::GLASS_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
@@ -2439,30 +2422,100 @@ void RSNode::SetBlender(const Blender* blender)
 
     if (Blender::BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
         auto brightnessBlender = static_cast<const BrightnessBlender*>(blender);
-        if (brightnessBlender != nullptr) {
-            SetFgBrightnessFract(brightnessBlender->GetFraction());
-            SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
-                brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
-                { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
-                    brightnessBlender->GetPositiveCoeff().z_ },
-                { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
-                    brightnessBlender->GetNegativeCoeff().z_ }});
-            if (brightnessBlender->GetHdr()) {
-                SetFgBrightnessHdr(brightnessBlender->GetHdr());
-            }
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BLENDER);
+        if (modifier) {
+            DetachColorfulBrightnessBlenderProperties(modifier);
         }
+        SetFgBrightnessFract(brightnessBlender->GetFraction());
+        SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
+            brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
+            { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
+                brightnessBlender->GetPositiveCoeff().z_ },
+            { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
+                brightnessBlender->GetNegativeCoeff().z_ }});
+        if (brightnessBlender->GetHdr() && ROSEN_LNE(brightnessBlender->GetFraction(), 1.0f)) {
+            SetFgBrightnessHdr(brightnessBlender->GetHdr());
+        }
+    } else if (Blender::COLORFUL_BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
+        auto colorfulBrightnessBlender = static_cast<const ColorfulBrightnessBlender*>(blender);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BLENDER);
+        if (modifier) {
+            DetachFgBrightnessProperties(modifier);
+        }
+        ApplyColorfulBrightnessBlender(*colorfulBrightnessBlender);
     } else if (Blender::SHADOW_BLENDER == blender->GetBlenderType()) {
         auto shadowBlender = static_cast<const ShadowBlender*>(blender);
-        if (shadowBlender != nullptr) {
-            SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
-                shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
-        }
+        SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
+            shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
     } else if (Blender::HDR_DARKEN_BLENDER == blender->GetBlenderType()) {
         auto hdrDarkenBlender = static_cast<const HdrDarkenBlender*>(blender);
-        if (hdrDarkenBlender != nullptr) {
-            SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
-                                        hdrDarkenBlender->GetGrayscaleFactor() });
-        }
+        SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
+            hdrDarkenBlender->GetGrayscaleFactor() });
+    }
+}
+
+void RSNode::DetachFgBrightnessProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+{
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_RATES)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_RATES);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_SATURATION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_SATURATION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_POSCOEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_POSCOEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_NEGCOEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_NEGCOEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_FRACTION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_HDR)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FG_BRIGHTNESS_HDR);
+    }
+}
+
+void RSNode::DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+{
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED);
+    }
+    if (modifier->HasProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT)) {
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT);
     }
 }
 
@@ -2474,6 +2527,36 @@ void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
 void RSNode::SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params)
 {
     SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetHdrDarkenBlenderParams>(params);
+}
+
+void RSNode::ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& blender)
+{
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessDarkenWeight>(blender.GetDarkenWeight());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessFraction>(blender.GetFraction());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessCubicRate>(blender.GetCubicRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessQuadRate>(blender.GetQuadRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessLinearRate>(blender.GetLinearRate());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessDegree>(blender.GetDegree());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessSaturation>(blender.GetSaturation());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessPositiveCoeff>(blender.GetPositiveCoeff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessNegativeCoeff>(blender.GetNegativeCoeff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessVibrancyStrength>(blender.GetVibrancyStrength());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessLumaDiff>(blender.GetLumaDiff());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessHdrEnabled>(blender.GetHdrEnabled());
+    SetPropertyNG<ModifierNG::RSBlendModifier,
+        &ModifierNG::RSBlendModifier::SetColorfulBrightnessTintedColorPercent>(blender.GetTintedColorPercent());
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -2849,6 +2932,12 @@ void RSNode::SetShadowDisableSDFBlur(bool option)
         &ModifierNG::RSShadowModifier::SetShadowDisableSDFBlur>(option);
 }
 
+void RSNode::SetShadowClipType(int clipType)
+{
+    SetPropertyNG<ModifierNG::RSShadowModifier,
+        &ModifierNG::RSShadowModifier::SetClipType>(clipType);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetFrameGravity>(gravity);
@@ -3062,12 +3151,13 @@ void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 
 void RSNode::SetNodeName(const std::string& nodeName)
 {
-    if (nodeName_ != nodeName) {
-        nodeName_ = nodeName;
-        SetRSCmdProperty<NodeNameCmdModifier>(NodeNameCmdParam{
-            nodeName
-        });
+    if (nodeName_ == nodeName) {
+        return;
     }
+    nodeName_ = nodeName;
+    SetRSCmdProperty<NodeNameCmdModifier>(NodeNameCmdParam{
+        nodeName
+    });
 }
 
 void RSNode::SetTakeSurfaceForUIFlag()
@@ -3282,12 +3372,6 @@ void RSNode::AnimationDestroyInRenderCallback(AnimationId animationId, float fra
         return;
     }
     animationItr->second->SetRebuildParam({fraction, isReverseCycle});
-}
-
-void RSNode::ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme)
-{
-    SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerLastContrastColorScheme>(lastContrastColorScheme);
 }
 
 bool RSNode::FireColorPickerCallback(uint32_t color)
@@ -3646,6 +3730,12 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);
     }
+    if (auto inNode = rsUIContext->GetNodeMap().GetNode<RSNode>(inNodeId)) {
+        inNode->transitionPairInfo_ = TransitionPairInfo{ inNodeId, outNodeId, isInSameWindow };
+    }
+    if (auto outNode = rsUIContext->GetNodeMap().GetNode<RSNode>(outNodeId)) {
+        outNode->transitionPairInfo_ = TransitionPairInfo{ inNodeId, outNodeId, isInSameWindow };
+    }
 }
 
 void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
@@ -3659,6 +3749,12 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);
     }
+    if (auto inNode = rsUIContext->GetNodeMap().GetNode<RSNode>(inNodeId)) {
+        inNode->transitionPairInfo_.reset();
+    }
+    if (auto outNode = rsUIContext->GetNodeMap().GetNode<RSNode>(outNodeId)) {
+        outNode->transitionPairInfo_.reset();
+    }
 }
 
 void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty, bool colorAdaptive)
@@ -3670,16 +3766,12 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (!isForced && !RSSystemProperties::GetNodeGroupGroupedByUIEnabled()) {
         return;
     }
+    RS_TRACE_NAME_FMT("RSNode::MarkNodeGroup id:%" PRIu64 ", isNodeGroup:%d, isForced:%d, includeProperty:%d",
+        GetId(), isNodeGroup, isForced, includeProperty);
     isNodeGroup_ = isNodeGroup;
     SetRSCmdProperty<NodeGroupCmdModifier>(NodeGroupCmdParam{
         isNodeGroup, isForced, includeProperty
     });
-    if (isNodeGroup_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::ExcludedFromNodeGroup(bool isExcluded)
@@ -3718,12 +3810,6 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetRSCmdProperty<MarkOpincNodeCmdModifier>(MarkOpincNodeCmdParam{
         isOpincNode, isNeedCalculate
     });
-    if (isSuggestOpincNode_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::MarkLayerPartRender(bool isLayerPartRender)
@@ -3742,12 +3828,6 @@ void RSNode::MarkLayerPartRender(bool isLayerPartRender)
     SetRSCmdProperty<LayerPartRenderCmdModifier>(LayerPartRenderCmdParam{
         isLayerPartRender
     });
-    if (isLayerPartRender_) {
-        SetDrawNode();
-        if (GetParent()) {
-            GetParent()->SetDrawNode();
-        }
-    }
 }
 
 void RSNode::MarkUifirstNode(bool isUifirstNode)
@@ -3775,24 +3855,6 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     });
 }
 
-void RSNode::SetDrawNode()
-{
-    LoadRenderNodeIfNeed();
-    if (isDrawNode_) {
-        return;
-    }
-    isDrawNode_ = true;
-    if (drawNodeChangeCallback_) {
-        drawNodeChangeCallback_(shared_from_this(), false);
-    }
-}
-
-bool RSNode::GetIsDrawn()
-{
-    return isDrawNode_;
-}
-
-
 /**
  * @brief Sets the drawing type of RSnode
  *
@@ -3810,7 +3872,7 @@ void RSNode::SetDrawNodeType(DrawNodeType nodeType)
         return;
     }
     drawNodeType_ = nodeType;
-    if (RSSystemProperties::ViewDrawNodeType()) {
+    if (UNLIKELY(RSSystemProperties::ViewDrawNodeType())) {
         SyncDrawNodeType(nodeType);
     }
 }
@@ -4046,6 +4108,31 @@ void RSNode::SetIsOnTheTree(bool flag)
         }
         childPtr->SetIsOnTheTree(flag);
     }
+}
+
+bool RSNode::FlushCachedModifiersRecursively()
+{
+    // Indicates whether any cached modifier was actually flushed,
+    // used by the caller to determine if screenshot should be synchronous.
+    bool flushed = false;
+    std::queue<std::shared_ptr<RSNode>> nodeQueue;
+    auto self = shared_from_this();
+    nodeQueue.push(self);
+    while (!nodeQueue.empty()) {
+        auto current = nodeQueue.front();
+        nodeQueue.pop();
+        if (!current) {
+            continue;
+        }
+        flushed = current->FlushCachedModifiers() || flushed;
+        for (const auto& childWeak : current->GetChildren()) {
+            auto child = childWeak.lock();
+            if (child) {
+                nodeQueue.push(child);
+            }
+        }
+    }
+    return flushed;
 }
 
 bool RSNode::SetNodeState(RSNodeState state)
@@ -4413,31 +4500,65 @@ bool RSNode::ReCreateNodeInRender()
     SetNodeState(RSNodeState::ACTIVE);
     // 恢复node
     CreateRenderNode();
- 
+
     SetUIContextToken();
  
     SetSkipContentModifierDraw(true);
     // 恢复modifier
     DoFlushModifier();
     SetSkipContentModifierDraw(false);
- 
+
     // 恢复其他特性变量（使用 RSCmdModifier）
     UpdateAllRSCmdModifiersToRender();
- 
+
     RebuildAnimationInRender();
- 
+
     return true;
+}
+
+void RSNode::ResetTransitionPairInfoBoth()
+{
+    if (!transitionPairInfo_.has_value()) {
+        return;
+    }
+    if (auto rsUIContext = GetRSUIContext()) {
+        auto otherNodeId = (GetId() == transitionPairInfo_->inNodeId) ?
+            transitionPairInfo_->outNodeId : transitionPairInfo_->inNodeId;
+        if (auto otherNode = rsUIContext->GetNodeMap().GetNode<RSNode>(otherNodeId)) {
+            otherNode->transitionPairInfo_.reset();
+        }
+    }
+    transitionPairInfo_.reset();
+}
+
+void RSNode::RebuildTransitionPairInRender()
+{
+    if (!transitionPairInfo_.has_value()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("RSNode::RebuildTransitionPairInRender inNodeId: %" PRIu64 " outNodeId: %" PRIu64,
+        transitionPairInfo_->inNodeId, transitionPairInfo_->outNodeId);
+    auto rsUIContext = GetRSUIContext();
+    RegisterTransitionPair(rsUIContext,
+        transitionPairInfo_->inNodeId, transitionPairInfo_->outNodeId, transitionPairInfo_->isInSameWindow);
 }
 
 void RSNode::RebuildAnimationInRender()
 {
     static constexpr int REPEAT_COUNT_INFINITE = -1;
-    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
-    for (const auto& [animationId, animation] : animations_) {
-        if (animation->IsUiAnimation() || animation->GetRepeatCount() != REPEAT_COUNT_INFINITE) {
-            continue;
+    bool hasInfiniteAnimation = false;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation->IsUiAnimation() || animation->GetRepeatCount() != REPEAT_COUNT_INFINITE) {
+                continue;
+            }
+            hasInfiniteAnimation = true;
+            animation->RebuildInRender();
         }
-        animation->RebuildInRender();
+    }
+    if (hasInfiniteAnimation) {
+        RebuildTransitionPairInRender();
     }
 }
 
@@ -4545,6 +4666,13 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {
         CreateRenderNodeForTextureExportSwitch();
+    }
+    if (!isTextureExportNode_) {
+        // When isTextureExportNode_ is true, commands are flushed to the render thread.
+        // If the node's UIContext changes at that time, the UIContext of the corresponding renderNode on the main
+        // thread will not be updated. Therefore, when isTextureExportNode_ is set to false, a SetUIContextToken()
+        // command needs to be sent additionally.
+        SetUIContextToken();
     }
     DoFlushModifier();
 }
@@ -4835,6 +4963,7 @@ std::string RSNode::DumpNode(int depth) const
     ss << "]";
     ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
     ss << " nodeState[" << DumpNodeState() << "]";
+    ss << " isDrawNode[" << GetIsDrawn() << "]";
 
     {
         std::unique_lock<std::recursive_mutex> lock(animationMutex_);
@@ -4974,15 +5103,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         auto modifierType = modifier->GetType();
         if (modifierType == ModifierNG::RSModifierType::NODE_MODIFIER) {
             return;
-        }
-        if (modifierType != ModifierNG::RSModifierType::BOUNDS && modifierType != ModifierNG::RSModifierType::FRAME &&
-            modifierType != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
-            modifierType != ModifierNG::RSModifierType::ALPHA) {
-            SetDrawNode();
-            SetDrawNodeType(DrawNodeType::DrawPropertyType);
-            if (modifierType == ModifierNG::RSModifierType::TRANSFORM) {
-                SetDrawNodeType(DrawNodeType::GeometryPropertyType);
-            }
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);

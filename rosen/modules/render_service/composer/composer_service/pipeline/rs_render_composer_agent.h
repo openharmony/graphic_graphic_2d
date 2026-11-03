@@ -51,10 +51,12 @@ public:
     void HandlePowerStatus(ScreenPowerStatus status);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     void SetAFBCEnabled(bool enabled);
+    void SetSkipDelay(bool skipDelay);
     void SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
         const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
         const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
     void DumpVKImageInfo(std::string& dumpString);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

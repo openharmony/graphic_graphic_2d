@@ -123,8 +123,6 @@ private:
     static uint8_t* MapImage(int32_t file, size_t size, int32_t flags);
     static void UnmapImage(void* image, size_t size);
 
-    static SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer);
-
     static bool IsDataValid(const void* data, size_t size);
 
     static int32_t EncodeSeqLZ4(const ImageData& source, ImageData& dst);

@@ -152,29 +152,17 @@ public:
      */
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
-    // HybridDraw Start
-    bool IsHybridRenderCanvas() const
-    {
-        return false;
-    }
+    /**
+     * @brief Sets whether the node is on the tree, flushes cached custom modifier properties when on-tree.
+     */
+    void SetIsOnTheTree(bool onTheTree) override;
 
-    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr)
-    {
-        return false;
-    }
+    /**
+     * @brief Flushes cached modifier properties when node goes back on the tree.
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    bool FlushCachedModifiers() override;
 
-    bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr)
-    {
-        return false;
-    }
-
-    bool ResetSurface(int width, int height)
-    {
-        return false;
-    }
-    // HybridDraw End
-    
     /**
      * @brief Set a pixel map.
      *

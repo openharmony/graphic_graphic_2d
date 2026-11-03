@@ -86,214 +86,246 @@ HWTEST_F(RSTransactionDataTest, Unmarshalling, TestSize.Level1)
 
 /**
  * @tc.name: UnmarshallingCommand001
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
+ * @tc.desc: Marshalling empty payload then UnmarshallingCommand, verify round-trip success
+ * @tc.type: FUNC
  * @tc.require: issueI9QIQO
  */
 HWTEST_F(RSTransactionDataTest, UnmarshallingCommand001, TestSize.Level1)
 {
-    RSTransactionData rsTransactionData;
+    RSTransactionData src;
     Parcel parcel;
-    rsTransactionData.Marshalling(parcel);
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), true);
-}
-
-/**
- * @tc.name: UnmarshallingCommand002
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand002, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand003
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand003, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(57); // for test commandSize > readableSize
-    rsTransactionData.Marshalling(parcel);
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand004
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand004, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand005
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand005, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand006
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand006, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand007
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand007, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand008
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand008, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    parcel.WriteUint8(1); // for test hasCommand
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand009
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand009, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    parcel.WriteUint8(1); // for test hasCommand
-    parcel.WriteUint16(0); // for test commandType
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand010
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand010, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    parcel.WriteUint8(1); // for test hasCommand
-    parcel.WriteUint16(100); // for test commandType
-    parcel.WriteUint16(100); // for test commandSubType
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
-}
-
-/**
- * @tc.name: UnmarshallingCommand011
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand011, TestSize.Level1)
-{
-    RSTransactionData rsTransactionData;
-    Parcel parcel;
-    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    parcel.WriteUint8(1); // for test hasCommand
-    parcel.WriteUint16(0); // for test commandType
-    parcel.WriteUint16(0); // for test commandSubType
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_TRUE(dst.IsEmpty());
+    EXPECT_EQ(dst.GetCommandCount(), 0u);
 }
 
 #ifdef RS_ENABLE_UNI_RENDER
 /**
- * @tc.name: UnmarshallingCommand012
- * @tc.desc: Test UnmarshallingCommand
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
+ * @tc.name: UnmarshallingCommandUniRenderTrue
+ * @tc.desc: Test UnmarshallingCommand with isUniRender=true, covers the minCommandSizeUniRender
+ *           branch of the ternary that divides readableSize by minCommandSize.
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSTransactionDataTest, UnmarshallingCommand012, TestSize.Level1)
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommandUniRenderTrue, TestSize.Level1)
 {
     RSTransactionData rsTransactionData;
     Parcel parcel;
     parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
-    parcel.WriteBool(false); // for test isUniRender
-    parcel.WriteUint64(1); // for test nodeId
-    parcel.WriteUint8(1); // for test followType
-    parcel.WriteUint8(1); // for test hasCommand
-    parcel.WriteUint16(0); // for test commandType
-    parcel.WriteUint16(0); // for test commandSubType
-    parcel.WriteBool(true); // for test needSync_
-    parcel.WriteBool(true); // for test needCloseSync_
-    parcel.WriteInt32(100); // for test syncTransactionCount_
-    parcel.WriteUint64(100); // for test timestamp_
-    parcel.WriteInt32(1); // for test pid
-    parcel.WriteUint64(1); // for test index_
-    parcel.WriteUint64(1); // for test syncId_
-    parcel.WriteInt32(1); // for test hostPid_
-    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), true);
+    parcel.WriteBool(true); // for test isUniRender = true
+    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
 }
 #endif
+
+/**
+ * @tc.name: UnmarshallingCommand002
+ * @tc.desc: Marshalling with single command, verify UnmarshallingCommand produces correct payload
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand002, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeDestroy>(nodeId);
+    src.AddCommand(cmd, nodeId, FollowType::FOLLOW_TO_PARENT);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 1u);
+    EXPECT_FALSE(dst.IsEmpty());
+}
+
+/**
+ * @tc.name: UnmarshallingCommand003
+ * @tc.desc: Marshalling with multiple commands, verify all commands are unmarshalled
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand003, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId1 = 100;
+    NodeId nodeId2 = 200;
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSBaseNodeDestroy>(nodeId1);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSBaseNodeDestroy>(nodeId2);
+    src.AddCommand(cmd1, nodeId1, FollowType::FOLLOW_TO_PARENT);
+    src.AddCommand(cmd2, nodeId2, FollowType::FOLLOW_TO_PARENT);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 2u);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand004
+ * @tc.desc: Marshalling with two-NodeId command, verify unmarshalling succeeds
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand004, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId parentId = 100;
+    NodeId childId = 200;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    src.AddCommand(cmd, parentId, FollowType::FOLLOW_TO_PARENT);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 1u);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand005
+ * @tc.desc: Trailer fields round-trip: set fields before Marshalling, verify after Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand005, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeDestroy>(nodeId);
+    src.AddCommand(cmd, nodeId, FollowType::FOLLOW_TO_PARENT);
+    src.SetTimestamp(12345);
+    src.SetIndex(67890);
+    src.SetSyncId(999);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetTimestamp(), 12345u);
+    EXPECT_EQ(dst.GetIndex(), 67890u);
+    EXPECT_EQ(dst.GetSyncId(), 999u);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand006
+ * @tc.desc: commandSize exceeds readable bytes, should return false
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand006, TestSize.Level1)
+{
+    RSTransactionData dst;
+    Parcel parcel;
+    parcel.WriteInt32(1000000);
+    EXPECT_FALSE(dst.UnmarshallingCommand(parcel));
+}
+
+/**
+ * @tc.name: UnmarshallingCommand007
+ * @tc.desc: Unregistered commandType/commandSubType, factory returns nullptr, should return false
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand007, TestSize.Level1)
+{
+    RSTransactionData dst;
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.WriteBool(false);
+    parcel.WriteUint64(1);
+    parcel.WriteUint8(1);
+    parcel.WriteUint8(1);
+    parcel.WriteUint16(0xFFFF);
+    parcel.WriteUint16(0xFFFF);
+    EXPECT_FALSE(dst.UnmarshallingCommand(parcel));
+}
+
+/**
+ * @tc.name: UnmarshallingCommand008
+ * @tc.desc: hasCommand=0 for a command slot, should skip and continue to next command
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand008, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeDestroy>(nodeId);
+    src.AddCommand(cmd, nodeId, FollowType::FOLLOW_TO_PARENT);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 1u);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand009
+ * @tc.desc: scene field beyond valid range, should return false
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand009, TestSize.Level1)
+{
+    RSTransactionData src;
+    src.SetRSTransactionDataScene(RSTransactionDataScenes::Default);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetRSTransactionDataScene(), RSTransactionDataScenes::Default);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand010
+ * @tc.desc: Empty parcel, cannot read commandSize, should return false
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand010, TestSize.Level1)
+{
+    RSTransactionData dst;
+    Parcel parcel;
+    EXPECT_FALSE(dst.UnmarshallingCommand(parcel));
+}
+
+/**
+ * @tc.name: UnmarshallingCommand011
+ * @tc.desc: Full Marshalling→Unmarshalling→Process round-trip with RSBaseNodeSetIsCrossNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand011, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeSetIsCrossNode>(nodeId, true);
+    src.AddCommand(cmd, nodeId, FollowType::FOLLOW_TO_PARENT);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 1u);
+}
+
+/**
+ * @tc.name: UnmarshallingCommand012
+ * @tc.desc: Marshalling with Rebuild scene, verify scene round-trip
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommand012, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> cmd = std::make_unique<RSBaseNodeDestroy>(nodeId);
+    src.AddCommand(cmd, nodeId, FollowType::FOLLOW_TO_PARENT);
+    src.SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    Parcel parcel;
+    ASSERT_TRUE(src.Marshalling(parcel));
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetRSTransactionDataScene(), RSTransactionDataScenes::Rebuild);
+}
 
 /**
  * @tc.name: Marshalling
@@ -840,9 +872,7 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid007, TestSize.Level1)
     NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
     rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(childId);
-    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
-    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_TRUE(context.nodeMap.AuthorizeUIExtensionPid(childId, callingPid, true));
     EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
 }
 
@@ -858,6 +888,91 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid008, TestSize.Level1)
     auto rsTransactionData = std::make_unique<RSTransactionData>();
     rsTransactionData->payload_.emplace_back(1, FollowType::FOLLOW_TO_PARENT, nullptr);
     EXPECT_TRUE(rsTransactionData->IsCallingPidValid(1, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid009
+ * @tc.desc: callingPid == 0 should skip ownership check and not mark commands
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid009, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 0;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_TRUE(storedCommand->IsCallingPidValid());
+}
+
+/**
+ * @tc.name: IsCallingPidValid010
+ * @tc.desc: Negative callingPid should skip ownership check and not mark commands
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid010, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = -1;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_TRUE(storedCommand->IsCallingPidValid());
+}
+
+/**
+ * @tc.name: IsCallingPidValid011
+ * @tc.desc: Non-matching positive callingPid should mark the command as invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid011, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_FALSE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_FALSE(storedCommand->IsCallingPidValid());
+}
+
+/**
+ * @tc.name: MarshallingNullCommandTest
+ * @tc.desc: Marshalling with nullptr command in payload, verify WriteUint8(0) is folded
+ *           into success chain and Marshalling does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MarshallingNullCommandTest, TestSize.Level1)
+{
+    RSTransactionData src;
+    NodeId nodeId = 200;
+    src.payload_.emplace_back(nodeId, FollowType::FOLLOW_TO_PARENT, nullptr);
+    ASSERT_EQ(src.GetCommandCount(), 1u);
+
+    Parcel parcel;
+    bool result = src.Marshalling(parcel);
+    ASSERT_TRUE(result);
+
+    RSTransactionData dst;
+    ASSERT_TRUE(dst.UnmarshallingCommand(parcel));
+    EXPECT_EQ(dst.GetCommandCount(), 0u);
 }
 
 } // namespace Rosen

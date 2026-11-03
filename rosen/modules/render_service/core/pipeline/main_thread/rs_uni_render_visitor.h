@@ -177,6 +177,8 @@ private:
     void CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node);
     void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false,
         bool isBlendNeedFilter = false);
+    // Propagate the cross-node subtree's selfDrawing/filter nodes to the parent when its traversal is skipped.
+    void CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false);
     // restore node's flag and filter dirty collection
     void PostPrepare(RSRenderNode& node, bool isParentPrepareInReverseOrder = false, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
@@ -309,6 +311,7 @@ void ProcessGpuOfflineForTopLayer(
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node);
     void HandleColorGamuts(RSScreenRenderNode& node);
+    void HandleSkipColorSpaceConversion(RSScreenRenderNode& node, bool skipColorSpaceConversion);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
@@ -407,7 +410,11 @@ void ProcessGpuOfflineForTopLayer(
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
     void HandleColorPickerHwcDisable(RSRenderNode& node);
+    void HandleColorPickerHwcDisable(
+        RSRenderNode& node, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& colorPicker);
     void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager,
+        const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable);
     /**
      * @brief Prepare color pickers with dirty region intersection checking
      */
@@ -448,7 +455,6 @@ void ProcessGpuOfflineForTopLayer(
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
     // map of surface node color gamut collected in CheckColorSpace
     std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
-    RSRenderThreadParams::TunnelLayerSnapshotMap tunnelLayerSnapshots_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes

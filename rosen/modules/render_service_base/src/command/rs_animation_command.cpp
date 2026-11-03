@@ -152,7 +152,9 @@ void AnimationCommandHelper::CreateParticleAnimationNG(RSContext& context, NodeI
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
         animation->GetRenderParticle(), animation->GetPropertyId());
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier<RSRenderParticleVector>(
@@ -214,15 +216,22 @@ void AnimationCommandHelper::CreateInteractiveAnimatorGroup(RSContext& context,
     ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimatorGroup - id: %{public}" PRIu64
         ", animations: %{public}zu, startImmediately: %{public}d", groupId, animations.size(), startImmediately);
 
-    auto animator =
-        std::make_shared<RSRenderTimeDrivenGroupAnimator>(groupId, context.weak_from_this(), timingProtocol);
-    context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    if (animator == nullptr) {
+        animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(groupId, context.weak_from_this(), timingProtocol);
+        context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    } else if (!animator->IsTimeDriven()) {
+        ROSEN_LOGW("AnimationCommandHelper::CreateInteractiveAnimatorGroup - "
+            "animator[%{public}" PRIu64 "] is not a group animator", groupId);
+        return;
+    }
     animator->AddAnimations(std::move(animations));
 
     if (startImmediately) {
         auto currentTime = context.GetCurrentTimestamp();
-        animator->SetStartTime(currentTime);
-        animator->StartAnimator();
+        auto groupAnimator = std::static_pointer_cast<RSRenderTimeDrivenGroupAnimator>(animator);
+        groupAnimator->SetStartTime(currentTime);
+        groupAnimator->StartAnimator();
     }
 }
 
@@ -334,7 +343,7 @@ bool AnimationCommandHelper::IsAnimationsPidValid(const RSContext& context, Inte
     pid_t callingPid = ExtractPid(callerId);
     const auto& nodeMap = context.GetNodeMap();
     for (auto [nodeId, animationId] : animations) {
-        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
             ROSEN_LOGE("%{public}s, callingPid [%{public}d] no permission on node [%{public}" PRIu64 "]",
                 funcName, static_cast<int>(callingPid), nodeId);
             return false;

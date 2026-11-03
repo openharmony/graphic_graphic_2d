@@ -68,6 +68,10 @@ int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
         WALOGE("Failed to read starting app type!");
         return ERR_INVALID_DATA;
     }
+    if (type < FROM_LAUNCHER || type > FROM_OTHER) {
+        WALOGE("Invalid starting app type: %{public}d", type);
+        return ERR_INVALID_DATA;
+    }
     sptr<RSWindowAnimationTarget> startingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (startingWindowTarget == nullptr) {
         WALOGE("Failed to read starting window target!");
@@ -75,6 +79,10 @@ int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("Failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -102,6 +110,10 @@ int RSWindowAnimationStub::AppTransition(MessageParcel& data, MessageParcel& rep
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("AppTransition failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -129,6 +141,10 @@ int RSWindowAnimationStub::AppBackTransition(MessageParcel& data, MessageParcel&
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("AppBackTransition failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -150,6 +166,10 @@ int RSWindowAnimationStub::MinimizeWindow(MessageParcel& data, MessageParcel& re
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("MinimizeWindow failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -184,6 +204,10 @@ int RSWindowAnimationStub::MinimizeAllWindow(MessageParcel& data, MessageParcel&
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("MinimizeAllWindow failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -205,6 +229,10 @@ int RSWindowAnimationStub::CloseWindow(MessageParcel& data, MessageParcel& reply
     }
 
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("CloseWindow failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
@@ -220,6 +248,10 @@ int RSWindowAnimationStub::ScreenUnlock(MessageParcel& data, MessageParcel& repl
 {
     WALOGD("Window animation screen unlock!");
     sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    if (finishcallbackObject == nullptr) {
+        WALOGE("ScreenUnlock failed to read animation finished callback object!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {

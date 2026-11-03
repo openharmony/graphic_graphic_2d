@@ -117,8 +117,10 @@ ohos_unittest("feature_cfg_test") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "init:libbegetutil",
+    "libxml2:libxml2",
   ]
 
   part_name = "graphic_2d"

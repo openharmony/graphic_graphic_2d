@@ -25,10 +25,14 @@ pthread_once_t ThreadPrivateDataCtl::onceCtl_ = PTHREAD_ONCE_INIT;
 void ThreadPrivateDataCtl::KeyInit()
 {
     if (pthread_key_create(&key_, nullptr) != 0) {
+        key_ = PTHREAD_KEY_T_NOT_INITIALIZED;
         WLOGE("Failed to create thread key.");
         return;
     }
     if (pthread_key_create(&tableKey_, nullptr) != 0) {
+        pthread_key_delete(key_);
+        key_ = PTHREAD_KEY_T_NOT_INITIALIZED;
+        tableKey_ = PTHREAD_KEY_T_NOT_INITIALIZED;
         WLOGE("Failed to create thread key.");
         return;
     }
@@ -43,6 +47,9 @@ void ThreadPrivateDataCtl::ValidateKey()
 ThreadPrivateData* ThreadPrivateDataCtl::GetPrivateData()
 {
     ValidateKey();
+    if (key_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+        return nullptr;
+    }
     ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
     if (data == nullptr) {
         data = new ThreadPrivateData;
@@ -62,6 +69,19 @@ void ThreadPrivateDataCtl::ClearPrivateData()
     }
     if (tableKey_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         pthread_setspecific(tableKey_, nullptr);
+    }
+}
+
+void ThreadPrivateDataCtl::DestroyKeys()
+{
+    ClearPrivateData();
+    if (tableKey_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+        pthread_key_delete(tableKey_);
+        tableKey_ = PTHREAD_KEY_T_NOT_INITIALIZED;
+    }
+    if (key_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+        pthread_key_delete(key_);
+        key_ = PTHREAD_KEY_T_NOT_INITIALIZED;
     }
 }
 
@@ -102,7 +122,10 @@ void ThreadPrivateDataCtl::SetError(EGLint error)
 void ThreadPrivateDataCtl::SetContext(EGLContext ctx)
 {
     ValidateKey();
-    GetPrivateData()->ctx = ctx;
+    ThreadPrivateData *data = GetPrivateData();
+    if (data != nullptr) {
+        data->ctx = ctx;
+    }
 }
 
 EGLContext ThreadPrivateDataCtl::GetContext()
@@ -122,7 +145,9 @@ EGLContext ThreadPrivateDataCtl::GetContext()
 void ThreadPrivateDataCtl::SetGlHookTable(GlHookTable *table)
 {
     ValidateKey();
-    pthread_setspecific(tableKey_, table);
+    if (tableKey_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+        pthread_setspecific(tableKey_, table);
+    }
 }
 
 GlHookTable *ThreadPrivateDataCtl::GetGlHookTable()

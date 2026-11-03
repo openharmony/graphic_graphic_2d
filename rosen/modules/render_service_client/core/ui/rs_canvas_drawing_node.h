@@ -113,12 +113,15 @@ public:
     
     /**
      * @brief Resets the surface with the specified width and height.
+     * This interface is intended for re-allocating the surface and related resources
+     * when the node's width or height changes. It should not be called in any other scenario.
      *
      * @param width The new width of the surface.
      * @param height The new height of the surface.
+     * @param forceDisableDmaPreAllocate When true, forcibly disables DMA pre-allocation.
      * @return true if the surface was successfully reset; false otherwise.
      */
-    bool ResetSurface(int width, int height);
+    bool ResetSurface(int width, int height, bool forceDisableDmaPreAllocate = false);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     /**
@@ -153,10 +156,18 @@ protected:
 
     void SetIsOnTheTree(bool onTheTree) override;
 
+    /**
+     * @brief Empty override - cached property flush does not apply to CanvasDrawingNode.
+     */
+    bool FlushCachedModifiers() override
+    {
+        return false;
+    }
+
     void CreateRenderNode() override;
- 
+
     bool SetNodeState(RSNodeState state) override;
- 
+
     bool IsSkipContentModifierDraw() override;
  
     void SetSkipContentModifierDraw(bool skip) override;
@@ -173,6 +184,8 @@ private:
     void RegisterNodeMap() override;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    void OnCreate();
+
     void ResetSurfaceForClientRender(int width, int height);
 
     bool GetPixelmapForClientRender(

@@ -51,9 +51,10 @@ public:
     {
         return RSRenderTransition::ParseParam(parcel);
     }
-    void OnAnimate(float fraction) override
+    bool OnAnimate(float fraction) override
     {
         RSRenderTransition::OnAnimate(fraction);
+        return false;
     }
     void OnAttach() override
     {

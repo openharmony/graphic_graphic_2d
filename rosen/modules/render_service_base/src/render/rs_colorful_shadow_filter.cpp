@@ -36,6 +36,9 @@ RSColorfulShadowFilter::RSColorfulShadowFilter(float blurRadius, float offsetX, 
     const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&blurRadius_, sizeof(blurRadius_), hash_);
+    hash_ = hashFunc(&offsetX_, sizeof(offsetX_), hash_);
+    hash_ = hashFunc(&offsetY_, sizeof(offsetY_), hash_);
 }
 
 std::string RSColorfulShadowFilter::GetDescription()

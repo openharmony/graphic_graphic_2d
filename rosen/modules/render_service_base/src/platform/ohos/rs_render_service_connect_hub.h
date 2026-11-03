@@ -24,7 +24,6 @@
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 namespace OHOS {
 namespace Rosen {
-using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>;
 class RSRenderServiceConnectHub;
 
 class RSConnectRenderProcessDeathRecipient final : public IRemoteObject::DeathRecipient {
@@ -57,21 +56,19 @@ struct RenderProcessInfo {
     sptr<RSIClientToRenderConnection> clientToRenderConnection;
 };
 
-enum class RSOnDiedCallbackCode : int32_t {
-    APPLICATION_AGENT = 0,
-};
-
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
     static sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
     static sptr<RSIClientToRenderConnection> GetClientToRenderConnection(uint64_t tokenMaskId);
+
+    // Snapshot of all render-process connections the agent may have been registered with. Used by the
+    // client to proactively UnRegisterApplicationAgent (resolved by the calling pid) on each before the
+    // agent stub is torn down.
+    static std::map<uint64_t, RenderProcessInfo> GetAllClientToRenderConnections();
     static uint64_t GetDefaultTokenMaskId();
     static uint64_t GetRenderProcessTokenMaskId(sptr<IRemoteObject>& connectToRenderRemote);
-    static void SetOnConnectCallback(OnConnectCallback cb);
-
-    static void SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb);
-    static void RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess);
+    static void SeedTransactionDataIndex(uint64_t tokenMaskId);
 
     static sptr<RSRenderServiceConnectHub> GetConnectHubInstance()
     {
@@ -113,9 +110,13 @@ private:
     };
 
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
+    // Seeds the index counter of a newly created render-process connection with the counter of the
+    // guarantee connection used by INVALID-tokenMaskId clients before it, so the transaction index
+    // stream stays consecutive when traffic switches over. Only seeds while the new counter still
+    // holds the default value.
+    void SeedTransactionDataIndexInner(uint64_t tokenMaskId);
     void CleanConnectRenderProcess();
     void RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId, sptr<RSIConnectToRenderProcess> renderProcess);
-    void ExecuteAndClearDiedCallbacks();
     bool Connect();
     void ConnectDied();
 
@@ -130,10 +131,6 @@ private:
 
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
-    static OnConnectCallback onConnectCallback_;
-    static std::mutex onConnectCallbackMutex_;
-    std::mutex onDiedCallbacksMutex_;
-    std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
     friend class RSRenderPipelineClient;
 };
 } // namespace Rosen

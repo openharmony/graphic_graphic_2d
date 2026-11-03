@@ -63,23 +63,37 @@ HWTEST_F(RSAshmemTest, CreateAshmemAllocator001, Function | MediumTest | Level2)
 
 /**
  * @tc.name: CreateAshmemAllocator002
- * @tc.desc: test results of create AshmemAllocator
+ * @tc.desc: test results of sealed memfd validation and pread-based read
  * @tc.type:FUNC
  * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, CreateAshmemAllocator002, Function | MediumTest | Level2)
 {
     /**
-     * @tc.steps: step1. create AshmemAllocator
+     * @tc.steps: step1. write data, seal the memfd, then validate and read it back with pread
      */
     size_t size = 1024;
-    int fd = AshmemCreate("RSAshmemTest002", size);
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    ASSERT_TRUE(ashmemAllocator != nullptr);
-    ASSERT_FALSE(ashmemAllocator->GetFd() < 0);
-    ASSERT_EQ(ashmemAllocator->GetFd(), fd);
-    ASSERT_EQ(ashmemAllocator->GetSize(), size);
-    ASSERT_TRUE(ashmemAllocator->GetData() != nullptr);
+    auto writer = AshmemAllocator::CreateAshmemAllocator(size, PROT_READ | PROT_WRITE);
+    ASSERT_TRUE(writer != nullptr);
+    int pattern = 0x5A5A5A5A;
+    ASSERT_TRUE(writer->WriteToAshmem(&pattern, sizeof(pattern)));
+    int fd = writer->GetFd();
+    ASSERT_TRUE(fd > 0);
+    // reject the fd before it is sealed
+    ASSERT_FALSE(AshmemAllocator::ValidateSealedMemfd(fd, size));
+    ASSERT_TRUE(writer->Seal());
+
+    int dupFd = dup(fd);
+    ASSERT_GE(dupFd, 0);
+    ASSERT_TRUE(AshmemAllocator::ValidateSealedMemfd(dupFd, size));
+    // declared size larger than the memfd is rejected
+    ASSERT_FALSE(AshmemAllocator::ValidateSealedMemfd(dupFd, size + 1));
+
+    void* data = AshmemAllocator::CopyFromMemfd(dupFd, size);
+    ASSERT_TRUE(data != nullptr);
+    ASSERT_EQ(memcmp(data, &pattern, sizeof(pattern)), 0);
+    free(data);
+    ::close(dupFd);
 }
 
 /**
@@ -255,6 +269,7 @@ HWTEST_F(RSAshmemTest, CreateAshmemParcel001, Function | MediumTest | Level2)
     int fd = ashmemAllocator->GetFd();
     ASSERT_TRUE(fd > 0);
     dataParcel->WriteFileDescriptor(fd);
+    // parcels carrying fds are supported
     ASSERT_TRUE(RSAshmemHelper::CreateAshmemParcel(dataParcel) != nullptr);
 }
 

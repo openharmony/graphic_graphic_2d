@@ -446,7 +446,7 @@ static bool IsFencePending(int &fd)
     sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fd);
     //SyncFence close need to change fd to -1
     fd = -1;
-    return syncFence->Wait(0) == -1 && errno == ETIME;
+    return syncFence->Wait(0) == -ETIME && errno == ETIME;
 }
 
 void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image &image,
@@ -1961,6 +1961,7 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
             VkPhysicalDeviceHdrVividFeaturesHUAWEI* vividFeature =
                 reinterpret_cast<VkPhysicalDeviceHdrVividFeaturesHUAWEI*>(featureStruct);
             vividFeature->hdrVivid = VK_TRUE;
+            break;
         }
         featureStruct = reinterpret_cast<VkBaseOutStructure*>(featureStruct->pNext);
     }

@@ -22,6 +22,8 @@
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_surface_handler.h"
+#include "screen_manager/screen_types.h"
+#include "screen_manager/rs_screen_property.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #include "rs_surface_layer.h"
@@ -41,29 +43,34 @@ public:
     };
 
     static bool ResolveTunnelLayerInfo(
-        const sptr<IConsumerSurface>& consumer, uint64_t& tunnelLayerId, uint32_t& property,
-        NodeId nodeId = 0);
+        const std::shared_ptr<RSSurfaceRenderNode>& node,
+        uint64_t& tunnelLayerId, uint32_t& property);
     static RSSurfaceHandler::SurfaceBufferEntry AcquirePendingBuffer(
         const std::shared_ptr<RSSurfaceRenderNode>& node, RSTunnelRuntimeState& tunnelRuntime);
     static bool TryCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,
-        bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime);
-    static void BeginTunnelBuilding(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
+        bool preBufferFromTunnel, RSTunnelRuntimeState& tunnelRuntime);
+    static void BeginTunnelBuilding(RSSurfaceRenderNode& node,
+        uint64_t tunnelLayerId, uint32_t property);
     static void ResetTunnelState(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static ListenerHandleResult HandleListenerBuffer(
         const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager);
+    static void NotifyScreenPowerStatusChanged(ScreenId screenId, const sptr<ScreenPropertyBase>& property);
 
 private:
     static bool TryCommitPendingBuffer(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,
-        bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime,
+        bool preBufferFromTunnel, RSTunnelRuntimeState& tunnelRuntime,
         RSSurfaceHandler::SurfaceBufferEntry pendingBuffer);
     static RSLayerPtr CreateTunnelLayer(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager,
         const RSSurfaceHandler::SurfaceBufferEntry& bufferEntry);
     static void ReleaseTunnelLayer(const RSLayerPtr& layer, uint64_t bufferId);
+    static ScreenPowerStatus GetCachedScreenPowerStatus(ScreenId screenId);
+    static std::mutex screenPowerStatusMutex_;
+    static std::unordered_map<ScreenId, ScreenPowerStatus> screenPowerStatusMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

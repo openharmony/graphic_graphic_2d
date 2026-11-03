@@ -67,6 +67,11 @@ public:
 
     void SetNeedDraw(bool flag) override
     {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        if (RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+            return;
+        }
+#endif
         needDraw_ = flag;
     }
 
@@ -76,10 +81,6 @@ public:
     {
         return RSRenderNodeDrawableType::CANVAS_DRAWING_NODE_DRAWABLE;
     }
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<IConsumerSurface> GetConsumerSurface() const;
-#endif
 
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
@@ -153,9 +154,6 @@ private:
     bool isGpuSurface_ = true;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
-#endif
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    mutable sptr<IConsumerSurface> consumerSurface_ = nullptr;
 #endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::atomic<pid_t> threadId_ = RSUniRenderThread::Instance().GetTid();

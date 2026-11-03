@@ -95,7 +95,7 @@ void RSHpaeBuffer::Init(const BufferRequestConfig& config, bool isHebc)
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && grContext_ != nullptr) {
         auto vulkanSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface_);
-        vulkanSurface->SetSkContext(grContext_);
+        vulkanSurface->SetRenderContext(uniRenderEngine->GetRenderContext());
         vulkanSurface->MarkAsHpaeSurface();
     }
 #endif
@@ -272,7 +272,7 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface = client->CreateRSSurface(producerSurface_);
     rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
-    RS_LOGI("RSHpaeBuffer::CreateSurface end");
+    RS_LOGD("RSHpaeBuffer::CreateSurface end");
     surfaceCreated_ = true;
     surfaceHandler_->SetConsumer(consumer);
 

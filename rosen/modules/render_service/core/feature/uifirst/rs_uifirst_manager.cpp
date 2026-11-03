@@ -45,31 +45,39 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int EVENT_START_TIMEOUT = 500;
-    constexpr int EVENT_STOP_TIMEOUT = 150;
-    constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
-    constexpr int CLEAR_CACHE_DELAY = 400;
-    constexpr size_t MAX_CLEAR_CACHE_NODE_COUNT = 500; // 500 is the maximum number of nodes can be added to the list.
-    const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
-    constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
-    constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
-    constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
-    constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
-    constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
-    constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
-    constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
-    const std::unordered_set<std::string_view> LAYER_PART_RENDER_DISABLE_ANIMATION = {
-        "APP_LIST_FLING",
-        "WEB_LIST_FLING",
-        "SCROLLER_ANIMATION",
-    };
-
-    inline int64_t GetCurSysTime()
-    {
-        auto curTime = std::chrono::system_clock::now().time_since_epoch();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
-    }
+constexpr int EVENT_START_TIMEOUT = 500;
+constexpr int EVENT_STOP_TIMEOUT = 150;
+constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
+constexpr int CLEAR_CACHE_DELAY = 400;
+constexpr size_t MAX_CLEAR_CACHE_NODE_COUNT = 500; // 500 is the maximum number of nodes can be added to the list.
+const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
+constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
+constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
+constexpr std::string_view ABILITY_OR_PAGE_SWITCH = "ABILITY_OR_PAGE_SWITCH";
+constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
+constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
+constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
+constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
+const std::unordered_set<std::string_view> LAYER_PART_RENDER_DISABLE_ANIMATION = {
+    "APP_LIST_FLING",
+    "WEB_LIST_FLING",
+    "SCROLLER_ANIMATION",
 };
+// uifirst-disabled-by-animation-overlap is recorded on node only in these scenes
+const std::vector<std::string_view> ANIMATION_OVERLAP_RECORD_SCENES = {
+    "START_APP_ANI_FORM",
+    "LAUNCHER_APP_LAUNCH_FROM_ICON",
+    "LAUNCHER_APP_LAUNCH_FROM_DOCK",
+    "LAUNCHER_APP_SWIPE_TO_HOME",
+    "LAUNCHER_APP_BACK_TO_HOME",
+};
+
+inline int64_t GetCurSysTime()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+}
+}; // namespace
 
 RSUifirstManager& RSUifirstManager::Instance()
 {
@@ -302,9 +310,6 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
         return;
     }
     auto surfaceNode = std::static_pointer_cast<const RSSurfaceRenderNode>(nodeSp);
-    if (surfaceNode == nullptr) {
-        return;
-    }
     // mark all parent rendergroup need update; planning: mark autoCache need update
     auto node = surfaceNode->GetParent().lock();
 
@@ -642,6 +647,8 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = screenParams->GetScreenId();
     auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
     rsSubThreadCache.SetHDRPresent(isHdrOn);
+    bool skipColorSpaceConversion = screenParams->GetScreenProperty().GetSkipColorSpaceConversion();
+    rsSubThreadCache.SetSkipColorSpaceConversion(skipColorSpaceConversion);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
         GetUiFirstSwitch();
     GraphicColorGamut effectiveColorGamut = colorGamut;
@@ -653,8 +660,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         rsSubThreadCache.SetScreenId(id);
         rsSubThreadCache.SetTargetColorGamut(effectiveColorGamut);
     }
-    RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", rsSubThreadCache.GetHDRPresent(),
-        surfaceParams->GetBrightnessRatio());
+    RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f, screenId: %{public}"
+        PRIu64 ", SkipColorSpaceConversion:%{public}d", rsSubThreadCache.GetHDRPresent(),
+        surfaceParams->GetBrightnessRatio(), id, rsSubThreadCache.GetSkipColorSpaceConversion());
 #endif
 }
 
@@ -881,7 +889,7 @@ bool RSUifirstManager::IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRe
             RS_OPTIONAL_TRACE_NAME_FMT("visibleRegion is [%s], visibleRegionBehindWindow is [%s]",
                 visibleRegion.GetRegionInfo().c_str(),
                 visibleRegionBehindWindow.GetRegionInfo().c_str());
-            
+
             if (visibleRegionBehindWindow.IsEmpty() && !visibleRegion.IsEmpty()) {
                 return true;
             }
@@ -933,11 +941,9 @@ void RSUifirstManager::PostSubTask(NodeId id)
 
     // 1.find in cache list(done to delete) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (drawable) {
+    if (drawable && drawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceNodeDrawable) {
-            surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
-        }
+        surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
         // ref drawable
         subthreadProcessingNode_.emplace(id, drawable);
         // post task
@@ -1381,6 +1387,7 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
     int mainwindowNum = 0;
     int canvasNodeNum = 0;
     bool support = true;
+    bool startingWindowEnabled = true;
     std::shared_ptr<RSRenderNode> startingWindow = nullptr;
     bool hasContentAppWindow = false;
     for (auto& child : *(node.GetSortedChildren())) {
@@ -1399,9 +1406,9 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType() && surfaceChild->ShouldPaint() &&
-            canvasNodeNum == 0 && !surfaceChild->IsNotifyUIBufferAvailable()) {
+        if (surfaceChild && surfaceChild->IsMainWindowType() && canvasNodeNum == 0) {
             mainwindowNum++;
+            startingWindowEnabled &= surfaceChild->ShouldPaint() && !surfaceChild->IsNotifyUIBufferAvailable();
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
             }
@@ -1410,9 +1417,10 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         support = false;
     }
     node.SetUifirstHasContentAppWindow(hasContentAppWindow);
-    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, hasContent:%d", support,
-        canvasNodeNum, mainwindowNum, startingWindow != nullptr, hasContentAppWindow);
-    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow) { // starting window & appwindow
+    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, "
+        "hasContent:%d, startingWindowEnable:%d", support, canvasNodeNum, mainwindowNum,
+        startingWindow != nullptr, hasContentAppWindow, startingWindowEnabled);
+    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow && startingWindowEnabled) {
         startingWindow->SetStartingWindowFlag(true);
         return startingWindow->GetId();
     } else {
@@ -1524,10 +1532,8 @@ void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
         info.uniqueId, info.appPid, info.sceneId.c_str());
     EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};
     std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
-    for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end(); it++) {
-        it->disableNodes.clear();
-    }
     globalFrameEvent_.push_back(std::move(eventInfo));
+    hasNewResponseEvent_ = true;
 }
 
 void RSUifirstManager::OnProcessEventComplete(DataBaseRs& info)
@@ -1563,6 +1569,8 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
     negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
+        const bool clearDisableNodes = hasNewResponseEvent_;
+        hasNewResponseEvent_ = false;
         for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end();) {
             if (it->stopTime != 0 &&
                 ((curSysTime > it->stopTime) && (curSysTime - it->stopTime) > EVENT_STOP_TIMEOUT)) {
@@ -1573,6 +1581,9 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
             if ((curSysTime > it->startTime) && (curSysTime - it->startTime) > EVENT_START_TIMEOUT) {
                 it = globalFrameEvent_.erase(it);
                 continue;
+            }
+            if (clearDisableNodes) {
+                it->disableNodes.clear();
             }
             it++;
         }
@@ -1596,23 +1607,25 @@ void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimated
         case SystemAnimatedScenes::EXIT_RECENTS:
             isRecentTaskScene_.store(false);
             break;
-        // enter and exit mission center are two independent animations, the same goes for enter and exit split screen
-        // enter and exit mission center or enter and exit split screen animation starts for PC
+        // enter and exit mission center are two independent animations
         case SystemAnimatedScenes::ENTER_MISSION_CENTER:
-        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
-            isMissionCenterScene_.store(true);
+            // entering multi-task state, keep state until exit animation ends
+            isInMissionCenterState_.store(true);
+            isExitingMissionCenter_.store(false);
             break;
-        case SystemAnimatedScenes::ENTER_SPLIT_SCREEN:
-        case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
-            isSplitScreenScene_.store(true);
+        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
+            // mark exiting so OTHERS can leave the multi-task state
+            isExitingMissionCenter_.store(true);
             break;
         case SystemAnimatedScenes::SNAPSHOT_ROTATION:
             isSnapshotRotationScene_.store(true);
             break;
-        // enter and exit mission center or enter and exit split screen animation ends for PC
+        // enter and exit mission center animation ends
         case SystemAnimatedScenes::OTHERS:
-            isMissionCenterScene_.store(false);
-            isSplitScreenScene_.store(false);
+            if (isInMissionCenterState_.load() && isExitingMissionCenter_.load()) {
+                isInMissionCenterState_.store(false);
+                isExitingMissionCenter_.store(false);
+            }
             isSnapshotRotationScene_.store(false);
             break;
         default:
@@ -1851,11 +1864,17 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (node.IsChildDestoryRebuild()) ||
-        (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
-        (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
+        (RSUifirstManager::Instance().NodeIsInCardWhiteList(node))) {
         return false;
     }
     if (!node.IsLeashWindow()) {
+        return false;
+    }
+    if (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node)) {
+        if (animation && RSUifirstManager::Instance().IsAnimationOverlapRecordScene()) {
+            RS_TRACE_NAME("animation overlap, disable uifirst.");
+            node.SetUifirstDisabledByAnimationOverlap(true);
+        }
         return false;
     }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1922,18 +1941,24 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    bool focus = RSUifirstManager::Instance().IsFocusedNode(node);
+    // when system do animation assign focus window not on top to subthread
+    bool focus = RSUifirstManager::Instance().IsFocusedNode(node) &&
+    !(RSUifirstManager::Instance().IsInSystemWindowAnimate() &&
+    !RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
     if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
-        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
-            surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d"
+            "IsInSystemWindowAnimate: %d IsTopLeashWindow: %d", surfaceName.c_str(), focus, optFocus, animation,
+            node.GetUIFirstSwitch(), RSUifirstManager::Instance().IsInSystemWindowAnimate(),
+            RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
         return false;
     }
-    // disable uifirst when leash window has no app window at recent task scene or split screen scene
+    // disable uifirst when leash window has no app window during the whole mission center state
+    // (including the steady multi-task state between enter and exit animations)
     if (node.IsLeashWindow() && node.IsScale() && !LeashWindowContainMainWindow(node) &&
-        (RSUifirstManager::Instance().IsMissionCenterScene() || RSUifirstManager::Instance().IsSplitScreenScene())) {
+        (RSUifirstManager::Instance().IsInMissionCenterState())) {
         RS_TRACE_NAME("leash window has no app window, disable uifirst");
         return false;
     }
@@ -1955,6 +1980,17 @@ bool RSUifirstManager::IsLayerPartRenderDisableAnimation() const
 {
     for (auto& it : currentFrameEvent_) {
         if (LAYER_PART_RENDER_DISABLE_ANIMATION.find(it.sceneId) != LAYER_PART_RENDER_DISABLE_ANIMATION.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUifirstManager::IsAnimationOverlapRecordScene() const
+{
+    for (auto& it : currentFrameEvent_) {
+        if (std::find(ANIMATION_OVERLAP_RECORD_SCENES.begin(), ANIMATION_OVERLAP_RECORD_SCENES.end(), it.sceneId) !=
+            ANIMATION_OVERLAP_RECORD_SCENES.end()) {
             return true;
         }
     }
@@ -2033,14 +2069,35 @@ bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRota
     return assignable;
 }
 
+bool RSUifirstManager::IsRebuildForceDisable(const RSSurfaceRenderNode& node) const
+{
+    if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(node.GetId()))) {
+        return true;
+    }
+    if (!node.IsLeashWindow()) {
+        return false;
+    }
+    for (auto& child : *(node.GetChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild && RSMainThread::Instance()->IsPidRebuilding(ExtractPid(surfaceChild->GetId()))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
     bool isForceDisabled = (node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE);
     bool hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer) {
+    bool isRebuilding = IsRebuildForceDisable(node);
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer || isRebuilding) {
         RS_LOGD("uifirst disabled. id:%{public}" PRIu64 ",uifirstOn:%{public}d,support:%{public}d,"
-            "forceDisabled:%{public}d,protectLayer:%{public}d",
-            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer);
+            "forceDisabled:%{public}d,protectLayer:%{public}d,isRebuilding:%{public}d",
+            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer, isRebuilding);
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return true;
     }
@@ -2079,6 +2136,10 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, isCardUiFirstOn_,
         node.uifirstState_.isForceMarked, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED),
         node.GetUIFirstSwitch(), curUifirstWindowNums_, uifirstWindowsNumThreshold_);
+
+    if (!ancestorNodeHasAnimation && node.GetUifirstDisabledByAnimationOverlap()) {
+        node.SetUifirstDisabledByAnimationOverlap(false);
+    }
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }
@@ -2198,6 +2259,8 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
     if (node.IsOnTheTree()) {
         return;
     }
+    // Clear uifirstDrawCmdList_ when node is removed from the tree; otherwise, it may cause a memory leak.
+    node.SetUifirstNeedSync(true);
     RSUifirstManager::Instance().DisableUifirstNode(node);
     RSUifirstManager::Instance().ForceClearSubthreadRes();
     RSUifirstManager::Instance().RemoveCardNodes(node.GetId());
@@ -2503,7 +2566,7 @@ void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
             id, markedClearCacheNodes_.size());
         return;
     }
-    
+
     RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
     RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
     markedClearCacheNodes_.insert(id);

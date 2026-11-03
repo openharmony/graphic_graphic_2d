@@ -32,6 +32,8 @@ namespace Rosen {
 
 using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
 
+static constexpr size_t MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST = 500;
+
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
@@ -132,17 +134,69 @@ bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
         [nodePid](const auto& pair) -> bool { return ExtractPid(pair.first) == nodePid; });
 }
 
-bool RSRenderNodeMap::IsUIExtensionSurfaceNode(NodeId id) const
+bool RSRenderNodeMap::IsUIExtensionAuthorized(NodeId id, pid_t callingPid) const
 {
     std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-    return uiExtensionSurfaceNodes_.find(id) != uiExtensionSurfaceNodes_.end();
+    auto iter = uiExtensionSurfaceNodes_.find(id);
+    return iter != uiExtensionSurfaceNodes_.end() && iter->second == callingPid;
 }
 
-void RSRenderNodeMap::AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+bool RSRenderNodeMap::AuthorizeUIExtensionPid(NodeId id, pid_t guestPid, bool enforcePerHostQuota)
 {
-    if (surfaceNode && surfaceNode->IsUIExtension()) {
-        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-        uiExtensionSurfaceNodes_.insert(surfaceNode->GetId());
+    pid_t hostPid = ExtractPid(id);
+    if (guestPid <= 0 || guestPid == hostPid) {
+        RS_LOGW("RSRenderNodeMap::AuthorizeUIExtensionPid invalid guestPid %{public}d, nodeId %{public}" PRIu64,
+            static_cast<int32_t>(guestPid), id);
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+    if (uiExtensionSurfaceNodes_.find(id) == uiExtensionSurfaceNodes_.end()) {
+        // per-host quota for untrusted callers: the low 32 bits of an authorized NodeId are
+        // caller-controlled, an uncapped map would let a malicious host exhaust render process
+        // memory or block other applications from authorizing their UIExtension nodes
+        size_t hostEntryCount = 0;
+        if (auto countIter = uiExtensionHostEntryCounts_.find(hostPid);
+            countIter != uiExtensionHostEntryCounts_.end()) {
+            hostEntryCount = countIter->second;
+        }
+        if (enforcePerHostQuota && hostEntryCount >= MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST) {
+            RS_LOGW("RSRenderNodeMap::AuthorizeUIExtensionPid host %{public}d entries exceed limit %{public}zu,"
+                " reject", static_cast<int32_t>(hostPid), MAX_UIEXTENSION_AUTHORIZED_NODES_PER_HOST);
+            return false;
+        }
+        uiExtensionHostEntryCounts_[hostPid] = hostEntryCount + 1;
+    }
+    uiExtensionSurfaceNodes_[id] = guestPid;
+    return true;
+}
+
+bool RSRenderNodeMap::RevokeUIExtensionPid(NodeId id, pid_t guestPid)
+{
+    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+    auto iter = uiExtensionSurfaceNodes_.find(id);
+    if (iter == uiExtensionSurfaceNodes_.end() || iter->second != guestPid) {
+        return false;
+    }
+    DecreaseUIExtensionHostEntryCount(ExtractPid(id));
+    uiExtensionSurfaceNodes_.erase(iter);
+    return true;
+}
+
+pid_t RSRenderNodeMap::GetUIExtensionGuestPid(NodeId id) const
+{
+    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+    auto iter = uiExtensionSurfaceNodes_.find(id);
+    return iter != uiExtensionSurfaceNodes_.end() ? iter->second : 0;
+}
+
+void RSRenderNodeMap::DecreaseUIExtensionHostEntryCount(pid_t hostPid)
+{
+    auto iter = uiExtensionHostEntryCounts_.find(hostPid);
+    if (iter == uiExtensionHostEntryCounts_.end()) {
+        return;
+    }
+    if (--(iter->second) == 0) {
+        uiExtensionHostEntryCounts_.erase(iter);
     }
 }
 
@@ -150,7 +204,31 @@ void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfa
 {
     if (surfaceNode && surfaceNode->IsUIExtension()) {
         std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
-        uiExtensionSurfaceNodes_.erase(surfaceNode->GetId());
+        if (uiExtensionSurfaceNodes_.erase(surfaceNode->GetId()) > 0) {
+            DecreaseUIExtensionHostEntryCount(ExtractPid(surfaceNode->GetId()));
+        }
+    }
+}
+
+void RSRenderNodeMap::RegisterSurfaceRenderNode(pid_t pid, uint64_t token)
+{
+    auto iter = backgroundSurfaceNodeMap_.find(pid);
+    if (iter == backgroundSurfaceNodeMap_.end()) {
+        return;
+    }
+    auto& subMap = iter->second;
+    auto nodeIter = subMap.find(token);
+    if (nodeIter != subMap.end()) {
+        for (auto& node : nodeIter->second) {
+            if (node) {
+                node->SetUIRenderDirectorStopped(false);
+                surfaceNodeMap_[node->GetId()] = node;
+            }
+        }
+        subMap.erase(nodeIter);
+    }
+    if (subMap.empty()) {
+        backgroundSurfaceNodeMap_.erase(iter);
     }
 }
 
@@ -169,7 +247,6 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
         }
-        AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::PROTECTIVE_SOLID_NODE) {
@@ -373,6 +450,24 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     });
     RS_TRACE_END();
 
+    // recycle authorization entries of the dead process: both entries it owned as host
+    // (including pre-authorizations whose node was never registered) and entries where
+    // it was the authorized guest
+    {
+        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+        EraseIf(uiExtensionSurfaceNodes_, [pid, this](const auto& pair) -> bool {
+            bool shouldErase = ExtractPid(pair.first) == pid || pair.second == pid;
+            if (shouldErase) {
+                DecreaseUIExtensionHostEntryCount(ExtractPid(pair.first));
+            }
+            return shouldErase;
+        });
+    }
+
+    EraseIf(backgroundSurfaceNodeMap_, [pid](const auto& pair) -> bool {
+        return pair.first == pid;
+    });
+
     if (auto fallbackNode = GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
         if (auto animationManager = fallbackNode->GetAnimationManager()) {
@@ -380,6 +475,20 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
     }
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
+}
+
+void RSRenderNodeMap::RemoveSurfaceNodeMap(pid_t pid, uint64_t token)
+{
+    EraseIf(surfaceNodeMap_, [pid, token, this](const auto& pair) -> bool {
+        bool shouldErase = (ExtractPid(pair.first) == pid) && pair.second &&
+                           (pair.second->GetUIContextToken() == token) && pair.second->IsSelfDrawingType() &&
+                           !pair.second->GetIsTextureExportNode();
+        if (shouldErase) {
+            pair.second->SetUIRenderDirectorStopped(true);
+            backgroundSurfaceNodeMap_[pid][token].emplace_back(pair.second);
+        }
+        return shouldErase;
+    });
 }
 
 void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
@@ -405,9 +514,16 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                 return false;
 #endif
             }
+            auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+                return false;
+            }
+            if (pair.second->HasInfiniteGroupAnimationChild()) {
+                RS_TRACE_NAME_FMT("DestroyTokenNode skip infiniteGroupChild nodeId:%llu", pair.second->GetId());
+                return false;
+            }
             pair.second->ReleaseNodeInRender();
 
-            auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceNode && (!surfaceNode->IsSelfDrawingType() || surfaceNode->GetIsTextureExportNode())) {
                 return false;
             }
@@ -420,6 +536,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                     AddPendingUIBufferEntry(appWindow);
                 }
             }
+            pair.second->RemoveFromTree(true);
             return true;
         });
     }
@@ -427,7 +544,9 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
     RS_TRACE_BEGIN("DestroyTokenNode process surfaceNodeMap");
     EraseIf(surfaceNodeMap_, [pid, token, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid) && pair.second &&
-                           (pair.second->GetUIContextToken() == token) && pair.second->IsSelfDrawingType();
+                           (pair.second->GetUIContextToken() == token) &&
+                           !(pair.second->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) &&
+                           pair.second->IsSelfDrawingType();
         if (shouldErase) {
             if (auto parent = pair.second->GetParent().lock()) {
                 parent->RemoveChildFromFulllist(pair.second->GetId());
@@ -466,7 +585,9 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
     if (selfDrawingIter != selfDrawingNodeInProcess_.end()) {
         auto& selfDrawingSubMap = selfDrawingIter->second;
         EraseIf(selfDrawingSubMap, [token](const auto &pair) -> bool {
-            if (pair.second && pair.second->GetUIContextToken() == token) {
+            if (pair.second &&
+                pair.second->GetUIContextToken() == token &&
+                !(pair.second->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
                 auto parent = pair.second->GetParent().lock();
                 if (parent) {
                     parent->RemoveChildFromFulllist(pair.first);
@@ -770,10 +891,53 @@ void RSRenderNodeMap::RemoveSurfaceHandlerInfo(NodeId nodeId)
 
 void RSRenderNodeMap::AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow)
 {
-    auto leashParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindow->GetParent().lock());
-    if (leashParent && leashParent->IsLeashWindow()) {
-        hasDestoryRebuildAppWindowMap_[appWindow->GetId()] = leashParent->GetId();
+    std::string out = "id:" + std::to_string(appWindow->GetId()) + " name:" + appWindow->GetName();
+    RS_TRACE_BEGIN("AddPendingUIBufferEntry " + out);
+    // Skip if already in the map — no need to search parent and siblings again
+    if (HasPendingUIBufferEntry(appWindow->GetId())) {
+        RS_TRACE_NAME("already HasPendingUIBufferEntry " + out);
+        RS_TRACE_END();
+        return;
     }
+    auto leashParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindow->GetParent().lock());
+    if (!leashParent || !leashParent->IsLeashWindow()) {
+        RS_TRACE_NAME("no leash parent");
+        RS_TRACE_END();
+        return;
+    }
+
+    // Only delay when there are sibling AppWindows with a different token
+    // under the same LeashWindow; otherwise the single-AppWindow case needs no delay.
+    // Use GetChildrenList() (children_) instead of GetChildren() (fullChildrenList_),
+    // because fullChildrenList_ is a cache regenerated only during Prepare phase
+    // and may be stale when this function is called during command processing.
+    auto appToken = appWindow->GetUIContextToken();
+    auto childrenListRaw = leashParent->GetChildrenList();
+    if (childrenListRaw.size() <= 1) {
+        RS_TRACE_NAME("no sibling appWindow node exist");
+        RS_TRACE_END();
+        return;
+    }
+    // Add different-token sibling AppWindows and the current AppWindow,
+    // so that all siblings are delayed together even if only one went through GoStop.
+    auto leashId = leashParent->GetId();
+    bool hasSiblingWithDiffToken = false;
+    for (const auto& childWeak : childrenListRaw) {
+        auto child = childWeak.lock();
+        auto childAppWindow = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (childAppWindow && childAppWindow->IsAppWindow() && childAppWindow->GetUIContextToken() != appToken) {
+            RS_TRACE_NAME_FMT("AddPendingUIBuffer id:%llu name:%s token:%llu", childAppWindow->GetId(),
+                childAppWindow->GetName().c_str(), childAppWindow->GetUIContextToken());
+            hasDestoryRebuildAppWindowMap_[childAppWindow->GetId()] = leashId;
+            hasSiblingWithDiffToken = true;
+        }
+    }
+    if (hasSiblingWithDiffToken) {
+        RS_TRACE_NAME_FMT("AddPendingUIBuffer id:%llu name:%s token:%llu", appWindow->GetId(),
+            appWindow->GetName().c_str(), appToken);
+        hasDestoryRebuildAppWindowMap_[appWindow->GetId()] = leashId;
+    }
+    RS_TRACE_END();
 }
 
 bool RSRenderNodeMap::HasPendingUIBufferEntry(NodeId appWindowId) const

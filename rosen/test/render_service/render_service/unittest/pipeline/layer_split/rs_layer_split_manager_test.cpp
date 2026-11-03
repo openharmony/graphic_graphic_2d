@@ -15,8 +15,14 @@
 
 #include "gtest/gtest.h"
 #include "pipeline/layer_split/rs_layer_split_manager.h"
+#include "pipeline/layer_split/splitter/opinc/rs_opinc_layer_splitter_planner.h"
+#include "pipeline/layer_split/splitter/opinc/rs_opinc_layer_splitter_processor.h"
+#include "pipeline/layer_split/surface/rs_split_surface.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_test_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "modifier/rs_render_property.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "transaction/rs_transaction_data.h"
 #include "command/rs_delegate_composite_command.h"
 
@@ -45,9 +51,9 @@ private:
         mgr.selectorVec_.clear();
         mgr.plannerMap_.clear();
         mgr.processorMap_.clear();
-        mgr.parentNodeMap_.clear();
     }
     int testNodeId = 0;
+    RSScreenRenderNode screenNode_{9999, 0};
     std::shared_ptr<RSRenderNode> CreateSurfaceNode()
     {
         return std::make_shared<RSRenderNode>(testNodeId++);
@@ -134,7 +140,7 @@ HWTEST_F(RSLayerSplitManagerTest, MoveSplitSurfaceNode002, TestSize.Level1)
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     instance->MoveSplitSurfaceNode();
@@ -193,7 +199,7 @@ HWTEST_F(RSLayerSplitManagerTest, RecordSplitNode003, TestSize.Level1)
     child->GetOpincRootCache().isOpincRootFlag_ = true;
     child->GetMutableRenderProperties().curGeoDirty_ = true;
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     instance->Reset();
@@ -209,7 +215,7 @@ HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeave001, TestSize.Level1)
     auto instance = RSLayerSplitManager::GetInstance();
     instance->isGlobalEnabled_ = false;
     instance->SetEnabled(false);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
     EXPECT_TRUE(instance->plannerMap_.empty());
     EXPECT_TRUE(instance->processorMap_.empty());
 }
@@ -237,12 +243,10 @@ HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeaveWithParentChild001, TestSize.Lev
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     EXPECT_FALSE(instance->processorMap_.empty());
-    EXPECT_FALSE(instance->parentNodeMap_.empty());
-
     instance->Reset();
 }
 
@@ -275,7 +279,7 @@ HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeaveWithMultipleChildren001, TestSiz
 
     instance->RecordSplitNode(child1);
     instance->RecordSplitNode(child2);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     EXPECT_EQ(instance->plannerMap_.size(), 1);
@@ -309,22 +313,20 @@ HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeaveParentChange001, TestSize.Level1
     child1->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child1);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_EQ(instance->plannerMap_.size(), 1);
-    auto parent1Id = parent1->GetId();
-    EXPECT_NE(instance->plannerMap_.find(parent1Id), instance->plannerMap_.end());
+    EXPECT_NE(instance->plannerMap_.find(parent1), instance->plannerMap_.end());
 
     parent2->AddChild(child2);
     child2->GetOpincRootCache().isOpincRootFlag_ = true;
     child2->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child2);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_EQ(instance->plannerMap_.size(), 2);
-    auto parent2Id = parent2->GetId();
-    EXPECT_NE(instance->plannerMap_.find(parent2Id), instance->plannerMap_.end());
+    EXPECT_NE(instance->plannerMap_.find(parent2), instance->plannerMap_.end());
 
     instance->Reset();
 }
@@ -379,7 +381,7 @@ HWTEST_F(RSLayerSplitManagerTest, CheckSplitNodeIntersectFilter003, TestSize.Lev
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     auto hwcNode = RSTestUtil::CreateSurfaceNode();
@@ -400,7 +402,7 @@ HWTEST_F(RSLayerSplitManagerTest, UpdatePlanAndDirtyRegion001, TestSize.Level1)
     instance->isGlobalEnabled_ = true;
     instance->SetEnabled(true);
     instance->Reset();
-    instance->UpdatePlanAndDirtyRegion(nullptr);
+    instance->UpdatePlanAndDirtyRegion(screenNode_, nullptr);
     EXPECT_TRUE(instance->plannerMap_.empty());
     instance->Reset();
 }
@@ -424,10 +426,10 @@ HWTEST_F(RSLayerSplitManagerTest, UpdatePlanAndDirtyRegion002, TestSize.Level1)
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
-    instance->UpdatePlanAndDirtyRegion(nullptr);
+    instance->UpdatePlanAndDirtyRegion(screenNode_, nullptr);
 
     instance->Reset();
 }
@@ -467,7 +469,7 @@ HWTEST_F(RSLayerSplitManagerTest, Sync002, TestSize.Level1)
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     instance->Sync();
@@ -528,7 +530,7 @@ HWTEST_F(RSLayerSplitManagerTest, CheckDoDirectCompositionWithSplitLayer003, Tes
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     bool result = instance->CheckDoDirectCompositionWithSplitLayer();
@@ -574,7 +576,7 @@ HWTEST_F(RSLayerSplitManagerTest, InitSplitSurface002, TestSize.Level1)
     child->GetMutableRenderProperties().curGeoDirty_ = true;
 
     instance->RecordSplitNode(child);
-    instance->CheckNeedLeave();
+    instance->CheckNeedLeave(screenNode_);
 
     EXPECT_FALSE(instance->plannerMap_.empty());
     ScreenInfo screenInfo;
@@ -599,5 +601,353 @@ HWTEST_F(RSLayerSplitManagerTest, CheckOpIncNodeFromCommand001, TestSize.Level1)
     auto result = instance->CheckOpIncNodeFromCommand(transactionData);
     EXPECT_FALSE(result);
     instance->Reset();
+}
+
+/**
+ * @tc.name: CheckOpIncNodeFromCommand001
+ * @tc.desc: Check if CheckOpIncNodeFromCommand returns false when transactionData is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckOpIncNodeFromCommand002, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    instance->isGlobalEnabled_ = true;
+    instance->SetEnabled(true);
+    instance->Reset();
+    EXPECT_TRUE(instance->plannerMap_.empty());
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    auto result = instance->CheckOpIncNodeFromCommand(transactionData);
+    EXPECT_FALSE(result);
+    instance->Reset();
+}
+
+/**
+ * @tc.name: Reset_DisabledWithSelectors
+ * @tc.desc: Test Reset when isEnabled_=false and selectorVec_ is not empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Reset_DisabledWithSelectors, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    instance->isGlobalEnabled_ = true;
+    instance->SetEnabled(true);
+    instance->Reset(); // enable + empty selector → adds selector
+    EXPECT_FALSE(instance->selectorVec_.empty());
+    instance->SetEnabled(false);
+    instance->Reset(); // disabled + non-empty selector → clears selector
+    EXPECT_TRUE(instance->selectorVec_.empty());
+}
+
+/**
+ * @tc.name: CheckNeedLeave_ParentNodeNull
+ * @tc.desc: Test CheckNeedLeave when selector->SelectParentNode() returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeave_ParentNodeNull, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    instance->isGlobalEnabled_ = true;
+    instance->SetEnabled(true);
+    instance->Reset(); // adds a selector with empty recorded nodes
+
+    // selector has no recorded nodes → SelectParentNode() returns nullptr → continue
+    instance->CheckNeedLeave(screenNode_);
+    EXPECT_TRUE(instance->plannerMap_.empty());
+    EXPECT_TRUE(instance->processorMap_.empty());
+}
+
+/**
+ * @tc.name: CheckNeedLeave_ParentChanged_UnregisterPlanner
+ * @tc.desc: Test CheckNeedLeave when parent changes, planner exists, planner->second is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeave_ParentChanged_UnregisterPlanner, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    instance->isGlobalEnabled_ = true;
+    instance->SetEnabled(true);
+    instance->Reset();
+
+    // First call: record child1 under parent1 → creates planner for parent1
+    auto parent1 = CreateSurfaceNode();
+    auto child1 = CreateSurfaceNode();
+    parent1->AddChild(child1);
+    child1->GetOpincRootCache().isOpincRootFlag_ = true;
+    child1->GetMutableRenderProperties().curGeoDirty_ = true;
+    instance->RecordSplitNode(child1);
+    instance->CheckNeedLeave(screenNode_);
+    EXPECT_FALSE(instance->plannerMap_.empty());
+    EXPECT_NE(instance->plannerMap_.find(parent1), instance->plannerMap_.end());
+
+    // Remove child1 from parent1, add to parent2 → parent change triggers Unregister
+    parent1->RemoveChild(child1);
+    auto parent2 = CreateSurfaceNode();
+    parent2->AddChild(child1);
+    instance->RecordSplitNode(child1);
+    instance->CheckNeedLeave(screenNode_);
+
+    EXPECT_NE(instance->plannerMap_.find(parent1), instance->plannerMap_.end());
+    EXPECT_NE(instance->plannerMap_.find(parent2), instance->plannerMap_.end());
+}
+
+/**
+ * @tc.name: CheckNeedLeave_PlannerAlreadyExists
+ * @tc.desc: Test CheckNeedLeave when planner for the node already exists in map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckNeedLeave_PlannerAlreadyExists, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    instance->isGlobalEnabled_ = true;
+    instance->SetEnabled(true);
+    instance->Reset();
+
+    auto parent = CreateSurfaceNode();
+    auto child = CreateSurfaceNode();
+    parent->AddChild(child);
+    child->GetOpincRootCache().isOpincRootFlag_ = true;
+    child->GetMutableRenderProperties().curGeoDirty_ = true;
+
+    // First CheckNeedLeave creates the planner
+    instance->RecordSplitNode(child);
+    instance->CheckNeedLeave(screenNode_);
+    EXPECT_EQ(instance->plannerMap_.size(), 1);
+
+    // Second CheckNeedLeave: planner already exists → skips creation
+    instance->RecordSplitNode(child);
+    instance->CheckNeedLeave(screenNode_);
+    EXPECT_EQ(instance->plannerMap_.size(), 1);
+}
+
+/**
+ * @tc.name: Sync_UnregisterSurface
+ * @tc.desc: Test Sync when planner->GetSurfaceStatus() == UNREGISTER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Sync_UnregisterSurface, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto processor = std::make_shared<RSOpincLayerSplitterProcessor>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->surfaceStatus_ = SurfaceStatus::UNREGISTER;
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    instance->processorMap_[parent] = processor;
+
+    instance->Sync();
+    EXPECT_TRUE(instance->plannerMap_.empty());
+    EXPECT_TRUE(instance->processorMap_.empty());
+}
+
+/**
+ * @tc.name: Sync_ParentNotFound
+ * @tc.desc: Test Sync when processor not found in processorMap_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Sync_ParentNotFound, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto processor = std::make_shared<RSOpincLayerSplitterProcessor>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    instance->processorMap_[parent] = processor;
+
+    instance->Sync();
+    EXPECT_FALSE(instance->plannerMap_.empty());
+}
+
+/**
+ * @tc.name: Sync_ParentNull
+ * @tc.desc: Test Sync when parentIt->second is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Sync_ParentNull, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto processor = std::make_shared<RSOpincLayerSplitterProcessor>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    instance->processorMap_[parent] = processor;
+
+    instance->Sync();
+    EXPECT_FALSE(instance->plannerMap_.empty());
+}
+
+/**
+ * @tc.name: Sync_ProcessorNotFound
+ * @tc.desc: Test Sync when processorIt == processorMap_.end()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Sync_ProcessorNotFound, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    // processorMap_ intentionally missing entry for parent
+
+    instance->Sync();
+    EXPECT_FALSE(instance->plannerMap_.empty());
+}
+
+/**
+ * @tc.name: Sync_ProcessorNull
+ * @tc.desc: Test Sync when processorIt->second is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, Sync_ProcessorNull, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    instance->processorMap_[parent] = nullptr; // processor is null
+
+    instance->Sync();
+    EXPECT_FALSE(instance->plannerMap_.empty());
+}
+
+/**
+ * @tc.name: CheckOpIncNodeFromCommand_WithPlannerAndNullCommand
+ * @tc.desc: Test CheckOpIncNodeFromCommand with non-empty plannerMap and null command in payload
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckOpIncNodeFromCommand_WithPlannerAndNullCommand, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+
+    auto transactionData = std::make_unique<RSTransactionData>();
+    // Add a tuple with null command → should be skipped via continue
+    transactionData->GetPayload().emplace_back(
+        static_cast<NodeId>(1), FollowType::NONE, nullptr);
+
+    bool result = instance->CheckOpIncNodeFromCommand(transactionData);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckOpIncNodeFromCommand_NullTransactionWithPlannerMap
+ * @tc.desc: Test CheckOpIncNodeFromCommand when plannerMap is not empty but rsTransactionData is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckOpIncNodeFromCommand_NullTransactionWithPlannerMap, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+ 
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    instance->plannerMap_[parent] = planner;
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    bool result = instance->CheckOpIncNodeFromCommand(transactionData);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckOpIncNodeFromCommand_PlannerReturnsFalse
+ * @tc.desc: Test CheckOpIncNodeFromCommand when planner->CheckOpIncNodeFromCommand returns false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckOpIncNodeFromCommand_PlannerReturnsFalse, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    // planStatus_ != ON → CheckOpIncNodeFromCommand returns false
+    instance->plannerMap_[parent] = planner;
+
+    auto transactionData = std::make_unique<RSTransactionData>();
+    auto command = std::make_unique<TransactionBufferCommand>();
+    transactionData->GetPayload().emplace_back(
+        static_cast<NodeId>(12345), FollowType::FOLLOW_TO_SELF, std::move(command));
+
+    bool result = instance->CheckOpIncNodeFromCommand(transactionData);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckDoDirectCompositionWithSplitLayer_AllTrue
+ * @tc.desc: Test CheckDoDirectCompositionWithSplitLayer when all planners return true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLayerSplitManagerTest, CheckDoDirectCompositionWithSplitLayer_AllTrue, TestSize.Level1)
+{
+    auto instance = RSLayerSplitManager::GetInstance();
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    auto parent = CreateSurfaceNode();
+
+    // Set planStatus_=ON so CheckCanDoDirectComposition does not early-return false
+    planner->planStatus_ = PlanStatus::ON;
+    planner->canDoDirectComposition_ = true;
+    planner->visitedNodeId_.insert(100);
+    planner->lastOpIncNodes_.emplace_back(100, Vector4f(1.0f, 2.0f, 100.0f, 100.0f));
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(100);
+    Vector4f boundsValue(10.0f, 20.0f, 100.0f, 100.0f);
+    auto boundsProperty = std::make_shared<RSRenderProperty<Vector4f>>(boundsValue, 1);
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::BOUNDS, boundsProperty, 1, ModifierNG::RSPropertyType::BOUNDS);
+    ASSERT_NE(modifier, nullptr);
+    node->AddModifier(modifier);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+
+    planner->splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    planner->splitSurface_->splitSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    planner->splitSurface_->bufferWidth_ = 1000;
+    planner->splitSurface_->bufferHeight_ = 1000;
+    planner->isUpdateBuffer_ = true;
+    planner->srcRect_ = RectF(0, 0, 50, 50);
+    planner->opIncParentNode_ = std::make_shared<RSSurfaceRenderNode>(300);
+    planner->opIncParentNode_->GetMutableRenderProperties().SetBounds(Vector4f(0, 0, 100, 100));
+    planner->opIncParentNode_->GetMutableRenderProperties().SetFrame(Vector4f(0, 0, 100, 100));
+    planner->opIncParentNode_->GetRenderProperties().GetBoundsGeometry()->UpdateByMatrixFromSelf();
+
+    instance->plannerMap_[parent] = planner;
+
+    bool result = instance->CheckDoDirectCompositionWithSplitLayer();
+    EXPECT_TRUE(result);
+
+    nodeMap.UnregisterRenderNode(100);
 }
 } // namespace OHOS::Rosen

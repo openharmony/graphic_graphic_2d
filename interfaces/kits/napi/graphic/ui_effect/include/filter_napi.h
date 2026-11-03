@@ -30,14 +30,15 @@
 #include "filter/include/filter_distort_para.h"
 #include "filter/include/filter_edge_light_para.h"
 #include "filter/include/filter_fly_out_para.h"
-#include "filter/include/filter_frosted_glass_para.h"
-#include "filter/include/filter_frosted_glass_blur_para.h"
+#include "filter/include/filter_halo_bloom_para.h"
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_motion_blur_para.h"
 #include "filter/include/filter_hdr_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
+#include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
 
@@ -77,6 +78,8 @@ private:
     static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
     static napi_value SetColorGradient(napi_env env, napi_callback_info info);
+    static napi_value SetSpinBlur(napi_env env, napi_callback_info info);
+    static napi_value SetHaloBloom(napi_env env, napi_callback_info info);
     static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
     static napi_value SetEdgeLight(napi_env env, napi_callback_info info);
     static napi_value SetMaskDirectionLight(napi_env env, napi_callback_info info);
@@ -89,23 +92,18 @@ private:
     static napi_value SetBlurBubblesRise(napi_env env, napi_callback_info info);
     static napi_value SetMaskTransition(napi_env env, napi_callback_info info);
     static napi_value SetVariableRadiusBlur(napi_env env, napi_callback_info info);
-    static napi_value SetFrostedGlass(napi_env env, napi_callback_info info);
-    static napi_value SetFrostedGlassBlur(napi_env env, napi_callback_info info);
     static napi_value SetMotionBlur(napi_env env, napi_callback_info info);
+    static napi_value SetMapColorByBrightness(napi_env env, napi_callback_info info);
 
     static void RegisterFilterParaUnmarshallingCallback();
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);
-    static bool BuildFrostedGlassPara(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& outPara);
-    static bool FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
-    static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para);
     static bool GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue);
     static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
         uint32_t arraySize);
+    static bool GetMapColorByBrightnessArray(napi_env env, napi_value* argValue,
+        std::shared_ptr<MapColorByBrightnessPara>& para, uint32_t arraySize);
 
     std::shared_ptr<Filter> m_FilterObj = nullptr;
 };

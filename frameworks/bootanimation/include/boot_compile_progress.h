@@ -54,13 +54,14 @@ private:
     void UpdateCompileProgress();
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
-    Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
+    Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int64_t timeMs);
     virtual bool IsBmsBundleReady();
     void DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     void RecordDeviceType();
     void SetFrame();
     void SetFrameForRog();
-    void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
+    void SetSpecialProgressFrame(int32_t screenId);
+    float GetPoweredByImageWidth();
     void RegisterDeathRecipientInner();
     virtual std::string GetFirmwareUpdateState();
     void UpdateText();
@@ -70,7 +71,8 @@ private:
     int32_t windowHeight_ = 0;
     int32_t rogWidth_ = 0;
     int32_t rogHeight_ = 0;
-    int32_t times_ = 0;
+    int32_t frameWidth_ = 0;
+    float frameHeight_ = 0.0f;
     int32_t rotateDegree_ = 0;
     int32_t progress_ = 0;
     int32_t timeLimitSec_ = -1;
@@ -81,6 +83,7 @@ private:
     std::string displayInfo_ = "";
     float currentRadius_ = 0.0f;
     int32_t screenStatus_ = -1;
+    uint32_t refreshRate_ = 0;
 
     std::atomic<bool> isUpdateOptEnd_{false};
     bool isWearable_ = false;

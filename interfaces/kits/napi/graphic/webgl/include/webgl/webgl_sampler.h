@@ -48,17 +48,7 @@ public:
     WebGLSampler(napi_env env, napi_value exports) : NExporter(env, exports), samplerId_(0) {};
     ~WebGLSampler() {};
 
-    void SetSampleUnit(GLuint unit)
-    {
-        unit_ = unit;
-    }
-
-    GLuint GetSampleUnit() const
-    {
-        return unit_;
-    }
 private:
-    GLuint unit_ {};
     GLuint samplerId_ {};
 };
 } // namespace Rosen

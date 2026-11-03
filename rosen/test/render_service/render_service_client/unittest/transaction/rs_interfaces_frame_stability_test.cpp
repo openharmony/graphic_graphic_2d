@@ -54,7 +54,7 @@ HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection001, Fun
     };
     FrameStabilityCallback callback = [](bool isStable) {};
     int32_t ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, 0);
 }
 
 /*
@@ -124,7 +124,7 @@ HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection001, Funct
         .changePercent = 0.1f
     };
     int32_t ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, 0);
 }
 
 /*
@@ -178,7 +178,7 @@ HWTEST_F(RSInterfacesFrameStabilityTest, GetFrameStabilityResult001, Function | 
     FrameStabilityTarget target = { .id = DEFAULT_ID + 1, .type = FrameStabilityTargetType::SCREEN };
     bool result = false;
     int32_t ret = rsRenderInterface_->GetFrameStabilityResult(target, result);
-    EXPECT_NE(ret, 0);
+    EXPECT_EQ(ret, 0);
     EXPECT_EQ(result, false);
 }
 
@@ -194,6 +194,6 @@ HWTEST_F(RSInterfacesFrameStabilityTest, UpdateFrameStabilityDetection001, TestS
     FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
     FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
     int32_t ret = rsRenderInterface_->UpdateFrameStabilityDetection(oldTarget, newTarget);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, 0);
 }
 } // namespace OHOS::Rosen

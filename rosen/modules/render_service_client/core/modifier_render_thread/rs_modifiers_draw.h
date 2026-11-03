@@ -31,6 +31,9 @@ public:
 
     void ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData,
         std::vector<RSTransactionConfig>& transactionConfigList);
+
+    static std::shared_ptr<Drawing::GPUContext> GetGPUContext();
+    static std::shared_ptr<Drawing::GPUContext> gpuContext_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_MODIFIERS_DRAW_H

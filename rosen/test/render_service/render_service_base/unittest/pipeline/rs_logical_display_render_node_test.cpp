@@ -715,24 +715,24 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IncreaseBlendModeNodeTest, TestSize.Lev
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     ASSERT_NE(displayNode, nullptr);
 
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 1);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     // Different node id
     NodeId nodeId2 = nodeId + 1;
     displayNode->IncreaseBlendModeNode(nodeId2);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     // Multiple increments for same node
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 6);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**
@@ -750,16 +750,16 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, RemoveBlendModeNodeTest, TestSize.Level
 
     // Decrease non-existing node should not crash
     displayNode->RemoveBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     // Increase then decrease
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     displayNode->RemoveBlendModeNode(nodeId);
     // After decrease, node is removed entirely
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     // Multiple node ids
     NodeId nodeId2 = nodeId + 1;
@@ -767,23 +767,23 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, RemoveBlendModeNodeTest, TestSize.Level
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId2);
     displayNode->IncreaseBlendModeNode(nodeId3);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     displayNode->RemoveBlendModeNode(nodeId2);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     displayNode->RemoveBlendModeNode(nodeId);
     displayNode->RemoveBlendModeNode(nodeId3);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**
- * @tc.name: GetDstAlphaBlendModeNodeCountTest
- * @tc.desc: Verify GetDstAlphaBlendModeNodeCount returns correct sum
+ * @tc.name: HasDstAlphaBlendModeNodeTest
+ * @tc.desc: Verify HasDstAlphaBlendModeNode returns correct presence
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDstAlphaBlendModeNodeCountTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasDstAlphaBlendModeNodeTest, TestSize.Level1)
 {
     constexpr NodeId nodeId = 1;
     RSDisplayNodeConfig config;
@@ -791,23 +791,23 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDstAlphaBlendModeNodeCountTest, Test
     ASSERT_NE(displayNode, nullptr);
 
     // Initially 0
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     // Single node multiple increments
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId);
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     // Multiple nodes
     NodeId nodeId2 = nodeId + 1;
     displayNode->IncreaseBlendModeNode(nodeId2);
     displayNode->IncreaseBlendModeNode(nodeId2);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 5);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 
     // Remove one node
     displayNode->RemoveBlendModeNode(nodeId);
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**

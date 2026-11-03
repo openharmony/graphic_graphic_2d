@@ -128,9 +128,9 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     property.SetSpherize(0.0f);
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
-    property.GetEffect().isAttractionValid_ = true;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = true;
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
-    property.GetEffect().isAttractionValid_ = false;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
     property.needFilter_ = true;
@@ -138,9 +138,9 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     property.needFilter_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
-    property.GetEffect().useEffect_ = true;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
-    property.GetEffect().useEffect_ = false;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
     Color color(255, 0, 0);
@@ -403,6 +403,105 @@ HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableRootExprTrue, TestSize.Level1)
 }
 
 /**
+ * @tc.name: QuickCheckOpincStableAncestorRenderGroupForcesSelfDirty
+ * @tc.desc: Verify hasAncestorRenderGroup=true is forwarded into QuickMarkStableNode on a
+ *           suggest-opinc changed child, forcing SELF_DIRTY (unchangeCount_ stays 0) instead
+ *           of accumulating via KEEP_UNCHANGE; contrasted with the default false path.
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableAncestorRenderGroupForcesSelfDirty, TestSize.Level1)
+{
+    NodeId id = 600;
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto childNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    opincManager_.SetOPIncSwitch(true);
+
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->push_back(childNode);
+    parentNode->fullChildrenList_ = fullChildrenList;
+    EXPECT_FALSE(parentNode->GetSortedChildren()->empty());
+
+    // hasAncestorRenderGroup=true forces a non-self-dirty suggest-opinc changed child to
+    // SELF_DIRTY: unchangeCount_ is reset to 0 rather than growing via KEEP_UNCHANGE.
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->MarkSuggestOpincNode(true, true);
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode, true);
+    EXPECT_EQ(childNode->GetOpincRootCache().unchangeCount_, 0);
+    EXPECT_EQ(childNode->GetOpincRootCache().GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+    EXPECT_TRUE(childNode->GetOpincRootCache().GetCacheChangeFlag());
+
+    // Contrast: default hasAncestorRenderGroup=false lets the non-self-dirty changed child
+    // accumulate unchangeCount_ via KEEP_UNCHANGE.
+    childNode->MarkSuggestOpincNode(true, true);
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    unchangeMarkInApp = true;
+    unchangeMarkEnable = false;
+    hasUnstableOpincNode = false;
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_EQ(childNode->GetOpincRootCache().unchangeCount_, 1);
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
+ * @tc.name: QuickCheckOpincStableAncestorRenderGroupPropagatesThroughRecursion
+ * @tc.desc: Verify hasAncestorRenderGroup=true is forwarded through the recursive
+ *           QuickCheckOpincStable call (first branch) and reaches a deeper suggest-opinc
+ *           changed grandchild, forcing SELF_DIRTY so unchangeCount_ stays 0.
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStableAncestorRenderGroupPropagatesThroughRecursion, TestSize.Level1)
+{
+    NodeId id = 700;
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto middleNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    auto grandchildNode = std::make_shared<RSCanvasRenderNode>(id + 2);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(middleNode, nullptr);
+    ASSERT_NE(grandchildNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    opincManager_.SetOPIncSwitch(true);
+
+    auto parentChildren = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    parentChildren->push_back(middleNode);
+    parentNode->fullChildrenList_ = parentChildren;
+    auto middleChildren = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    middleChildren->push_back(grandchildNode);
+    middleNode->fullChildrenList_ = middleChildren;
+    EXPECT_FALSE(parentNode->GetSortedChildren()->empty());
+    EXPECT_FALSE(middleNode->GetSortedChildren()->empty());
+
+    // middleNode keeps a null opincRootCache so it takes the recursion (first) branch;
+    // hasAncestorRenderGroup must be forwarded down to the suggest-opinc changed grandchild.
+    ASSERT_EQ(middleNode->TryGetOpincRootCachePtr(), nullptr);
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    middleNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    grandchildNode->MarkSuggestOpincNode(true, true);
+    ASSERT_NE(grandchildNode->TryGetOpincRootCachePtr(), nullptr);
+
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode, true);
+    EXPECT_EQ(grandchildNode->GetOpincRootCache().unchangeCount_, 0);
+    EXPECT_EQ(grandchildNode->GetOpincRootCache().GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+    EXPECT_TRUE(grandchildNode->GetOpincRootCache().GetCacheChangeFlag());
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
  * @tc.name: GetUnsupportReason
  * @tc.desc: Verify the GetUnsupportReason function
  * @tc.type: FUNC
@@ -431,17 +530,17 @@ HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::SPHERIZE);
     property.SetSpherize(0.0f);
 
-    property.GetEffect().isAttractionValid_ = true;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::ATTRACTION);
-    property.GetEffect().isAttractionValid_ = false;
+    property.GetEffectProperties().GetFilterEffect().isAttractionValid_ = false;
 
     property.needFilter_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::HAS_FILTER);
     property.needFilter_ = false;
 
-    property.GetEffect().useEffect_ = true;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::USE_EFFECT);
-    property.GetEffect().useEffect_ = false;
+    property.GetEffectProperties().GetNodesEffect().useEffect_ = false;
 
     Color color(255, 0, 0);
     std::optional<Color> colorBlend = color;
@@ -701,5 +800,164 @@ HWTEST_F(RSOpincManagerTest, ReduceOpincCacheMem, Function | SmallTest | Level1)
     cacheMem = opincManager_.GetOpincCacheMem();
     opincManager_.ReduceOpincCacheMem(cacheMem + 1);
     EXPECT_EQ(opincManager_.GetOpincCacheMem(), 0);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupTrue
+ * @tc.desc: Verify hasAncestorRenderGroup=true marks node dirty when opincRootCache exists and no other dirty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupTrue, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 500;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, true);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupFalseStaysUnchange
+ * @tc.desc: Verify hasAncestorRenderGroup=false keeps unchange when no other dirty source
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupFalseStaysUnchange, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 501;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, false);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_UNCHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupWithSelfDirty
+ * @tc.desc: Verify isSelfDirty=true marks dirty regardless of hasAncestorRenderGroup value
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupWithSelfDirty, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 502;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+    rootCache.isOpincRootFlag_ = true;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, true, false);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupBothDirty
+ * @tc.desc: Verify both isSelfDirty=true and hasAncestorRenderGroup=true marks dirty
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupBothDirty, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 503;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+    rootCache.isOpincRootFlag_ = true;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, true, true);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupNullRootCacheTrue
+ * @tc.desc: Verify null opincRootCache with hasAncestorRenderGroup=true does not crash
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupNullRootCacheTrue, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 504;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, true);
+
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+    ASSERT_FALSE(unchangeMarkEnable);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupNullRootCacheFalse
+ * @tc.desc: Verify null opincRootCache with hasAncestorRenderGroup=false does not crash
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupNullRootCacheFalse, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 505;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false, false);
+
+    ASSERT_EQ(node->TryGetOpincRootCachePtr(), nullptr);
+    ASSERT_FALSE(unchangeMarkEnable);
+}
+
+/**
+ * @tc.name: QuickMarkStableNodeAncestorRenderGroupDefaultParam
+ * @tc.desc: Verify default parameter hasAncestorRenderGroup=false works correctly
+ * @tc.type: FUNC
+ * @tc.require: issueAncestorRenderGroup
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNodeAncestorRenderGroupDefaultParam, Function | SmallTest | Level1)
+{
+    constexpr NodeId NODE_ID = 506;
+    auto node = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_NE(node, nullptr);
+    auto& rootCache = node->GetOpincRootCache();
+    ASSERT_NE(node->TryGetOpincRootCachePtr(), nullptr);
+    rootCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    rootCache.isSuggestOpincNode_ = true;
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*node, unchangeMarkInApp, unchangeMarkEnable, false);
+
+    ASSERT_EQ(rootCache.GetNodeCacheState(), NodeCacheState::STATE_UNCHANGE);
 }
 }

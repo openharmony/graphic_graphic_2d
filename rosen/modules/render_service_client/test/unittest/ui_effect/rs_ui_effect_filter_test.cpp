@@ -25,8 +25,11 @@
 #include "filter/include/filter_frosted_glass_para.h"
 #endif
 #include "filter/include/filter_heat_distortion_para.h"
+#include "filter/include/filter_halo_bloom_para.h"
+#include "filter/include/filter_map_color_by_brightness_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_para.h"
+#include "filter/include/filter_spin_blur_para.h"
 #include "filter/include/filter_unmarshalling_singleton.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
@@ -1130,5 +1133,75 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaWriteBaseParamsBranchTe
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 }
 #endif
+
+/**
+ * @tc.name: RSUIEffectSpinBlurParaStoresNewArguments
+ * @tc.desc: Verify SpinBlurPara stores center, angle, samples and optional mask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectSpinBlurParaStoresNewArguments, TestSize.Level1)
+{
+    auto spinBlurPara = std::make_shared<SpinBlurPara>();
+    const Vector2f center(0.25f, 0.75f);
+    constexpr float angle = 45.0f;
+    constexpr int32_t samples = 16;
+
+    EXPECT_EQ(spinBlurPara->GetParaType(), FilterPara::ParaType::SPIN_BLUR);
+
+    spinBlurPara->SetCenter(center);
+    spinBlurPara->SetAngle(angle);
+    spinBlurPara->SetSamples(samples);
+
+    EXPECT_EQ(spinBlurPara->GetCenter(), center);
+    EXPECT_FLOAT_EQ(spinBlurPara->GetAngle(), angle);
+    EXPECT_EQ(spinBlurPara->GetSamples(), samples);
+}
+
+/**
+ * @tc.name: RSUIEffectHaloBloomParaStoresNewArguments
+ * @tc.desc: Verify HaloBloomPara stores tint color, bloom factor, glow exposure and optional mask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectHaloBloomParaStoresNewArguments, TestSize.Level1)
+{
+    auto haloBloomPara = std::make_shared<HaloBloomPara>();
+    const Vector4f tintColor(0.1f, 0.2f, 0.3f, 0.4f);
+    constexpr float bloomFactor = 0.65f;
+    constexpr float glowExposure = 1.25f;
+
+    EXPECT_EQ(haloBloomPara->GetParaType(), FilterPara::ParaType::HALO_BLOOM);
+
+    haloBloomPara->SetTintColor(tintColor);
+    haloBloomPara->SetBloomFactor(bloomFactor);
+    haloBloomPara->SetGlowExposure(glowExposure);
+
+    EXPECT_EQ(haloBloomPara->GetTintColor(), tintColor);
+    EXPECT_FLOAT_EQ(haloBloomPara->GetBloomFactor(), bloomFactor);
+    EXPECT_FLOAT_EQ(haloBloomPara->GetGlowExposure(), glowExposure);
+}
+
+/**
+ * @tc.name: RSUIEffectMapColorByBrightnessParaStoresNewArguments
+ * @tc.desc: Verify MapColorByBrightnessPara stores colors and positions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectMapColorByBrightnessParaStoresNewArguments, TestSize.Level1)
+{
+    auto mapColorPara = std::make_shared<MapColorByBrightnessPara>();
+    const std::vector<Vector4f> colors = {
+        Vector4f(0.1f, 0.2f, 0.3f, 1.0f),
+        Vector4f(0.5f, 0.6f, 0.7f, 1.0f),
+    };
+    const std::vector<float> positions = { 0.0f, 1.0f };
+
+    EXPECT_EQ(mapColorPara->GetParaType(), FilterPara::ParaType::MAP_COLOR_BY_BRIGHTNESS);
+
+    mapColorPara->SetColors(colors);
+    mapColorPara->SetPositions(positions);
+
+    EXPECT_EQ(mapColorPara->GetColors(), colors);
+    EXPECT_EQ(mapColorPara->GetPositions(), positions);
+}
+
 } // namespace Rosen
 } // namespace OHOS

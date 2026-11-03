@@ -212,6 +212,16 @@ bool RSVsyncManagerAgent::DvsyncNeedSkipRsCommitDelay() const
     }
     return rsVsyncDistributor_->DvsyncNeedSkipRsCommitDelay();
 }
+
+void RSVsyncManagerAgent::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    if (rsVsyncDistributor_ != nullptr) {
+        rsVsyncDistributor_->SetThermalFrameRateLimit(frameRate);
+    }
+    if (appVSyncDistributor_ != nullptr) {
+        appVSyncDistributor_->SetThermalFrameRateLimit(frameRate);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
 

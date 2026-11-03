@@ -19,6 +19,8 @@
 #include "display_engine/rs_vpe_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "xperf_service_client.h"
+#include "xperf_service_action_type.h"
 
 using namespace OHOS::Media::VideoProcessingEngine;
 
@@ -120,6 +122,7 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
         }
     }
     param = Media::Format{};
+    param.PutStringValue(ParameterKey::SURFACE_NODE_NAME, config.name);
     param.PutLongValue(ParameterKey::DETAIL_ENHANCER_NODE_ID, config.id);
     if (vpeVideo->SetParameter(param) != 0) {
         RS_LOGE("SetParameter nodeId falied");
@@ -131,10 +134,6 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
 sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
     const RSSurfaceRenderNodeConfig& config)
 {
-    if (!VpeVideo::IsSurfaceSupported(type, RSSurface)) {
-        RS_LOGE("surface type is not support");
-        return RSSurface;
-    }
     std::shared_ptr<VpeVideo> vpeVideo = GetVpeVideo(type, config);
     if (vpeVideo == nullptr) {
         RS_LOGE("GetVpeVideo failed");
@@ -185,6 +184,19 @@ bool RSVpeManager::IsConfigNameSkipped(const std::string& name)
     return name == "RosenWeb" || name == "delegate_child" || name == "delegate_child_video";
 }
 
+void RSVpeManager::NotifyToXperf(const sptr<Surface>& surface, const sptr<Surface>& vpeSurface) const
+{
+    if (surface == nullptr || vpeSurface == nullptr || surface->GetUniqueId() == vpeSurface->GetUniqueId()) {
+        return;
+    }
+    HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(
+        HiviewDFX::DomainId::APP, HiviewDFX::AppEventCode::VPE_SURFACE_MAP,
+        "#ORIG_UNIQUE_ID:" + std::to_string(surface->GetUniqueId()) +
+        "#ORIG_SURFACE_NAME:" + surface->GetName() +
+        "#VPE_UNIQUE_ID:" + std::to_string(vpeSurface->GetUniqueId()) +
+        "#VPE_SURFACE_NAME:" + vpeSurface->GetName());
+}
+
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
     RS_TRACE_NAME_FMT("RSVpeManager::Create name: %s nodeId:%" PRIu64, config.name.c_str(), config.id);
@@ -202,14 +214,20 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
     if (!VpeVideo::IsSupported()) {
         return surface;
     }
-    sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
-        VIDEO_TYPE_AI3D_ENHANCER };
+        VIDEO_TYPE_AI3D_ENHANCER, VIDEO_TYPE_AUTO_EFFECT_AISR };
+    uint32_t supportType = 0;
     for (auto& type : supportTypes) {
-        if (VpeVideo::IsSupported(type, parameter)) {
-            vpeSurface = GetVpeVideoSurface(type, vpeSurface, config);
+        parameter.PutStringValue(ParameterKey::SURFACE_NODE_NAME, config.name);
+        if (VpeVideo::IsSupported(type, parameter) && VpeVideo::IsSurfaceSupported(type, surface)) {
+            supportType |= type;
         }
     }
+    if (supportType == 0) {
+        return surface;
+    }
+    auto vpeSurface = GetVpeVideoSurface(supportType, surface, config);
+    NotifyToXperf(surface, vpeSurface);
     return vpeSurface;
 }
 } // namespace Rosen

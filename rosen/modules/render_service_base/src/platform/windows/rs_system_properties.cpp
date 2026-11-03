@@ -267,6 +267,16 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return {};
 }
 
+bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
+{
+    return false;
+}
+
+std::string RSSystemProperties::GetHgmRefreshRateModeList()
+{
+    return "";
+}
+
 bool RSSystemProperties::GetHardCursorEnabled()
 {
     return false;
@@ -794,11 +804,6 @@ bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     return {};
@@ -810,6 +815,11 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 }
 
 bool RSSystemProperties::GetBootCompleted()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
 {
     return false;
 }

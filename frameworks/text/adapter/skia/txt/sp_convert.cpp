@@ -90,7 +90,8 @@ TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,
     txt.locale = skStyle.getLocale().c_str();
     txt.backgroundRect = { skStyle.getBackgroundRect().color, skStyle.getBackgroundRect().leftTopRadius,
         skStyle.getBackgroundRect().rightTopRadius, skStyle.getBackgroundRect().rightBottomRadius,
-        skStyle.getBackgroundRect().leftBottomRadius };
+        skStyle.getBackgroundRect().leftBottomRadius, skStyle.getBackgroundRect().borderColor,
+        skStyle.getBackgroundRect().borderWidth };
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
         if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints.size()))) {

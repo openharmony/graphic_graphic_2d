@@ -122,13 +122,13 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
         }
         if (!command) {
-            parcel.WriteUint8(0);
+            success = success && parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
         } else if (command->indexVerifier_ != marshallingIndex_) {
-            parcel.WriteUint8(0);
+            success = success && parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
-            parcel.WriteUint8(1);
+            success = success && parcel.WriteUint8(1);
             if (Rosen::RSAnimationTraceUtils::GetTestModeEnabled()) {
                 RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
                     command->GetNodeId(), command->PrintType().c_str());
@@ -373,7 +373,18 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     uint16_t commandType = 0;
     uint16_t commandSubType = 0;
 
-    size_t readableSize = parcel.GetReadableBytes();
+    bool isUniRender = false;
+    if (!parcel.ReadBool(isUniRender)) {
+        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
+        return false;
+    }
+
+    // minCommandSizeUniRender = hasCommand(1) + commandType(2) + commandSubType(2)
+    constexpr size_t minCommandSizeUniRender = 5;
+    // minCommandSizeDivide = nodeId(8) + followType(1) + hasCommand(1) + commandType(2) + commandSubType(2)
+    constexpr size_t minCommandSizeDivide = 14;
+    size_t minCommandSize = isUniRender ? minCommandSizeUniRender : minCommandSizeDivide;
+    size_t readableSize = parcel.GetReadableBytes() / minCommandSize;
     size_t len = static_cast<size_t>(commandSize);
     if (len > readableSize || len > payload_.max_size()) {
         ROSEN_LOGE("RSTransactionData UnmarshallingCommand Failed read vector, size:%{public}zu,"
@@ -381,11 +392,6 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         return false;
     }
 
-    bool isUniRender = false;
-    if (!parcel.ReadBool(isUniRender)) {
-        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
-        return false;
-    }
     std::unique_lock<std::mutex> payloadLock(commandMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {
@@ -464,7 +470,7 @@ void RSTransactionData::CheckNonSystemCommand(RSCommand* command, pid_t callingP
 {
     for (const NodeId nodeId : command->GetAllNodeIds()) {
         pid_t commandPid = ExtractPid(nodeId);
-        if (callingPid != commandPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+        if (callingPid != commandPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
             inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
             command->SetCallingPidValid(false);
             return;
@@ -474,6 +480,11 @@ void RSTransactionData::CheckNonSystemCommand(RSCommand* command, pid_t callingP
 
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
+    // Asynchronous binder calls may report callingPid == 0 on some platforms; ownership cannot be
+    // validated against an unknown caller, so skip marking instead of invalidating every command.
+    if (callingPid <= 0) {
+        return true;
+    }
     InaccessibleCommandMap inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {

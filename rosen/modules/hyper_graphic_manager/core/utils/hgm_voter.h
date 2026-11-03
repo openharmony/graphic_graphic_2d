@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,34 +16,37 @@
 #ifndef HGM_VOTER_H
 #define HGM_VOTER_H
 
+#include "securec.h"
+
 #include "animation/rs_frame_rate_range.h"
 #include "hgm_command.h"
 #include "hgm_log.h"
-#include "securec.h"
 
 namespace OHOS::Rosen {
 using VoteRange = std::pair<uint32_t, uint32_t>;
-
 struct VoteInfo {
-    std::string voterName;
+    std::string voterName = "";
     uint32_t min = OLED_NULL_HZ;
     uint32_t max = OLED_NULL_HZ;
     pid_t pid = DEFAULT_PID;
-    std::string extInfo;
-    std::string bundleName;
+    std::string extInfo = "";
+    std::string bundleName = "";
 
-    void Merge(const VoteInfo& other) {
+    void Merge(const VoteInfo& other)
+    {
         this->voterName = other.voterName;
         this->pid = other.pid;
         this->extInfo = other.extInfo;
     }
 
-    void SetRange(uint32_t minHZ, uint32_t maxHZ) {
+    void SetRange(uint32_t minHZ, uint32_t maxHZ)
+    {
         this->min = minHZ;
         this->max = maxHZ;
     }
 
-    std::string ToString(uint64_t timestamp) const {
+    std::string ToString(uint64_t timestamp) const
+    {
         char buf[STRING_BUFFER_MAX_SIZE] = { 0 };
         int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
             "VOTER_NAME:%s;PREFERRED:%u;EXT_INFO:%s;PID:%d;BUNDLE_NAME:%s;TIMESTAMP:%lu.",
@@ -54,7 +57,8 @@ struct VoteInfo {
         return buf;
     }
 
-    std::string ToSimpleString() const {
+    std::string ToSimpleString() const
+    {
         char buf[STRING_BUFFER_MAX_SIZE] = { 0 };
         int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "%s %u %s %d.",
             voterName.c_str(), max, extInfo.c_str(), pid);
@@ -64,16 +68,17 @@ struct VoteInfo {
         return buf;
     }
 
-    bool operator==(const VoteInfo& other) const {
+    bool operator==(const VoteInfo& other) const
+    {
         return this->min == other.min && this->max == other.max && this->voterName == other.voterName &&
             this->extInfo == other.extInfo && this->pid == other.pid && this->bundleName == other.bundleName;
     }
 
-    bool operator!=(const VoteInfo& other) const {
+    bool operator!=(const VoteInfo& other) const
+    {
         return !(*this == other);
     }
 };
-
 using VoteRecord = std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>>;
 
 class HgmVoter {

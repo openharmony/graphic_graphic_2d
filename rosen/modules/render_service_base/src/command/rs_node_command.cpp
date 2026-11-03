@@ -28,7 +28,6 @@ namespace {
 RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
-RSNodeCommandHelper::ColorPickerDestroyInRenderProcessor gColorPickerDestroyInRenderProcessor = nullptr;
 }
 
 void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
@@ -50,8 +49,10 @@ void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
     }
 
     if (auto property = node->GetProperty(id)) {
-        std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(property)->Set(
-            RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList), type);
+        auto typedProperty = property->CastToPropertyOf<SimpleDrawCmdListPtr>(__func__);
+        if (typedProperty) {
+            typedProperty->Set(RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList), type);
+        }
     }
 }
 
@@ -180,7 +181,13 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
 
 void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
 {
-    context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(nodeId, true);
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        RS_LOGW("SetTakeSurfaceForUIFlag node not found, nodeId: %{public}" PRIu64, nodeId);
+    }
+    RS_LOGD("SetTakeSurfaceForUIFlag cmd executed, nodeId: %{public}" PRIu64, nodeId);
+    context.GetSyncCaptureHelper().InsertCaptureCmdsExecutedFlag(nodeId, true);
 }
 
 void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId nodeId, bool needUseCmdlistDrawRegion)
@@ -208,6 +215,11 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     if (inNode == nullptr || outNode == nullptr) {
+        ROSEN_LOGE("RegisterGeometryTransitionPair node not found inNodeId:%{public}" PRIu64
+            " outNodeId:%{public}" PRIu64 " inNodeFound:%{public}d outNodeFound:%{public}d",
+            inNodeId, outNodeId, inNode != nullptr, outNode != nullptr);
+        RS_TRACE_NAME_FMT("RegisterGeometryTransitionPair node not found inNodeId: %" PRIu64 " outNodeId: %" PRIu64
+            " inNodeFound: %d outNodeFound: %d", inNodeId, outNodeId, inNode != nullptr, outNode != nullptr);
         return;
     }
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, isInSameWindow);
@@ -354,10 +366,10 @@ void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(
     if (!baseProperty) {
         return;
     }
-    if (UNLIKELY(!CheckPropertyType(__func__, *baseProperty, RSPropertyType::SIMPLE_DRAW_CMD_LIST, nodeId))) {
+    auto property = baseProperty->CastToPropertyOf<SimpleDrawCmdListPtr>(__func__);
+    if (!property) {
         return;
     }
-    auto property = std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(baseProperty);
     auto simpleDrawCmds = value != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(value) : nullptr;
     property->Set(simpleDrawCmds);
     if (simpleDrawCmds) {
@@ -402,19 +414,6 @@ void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackPro
     gColorPickerCallbackProcessor = processor;
 }
 
-void RSNodeCommandHelper::ColorPickerDestroyInRender(
-    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint8_t lastContrastColorScheme)
-{
-    if (gColorPickerDestroyInRenderProcessor != nullptr) {
-        gColorPickerDestroyInRenderProcessor(nodeId, token, static_cast<ContrastColorScheme>(lastContrastColorScheme));
-    }
-}
-
-void RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor)
-{
-    gColorPickerDestroyInRenderProcessor = processor;
-}
-
 void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLayer)
 {
     if (!RSSystemProperties::GetLayerEnabled()) {
@@ -457,18 +456,6 @@ void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId node
     if (node) {
         node->ReSortChildrenByZIndex();
     }
-}
-
-bool RSNodeCommandHelper::CheckPropertyType(const char* funcName,
-    RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId)
-{
-    if (prop.GetPropertyType() != updateType) {
-        RS_COLD_LOGE("%{public}s type mismatch, nodeId=%{public}" PRIu64 ", propertyId=%{public}" PRIu64
-            " update type:%{public}hhu, property type:%{public}hhu", funcName, nodeId, prop.GetId(),
-            updateType, prop.GetPropertyType());
-        return false;
-    }
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

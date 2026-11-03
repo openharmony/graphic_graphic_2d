@@ -14,6 +14,7 @@
  */
 
 #include "ani_region.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -67,7 +68,7 @@ ani_status AniRegion::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "regionTransferStaticNative", nullptr, reinterpret_cast<void*>(RegionTransferStatic) },
-        ani_native_function { "getRegionAddr", nullptr, reinterpret_cast<void*>(GetRegionAddr) },
+        ani_native_function { "regionTransferDynamicNative", nullptr, reinterpret_cast<void*>(RegionTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -406,48 +407,42 @@ void AniRegion::Offset(ani_env* env, ani_object obj, ani_int dx, ani_int dy)
 }
 
 ani_object AniRegion::RegionTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniRegion::RegionTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniRegion::RegionTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsRegion = reinterpret_cast<JsRegion*>(unwrapResult);
-    if (jsRegion->GetRegionPtr() == nullptr) {
-        ROSEN_LOGE("AniRegion::RegionTransferStatic jsRegion is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsRegion = reinterpret_cast<JsRegion*>(unwrapResult);
+        if (jsRegion == nullptr || jsRegion->GetRegionPtr() == nullptr) {
+            ROSEN_LOGE("AniRegion::RegionTransferStatic jsRegion is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniRegion = new AniRegion(jsRegion->GetRegionPtr());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().region,
-        AniGlobalMethod::GetInstance().regionCtorWithPtr, reinterpret_cast<ani_long>(aniRegion));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniRegion::RegionTransferStatic failed create aniRegion");
-        delete aniRegion;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+        auto aniRegion = new AniRegion(jsRegion->GetRegionPtr());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().region,
+            AniGlobalMethod::GetInstance().regionCtorWithPtr, reinterpret_cast<ani_long>(aniRegion));
+        if (IsUndefined(env, aniObj)) {
+            delete aniRegion;
+            ROSEN_LOGE("AniRegion::RegionTransferStatic failed cause aniObj is undefined");
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniRegion::GetRegionAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniRegion::RegionTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniRegion = GetNativeFromObj<AniRegion>(env, input, AniGlobalField::GetInstance().regionNativeObj);
-    if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
-        ROSEN_LOGE("AniRegion::GetRegionAddr aniRegion is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().region)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniRegion->GetRegionPtrAddr());
-}
-
-std::shared_ptr<Region>* AniRegion::GetRegionPtrAddr()
-{
-    return &region_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniRegion = GetNativeFromObj<AniRegion>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().regionNativeObj);
+            if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
+                ROSEN_LOGE("AniRegion::RegionTransferDynamic null aniRegion");
+                return nullptr;
+            }
+            return JsRegion::CreateJsRegionDynamic(napiEnv, aniRegion->GetRegion());
+        });
 }
 
 std::shared_ptr<Region> AniRegion::GetRegion()

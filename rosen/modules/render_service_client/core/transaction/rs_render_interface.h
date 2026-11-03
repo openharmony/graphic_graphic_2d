@@ -235,6 +235,15 @@ public:
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     /**
+     * @brief Add blur to the input pixelmap.
+     * @param pixelMap The input pixelmap.
+     * @param blurRadius The input radius of blur.
+     * @return Returns a shared pointer of the blurred pixelmap .
+     */
+    std::shared_ptr<Media::PixelMap> BlurPixelMap(
+        std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius);
+
+    /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
      * it will purge queued frames of corresponding self-rendering nodes in bufferQueue, and use the latest frame
      * buffer for screen display.
@@ -297,6 +306,27 @@ public:
      * @return True if success, false if failed.
      */
     bool SetGlobalDarkColorMode(bool isDark);
+
+    /**
+     * @brief Set the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids excluded from all virtual screens.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    /**
+     * @brief Add node ids into the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids to add.
+     * @return 0 means success, others failed.
+     */
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    /**
+     * @brief Remove node ids from the global blacklist, which applies to all virtual screens.
+     * @param blackList List of surface node ids to remove.
+     * @return 0 means success, others failed.
+     */
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
 
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
 
@@ -481,6 +511,12 @@ public:
      * @param isDelegateMode Indicates whether enable.
      */
     bool SetDelegateMode(NodeId id, bool isDelegateMode);
+
+    /**
+     * @brief Clean delegate mode buffer command by NodeId
+     * @param id nodeId.
+     */
+    bool CleanDelegateModeBufferCmd(NodeId id);
 private:
     RSRenderInterface();
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
@@ -495,6 +531,12 @@ private:
     {
         return renderPipelineClient_;
     }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    void RebuildInactiveRootNodeIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+        RSSurfaceCaptureConfig& captureConfig);
+    void PrepareSyncCaptureIfNeeded(std::shared_ptr<RSSurfaceNode> node,
+        RSSurfaceCaptureConfig& captureConfig);
+#endif // RS_MODIFIERS_DRAW_ENABLE
 
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;

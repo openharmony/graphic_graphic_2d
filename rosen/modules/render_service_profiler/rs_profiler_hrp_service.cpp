@@ -79,7 +79,7 @@ static RetCodeHrpService CreateSubDirs(std::string& path,
 RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
     const std::string& fileName, uint32_t flags, int& outFd)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);
@@ -99,9 +99,16 @@ RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInf
         return dirCheck;
     }
 
-    std::string fullFileName = path + "/" + fileName;
+    int dirFd = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW);
+    if (dirFd < 0) {
+        return errno == EACCES ? RET_HRP_SERVICE_ERR_STUB_OPEN_FILE_ACCESS_DENIED : RET_HRP_SERVICE_ERR_STUB_OPEN_FILE;
+    }
+
     constexpr int filePermission = 0660;
-    int retFd = open(fullFileName.c_str(), static_cast<int>(flags), filePermission);
+    int retFd = openat(dirFd, fileName.c_str(), static_cast<int>(flags | O_NOFOLLOW), filePermission);
+
+    close(dirFd);
+
     if (retFd < 0) {
         return errno == EACCES ? RET_HRP_SERVICE_ERR_STUB_OPEN_FILE_ACCESS_DENIED : RET_HRP_SERVICE_ERR_STUB_OPEN_FILE;
     }
@@ -143,14 +150,14 @@ static RetCodeHrpService GetFilesFromDir(const std::string& path,
     uint32_t firstFileIndex, std::vector<std::string>& files)
 {
     struct dirent* entry;
-    DIR* dir = opendir(path.c_str());
+    std::unique_ptr<DIR, decltype(&closedir)> dir(opendir(path.c_str()), closedir);
     if (dir == nullptr) {
         return RET_HRP_SERVICE_ERR_STUB_OPEN_DIR_ERROR;
     }
     size_t allocatedSize = 0;
     uint32_t fileIndex = 0;
     RetCodeHrpService retCode = RET_HRP_SERVICE_SUCCESS;
-    while ((entry = readdir(dir)) != nullptr) {
+    while ((entry = readdir(dir.get())) != nullptr) {
         if (fileIndex >= firstFileIndex) {
             const std::string fileName = path + "/" + entry->d_name;
             const size_t appendSize = fileName.length() + 1;
@@ -163,14 +170,13 @@ static RetCodeHrpService GetFilesFromDir(const std::string& path,
         }
         fileIndex++;
     }
-    closedir(dir);
     return retCode;
 }
 
 RetCodeHrpService RSProfiler::HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
     uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);

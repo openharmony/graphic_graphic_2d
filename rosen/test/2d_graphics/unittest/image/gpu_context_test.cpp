@@ -26,7 +26,7 @@
 #include "utils/log.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -66,9 +66,6 @@ EGLContext GpuContextTest::eglContext_ = EGL_NO_CONTEXT;
 
 void GpuContextTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     InitEGL();
 }
 
@@ -741,6 +738,19 @@ HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->SetParam("name", "value");
+}
+
+/**
+ * @tc.name: SetTextCacheEnforcedTest
+ * @tc.desc: Test for SetTextCacheEnforced
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetTextCacheEnforcedTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetTextCacheEnforced(false);
 }
 
 /**

@@ -21,6 +21,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_interpolator.h"
 #include "command/rs_message_processor.h"
@@ -29,6 +30,7 @@
 #include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_frame_report.h"
 #include "transaction/rs_application_agent_impl.h"
@@ -87,10 +89,10 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
         AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
         RSInterpolator::Init();
+        RSAnimationTimingCurve::Init();
         RSAnimationFraction::Init();
     });
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
         []() { RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor); });
 
@@ -120,14 +122,16 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
-        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
+        if (auto fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode()) {
+            fallbackNode->isRenderServiceNode_ = true;
+        }
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
     }
-    if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
-        rsApplicationAgent->RegisterRSApplicationAgent(rsUIContext_);
-    }
+    // First access constructs the process-wide lifecycle owner; its destructor (at static teardown)
+    // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
+    RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
     GoResume();
     GoForeground();
@@ -230,7 +234,7 @@ void RSUIDirector::AddUIDirectorCommand()
 
 void RSUIDirector::GoCreate()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoCreate CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoCreate CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoCreate CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -246,7 +250,7 @@ void RSUIDirector::ExecuteGoCreate()
 
 void RSUIDirector::GoResume()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoResume CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoResume CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoResume CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -299,7 +303,7 @@ void RSUIDirector::RebuildNodeTree()
 
 void RSUIDirector::GoForeground(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoForeground CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoForeground CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoForeground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -354,13 +358,13 @@ void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
 
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoBackground CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoBackground CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoBackground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     // Invalid states
     if (currentUIDirectorState_ != RSUIDirectorLifecycleState::FOREGROUND) {
-        RS_LOGE("RSUIDirector::GoForeground, currentUIDirectorState_ is not FOREGROUND.");
+        RS_LOGE("RSUIDirector::GoBackground, currentUIDirectorState_ is not FOREGROUND.");
         return;
     }
     ExecuteGoBackground(isTextureExport);
@@ -414,7 +418,7 @@ void RSUIDirector::ExecuteGoBackground(bool isTextureExport)
 
 void RSUIDirector::GoStop()
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::GoStop CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::GoStop CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::GoStop CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -431,8 +435,8 @@ void RSUIDirector::GoStop()
         if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
             ExecuteGoStop();
         }
-        AddUIDirectorCommand<RSUIDirectorGoStop>(); // always sync STOP state to render service
     }
+    AddUIDirectorCommand<RSUIDirectorGoStop>();
     currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
 }
 
@@ -447,11 +451,23 @@ void RSUIDirector::ReleaseRenderNode()
         return;
     }
     const auto& map = rsUIContext_->GetNodeMap();
-    map.TraversalNodes([](const std::shared_ptr<RSBaseNode>& baseNode) {
+    const auto groupAnimNodeIds = rsUIContext_->GetGroupAnimationNodeIds();
+    map.TraversalNodes([&groupAnimNodeIds](const std::shared_ptr<RSBaseNode>& baseNode) {
         if (baseNode == nullptr) {
             return;
         }
+        if (groupAnimNodeIds.count(baseNode->GetId()) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release groupAnim node id:%llu", baseNode->GetId());
+            return;
+        }
         auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();
+        if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release anco node id:%llu, name:%s",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
+            return;
+        }
         if (surfaceNode && (surfaceNode->IsAppWindow() || surfaceNode->IsTextureExportNode())) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "RSUIDirector::ReleaseRenderNode skip release AppWindow or TextureExportNode id:%llu, name:%s",
@@ -469,7 +485,7 @@ void RSUIDirector::ReleaseRenderNode()
 
 void RSUIDirector::Destroy(bool isTextureExport)
 {
-    RS_TRACE_NAME_FMT("RSUIDirector::Destroy CurrentState:%d, UIContext:%lu",
+    RS_TRACE_NAME_FMT("RSUIDirector::Destroy CurrentState:%d, UIContext:%" PRIu64 "",
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_LOGI("RSUIDirector::Destroy CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
@@ -643,9 +659,7 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
         return;
     }
-    if (auto canvasModifiersDrawAgent = rsUIContext_->GetCanvasModifiersDrawAgent()) {
-        canvasModifiersDrawAgent->SetCacheDir(cacheDir_);
-    }
+    rsUIContext_->SetCacheDir(cacheDir_);
 #endif
 }
 
@@ -939,6 +953,31 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
                    " on fallback node.", animId);
         return;
     }
+
+    // fallback: iterate all rsUIContexts, try node-level or context-level callback
+    std::vector<std::shared_ptr<RSUIContext>> contexts;
+    [&contexts, &rsUIContext] {
+        auto& contextManager = RSUIContextManager::Instance();
+        std::unique_lock<std::mutex> lock(contextManager.mutex_);
+        contexts.reserve(contextManager.rsUIContextMap_.size());
+        for (const auto& [_, ctx] : contextManager.rsUIContextMap_) {
+            if (ctx != rsUIContext) {
+                contexts.push_back(ctx);
+            }
+        }
+    }();
+    for (const auto& ctx : contexts) {
+        if (auto node = ctx->GetNodeMap().GetNode<RSNode>(nodeId)) {
+            if (node->AnimationCallback(animId, event)) {
+                return;
+            }
+        } else {
+            if (ctx->AnimationCallback(animId, event)) {
+                return;
+            }
+        }
+    }
+
     // if node not found, try fallback node
     auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
@@ -979,19 +1018,6 @@ void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, u
         return;
     }
     ROSEN_LOGE("RSUIDirector::ColorPickerCallbackProcessor, could not find node %{public}" PRIu64, nodeId);
-}
-
-void RSUIDirector::ColorPickerDestroyInRenderProcessor(
-    NodeId nodeId, uint64_t token, ContrastColorScheme lastContrastColorScheme)
-{
-    auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
-    if (auto nodePtr =
-            rsUICtx ? rsUICtx->GetNodeMap().GetNode<RSNode>(nodeId) : RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        nodePtr->ColorPickerDestroyInRenderCallback(lastContrastColorScheme);
-        return;
-    }
-    ROSEN_LOGE(
-        "RSUIDirector::ColorPickerDestroyInRenderProcessor, could not find node %{public}" PRIu64, nodeId);
 }
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)

@@ -16,12 +16,14 @@
 #include "rs_rcd_surface_render_node.h"
 #include <fstream>
 #include "common/rs_singleton.h"
+#include "feature/round_corner_display/rs_rcd_bitmap_utils.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "render/rs_pixel_map_util.h"
 #include "rs_round_corner_display_manager.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_trace.h"
 #include "v2_3/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
@@ -31,6 +33,8 @@ const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the 
 const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
 const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
 const int32_t BUFFER_TIME_OUT = 500;
+const int32_t SCREEN_HEIGHT_UPPER = 1024 * 16; // Screen with 16K not exist yet.
+const int32_t SCREEN_STRIDE_UPPER = SCREEN_HEIGHT_UPPER * 4; // 4 channels
 } // namespace
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
@@ -160,7 +164,8 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
     return config;
 }
 
-bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo)
+bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
+    Drawing::Bitmap& layerBitmap)
 {
     RS_LOGD("RCD: Start PrepareHardwareResourceBuffer");
 
@@ -178,7 +183,16 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
         RS_LOGE("layerInfo->curBitmap is nullptr");
         return false;
     }
-    layerBitmap = *(layerInfo->curBitmap);
+    if (layerInfo->curBitmap->GetColorType() == Drawing::ColorType::COLORTYPE_ALPHA_8) {
+        // alpha8 bitmap cannot be used directly by hardware resource buffer, convert to rgba8888
+        if (!RCDBitmapUtils::ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
+            RS_LOGE("RCD: convert alpha8 bitmap to rgba8888 bitmap failed");
+            return false;
+        }
+        RS_LOGD("RCD: convert alpha8 bitmap to rgba8888 bitmap success");
+    } else {
+        layerBitmap = *(layerInfo->curBitmap);
+    }
     uint32_t bitmapHeight = static_cast<uint32_t>(layerBitmap.GetHeight());
     uint32_t bitmapWidth = static_cast<uint32_t>(layerBitmap.GetWidth());
     if (bitmapHeight <= 0 || bitmapWidth <= 0 || displayRect_.GetHeight() <= 0) {
@@ -205,13 +219,14 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
 RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
 {
-    if (src.GetPixels() == nullptr || (src.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
-        src.GetColorType() != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
+    auto srcType = src.GetColorType();
+    if (src.GetPixels() == nullptr || (srcType != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
+        srcType != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
         return nullptr;
     }
     Media::InitializationOptions opts;
-    opts.pixelFormat = src.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
+    opts.pixelFormat = srcType == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
         Media::PixelFormat::BGRA_8888;
     opts.size.width = src.GetWidth();
     opts.size.height = src.GetHeight();
@@ -231,7 +246,7 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
     return pixelMap;
 }
 
-bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
+bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer(const Drawing::Bitmap& layerBitmap)
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer");
     if (layerBitmap.IsValid()) {
@@ -281,12 +296,14 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         RS_LOGE("RSRcdSurfaceRenderNode buffer is nullptr");
         return false;
     }
+    int32_t stride = nodeBuffer->GetStride();
     if (cldLayerInfo.bufferSize < 0 || cldLayerInfo.cldWidth < 0 ||
-        cldLayerInfo.cldHeight < 0 || width < 0 || height < 0) {
+        cldLayerInfo.cldHeight < 0 || width < 0 || height < 0 ||
+        width > SCREEN_HEIGHT_UPPER || height > SCREEN_HEIGHT_UPPER ||
+        stride > SCREEN_STRIDE_UPPER) {
         RS_LOGE("RSRcdSurfaceRenderNode check cldLayerInfo and size failed");
         return false;
     }
-    int32_t stride = nodeBuffer->GetStride();
     int32_t offset = (height + 1) * stride;
     SetRCDInfo(cldLayerInfo, height, width, static_cast<uint32_t>(offset));
     int32_t offsetCldInfo = height * stride;
@@ -301,20 +318,47 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         RS_LOGE("[%{public}s] memcpy_s failed", __func__);
         return false;
     }
-    std::ifstream addBufferFile(cldLayerInfo.pathBin, std::ifstream::binary | std::ifstream::in);
-    if (addBufferFile) {
-        addBufferFile.seekg(0, addBufferFile.end);
-        int32_t addBufferSize = addBufferFile.tellg();
-        if (offset > static_cast<int32_t>(bufferSize) - addBufferSize) {
-            RS_LOGE("[%{public}s] hardware buffer overflow error", __func__);
-            addBufferFile.close();
-            return false;
-        }
-        addBufferFile.seekg(0, addBufferFile.beg);
-        addBufferFile.read(reinterpret_cast<char*>(img + offset), addBufferSize);
-        addBufferFile.close();
-    } else {
-        RS_LOGE("[%{public}s] hardware fopen error", __func__);
+    return WriteBinToBuffer(cldLayerInfo.pathBin, reinterpret_cast<char*>(img), offset, bufferSize);
+}
+
+bool RSRcdSurfaceRenderNode::WriteBinToBuffer(const std::filesystem::path& binPath, char* buffer,
+    int32_t offset, int32_t bufferSize)
+{
+    if (buffer == nullptr) {
+        RS_LOGE("[%{public}s] buffer null", __func__);
+        return false;
+    }
+    if (offset < 1 || bufferSize < 1) {
+        RS_LOGE("[%{public}s] buffer size error", __func__);
+        return false;
+    }
+    if (!std::filesystem::exists(binPath)) {
+        RS_LOGE("[%{public}s] file not exist", __func__);
+        return false;
+    }
+    std::ifstream addBufferFile(binPath, std::ifstream::binary | std::ifstream::in);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile fopen error", __func__);
+        return false;
+    }
+    addBufferFile.seekg(0, addBufferFile.end);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile seek end error", __func__);
+        return false;
+    }
+    int32_t addBufferSize = addBufferFile.tellg();
+    if (addBufferSize < 0 || offset > static_cast<int32_t>(bufferSize) - addBufferSize) {
+        RS_LOGE("[%{public}s] hardware buffer overflow error", __func__);
+        return false;
+    }
+    addBufferFile.seekg(0, addBufferFile.beg);
+    if (!addBufferFile) {
+        RS_LOGE("[%{public}s] binfile seek beg error", __func__);
+        return false;
+    }
+    addBufferFile.read(reinterpret_cast<char*>(buffer + offset), addBufferSize);
+    if (!addBufferFile || addBufferFile.gcount() != addBufferSize) {
+        RS_LOGE("[%{public}s] binfile read error", __func__);
         return false;
     }
     return true;
@@ -343,7 +387,7 @@ bool RSRcdSurfaceRenderNode::SetRCDMetaData() const
     return true;
 }
 
-void RSRcdSurfaceRenderNode::PrintRcdNodeInfo()
+void RSRcdSurfaceRenderNode::PrintRcdNodeInfo(const Drawing::Bitmap& layerBitmap)
 {
     std::string surfaceName = (IsTopSurface() ? "RCDTopSurfaceNode" : "RCDBottomSurfaceNode")  +
         std::to_string(renerTargetId_);

@@ -25,6 +25,7 @@
 #include "common/rs_rect.h"
 #include "draw/color.h"
 #include "image/image.h"
+#include "platform/ohos/backend/rs_engine_header_ext.h"
 
 namespace OHOS::Rosen {
 
@@ -36,6 +37,10 @@ class RSRenderNode;
 class RSSurfaceRenderNode;
 class RSRenderNodeMap;
 using NodeId = uint64_t;
+
+namespace DrawableV2 {
+class RSColorPickerDrawable;
+}
 
 namespace RSColorPickerUtils {
 /**
@@ -111,7 +116,8 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
  * @param colorPickerInfo A struct containing color space, bitmap format, backend texture, and image
  */
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> manager,
-    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx);
+    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx,
+    RenderEngineType renderEngineType = RenderEngineType::BASIC_RENDER);
 
 /**
  * @brief Obtain the corresponding dark color and light color based on the placeholder
@@ -140,11 +146,23 @@ RSB_EXPORT std::unordered_set<NodeId> CollectColorPickerNodeIds(
  * @brief Check if color picker needs to execute based on the current surface dirty region.
  */
 RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect);
+RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect,
+    const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable);
 /**
  * @brief Check if color picker needs to execute based on dirty region intersection from surfaces below.
  */
 RSB_EXPORT bool DirtyInSurfacesBelow(
     const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces);
+
+/**
+ * @brief Restore contrast color scheme from PersistentPropertyManager to render node property.
+ *
+ * This function is called when screen node postprepare to restore
+ * the last known contrast color scheme from PersistentPropertyManager.
+ *
+ * @param node The render node to restore contrast color scheme to
+ */
+RSB_EXPORT void RestoreContrastColorScheme(RSRenderNode& node);
 } // namespace RSColorPickerUtils
 } // namespace OHOS::Rosen
 

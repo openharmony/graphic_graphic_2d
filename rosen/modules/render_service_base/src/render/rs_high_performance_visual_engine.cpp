@@ -17,8 +17,7 @@
 
 #include "common/rs_color_palette.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -33,99 +32,105 @@ HveFilter& HveFilter::GetHveFilter()
 
 void HveFilter::Sync()
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     ClearSurfaceNodeInfo();
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     hveFilterToSurfaceNodeMap_ = hveFilterToSurfaceNodeStagingMap_;
     hveFilterToSurfaceNodeStagingMap_.clear();
 }
 
 void HveFilter::ClearSurfaceNodeInfo()
 {
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     surfaceNodeInfo_.clear();
 }
 
 void HveFilter::PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo)
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     surfaceNodeInfo_.push_back(surfaceNodeInfo);
 }
 
 std::vector<SurfaceNodeInfo> HveFilter::GetSurfaceNodeInfo() const
 {
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     return surfaceNodeInfo_;
 }
 
 int HveFilter::GetSurfaceNodeSize() const
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     return surfaceNodeInfo_.size();
+}
+
+const std::vector<NodeId>& HveFilter::GetFilterIds(NodeId surfaceId) const
+{
+    static const std::vector<NodeId> empty;
+    auto it = hveSurfaceToFilterNodeMap_.find(surfaceId);
+    return (it != hveSurfaceToFilterNodeMap_.end()) ? it->second : empty;
+}
+
+void HveFilter::ClearSurfaceToFilterNodeMap()
+{
+    hveSurfaceToFilterNodeMap_.clear();
 }
 
 bool HveFilter::HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId)
 {
+    if (canvas.GetIsParallelCanvas()) {
+        return false;
+    }
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
-    return !canvas.GetIsParallelCanvas() &&
-           hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
-}
+    const auto filterIter = hveFilterToSurfaceNodeMap_.find(filterId);
+    if (filterIter == hveFilterToSurfaceNodeMap_.end()) {
+        return false;
+    }
 
-bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
-{
-    auto current = node;
-    while (current) {
-        if (current->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            return false;
+    std::vector<SurfaceNodeInfo> vecSurfaceNode = GetSurfaceNodeInfo();
+    std::unordered_set<NodeId> validSurfaceNodeIds;
+    validSurfaceNodeIds.reserve(vecSurfaceNode.size());
+    for (const auto& node : vecSurfaceNode) {
+        validSurfaceNodeIds.insert(node.surfaceNodeId_);
+    }
+
+    const auto& surfaceNodeIds = filterIter->second;
+    for (NodeId surfaceNodeId : surfaceNodeIds) {
+        if (validSurfaceNodeIds.count(surfaceNodeId) > 0) {
+            return true;
         }
-        if (current->GetType() == RSRenderNodeType::EFFECT_NODE) {
-            auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(current);
-            return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
-                   current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
-                   current->ShouldPaint() && current->GetGlobalAlpha() == 1;
-        }
-        current = current->GetParent().lock();
     }
     return false;
 }
 
-bool HveFilter::HasValidEffect(const RSRenderNode* node)
+bool HveFilter::AreSceneConditionsDisabled(const RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
 {
-    // Basic termination condition
-    if (!node || node->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        return false;
-    }
-    const RSProperties& properties = node->GetRenderProperties();
-    if (properties.GetUseEffect() &&
-        node->ShouldPaint() && node->GetGlobalAlpha() == 1 && !node->HasChildrenOutOfRect()) {
-        // After finding target node, start searching upwards for EFFECT_NODE
-        RS_LOGD("%{public}s UseEffect is valid", __func__);
-        return HasValidEffectNode(node->GetParent().lock());
-    }
-    return HasValidEffect(node->GetParent().lock().get());
+    return !apsConfigParamsEnabled_ && (!hwcNode.GetArsrTag() ||
+        (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE));
 }
 
 bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
+    RS_TRACE_NAME_FMT("%s apsConfigParamsEnabled: %d", __func__, apsConfigParamsEnabled_.load());
     // Check basic conditions for hwcNode and filter size
-    if (!hwcNode.GetArsrTag() ||
-        (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE)) {
+    if (AreSceneConditionsDisabled(hwcNode, filterRect)) {
+        RS_LOGD("%{public}s scene conditions not met", __func__);
         return false;
     }
-    const RSProperties& properties = renderNode.GetRenderProperties();
-    if (properties.GetBackgroundFilter() != nullptr ||
-        properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
-        RS_LOGD("%{public}s within filter range", __func__);
-        return true;
-    }
-    // If there is BgBrightness, ensure the Effect is valid.
-    return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
+    return RSEffectUtils::HasValidFilterOrEffect(renderNode);
 }
 
 void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
 {
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     if (hveFilterToSurfaceNodeStagingMap_.find(filterId) == hveFilterToSurfaceNodeStagingMap_.end()) {
         hveFilterToSurfaceNodeStagingMap_[filterId] = std::vector<NodeId>();
     }
     hveFilterToSurfaceNodeStagingMap_[filterId].push_back(surfaceId);
+
+    if (hveSurfaceToFilterNodeMap_.find(surfaceId) == hveSurfaceToFilterNodeMap_.end()) {
+        hveSurfaceToFilterNodeMap_[surfaceId] = std::vector<NodeId>();
+    }
+    hveSurfaceToFilterNodeMap_[surfaceId].push_back(filterId);
 }
 
 void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
@@ -154,7 +159,6 @@ void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
 std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId)
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
         ClearSurfaceNodeInfo();
@@ -179,19 +183,23 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     size_t surfaceNodeSize = vecSurfaceNode.size();
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
     Drawing::RectI dstRect = Drawing::RectI(0, 0, widthUI, heightUI);
-    auto it = hveFilterToSurfaceNodeMap_.find(filterId);
-    std::vector<NodeId> surfaceNodeIds = (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
+    {
+        std::lock_guard<std::mutex> lock(hveFilterMtx_);
+        auto it = hveFilterToSurfaceNodeMap_.find(filterId);
+        std::vector<NodeId> surfaceNodeIds =
+            (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
 
-    for (size_t i = 0; i < surfaceNodeSize; i++) {
-        auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
-        if (surfaceImage == nullptr) {
-            continue;
+        for (size_t i = 0; i < surfaceNodeSize; i++) {
+            auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
+            if (surfaceImage == nullptr) {
+                continue;
+            }
+            NodeId surfaceId = vecSurfaceNode[i].surfaceNodeId_;
+            if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) == surfaceNodeIds.end()) {
+                continue;
+            }
+            DrawSurfaceImage(offscreenCanvas, vecSurfaceNode[i], srcRect);
         }
-        NodeId surfaceId = vecSurfaceNode[i].surfaceNodeId_;
-        if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) == surfaceNodeIds.end()) {
-            continue;
-        }
-        DrawSurfaceImage(offscreenCanvas, vecSurfaceNode[i], srcRect);
     }
 
     auto inputImage = drawingSurface->GetImageSnapshot(srcRect);

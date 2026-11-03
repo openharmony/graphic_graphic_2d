@@ -48,9 +48,9 @@ public:
     void Reset();
     void MoveSplitSurfaceNode();
     void RecordSplitNode(std::shared_ptr<RSRenderNode> node);
-    void CheckNeedLeave();
+    void CheckNeedLeave(RSScreenRenderNode& screenNode);
     void CheckSplitNodeIntersectFilter(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
-    void UpdatePlanAndDirtyRegion(std::shared_ptr<RSDirtyRegionManager> dirtyManager);
+    void UpdatePlanAndDirtyRegion(RSScreenRenderNode& screenNode, std::shared_ptr<RSDirtyRegionManager> dirtyManager);
     void Sync();
     bool CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactionData>& rsTransactionData);
     bool CheckDoDirectCompositionWithSplitLayer();
@@ -63,9 +63,8 @@ private:
     bool isEnabled_ = false;
     bool isGlobalEnabled_ = false;
     std::vector<std::shared_ptr<SplitNodeSelector>> selectorVec_;
-    std::unordered_map<NodeId, std::shared_ptr<RSLayerSplitterPlanner>> plannerMap_;
-    std::unordered_map<NodeId, std::shared_ptr<RSLayerSplitterProcessor>> processorMap_;
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> parentNodeMap_;
+    std::unordered_map<std::shared_ptr<RSRenderNode>, std::shared_ptr<RSLayerSplitterPlanner>> plannerMap_;
+    std::unordered_map<std::shared_ptr<RSRenderNode>, std::shared_ptr<RSLayerSplitterProcessor>> processorMap_;
 };
 } // namespace OHOS::Rosen
 

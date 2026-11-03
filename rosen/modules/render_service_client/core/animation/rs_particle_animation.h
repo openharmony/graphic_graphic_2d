@@ -30,6 +30,11 @@ class RSRenderParticleAnimation;
 
 class RSC_EXPORT RSParticleAnimation : public RSAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::PARTICLE;
+    }
+
     RSParticleAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
         std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams, ModifierId modifierId);
     ~RSParticleAnimation() override = default;

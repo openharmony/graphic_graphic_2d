@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <numeric>
 #include <system_error>
+#include <unistd.h>
 
 #include "rs_profiler_archive.h"
 #include "rs_profiler_cache.h"
@@ -44,7 +45,6 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
-#include "pipeline/rs_render_node_gc.h"
 #include "render/rs_typeface_cache.h"
 #include "surface_capture_param.h"
 #include "graphic_feature_param_manager.h"
@@ -98,11 +98,10 @@ static std::atomic<uint32_t> g_frameNumber = 0;
 static uint32_t g_renderFrameNumber = 0;
 
 static RSFile g_playbackFile {};
-static NodeId g_playbackParentNodeId = 0;
-static int g_playbackPid = 0;
 static std::atomic<bool> g_playbackShouldBeTerminated = true;
 static double g_playbackPauseTime = 0;
 static int g_playbackWaitFrames = 0;
+static std::atomic_bool g_playbackImmediate = false;
 static std::atomic<double> g_replayLastPauseTimeReported = 0;
 
 static std::vector<std::pair<NodeId, uint32_t>> g_nodeListPerf;
@@ -127,7 +126,6 @@ static int g_nodeListPerfCalcIndex = -1;
 
 static std::string g_testDataFrame;
 static std::atomic<uint32_t> g_recordParcelNumber = 0;
-static bool g_playbackImmediate = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
 static std::mutex g_mutexFirstFrameMarshalling;
 static std::mutex g_mutexJobMarshallingTick;
@@ -176,6 +174,39 @@ Trace3DCoreParamValue CreateAndUpdateTraceParam(const std::vector<std::string>& 
 
     return param;
 }
+
+void LoadAnimationTimestamps(std::unordered_map<AnimationId, std::vector<int64_t>>& map)
+{
+    map.clear();
+    for (const auto& [id, time] : g_playbackFile.GetAnimeStartTimes()) {
+        const auto mockId = Utils::PatchNodeId(id);
+        if (map.count(mockId)) {
+            map[mockId].push_back(time);
+        } else {
+            map[mockId] = { time };
+        }
+    }
+}
+
+pid_t GetMainThreadId(RSMainThread* mainThread)
+{
+    pid_t tid = 0;
+    if (mainThread) {
+        mainThread->PostSyncTask([&tid]() { tid = gettid(); });
+    }
+    return tid;
+}
+
+template<class Thread>
+void PostTask(Thread& thread, pid_t tid, std::function<void()>&& task, bool wait)
+{
+    if (task && wait) {
+        tid == gettid() ? task() : (void)thread.PostSyncTask(std::move(task));
+    } else if (task) {
+        thread.PostTask(std::move(task));
+    }
+}
+
 } // namespace
 
 std::shared_ptr<RSRenderPipeline> RSProfiler::renderPipeline_;
@@ -221,14 +252,9 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
 {
     auto& jobGlobal = GetMarshallingJob();
 
-    std::unique_lock<std::mutex> lockJob(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
-
+    std::unique_lock<std::mutex> guard(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
     auto job = jobGlobal;
-    if (!job) {
-        return;
-    }
-
-    if (nodeId && !job->IsUnfinished(nodeId)) {
+    if (!job || (nodeId && !job->IsUnfinished(nodeId))) {
         return;
     }
 
@@ -240,27 +266,21 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
         }
     }
 
-    auto node = GetRenderNode(nodeId);
+    const auto node = GetRenderNode(nodeId);
     if (!node) {
-        job->MarkFinished(nodeId, "");
+        job->MarkFinished(nodeId, {});
         return;
     }
 
-    std::stringstream ssData;
-    auto fileVersion = RSFILE_VERSION_LATEST;
+    guard.unlock();
+    std::stringstream data;
+    MarshalNode(*node, data, RSFILE_VERSION_LATEST, skipDrawCmdModifiers, true);
+    guard.lock();
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
-    MarshalNode(*node, ssData, fileVersion, skipDrawCmdModifiers, true);
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
-
-    job->MarkFinished(nodeId, ssData.str());
-
+    job->MarkFinished(nodeId, data.str());
     if (!job->GetUnfinishedCount()) {
         g_recordFile.SetHeaderFailedNodeCount(job->offsetNodeCount, job->failedNodeCount);
-        std::string& data = job->GetNodeData();
-        g_recordFile.InsertHeaderData(job->offsetNodes, data);
+        g_recordFile.InsertHeaderData(job->offsetNodes, job->GetNodeData());
         jobGlobal = nullptr;
     }
 }
@@ -288,9 +308,9 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
             continue;
         }
         g_jobTickTaskCount++;
-        ScheduleTask([]() {
+        PostMainThreadTask([]() {
             g_jobTickTaskCount--;
-            if (context_ && context_->animatingNodeList_.size()) {
+            if (context_ && !context_->animatingNodeList_.empty()) {
                 // don't execute tick during animation
                 return;
             }
@@ -306,12 +326,12 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
 bool RSProfiler::IsPowerOffScreen()
 {
     if (!context_) {
-        HRPE("RSProfiler::IsPowerOffScreen context is nullptr");
+        HRPE("IsPowerOffScreen context is nullptr");
         return false;
     }
     const auto& nodeMap = context_->GetNodeMap();
     if (nodeMap.screenNodeMap_.empty()) {
-        HRPI("RSProfiler::IsPowerOffScreen has no screenRenderNode");
+        HRPI("IsPowerOffScreen has no screenRenderNode");
         return false;
     }
     bool hasScreenPowerOn = false;
@@ -432,6 +452,18 @@ void RSProfiler::Init(const std::shared_ptr<RSRenderPipeline>& renderPipeline,
     serviceToRenderConnection_ = serviceToRenderConnection;
     trace3dApi_ = Trace3DCoreInitRS();
 
+    mainThreadTaskRunner_ = [tid = GetMainThreadId(mainThread_)](std::function<void()>&& task, bool wait) {
+        if (mainThread_) {
+            PostTask(*mainThread_, tid, std::move(task), wait);
+        }
+    };
+
+    renderThreadTaskRunner_ = [](std::function<void()>&& task, bool wait) {
+        PostTask(RSUniRenderThread::Instance(), RSUniRenderThread::Instance().GetTid(), std::move(task), wait);
+    };
+
+    messageSender_ = Network::SendMessage;
+
     RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
@@ -503,8 +535,17 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     return g_recordParcelNumber;
 }
 
-uint64_t RSProfiler::ProcessRemoteRequest(
-    pid_t pid, uint32_t code, MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
+static bool IsAshmemParcel(uint32_t code, const MessageParcel& parcel)
+{
+    if (code == static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION)) {
+        int32_t flag = 0;
+        return parcel.GetReadableBytes() > sizeof(flag) &&
+               Utils::Move(&flag, sizeof(flag), reinterpret_cast<const void*>(parcel.GetData()), sizeof(flag)) && flag;
+    }
+    return false;
+}
+
+uint64_t RSProfiler::ProcessRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option)
 {
     g_counterOnRemoteRequest++;
     if (!IsEnabled()) {
@@ -512,54 +553,42 @@ uint64_t RSProfiler::ProcessRemoteRequest(
     }
 
     if (IsRecording()) {
-        constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
-        if (code == static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION) &&
-            parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
-            const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
-            if (data && *data) {
-                // ashmem parcel - don't save
-                return 0;
-            }
-        }
-        return WriteRemoteRequest(pid, code, parcel, option);
+        return !IsAshmemParcel(code, parcel) ? WriteRemoteRequest(pid, code, parcel, option) : 0;
     }
 
     g_recordParcelNumber = 0;
-
-    if (IsPlaying()) {
-        SetTransactionTimeCorrection(g_playbackFile.GetWriteTime());
-        SetMode(Mode::READ);
-    }
     return 0;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code,
+uint64_t RSProfiler::OnRemoteRequest(RSClientToRenderConnectionStub* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& reply, MessageOption& option)
 {
-    return ProcessRemoteRequest(GetConnectionPid(connection), code, parcel, reply, option);
+    return connection ? ProcessRemoteRequest(connection->GetCallingPid(), code, parcel, option) : 0u;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+uint64_t RSProfiler::OnRemoteRequest(RSClientToServiceConnectionStub* connection, uint32_t code, MessageParcel& parcel,
     MessageParcel& reply, MessageOption& option)
 {
     return 0;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIServiceToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
+uint64_t RSProfiler::OnRemoteRequest(RSServiceToRenderConnectionStub* connection, uint32_t code, MessageParcel& parcel,
     MessageParcel& reply, MessageOption& option)
 {
-    return ProcessRemoteRequest(0u, code, parcel, reply, option);
+    return ProcessRemoteRequest(0u, code, parcel, option);
 }
 
-void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data)
+pid_t RSProfiler::GetCallingPid(RSClientToRenderConnectionStub* connection)
 {
-    if (!IsEnabled()) {
-        return;
+    const auto pid = connection ? connection->GetCallingPid() : 0;
+    if (!IsEnabled() || !IsPlaying()) {
+        return pid;
     }
 
-    if (parcel && IsParcelMock(*parcel)) {
-        data->SetSendingPid(Utils::GetMockPid(data->GetSendingPid()));
-    }
+    const std::lock_guard<std::mutex> guard(connectionMutex_);
+    const auto found = std::find_if(connections_.begin(), connections_.end(),
+        [&connection](const auto& pair) { return pair.second.GetRefPtr() == connection; });
+    return (found != connections_.end()) ? found->first : pid;
 }
 
 void RSProfiler::CreateMockConnection(pid_t pid)
@@ -571,20 +600,20 @@ void RSProfiler::CreateMockConnection(pid_t pid)
     constexpr auto needRefresh = false;
     const auto token = new IRemoteStub<RSIConnectionToken>();
     if (!token) {
-        HRPE("%{public}s: Cannot create connection token", __func__);
+        HRPE("%{public}s: Cannot create connection token: %d", __func__, pid);
         return;
     }
 
     const auto connection =
         new RSClientToRenderConnection(pid, new RSRenderPipelineAgent(renderPipeline_), token->AsObject(), needRefresh);
     if (!connection) {
-        HRPE("%{public}s: Cannot create mock connection", __func__);
+        HRPE("%{public}s: Cannot create mock connection: %d", __func__, pid);
         return;
     }
 
     renderPipeline_->AddTransactionDataPidInfo(pid);
     const std::lock_guard<std::mutex> guard(connectionMutex_);
-    connections_.emplace_back(connection);
+    connections_[pid] = connection;
 }
 
 void RSProfiler::PurgeMockConnections()
@@ -602,17 +631,8 @@ sptr<IRemoteObject> RSProfiler::GetMockConnection(pid_t pid)
     }
 
     const std::lock_guard<std::mutex> guard(connectionMutex_);
-    for (const auto& connection : connections_) {
-        if (GetConnectionPid(connection) == pid) {
-            return connection->AsObject();
-        }
-    }
-    return nullptr;
-}
-
-pid_t RSProfiler::GetConnectionPid(const RSIClientToRenderConnection* connection)
-{
-    return connection ? static_cast<const RSClientToRenderConnection*>(connection)->remotePid_ : 0;
+    const auto found = connections_.find(pid);
+    return (found != connections_.end()) ? found->second->AsObject() : nullptr;
 }
 
 void RSProfiler::OnFlagChangedCallback(const char *key, const char *value, void *context)
@@ -852,14 +872,14 @@ void RSProfiler::ProcessPauseMessage()
         return;
     }
 
-    uint64_t pauseAtTime = TimePauseGet();
-    uint64_t nowTime = RawNowNano();
+    const uint64_t pauseAtTime = TimePauseGet();
+    const uint64_t nowTime = RawNowNano();
     if (pauseAtTime > 0 && nowTime > pauseAtTime) {
         const double deltaTime = PlaybackDeltaTime();
         if (deltaTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // RESERVED!
             }
             g_replayLastPauseTimeReported = deltaTime;
         }
@@ -890,22 +910,14 @@ void RSProfiler::OnFrameEnd()
 
     g_renderServiceCpuId = Utils::GetCpuId();
 
-    constexpr int maxMsgPerFrame = 32;
-    std::string msg_value = ReceiveMessageBase();
-    for (int i = 0; msg_value != "" && i < maxMsgPerFrame; msg_value = ReceiveMessageBase(), i++) {
-        if (!msg_value.length()) {
-            break;
-        }
-        Network::SendMessage(msg_value);
-    }
-
     if (IsRecordingMode()) {
-        RSProfilerLogMsg log_value = ReceiveRSLogBase();
-        for (int i = 0; log_value.time_ && i < maxMsgPerFrame; log_value = ReceiveRSLogBase(), i++) {
-            if (!log_value.msg_.length()) {
+        constexpr uint32_t maxCount = 32;
+        for (uint32_t i = 0; i < maxCount; i++) {
+            const auto message = ReceiveRSLogBase();
+            if (!message.msg_.length()) {
                 break;
             }
-            LogEventMsg(log_value.time_, log_value.type_, log_value.msg_);
+            LogEventMsg(message.time_, message.type_, message.msg_);
         }
     }
 
@@ -942,15 +954,9 @@ void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
     }
 
     constexpr float nanoToMs = 1000'000.0f;
-
-    if (g_calcPerfNodeExcludeDown) {
-        Respond("CALC_PERF_NODE_RESULT: U->" + std::to_string(g_calcPerfNode) + " " + std::to_string(avgValue) +
-            " inMS=" + std::to_string(avgValue / nanoToMs) + " tries=" + std::to_string(g_effectiveNodeTimeCount));
-    } else {
-        Respond("CALC_PERF_NODE_RESULT: UD->" + std::to_string(g_calcPerfNode) + " " + std::to_string(avgValue) +
-            " inMS=" + std::to_string(avgValue / nanoToMs) + " tries=" + std::to_string(g_effectiveNodeTimeCount));
-    }
-
+    SendMessage("CALC_PERF_NODE_RESULT: %s->%" PRIu64 " %" PRIu64 " inMS=%f tries=%d",
+        g_calcPerfNodeExcludeDown ? "U" : "UD", g_calcPerfNode, avgValue,
+        static_cast<float>(avgValue) / nanoToMs, g_effectiveNodeTimeCount);
     g_calcPerfNode = 0;
 
     AwakeRenderServiceThread();
@@ -994,7 +1000,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
                 Utils::ExtractPid(node->GetId()) != Utils::ExtractPid(parentPtr->GetId()) &&
                 Utils::ExtractPid(node->GetId()) == pid && node->GetSortedChildren()->size() > 0) {
                 rootNode = node;
-                Respond("Root node found: " + std::to_string(rootNode->GetId()));
+                SendMessage("Root node found: %" PRIu64, rootNode->GetId());
             }
         });
     }
@@ -1003,7 +1009,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
     if (rootNode) {
         DumpNode(*rootNode, root, useMockPid, pid > 0);
     } else {
-        Respond("rootNode not found");
+        SendMessage("rootNode not found");
         root.PushObject();
         root.PopObject();
     }
@@ -1039,18 +1045,11 @@ bool RSProfiler::IsPlaying()
     return IsEnabled() && IsReadMode() && g_playbackFile.IsOpen() && !g_playbackShouldBeTerminated;
 }
 
-void RSProfiler::ScheduleTask(std::function<void()> && task)
-{
-    if (mainThread_) {
-        mainThread_->PostTask(std::move(task));
-    }
-}
-
 void RSProfiler::RequestNextVSync()
 {
     if (mainThread_) {
         mainThread_->RequestNextVSync();
-        ScheduleTask([]() { mainThread_->RequestNextVSync(); });
+        PostMainThreadTask([]() { mainThread_->RequestNextVSync(); });
     }
 }
 
@@ -1062,7 +1061,7 @@ void RSProfiler::AwakeRenderServiceThread()
     mainThread_->RequestNextVSync();
     mainThread_->SetAccessibilityConfigChanged();
     mainThread_->SetDirtyFlag();
-    ScheduleTask([]() {
+    PostMainThreadTask([]() {
         mainThread_->SetAccessibilityConfigChanged();
         mainThread_->SetDirtyFlag();
         mainThread_->RequestNextVSync();
@@ -1086,7 +1085,7 @@ bool RSProfiler::IsLoadSaveFirstScreenInProgress()
     return IsWriteEmulationMode() || IsReadEmulationMode();
 }
 
-void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
+void RSProfiler::MarshalSelfDrawingNodes()
 {
     class SurfaceCaptureCallback final : public RSISurfaceCaptureCallback {
         void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
@@ -1103,7 +1102,7 @@ void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
         }
     };
 
-    if (isBetaRecording || !mainThread_ || !context_) {
+    if (!context_) {
         return;
     }
 
@@ -1113,26 +1112,24 @@ void RSProfiler::MarshalSelfDrawingNodes(bool isBetaRecording)
         }
 
         constexpr auto useCurrentWindow = false;
-        mainThread_->PostTask([node]() {
-            bool needSyncSurface = false;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(node->GetId(), useCurrentWindow, &needSyncSurface);
+        bool needSyncSurface = false;
+        RSSurfaceCaptureTaskParallel::CheckModifiers(node->GetId(), useCurrentWindow, &needSyncSurface);
 
-            RSSurfaceCaptureParam param;
-            param.id = node->GetId();
-            param.isSystemCalling = false;
-            param.isSelfCapture = true;
-            param.config.useDma = true;
-            param.config.useCurWindow = useCurrentWindow;
-            param.config.isHdrCapture = false;
-            param.hasDirtyContentInSurfaceCapture = (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty());
-            RSSurfaceCaptureTaskParallel::Capture(sptr<SurfaceCaptureCallback>::MakeSptr(), param);
-        });
+        RSSurfaceCaptureParam param;
+        param.id = node->GetId();
+        param.isSystemCalling = false;
+        param.isSelfCapture = true;
+        param.config.useDma = true;
+        param.config.useCurWindow = useCurrentWindow;
+        param.config.isHdrCapture = false;
+        param.hasDirtyContentInSurfaceCapture = (needSyncSurface || node->IsDirty() || node->IsSubTreeDirty());
+        RSSurfaceCaptureTaskParallel::Capture(sptr<SurfaceCaptureCallback>::MakeSptr(), param);
     });
 }
 
 void RSProfiler::UnmarshalSelfDrawingNodes()
 {
-    if (!mainThread_ || !context_) {
+    if (!context_) {
         return;
     }
 
@@ -1154,82 +1151,111 @@ void RSProfiler::UnmarshalSelfDrawingNodes()
             return;
         }
 
-        mainThread_->PostSyncTask([handler, node, buffer] {
-            const Rect region {
-                .w = buffer->GetWidth(),
-                .h = buffer->GetHeight(),
-            };
-            handler->SetBuffer(buffer, SyncFence::InvalidFence(), region, 0, nullptr);
-            node->UpdateBufferInfo(handler->GetBuffer(), handler->GetBufferOwnerCount(), region,
-                handler->GetAcquireFence(), handler->GetPreBuffer(), handler->GetPreBufferOwnerCount());
-            node->SetNodeDirty(true);
-            node->SetContentDirty();
-        });
+        const Rect region {
+            .w = buffer->GetWidth(),
+            .h = buffer->GetHeight(),
+        };
+        handler->SetBuffer(buffer, SyncFence::InvalidFence(), region, 0, nullptr);
+        node->UpdateBufferInfo(handler->GetBuffer(), handler->GetBufferOwnerCount(), region, handler->GetAcquireFence(),
+            handler->GetPreBuffer(), handler->GetPreBufferOwnerCount());
+        node->SetNodeDirty(true);
+        node->SetContentDirty();
     });
 }
 
-std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordStarted)
+static bool WriteFocusAppInfo(std::stringstream& stream, const FocusAppInfo& info)
+{
+    stream.write(reinterpret_cast<const char*>(&info.pid), sizeof(info.pid));
+    stream.write(reinterpret_cast<const char*>(&info.uid), sizeof(info.uid));
+    stream.write(reinterpret_cast<const char*>(&info.focusNodeId), sizeof(info.focusNodeId));
+
+    size_t size = info.bundleName.size();
+    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    stream.write(info.bundleName.data(), static_cast<std::streamsize>(size));
+
+    size = info.abilityName.size();
+    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    stream.write(info.abilityName.data(), static_cast<std::streamsize>(size));
+    return !!stream;
+}
+
+std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecord)
 {
     if (!mainThread_ || !context_) {
-        return "FirstFrameMarshalling: Invalid mainThread or context";
+        HRPE("FirstFrameMarshalling: Invalid main thread or context");
+        return {};
     }
 
     RS_TRACE_NAME("Profiler FirstFrameMarshalling");
     std::stringstream stream;
-    stream.exceptions(0); // 0: disable all exceptions for stringstream
+    stream.exceptions(0);
+
     TypefaceMarshalling(stream, fileVersion);
-    if (!stream.good()) {
-        HRPD("FirstFrameMarshalling: Typeface marshalling failed");
+    if (!stream) {
+        HRPE("FirstFrameMarshalling: TypefaceMarshalling failed");
+        return {};
     }
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
-
-    std::shared_ptr<ProfilerMarshallingJob> newJob;
-    if (betaRecordStarted) {
-        newJob = std::make_shared<ProfilerMarshallingJob>();
-        if (newJob) {
-            newJob->marshallingTick = JobMarshallingTick;
-        }
+    const auto job = betaRecord ? std::make_shared<ProfilerMarshallingJob>(JobMarshallingTick) : nullptr;
+    MarshalNodes(*context_, stream, fileVersion, job);
+    if (!stream) {
+        HRPE("FirstFrameMarshalling: MarshalNodes failed");
+        return {};
     }
 
-    MarshalNodes(*context_, stream, fileVersion, newJob);
-    if (!stream.good()) {
-        HRPD("FirstFrameMarshalling: Nodes marshalling failed");
+    if (!betaRecord) {
+        MarshalSelfDrawingNodes();
     }
-    MarshalSelfDrawingNodes(betaRecordStarted);
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
 
-    const int32_t focusPid = mainThread_->focusAppPid_;
-    stream.write(reinterpret_cast<const char*>(&focusPid), sizeof(focusPid));
-
-    const int32_t focusUid = mainThread_->focusAppUid_;
-    stream.write(reinterpret_cast<const char*>(&focusUid), sizeof(focusUid));
-
-    const uint64_t focusNodeId = mainThread_->focusNodeId_;
-    stream.write(reinterpret_cast<const char*>(&focusNodeId), sizeof(focusNodeId));
-
-    const std::string bundleName = mainThread_->focusAppBundleName_;
-    size_t size = bundleName.size();
-    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    stream.write(reinterpret_cast<const char*>(bundleName.data()), size);
-
-    const std::string abilityName = mainThread_->focusAppAbilityName_;
-    size = abilityName.size();
-    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    stream.write(reinterpret_cast<const char*>(abilityName.data()), size);
-
-    if (!stream.good()) {
-        HRPE("FirstFrameMarshalling: Focus app marshalling failed");
+    const FocusAppInfo info {
+        .pid = mainThread_->focusAppPid_,
+        .uid = mainThread_->focusAppUid_,
+        .bundleName = mainThread_->focusAppBundleName_,
+        .abilityName = mainThread_->focusAppAbilityName_,
+        .focusNodeId = mainThread_->focusNodeId_,
+    };
+    if (!WriteFocusAppInfo(stream, info)) {
+        HRPE("FirstFrameMarshalling: Cannot write focus app info");
+        return {};
     }
     return stream.str();
+}
+
+static bool ReadFocusAppInfo(std::stringstream& stream, FocusAppInfo& info)
+{
+    constexpr size_t maxSize = 4096u;
+    if (!stream.read(reinterpret_cast<char*>(&info.pid), sizeof(info.pid)) ||
+        !stream.read(reinterpret_cast<char*>(&info.uid), sizeof(info.uid)) ||
+        !stream.read(reinterpret_cast<char*>(&info.focusNodeId), sizeof(info.focusNodeId))) {
+        return false;
+    }
+
+    info.pid = Utils::GetMockPid(info.pid);
+    info.focusNodeId = Utils::PatchNodeId(info.focusNodeId);
+
+    size_t size = 0u;
+    if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > maxSize)) {
+        return false;
+    }
+
+    info.bundleName.resize(size);
+    if (!stream.read(info.bundleName.data(), static_cast<std::streamsize>(info.bundleName.size()))) {
+        return false;
+    }
+
+    size = 0u;
+    if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > maxSize)) {
+        return false;
+    }
+
+    info.abilityName.resize(size);
+    return !!stream.read(info.abilityName.data(), static_cast<std::streamsize>(info.abilityName.size()));
 }
 
 std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     if (!mainThread_ || !context_) {
-        return "FirstFrameUnmarshalling: Invalid mainThread or context";
+        return "FirstFrameUnmarshalling: Invalid main thread or context";
     }
 
     std::stringstream stream(data);
@@ -1238,93 +1264,51 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
         return error;
     }
 
-    SetSubMode(SubMode::READ_EMUL);
-    DisableSharedMemory();
+    SetThreadSubMode(SubMode::READ_EMUL);
+    DisableThreadSharedMemory();
     error = UnmarshalNodes(*context_, stream, fileVersion);
-    UnmarshalSelfDrawingNodes();
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
+    if (error.empty()) {
+        UnmarshalSelfDrawingNodes();
+    }
+    EnableThreadSharedMemory();
+    SetThreadSubMode(SubMode::NONE);
 
-    if (!error.empty()) {
-        return error;
+    FocusAppInfo info;
+    if (error.empty() && !ReadFocusAppInfo(stream, info)) {
+        FilterMockNode(*context_);
+        error = "FirstFrameUnmarshalling: Cannot read focus app info";
     }
 
-    int32_t focusPid = 0;
-    stream.read(reinterpret_cast<char*>(&focusPid), sizeof(focusPid));
-
-    int32_t focusUid = 0;
-    stream.read(reinterpret_cast<char*>(&focusUid), sizeof(focusUid));
-
-    uint64_t focusNodeId = 0;
-    stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
-
-    constexpr size_t nameSizeMax = 4096;
-    size_t size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-    if (size > nameSizeMax) {
-        return "FirstFrameUnmarshalling: Invalid bundle name size";
+    if (error.empty()) {
+        mainThread_->SetFocusAppInfo(info);
+    } else {
+        RSTypefaceCache::Instance().ReplayClear();
     }
-    std::string bundleName;
-    bundleName.resize(size, ' ');
-    stream.read(reinterpret_cast<char*>(bundleName.data()), size);
-
-    size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-    if (size > nameSizeMax) {
-        return "FirstFrameUnmarshalling: Invalid ability name size";
-    }
-    std::string abilityName(size, ' ');
-    stream.read(reinterpret_cast<char*>(abilityName.data()), size);
-
-    if (stream.eof()) {
-        return "FirstFrameUnmarshalling: EOF of file reached";
-    }
-
-    focusPid = Utils::GetMockPid(focusPid);
-    focusNodeId = Utils::PatchNodeId(focusNodeId);
-
-    const FocusAppInfo info { .pid = focusPid,
-        .uid = focusUid,
-        .bundleName = bundleName,
-        .abilityName = abilityName,
-        .focusNodeId = focusNodeId
-    };
-    mainThread_->SetFocusAppInfo(info);
-    return "";
+    return error;
 }
 
 void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        std::stringstream fontStream;
+        const size_t flags = !IsBetaRecordEnabled();
+        stream.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
         if (!IsBetaRecordEnabled()) {
-            RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+            RSTypefaceCache::Instance().ReplaySerialize(stream);
         }
-        size_t fontStreamSize = fontStream.str().size();
-        stream.write(reinterpret_cast<const char*>(&fontStreamSize), sizeof(fontStreamSize));
-        stream.write(reinterpret_cast<const char*>(fontStream.str().c_str()), fontStreamSize);
     }
 }
 
 std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        std::vector<uint8_t> fontData;
-        std::stringstream fontStream;
-        constexpr auto fontStreamSizeMax = 1024u * 1024u * 1024u;
-        size_t fontStreamSize = fontStreamSizeMax + 1;
-        
-        stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
-        if (!fontStreamSize) {
-            return "";
+        size_t flags = 0u;
+        if (!stream.read(reinterpret_cast<char*>(&flags), sizeof(flags))) {
+            return "TypefaceUnmarshalling: Cannot read flags";
         }
-        if (fontStreamSize > fontStreamSizeMax) {
-            return "Typeface track size is over 1GB";
+
+        if (flags > 0) {
+            return RSTypefaceCache::Instance().ReplayDeserialize(stream);
         }
-        fontData.resize(fontStreamSize);
-        stream.read(reinterpret_cast<char*>(fontData.data()), fontData.size());
-        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontData.size());
-        return RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
     }
     return "";
 }
@@ -1335,30 +1319,22 @@ void RSProfiler::PrintVsync(const ArgList& args)
         SendMessage("Replay file wasn't opened");
         return;
     }
-    std::set<int64_t> vsyncSet;
-    g_playbackFile.GetVsyncList(vsyncSet);
 
-    std::string response = "VSYNC";
-    for (auto id : vsyncSet) {
-        response += std::to_string(id) + " ";
+    std::string out("VSYNC");
+    for (const auto& id : g_playbackFile.GetVsyncList()) {
+        out += " " + std::to_string(id);
     }
-    SendMessage("%s", response.c_str());
+    SendMessage("%s", out.data());
 }
 
 void RSProfiler::PrintTime(const ArgList& args)
 {
     if (!g_playbackFile.IsOpen()) {
-        SendMessage("Replay file wasn't opened");
-        return;
+        SendMessage("File is not open");
+    } else {
+        const auto [start, end] = g_playbackFile.GetStartAndEndTime();
+        SendMessage("Start: %f End: %f", start, end);
     }
-    std::pair<double, double> startAndEndTime;
-    g_playbackFile.GetStartAndEndTime(startAndEndTime);
-
-    std::string response = "StartTime and EndTime: ";
-    response += std::to_string(startAndEndTime.first) + " ";
-    response += std::to_string(startAndEndTime.second);
-
-    SendMessage("%s", response.c_str());
 }
 
 std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> RSProfiler::GetLogicalDisplayNodes()
@@ -1424,9 +1400,6 @@ void RSProfiler::HiddenSpaceTurnOn()
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    if (!context_) {
-        return;
-    }
     for (const auto& [display, children] : displayChildren_) {
         display->ClearChildren();
         for (const auto& child : children) {
@@ -1434,10 +1407,6 @@ void RSProfiler::HiddenSpaceTurnOff()
         }
     }
     displayChildren_.clear();
-
-    FilterMockNode(*context_);
-    RSTypefaceCache::Instance().ReplayClear();
-
     AwakeRenderServiceThread();
 }
 
@@ -1453,7 +1422,7 @@ void RSProfiler::SaveRdc(const ArgList& args)
     RSSystemProperties::SetInstantRecording(true);
 
     AwakeRenderServiceThread();
-    Respond("Recording current frame cmds (for .rdc) into : /data/default.drawing");
+    SendMessage("Recording current frame cmds (for .rdc) into : /data/default.drawing");
 }
 
 void RSProfiler::ProcessSendingRdc()
@@ -1538,7 +1507,7 @@ void RSProfiler::RecordUpdate()
 
     if (IsRecordAbortRequested()) {
         recordAbortRequested_ = false;
-        SendMessage("Record: Exceeded memory limit. Abort"); // DO NOT TOUCH!
+        SendMessage("Record: Exceeded memory limit. Abort"); // RESERVED!
         RecordStop(ArgList {});
         return;
     }
@@ -1600,25 +1569,6 @@ void RSProfiler::RecordSave()
     SendMessage("Record: Sent: %.2fMB (%zu)", Utils::Megabytes(binary.size()), binary.size());
 }
 
-// Deprecated: Use SendMessage instead
-void RSProfiler::Respond(const std::string& message)
-{
-    Network::SendMessage(message);
-}
-
-void RSProfiler::SendMessage(const char* format, ...)
-{
-    if (!format) {
-        return;
-    }
-
-    va_list args;
-    va_start(args, format);
-    const auto out = Utils::Format(format, args);
-    va_end(args);
-
-    Network::SendMessage(out);
-}
 
 void RSProfiler::DumpConnections(const ArgList& args)
 {
@@ -1628,8 +1578,7 @@ void RSProfiler::DumpConnections(const ArgList& args)
 
     std::string out;
     const std::lock_guard<std::mutex> guard(renderPipeline_->renderConnectionMutex_);
-    for (const auto& [_, connection] : renderPipeline_->renderConnections_) {
-        const auto pid = GetConnectionPid(connection.second);
+    for (const auto& [pid, info] : renderPipeline_->renderConnections_) {
         const auto name = Utils::GetProcessName(pid);
         SendMessage("%s %d", !name.empty() ? name.data() : "<unknown>", pid);
     }
@@ -1644,7 +1593,7 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
     for (const auto& [_, subMap] : map.renderNodeMap_) {
         for (const auto& [_, node] : subMap) {
             if (node && node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-                Respond("CANVAS_DRAWING_NODE: " + std::to_string(node->GetId()));
+                SendMessage("CANVAS_DRAWING_NODE: %" PRIu64, node->GetId());
             }
         }
     }
@@ -1666,12 +1615,6 @@ uint64_t RSProfiler::GetDisplayArea()
     }
     auto screenInfo = params->GetScreenInfo();
     return static_cast<uint64_t>(screenInfo.width * screenInfo.height);
-}
-
-void RSProfiler::PlaybackSetImmediate(const ArgList& args)
-{
-    g_playbackImmediate = args.Int64(0) ? true : false;
-    Respond("Playback immediate mode: " + std::to_string(g_playbackImmediate));
 }
 
 void RSProfiler::DumpTreeToJson(const ArgList& args)
@@ -1737,7 +1680,7 @@ void RSProfiler::BlinkNode(const ArgList& args)
         }
 
         AwakeRenderServiceThread();
-        Respond("OK");
+        SendMessage("OK");
     }
 }
 
@@ -1749,12 +1692,9 @@ void RSProfiler::KillPid(const ArgList& args)
     const pid_t pid = args.Pid();
     if (const auto node = GetRenderNode(Utils::GetRootNodeId(static_cast<uint64_t>(pid)))) {
         const auto parent = node->GetParent().lock();
-        const std::string out =
-            "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
-
+        SendMessage("parentPid=%d parentNode=%" PRIu64, GetPid(parent), GetNodeId(parent));
         context_->GetMutableNodeMap().FilterNodeByPid(pid, true);
         AwakeRenderServiceThread();
-        Respond(out);
     }
 }
 
@@ -1787,29 +1727,33 @@ void RSProfiler::PrintNodeCacheLo(const std::shared_ptr<RSRenderNode>& node)
     if (constexpr int usualParamCnt = 6; usual >= usualParamCnt) {
         return;
     }
-    Respond(nodeStr);
+    SendMessage("%s", nodeStr.data());
 }
 
 void RSProfiler::TestSaveFrame(const ArgList& args)
 {
     g_testDataFrame = FirstFrameMarshalling(RSFILE_VERSION_LATEST);
-    Respond("Save Frame Size: " + std::to_string(g_testDataFrame.size()));
+    SendMessage("Test: Saved frame size: %zu", g_testDataFrame.size());
 }
 
 void RSProfiler::TestLoadFrame(const ArgList& args)
 {
-    FirstFrameUnmarshalling(g_testDataFrame, RSFILE_VERSION_LATEST);
-    Respond("Load Frame Size: " + std::to_string(g_testDataFrame.size()));
+    const auto error = FirstFrameUnmarshalling(g_testDataFrame, RSFILE_VERSION_LATEST);
+    if (error.empty()) {
+        SendMessage("Test: Loaded frame size: %zu", g_testDataFrame.size());
+    } else {
+        SendMessage("Test: Load failed: %s", error.data());
+    }
 }
 
 void RSProfiler::TestSwitch(const ArgList& args)
 {
     if (!IsHiddenSpaceEnabled()) {
         HiddenSpaceTurnOn();
-        Respond("OK: HiddenSpaceTurnOn");
+        SendMessage("Test: HiddenSpaceTurnOn");
     } else {
         HiddenSpaceTurnOff();
-        Respond("OK: HiddenSpaceTurnOff");
+        SendMessage("Test: HiddenSpaceTurnOff");
     }
 }
 
@@ -1924,12 +1868,18 @@ void RSProfiler::RecordStart(const ArgList& args)
     if (!mainThread_ || !context_) {
         return;
     }
-    if (!IsNoneMode() || IsHiddenSpaceEnabled()) {
-        SendMessage("Record: Start failed. Playback/Saving is in progress");
+    
+    if (g_recordFile.IsOpen()) {
+        SendMessage("Record: Already started");
         return;
     }
 
-    bool betaRecordStarted = args.String(0) == "BETAREC";
+    if (!IsNoneMode() || IsHiddenSpaceEnabled()) {
+        SendMessage("Record: Cannot start. Other operation is in progress");
+        return;
+    }
+
+    const auto betaRecordStarted = (args.String() == "BETAREC");
 
     bool transactionMutexLocked = false;
     uint64_t counterParseTransactionDataStart = 0;
@@ -1960,14 +1910,13 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     if (!OpenBetaRecordFile(g_recordFile)) {
-        const auto overridePath = args.String(1);
-        const auto path = (!overridePath.empty() && args.String(0) == "-f") ? overridePath : RSFile::GetDefaultPath();
+        const auto path = (args.String(0) == "-f") ? args.String(1) : "";
         g_recordFile.SetVersion(RSFILE_VERSION_LATEST);
-        g_recordFile.Create(path);
+        g_recordFile.Create(Utils::IsSandboxPath(path) ? path : RSFile::GetDefaultPath());
     }
 
     if (!g_recordFile.IsOpen()) {
-        SendMessage("Record: Start failed: Cannot create file");
+        SendMessage("Record: Cannot create file");
         if (transactionMutexLocked) {
             mainThread_->TransitionDataMutexUnlock();
         }
@@ -1975,23 +1924,21 @@ void RSProfiler::RecordStart(const ArgList& args)
     }
 
     g_recordMinVsync = g_recordMaxVsync = 0;
-
     g_recordFile.AddLayer(); // add 0 layer
 
     {
-        std::unique_lock<std::mutex> lockFFM(g_mutexFirstFrameMarshalling);
-
+        const std::unique_lock<std::mutex> guard(g_mutexFirstFrameMarshalling);
         FilterMockNode(*context_);
         RSTypefaceCache::Instance().ReplayClear();
-
         g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion(), betaRecordStarted));
     }
 
     if (transactionMutexLocked) {
+        const auto countersChanged = (GetParseTransactionDataStartCounter() != counterParseTransactionDataStart ||
+                                      GetParseTransactionDataEndCounter() != counterParseTransactionDataEnd ||
+                                      g_counterOnRemoteRequest != counterOnRemoteRequest);
         mainThread_->TransitionDataMutexUnlock();
-        if (GetParseTransactionDataStartCounter() != counterParseTransactionDataStart ||
-            GetParseTransactionDataEndCounter() != counterParseTransactionDataEnd ||
-            g_counterOnRemoteRequest != counterOnRemoteRequest) {
+        if (countersChanged) {
             g_recordStartTime = 0.0;
             g_lastCacheImageCount = 0;
             ImageCache::Reset();
@@ -1999,18 +1946,18 @@ void RSProfiler::RecordStart(const ArgList& args)
             auto& jobGlobal = GetMarshallingJob();
             jobGlobal = nullptr;
             SetMode(Mode::NONE);
-            SetSubMode(SubMode::NONE);
+            SetThreadSubMode(SubMode::NONE);
             return;
         }
     }
 
-    std::thread threadNodeMarshall([]() {
-        SetMarshalFirstFrameThreadFlag(true);
-        // marshall nodes for first frame in parallel
-        MarshalFirstFrameNodesLoop();
-        SetMarshalFirstFrameThreadFlag(false);
-    });
-    threadNodeMarshall.detach();
+    if (betaRecordStarted) {
+        std::thread([]() {
+            SetMarshalFirstFrameThreadFlag(true);
+            MarshalFirstFrameNodesLoop();
+            SetMarshalFirstFrameThreadFlag(false);
+        }).detach();
+    }
 
     g_recordFile.LayerAddHeaderProperty(0, "MetricsList", RsMetricGetList());
 
@@ -2020,28 +1967,24 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_frameNumber = 0;
     SetMode(Mode::WRITE);
 
-    SendMessage("Record: Started");
-
     if (betaRecordStarted) {
         return;
     }
 
-    std::thread thread([]() {
+    std::thread([]() {
         while (IsRecording()) {
             SendTelemetry(Now() - g_recordStartTime);
             static constexpr int32_t GFX_METRICS_SEND_INTERVAL = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(GFX_METRICS_SEND_INTERVAL));
         }
-    });
-    thread.detach();
-
-    SendMessage("Network: Record start"); // DO NOT TOUCH!
+    }).detach();
+    SendMessage("Network: Record start"); // RESERVED!
 }
 
 void RSProfiler::RecordStop(const ArgList& args)
 {
     if (!IsRecording()) {
-        SendMessage("Record: Stop failed. Record is not in progress");
+        SendMessage("Record: Already stopped");
         return;
     }
 
@@ -2053,8 +1996,7 @@ void RSProfiler::RecordStop(const ArgList& args)
         g_recordFile.UnwriteRSData();
     }
 
-    bool isBetaRecordingStarted = IsBetaRecordStarted();
-    std::thread thread([isBetaRecordingStarted]() {
+    std::thread thread([betaRecord = IsBetaRecordStarted()]() {
         g_recordFile.SetWriteTime(g_recordStartTime);
 
         // force finish first frame marshalling
@@ -2062,7 +2004,7 @@ void RSProfiler::RecordStop(const ArgList& args)
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        if (isBetaRecordingStarted) {
+        if (betaRecord) {
             SaveBetaRecordFile(g_recordFile);
         } else {
             RecordSave();
@@ -2075,7 +2017,8 @@ void RSProfiler::RecordStop(const ArgList& args)
         ImageCache::Reset();
 
         SendMessage("Record: Stopped");
-        SendMessage("Network: record_vsync_range %" PRIu64 "%" PRIu64, g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+        SendMessage("Network: record_vsync_range %" PRIu64 " %" PRIu64,
+            g_recordMinVsync, g_recordMaxVsync); // RESERVED!
 
         SetMode(Mode::NONE);
         if (!IsEnabled()) {
@@ -2090,100 +2033,84 @@ void RSProfiler::RecordStop(const ArgList& args)
     }
 }
 
+void RSProfiler::PlaybackSetImmediate(const ArgList& args)
+{
+    g_playbackImmediate = args.Bool();
+    SendMessage("Playback immediate mode: %d", g_playbackImmediate.load()); // RESERVED!
+}
+
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
-    if (!context_) {
-        SendMessage("PlaybackPrepareFirstFrame: Invalid context");
-        return;
-    }
-    if (!IsNoneMode()) {
-        SendMessage("Playback: PrepareFirstFrame failed. Record/Saving is in progress");
+    if (!mainThread_ || !context_) {
+        SendMessage("Playback: Cannot initialize. Invalid main thread or context");
         return;
     }
 
-    if (g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
-        Respond("FAILED: rsrecord_replay_prepare was already called");
+    if (!IsNoneMode()) {
+        SendMessage("Playback: Cannot initialize. Other operation is in progress");
         return;
     }
-    g_playbackPid = args.Pid();
+
+    if (g_playbackFile.IsOpen()) {
+        SendMessage("Playback: Already initialized");
+        return;
+    }
+
     SetReplayStartTimeNano(0);
-    g_playbackPauseTime = args.Fp64(1);
-    constexpr int pathArgPos = 2;
-    std::string path = args.String(pathArgPos);
-    if (!Utils::FileExists(path)) {
-        Respond("Can't playback non existing file '" + path + "'");
+    constexpr auto pathArgument = 2;
+    auto path = Utils::GetRealPath(args.String(pathArgument));
+    if (!Utils::IsSandboxPath(path)) {
+        SendMessage("Playback: File must be under /data directory");
         path = RSFile::GetDefaultPath();
     }
 
-    RSTypefaceCache::Instance().ReplayClear();
-    ImageCache::Reset();
-
-    auto &animeMap = RSProfiler::AnimeGetStartTimes();
-    animeMap.clear();
-
-    Respond("Opening file " + path);
     std::string error;
-    g_playbackFile.Open(path, error);
-    if (!g_playbackFile.IsOpen()) {
-        SendMessage("Can't open file: %s", error.data());
+    if (!g_playbackFile.Open(path, error)) {
+        SendMessage("Playback: Cannot open file: %s", error.data());
         return;
     }
+    SendMessage("Playback: File open: %s", path.data());
 
-    if (args.String(0) == "VSYNC") {
+    if (args.String() == "VSYNC") {
         g_playbackFile.CacheVsyncId2Time(0);
-        int64_t reqVSyncId = args.Int64(1);
-        int64_t realVSyncId = g_playbackFile.GetClosestVsyncId(reqVSyncId);
-        if (reqVSyncId != realVSyncId) {
-            Respond("WARNING: vsyncId=" + std::to_string(reqVSyncId) +
-                    " absent chosen the closest vsyncId=" + std::to_string(realVSyncId));
-        }
-        g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(realVSyncId);
+        const auto vsync = g_playbackFile.GetClosestVsyncId(args.Int64(1));
+        g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(vsync);
+        SendMessage("Playback: Use VSYNC %" PRId64 " (requested %" PRId64 ")", vsync, args.Int64(1));
+    } else {
+        g_playbackPauseTime = args.Fp64(1);
     }
+    SendMessage("Playback: Pause time: %f", g_playbackPauseTime);
 
-    AnimeGetStartTimesFromFile(animeMap);
+    LoadAnimationTimestamps(AnimeGetStartTimes());
 
-    // get first frame data
-    if (auto errReason = FirstFrameUnmarshalling(g_playbackFile.GetHeaderFirstFrame(), g_playbackFile.GetVersion());
-        !errReason.empty()) {
-        Respond("Can't open file: " + errReason);
+    error = FirstFrameUnmarshalling(g_playbackFile.GetHeaderFirstFrame(), g_playbackFile.GetVersion());
+    if (!error.empty()) {
+        SendMessage("Playback: %s", error.data());
         FilterMockNode(*context_);
         g_playbackFile.Close();
         return;
     }
-    // The number of frames loaded before command processing
+
     constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
-    SendMessage("awake_frame %d", g_playbackWaitFrames); // DO NOT TOUCH!
+    SendMessage("awake_frame %d", g_playbackWaitFrames); // RESERVED!
     AwakeRenderServiceThread();
-}
-
-void RSProfiler::AnimeGetStartTimesFromFile(std::unordered_map<AnimationId, std::vector<int64_t>>& animeMap)
-{
-    const auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
-    for (const auto& item : fileAnimeStartTimes) {
-        if (animeMap.count(item.first)) {
-            animeMap[Utils::PatchNodeId(item.first)].push_back(item.second);
-        } else {
-            std::vector<int64_t> list;
-            list.push_back(item.second);
-            animeMap.insert({ Utils::PatchNodeId(item.first), list });
-        }
-    }
 }
 
 void RSProfiler::PlaybackStart(const ArgList& args)
 {
     if (!mainThread_ || !context_) {
+        SendMessage("Playback: Cannot start. Invalid main thread or context");
         return;
     }
 
-    if (!IsNoneMode()) {
-        SendMessage("Playback: Start failed. Record/Saving is in progress");
+    if (!g_playbackFile.IsOpen()) {
+        SendMessage("Playback: Cannot start. File is not open");
         return;
     }
 
-    if (!g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
-        Respond("FAILED: rsrecord_replay was already called");
+    if (IsHiddenSpaceEnabled()) {
+        SendMessage("Playback: Already started");
         return;
     }
 
@@ -2194,12 +2121,12 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         CreateMockConnection(Utils::GetMockPid(pid));
     }
 
-    const uint64_t currentTime = RSMainThread::Instance()->GetCurrentVsyncTime();
+    const auto currentTime = mainThread_->GetCurrentVsyncTime();
     SetReplayStartTimeNano(currentTime);
-    const double pauseTime = g_playbackPauseTime;
-    if (pauseTime > 0.0) {
-        const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime) / BaseGetPlaybackSpeed();
-        TimePauseAt(currentTime, pauseTimeStart, g_playbackImmediate);
+    SetTransactionTimeCorrection(g_playbackFile.GetWriteTime());
+    if (g_playbackPauseTime > 0.0) {
+        const auto pauseTime = currentTime + Utils::ToNanoseconds(g_playbackPauseTime / BaseGetPlaybackSpeed());
+        TimePauseAt(currentTime, pauseTime, g_playbackImmediate);
     }
     AwakeRenderServiceThread();
 
@@ -2207,68 +2134,62 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     g_replayLastPauseTimeReported = 0;
     SetMode(Mode::READ);
 
-    std::thread thread([]() {
+    std::thread([]() {
         constexpr int fps = 120;
-        double advanceTime = 1.0 / fps;
-        const auto timeoutLimit = Utils::ToNanoseconds(1.0) / (2 * fps);
-        double eofTime = g_playbackFile.GetEOFTime();
+        constexpr double advanceTime = 1.0 / fps;
+        const auto timeoutLimit = static_cast<int64_t>(Utils::ToNanoseconds(1.0) / (2 * fps));
+        const auto endTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
-            int64_t nextPacketTimeNano =
-                static_cast<int64_t>(Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime)));
-            // timeout - sleep time to next packet
-            int64_t timeout = nextPacketTimeNano - PlaybackDeltaTimeNano();
-            if (timeout < 0) {
-                timeout = 0;
-            }
-            timeout = timeout - (timeout % timeoutLimit);
-            timeout += timeoutLimit;
+            const auto time = PlaybackUpdate(PlaybackDeltaTime(), endTime, advanceTime);
+            auto timeout = std::max(static_cast<int64_t>(Utils::ToNanoseconds(time)) - PlaybackDeltaTimeNano(),
+                static_cast<int64_t>(0));
+            timeout = timeout - (timeout % timeoutLimit) + timeoutLimit;
             if (timeout > 0) {
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
             }
         }
         if (g_playbackFile.IsOpen()) {
-            if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(PlaybackDeltaTime())) {
-                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
+            if (const auto vsync = g_playbackFile.ConvertTime2VsyncId(PlaybackDeltaTime())) {
+                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsync); // RESERVED!
             }
             g_playbackFile.Close();
         }
         SetReplayStartTimeNano(0);
-        g_playbackPid = 0;
         TimePauseClear();
         g_playbackShouldBeTerminated = false;
-        Respond("Playback thread terminated");
-    });
-    thread.detach();
+        SendMessage("Playback: Thread terminated");
+    }).detach();
 
-    Respond("Playback start");
+    SendMessage("Playback start"); // RESERVED!
 }
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
     if (!mainThread_ || !context_) {
+        SendMessage("Playback: Cannot stop. Invalid main thread or context");
         return;
     }
 
     if (!g_playbackFile.IsOpen() && !IsHiddenSpaceEnabled()) {
-        Respond("FAILED: Playback stop - no rsrecord_replay_* was called previously");
+        SendMessage("Playback: Already stopped");
         return;
     }
+
     SetMode(Mode::NONE);
     if (!IsHiddenSpaceEnabled()) {
         g_playbackFile.Close(); // PlaybackPrepareFirstFrame only was called
     }
+
     g_playbackShouldBeTerminated = true;
+    g_replayLastPauseTimeReported = 0;
+
     HiddenSpaceTurnOff();
     FilterMockNode(*context_);
-    constexpr int maxCountForSecurity = 1000;
-    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
-        RSRenderNodeGC::Instance().ReleaseNodeBucket();
-    }
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
-    g_replayLastPauseTimeReported = 0;
     PurgeMockConnections();
-    SendMessage("Playback stop"); // DO NOT TOUCH!
+
+    SendMessage("Playback stop"); // RESERVED!
 }
 
 double RSProfiler::PlaybackDeltaTime()
@@ -2281,75 +2202,63 @@ int64_t RSProfiler::PlaybackDeltaTimeNano()
     return static_cast<int64_t>(NowNano()) - static_cast<int64_t>(GetReplayStartTimeNano());
 }
 
-bool ReadRemoteRequest(
+static bool ReadRemoteRequest(
     const std::vector<uint8_t>& data, pid_t& pid, uint32_t& code, MessageParcel& parcel, MessageOption& option)
 {
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+    std::stringstream stream;
     stream.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
     stream.seekg(0);
 
-    pid = 0;
-    stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
-
-    code = 0;
-    stream.read(reinterpret_cast<char*>(&code), sizeof(code));
-
-    size_t size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (!stream.read(reinterpret_cast<char*>(&pid), sizeof(pid)) ||
+        !stream.read(reinterpret_cast<char*>(&code), sizeof(code))) {
+        return false;
+    }
 
     static const auto MAX_SIZE = std::min(std::numeric_limits<size_t>::max() - 1, std::vector<char>().max_size());
-    if ((size <= 0) || (size > MAX_SIZE)) {
+    size_t size = 0;
+    if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > MAX_SIZE)) {
         return false;
     }
 
-    std::vector<char> parcelData(size, 0);
-    stream.read(parcelData.data(), static_cast<std::streamsize>(size));
-
-    const auto capacity = size + 1;
-    if ((parcel.GetMaxCapacity() < capacity) && !parcel.SetMaxCapacity(capacity)) {
-        return false;
-    }
-
-    if (!parcel.WriteBuffer(parcelData.data(), size)) {
+    std::vector<char> buffer(size);
+    if (!stream.read(buffer.data(), static_cast<std::streamsize>(size))) {
         return false;
     }
 
     int32_t flags = 0;
-    stream.read(reinterpret_cast<char*>(&flags), sizeof(flags));
+    if (!stream.read(reinterpret_cast<char*>(&flags), sizeof(flags))) {
+        return false;
+    }
+    option.SetFlags(flags);
 
     int32_t waitTime = 0;
-    stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime));
-
-    option.SetFlags(flags);
+    if (!stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime))) {
+        return false;
+    }
     option.SetWaitTime(waitTime);
-    return true;
+
+    return (parcel.GetMaxCapacity() >= buffer.size() || parcel.SetMaxCapacity(buffer.size())) &&
+           parcel.WriteBuffer(buffer.data(), buffer.size());
 }
 
 double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advanceTime)
 {
-    const auto& pids = g_playbackFile.GetHeaderPids();
-
     std::vector<uint8_t> data;
-    double readTime = 0.0;
-    while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, readTime)) {
+    double time = 0.0;
+    while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, time)) {
         pid_t pid = 0;
         uint32_t code = 0;
         AlignedMessageParcel parcel;
         MessageOption option;
         if (ReadRemoteRequest(data, pid, code, parcel.parcel, option)) {
-            auto connection = GetMockConnection(Utils::GetMockPid(pid));
-            if (!connection && !pids.empty()) {
-                connection = GetMockConnection(Utils::GetMockPid(pids[0]));
-            }
-
-            if (connection) {
+            if (const auto connection = GetMockConnection(Utils::GetMockPid(pid))) {
                 MessageParcel reply;
                 connection->SendRequest(code, parcel.parcel, reply, option);
             }
         }
 
         if (g_playbackImmediate) {
-            deltaTime = readTime;
+            deltaTime = time;
             break;
         }
     }
@@ -2357,7 +2266,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advan
     if (deltaTime >= eofTime) {
         g_playbackShouldBeTerminated = true;
     }
-    return readTime;
+    return time;
 }
 
 void RSProfiler::PlaybackPrepare(const ArgList& args)
@@ -2368,7 +2277,7 @@ void RSProfiler::PlaybackPrepare(const ArgList& args)
     }
 
     AwakeRenderServiceThread();
-    Respond("OK");
+    SendMessage("OK");
 }
 
 void RSProfiler::PlaybackPause(const ArgList& args)
@@ -2378,33 +2287,29 @@ void RSProfiler::PlaybackPause(const ArgList& args)
     }
 
     const uint64_t currentTime = RawNowNano();
-    const double recordPlayTime = Utils::ToSeconds(PatchTime(currentTime) - GetReplayStartTimeNano());
+    const double pause = Utils::ToSeconds(PatchTime(currentTime) - GetReplayStartTimeNano());
     TimePauseAt(g_frameBeginTimestamp, currentTime, g_playbackImmediate);
-    Respond("OK: " + std::to_string(recordPlayTime));
+    SendMessage("OK: %f", pause); // RESERVED!
 
-    int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
-    if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
+    if (const auto vsync = g_playbackFile.ConvertTime2VsyncId(pause)) {
+        SendMessage("Replay timer paused vsyncId=%" PRId64, vsync); // RESERVED!
     }
-    g_replayLastPauseTimeReported = recordPlayTime;
+    g_replayLastPauseTimeReported = pause;
 }
 
 void RSProfiler::PlaybackPauseAt(const ArgList& args)
 {
     if (!IsPlaying()) {
-        Respond("PlaybackPauseAt REJECT is_playing=false");
+        SendMessage("Playback: Cannot pause. Playback is not started");
         return;
     }
 
-    double pauseAtTimeSec;
+    double pauseAtTimeSec = 0.0;
     if (args.String(0) == "VSYNC") {
-        int64_t reqVSyncId = args.Int64(1);
-        int64_t realVSyncId = g_playbackFile.GetClosestVsyncId(reqVSyncId);
-        if (reqVSyncId != realVSyncId) {
-            Respond("WARNING: vsyncId=" + std::to_string(reqVSyncId) +
-                    " absent chosen the closest vsyncId=" + std::to_string(realVSyncId));
-        }
-        pauseAtTimeSec = g_playbackFile.ConvertVsyncId2Time(realVSyncId);
+        const auto vsync = g_playbackFile.GetClosestVsyncId(args.Int64(1));
+        SendMessage("Playback: Pause at VSYNC %" PRId64 " (requested %" PRId64 ")",
+            vsync, args.Int64(1));
+        pauseAtTimeSec = g_playbackFile.ConvertVsyncId2Time(vsync);
     } else {
         pauseAtTimeSec = args.Fp64();
     }
@@ -2421,14 +2326,14 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
 
     TimePauseAt(currentTimeNano, pauseAfterTimeNano, g_playbackImmediate);
     ResetAnimationStamp();
-    Respond("PlaybackPauseAt OK");
+    SendMessage("Playback: Paused");
 }
 
 void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
         g_playbackWaitFrames--;
-        SendMessage("awake_frame %d", g_playbackWaitFrames); // DO NOT TOUCH!
+        SendMessage("awake_frame %d", g_playbackWaitFrames); // RESERVED!
         if (context_) {
             MarkReplayNodesDirty(*context_);
         }
@@ -2527,21 +2432,6 @@ void RSProfiler::CalcPerfNodeUpdate()
     AwakeRenderServiceThread();
 }
 
-std::vector<std::pair<uint64_t, int64_t>> RSProfiler::AnimeGetStartTimesFlattened(double recordStartTime)
-{
-    std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes;
-    const std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
-    for (const auto& item : headerAnimeStartTimesMap) {
-        for (const auto time : item.second) {
-            headerAnimeStartTimes.push_back({
-                Utils::PatchNodeId(item.first),
-                time - Utils::ToNanoseconds(recordStartTime)
-            });
-        }
-    }
-    return headerAnimeStartTimes;
-}
-
 bool RSProfiler::LogEventStart(uint64_t curTime, RSCaptureData& captureData, double& timeSinceRecordStart)
 {
     if (!IsEnabled() || !IsRecording()) {
@@ -2618,15 +2508,15 @@ void RSProfiler::RsMetricClear()
     g_recordRsMetric.clear();
 }
 
-void RSProfiler::RsMetricSet(std::string name, std::string value)
+void RSProfiler::RsMetricSet(const std::string& name, std::string value)
 {
-    g_recordRsMetric[name] = value;
+    g_recordRsMetric[name] = std::move(value);
 }
 
 void RSProfiler::TestSaveSubTree(const ArgList& args)
 {
-    if (!context_) {
-        SendMessage("Invalid context");
+    if (!mainThread_ || !context_) {
+        SendMessage("Test: SaveSubTree: Invalid main thread or context");
         return;
     }
 
@@ -2635,25 +2525,24 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     if (args.String() == "-f") {
         path = args.String(1);
         nodeId = GetRootNodeId();
-        SendMessage("Current root nood ID: %" PRIu64, nodeId);
+        SendMessage("Test: SaveSubTree: Current root node: %" PRIu64, nodeId);
     }
 
     const auto node = GetRenderNode(nodeId);
     if (!node) {
-        SendMessage("Error: node not found");
+        SendMessage("Test: SaveSubTree: Invalid node");
         return;
     }
 
-    static const std::string_view SANDBOX = "/data/";
-    if (path.empty() || (path.find(SANDBOX) != 0) || Utils::GetRealPath(Utils::GetDirectory(path)).empty()) {
-        SendMessage("Error: Invalid path: %s", path.data());
+    if (!Utils::IsSandboxPath(path)) {
+        SendMessage("Test: SaveSubTree: Invalid path");
         return;
     }
 
     // needs setenforce 0
     std::ofstream file(path);
     if (!file) {
-        SendMessage("Save subTree Failed: save file faild!");
+        SendMessage("Test: SaveSubTree: Cannot open file");
         return;
     }
 
@@ -2671,135 +2560,119 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
 
 void RSProfiler::TestLoadSubTree(const ArgList& args)
 {
-    const auto nodeId = args.Node();
-    auto node = GetRenderNode(nodeId);
+    if (!mainThread_ || !context_) {
+        SendMessage("Test: LoadSubTree: Invalid main thread or context");
+        return;
+    }
+
+    const auto node = GetRenderNode(args.Node());
     if (!node) {
-        Respond("Error: node not found");
+        SendMessage("Test: LoadSubTree: Invalid node");
         return;
     }
 
-    const auto filePath = args.String(1);
-    if (filePath.empty()) {
-        Respond("Error: Path is empty");
+    const auto path = Utils::GetRealPath(args.String(1));
+    if (!Utils::IsSandboxPath(path)) {
+        SendMessage("Test: LoadSubTree: File must be under /data directory");
         return;
     }
 
-    char realPath[PATH_MAX] = {0};
-    if (!realpath(filePath.c_str(), realPath)) {
-        Respond("Error: Path is invalid");
+    std::ifstream file(path);
+    if (!file) {
+        const std::error_code code(errno, std::system_category());
+        RS_LOGE("Test: LoadSubTree: Cannot open file: %{public}s", code.message().data()); // NOLINT
+        SendMessage("Test: LoadSubTree: Cannot open file: %s", code.message().data());
         return;
     }
 
-    std::ifstream file(realPath);
-    if (!file.is_open()) {
-        std::error_code ec(errno, std::system_category());
-        RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());
-        Respond("RSProfiler::TestLoadSubTree read file failed: " + ec.message());
-        return;
-    }
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
 
-    // Load RSFILE_VERSION
     uint32_t fileVersion = 0u;
-    stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion));
-
-    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, fileVersion);
-    if (errorReason.size()) {
-        RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
-        Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);
+    if (!stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion))) {
+        SendMessage("Test: LoadSubTree: Cannot read file version");
+        return;
     }
-    Respond("Load subTree result: " + errorReason);
+
+    const auto error = UnmarshalSubTree(*context_, stream, *node, fileVersion);
+    SendMessage("Load subTree result: %s", error.data()); // RESERVED!
 }
 
 void RSProfiler::TestClearSubTree(const ArgList& args)
 {
-    if (!context_) {
-        return;
-    }
-    FilterMockNode(*context_);
-    constexpr int maxCountForSecurity = 1000;
-    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
-        RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    if (context_) {
+        FilterMockNode(*context_);
     }
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
-    Respond("Clear SubTree Success");
+    SendMessage("Clear SubTree Success"); // RESERVED!
 }
 
-void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,
-    const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache)
+void RSProfiler::MarshalSubTree(
+    RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache)
 {
     if (clearImageCache) {
         ImageCache::Reset();
     }
 
-    SetSubMode(SubMode::WRITE_EMUL);
-    DisableSharedMemory();
-
-    std::stringstream dataNodes(std::ios::in | std::ios::out | std::ios::binary);
-    MarshalSubTreeLo(context, dataNodes, node, fileVersion);
-
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
-
-    std::stringstream dataPixelMaps(std::ios::in | std::ios::out | std::ios::binary);
-    ImageCache::Serialize(dataPixelMaps);
-
-    // SAVE TO STREAM
+    std::stringstream nodes;
+    MarshalSubTreeLo(context, nodes, node, fileVersion);
     TypefaceMarshalling(data, fileVersion);
 
-    uint32_t pixelMapSize = dataPixelMaps.str().size();
-    data.write(reinterpret_cast<const char*>(&pixelMapSize), sizeof(pixelMapSize));
-    data.write(dataPixelMaps.str().data(), dataPixelMaps.str().size());
+    std::stringstream images;
+    ImageCache::Serialize(images);
+    ImageCache::Reset();
 
-    uint32_t nodesSize = dataNodes.str().size();
+    const uint32_t imagesSize = images.str().size();
+    data.write(reinterpret_cast<const char*>(&imagesSize), sizeof(imagesSize));
+    data.write(images.str().data(), static_cast<std::streamsize>(imagesSize));
+
+    const uint32_t nodesSize = nodes.str().size();
     data.write(reinterpret_cast<const char*>(&nodesSize), sizeof(nodesSize));
-    data.write(dataNodes.str().data(), dataNodes.str().size());
+    data.write(nodes.str().data(), static_cast<std::streamsize>(nodesSize));
 }
 
-std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& data,
-    RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache)
+std::string RSProfiler::UnmarshalSubTree(
+    RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache)
 {
     if (clearImageCache) {
         ImageCache::Reset();
     }
 
-    std::string errReason = TypefaceUnmarshalling(data, fileVersion);
-    if (!errReason.empty()) {
-        return errReason;
+    auto error = TypefaceUnmarshalling(data, fileVersion);
+    if (!error.empty()) {
+        return error;
     }
 
-    uint32_t pixelMapSize = 0u;
-    data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize));
-
-    // read Cache
-    ImageCache::Deserialize(data);
+    uint32_t imagesSize = 0u;
+    if (!data.read(reinterpret_cast<char*>(&imagesSize), sizeof(imagesSize)) || !ImageCache::Deserialize(data)) {
+        RSTypefaceCache::Instance().ReplayClear();
+        return "UnmarshalSubTree: Cannot read image cache";
+    }
 
     uint32_t nodesSize = 0u;
-    data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize));
+    if (!data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize))) {
+        RSTypefaceCache::Instance().ReplayClear();
+        ImageCache::Reset();
+        return "UnmarshalSubTree: Cannot read node count";
+    }
 
-    SetSubMode(SubMode::READ_EMUL);
-    DisableSharedMemory();
+    SetThreadSubMode(SubMode::READ_EMUL);
+    DisableThreadSharedMemory();
+    error = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
+    EnableThreadSharedMemory();
+    SetThreadSubMode(SubMode::NONE);
 
-    errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
+    if (!error.empty()) {
+        RSTypefaceCache::Instance().ReplayClear();
+        ImageCache::Reset();
+        return error;
+    }
 
-    EnableSharedMemory();
-    SetSubMode(SubMode::NONE);
-
-    auto& nodeMap = context.GetMutableNodeMap();
-    nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr) {
-            return;
-        }
-        if (Utils::IsNodeIdPatched(node->GetId())) {
-            node->SetContentDirty();
-            node->SetDirty();
-        }
-    });
+    MarkReplayNodesDirty(context);
     AwakeRenderServiceThread();
-    return errReason;
+    return "";
 }
 
 uint64_t RSProfiler::GetRootNodeId()
@@ -2812,7 +2685,7 @@ uint64_t RSProfiler::GetRootNodeId()
         const auto nodeId = mainThread->GetFocusNodeId();
         if (auto renderNode = GetRenderNode(nodeId)) {
             pid = GetPid(renderNode);
-            Respond("Focus Node pid: " + std::to_string(pid));
+            SendMessage("Focus Node pid: %d", pid);
         }
     }
 
@@ -2824,7 +2697,7 @@ uint64_t RSProfiler::GetRootNodeId()
     size_t rootNodeChildrenCount = 0;
     auto rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
-        Respond("Cannot get root node");
+        SendMessage("Cannot get root node");
         return 0;
     }
 

@@ -54,6 +54,7 @@ public:
     virtual std::shared_ptr<RequestController> GetRequestController() const = 0;
     virtual const std::vector<std::pair<NodeId, Vector4f>>& GetOpIncNodes() const = 0;
     virtual const std::vector<std::pair<NodeId, Vector4f>>& GetLastOpIncNodes() const = 0;
+    virtual void CheckParentNodeOnTheTree() = 0;
 };
 
 } // namespace OHOS::Rosen

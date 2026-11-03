@@ -29,11 +29,6 @@ struct RSDirectCompositionHelper {
     // update" frames or buffer-not-updated frames, which pose no HdiOutput
     // conflict with the listener.
     bool lastFrameDidGpuRender_ = false;
-    // Consecutive frames where DoDirectComposition actually ran and returned
-    // true. GPU-composition / DoComp-failure frames reset it to 0; "nothing
-    // to update" frames leave it unchanged. Tunnel can only enter ACTIVE when
-    // this reaches TUNNEL_STABLE_THRESHOLD.
-    std::atomic<uint32_t> consecutiveDoCompSuccessCount_ {0};
 };
 
 } // namespace Rosen

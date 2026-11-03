@@ -16,12 +16,18 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 #define RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 
+#include <cstdint>
+#include <vector>
+
+#include "common/rs_atlas_info.h"
+#include "animation/rs_spring_model.h"
 #include "animation/rs_render_particle.h"
-#include "animation/rs_value_estimator.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
+#include "pipeline/rs_draw_cmd_list.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -36,6 +42,9 @@ class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
 enum class Gravity;
+enum class RSValueEstimatorType : int16_t;
+class RSValueEstimator;
+class RSSpringValueEstimatorBase;
 namespace ModifierNG {
 class RSRenderModifier;
 }
@@ -61,6 +70,8 @@ struct supports_animatable_arithmetic<T,
         decltype(std::declval<T>() * std::declval<float>()),
         decltype(std::declval<T>() == std::declval<T>())>>
     : std::true_type {};
+template<>
+struct supports_animatable_arithmetic<std::vector<float>> : std::true_type {};
 
 enum PropertyUpdateType : uint8_t {
     UPDATE_TYPE_OVERWRITE = 0,   // overwrite by given value
@@ -121,6 +132,7 @@ enum class RSPropertyType : uint8_t {
     DEPTH_LIGHT_PARA,
     PARTICLE_FIELDS,
     SIMPLE_DRAW_CMD_LIST,
+    ATLAS_INFO,
 };
 
 enum class RSPropertyUnit : uint8_t {
@@ -169,6 +181,48 @@ public:
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&&) = delete;
     virtual ~RSRenderPropertyBase();
 
+    template<typename T>
+    std::shared_ptr<RSRenderProperty<T>> CastToPropertyOf(const char* funcName)
+    {
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderProperty<T>>(shared_from_this());
+    }
+
+    template<typename T>
+    std::shared_ptr<RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName)
+    {
+        if (UNLIKELY(!IsAnimatable())) {
+            return nullptr;
+        }
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(shared_from_this());
+    }
+
+    template<typename T>
+    std::shared_ptr<const RSRenderProperty<T>> CastToPropertyOf(const char* funcName) const
+    {
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<const RSRenderProperty<T>>(shared_from_this());
+    }
+
+    template<typename T>
+    std::shared_ptr<const RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName) const
+    {
+        if (UNLIKELY(!IsAnimatable())) {
+            return nullptr;
+        }
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(shared_from_this());
+    }
+
     PropertyId GetId() const
     {
         return id_;
@@ -187,6 +241,8 @@ public:
     virtual size_t GetSize() const = 0;
 
     virtual bool IsDrawCmdListProperty() const = 0;
+
+    virtual bool IsAnimatable() const = 0;
 
     virtual std::shared_ptr<RSRenderPropertyBase> CreateSimpleProperty() const = 0;
 
@@ -237,6 +293,20 @@ protected:
         return true;
     }
 
+    virtual bool IsAbsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& target,
+        const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+    {
+        return false;
+    }
+
+    virtual void TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target) {}
+
+    virtual bool IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+        const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+    {
+        return false;
+    }
+
     PropertyId id_;
     // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderEffectBase>>::Set
     // refactor this to remove the node_ member
@@ -279,6 +349,8 @@ private:
         return true;
     }
 
+    bool CheckPropertyType(const RSPropertyType type, const char* funcName) const;
+
     friend std::shared_ptr<RSRenderPropertyBase> operator+=(
         const std::shared_ptr<RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b);
     friend std::shared_ptr<RSRenderPropertyBase> operator-=(
@@ -306,9 +378,10 @@ private:
     friend class RSRenderKeyframeAnimation;
     template<typename T>
     friend class RSSpringModel;
+    template<typename T>
+    friend class RSSpringValueEstimator;
     friend class RSAnimationTraceUtils;
     friend class ModifierNG::RSRenderModifier;
-    friend class RSNodeCommandHelper;
 };
 
 template<typename T>
@@ -359,6 +432,11 @@ public:
     }
 
     bool IsDrawCmdListProperty() const override
+    {
+        return false;
+    }
+
+    bool IsAnimatable() const override
     {
         return false;
     }
@@ -437,6 +515,11 @@ public:
         return nullptr;
     }
 
+    bool IsAnimatable() const override
+    {
+        return true;
+    }
+
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
     {
@@ -446,8 +529,8 @@ protected:
 
     void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) override
     {
-        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(value);
-        if (property != nullptr && property->GetPropertyType() == RSRenderProperty<T>::type_) {
+        auto property = value->template CastToAnimatablePropertyOf<T>(__func__);
+        if (property != nullptr) {
             RSRenderProperty<T>::Set(property->Get());
         }
     }
@@ -472,25 +555,41 @@ protected:
         return IsEqual(value);
     }
 
-    std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
+    /**
+     * @brief Determines whether the distance between the source and the target is within the threshold.
+     * True is returned only when the condition is met in each dimension.
+     *
+     * @param target The target object.
+     * @param threshold The threshold object.
+     * @return Whether the distance between the object and the target is within the threshold in each dimension.
+     */
+    bool IsAbsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& target,
+        const std::shared_ptr<RSRenderPropertyBase>& threshold) const override
     {
-        switch (type) {
-            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
-                return std::make_shared<RSCurveValueEstimator<T>>();
-            }
-            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
-                return std::make_shared<RSKeyframeValueEstimator<T>>();
-            }
-            default: {
-                return nullptr;
-            }
-        }
+        return IsEqual(target);
     }
 
-    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
+    void TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target) override {}
+
+    /**
+     * @brief Whether the distance between the object and the end reaches the threshold of the total distance.
+     * True is returned only when the condition is met in each dimension.
+     *
+     * @param start The start object.
+     * @param end The end object.
+     * @param threshold Threshold for determining whether the distance is close to end, multiplied by the total distance
+     * between end and start.
+     * @return Whether the distance between the object and the end is within the threshold of the total distance in each
+     * dimension.
+     */
+    bool IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+        const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const override
     {
-        return std::make_shared<RSSpringValueEstimator<T>>();
+        return IsEqual(end);
     }
+
+    std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override;
+    std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override;
 
     bool Marshalling(Parcel& parcel) override
     {
@@ -513,7 +612,7 @@ private:
 
     std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             RSRenderProperty<T>::stagingValue_ = RSRenderProperty<T>::stagingValue_ + animatableProperty->stagingValue_;
         }
@@ -522,7 +621,7 @@ private:
 
     std::shared_ptr<RSRenderPropertyBase> Minus(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             RSRenderProperty<T>::stagingValue_ = RSRenderProperty<T>::stagingValue_ - animatableProperty->stagingValue_;
         }
@@ -537,7 +636,7 @@ private:
 
     bool IsEqual(const std::shared_ptr<const RSRenderPropertyBase>& value) const override
     {
-        auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(value);
+        auto animatableProperty = value ? value->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty != nullptr) {
             return RSRenderProperty<T>::stagingValue_ == animatableProperty->stagingValue_;
         }
@@ -560,6 +659,8 @@ template<>
 float RSRenderAnimatableProperty<Vector3f>::ToFloat() const;
 template<>
 float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
+template<>
+float RSRenderAnimatableProperty<AtlasInfo>::ToFloat() const;
 
 template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -588,6 +689,92 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
 template<>
 bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+
+template<>
+bool RSRenderAnimatableProperty<float>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Color>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+
+template<>
+void RSRenderAnimatableProperty<float>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector4f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Quaternion>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector2f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Matrix3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Color>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector4<Color>>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<RRect>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<AtlasInfo>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+
+template<>
+bool RSRenderAnimatableProperty<float>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Color>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<AtlasInfo>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
 
 template<>
 size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
@@ -604,6 +791,8 @@ template<>
 size_t RSRenderProperty<SimpleDrawCmdListPtr>::GetSize() const;
 template<>
 void RSRenderProperty<SimpleDrawCmdListPtr>::Dump(std::string& out) const;
+template<>
+void RSRenderProperty<AtlasInfo>::Dump(std::string& out) const;
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
@@ -672,4 +861,7 @@ extern template class PROPERTY_EXPORT RSRenderProperty<SimpleDrawCmdListPtr>;
 extern template class RSRenderAnimatableProperty<std::shared_ptr<RSSimpleDrawCmdList>>;
 } // namespace Rosen
 } // namespace OHOS
+
+#include "animation/rs_value_estimator.h"
+
 #endif // RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H

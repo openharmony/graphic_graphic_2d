@@ -114,12 +114,21 @@ public:
         return { serviceToRenderConnection_ };
     }
 
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override
+    {
+        if (pid == getpid()) {
+            return serviceToRenderConnection_;
+        }
+        return nullptr;
+    }
+
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override
     {
         return connectToRenderConnection_;
     }
 
     sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
+    int32_t SendTransfer(const std::shared_ptr<RSIpcTransferBase>& transfer) override { return RS_CONNECTION_ERROR; }
 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
@@ -151,8 +160,30 @@ void RSRenderProcessManagerTest::SetUpTestCase()
 }
 void RSRenderProcessManagerTest::TearDownTestCase()
 {
-    RSUniRenderThread::Instance().uniRenderEngine_->GetRenderContext()->drGPUContext_ = nullptr;
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
 }
 void RSRenderProcessManagerTest::SetUp() {}
 void RSRenderProcessManagerTest::TearDown() {}

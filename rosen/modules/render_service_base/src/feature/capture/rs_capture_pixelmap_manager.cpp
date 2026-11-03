@@ -32,7 +32,7 @@
 
 #ifdef RS_ENABLE_VK
 #ifndef ROSEN_ARKUI_X
-#include "platform/ohos/backend/native_buffer_utils.h"
+#include "vulkan_context/native_buffer_utils.h"
 #endif
 #endif
 

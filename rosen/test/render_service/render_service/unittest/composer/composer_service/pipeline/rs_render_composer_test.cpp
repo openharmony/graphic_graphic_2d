@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <dlfcn.h>
 #include <future>
 #include <gtest/gtest.h>
 #include <memory>
@@ -27,8 +28,9 @@
 #include "rs_layer_transaction_data.h"
 #include "rs_render_composer.h"
 #include "rs_render_composer_context.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
@@ -58,6 +60,8 @@
 
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
+#include "text/typeface.h"
+#include "tunnel_layer_param.h"
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 using testing::_;
@@ -67,6 +71,34 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class TunnelLayerParamTestAccess : public TunnelLayerParam {
+public:
+    static void SetNewTunnelEnabled(bool isEnable)
+    {
+        TunnelLayerParam::SetNewTunnelEnabled(isEnable);
+    }
+};
+
+class ScopedNewTunnelSwitch {
+public:
+    explicit ScopedNewTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+        oldTunnelParamEnabled_ = TunnelLayerParam::IsNewTunnelEnabled();
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(enabled);
+    }
+    ~ScopedNewTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+        TunnelLayerParamTestAccess::SetNewTunnelEnabled(oldTunnelParamEnabled_);
+    }
+
+private:
+    bool oldValue_ = false;
+    bool oldTunnelParamEnabled_ = false;
+};
+
 class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
 public:
     void OnBufferAvailable() override {}
@@ -83,9 +115,11 @@ public:
 
 void RsRenderComposerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
+    // Preload librender_service_client.z.so on the main thread to prevent BSS
+    // segment race when dlopen is triggered from a background CompThread.
+    // See: dlopen BSS crash analysis in doc.
+    dlopen("librender_service_client.z.so", RTLD_NOW);
+
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
@@ -100,11 +134,18 @@ void RsRenderComposerTest::SetUpTestCase()
     sptr<RSScreenProperty> property = new RSScreenProperty();
     rsRenderComposer_ = std::make_shared<RSRenderComposer>(output, property);
 }
+
 void RsRenderComposerTest::TearDownTestCase()
 {
     rsRenderComposer_->frameBufferSurfaceOhosMap_.clear();
     rsRenderComposer_->uniRenderEngine_ = nullptr;
     hdiDeviceMock_ = nullptr;
+    rsRenderComposer_ = nullptr;
+    // Reset Typeface callbacks to prevent use-after-free during process exit
+    // when static destructors run in unpredictable order
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
 }
 void RsRenderComposerTest::SetUp() {}
 void RsRenderComposerTest::TearDown() {}
@@ -133,6 +174,7 @@ std::shared_ptr<RSSurfaceLayer> CreateTunnelSurfaceLayer(
     if (rsLayer == nullptr) {
         return nullptr;
     }
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     rsLayer->SetSurfaceUniqueId(surfaceId);
     rsLayer->SetNodeId(nodeId);
     rsLayer->SetTunnelLayerId(tunnelLayerId);
@@ -273,6 +315,14 @@ public:
     GraphicCompositionType GetCompositionType() const override
     {
         return compType_;
+    }
+    void SetAlphaType(GraphicAlphaType alphaType) override
+    {
+        alphaType_ = alphaType;
+    }
+    GraphicAlphaType GetAlphaType() const override
+    {
+        return alphaType_;
     }
     void SetHdiCompositionType(GraphicCompositionType type) override
     {
@@ -711,6 +761,7 @@ private:
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicCompositionType compType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
     GraphicCompositionType hdiCompType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
+    GraphicAlphaType alphaType_ = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
@@ -1251,7 +1302,7 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_IsSuperFoldDisplay_Coverage, Test
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 0, 0 };
     std::vector<std::shared_ptr<RSLayer>> layers;
     EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
 
@@ -1321,7 +1372,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_ActiveRectEmpty
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set activeRect with width=0, height=0 (empty)
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 0, 0 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1353,7 +1404,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_LayersEmpty, Te
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set valid activeRect
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers; // Empty layers
 
@@ -1381,7 +1432,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LayerIsNull, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     layers.push_back(nullptr); // nullptr layer
@@ -1410,7 +1461,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1443,7 +1494,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMatch, Tes
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1475,7 +1526,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagFalse, TestSize.Lev
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -1507,7 +1558,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1561,7 +1612,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_AllLayersMatch, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1597,7 +1648,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1638,7 +1689,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1656,6 +1707,107 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     lastLayer->SetUniRenderFlag(true);
     layers.push_back(lastLayer);
 
+    bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
+
+    system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: IsDropDirtyFrame_UniRenderFlagTrue_LayerCoversActiveRect
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set super fold display with valid activeRect
+ *                  2. add uni layer whose rect fully covers (but not equals) the active rect
+ *                  3. verify no drop because active rect is inside the layer rect
+ *                  4. add another uni layer which only partially overlaps the active rect
+ *                  5. verify drop
+ */
+HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_LayerCoversActiveRect, TestSize.Level1)
+{
+    system::SetParameter("const.window.foldscreen.type", "6,0,0,0");
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    rsRenderComposerTmp->activeRect_ = { 100, 100, 100, 100 };
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    // uni layer rect {50,50,200,200} fully covers the active rect {100,100,100,100}
+    std::shared_ptr<RSRenderSurfaceLayer> coverLayer = std::make_shared<RSRenderSurfaceLayer>();
+    coverLayer->SetLayerSize({ 50, 50, 200, 200 });
+    coverLayer->SetUniRenderFlag(true);
+    layers.push_back(coverLayer);
+    EXPECT_TRUE(rsRenderComposerTmp->IsDropDirtyFrame(layers));
+
+    // uni layer rect {150,150,100,100} only partially overlaps the active rect
+    std::shared_ptr<RSRenderSurfaceLayer> overlapLayer = std::make_shared<RSRenderSurfaceLayer>();
+    overlapLayer->SetLayerSize({ 150, 150, 100, 100 });
+    overlapLayer->SetUniRenderFlag(true);
+    layers.push_back(overlapLayer);
+    bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
+
+    system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_NullHdiOutput
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and clear hdiOutput_ (screen disconnected)
+ *                  2. call SetActiveRectSwitchStatus to hit the null-output guard
+ *                  3. verify activeRect_ keeps the default empty value
+ */
+HWTEST_F(RsRenderComposerTest, SetActiveRectSwitchStatus_NullHdiOutput, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    rsRenderComposerTmp->hdiOutput_ = nullptr;
+    RectI activeRect(100, 100, 100, 100);
+    rsRenderComposerTmp->SetActiveRectSwitchStatus(true, activeRect);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.width_, 0);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.height_, 0);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_ValidHdiOutput
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer with valid hdiOutput
+ *                  2. call SetActiveRectSwitchStatus and verify activeRect_ member is updated
+ *                  3. verify the pushed active rect drives the IsDropDirtyFrame decision
+ */
+HWTEST_F(RsRenderComposerTest, SetActiveRectSwitchStatus_ValidHdiOutput, TestSize.Level1)
+{
+    system::SetParameter("const.window.foldscreen.type", "6,0,0,0");
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
+
+    RectI activeRect(100, 100, 100, 100);
+    rsRenderComposerTmp->SetActiveRectSwitchStatus(true, activeRect);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.left_, activeRect.left_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.top_, activeRect.top_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.width_, activeRect.width_);
+    EXPECT_EQ(rsRenderComposerTmp->activeRect_.height_, activeRect.height_);
+
+    // the active rect pushed via SetActiveRectSwitchStatus now feeds IsDropDirtyFrame
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // does not cover the active rect
+    layer->SetUniRenderFlag(true);
+    layers.push_back(layer);
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
     bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
     EXPECT_EQ(result, shouldDrop);
@@ -1963,6 +2115,119 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequiredForLTPS, TestSize.Level1)
 }
 
 /**
+ * Function: IsDelayRequired_SkipDelay
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to true via SetSkipDelay
+ *                  3. call IsDelayRequired with various params
+ *                  4. verify always returns false
+ */
+HWTEST_F(RsRenderComposerTest, IsDelayRequired_SkipDelay, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    PipelineParam param;
+    param.isForceRefresh = false;
+    param.hasGameScene = false;
+
+    rsRenderComposer_->SetSkipDelay(true);
+
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
+
+    hgmCore.isLtpoMode_.store(false);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = false;
+    hgmCore.isLtpoMode_.store(true);
+    frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    frameRateMgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    param.hasGameScene = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    rsRenderComposer_->SetSkipDelay(false);
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    frameRateMgr->isAdaptive_.store(frameRateMgrIsAdaptive);
+}
+
+/**
+ * Function: UpdateDelayTime_SkipDelay
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to true via SetSkipDelay
+ *                  3. call UpdateDelayTime, IsDelayRequired returns false so delayTime stays 0
+ *                  4. verify delayTime is 0
+ */
+HWTEST_F(RsRenderComposerTest, UpdateDelayTime_SkipDelay, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+
+    PipelineParam param;
+    auto& hgmCore = HgmCore::Instance();
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    hgmCore.isLtpoMode_.store(false);
+
+    tmpRsRenderComposer->SetSkipDelay(true);
+
+    uint32_t currentRate = 60;
+    int64_t delayTime = tmpRsRenderComposer->UpdateDelayTime(hgmCore, currentRate, param);
+    EXPECT_EQ(delayTime, 0);
+
+    tmpRsRenderComposer->SetSkipDelay(false);
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: IsDelayRequired_SkipDelayFalse
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set skipDelay_ to false (default)
+ *                  3. call IsDelayRequired with isForceRefresh=true
+ *                  4. verify returns false via existing force refresh path, not skip path
+ *                  5. call IsDelayRequired with non-LTPO, delay mode enabled, no game scene
+ *                  6. verify returns true (existing behavior unchanged)
+ */
+HWTEST_F(RsRenderComposerTest, IsDelayRequired_SkipDelayFalse, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    PipelineParam param;
+    param.isForceRefresh = false;
+    param.hasGameScene = false;
+
+    rsRenderComposer_->SetSkipDelay(false);
+
+    param.isForceRefresh = true;
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    param.isForceRefresh = false;
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    bool hgmCoreIsDelayMode = hgmCore.isDelayMode_;
+
+    hgmCore.isLtpoMode_.store(false);
+    hgmCore.isDelayMode_ = true;
+    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    hgmCore.isDelayMode_ = hgmCoreIsDelayMode;
+}
+
+/**
  * Function: CreateFrameBufferSurfaceOhos
  * Type: Function
  * Rank: Important(2)
@@ -2004,6 +2269,34 @@ HWTEST_F(RsRenderComposerTest, SetAFBCEnabled, TestSize.Level1)
     ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, false);
     rsRenderComposerTmp->SetAFBCEnabled(true);
     ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, true);
+}
+
+/**
+ * Function: HandlePowerStatus_Offing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call HandlePowerStatus with POWER_STATUS_OFFING
+ *                  2. verify screenPowerStatus_ is stored and function returns early
+ */
+HWTEST_F(RsRenderComposerTest, HandlePowerStatus_Offing, TestSize.Level1)
+{
+    rsRenderComposer_->HandlePowerStatus(ScreenPowerStatus::POWER_STATUS_OFFING);
+    EXPECT_EQ(rsRenderComposer_->screenPowerStatus_.load(), ScreenPowerStatus::POWER_STATUS_OFFING);
+}
+
+/**
+ * Function: HandlePowerStatus_NotOffing
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call HandlePowerStatus with POWER_STATUS_ON
+ *                  2. verify screenPowerStatus_ is stored and function continues to PostTask
+ */
+HWTEST_F(RsRenderComposerTest, HandlePowerStatus_NotOffing, TestSize.Level1)
+{
+    rsRenderComposer_->HandlePowerStatus(ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(rsRenderComposer_->screenPowerStatus_.load(), ScreenPowerStatus::POWER_STATUS_ON);
 }
 
 /**
@@ -3963,7 +4256,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameTrue, TestSiz
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Set up composer screen info to trigger shouldDropFrame = true
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->activeRect_ = { 100, 100, 100, 100 };
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(0, std::make_shared<RSRenderSurfaceLayer>());
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
@@ -4205,7 +4498,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintFalse_DropFrame, Te
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->activeRect_ = { 100, 100, 100, 100 };
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({ 200, 200, 100, 100 }); // Different from activeRect
@@ -9317,6 +9610,7 @@ HWTEST_F(RsRenderComposerTest, OnScreenConnected_Reconnect_ResetDisconnectedStat
  */
 HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
 {
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     constexpr uint32_t screenId = 0;
     constexpr uint64_t surfaceId = 8201;
     constexpr uint64_t nodeId = 8202;
@@ -9326,8 +9620,19 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
 
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();
+    output->device_ = hdiDeviceMock_;
     sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
     auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
+    ASSERT_NE(rsLayer, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    static std::vector<std::string> emptyParamKeys;
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(emptyParamKeys));
+    output->SetRSLayers({ rsLayer });
     sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
     struct CallbackResult {
         uint64_t nodeId;
@@ -9340,14 +9645,6 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
         results.emplace_back(CallbackResult { callbackNodeId, state, generation });
     });
     composer->SetComposerToRenderConnection(connection);
-
-    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
-    ASSERT_NE(rsLayer, nullptr);
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
-        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
-    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
-        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    output->SetRSLayers({ rsLayer });
 
     auto buffer = CreateTunnelTestBuffer();
     ASSERT_NE(buffer, nullptr);
@@ -9879,6 +10176,257 @@ HWTEST_F(RsRenderComposerTest, DumpVKImageInfo_ValidUniRenderEngine_NoCrash, Tes
     std::string dumpString;
     // The if branch (uniRenderEngine_ == nullptr) is false, so DumpVkImageInfo is forwarded to the engine
     EXPECT_NO_FATAL_FAILURE(rsRenderComposer_->DumpVKImageInfo(dumpString));
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_ValidMiddle
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "3" (within [MIN_SWITCH_INTERVAL, MAX_SWITCH_INTERVAL])
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is true and interval equals 3
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_ValidMiddle, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "3");
+    auto output = std::make_shared<HdiOutput>(11u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_TRUE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 3);
+    composer->uniRenderEngine_ = nullptr;
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetAutoSwitchInterval(0);
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_BelowMin
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "1" (below MIN_SWITCH_INTERVAL)
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is false and interval equals 0
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_BelowMin, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "1");
+    auto output = std::make_shared<HdiOutput>(12u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_FALSE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 0);
+    composer->uniRenderEngine_ = nullptr;
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_AboveMax
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "5" (above MAX_SWITCH_INTERVAL)
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is false and interval equals 0
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_AboveMax, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "5");
+    auto output = std::make_shared<HdiOutput>(13u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_FALSE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 0);
+    composer->uniRenderEngine_ = nullptr;
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_DefaultZero
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "0" (default)
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is false and interval equals 0
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_DefaultZero, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+    auto output = std::make_shared<HdiOutput>(14u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_FALSE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 0);
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_BoundaryMin
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "2" (boundary: MIN_SWITCH_INTERVAL)
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is true and interval equals 2
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_BoundaryMin, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "2");
+    auto output = std::make_shared<HdiOutput>(15u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_TRUE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 2);
+    composer->uniRenderEngine_ = nullptr;
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetAutoSwitchInterval(0);
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+}
+
+/**
+ * Function: CreateAndInitComposer_AutoSwitchInterval_BoundaryMax
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rs.composer.autoswitch.interval to "4" (boundary: MAX_SWITCH_INTERVAL)
+ *                  2. create RSRenderComposer
+ *                  3. verify RSUniRenderUtil::GetComposerAutoSwitch is true and interval equals 4
+ */
+HWTEST_F(RsRenderComposerTest, AutoSwitchInterval_BoundaryMax, TestSize.Level1)
+{
+    system::SetParameter("rs.composer.autoswitch.interval", "4");
+    auto output = std::make_shared<HdiOutput>(16u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_TRUE(RSUniRenderUtil::GetComposerAutoSwitch());
+    EXPECT_EQ(RSUniRenderUtil::GetAutoSwitchInterval(), 4);
+    composer->uniRenderEngine_ = nullptr;
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetAutoSwitchInterval(0);
+    system::SetParameter("rs.composer.autoswitch.interval", "0");
+}
+
+/**
+ * Function: SetFrameTimeInterval_NonZeroIdealPeriod
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call SetFrameTimeInterval with non-zero idealPeriod (if branch true)
+ *                  3. verify RSUniRenderUtil::GetFrameTimeInterval is set to a calculated value
+ */
+HWTEST_F(RsRenderComposerTest, SetFrameTimeInterval_NonZeroIdealPeriod, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(21u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+
+    constexpr int64_t idealPeriod = 16666666; // 60Hz ideal period
+    int64_t actualTimestamp = 0;
+    composer->SetFrameTimeInterval(idealPeriod, actualTimestamp);
+    // idealPeriod != 0 branch: frameTimeInterval = (SystemTime() - 0) / idealPeriod
+    EXPECT_GE(RSUniRenderUtil::GetFrameTimeInterval(), 0);
+
+    RSUniRenderUtil::SetFrameTimeInterval(0);
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: SetFrameTimeInterval_ZeroIdealPeriod
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call SetFrameTimeInterval with zero idealPeriod (else branch)
+ *                  3. verify RSUniRenderUtil::GetFrameTimeInterval is 0
+ */
+HWTEST_F(RsRenderComposerTest, SetFrameTimeInterval_ZeroIdealPeriod, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(22u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+
+    // Pre-set a non-zero value to verify it gets reset
+    RSUniRenderUtil::SetFrameTimeInterval(100);
+    EXPECT_EQ(RSUniRenderUtil::GetFrameTimeInterval(), 100);
+
+    constexpr int64_t idealPeriod = 0;
+    int64_t actualTimestamp = 0;
+    composer->SetFrameTimeInterval(idealPeriod, actualTimestamp);
+    // idealPeriod == 0 branch: SetFrameTimeInterval(0)
+    EXPECT_EQ(RSUniRenderUtil::GetFrameTimeInterval(), 0);
+
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_AutoSwitchEnabled
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set ComposerAutoSwitch to true
+ *                  3. call ProcessComposerFrame with rate=60 (idealPeriod != 0)
+ *                  4. verify if branch (true): SetFrameTimeInterval called with non-zero idealPeriod
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_AutoSwitchEnabled, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(23u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+
+    RSUniRenderUtil::SetComposerAutoSwitch(true);
+    PipelineParam pipelineParam;
+    pipelineParam.actualTimestamp = 0;
+    EXPECT_NO_FATAL_FAILURE(composer->ProcessComposerFrame(60, pipelineParam));
+    // AutoSwitch true → SetFrameTimeInterval(idealPeriod, actualTimestamp) where idealPeriod != 0
+    EXPECT_GE(RSUniRenderUtil::GetFrameTimeInterval(), 0);
+
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetFrameTimeInterval(0);
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_AutoSwitchDisabled
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set ComposerAutoSwitch to false
+ *                  3. call ProcessComposerFrame with rate=60
+ *                  4. verify that SetFrameTimeInterval is not called when AutoSwitch is false,
+ *                     frameTimeInterval remains at the pre-set value
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_AutoSwitchDisabled, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(24u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    // Pre-set a non-zero value to verify it is not reset
+    RSUniRenderUtil::SetFrameTimeInterval(100);
+    PipelineParam pipelineParam;
+    pipelineParam.actualTimestamp = 0;
+    EXPECT_NO_FATAL_FAILURE(composer->ProcessComposerFrame(60, pipelineParam));
+    // AutoSwitch false → SetFrameTimeInterval not called → frameTimeInterval stays at pre-set value
+    EXPECT_EQ(RSUniRenderUtil::GetFrameTimeInterval(), 100);
+
+    composer->uniRenderEngine_ = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

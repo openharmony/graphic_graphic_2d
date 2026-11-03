@@ -45,7 +45,6 @@ public:
     static napi_value MakeFromRawFileWithArguments(napi_env env, napi_callback_info info);
     // Default typeface does not support chinese characters, needs to load chinese character ttf file.
     static std::shared_ptr<Typeface> GetZhCnTypeface();
-    static napi_value TypefaceTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsBold(napi_env env, napi_callback_info info);
     static napi_value IsItalic(napi_env env, napi_callback_info info);
 
@@ -66,6 +65,7 @@ private:
     static napi_value CreateJsTypefaceWithCache(napi_env env, const std::shared_ptr<Typeface>& rawTypeface);
 
     static thread_local napi_ref constructor_;
+    static thread_local std::shared_ptr<Typeface> drawingTypeface_;
     std::shared_ptr<Typeface> m_typeface = nullptr;
 };
 } // namespace Drawing

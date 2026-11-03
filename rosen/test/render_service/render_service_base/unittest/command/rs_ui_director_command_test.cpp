@@ -15,12 +15,14 @@
 
 #include "gtest/gtest.h"
 
+#include <vector>
+
 #include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_background_rebuild_param.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_ui_render_director.h"
-#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -100,58 +102,94 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMissingDirectorTest, Te
 }
 
 /**
- * @tc.name: UIDirectorCommandHelperGoStopDestroyTokenNodeGated
- * @tc.desc: Test GoStop only calls DestroyTokenNode when GetBackgroundRebuildEnabled is true.
+ * @tc.name: UIDirectorCommandHelperGoStopNodeMapModeTest
+ * @tc.desc: Test GoStop dispatches node map operation by GoStopNodeMapMode.
  * @tc.type: FUNC
- * @tc.require: issueI590LM
+ * @tc.require:
  */
-HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopDestroyTokenNodeGated, TestSize.Level1)
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopNodeMapModeTest, TestSize.Level1)
 {
     constexpr pid_t pid = 400;
-    constexpr uint64_t token = 401;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+    const std::vector<GoStopNodeMapMode> modes = {
+        GoStopNodeMapMode::NONE,
+        GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP,
+        GoStopNodeMapMode::DESTROY_TOKEN_NODE,
+    };
+    for (size_t i = 0; i < modes.size(); i++) {
+        RSContext rsContext;
+        uint64_t token = 401 + i;
+        RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+        auto director = rsContext.GetUIRenderDirector(pid, token);
+        ASSERT_NE(director, nullptr);
+
+        RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(modes[i]);
+        RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+        EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    }
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperGoResumePairingTest
+ * @tc.desc: Test GoResume restores stashed surface nodes only in REMOVE_SURFACE_NODE_MAP mode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoResumePairingTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 500;
+    constexpr uint64_t token = 501;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+    constexpr NodeId surfaceNodeId = MakeNodeId(pid, 1);
+
+    RSSurfaceRenderNodeConfig config = { .id = surfaceNodeId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetUIContextToken(token);
+    ASSERT_TRUE(rsContext.GetMutableNodeMap().RegisterRenderNode(surfaceNode));
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+
+    // REMOVE tier: GoStop stashes the node and marks it stopped.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    EXPECT_TRUE(surfaceNode->IsUIRenderDirectorStopped());
+
+    // NONE tier: GoResume must not restore the stashed node.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::NONE);
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, token);
+    EXPECT_TRUE(surfaceNode->IsUIRenderDirectorStopped());
+
+    // REMOVE tier: GoResume restores the node and clears the stopped flag.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, token);
+    EXPECT_FALSE(surfaceNode->IsUIRenderDirectorStopped());
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperGoStopInvalidModeTest
+ * @tc.desc: Test GoStop default branch skips node map operation for an out-of-range mode value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopInvalidModeTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 600;
+    constexpr uint64_t token = 601;
     constexpr NodeId nodeId = MakeNodeId(pid, 0);
 
-    // Case 1: GetBackgroundRebuildEnabled == false -> DestroyTokenNode should NOT be called
-    {
-        RSContext rsContext;
-        RSSystemProperties::isBackgroundRebuildEnabled_ = false;
-        RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
-        // Register a node with this token so DestroyTokenNode would remove it if called
-        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-        renderNode->SetUIContextToken(token);
-        rsContext.GetMutableNodeMap().RegisterRenderNode(renderNode);
-        ASSERT_NE(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
 
-        RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    // out-of-range value falls into the default branch and must behave like NONE without crashing
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(static_cast<GoStopNodeMapMode>(0xFF));
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
 
-        // Node should still exist because DestroyTokenNode was not called
-        EXPECT_NE(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
-        auto director = rsContext.GetUIRenderDirector(pid, token);
-        ASSERT_NE(director, nullptr);
-        EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
-    }
-
-    // Case 2: GetBackgroundRebuildEnabled == true -> DestroyTokenNode should be called
-    {
-        RSContext rsContext;
-        RSSystemProperties::isBackgroundRebuildEnabled_ = true;
-        RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
-        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-        renderNode->SetUIContextToken(token);
-        rsContext.GetMutableNodeMap().RegisterRenderNode(renderNode);
-        ASSERT_NE(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
-
-        RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
-
-        // Node should be removed because DestroyTokenNode was called
-        EXPECT_EQ(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
-        auto director = rsContext.GetUIRenderDirector(pid, token);
-        ASSERT_NE(director, nullptr);
-        EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
-    }
-
-    // Restore default
-    RSSystemProperties::isBackgroundRebuildEnabled_ = false;
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
 }
 
 } // namespace OHOS::Rosen

@@ -24,6 +24,16 @@ namespace Rosen {
 RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
+int32_t RSRenderToServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    if (!Remote()) {
+        RS_LOGE("RSRenderToServiceConnectionProxy: Remote is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return Remote()->SendRequest(code, data, reply, option);
+}
+
 bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished(
     const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection)
 {
@@ -44,7 +54,7 @@ bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished(
         return false;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return false;
@@ -73,7 +83,7 @@ sptr<ReplyToRenderInfo> RSRenderToServiceConnectionProxy::SendProcessInfo(
         return nullptr;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::SEND_PROCESS_INFO);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return nullptr;
@@ -102,7 +112,7 @@ void RSRenderToServiceConnectionProxy::NotifyScreenSwitchFinished(ScreenId scree
         RS_LOGE("%{public}s: WriteUint64 failed", __func__);
         return;
     }
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return;

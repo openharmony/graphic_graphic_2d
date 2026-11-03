@@ -48,11 +48,11 @@ namespace OHOS::Rosen {
  */
 HWTEST(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 {
-    auto oldSubMode = RSProfiler::GetSubMode();
-    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+    auto oldSubMode = RSProfiler::GetThreadSubMode();
+    RSProfiler::SetThreadSubMode(SubMode::READ_EMUL);
     Parcel parcel;
     EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
-    RSProfiler::SetSubMode(oldSubMode);
+    RSProfiler::SetThreadSubMode(oldSubMode);
 }
 
 /*
@@ -142,24 +142,6 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
     EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP), true);
 }
 
-/*
- * @tc.name: ReceiveSendMessageBase
- * @tc.desc: Test ReceiveSendMessageBase
- * @tc.type: FUNC
- */
-HWTEST(RSProfilerBaseTest, ReceiveSendMessageBase, Level1)
-{
-    std::string msg;
-    do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
-
-    std::string checkValue = "TEST_MESSGAE";
-    RSProfiler::SendMessageBase(checkValue);
-    msg = RSProfiler::ReceiveMessageBase();
-
-    EXPECT_EQ((msg == checkValue), true);
-}
 
 /*
  * @tc.name: RSLOGE1
@@ -170,11 +152,6 @@ HWTEST(RSProfilerBaseTest, RSLOGE1, Level1)
 {
     RSProfiler::testing_ = true;
     RSProfiler::SetMode(Mode::WRITE);
-
-    std::string msg;
-    do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
 
     RSProfilerLogMsg logmsg;
     do {
@@ -200,11 +177,6 @@ HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
     RSProfiler::testing_ = true;
     RSProfiler::SetMode(Mode::WRITE);
 
-    std::string msg;
-    do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
-
     RSProfilerLogMsg logmsg;
     do {
         logmsg = RSProfiler::ReceiveRSLogBase();
@@ -227,25 +199,14 @@ HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
 HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
 {
     RSProfiler::testing_ = true;
-    RSProfiler::SetSubMode(SubMode::READ_EMUL);
+    while (!RSProfiler::ReceiveRSLogBase().msg_.empty()) {
+    }
 
-    std::string msg;
-    do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
-
-    RSProfilerLogMsg logmsg;
-    do {
-        logmsg = RSProfiler::ReceiveRSLogBase();
-    } while (logmsg.time_);
-
-    std::string checkValue = "RS_LOGW: Test WOW {private}";
-    RS_LOGW("Test %{public}s %d", "WOW", 321);
-
-    msg = RSProfiler::ReceiveMessageBase();
-    RSProfiler::SetMode(Mode::NONE);
-
-    EXPECT_EQ(msg, checkValue);
+    RSProfiler::SetThreadSubMode(SubMode::READ_EMUL);
+    RS_LOGW("Test");
+    const auto message = RSProfiler::ReceiveRSLogBase();
+    RSProfiler::SetThreadSubMode(SubMode::NONE);
+    EXPECT_TRUE(message.msg_.empty());
 }
 
 /*
@@ -579,6 +540,9 @@ HWTEST_F(RecorRsProfileRecordTest, RecordStartSuccess, Level1)
     RSProfiler::RecordStart(args); // record starting
     EXPECT_TRUE(RSProfiler::IsWriteMode());
     EXPECT_TRUE(RSProfiler::IsRecordingMode());
+    // Clean up: stop recording to close g_recordFile and reset mode,
+    // preventing state leakage into subsequent tests.
+    RSProfiler::RecordStop(ArgList(std::vector<std::string> { "WAITFORFINISH" }));
 }
 
 /*

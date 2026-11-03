@@ -51,7 +51,6 @@ enum DirtyRegionType {
 };
 
 class RSB_EXPORT RSDirtyRegionManager final {
-    friend class RSFilterCacheManager;
 public:
     static constexpr int32_t ALIGNED_BITS = 32;
     RSDirtyRegionManager();
@@ -150,6 +149,7 @@ public:
     // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
+    void Scale(float scaleX, float scaleY);
 
     // uifirst dirty
     const RectI GetUiLatestHistoryDirtyRegions(const int historyIndex = 4) const; // 4 means default history index
@@ -314,7 +314,7 @@ private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
     void MergeAdvancedDirtyHistory(unsigned int age);
-    std::vector<RectI> GetAdvancedDirtyHistory(unsigned int i) const;
+    const std::vector<RectI>& GetAdvancedDirtyHistory(unsigned int i) const;
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
     // get his rect according to index offset

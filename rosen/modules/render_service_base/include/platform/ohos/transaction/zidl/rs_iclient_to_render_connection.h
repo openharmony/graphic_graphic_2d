@@ -96,6 +96,8 @@ public:
 
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
+    virtual ErrCode UnRegisterApplicationAgent() = 0;
+
     virtual ErrCode RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
 
@@ -108,6 +110,9 @@ public:
 
     virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
+
+    virtual ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success) = 0;
 
     virtual ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) = 0;
@@ -196,6 +201,10 @@ public:
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 
+    virtual int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+    virtual int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+    virtual int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList) = 0;
+
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
@@ -233,6 +242,7 @@ public:
     virtual bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) = 0;
     virtual bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) = 0;
     virtual bool UnRegisterSurfaceNodeBufferReleaseListener() = 0;
+    virtual bool CleanDelegateModeBufferCmd(NodeId id) = 0;
 };
 
 } // namespace Rosen

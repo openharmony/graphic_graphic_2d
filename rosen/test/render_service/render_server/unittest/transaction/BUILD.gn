@@ -93,6 +93,11 @@ ohos_unittest("RSRenderToServiceConnectionProxyTest") {
         external_deps += [ "sensor:sensor_interface_native" ]
     }
     subsystem_name = "graphic"
+    sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        debug = true
+    }
 }
 
 ###############################################################################

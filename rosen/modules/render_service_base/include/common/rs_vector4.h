@@ -71,6 +71,8 @@ public:
     bool operator==(const Vector4& other) const;
     bool operator!=(const Vector4& other) const;
     bool IsNearEqual(const Vector4& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsAbsNearEqual(const Vector4& target, const Vector4& threshold) const;
+    void TakeAbsMaxFrom(const Vector4& target);
 
     T operator[](int index) const;
     T& operator[](int index);
@@ -471,6 +473,37 @@ bool Vector4<T>::IsNearEqual(const Vector4& other, T threshold) const
 
     return (ROSEN_EQ<T>(data_[0], value[0], threshold)) && (ROSEN_EQ<T>(data_[1], value[1], threshold)) &&
            (ROSEN_EQ<T>(data_[2], value[2], threshold)) && (ROSEN_EQ<T>(data_[3], value[3], threshold));
+}
+
+template<typename T>
+bool Vector4<T>::IsAbsNearEqual(const Vector4& target, const Vector4& threshold) const { return false; }
+
+template<>
+inline bool Vector4<float>::IsAbsNearEqual(const Vector4<float>& target, const Vector4<float>& threshold) const
+{
+    const float* targetData = target.data_;
+    const float* thresholdData = threshold.data_;
+
+    for (uint32_t i = 0; i < V4SIZE; i++) {
+        if (fabs(data_[i] - targetData[i]) > fabs(thresholdData[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+void Vector4<T>::TakeAbsMaxFrom(const Vector4& target) {}
+
+template<>
+inline void Vector4<float>::TakeAbsMaxFrom(const Vector4<float>& target)
+{
+    const float* targetData = target.data_;
+    for (uint32_t i = 0; i < V4SIZE; i++) {
+        if (fabs(data_[i]) < fabs(targetData[i])) {
+            data_[i] = targetData[i];
+        }
+    }
 }
 
 template<typename T>

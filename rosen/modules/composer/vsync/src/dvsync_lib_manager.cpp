@@ -31,18 +31,15 @@ DVSyncLibManager& DVSyncLibManager::Instance()
 
 DVSyncLibManager& DVSyncLibManager::DvsyncDelayInstance()
 {
-    static DVSyncLibManager dvsyncDelayInstance;
+    static DVSyncLibManager* dvsyncDelayInstance = new DVSyncLibManager();
     static std::once_flag dvsyncDelayCreateFlag;
     std::call_once(dvsyncDelayCreateFlag, []() {
-        dvsyncDelayInstance.Initialize("libdvsync.z.so", true);
+        dvsyncDelayInstance->Initialize("libdvsync.z.so", true);
     });
-    return dvsyncDelayInstance;
+    return *dvsyncDelayInstance;
 }
 
-DVSyncLibManager::~DVSyncLibManager()
-{
-    Shutdown();
-}
+DVSyncLibManager::~DVSyncLibManager() {}
 
 bool DVSyncLibManager::Initialize(const std::string& libPath, bool isDvsyncDelay)
 {
@@ -72,17 +69,6 @@ bool DVSyncLibManager::Initialize(const std::string& libPath, bool isDvsyncDelay
     }
     initialized_ = true;
     return true;
-}
-
-void DVSyncLibManager::Shutdown()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (libHandle_) {
-        dlclose(libHandle_);
-        libHandle_ = nullptr;
-        ClearAllFunctions();
-        initialized_ = false;
-    }
 }
 
 bool DVSyncLibManager::LoadAllFunctions()
@@ -267,12 +253,12 @@ void DVSyncLibManager::MarkRSRendering(bool isRender)
 }
 
 void DVSyncLibManager::SetAppDVSyncSwitch(const sptr<VSyncConnection>& connection, bool start, bool isNative,
-    FromWhom fromWhom)
+    FromWhom fromWhom, DvsyncDisableReason disableReason)
 {
     if (setAppDVSyncSwitchFunc_ == nullptr) {
         return;
     }
-    setAppDVSyncSwitchFunc_(connection, start, isNative, fromWhom);
+    setAppDVSyncSwitchFunc_(connection, start, isNative, fromWhom, disableReason);
 }
 
 void DVSyncLibManager::SetUiDVSyncConfig(int32_t bufferCount, bool compositeSceneEnable, bool nativeDelayEnable,

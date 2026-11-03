@@ -19,37 +19,36 @@
 #include "path_napi/js_path.h"
 #include "native_value.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsRegion::constructor_ = nullptr;
 const std::string CLASS_NAME = "Region";
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("getBoundaryPath", JsRegion::GetBoundaryPath),
+    DECLARE_NAPI_FUNCTION("getBounds", JsRegion::GetBounds),
+    DECLARE_NAPI_FUNCTION("isComplex", JsRegion::IsComplex),
+    DECLARE_NAPI_FUNCTION("isEmpty", JsRegion::IsEmpty),
+    DECLARE_NAPI_FUNCTION("isEqual", JsRegion::IsEqual),
+    DECLARE_NAPI_FUNCTION("isPointContained", JsRegion::IsPointContained),
+    DECLARE_NAPI_FUNCTION("isRegionContained", JsRegion::IsRegionContained),
+    DECLARE_NAPI_FUNCTION("offset", JsRegion::Offset),
+    DECLARE_NAPI_FUNCTION("op", JsRegion::Op),
+    DECLARE_NAPI_FUNCTION("quickReject", JsRegion::QuickReject),
+    DECLARE_NAPI_FUNCTION("quickRejectRegion", JsRegion::QuickRejectRegion),
+    DECLARE_NAPI_FUNCTION("setEmpty", JsRegion::SetEmpty),
+    DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
+    DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
+    DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
+    DECLARE_NAPI_FUNCTION("isRect", JsRegion::IsRect),
+    DECLARE_NAPI_FUNCTION("quickContains", JsRegion::QuickContains),
+};
 napi_value JsRegion::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("getBoundaryPath", JsRegion::GetBoundaryPath),
-        DECLARE_NAPI_FUNCTION("getBounds", JsRegion::GetBounds),
-        DECLARE_NAPI_FUNCTION("isComplex", JsRegion::IsComplex),
-        DECLARE_NAPI_FUNCTION("isEmpty", JsRegion::IsEmpty),
-        DECLARE_NAPI_FUNCTION("isEqual", JsRegion::IsEqual),
-        DECLARE_NAPI_FUNCTION("isPointContained", JsRegion::IsPointContained),
-        DECLARE_NAPI_FUNCTION("isRegionContained", JsRegion::IsRegionContained),
-        DECLARE_NAPI_FUNCTION("offset", JsRegion::Offset),
-        DECLARE_NAPI_FUNCTION("op", JsRegion::Op),
-        DECLARE_NAPI_FUNCTION("quickReject", JsRegion::QuickReject),
-        DECLARE_NAPI_FUNCTION("quickRejectRegion", JsRegion::QuickRejectRegion),
-        DECLARE_NAPI_FUNCTION("setEmpty", JsRegion::SetEmpty),
-        DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
-        DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
-        DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
-        DECLARE_NAPI_FUNCTION("isRect", JsRegion::IsRect),
-        DECLARE_NAPI_FUNCTION("quickContains", JsRegion::QuickContains),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRegion::RegionTransferDynamic),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsRegion::Init Failed to define Region class");
         return nullptr;
@@ -84,7 +83,7 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
     std::shared_ptr<Region> region = nullptr;
     if (argCount == ARGC_ONE) {
         JsRegion* jsOther = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, jsOther);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, jsOther, &REGION_TYPE_TAG);
         Region* other = jsOther->GetRegion();
         region = other == nullptr ? std::make_shared<Region>() : std::make_shared<Region>(*other);
     } else if (argCount == ARGC_FOUR) {
@@ -103,7 +102,7 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
         region = std::make_shared<Region>();
     }
     JsRegion* jsRegion = new JsRegion(region);
-    status = napi_wrap(env, jsThis, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsRegion, JsRegion::Destructor, nullptr, &REGION_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRegion;
         ROSEN_LOGE("JsRegion::Constructor Failed to wrap native instance");
@@ -124,7 +123,7 @@ void JsRegion::Destructor(napi_env env, void* nativeObject, void* finalize)
 
 napi_value JsRegion::GetBoundaryPath(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBoundaryPath(env, info) : nullptr;
 }
 
@@ -132,7 +131,8 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnGetBoundaryPath region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     std::shared_ptr<Path> path = std::make_shared<Path>();
@@ -142,7 +142,7 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::GetBounds(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBounds(env, info) : nullptr;
 }
 
@@ -150,7 +150,8 @@ napi_value JsRegion::OnGetBounds(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnGetBounds region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     RectI src = m_region->GetBounds();
@@ -159,7 +160,7 @@ napi_value JsRegion::OnGetBounds(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsComplex(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsComplex(env, info) : nullptr;
 }
 
@@ -167,7 +168,8 @@ napi_value JsRegion::OnIsComplex(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsComplex region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsComplex());
@@ -175,7 +177,7 @@ napi_value JsRegion::OnIsComplex(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsEmpty(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEmpty(env, info) : nullptr;
 }
 
@@ -183,7 +185,8 @@ napi_value JsRegion::OnIsEmpty(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEmpty region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsEmpty());
@@ -191,7 +194,7 @@ napi_value JsRegion::OnIsEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsEqual(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
 }
 
@@ -199,14 +202,15 @@ napi_value JsRegion::OnIsEqual(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
@@ -218,7 +222,7 @@ napi_value JsRegion::OnIsEqual(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsPointContained(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsPointContained(env, info) : nullptr;
 }
 
@@ -226,7 +230,8 @@ napi_value JsRegion::OnIsPointContained(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsPointContained region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -242,7 +247,7 @@ napi_value JsRegion::OnIsPointContained(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsRegionContained(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsRegionContained(env, info) : nullptr;
 }
 
@@ -250,14 +255,15 @@ napi_value JsRegion::OnIsRegionContained(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRegionContained region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* other = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, other, &REGION_TYPE_TAG);
     if (other->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRegionContained other is nullptr");
         return nullptr;
@@ -268,7 +274,7 @@ napi_value JsRegion::OnIsRegionContained(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::Offset(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnOffset(env, info) : nullptr;
 }
 
@@ -276,7 +282,8 @@ napi_value JsRegion::OnOffset(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnOffset region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -292,7 +299,7 @@ napi_value JsRegion::OnOffset(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::Op(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnOp(env, info) : nullptr;
 }
 
@@ -300,14 +307,15 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnOp region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsRegion* region = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, region);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, region, &REGION_TYPE_TAG);
     if (region->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnOp region is nullptr");
         return nullptr;
@@ -319,7 +327,8 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
     RegionOp op = static_cast<RegionOp>(regionOp);
     if (op < RegionOp::DIFFERENCE || op > RegionOp::REPLACE) {
         ROSEN_LOGE("JsRegion::OnOp regionOp is error param");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The range of op must be [0, 5].");
     }
 
     return CreateJsValue(env, m_region->Op(*region->GetRegion(), op));
@@ -327,7 +336,7 @@ napi_value JsRegion::OnOp(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickReject(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickReject(env, info) : nullptr;
 }
 
@@ -335,7 +344,8 @@ napi_value JsRegion::OnQuickReject(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickReject region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -356,7 +366,7 @@ napi_value JsRegion::OnQuickReject(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickRejectRegion(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickRejectRegion(env, info) : nullptr;
 }
 
@@ -364,14 +374,15 @@ napi_value JsRegion::OnQuickRejectRegion(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickRejectRegion region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsEquals region is nullptr");
@@ -383,7 +394,7 @@ napi_value JsRegion::OnQuickRejectRegion(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetEmpty(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetEmpty(env, info) : nullptr;
 }
 
@@ -391,7 +402,8 @@ napi_value JsRegion::OnSetEmpty(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetEmpty region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     m_region->SetEmpty();
@@ -400,7 +412,7 @@ napi_value JsRegion::OnSetEmpty(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetRect(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRect(env, info) : nullptr;
 }
 
@@ -408,7 +420,8 @@ napi_value JsRegion::OnSetRect(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRect region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -429,7 +442,7 @@ napi_value JsRegion::OnSetRect(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetRegion(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRegion(env, info) : nullptr;
 }
 
@@ -437,14 +450,15 @@ napi_value JsRegion::OnSetRegion(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRegion region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsRegion* jsRegion = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRegion);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRegion, &REGION_TYPE_TAG);
     Region* region = jsRegion->GetRegion();
     if (region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetRegion region is nullptr");
@@ -456,7 +470,7 @@ napi_value JsRegion::OnSetRegion(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::SetPath(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnSetPath(env, info) : nullptr;
 }
 
@@ -464,20 +478,21 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath jsPath is nullptr");
         return nullptr;
     }
     JsRegion* jsClip = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsClip);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsClip, &REGION_TYPE_TAG);
     if (jsClip->GetRegion() == nullptr) {
         ROSEN_LOGE("JsRegion::OnSetPath jsClip is nullptr");
         return nullptr;
@@ -488,7 +503,7 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::IsRect(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnIsRect(env, info) : nullptr;
 }
 
@@ -496,7 +511,8 @@ napi_value JsRegion::OnIsRect(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnIsRect region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     return CreateJsValue(env, m_region->IsRect());
@@ -504,7 +520,7 @@ napi_value JsRegion::OnIsRect(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::QuickContains(napi_env env, napi_callback_info info)
 {
-    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    JsRegion* me = CheckParamsAndGetThisWithTag<JsRegion>(env, info, &REGION_TYPE_TAG);
     return (me != nullptr) ? me->OnQuickContains(env, info) : nullptr;
 }
 
@@ -512,7 +528,8 @@ napi_value JsRegion::OnQuickContains(napi_env env, napi_callback_info info)
 {
     if (m_region == nullptr) {
         ROSEN_LOGE("JsRegion::OnQuickContains region is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Region object is invalid.");
     }
 
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -532,47 +549,29 @@ napi_value JsRegion::OnQuickContains(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (region == nullptr) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic region is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript region instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic napi_create_object failed");
         return nullptr;
     }
     JsRegion* jsRegion = new JsRegion(region);
-    napi_status status = napi_wrap(env, result, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsRegion, JsRegion::Destructor, nullptr, &REGION_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRegion;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsRegion::RegionTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Region> region = *reinterpret_cast<std::shared_ptr<Region>*>(addr);
-    if (region == nullptr) {
-        return nullptr;
-    }
-    return CreateJsRegionDynamic(env, region);
+    return objValue;
 }
 
 Region* JsRegion::GetRegion()

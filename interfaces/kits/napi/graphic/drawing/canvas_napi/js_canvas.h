@@ -41,21 +41,32 @@ namespace Drawing {
 #endif
 
 class Canvas;
+class JsRecordCmdUtils;
+
 class JsCanvas final {
 public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~JsCanvas();
 
-    static constexpr napi_type_tag NAPI_TYPE_TAG = {
-        .lower = 0x2710bc10cdee8db3,
-        .upper = 0xc5189f88510eadc1
-    };
+    void Invalidate()
+    {
+        m_canvas = nullptr;
+        creator_ = nullptr;
+    }
+    void SetCreator(JsRecordCmdUtils* creator)
+    {
+        creator_ = creator;
+    }
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
 
     DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas);
+#if defined(ROSEN_OHOS)
+    DRAWING_API static napi_value CreateJsCanvasDynamic(
+        napi_env env, Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 
     static napi_value AttachBrush(napi_env env, napi_callback_info info);
     static napi_value AttachPen(napi_env env, napi_callback_info info);
@@ -88,6 +99,7 @@ public:
     static napi_value DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DrawGlyphs(napi_env env, napi_callback_info info);
+    static napi_value DrawRecordCmd(napi_env env, napi_callback_info info);
     static napi_value DrawBackground(napi_env env, napi_callback_info info);
     static napi_value DrawRoundRect(napi_env env, napi_callback_info info);
     static napi_value GetTotalMatrix(napi_env env, napi_callback_info info);
@@ -112,7 +124,6 @@ public:
     static napi_value GetLocalClipBounds(napi_env env, napi_callback_info info);
     static napi_value QuickRejectPath(napi_env env, napi_callback_info info);
     static napi_value QuickRejectRect(napi_env env, napi_callback_info info);
-    static napi_value CanvasTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsOpaque(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
@@ -165,6 +176,7 @@ private:
     napi_value OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnDrawGlyphs(napi_env env, napi_callback_info info);
+    napi_value OnDrawRecordCmd(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnGetWidth(napi_env env, napi_callback_info info);
     napi_value OnGetHeight(napi_env env, napi_callback_info info);
@@ -193,6 +205,7 @@ private:
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
+    JsRecordCmdUtils* creator_ = nullptr;
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif

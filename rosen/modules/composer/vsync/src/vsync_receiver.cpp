@@ -34,6 +34,9 @@
 #include <rs_trace.h>
 #include "qos.h"
 
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -148,7 +151,7 @@ void VSyncReceiver::RemoveAndCloseFdLocked()
 
     std::lock_guard<std::mutex> locker(listener_->fdMutex_);
     if (fd_ >= 0) {
-        close(fd_);
+        fdsan_close_with_tag(fd_, LOG_DOMAIN);
         listener_->SetFdClosedFlagLocked(true);
         fd_ = INVALID_FD;
     }
@@ -274,13 +277,13 @@ bool VSyncReceiver::IsRequestedNextVSync()
     return listener_->GetRNVFlag();
 }
 
-VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
+VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom, DvsyncDisableReason disableReason)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    return connection_->SetUiDvsyncSwitch(dvsyncSwitch, fromWhom);
+    return connection_->SetUiDvsyncSwitch(dvsyncSwitch, fromWhom, disableReason);
 }
 
 VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,

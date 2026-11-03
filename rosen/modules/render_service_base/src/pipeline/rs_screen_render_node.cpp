@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_display_effect_swing_control.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -164,12 +165,43 @@ void RSScreenRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    ScaleSyncDirtyManagerForRogIfNeed(syncDirtyManager);
     screenParams->SetZoomed(curZoomState_);
     screenParams->SetNeedSync(true);
     RSRenderNode::OnSync();
 #endif
 }
 // LCOV_EXCL_STOP
+
+void RSScreenRenderNode::ScaleSyncDirtyManagerForRogIfNeed(
+    const std::shared_ptr<RSDirtyRegionManager>& syncDirtyManager) const
+{
+    if (syncDirtyManager == nullptr) {
+        RS_LOGW("%{public}s dirty manager is nullptr", __func__);
+        return;
+    }
+    const auto& screenProperty = GetScreenProperty();
+    if (screenProperty.GetSamplingMode() != ScreenSamplingMode::DEVICE_GPU) {
+        return;
+    }
+    const float widthRatio = screenProperty.GetRogWidthRatio();
+    const float heightRatio = screenProperty.GetRogHeightRatio();
+    if (ROSEN_LE(widthRatio, 0.f) || ROSEN_LE(heightRatio, 0.f)) {
+        RS_LOGW("%{public}s invalid rog ratio w:%{public}f h:%{public}f, skip rog dirty scale",
+            __func__, widthRatio, heightRatio);
+        return;
+    }
+
+    syncDirtyManager->Scale(widthRatio, heightRatio);
+    syncDirtyManager->SetSurfaceSize(screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight());
+    const auto& activeRect = screenProperty.GetActiveRect();
+    if (!activeRect.IsEmpty()) {
+        Drawing::Matrix rogScaleMatrix;
+        rogScaleMatrix.SetScale(widthRatio, heightRatio);
+        syncDirtyManager->SetActiveSurfaceRect(
+            RSObjAbsGeometry::MapRect(activeRect.ConvertTo<float>(), rogScaleMatrix));
+    }
+}
 
 // LCOV_EXCL_START
 void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
@@ -358,6 +390,14 @@ void RSScreenRenderNode::SetHasGlassFree3DLayer(bool hasGlassFree3DLayer)
 bool RSScreenRenderNode::GetHasGlassFree3DLayer() const
 {
     return hasGlassFree3DLayer_;
+}
+
+void RSScreenRenderNode::SetSwingEnabled(bool isEnabled)
+{
+    auto& swingControl = RSDisplayEffectSwingControl::Get();
+    if (isEnabled != swingControl.IsSwingRegistered(screenId_)) {
+        swingControl.SetSwingEnabled(screenId_, isEnabled);
+    }
 }
 
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)

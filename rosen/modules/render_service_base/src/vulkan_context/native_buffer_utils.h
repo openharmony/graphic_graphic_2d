@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef NATIVE_BUFFER_UTILS
+#define NATIVE_BUFFER_UTILS
+
+#include <atomic>
+
+#include "native_buffer_inner.h"
+#include "sync_fence.h"
+#include "rs_vulkan_context.h"
+#include "native_window.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/GrBackendSemaphore.h"
+#endif
+#include "include/core/SkSurface.h"
+#include "draw/surface.h"
+#include "image/image.h"
+#include "drawing/engine_adapter/skia_adapter/skia_color_space.h"
+#include "memory/rs_memory_snapshot.h"
+
+namespace OHOS::Rosen {
+struct DestroySemaphoreInfo {
+    PFN_vkDestroySemaphore mDestroyFunction;
+    VkDevice mDevice;
+    VkSemaphore mSemaphore;
+
+    std::atomic<int> mRefs = 2;
+    DestroySemaphoreInfo(PFN_vkDestroySemaphore destroyFunction, VkDevice device,
+                        VkSemaphore semaphore)
+        : mDestroyFunction(destroyFunction), mDevice(device), mSemaphore(semaphore) {}
+
+    static void DestroySemaphore(void *context)
+    {
+        if (context == nullptr) {
+            return;
+        }
+        DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
+        if (info->mRefs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
+            delete info;
+        }
+    }
+};
+
+namespace NativeBufferUtils {
+constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need less than 10000*10000
+void DeleteVkImage(void* context);
+enum VulkanCleanType {
+    EXTERNAL,   //dma
+    NATIVE,     //gpu
+};
+
+class VulkanCleanupHelper {
+public:
+    VulkanCleanupHelper(std::shared_ptr<RsVulkanInterface>& vkInterface, VkImage image, VkDeviceMemory memory,
+        const VulkanCleanType cleanType = VulkanCleanType::EXTERNAL, const pid_t pid = 0, const size_t memSize = 0)
+        : fDevice_(vkInterface->GetDevice()),
+          fImage_(image),
+          fMemory_(memory),
+          fDestroyImage_(vkInterface->vkDestroyImage),
+          fFreeMemory_(vkInterface->vkFreeMemory),
+          cleanType_(cleanType),
+          pid_(pid),
+          memSize_(memSize),
+          fRefCnt_(1)
+    {
+        // gpu info statics--increase
+        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, true, false);
+        }
+    }
+
+    ~VulkanCleanupHelper()
+    {
+        fDestroyImage_(fDevice_, fImage_, nullptr);
+        fFreeMemory_(fDevice_, fMemory_, nullptr);
+        // gpu info statics--decrease
+        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, false, false);
+        }
+    }
+
+    VulkanCleanupHelper* Ref()
+    {
+        (void)fRefCnt_.fetch_add(+1, std::memory_order_relaxed);
+        return this;
+    }
+
+    void UnRef()
+    {
+        if (fRefCnt_.fetch_add(-1, std::memory_order_acq_rel) == 1) {
+            delete this;
+        }
+    }
+
+private:
+    VkDevice fDevice_;
+    VkImage fImage_;
+    VkDeviceMemory fMemory_;
+    PFN_vkDestroyImage fDestroyImage_;
+    PFN_vkFreeMemory fFreeMemory_;
+    VulkanCleanType cleanType_;     // memory type: dma/gpu
+    pid_t pid_;                     // pid of memory resource
+    size_t memSize_;                // memory size
+    mutable std::atomic<int32_t> fRefCnt_;
+};
+
+struct NativeSurfaceInfo {
+    NativeSurfaceInfo() = default;
+    NativeSurfaceInfo(NativeSurfaceInfo &&) = default;
+    NativeSurfaceInfo &operator=(NativeSurfaceInfo &&) = default;
+    NativeSurfaceInfo(const NativeSurfaceInfo &) = delete;
+    NativeSurfaceInfo &operator=(const NativeSurfaceInfo &) = delete;
+
+    NativeWindow* window = nullptr;
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    VkImage image = VK_NULL_HANDLE; // skia will destroy image
+    std::unique_ptr<SyncFence> fence = nullptr;
+    std::shared_ptr<Drawing::Surface> drawingSurface = nullptr;
+    int32_t lastPresentedCount = -1;
+    GraphicColorGamut graphicColorGamut = GRAPHIC_COLOR_GAMUT_INVALID;
+    ~NativeSurfaceInfo()
+    {
+        drawingSurface = nullptr;
+        if (window != nullptr) {
+            NativeObjectUnreference(window);
+            window = nullptr;
+        }
+        if (nativeWindowBuffer != nullptr) {
+            NativeObjectUnreference(nativeWindowBuffer);
+            nativeWindowBuffer = nullptr;
+        }
+    }
+};
+
+bool IsYcbcrModelOrRangeNotEqual(std::shared_ptr<RsVulkanInterface>& vkInterface, OH_NativeBuffer *nativeBuffer,
+    VkSamplerYcbcrModelConversion model, VkSamplerYcbcrRange range);
+
+bool MakeFromNativeWindowBuffer(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, std::shared_ptr<Drawing::GPUContext> skContext,
+    NativeWindowBuffer* nativeWindowBuffer, NativeSurfaceInfo& nativeSurface,
+    int width, int height, bool isProtected = false);
+
+Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    NativeWindowBuffer* nativeWindowBuffer, int width, int height, bool isProtected = false);
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    Drawing::GPUContext* gpuContext, const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+
+std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    Drawing::GPUContext* gpuContext, const Drawing::ImageInfo& imageInfo, OH_NativeBuffer* nativeBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace);
+
+#ifdef RS_ENABLE_VK
+uint32_t FindMemoryType(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
+    const VkImageCreateInfo& imageInfo);
+Drawing::BackendTexture MakeBackendTexture(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    uint32_t width, uint32_t height, pid_t pid, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+Drawing::BackendTexture SetBackendTexture(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
+    VkImage image, uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo, pid_t pid);
+VkResult CreateVkSemaphore(std::shared_ptr<RsVulkanInterface>& vkInterface, VkSemaphore& semaphore);
+VkResult CreateVkSemaphore(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    VkSemaphore& semaphore, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
+void GetFenceFdFromSemaphore(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, VkSemaphore& semaphore, int32_t& syncFenceFd);
+#endif
+}
+} // OHOS::Rosen
+#endif

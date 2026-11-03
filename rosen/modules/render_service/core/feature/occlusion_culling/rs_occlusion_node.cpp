@@ -103,8 +103,7 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     // The node is considered opaque if its background color is fully opaque,
     // and it does not use brightness or color blend modes.
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
-        !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
-        renderProperties.IsColorBlendModeNone();
+        !renderProperties.IsBgBrightnessValid();
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();
@@ -113,6 +112,7 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     clipRRect_ = renderProperties.GetClipToRRect() ?
         std::make_unique<RRect>(renderProperties.GetClipRRect()) : nullptr;
     cornerRadius_ = renderProperties.GetCornerRadius();
+    isBlendOpaque_ = parentShared->isBlendOpaque_ && IsBlendOpaque(renderProperties);
     CalculateDrawRect(node, renderProperties);
 }
 
@@ -122,17 +122,8 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         RSOpincManager::IsSuggestOpincNode(const_cast<RSRenderNode&>(node))) {
         return true;
     }
-
-    const auto& skew = renderProperties.GetSkew();
-    const auto& perspective = renderProperties.GetPersp();
-    const auto& degree = renderProperties.GetRotation();
-    const auto& degreeX = renderProperties.GetRotationX();
-    const auto& degreeY = renderProperties.GetRotationY();
     // Skip this subtree if transformations (rotation/projection/skew/clip) make bounds non-rectangular.
-    if (!ROSEN_EQ(skew[0], 0.f) || !ROSEN_EQ(skew[1], 0.f) ||
-        !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
-        !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
-        renderProperties.GetClipBounds()) {
+    if (ContainsNonRectangularTransform(renderProperties)) {
         return true;
     }
     // Skip this subtree if node has 3d transformations
@@ -150,6 +141,10 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     // Skip this subtree if node has special clip operation
     if (renderProperties.GetSDFShape() != nullptr ||
         (renderProperties.GetClipToFrame() && drawRect != drawFrameRect)) {
+        return true;
+    }
+    // Skip this subtree if node has non-positive scale
+    if (ROSEN_LE(renderProperties.GetScaleX(), 0.f) || ROSEN_LE(renderProperties.GetScaleY(), 0.f)) {
         return true;
     }
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
@@ -274,6 +269,9 @@ void OcclusionNode::UpdateSubTreeProp()
     isValidInCurrentFrame_ = true;
     auto parentShared = parentOcNode_.lock();
     isSubTreeIgnored_ |= (parentShared == nullptr) || parentShared->isSubTreeIgnored_;
+    if (parentShared != nullptr) {
+        isBlendOpaque_ &= parentShared->isBlendOpaque_;
+    }
     if (parentShared && !isSubTreeIgnored_) {
         CalculateNodeAllBounds();
     }
@@ -444,6 +442,7 @@ std::string OcclusionNode::GetOcclusionNodeInfoString()
         << " filterRect:" << filterRect_.ToString()
         << " bgOpaque:" << isBgOpaque_
         << " alpha:" << localAlpha_ * accumulatedAlpha_
+        << " isBlendOpaque:" << isBlendOpaque_
         << " isNeedClip:" << isNeedClip_
         << " hasChildrenOutOfRect:" << hasChildrenOutOfRect_
         << " outOfRoot:" << isOutOfRootRect_

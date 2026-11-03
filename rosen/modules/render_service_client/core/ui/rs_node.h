@@ -31,7 +31,7 @@
 
 #include <algorithm>
 #include <atomic>
-#include <deque>
+#include <list>
 #include <optional>
 #include <unordered_map>
 
@@ -78,6 +78,7 @@ class RSNGShaderBase;
 class RSNGMaskBase;
 class RSNGShapeBase;
 class Blender;
+class ColorfulBrightnessBlender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
 enum class FilterQuality;
@@ -1553,6 +1554,13 @@ public:
     void SetShadowDisableSDFBlur(bool disable);
 
     /**
+     * @brief Sets the clip type of the shadow.
+     *
+     * @param clipType Indicates the clip type of the shadow.
+     */
+    void SetShadowClipType(int clipType);
+    
+    /**
      * @brief Sets the gravity for the frame of this node.
      *
      * @param gravity The gravity value to apply.
@@ -1939,8 +1947,24 @@ public:
      * @param needCallback Boolean flag to control callback triggering
      */
     static void SetNeedCallbackNodeChange(bool needCallback);
-    bool GetIsDrawn();
-    void SetDrawNode();
+
+    bool GetIsDrawn() const noexcept
+    {
+        return isDrawNode_;
+    }
+
+    void SetDrawNode()
+    {
+        if (isDrawNode_) {
+            return;
+        }
+        LoadRenderNodeIfNeed();
+        isDrawNode_ = true;
+        if (GetType() == RSUINodeType::CANVAS_NODE && drawNodeChangeCallback_ != nullptr) {
+            drawNodeChangeCallback_(shared_from_this(), false);
+        }
+    }
+
     DrawNodeType GetDrawNodeType() const;
     void SyncDrawNodeType(DrawNodeType nodeType);
 
@@ -2041,7 +2065,9 @@ public:
     void SetRSCmdProperty(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = GetRSCmdModifier(ModifierType::Type);
 
         if (modifier == nullptr) {
@@ -2069,7 +2095,9 @@ public:
     RSCmdModifier::UpdateResult SetRSCmdPropertyWithResult(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = GetRSCmdModifier(ModifierType::Type);
 
         if (modifier == nullptr) {
@@ -2092,10 +2120,6 @@ public:
         }
         return false;
     }
-
-    // HybridDraw Start
-    void SetHybridRenderCanvas(bool hybridRenderCanvas) {}
-    // HybridDraw End
 
     bool CheckAndWaitForNodeRebuild();
 
@@ -2140,7 +2164,7 @@ protected:
     bool hybridRenderCanvas_ = false;
 
     mutable std::unordered_map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
-    mutable std::deque<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
+    mutable std::list<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
     /**
      * @brief Called when child nodes are added to this node.
      */
@@ -2173,6 +2197,9 @@ protected:
     void PushRSCmdModifierToQueue(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = std::make_shared<ModifierType>(weak_from_this(), param);
         rsCmdModifierQueue_.push_back(modifier);
     }
@@ -2238,10 +2265,26 @@ protected:
      */
     virtual void SetIsOnTheTree(bool flag);
 
+    /**
+     * @brief Flushes cached modifier properties when node goes back on the tree.
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    virtual bool FlushCachedModifiers()
+    {
+        return false;
+    }
+
+    /**
+     * @brief Flushes cached modifier properties for this node and all descendants
+     *        using level-order traversal (BFS).
+     * @return true if any cached modifier was flushed, false otherwise.
+     */
+    bool FlushCachedModifiersRecursively();
+
     bool IsLazyLoadCommand(const RSCommand& command) const
     {
         return std::find(lazyLoadCommandTypes_.begin(), lazyLoadCommandTypes_.end(),
-            std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
+                   std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
     }
 
     bool IsChildOperationCommand(const RSCommand& command) const
@@ -2370,6 +2413,10 @@ private:
 
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
     void SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params);
+    void ApplyColorfulBrightnessBlender(const ColorfulBrightnessBlender& blender);
+
+    void DetachFgBrightnessProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+    void DetachColorfulBrightnessBlenderProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     void NotifyPageNodeChanged() const;
 
@@ -2406,7 +2453,6 @@ private:
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     void AnimationDestroyInRenderCallback(AnimationId animationId, float fraction, bool isReverseCycle);
-    void ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme);
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -2415,6 +2461,8 @@ private:
     void FinishAnimationByProperty(const PropertyId& id);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
+    void ResetTransitionPairInfoBoth();
+    void RebuildTransitionPairInRender();
     void RebuildAnimationInRender();
     void RemoveParticleAnimations();
 
@@ -2504,6 +2552,12 @@ private:
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
+    struct TransitionPairInfo {
+        NodeId inNodeId = 0;
+        NodeId outNodeId = 0;
+        bool isInSameWindow = false;
+    };
+    std::optional<TransitionPairInfo> transitionPairInfo_;
     struct CommandInfo {
         CommandInfo()
             : command_(nullptr), isRenderServiceCommand_(false),
@@ -2534,6 +2588,7 @@ private:
     std::bitset<3> hasReportedSetUIXXFilterCascade_ = 0b000;
 
     friend class RSUIDirector;
+    friend class RSRenderInterface;
     friend class RSTransition;
     friend class RSSpringAnimation;
     friend class RSShowingPropertiesFreezer;
@@ -2551,6 +2606,7 @@ private:
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitAnimator;
     friend class RSCurveAnimation;
+    friend class RSAtlasInfoAnimation;
     friend class RSParticleAnimation;
     friend class RSAnimation;
     template<typename T>
@@ -2558,6 +2614,7 @@ private:
     template<typename T>
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
+    friend class RSCanvasNode;
     friend class RSSurfaceNode;
 
     // RSCmdModifier

@@ -34,7 +34,8 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM) override;
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM,
+        DvsyncDisableReason disableReason = DEFAULT_DVSYNCDISABLEREASON) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;

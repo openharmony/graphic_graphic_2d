@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_test_util.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
@@ -45,9 +46,6 @@ public:
 
 void RSRenderPipelineTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSUniRenderThread::Instance().InitGrContext();
 
     auto& renderNodeGC = RSRenderNodeGC::Instance();
@@ -60,26 +58,55 @@ void RSRenderPipelineTest::SetUpTestCase()
 }
 void RSRenderPipelineTest::TearDownTestCase()
 {
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine != nullptr) {
-        renderEngine->renderContext_ = nullptr;
+    // Clear GC buckets and node map to prevent ~RSContext → ~RSSurfaceRenderNode crash at process exit
+    RSTestUtil::InitRenderNodeGC();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.FilterNodeByPid(0, true);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->skContext_ = nullptr;
+        mainThread.renderEngine_->renderContext_ = nullptr;
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread.renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
     }
 
-    RSMainThread::Instance()->handler_ = nullptr;
-    RSMainThread::Instance()->receiver_ = nullptr;
-    RSMainThread::Instance()->renderEngine_ = nullptr;
+    mainThread.handler_ = nullptr;
+    mainThread.receiver_ = nullptr;
+    mainThread.renderEngine_ = nullptr;
 
     RSUniRenderThread::Instance().handler_ = nullptr;
     RSUniRenderThread::Instance().runner_ = nullptr;
     auto uniEngine = RSUniRenderThread::Instance().uniRenderEngine_;
     if (uniEngine != nullptr) {
+        if (uniEngine->renderContext_) {
+            uniEngine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (uniEngine->protectedRenderContext_) {
+            uniEngine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        uniEngine->skContext_ = nullptr;
         uniEngine->renderContext_ = nullptr;
+        uniEngine->protectedRenderContext_ = nullptr;
+        uniEngine->imageManager_ = nullptr;
+        uniEngine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        uniEngine->colorSpaceConverterDisplay_ = nullptr;
+#endif
     }
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 
-    auto& renderNodeGC = RSRenderNodeGC::Instance();
-    renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
-    renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
     usleep(5000);
 }
 void RSRenderPipelineTest::SetUp() {}
@@ -232,7 +259,7 @@ HWTEST_F(RSRenderPipelineTest, RemoveConnection_Existing_ReturnTrue, TestSize.Le
         sptr<IRemoteObject> obj_;
     };
     sptr<Token> token = new Token(remote);
-    bool ret = pipeline->RemoveConnection(token);
+    bool ret = pipeline->RemoveConnection(0, token);
     EXPECT_TRUE(ret);
     EXPECT_EQ(pipeline->renderConnections_.size(), 0U);
 }
@@ -294,7 +321,7 @@ HWTEST_F(RSRenderPipelineTest, RemoveConnection_TokenNotFound_ReturnFalse, TestS
     };
     sptr<DummyToken> token = new DummyToken(otherRemote);
     pipeline->renderConnections_.clear();
-    bool ret = pipeline->RemoveConnection(token);
+    bool ret = pipeline->RemoveConnection(0, token);
     EXPECT_FALSE(ret);
 }
 
@@ -317,7 +344,7 @@ HWTEST_F(RSRenderPipelineTest, AddConnection_DuplicateToken_NoOverride, TestSize
     auto conn2 = sptr<RSIClientToRenderConnection>(nullptr);
     pipeline->AddConnection(0, 0, remote, conn2);
     ASSERT_EQ(pipeline->renderConnections_.size(), 1U);
-    auto found = pipeline->FindClientToRenderConnection(0);
+    auto found = pipeline->FindClientToRenderConnection(0).first;
     EXPECT_EQ(found, conn1);
 }
 
@@ -336,14 +363,14 @@ HWTEST_F(RSRenderPipelineTest, FindClientToRenderConnection_FoundAndNotFound, Te
     sptr<IRemoteObject> remote = callback->AsObject();
     auto conn = sptr<RSIClientToRenderConnection>(nullptr);
     pipeline->AddConnection(0, 0, remote, conn);
-    auto found = pipeline->FindClientToRenderConnection(0);
+    auto found = pipeline->FindClientToRenderConnection(0).first;
     EXPECT_EQ(found, conn);
-    DefaultSurfaceBufferCallbackFuncs funcs6{};
+    DefaultSurfaceBufferCallbackFuncs funcs6 {};
     funcs6.OnFinish = [](const FinishCallbackRet&) {};
     funcs6.OnAfterAcquireBuffer = [](const AfterAcquireBufferRet&) {};
     sptr<RSDefaultSurfaceBufferCallback> otherCb = new RSDefaultSurfaceBufferCallback(funcs6);
     sptr<IRemoteObject> otherRemote = otherCb->AsObject();
-    auto notFound = pipeline->FindClientToRenderConnection(0);
+    auto notFound = pipeline->FindClientToRenderConnection(0).first;
     EXPECT_EQ(notFound, nullptr);
 }
 
@@ -644,8 +671,9 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
+    tunnelRuntime.SetBuilding();
     auto tunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
 
     sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
@@ -656,8 +684,6 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
         COMPOSITOR_ERROR_OK);
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
-
-    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -681,8 +707,8 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
     auto staleTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     tunnelRuntime.SetBuilding();
 
@@ -692,7 +718,7 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
     uint64_t currentTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
@@ -702,24 +728,22 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::UNAVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_NE(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_EQ(tunnelRuntime.GetTunnelLayerGeneration(), currentTunnelLayerGeneration);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
-    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
-    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
-
-    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::NOT_TUNNEL);
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -753,9 +777,9 @@ HWTEST_F(RSRenderPipelineTest, CollectInfoForHardwareComposer001, TestSize.Level
     surfaceNode->isHardwareEnabledNode_ = true;
     auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(consumer, nullptr);
-    RSTunnelRuntimeStore::SetLayerInfo(
-        surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    surfaceNode->GetTunnelRuntimeState()->SetLayerInfo(consumer->GetUniqueId(),
+        TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
+    auto& tunnelRuntime = *surfaceNode->GetTunnelRuntimeState();
     tunnelRuntime.SetBuilding();
     ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
 

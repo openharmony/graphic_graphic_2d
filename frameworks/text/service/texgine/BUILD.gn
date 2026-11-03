@@ -40,6 +40,15 @@ config("libtexgine_public_config") {
 }
 
 ohos_source_set("libtexgine_source") {
+  if (platform_is_ohos) {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+  }
   configs = [
     ":libtexgine_config",
     "//build/config/compiler:exceptions",

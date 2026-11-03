@@ -62,6 +62,8 @@ public:
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     virtual void CreateProtectiveSolidLayer(RSProtectiveSolidRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
+    virtual void CreateSolidColorLayerDirect(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
+    virtual void CreateSolidColorLayerDirectForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
 
     virtual bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid = 0);

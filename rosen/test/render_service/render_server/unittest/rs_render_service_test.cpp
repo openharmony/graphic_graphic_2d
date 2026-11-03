@@ -72,6 +72,7 @@ void RSRenderServiceTest::SetUpTestCase()
 void RSRenderServiceTest::TearDownTestCase()
 {
     if (RSSystemProperties::IsUseVulkan()) {
+        RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
         RSUniRenderThread::Instance().uniRenderEngine_.reset();
     }
     screenManager_ = nullptr;
@@ -149,6 +150,15 @@ HWTEST_F(RSRenderServiceTest, RenderProcessManagerInit001, TestSize.Level1)
     }
     renderService->RenderProcessManagerInit();
     ASSERT_NE(renderService->renderProcessManager_, nullptr);
+    if (renderService->vsyncManager_ != nullptr) {
+        auto rsDistributor = renderService->vsyncManager_->GetVsyncRSDistributor();
+        if (rsDistributor != nullptr) {
+            auto conn = rsDistributor->GetVSyncConnection(0);
+            if (conn != nullptr) {
+                conn->CloseReceiveFd();
+            }
+        }
+    }
 }
 
 HWTEST_F(RSRenderServiceTest, SAMgrRegister001, TestSize.Level1)
@@ -412,6 +422,37 @@ HWTEST_F(RSRenderServiceTest, HandlePowerStatus003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterRenderProcessConnection003
+ * @tc.desc: Test RegisterRenderProcessConnection returns non-null when pid is valid (true branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceTest, RegisterRenderProcessConnection003, TestSize.Level2)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto multiProcessManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    renderService->renderProcessManager_ = multiProcessManager;
+    pid_t childPid = fork();
+    ASSERT_GE(childPid, 0);
+    if (childPid == 0) {
+        pause();
+        _exit(0);
+    }
+    ProcessUniqueId childUid{childPid};
+    multiProcessManager->stateStore_.AddScreenOutputToProcess(childUid, TEST_SCREEN_ID, nullptr);
+    auto result = multiProcessManager->CreateRenderToServiceConnection(childPid);
+    EXPECT_NE(result, nullptr);
+    // Cleanup
+    multiProcessManager->stateStore_.RemoveScreenOutputFromProcess(childUid, TEST_SCREEN_ID);
+    kill(childPid, SIGKILL);
+    int status = 0;
+    waitpid(childPid, &status, 0);
+}
+
+/**
  * @tc.name: GetConnectionTest001
  * @tc.desc: branch 1 - token is nullptr, returns {nullptr, nullptr}
  * @tc.type: FUNC
@@ -463,4 +504,21 @@ HWTEST_F(RSRenderServiceTest, GetConnectionTest003, TestSize.Level1)
     ASSERT_EQ(result.first.GetRefPtr(), serviceConn.GetRefPtr());
     ASSERT_EQ(result.second.GetRefPtr(), renderConn.GetRefPtr());
 }
+
+#ifdef RES_SCHED_ENABLE
+/**
+ * @tc.name: SubScribeSystemAbility001
+ * @tc.desc: Test RSRenderService::SubScribeSystemAbility
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceTest, SubScribeSystemAbilityTest001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_EQ(renderService->saStatusChangeListener_, nullptr);
+    renderService->SubScribeSystemAbility();
+    EXPECT_NE(renderService->saStatusChangeListener_, nullptr);
+}
+#endif
 } // namespace OHOS::Rosen

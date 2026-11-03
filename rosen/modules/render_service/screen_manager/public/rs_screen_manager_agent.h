@@ -18,7 +18,6 @@
 
 #include "common/rs_event_def.h"
 #include "ipc_callbacks/screen_change_callback.h"
-#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -36,11 +35,10 @@ public:
     void OnScreenSwitchingNotify(bool status) override;
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
-    void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
+    void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> screenChangeCallback);
     void SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback);
     void SetExposedEventCallback(const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback);
     void SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
-
 private:
     std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
@@ -93,8 +91,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
-    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
     int32_t RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
@@ -106,13 +104,16 @@ public:
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) const;
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const;
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const;
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) const;
@@ -142,6 +143,7 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenSwitchStatus(bool status);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
     int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
     ScreenId GetMainScreenId();

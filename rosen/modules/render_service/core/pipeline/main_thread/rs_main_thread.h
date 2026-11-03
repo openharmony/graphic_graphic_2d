@@ -17,6 +17,7 @@
 #define RS_MAIN_THREAD
 
 #include <event_handler.h>
+#include <cstdint>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -51,7 +52,6 @@
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
-#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
@@ -59,10 +59,6 @@
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
-
-#ifdef RES_SCHED_ENABLE
-#include "vsync_system_ability_listener.h"
-#endif
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
@@ -77,6 +73,8 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
+class RSProcessor;
+class RSSurfaceRenderNode;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -232,22 +230,15 @@ public:
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ReleaseImageMem();
 
-    void AddUiCaptureTask(NodeId id, std::function<void()> task);
-    void ProcessUiCaptureTasks();
+    void AddUiCaptureTask(NodeId id, bool isSystemCalling, std::function<void()> task);
+    void AddSyncWindowCaptureTask(NodeId id, std::function<void()> task);
+    void ProcessSyncCaptureTasks();
 
     void AddWindowCapTask(NodeId id, std::function<void()> task);
     void CheckWindowCapTasks();
     void ProcessWindowCapTasks();
     bool IsSnapshotPendingThisFrame() const;
     bool IsLastFrameGpuComposition() const { return directComposeHelper_.lastFrameDidGpuRender_; }
-    uint32_t GetConsecutiveDoCompSuccessCount() const
-    {
-        return directComposeHelper_.consecutiveDoCompSuccessCount_.load(std::memory_order_acquire);
-    }
-    void ResetConsecutiveDoCompSuccessCount()
-    {
-        directComposeHelper_.consecutiveDoCompSuccessCount_.store(0, std::memory_order_release);
-    }
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -294,6 +285,7 @@ public:
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
+    void ClearPersistentProperties(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -470,7 +462,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void SetBufferInfo(const BufferInfo& bufferInfo);
     void GetFrontBufferDesiredPresentTimeStamp(
-        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
+        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp, pid_t pid);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
@@ -479,7 +471,13 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
+    void ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
+
+    // Query bundleName by pid, used by base-layer commands (e.g. RecreateNodeAndSurface)
+    // to compensate bundleName lost during rebuild. RSMainThread is a singleton, no UAF risk.
+    std::string QueryBundleName(pid_t pid);
+    void RemoveBundleNameFromCache(pid_t pid);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -525,6 +523,11 @@ public:
     void ProcessPendingCommandsDuringRebuild(pid_t pid); // replay normal transactions cached during the pid's rebuild
     void ClearRebuildTransactionData(pid_t pid); // clear this pid's rebuild queue and cached commands
 
+    const std::unordered_map<pid_t, size_t>& GetCanvasDrawingNodeOpCountMap() const
+    {
+        return canvasDrawingNodeOpCountMap_;
+    }
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -543,14 +546,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
-    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void CreateProtectiveSolidRenderNode(ScreenId screenId);
     void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
-    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
+    void HandleProtectiveSolidNode(ScreenId id);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -608,14 +611,18 @@ private:
     uint32_t GetForceCommitReason() const;
 
     void TraverseCanvasDrawingNodes();
+    void CheckDrawOpOverLimit();
+    void CheckCommandOverLimit(const std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool CheckIfNeedSplitTransaction();
 
     void SetFocusLeashWindowId();
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
-#ifdef RES_SCHED_ENABLE
-    void SubScribeSystemAbility();
-#endif
+
+    void AddDisableReason(const std::string& reason);
+    void ResetDisableReasons();
+    std::string GetDisableReasons() const;
+
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     void ConnectChipsetVsyncSer();
     void SetVsyncInfo(uint64_t timestamp);
@@ -632,7 +639,10 @@ private:
     void UpdateLuminanceAndColorTemp();
     void UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
 
-    void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareSyncCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
+    void PrepareCaptureQueue(
+        std::vector<std::tuple<NodeId, std::function<void()>>>& pending,
+        std::queue<std::tuple<NodeId, std::function<void()>>>& ready);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
     void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
@@ -650,10 +660,15 @@ private:
     std::string SubPriorityEventQueue(std::string input);
 
     // Enable HWCompose
+    void HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void CollectInfoForHardwareComposer();
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    // SolidLayerEnabled node without buffer: create solid color layer directly and return true;
+    // Otherwise return false to fall through to the buffer-based path.
+    bool ProcessSolidLayerInDirectComposition(
+        RSSurfaceRenderNode& surfaceNode, RSSurfaceHandler& surfaceHandler, RSProcessor& processor);
     bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
@@ -677,7 +692,8 @@ private:
 
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
-    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor,
+        std::set<NodeId>& quickPrepareNodeIds);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
@@ -834,7 +850,6 @@ private:
 #ifdef RS_ENABLE_GPU
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
 
     // Enable HWCompose
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
@@ -842,6 +857,8 @@ private:
     bool isHardwareEnabledBufferUpdated_ = false;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool doDirectComposition_ = true;
+    std::string directCompositionDisableReasons_;
+    bool isDirectCompositionDisableTraceTruncated_ = false;
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
@@ -886,10 +903,15 @@ private:
     // used for watermark
     std::mutex watermarkMutex_;
 
-    // for ui captures
-    std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
-    std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
-    // for window captures
+    // for ui captures (UICAPTURE type, isSync); split by caller identity to apply separate in-flight limits
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingNonSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> nonSystemUiCaptureTasks_;
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSystemUiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> systemUiCaptureTasks_;
+    // for sync window captures (DEFAULT_CAPTURE type, isSync)
+    std::vector<std::tuple<NodeId, std::function<void()>>> pendingSyncWindowCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> syncWindowCaptureTasks_;
+    // for window captures waiting cache
     std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
@@ -899,6 +921,10 @@ private:
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
+
+    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+    std::unordered_map<pid_t, int64_t> lastDrawOpReportTimeMap_;
+    std::unordered_map<pid_t, int64_t> lastCommandReportTimeMap_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
@@ -921,13 +947,9 @@ private:
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
 #endif
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
-    std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool isWebCommandOnly_ = false;
@@ -955,6 +977,10 @@ private:
 
     // for protectiveSolidNode
     std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
+
+    // for QueryBundleName
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    std::mutex pidToBundleMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -863,60 +863,6 @@ HWTEST_F(RSNodeCommandTest, SetColorPickerCallbackProcessorTest, TestSize.Level1
 }
 
 /**
- * @tc.name: ColorPickerDestroyInRenderTest001
- * @tc.desc: Test ColorPickerDestroyInRender with null processor
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest001, TestSize.Level1)
-{
-    RSContext context;
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
-    RSNodeCommandHelper::ColorPickerDestroyInRender(
-        context, 1, 0, 100, static_cast<uint8_t>(ContrastColorScheme::LIGHT));
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: ColorPickerDestroyInRenderTest002
- * @tc.desc: Test ColorPickerDestroyInRender with valid processor
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest002, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 1;
-    uint64_t token = 100;
-    auto colorScheme = ContrastColorScheme::DARK;
-
-    static bool callbackInvoked = false;
-    static NodeId receivedNodeId = 0;
-    static uint64_t receivedToken = 0;
-    static ContrastColorScheme receivedColorScheme = ContrastColorScheme::INVALID;
-
-    callbackInvoked = false;
-    receivedNodeId = 0;
-    receivedToken = 0;
-    receivedColorScheme = ContrastColorScheme::INVALID;
-
-    auto processor = [](NodeId nid, uint64_t tokenValue, ContrastColorScheme lastContrastColorScheme) {
-        callbackInvoked = true;
-        receivedNodeId = nid;
-        receivedToken = tokenValue;
-        receivedColorScheme = lastContrastColorScheme;
-    };
-
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(processor);
-    RSNodeCommandHelper::ColorPickerDestroyInRender(context, nodeId, 0, token, static_cast<uint8_t>(colorScheme));
-
-    EXPECT_TRUE(callbackInvoked);
-    EXPECT_EQ(receivedNodeId, nodeId);
-    EXPECT_EQ(receivedToken, token);
-    EXPECT_EQ(receivedColorScheme, colorScheme);
-
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
-}
-
-/**
  * @tc.name: ReSortChildrenByZIndexTest
  * @tc.desc: Test ReSortChildrenByZIndex
  * @tc.type: FUNC
@@ -991,51 +937,35 @@ HWTEST_F(RSNodeCommandTest, UpdateModifierNGDrawCmdListTypeMismatch001, TestSize
 }
 
 /**
- * @tc.name: UpdatePropertyTypeMismatch001
- * @tc.desc: Test UpdateProperty with type mismatch - property type is float but update with int.
+ * @tc.name: SetTakeSurfaceForUIFlag001
+ * @tc.desc: test SetTakeSurfaceForUIFlag when node is not found, flag is still inserted
  * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMismatch001, TestSize.Level1)
+HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 1;
-    PropertyId propertyId = 100;
-
-    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    ASSERT_NE(node, nullptr);
-
-    auto floatProperty = std::make_shared<RSRenderProperty<float>>(1.0f, propertyId);
-    node->RegisterProperty(floatProperty);
-    EXPECT_FALSE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::BOOL, nodeId));
-
-    float initialValue = floatProperty->Get();
-    RSNodeCommandHelper::UpdateProperty<bool>(context, nodeId, true, propertyId, UPDATE_TYPE_OVERWRITE);
-
-    EXPECT_EQ(floatProperty->Get(), initialValue);
+    NodeId nodeId = 99999;
+    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
+    auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
+    EXPECT_EQ(cmdFlag.first, true);
+    EXPECT_NE(cmdFlag.second, 0u);
 }
 
 /**
- * @tc.name: UpdatePropertyTypeMatch001
- * @tc.desc: Test UpdateProperty with correct type match - float property with float value.
+ * @tc.name: SetTakeSurfaceForUIFlag002
+ * @tc.desc: test SetTakeSurfaceForUIFlag when node exists, flag should be inserted with true
  * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMatch001, TestSize.Level1)
+HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag002, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 2;
-    PropertyId propertyId = 200;
-
+    NodeId nodeId = 1;
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-    ASSERT_NE(node, nullptr);
-
-    auto floatProperty = std::make_shared<RSRenderProperty<float>>(0.0f, propertyId);
-    node->RegisterProperty(floatProperty);
-    EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::FLOAT, nodeId));
-
-    RSNodeCommandHelper::UpdateProperty<float>(context, nodeId, 42.5f, propertyId, UPDATE_TYPE_OVERWRITE);
-
-    EXPECT_EQ(floatProperty->Get(), 42.5f);
+    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
+    auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
+    EXPECT_EQ(cmdFlag.first, true);
+    EXPECT_NE(cmdFlag.second, 0u);
 }
 } // namespace OHOS::Rosen

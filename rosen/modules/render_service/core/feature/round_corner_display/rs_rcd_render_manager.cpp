@@ -19,7 +19,6 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
@@ -55,8 +54,6 @@ namespace {
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
     std::make_unique<RSRcdRenderManager>();
 
-bool RSRcdRenderManager::isRcdServiceRegister_ = false;
-
 RSRcdRenderManager& RSRcdRenderManager::GetInstance()
 {
     return *g_rcdRenderManagerInstance;
@@ -65,28 +62,6 @@ RSRcdRenderManager& RSRcdRenderManager::GetInstance()
 void RSRcdRenderManager::InitInstance()
 {
     g_rcdRenderManagerInstance->rcdRenderEnabled_ = true;
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        if (!isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
-            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
-                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateDisplayParameter);
-            msgBus.RegisterTopic<NodeId, ScreenRotation>(
-                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateOrientationStatus);
-            msgBus.RegisterTopic<NodeId, int>(
-                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateNotchStatus);
-            msgBus.RegisterTopic<NodeId, bool>(
-                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
-            isRcdServiceRegister_ = true;
-            RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice end.");
-            return;
-        }
-        RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice already.");
-    }
 }
 
 bool RSRcdRenderManager::GetRcdRenderEnabled() const
@@ -231,7 +206,7 @@ void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& in
         info.resourceChanged);
     auto topRes = visitor->ProcessRcdSurfaceRenderNode(*topPtr, info.topLayer, info.resourceChanged);
     if (info.resourceChanged && bottomRes && topRes) {
-        RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, id, true);
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().UpdateHardwareResourcePrepared(id, true);
     }
     RS_TRACE_END();
 }

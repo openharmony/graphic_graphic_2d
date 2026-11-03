@@ -82,6 +82,8 @@ public:
 
     ErrCode SetUifirstScale(float scaleFactor) override;
 
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
@@ -114,6 +116,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
 
+    void SetThermalFrameRateLimit(uint32_t frameRate) override;
+    
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) override;
 
@@ -135,7 +139,8 @@ public:
     ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) override;
     ErrCode GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable) override;
 
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode) override;
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
 
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
@@ -171,6 +176,7 @@ public:
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid) override;
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) override;
@@ -187,6 +193,10 @@ public:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
+
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) override;
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
@@ -235,6 +245,8 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) override;
 
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
@@ -322,6 +334,8 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
 
+    int32_t AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized) override;
+
     ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
@@ -363,11 +377,7 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
 
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
-
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
-
-    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
 

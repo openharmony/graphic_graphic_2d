@@ -15,7 +15,8 @@
 
 #include "rs_render_process_manager.h"
 
-#include "rs_ipc_persistence_data.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.h"
+#include "render_process/transaction/zidl/transfers/rs_on_hwc_event_transfer.h"
 #include "rs_render_service.h"
 
 #undef LOG_TAG
@@ -38,14 +39,12 @@ sptr<RSRenderProcessManager> RSRenderProcessManager::Create(
 
 void RSRenderProcessManager::OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    if (auto ipcPersistenceManager = GetIpcPersistenceManager()) {
-        auto data = std::make_shared<OnHwcEventPersistenceData>(deviceId, eventId, eventData);
-        ipcPersistenceManager->RegisterWithoutCallingPid(data);
-    }
-    auto serviceToRenderConns = GetServiceToRenderConns();
-    for (const auto& conn : serviceToRenderConns) {
-        RS_LOGI("%{public}s: OnHwcEvent start", __func__);
-        conn->HandleHwcEvent(deviceId, eventId, eventData);
+    RS_LOGD("%{public}s: deviceId:%{public}u, eventId:%{public}u, eventDataSize:%{public}zu",
+        __func__, deviceId, eventId, eventData.size());
+    auto transfer = std::make_shared<OnHwcEventTransfer>(
+        std::make_shared<OnHwcEventInput>(deviceId, eventId, eventData));
+    if (SendTransfer(transfer) != StatusCode::SUCCESS) {
+        RS_LOGD("%{public}s: SendTransfer failed", __func__);
     }
 }
 

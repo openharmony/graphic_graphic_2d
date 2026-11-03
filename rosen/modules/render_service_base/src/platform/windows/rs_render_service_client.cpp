@@ -53,6 +53,11 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return {};
 }
 
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
     uint32_t rowCount, uint32_t colCount)
 {
@@ -194,6 +199,10 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 {
 }
 
+void RSRenderServiceClient::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+}
+
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
 }
@@ -242,7 +251,8 @@ std::string RSRenderServiceClient::GetRefreshInfoByPidAndUniqueId(pid_t pid, uin
     return "";
 }
 
-int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     return 0;
 }
@@ -368,6 +378,16 @@ int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return {};
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     return {};
@@ -405,7 +425,8 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
 
 int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
-    return {};
+    pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
+    return RS_CONNECTION_ERROR;
 }
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
@@ -447,7 +468,8 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    return {};
+    screenType = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    return RS_CONNECTION_ERROR;
 }
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
@@ -516,6 +538,10 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_
 }
 
 void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
+void RSRenderServiceClient::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
 {
 }
 
@@ -715,6 +741,11 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback,
     bool unobscured)
+{
+    return {};
+}
+
+bool RSRenderServiceClient::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
 {
     return {};
 }

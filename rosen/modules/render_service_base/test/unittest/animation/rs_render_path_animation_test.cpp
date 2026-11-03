@@ -38,9 +38,10 @@ public:
         propertyId, originPosition, startPosition, endPosition, originRotation, animationPath) {}
     ~RSRenderPathAnimationMock() = default;
 
-    void OnAnimate(float fraction) override
+    bool OnAnimate(float fraction) override
     {
         RSRenderPathAnimation::OnAnimate(fraction);
+        return false;
     }
 
     void OnRemoveOnCompletion() override
@@ -464,8 +465,6 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate006, TestSize.Level1)
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
         property, property1, property2, 1.0f, path);
     EXPECT_TRUE(renderPathAnimation != nullptr);
-    renderPathAnimation->originValue_.reset();
-    EXPECT_TRUE(renderPathAnimation->GetOriginValue() == nullptr);
     renderPathAnimation->OnAnimate(1.0f);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate006 end";
 }
@@ -593,7 +592,6 @@ HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue001, TestSize.Level1)
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2, 0.f, animationPath);
     renderPathAnimation->SetInterpolator(std::make_shared<LinearInterpolator>());
-    renderPathAnimation->originValue_ = nullptr;
     renderPathAnimation->RebuildPropertyValue(0.5f);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue001 end";
 }
@@ -606,12 +604,16 @@ HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue001, TestSize.Level1)
 HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue002 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_DEFAULT_4F_VALUE,
+        PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE,
+        PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE,
+        PROPERTY_ID);
     auto animationPath = RSPath::CreateRSPath(ANIMATION_PATH);
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2, 0.f, animationPath);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->interpolator_ = nullptr;
     renderPathAnimation->RebuildPropertyValue(0.5f);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue002 end";
@@ -625,12 +627,16 @@ HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue002, TestSize.Level1)
 HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue003 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_DEFAULT_4F_VALUE,
+        PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE,
+        PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE,
+        PROPERTY_ID);
     auto animationPath = RSPath::CreateRSPath(ANIMATION_PATH);
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2, 0.f, animationPath);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->SetInterpolator(std::make_shared<LinearInterpolator>());
     renderPathAnimation->valueEstimator_ = nullptr;
     renderPathAnimation->RebuildPropertyValue(0.5f);
@@ -659,6 +665,30 @@ HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RebuildPropertyValue005
+ * @tc.desc: Verify RebuildPropertyValue with VECTOR4F property type and valid estimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue005 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_DEFAULT_4F_VALUE,
+        PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE,
+        PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE,
+        PROPERTY_ID);
+    auto animationPath = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2, 0.f, animationPath);
+    renderPathAnimation->SetInterpolator(std::make_shared<LinearInterpolator>());
+    renderPathAnimation->property_ = property;
+    renderPathAnimation->InitValueEstimator();
+    renderPathAnimation->RebuildPropertyValue(0.5f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue005 end";
+}
+
+/**
  * @tc.name: OnAnimate007
  * @tc.desc: Verify OnAnimate with non-VECTOR2F and non-VECTOR4F property type
  *           triggers the type guard and returns early
@@ -675,9 +705,9 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate007, TestSize.Level1)
         property, property1, property2, 1.0f, path);
     EXPECT_TRUE(renderPathAnimation != nullptr);
     renderPathAnimation->SetIsNeedPath(true);
-    EXPECT_TRUE(renderPathAnimation->GetOriginValue() != nullptr);
-    EXPECT_TRUE(renderPathAnimation->GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR2F);
-    EXPECT_TRUE(renderPathAnimation->GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F);
+    renderPathAnimation->property_ = property;
+    EXPECT_TRUE(property->GetPropertyType() != RSPropertyType::VECTOR2F);
+    EXPECT_TRUE(property->GetPropertyType() != RSPropertyType::VECTOR4F);
     renderPathAnimation->OnAnimate(1.0f);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate007 end";
 }
@@ -697,6 +727,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateInterpolatorNull001, TestSize.Level
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
     renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->interpolator_ = nullptr;
     renderPathAnimation->valueEstimator_ = std::make_shared<RSCurveValueEstimator<Vector4f>>();
     renderPathAnimation->OnAnimate(0.5f);
@@ -719,6 +750,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateInterpolatorNull002, TestSize.Level
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
     renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->interpolator_ = nullptr;
     renderPathAnimation->valueEstimator_ = std::make_shared<RSCurveValueEstimator<Vector4f>>();
     renderPathAnimation->OnAnimate(0.5f);
@@ -741,6 +773,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateValueEstimatorNull001, TestSize.Lev
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
     renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->valueEstimator_ = nullptr;
     renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
     renderPathAnimation->OnAnimate(0.5f);
@@ -763,6 +796,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateBothNotNull001, TestSize.Level1)
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
     renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->property_ = property;
     auto estimator = std::make_shared<RSCurveValueEstimator<Vector4f>>();
     estimator->InitCurveAnimationValue(property, startProperty, endProperty, property);
     renderPathAnimation->valueEstimator_ = estimator;
@@ -787,6 +821,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateVector4fEstimatorNull001, TestSize.
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
     renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->property_ = property;
     renderPathAnimation->valueEstimator_ = nullptr;
     renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
     renderPathAnimation->OnAnimate(0.5f);
@@ -817,6 +852,46 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimateIsNeedPathBothNotNull001, TestSize.
     renderPathAnimation->OnAnimate(0.5f);
     EXPECT_NE(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateIsNeedPathBothNotNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateEstimatorTypeMismatch001
+ * @tc.desc: Verify OnAnimate returns false when valueEstimator type is not CURVE_VALUE_ESTIMATOR
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateEstimatorTypeMismatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateEstimatorTypeMismatch001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(500.f, 500.f, 500.f, 500.f));
+    auto path = RSPath::CreateRSPath("M0 0 L500 500");
+
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->property_ = property;
+    auto keyframeEstimator = std::make_shared<RSKeyframeValueEstimator<Vector4f>>();
+    renderPathAnimation->valueEstimator_ = keyframeEstimator;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    EXPECT_FALSE(renderPathAnimation->OnAnimate(0.5f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateEstimatorTypeMismatch001 end";
+}
+
+/**
+ * @tc.name: GetType001
+ * @tc.desc: Verify GetType returns PATH_ANIMATION
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, GetType001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.f));
+    auto path = RSPath::CreateRSPath("M0 0 L500 500");
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    EXPECT_EQ(renderPathAnimation->GetType(), RSRenderAnimationType::PATH_ANIMATION);
 }
 
 } // namespace Rosen

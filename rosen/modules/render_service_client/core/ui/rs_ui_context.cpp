@@ -269,6 +269,24 @@ void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId 
     interactiveImplictAnimators_.erase(id);
 }
 
+std::set<NodeId> RSUIContext::GetGroupAnimationNodeIds()
+{
+    std::set<NodeId> nodeIds;
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    for (const auto& [_, animator] : interactiveImplictAnimators_) {
+        if (!animator || !animator->IsGroupAnimator()) {
+            continue;
+        }
+        if (animator->GetRepeatCount() != -1) {
+            continue;
+        }
+        for (const auto& [__, nodeId] : animator->GetAnimations()) {
+            nodeIds.insert(nodeId);
+        }
+    }
+    return nodeIds;
+}
+
 void RSUIContext::SetRebuildState(RebuildState state)
 {
     std::lock_guard<std::mutex> lock(rebuildStateMutex_);
@@ -334,6 +352,14 @@ bool RSUIContext::DestroyModifiersDraw()
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSUIContext::SetCacheDir(const std::string& cacheFilePath)
+{
+    cacheDir_ = cacheFilePath;
+    if (canvasModifiersDrawAgent_ != nullptr) {
+        canvasModifiersDrawAgent_->SetCacheDir(cacheDir_);
+    }
+}
+
 void RSUIContext::UnblockUIThread()
 {
     std::unique_lock<std::mutex> uiLock(uiMutex_);
@@ -343,17 +369,27 @@ void RSUIContext::UnblockUIThread()
     }
 }
 
+std::shared_ptr<RSCanvasModifiersDrawAgent> RSUIContext::GetCanvasModifiersDrawAgent()
+{
+    if (canvasModifiersDrawAgent_ == nullptr) {
+        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+        if (!cacheDir_.empty()) {
+            canvasModifiersDrawAgent_->SetCacheDir(cacheDir_);
+        }
+    }
+    return canvasModifiersDrawAgent_;
+}
+
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
 {
     if (modifiersDrawThread_ == nullptr) {
         modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
-        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
     }
 
     modifiersDrawThread_->Start();
     std::weak_ptr<RSUIContext> weakContext = shared_from_this();
     return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPiplineClient,
-        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, std::atomic<uint32_t>& transactionDataIndex) {
         if (renderPiplineClient == nullptr) {
             RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null renderPiplineClient.");
             return;
@@ -379,11 +415,15 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
         uiContext->modifiersDrawThread_->ScheduleTask(
             [uiContext, renderPiplineClient, transactionData = std::move(rsTransactionData),
                 &transactionDataIndex, index = commitIndex]() mutable {
-                if (uiContext->modifiersDrawThread_ != nullptr && uiContext->canvasModifiersDrawAgent_ != nullptr) {
+                if (uiContext->modifiersDrawThread_ != nullptr) {
                     RS_TRACE_NAME_FMT("Do CommitTransaction, index=%u", index);
                     uiContext->modifiersDrawThread_->CommitTransaction(uiContext->canvasModifiersDrawAgent_,
-                        renderPiplineClient, std::move(transactionData), transactionDataIndex);
+                        renderPiplineClient, transactionData, transactionDataIndex);
                 }
+                // Move transactionData back to UI thread for destruction to avoid
+                // releasing it on the ModifiersDraw thread.
+                auto sharedData = std::shared_ptr<RSTransactionData>(std::move(transactionData));
+                uiContext->PostTask([sharedData]() {});
                 uiContext->UnblockUIThread();
             });
     };

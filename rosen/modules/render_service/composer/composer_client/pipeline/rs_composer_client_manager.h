@@ -29,6 +29,7 @@ struct TunnelLayerCommitInfo {
     uint64_t surfaceId = 0;
     NodeId nodeId = 0;
     uint64_t tunnelLayerId = 0;
+    ScreenId screenId = 0;
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
 };
@@ -47,6 +48,8 @@ public:
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     void MarkTunnelSurfaceInvalid(ScreenId screenId, uint64_t surfaceId);
     void SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix);
+    void SetActiveRectSwitchStatus(ScreenId screenId, bool flag, const RectI& activeRect);
+    void SetSkipDelay(ScreenId screenId, bool skipDelay);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

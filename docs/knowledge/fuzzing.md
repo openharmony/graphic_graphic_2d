@@ -46,6 +46,33 @@ App → RSCommand → RSTransactionData → COMMIT_TRANSACTION → unmarshalling
 4. 服务端 `Unmarshalling` 反序列化，任一参数失败返回 `nullptr`
 5. 遍历执行每个 command 的 `Process()`，节点查找结果判空后执行业务逻辑
 
+### 1.3 大事务共享内存（memfd）协议与安全模型
+
+`COMMIT_TRANSACTION` 大 parcel 走共享内存通道（`RSAshmemHelper::CreateAshmemParcel` /
+`ParseFromAshmemParcel`，rs_ashmem_helper.cpp），安全不变量如下，改动该路径必须全部保持：
+
+- 共享内存通道承载纯数据 + **仅 `BINDER_TYPE_FD`**：parcel 含任何非 FD 的 binder 对象
+  （RemoteObject 等）时，`CreateAshmemParcel` 拒绝创建（发送方回退普通 binder 事务）、
+  `CopyParcelIfNeed` 回退不拷贝；接收侧按 offset 校验类型，非 FD 一律拒绝。
+- `RSMarshallingHelper` 不提供 `sptr<IRemoteObject>` 的 Marshalling/Unmarshalling 通路，
+  命令层不得经事务数据携带 RemoteObject。
+- 共享内存为 memfd：发送方写完即 unmap 并 seal（`F_SEAL_SEAL|SHRINK|GROW|WRITE`），
+  接收方校验 `F_GET_SEALS` 四项 + `fstat` size 后按声明大小只读映射（消除 ToCToU）。
+- 共享内存中 FD 的 payload 在发送前被抹去（handle→-1、cookie→0，保留 `hdr.type` 供判型）；
+  真正的 fd 经普通 binder parcel（内核转换）按 offsets 顺序传输，接收侧按 offset 存入
+  `AshmemFdContainer`；反序列化经 `ReadSafeFd` 按 offset 取容器值，游标靠消费
+  `flat_binder_object` 推进，不得信任共享内存内容。
+- 接收侧**禁止** `InjectOffsets`、禁止写共享内存；未走安全函数的读取只能得到
+  -1/nullptr（fail-closed）。
+- 非 uniRender 的立即反序列化分支同样需要先 `SetIsUnmarshalThread(true)` +
+  `PushFdsToContainer()`，结束后 reset worker 并还原线程状态；收集的 fd 一律由
+  `~AshmemFdWorker` 关闭（dup 自 ashmem parcel，worker 独占所有权，无需再手动开启）。
+- `CopyParcelIfNeed`（uniRender 大 parcel 拷贝）只对 `BINDER_TYPE_FD` 做 dup，
+  dup 出的 fd 由拷贝 parcel 析构时 `~MessageParcel(ClearFileDescriptor)` 关闭；
+  失败路径将仍指向原 parcel 的 fd payload 置 0，避免跨 parcel 双重关闭。
+- `RSMarshallingHelper::WriteToParcel` 的大数据 blob 同样使用 memfd+seal；
+  `CreateAshmemAllocatorWithFd` 强制 seal 校验，非密封 fd 一律拒绝。
+
 ## 2. 新增 IPC 接口注意事项
 
 基于 `CreateConnection` 实际代码的注意事项：

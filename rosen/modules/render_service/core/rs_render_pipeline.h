@@ -121,7 +121,7 @@ private:
     void InitUniRenderThread();
     void InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
-    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> AddConnection(pid_t remotePid, uint64_t tokenMaskId,
         sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
@@ -140,9 +140,12 @@ private:
     void RegisterLayerStateChangedCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
-    std::map<sptr<IRemoteObject>, std::pair<uint64_t, sptr<RSIClientToRenderConnection>>> renderConnections_ = {};
-    std::unordered_map<uint64_t, sptr<IRemoteObject>> tokenMaskIdMapTokens_ = {};
-    std::unordered_map<uint64_t, sptr<IRemoteObject>> connectionProcessPid_;
+    struct RenderConnectionInfo {
+        uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
+        sptr<IRemoteObject> token;
+        sptr<RSIClientToRenderConnection> connection;
+    };
+    std::unordered_map<pid_t, RenderConnectionInfo> renderConnections_;
     mutable std::mutex renderConnectionMutex_;
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
     std::shared_ptr<RSPipelineDumper> rpDumper_ = nullptr;

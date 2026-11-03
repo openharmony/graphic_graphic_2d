@@ -24,6 +24,8 @@ namespace OHOS {
 namespace Rosen {
 class ObjectManager {
 public:
+    static constexpr std::size_t MAX_WEBGL_CONTEXT_COUNT = 64;
+
     static ObjectManager& GetInstance()
     {
         static ObjectManager manager;
@@ -42,10 +44,20 @@ public:
         return static_cast<WebGLRenderingContextBasicBase*>(it->second);
     }
 
-    void AddWebGLObject(bool webGL2, const std::string& contextId, WebGLRenderingContextBasicBase* obj)
+    bool AddWebGLObject(bool webGL2, const std::string& contextId, WebGLRenderingContextBasicBase* obj)
     {
+        if (obj == nullptr) {
+            return false;
+        }
         int index = webGL2 ? 1 : 0;
-        webGLObjects_[index].insert({ contextId, obj });
+        auto& objects = webGLObjects_[index];
+        if (objects.find(contextId) != objects.end()) {
+            return false;
+        }
+        if (webGLObjects_[0].size() + webGLObjects_[1].size() >= MAX_WEBGL_CONTEXT_COUNT) {
+            return false;
+        }
+        return objects.insert({ contextId, obj }).second;
     }
 
     void DeleteWebGLObject(bool webGL2, WebGLRenderingContextBasicBase* obj)

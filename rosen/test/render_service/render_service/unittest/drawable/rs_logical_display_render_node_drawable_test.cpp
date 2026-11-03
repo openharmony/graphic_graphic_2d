@@ -48,6 +48,10 @@ namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr float FLOAT_DATA_EPSILON = 1e-6f;
+constexpr uint32_t ROG_RENDER_WIDTH = 1080;
+constexpr uint32_t ROG_RENDER_HEIGHT = 2400;
+constexpr int32_t ROG_RATIO = 2;
+const RectI ROG_DAMAGE_RECT = { 200, 400, 100, 200 };
 }
 class RSLogicalDisplayRenderNodeDrawableTest : public testing::Test {
 public:
@@ -78,15 +82,96 @@ public:
 
 void RSLogicalDisplayRenderNodeDrawableTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
+    // Clean up stale global state from previous test suites
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
 }
 
-void RSLogicalDisplayRenderNodeDrawableTest::TearDownTestCase() {}
+void RSLogicalDisplayRenderNodeDrawableTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    if (mainThread.context_) {
+        auto& root = mainThread.context_->globalRootRenderNode_;
+        if (root) {
+            auto* rootNode = static_cast<RSRenderNode*>(root.get());
+            if (rootNode && rootNode->renderDrawable_) {
+                rootNode->renderDrawable_ = nullptr;
+            }
+        }
+        root = nullptr;
+        mainThread.context_->nodeMap.renderNodeMap_.clear();
+        mainThread.context_->nodeMap.surfaceNodeMap_.clear();
+        mainThread.context_->nodeMap.residentSurfaceNodeMap_.clear();
+        mainThread.context_->nodeMap.protectiveSolidNodeMap_.clear();
+        mainThread.context_->nodeMap.screenNodeMap_.clear();
+        mainThread.context_->nodeMap.logicalDisplayNodeMap_.clear();
+        mainThread.context_->nodeMap.canvasDrawingNodeMap_.clear();
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    auto& renderNodeGC = RSRenderNodeGC::Instance();
+    renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+    renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+}
 
 void RSLogicalDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -196,8 +281,122 @@ void RSLogicalDisplayRenderNodeDrawableTest::SetUp()
 
 void RSLogicalDisplayRenderNodeDrawableTest::TearDown()
 {
+    auto cleanupScreenPropertySptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr || drawable->renderParams_ == nullptr) {
+            return;
+        }
+        auto* screenParams = static_cast<RSScreenRenderParams*>(drawable->GetRenderParams().get());
+        if (screenParams == nullptr) {
+            return;
+        }
+        auto& props = screenParams->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : props) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        props.clear();
+    };
+    cleanupScreenPropertySptrs(screenDrawable_);
+    cleanupScreenPropertySptrs(mirroredScreenDrawable_);
+
+    // Clean up sptrs in RSSurfaceHandler buffer entries
+    auto cleanupSurfaceHandlerSptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr || drawable->surfaceHandler_ == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        drawable->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        drawable->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        drawable->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        drawable->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        drawable->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        drawable->surfaceHandler_->holdBuffer_ = nullptr;
+    };
+    cleanupSurfaceHandlerSptrs(screenDrawable_);
+    cleanupSurfaceHandlerSptrs(mirroredScreenDrawable_);
+
+    // Clean up sptrs in RSScreenRenderNodeDrawable
+    auto cleanupDrawableSptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        drawable->consumerListener_.ForceSetRefPtr(nullptr);
+#endif
+    };
+    cleanupDrawableSptrs(screenDrawable_);
+    cleanupDrawableSptrs(mirroredScreenDrawable_);
+
+    auto cleanupNodeScreenPropertySptrs = [](RSScreenRenderNode* node) {
+        if (node == nullptr) {
+            return;
+        }
+        // Clean up stagingRenderParams_->screenProperty_.screenProperties_
+        if (node->stagingRenderParams_ != nullptr) {
+            auto* screenParams =
+                static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+            if (screenParams != nullptr) {
+                auto& props = screenParams->screenProperty_.screenProperties_;
+                for (auto& [key, sptrVal] : props) {
+                    sptrVal.ForceSetRefPtr(nullptr);
+                }
+                props.clear();
+            }
+        }
+        // Clean up node's own screenProperty_.screenProperties_
+        auto& nodeProps = node->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : nodeProps) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        nodeProps.clear();
+    };
+    cleanupNodeScreenPropertySptrs(screenNode_.get());
+    cleanupNodeScreenPropertySptrs(mirroredScreenNode_.get());
+
+    // Null out raw pointers before destroying shared_ptr nodes
+    displayDrawable_ = nullptr;
+    mirroredDisplayDrawable_ = nullptr;
+    screenDrawable_ = nullptr;
+    mirroredScreenDrawable_ = nullptr;
+
+    // Reset shared_ptr members
+    renderNode_.reset();
+    mirroredNode_.reset();
+    screenNode_.reset();
+    mirroredScreenNode_.reset();
+    drawingCanvas_.reset();
+    drawingFilterCanvas_.reset();
+    drawingCanvasForMirror_.reset();
+    drawingFilterCanvasForMirror_.reset();
+    drawingCanvasForScreen_.reset();
+    drawingCanvasForMirrorScreen_.reset();
+
+    // Clean up any RSRenderEngine left on RSUniRenderThread
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+
     // clear RSRenderThreadParams after each testcase
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ =
+        std::make_unique<RSRenderThreadParams>();
 }
 
 /**
@@ -699,6 +898,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest004, TestSize.Leve
     ASSERT_TRUE(displayDrawable_->ShouldPaint());
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
     ASSERT_NE(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -875,6 +1075,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest011, TestSize.Leve
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     auto surfaceConfigs = screenParams->GetScreenProperty().GetMultiSurfaceConfigs();
     EXPECT_EQ(surfaceConfigs.size(), 1u);
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -912,6 +1113,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest012, TestSize.Leve
     EXPECT_TRUE(displayDrawable_->ShouldPaint());
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -961,6 +1163,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest013, TestSize.Leve
     EXPECT_TRUE(displayDrawable_->ShouldPaint());
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -1580,145 +1783,135 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest001
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when nullptr and not nullptr, expect early return
  * @tc.type: FUNC
  * @tc.require: issueIAGR5V
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest001, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(mirroredScreenDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredScreenDrawable_->renderParams_, nullptr);
 
-    mirroredDisplayDrawable_->renderParams_ = nullptr;
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(mirroredDisplayDrawable_->GetRenderParams());
-
-    mirroredDisplayDrawable_->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(id);
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_TRUE(mirroredDisplayDrawable_->GetRenderParams());
-
+    // pay attentation to the order of the following tests
+    // when screenParam is nullptr, expect early return
     screenDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(screenDrawable_->GetRenderParams());
+    ASSERT_EQ(screenDrawable_->renderParams_, nullptr);
 
-    ASSERT_TRUE(displayDrawable_->GetRenderParams());
-
-    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(renderParams, nullptr);
-    ScreenId screenId = renderParams->GetScreenId();
+    // when mirroredScreenParams is nullptr, expect early return
+    mirroredScreenDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_EQ(mirroredScreenDrawable_->renderParams_, nullptr);
 
-    auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
-    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
-        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
-
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    mirroredParams->SetAncestorScreenDrawable(mirroredScreenNode_->GetRenderDrawable());
-    auto [_, screenParams] = mirroredDisplayDrawable_->GetScreenParams(*mirroredParams);
-    ASSERT_NE(screenParams, nullptr);
-    auto mainScreenInfo = screenParams->GetScreenInfo();
-    mainScreenInfo.width = 1;
+    // when displayParams is nullptr, expect early return
+    displayDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_EQ(displayDrawable_->renderParams_, nullptr);
 
-    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
-        static_cast<uint32_t>(ScreenRotation::ROTATION_270));
-    mainScreenInfo.height = 1;
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    // when mirroredDisplayParams is nullptr, expect early return
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(mirroredDisplayDrawable_->renderParams_);
+    ASSERT_EQ(mirroredDisplayDrawable_->renderParams_, nullptr);
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen002
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while scale of width smaller
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest002
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when set screenCorrection to mirrorSourceScreenParams
  * @tc.type: FUNC
- * @tc.require: issueIANDBE
+ * @tc.require: issueIAGR5V
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen002, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest002, TestSize.Level1)
 {
-    // set drawable screenInfo
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto params = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(params, nullptr);
-    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
-    ASSERT_NE(screenParams, nullptr);
-    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
-        std::make_tuple(50, 100, screenParams->screenProperty_.GetRefreshRate()));
+    auto mirrorSourceScreenParams =
+        static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
 
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->fixedWidth_ = 100;
-    mirroredParams->fixedHeight_ = 100;
-    // scale mirror screen
+    // when set mirrorSourceScreenParams screenCorrection ROTATION_90
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetPhyWidth() / mirroredParams->fixedWidth_, FLOAT_DATA_EPSILON);
-}
 
-/**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen003
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while scale of height smaller
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen003, TestSize.Level2)
-{
-    // set drawable screenInfo
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto params = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(params, nullptr);
-    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
-    ASSERT_NE(screenParams, nullptr);
-    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
-        std::make_tuple(50, 100, screenParams->screenProperty_.GetRefreshRate()));
-
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->fixedWidth_ = 100;
-    mirroredParams->fixedHeight_ = 100;
-    // scale mirror screen
+    // when set mirrorSourceScreenParams screenCorrection ROTATION_0
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetHeight() / mirroredParams->fixedHeight_, FLOAT_DATA_EPSILON);
+
+    // when set mirrorSourceScreenParams screenCorrection INVALID_SCREEN_ROTATION
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION));
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen004
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while mainHeight / mainWidth invalid
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest003
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when set rotation
  * @tc.type: FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen004, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest003, TestSize.Level1)
 {
-    // set drawable screenInfo
+    // at first, for more easy testing, set mirrorSourceScreenParams screenCorrection INVALID_SCREEN_ROTATION
+    auto mirrorSourceScreenParams =
+        static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION));
+
+    // when rotation is ROTATION_0
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_0);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_90
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_90);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_180
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_180);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_270
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_270);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is INVALID_SCREEN_ROTATION
+    displayParams->SetMirrorSourceRotation(ScreenRotation::INVALID_SCREEN_ROTATION);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+}
+
+/**
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest004
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when isMirrorSLRCopy_ is true or false
+ * @tc.type: FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest004, TestSize.Level2)
+{
     ASSERT_NE(displayDrawable_, nullptr);
-    auto mainParams = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mainParams, nullptr);
-    mainParams->SetBoundsRect({0, 0, 0, 0});
-
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
-    auto [_, mirroredScreenParams] =
-        mirroredDisplayDrawable_->GetScreenParams(*mirroredDisplayDrawable_->GetRenderParams());
-    ASSERT_NE(mirroredScreenParams, nullptr);
-    mirroredScreenParams->SetBoundsRect({0, 0, 100, 100});
 
-    // scale mirror screen
-    mirroredDisplayDrawable_->ScaleAndRotateMirrorForWiredScreen(*displayDrawable_);
-    ASSERT_NE(mirroredDisplayDrawable_->curCanvas_, nullptr);
-    ASSERT_EQ(mirroredDisplayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), 1);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    auto mirrorSourceDisplayParams =
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
+    ASSERT_NE(mirrorSourceDisplayParams, nullptr);
+
+    // when isMirrorSLRCopy_ is false
+    displayDrawable_->isMirrorSLRCopy_ = false;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when isMirrorSLRCopy_ is true
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // test again when isMirrorSLRCopy_ is true
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
 }
 
 /**
@@ -2106,7 +2299,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, FinishOffscreenRender, TestSize
     ASSERT_FALSE(displayDrawable_->canvasBackup_);
 }
 
-
 /**
  * @tc.name: FinishOffscreenRender_NullBackup
  * @tc.desc: Test FinishOffscreenRender when canvasBackup_ is null
@@ -2215,6 +2407,41 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale002, TestSize.Lev
     displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, screenParams);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     // recover rosen.SLRScale.enabled
+    system::SetParameter("rosen.SLRScale.enabled", param);
+}
+
+/**
+ * @tc.name: UpdateSlrScale003
+ * @tc.desc: Test UpdateSlrScale when rotation is changed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale003, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto param = system::GetParameter("rosen.SLRScale.enabled", "");
+    const int32_t width = DEFAULT_CANVAS_SIZE * 2;
+    const int32_t height = DEFAULT_CANVAS_SIZE * 2;
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>({width, height, 1});
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({true, 0.f, 0.f, 1.f});
+    system::SetParameter("rosen.SLRScale.enabled", "1");
+    // rotation changed and scaleManager is nullptr
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, true);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
+    // rotation changed and scaleManager is not nullptr
+    displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
+        width, height, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, true);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
+    // rotation not changed, scaleManager is created
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, false);
+    ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
+    // sampling off, scaleManager is reset
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>({false, 0.f, 0.f, 1.f});
+    displayDrawable_->UpdateSlrScale(screenProperty, 0, 0, nullptr, false);
+    EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
     system::SetParameter("rosen.SLRScale.enabled", param);
 }
 
@@ -2528,6 +2755,163 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest010, 
 }
 
 /**
+ * @tc.name: PrepareOffscreenRenderTest014
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size uses fixed size when sampling is on, rotation is not
+ *           changed, composite type is UNI_RENDER_COMPOSITE and display is not mirror.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest014, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    constexpr int32_t fixedWidth = 80;
+    constexpr int32_t fixedHeight = 120;
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = static_cast<float>(fixedWidth);
+    displayParams->fixedHeight_ = static_cast<float>(fixedHeight);
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), fixedWidth);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), fixedHeight);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest015
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is off, even if other
+ *           wired screen conditions are met.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest015, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ false, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest016
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on but rotation is
+ *           changed, even if other wired screen conditions are met.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest016, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(true);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest017
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on and rotation is not
+ *           changed, but composite type is not UNI_RENDER_COMPOSITE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest017, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::HARDWARE_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::INVALID;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderTest018
+ * @tc.desc: Test PrepareOffscreenRender, offscreen size keeps frame size when sampling is on and rotation is not
+ *           changed, but display is mirror display.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest018, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+
+    displayParams->frameRect_ = { 0.f, 0.f, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
+    displayParams->fixedWidth_ = 80.f;
+    displayParams->fixedHeight_ = 120.f;
+    displayParams->SetNeedOffscreen(false);
+    displayParams->SetRotationChanged(false);
+    displayParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    displayParams->displayMode_ = DisplayMode::MIRROR;
+    screenParams->SetHDRPresent(false);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({ true, 0.f, 0.f, 1.f });
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false);
+    ASSERT_NE(displayDrawable_->offscreenSurface_, nullptr);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Width(), DEFAULT_CANVAS_SIZE);
+    EXPECT_EQ(displayDrawable_->offscreenSurface_->Height(), DEFAULT_CANVAS_SIZE);
+}
+
+/**
  * @tc.name: FinishOffscreenRender
  * @tc.desc: Test FinishOffscreenRender when canvasBackup is nullptr
  * @tc.type: FUNC
@@ -2734,14 +3118,89 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest001
     auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    auto& rtThread1 = RSUniRenderThread::Instance();
+    if (rtThread1.uniRenderEngine_) {
+        rtThread1.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread1.uniRenderEngine_->renderContext_) {
+            rtThread1.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread1.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread1.uniRenderEngine_->protectedRenderContext_) {
+            rtThread1.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread1.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread1.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread1.uniRenderEngine_->gpuCacheManager_ = nullptr;
+    }
+    rtThread1.uniRenderEngine_ = nullptr;
+    rtThread1.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    rtThread1.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
 
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
+    rtThread1.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    if (rtThread1.uniRenderEngine_) {
+        rtThread1.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread1.uniRenderEngine_->renderContext_) {
+            rtThread1.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread1.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread1.uniRenderEngine_->protectedRenderContext_) {
+            rtThread1.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread1.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread1.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread1.uniRenderEngine_->gpuCacheManager_ = nullptr;
+    }
+    rtThread1.uniRenderEngine_ = nullptr;
+    // ForceSetRefPtr on sptrs to prevent DecStrongRef crash
+    if (screenDrawable && screenDrawable->surfaceHandler_) {
+#ifndef ROSEN_CROSS_PLATFORM
+        screenDrawable->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        screenDrawable->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        screenDrawable->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        screenDrawable->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        screenDrawable->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        screenDrawable->surfaceHandler_->holdBuffer_ = nullptr;
+    }
+    // Clean up local RSSurfaceRenderNode surfaceHandler sptrs
+    auto cleanupSurfaceHandler = [](RSSurfaceRenderNode* node) {
+        if (node == nullptr || node->surfaceHandler_ == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        node->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        node->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        node->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        node->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        node->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        node->surfaceHandler_->holdBuffer_ = nullptr;
+    };
+    cleanupSurfaceHandler(rsSurfaceNode.get());
+    cleanupSurfaceHandler(surfaceNode.get());
+#ifndef ROSEN_CROSS_PLATFORM
+    rsSurfaceNode->callbackFromRT_.ForceSetRefPtr(nullptr);
+    rsSurfaceNode->callbackFromUI_.ForceSetRefPtr(nullptr);
+    rsSurfaceNode->clearBufferCallback_.ForceSetRefPtr(nullptr);
+    surfaceNode->callbackFromRT_.ForceSetRefPtr(nullptr);
+    surfaceNode->callbackFromUI_.ForceSetRefPtr(nullptr);
+    surfaceNode->clearBufferCallback_.ForceSetRefPtr(nullptr);
+#endif
 }
 
 /**
@@ -2765,11 +3224,34 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest002
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     ASSERT_NE(buffer, nullptr);
     ASSERT_NE(acquireFence, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    auto& rtThread2 = RSUniRenderThread::Instance();
+    if (rtThread2.uniRenderEngine_) {
+        if (rtThread2.uniRenderEngine_->renderContext_) {
+            rtThread2.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread2.uniRenderEngine_->protectedRenderContext_) {
+            rtThread2.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
+    rtThread2.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    rtThread2.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params, buffer, acquireFence);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    if (rtThread2.uniRenderEngine_) {
+        if (rtThread2.uniRenderEngine_->renderContext_) {
+            rtThread2.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread2.uniRenderEngine_->protectedRenderContext_) {
+            rtThread2.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
+    rtThread2.uniRenderEngine_ = nullptr;
+    buffer.ForceSetRefPtr(nullptr);
+    acquireFence.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -3058,5 +3540,156 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSiz
     auto [_, screenParams] = displayDrawable_->GetScreenParams(*displayParams);
     ASSERT_EQ(_, nullptr);
     ASSERT_EQ(screenParams, nullptr);
+}
+/**
+ * @tc.name: OnDrawRogScale
+ * @tc.desc: Test OnDraw when SamplingMode is DEVICE_GPU, Scale is apply without crash
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawRogScale, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    renderParams->shouldPaint_ = true;
+    renderParams->contentEmpty_ = false;
+
+    renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
+    mirroredDisplayDrawable_->renderParams_ = nullptr;
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_MODE>(
+        static_cast<uint32_t>(ScreenSamplingMode::DEVICE_GPU));
+    constexpr int32_t PHY_WIDTH = 200;
+    constexpr int32_t PHY_HEIGHT = 400;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({RENDER_WIDTH, RENDER_HEIGHT});
+    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        {PHY_WIDTH, PHY_HEIGHT, 60});
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), 0);
+    uniParams->SetRSProcessor(processor);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    EXPECT_NO_FATAL_FAILURE(displayDrawable_->OnDraw(*drawingFilterCanvas_));
+    EXPECT_EQ(screenParams->screenProperty_.GetSamplingMode(), ScreenSamplingMode::DEVICE_GPU);
+    EXPECT_NE(screenParams->screenProperty_.GetRogWidthRatio(), 1.0f);
+    EXPECT_NE(screenParams->screenProperty_.GetRogHeightRatio(), 1.0f);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsDeviceGpu
+ * @tc.desc: test MapDamageRegionRects maps damage rects with inverse rog ratio when main screen is DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    mainScreenInfo.phyWidth = ROG_RENDER_WIDTH * static_cast<uint32_t>(ROG_RATIO);
+    mainScreenInfo.phyHeight = ROG_RENDER_HEIGHT * static_cast<uint32_t>(ROG_RATIO);
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    // damage rects in physical resolution are pre-scaled by 1/rogRatio into render resolution
+    RectI expectedRect(ROG_DAMAGE_RECT.left_ / ROG_RATIO, ROG_DAMAGE_RECT.top_ / ROG_RATIO,
+        ROG_DAMAGE_RECT.width_ / ROG_RATIO, ROG_DAMAGE_RECT.height_ / ROG_RATIO);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), expectedRect);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsNotDeviceGpu
+ * @tc.desc: test MapDamageRegionRects keeps damage rects unchanged when sampling mode is not DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsNotDeviceGpu, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
+ * @tc.name: MapDamageRegionRectsInvalidRatio
+ * @tc.desc: test MapDamageRegionRects skips rog pre-scale when rog ratio is invalid under DEVICE_GPU
+ * @tc.type: FUNC
+ * @tc.require: issue25993
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MapDamageRegionRectsInvalidRatio, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    std::vector<RectI> damageRegionRects = { ROG_DAMAGE_RECT };
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = ROG_RENDER_WIDTH;
+    mainScreenInfo.height = ROG_RENDER_HEIGHT;
+    // phyWidth/phyHeight are zero so both rog ratios are 0, which is invalid and skips pre-scale
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Occlusion::Region mappedDamageRegion;
+    Drawing::Matrix canvasMatrix;
+    displayDrawable_->MapDamageRegionRects(damageRegionRects, mainScreenInfo, mappedDamageRegion, canvasMatrix);
+    ASSERT_EQ(mappedDamageRegion.GetBound().ToRectI(), ROG_DAMAGE_RECT);
+}
+
+/**
+ * @tc.name: ScaleMatrixByInverseRogRatioDeviceGpu
+ * @tc.desc: Test ScaleMatrixByInverseRogRatio undoes rog scale for DEVICE_GPU and keeps matrix otherwise
+ * @tc.type: FUNC
+ * @tc.require: issue26347
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleMatrixByInverseRogRatioDeviceGpu, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    constexpr int32_t ROG_TEST_RATIO = 2;
+    constexpr int32_t RENDER_WIDTH = 100;
+    constexpr int32_t RENDER_HEIGHT = 200;
+    constexpr int32_t PHY_WIDTH = RENDER_WIDTH * ROG_TEST_RATIO;
+    constexpr int32_t PHY_HEIGHT = RENDER_HEIGHT * ROG_TEST_RATIO;
+    Drawing::Matrix canvasMatrix;
+    canvasMatrix.SetScaleTranslate(1.f, 1.f, static_cast<float>(RENDER_WIDTH), 0.f);
+
+    ScreenInfo mainScreenInfo;
+    mainScreenInfo.width = RENDER_WIDTH;
+    mainScreenInfo.height = RENDER_HEIGHT;
+    mainScreenInfo.phyWidth = PHY_WIDTH;
+    mainScreenInfo.phyHeight = PHY_HEIGHT;
+
+    // sampling mode is not DEVICE_GPU, canvas matrix keeps unchanged
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_DSS;
+    Drawing::Matrix unchangedMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(unchangedMatrix, mainScreenInfo);
+    EXPECT_NEAR(unchangedMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(unchangedMatrix.Get(Drawing::Matrix::TRANS_X), static_cast<float>(RENDER_WIDTH), FLOAT_DATA_EPSILON);
+
+    // DEVICE_GPU, regions in physical resolution are mapped back by 1 / rogRatio in advance
+    mainScreenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+    Drawing::Matrix scaledMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(scaledMatrix, mainScreenInfo);
+    EXPECT_NEAR(scaledMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f / ROG_TEST_RATIO, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(scaledMatrix.Get(Drawing::Matrix::TRANS_X), static_cast<float>(RENDER_WIDTH), FLOAT_DATA_EPSILON);
+    // the matrix held by caller is scaled in place, thus caller should pass its own copy
+    EXPECT_NEAR(canvasMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
+
+    // DEVICE_GPU with invalid physical resolution, canvas matrix keeps unchanged
+    mainScreenInfo.phyWidth = 0;
+    Drawing::Matrix invalidRatioMatrix = canvasMatrix;
+    displayDrawable_->ScaleMatrixByInverseRogRatio(invalidRatioMatrix, mainScreenInfo);
+    EXPECT_NEAR(invalidRatioMatrix.Get(Drawing::Matrix::SCALE_X), 1.0f, FLOAT_DATA_EPSILON);
 }
 }

@@ -38,6 +38,10 @@
 namespace OHOS {
 class Surface;
 
+namespace Media {
+enum class PixelFormat : int32_t; // defined in image_type.h
+}
+
 namespace Rosen {
 using AnimationId = uint64_t;
 using NodeType = uint8_t;
@@ -63,6 +67,9 @@ constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
 // to prevent a malicious client from exhausting connection and memory resources.
 constexpr uint32_t MAX_CONNECTION_COUNT_PER_PID = 64;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+// Max pixel dimension (width or height) for SetScreenSecurityMask,
+// enforced on both client and sever to prevent oversized-mask DoS via IPC.
+constexpr int32_t SECURITYMASK_IMAGE_SIZE_LIMIT = 4096;
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
@@ -104,6 +111,10 @@ inline bool ROSEN_LNE(float left, float right) // less not equal
     return (left - right) < epsilon;
 }
 
+inline bool ROSEN_LNE(float left, float right, float epsilon)
+{
+    return (right - left) > epsilon;
+}
 
 inline bool ROSEN_GNE(float left, float right) // great not equal
 {
@@ -115,6 +126,11 @@ inline bool ROSEN_GE(float left, float right) // great or equal
 {
     constexpr float epsilon = -0.001f;
     return (left - right) > epsilon;
+}
+
+inline bool ROSEN_GE(float left, float right, float epsilon)
+{
+    return (right - left) < epsilon;
 }
 
 inline bool ROSEN_LE(float left, float right) // less or equal
@@ -163,6 +179,7 @@ enum class RSSurfaceFrameType : uint8_t {
     RS_SURFACE_FRAME_OHOS_GL = 5,
     RS_SURFACE_FRAME_OHOS_RASTER = 6,
     RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+    RS_SURFACE_FRAME_LINUX = 8,
 };
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
@@ -392,6 +409,8 @@ enum class CaptureError : uint8_t {
     DYNAMIC_RANGE_NOT_SUPPORT,
     CAPTURE_NO_SECURE_PERMISSION,
     CAPTURE_FAIL_SPECIAL_LAYER,
+    CAPTURE_UNSUPPORTED_FORMAT,
+    WINDOW_CAPTURE_NO_CHILD,
     // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
@@ -427,6 +446,7 @@ struct RSSurfaceCaptureConfig {
     bool isSyncRender = false;
     bool isConfigTriggered = false;
     bool windowSync = false;
+    Media::PixelFormat pixelFormat{};
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -448,7 +468,8 @@ struct RSSurfaceCaptureConfig {
                (colorSpace == config.colorSpace) &&
                (dynamicRangeMode == config.dynamicRangeMode) &&
                (isSyncRender == config.isSyncRender) &&
-               (windowSync == config.windowSync);
+               (windowSync == config.windowSync) &&
+               (pixelFormat == config.pixelFormat);
     }
 };
 
@@ -785,6 +806,7 @@ enum class RSInterfaceErrorCode : uint32_t {
     WRITE_PARCEL_ERROR,
     UNKNOWN_ERROR,
     NULLPTR_ERROR,
+    IPC_TIMEOUT_ERROR, // synchronous IPC call timed out or was rejected by the overload guard
 };
 
 struct VSyncConnParam {
@@ -799,16 +821,6 @@ enum DrawNodeType : uint32_t {
     DrawPropertyType,
     GeometryPropertyType
 };
-
-// HybridDraw Start
-enum class ComponentEnableSwitch : uint8_t {
-    TEXTBLOB = 0,
-    SVG,
-    HMSYMBOL,
-    CANVAS,
-    MAX_VALUE,
-};
-// HybridDraw End
 
 typedef enum : uint32_t {
     SA_WATER_MARK_DEFAULT_SIZE = 0, // 512KB
@@ -850,6 +862,7 @@ enum class EnergyEvent : int32_t {
 
 enum class ApsEventType : uint32_t {
     SPLIT_LAYER = 0,
+    HVE = 1,
 };
 using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen

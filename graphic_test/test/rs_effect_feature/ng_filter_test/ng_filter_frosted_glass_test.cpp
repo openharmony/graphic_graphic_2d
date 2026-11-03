@@ -70,6 +70,7 @@ constexpr uint32_t SHADOW_OFFSET_X = 50;
 constexpr uint32_t SHADOW_OFFSET_Y = 50;
 constexpr uint32_t colorList[NUM_4] = { COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE };
 constexpr float DEFAULT_BG_ALPHA = 1.0f;
+const std::string TEST_TINTEDGLASS_IMAGE_PATH = "/data/local/tmp/Images/colorGrid.jpg";
 }
 class NGFilterFrostedGlassTest : public RSGraphicTest {
 public:
@@ -138,6 +139,38 @@ public:
         RegisterNode(childTestNode);
     }
 
+    void SetBgAndSdfChildNodesTintedGlass(const size_t i, const size_t columnCount, const size_t sizeX,
+        const size_t sizeY, std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+    {
+        const size_t x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+        const size_t y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+
+        // set background node
+        auto backgroundTestNode =
+            SetUpNodeBgImage(TEST_TINTEDGLASS_IMAGE_PATH, {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        // set child node for applying frostedGlassFilter
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        childTestNode->SetBounds(bounds);
+        childTestNode->SetFrame(bounds);
+        childTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        //  apply sdf on child node
+        const RRect defaultRectParam = {
+            RectT<float>{20.0, 20.0, sizeX / 1.1, sizeY / 1.1}, sizeX / 16, sizeX / 16
+        };
+        std::shared_ptr<RSNGShapeBase> sdfShape;
+        InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
+        childTestNode->SetSDFShape(sdfShape);
+
+        // add background node's child(childnode) and register childnode
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+
 private:
     std::vector<Drawing::Path> drawingPath_;
 };
@@ -172,6 +205,9 @@ static std::shared_ptr<RSNGFrostedGlassFilter> CreateDefaultFrostedGlassFilter()
     frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(DEFAULT_ED_LIGHT_POS);
     frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(DEFAULT_ED_LIGHT_NEG);
     frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(DEFAULT_MATERIAL_COLOR);
+    frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(DEFAULT_COLOR_BLEND_MODE);
+    frostedGlassFilter->Setter<FrostedGlassLumaParamsTag>(DEFAULT_LUMA_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassMaterialColorFractionTag>(DEFAULT_MATERIAL_COLOR_FRACTION);
     frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(DEFAULT_BASE_VIBRANCY_ENABLED);
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(DEFAULT_SAMPLING_SCALE);
     frostedGlassFilter->Setter<FrostedGlassBgAlphaTag>(DEFAULT_BG_ALPHA);
@@ -572,6 +608,64 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_MaterialColor_Test)
         auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
         frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(materialColorParams[i]);
         SetBgAndSdfChildNodes(i, columnCount, sizeX, sizeY, frostedGlassFilter);
+    }
+}
+
+GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_MaterialColorTintedGlass_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = materialColorParams.size();
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (size_t i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
+        frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(1); // TINTED_GLASS
+        frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(materialColorParams[i]);
+        SetBgAndSdfChildNodesTintedGlass(i, columnCount, sizeX, sizeY, frostedGlassFilter);
+    }
+}
+
+GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_ColorBlendMode_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = colorBlendModeParams.size();
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (size_t i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
+        frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(materialColorParams[1]);
+        frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(colorBlendModeParams[i]);
+        SetBgAndSdfChildNodesTintedGlass(i, columnCount, sizeX, sizeY, frostedGlassFilter);
+    }
+}
+
+GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_LumaParams_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = lumaParamsParams.size();
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (size_t i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
+        frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(1); // TINTED_GLASS
+        frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(materialColorParams[i]);
+        frostedGlassFilter->Setter<FrostedGlassLumaParamsTag>(lumaParamsParams[i]);
+        SetBgAndSdfChildNodesTintedGlass(i, columnCount, sizeX, sizeY, frostedGlassFilter);
+    }
+}
+
+GRAPHIC_TEST(NGFilterFrostedGlassTest, EFFECT_TEST, Set_MaterialColorFraction_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = materialColorFractionParams.size();
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (size_t i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = CreateDefaultFrostedGlassFilter();
+        frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(1); // TINTED_GLASS
+        frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(materialColorParams[i]);
+        frostedGlassFilter->Setter<FrostedGlassMaterialColorFractionTag>(materialColorFractionParams[i]);
+        SetBgAndSdfChildNodesTintedGlass(i, columnCount, sizeX, sizeY, frostedGlassFilter);
     }
 }
 

@@ -16,40 +16,177 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_IPC_PERSISTENCE_RS_IPC_PERSISTENCE_DEF_H
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_IPC_PERSISTENCE_RS_IPC_PERSISTENCE_DEF_H
 
+#include <cstdint>
 #include <memory>
+#include <mutex>
+#include <sys/types.h>
+#include <unordered_map>
 
 #include <parcel.h>
+#include "render_process/transaction/zidl/rs_iservice_to_render_connection_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class RSIpcPersistenceType : uint32_t {
-    SET_WATERMARK = 0,
-    SHOW_WATERMARK,
-    ON_HWC_EVENT,
-    SET_BEHIND_WINDOW_FILTER_ENABLED,
-    SET_SHOW_REFRESH_RATE_ENABLED,
-    REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK,
-    DEFAULT = 0xFFFFFFFF,
+
+enum class FanoutPolicy : uint32_t {
+    ANY_SUCCESS = 0, // success if any render process accepted the transfer
+    FAIL_FAST = 1,   // return the first failure immediately without sending to the remaining processes
 };
 
-// Indicates the default PID of the IPC that does not need the calling PID.
-constexpr pid_t IPC_PERSISTENCE_DEFAULT_PID = -1;
+namespace Detail {
+constexpr uint32_t MAX_PERSIST_MAP_SIZE = 100;
+constexpr int32_t REPLY_RESULT_PENDING = -1;
+} // namespace Detail
 
 class RSRenderPipelineAgent;
+class RSIpcTransferBase;
 
-class RSIpcPersistenceDataBase : public Parcelable {
+using IpcPersistenceMap =
+    std::unordered_map<RSIServiceToRenderConnectionInterfaceCode, std::shared_ptr<RSIpcTransferBase>>;
+
+class RSIpcTransferBase {
 public:
-    RSIpcPersistenceDataBase() = default;
-    ~RSIpcPersistenceDataBase() noexcept override = default;
+    virtual ~RSIpcTransferBase() = default;
 
-    virtual RSIpcPersistenceType GetType() const = 0;
-    virtual pid_t GetCallingPid() const { return IPC_PERSISTENCE_DEFAULT_PID; }
+    virtual RSIServiceToRenderConnectionInterfaceCode GetTypeId() const = 0;
+    virtual RSIServiceToRenderConnectionInterfaceCode GetPersistLockTypeId() const { return GetTypeId(); }
+    virtual bool IsPersistent() const = 0; // true: persist and replay on render process restart
+    virtual bool IsSync() const = 0; // true: sync IPC, reply marshalled back to proxy
+    virtual FanoutPolicy GetFanoutPolicy() const = 0; // fanout aggregation rule across render processes
+    virtual int32_t GetReplyResult() const { return Detail::REPLY_RESULT_PENDING; }
 
-    virtual void Apply(const sptr<RSRenderPipelineAgent>& renderPipelineAgent) = 0;
+    virtual void Persist(IpcPersistenceMap& map, std::mutex& mutex) = 0;
+    virtual void ClearPid(pid_t pid) = 0;
+
+    virtual bool Apply(const sptr<RSRenderPipelineAgent>& agent) = 0;
+
+    virtual bool ProxyMarshalling(Parcel& parcel) const = 0;
+    virtual bool StubMarshalling(Parcel& parcel) const = 0;
+    virtual bool ProxyUnmarshalling(Parcel& parcel) = 0;
+
+    virtual std::shared_ptr<RSIpcTransferBase> CopyTransfer() const = 0;
+
+    RSIpcTransferBase(const RSIpcTransferBase&) = delete;
+    RSIpcTransferBase& operator=(const RSIpcTransferBase&) = delete;
+    RSIpcTransferBase(RSIpcTransferBase&&) = delete;
+    RSIpcTransferBase& operator=(RSIpcTransferBase&&) = delete;
+
+protected:
+    RSIpcTransferBase() = default;
+
+    mutable std::mutex mutex_;
 };
 
-using IpcPersistenceTypeToDataMap =
-    std::unordered_map<RSIpcPersistenceType, std::vector<std::shared_ptr<RSIpcPersistenceDataBase>>>;
+template<typename Derived>
+class RSIpcPersistenceDataBase {
+public:
+    virtual ~RSIpcPersistenceDataBase() = default;
+
+    virtual bool Marshalling(Parcel& parcel) const = 0;
+
+    [[nodiscard]] static std::shared_ptr<Derived> Unmarshalling(Parcel& parcel, int32_t& errCode)
+    {
+        return Derived::Unmarshalling(parcel, errCode);
+    }
+
+    RSIpcPersistenceDataBase(const RSIpcPersistenceDataBase&) = delete;
+    RSIpcPersistenceDataBase& operator=(const RSIpcPersistenceDataBase&) = delete;
+    RSIpcPersistenceDataBase(RSIpcPersistenceDataBase&&) = delete;
+    RSIpcPersistenceDataBase& operator=(RSIpcPersistenceDataBase&&) = delete;
+
+protected:
+    RSIpcPersistenceDataBase() = default;
+};
+
+template<typename Derived>
+class RSIpcPersistenceReplyBase {
+public:
+    virtual ~RSIpcPersistenceReplyBase() = default;
+
+    virtual bool Marshalling(Parcel& parcel) const = 0;
+    virtual bool Unmarshalling(Parcel& parcel) = 0;
+
+    RSIpcPersistenceReplyBase(const RSIpcPersistenceReplyBase&) = delete;
+    RSIpcPersistenceReplyBase& operator=(const RSIpcPersistenceReplyBase&) = delete;
+    RSIpcPersistenceReplyBase(RSIpcPersistenceReplyBase&&) = delete;
+    RSIpcPersistenceReplyBase& operator=(RSIpcPersistenceReplyBase&&) = delete;
+
+protected:
+    RSIpcPersistenceReplyBase() = default;
+};
+
+class RSIpcEmptyReply final : public RSIpcPersistenceReplyBase<RSIpcEmptyReply> {
+public:
+    bool Marshalling(Parcel& parcel) const override
+    {
+        (void)parcel;
+        return true;
+    }
+    bool Unmarshalling(Parcel& parcel) override
+    {
+        (void)parcel;
+        return true;
+    }
+};
+
+template<RSIServiceToRenderConnectionInterfaceCode TypeId, typename TransferClass>
+class RSIpcPersistentTransferRegister;
+
+template<typename TransferClass>
+struct TransferRegistrationChecker {
+    static constexpr bool Check = TransferClass::registered_;
+    static const RSIpcPersistentTransferRegister<TransferClass::TypeId, TransferClass> registrar;
+};
+
+template<typename Derived, typename InputData, typename ReplyData>
+class RSIpcTransferCRTP : public RSIpcTransferBase {
+public:
+    RSIpcTransferCRTP()
+    {
+        static_assert(TransferRegistrationChecker<Derived>::Check,
+            "Transfer must declare static bool registered_ (required by RSIpcPersistentTransferRegister)");
+        [[maybe_unused]] auto* reg = &TransferRegistrationChecker<Derived>::registrar;
+    }
+
+    bool StubMarshalling(Parcel& parcel) const override
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!replyData_) {
+            return false;
+        }
+        return replyData_->Marshalling(parcel);
+    }
+
+    bool ProxyUnmarshalling(Parcel& parcel) override
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!replyData_) {
+            replyData_ = std::make_shared<ReplyData>();
+        }
+        return replyData_->Unmarshalling(parcel);
+    }
+
+    [[nodiscard]] static std::shared_ptr<Derived> StubUnmarshalling(
+        Parcel& parcel, uint32_t maxEntries, int32_t& errCode)
+    {
+        (void)maxEntries;
+        auto input = RSIpcPersistenceDataBase<InputData>::Unmarshalling(parcel, errCode);
+        if (!input) {
+            return nullptr;
+        }
+        return std::make_shared<Derived>(input);
+    }
+
+protected:
+    void SetReplyData(std::shared_ptr<ReplyData> data)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        replyData_ = std::move(data);
+    }
+
+    std::shared_ptr<ReplyData> replyData_;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

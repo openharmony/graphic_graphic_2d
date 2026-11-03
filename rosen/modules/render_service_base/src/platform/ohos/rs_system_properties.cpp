@@ -38,6 +38,7 @@ constexpr int DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE = 1;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
+constexpr const char* VULKAN_CONFIG_FILE_PATH = "/vendor/etc/vulkan/icd.d";
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
@@ -471,13 +472,6 @@ bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
     return dumpRsTreeDetailEnabled;
 }
 
-bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
-{
-    static bool hardwareComposerMirrorEnabled =
-        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "1") != "0";
-    return hardwareComposerMirrorEnabled;
-}
-
 bool RSSystemProperties::GetHwcRegionDfxEnabled()
 {
     static bool hwcRegionDfxEnabled = system::GetParameter(
@@ -657,6 +651,25 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<HgmRefreshRateModes>(ConvertToInt(enable, 0));
+}
+
+bool RSSystemProperties::SetHgmRefreshRateModeList(const std::string& param)
+{
+    bool setOk = system::SetParameter("rosen.hgmrefreshratemodelist", param);
+    if (setOk) {
+        RS_LOGI("SetHgmRefreshRateModeList set to %{public}s", param.c_str());
+    } else {
+        RS_LOGE("SetHgmRefreshRateModeList set failed, param: %{public}s", param.c_str());
+    }
+    return setOk;
+}
+
+std::string RSSystemProperties::GetHgmRefreshRateModeList()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hgmrefreshratemodelist", "");
+    int changed = 0;
+    const char *value = CachedParameterGetChanged(g_Handle, &changed);
+    return value == nullptr ? "" : value;
 }
 
 bool RSSystemProperties::GetHardCursorEnabled()
@@ -1158,11 +1171,8 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
-    int changed = 0;
-    const char* enabled = CachedParameterGetChanged(handle, &changed);
-    return enabled != nullptr &&
-        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
+    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "1").c_str()) == 1;
+    return tunnelEnabled;
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
@@ -1633,8 +1643,13 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 
     canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
     if (canvasEnabled) {
-        GetBackgroundRebuildEnabled();
-        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+        if (access(VULKAN_CONFIG_FILE_PATH, F_OK) == -1) {
+            ROSEN_LOGE("GetHybridRenderCanvasEnabled access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
+            canvasEnabled = false;
+        } else {
+            GetBackgroundRebuildEnabled();
+            canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+        }
     }
     inited = true;
     return canvasEnabled;
@@ -1643,15 +1658,15 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
 {
     static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     return canvasEnabled;
 }
 
 bool RSSystemProperties::ViewDrawNodeType()
 {
-    static CachedHandle handle = CachedParameterCreate("persist.graphic.viewDrawNodeType", "0");
-    int32_t changed = 0;
-    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+    static const bool viewDrawNodeTypeEnabled =
+        system::GetBoolParameter("persist.graphic.viewDrawNodeType", false);
+    return viewDrawNodeTypeEnabled;
 }
 
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
@@ -1724,14 +1739,6 @@ bool RSSystemProperties::GetRSMemoryInfoManagerParam()
     return dmaMarkEnable;
 }
 
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.gpudirtyaps.enabled", "1");
@@ -1788,6 +1795,13 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
 {
     static bool enable =
         std::atoi((system::GetParameter("persist.sys.graphic.node.mem.clear.enable", "1")).c_str()) != 0;
+    return enable;
+}
+
+bool RSSystemProperties::GetBgNodeReleaseEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.bg.node.release.enabled", "1")).c_str()) != 0;
     return enable;
 }
 
@@ -1886,6 +1900,30 @@ bool RSSystemProperties::GetVirtualScreenParallelEnabled()
     static bool virtualScreenParallelEnabled = system::GetBoolParameter(
         "persist.sys.graphic.virtualScreenParallel.enabled", true);
     return virtualScreenParallelEnabled;
+}
+
+bool RSSystemProperties::IsSimulateTest()
+{
+    static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
+    return isSimulateTest;
+}
+
+uint32_t RSSystemProperties::GetIpcSyncTimeoutMs()
+{
+    // Default 5s: a process frozen for 6s is killed, the timeout must fire before that.
+    static constexpr uint32_t DEFAULT_IPC_SYNC_TIMEOUT_MS = 5000;
+    // Lower values risk false timeouts on a slow-but-alive RS; higher values break the
+    // must-fire-before-freeze-kill premise. Out-of-range parameters fall back to default.
+    static constexpr int32_t MIN_IPC_SYNC_TIMEOUT_MS = 1000;
+    static constexpr int32_t MAX_IPC_SYNC_TIMEOUT_MS = 5000;
+    // Static snapshot like IsSimulateTest(): stable within the process lifetime; a changed
+    // persist.sys.graphic.ipcSyncTimeoutMs takes effect on the next process start.
+    static int32_t timeoutParam =
+        system::GetIntParameter("persist.sys.graphic.ipcSyncTimeoutMs", static_cast<int>(DEFAULT_IPC_SYNC_TIMEOUT_MS));
+    if (timeoutParam < MIN_IPC_SYNC_TIMEOUT_MS || timeoutParam > MAX_IPC_SYNC_TIMEOUT_MS) {
+        return DEFAULT_IPC_SYNC_TIMEOUT_MS;
+    }
+    return static_cast<uint32_t>(timeoutParam);
 }
 } // namespace Rosen
 } // namespace OHOS

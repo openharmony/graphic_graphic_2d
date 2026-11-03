@@ -31,6 +31,9 @@ const xmlChar NODE_NAME_SWITCH[] = "FeatureSwitch";
 const xmlChar SOLIDLAYER_IN_MULTI_WINDOW_ENABLED[] = "SolidLayerInMultiWindowEnabled";
 const xmlChar DISABLE_IN_SCALE_SCENE[] = "IsDisableInScaleScene";
 const xmlChar SPLIT_SCREEN_SOURCE_TUNING[] = "SplitScreenSourceTuning";
+const xmlChar ENABLE_HWC_ON_WIRED_MIRROR[] = "EnableHwcOnWiredMirror";
+const xmlChar SWITCH_VALUE_TRUE[] = "true";
+const xmlChar SWITCH_VALUE_FALSE[] = "false";
 
 const xmlChar ATTRIBUTE_NAME[] = "name";
 const xmlChar ATTRIBUTE_VALUE[] = "value";
@@ -259,6 +262,60 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal005, TestSize.Level1)
     HWCParamParse hwcParamParse;
     int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
     EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: TestParseHwcInternal006
+ * @tc.desc: Verify the ParseHwcInternal function for EnableHwcOnWiredMirror enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseHwcInternal006, TestSize.Level1)
+{
+    HWCParam::SetEnableHwcOnWiredMirror(false);
+
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    node.name = NODE_NAME_SWITCH;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, SWITCH_VALUE_TRUE, nullptr);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, ENABLE_HWC_ON_WIRED_MIRROR, &attrVal);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    FeatureParamMapType featureParam;
+    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
+    HWCParamParse hwcParamParse;
+    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+    EXPECT_TRUE(HWCParam::IsEnableHwcOnWiredMirror());
+}
+
+/**
+ * @tc.name: TestParseHwcInternal007
+ * @tc.desc: Verify the ParseHwcInternal function for EnableHwcOnWiredMirror disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseHwcInternal007, TestSize.Level1)
+{
+    HWCParam::SetEnableHwcOnWiredMirror(true);
+
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    node.name = NODE_NAME_SWITCH;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, SWITCH_VALUE_FALSE, nullptr);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, ENABLE_HWC_ON_WIRED_MIRROR, &attrVal);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    FeatureParamMapType featureParam;
+    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
+    HWCParamParse hwcParamParse;
+    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+    EXPECT_FALSE(HWCParam::IsEnableHwcOnWiredMirror());
 }
 
 /**

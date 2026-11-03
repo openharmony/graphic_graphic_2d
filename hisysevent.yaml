@@ -274,3 +274,11 @@ RS_SERVER_XXFILTER_CASCADE:
   HDRUIBRIGHTNESS_COUNT: {type: UINT16, desc: HDRUIBRIGHTNESS count}
   FG_NGFILTER_COUNT: {type: UINT16, desc: FG_NGFILTER count}
   COLORADAPTIVE_COUNT: {type: UINT16, desc: COLORADAPTIVE count}
+
+RS_CMD_OVER_THRESHOLD:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: RS CMD OVER THRESHOLD}
+  PID: {type: INT32, desc: app pid}
+  BUNDLE_NAME: {type: STRING, desc: app bundle name}
+  CMD_TYPE: {type: STRING, desc: cmd type}
+  CMD_COUNT: {type: INT32, desc: cmd count}
+  THRESHOLD: {type: INT32, desc: threshold}

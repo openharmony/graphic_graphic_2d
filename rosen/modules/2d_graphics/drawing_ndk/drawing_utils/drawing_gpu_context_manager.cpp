@@ -16,7 +16,7 @@
 #include "drawing_gpu_context_manager.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #include "utils/log.h"
@@ -27,11 +27,9 @@ namespace Rosen {
 
 DrawingGpuContextManager::DrawingGpuContextManager()
 {
-    if (Drawing::SystemProperties::IsUseGl()) {
-        renderContext_ = std::static_pointer_cast<RenderContextGL>(RenderContext::Create());
-    }
+    renderContext_ = RenderContext::Create();
 }
-std::shared_ptr<RenderContextGL> DrawingGpuContextManager::GetRenderContext()
+std::shared_ptr<RenderContext> DrawingGpuContextManager::GetRenderContext()
 {
     return renderContext_;
 }
@@ -44,27 +42,31 @@ DrawingGpuContextManager& DrawingGpuContextManager::GetInstance()
 
 std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingContext()
 {
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::GPUContext> context = nullptr;
     if (Drawing::SystemProperties::IsUseGl()) {
-        if (renderContext_ == nullptr) {
-            LOGE("CreateDrawingContext: create renderContext failed.");
-            return nullptr;
-        }
-
         renderContext_->Init();
-        renderContext_->SetUpGpuContext();
-        context = renderContext_->GetSharedDrGPUContext();
+        gpuContext = renderContext_->GetSharedDrGPUContext();
     }
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
-        context = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        int tid = gettid();
+        {
+            std::lock_guard<std::mutex> lock(mapMutex_);
+            auto it = drawingContextMap_.find(tid);
+            if (it != drawingContextMap_.end()) {
+                return it->second;
+            }
+        }
+        gpuContext = renderContext_->CreateDrawingGPUContext();
+        {
+            std::lock_guard<std::mutex> lock(mapMutex_);
+            drawingContextMap_[tid] = gpuContext;
+        }
     }
 #endif
-
-    return context;
 #endif
-    return nullptr;
+    return gpuContext;
 }
 
 void DrawingGpuContextManager::Insert(void* key, std::shared_ptr<Drawing::GPUContext> gpuContext)

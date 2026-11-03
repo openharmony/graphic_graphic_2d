@@ -39,6 +39,9 @@ struct SpatialParaConfig {
     Vector3f bottomLeft = {0.23733f, -0.79436f, 1.74357f};
     Vector3f bottomRight = {0.59956f, -0.72365f, 1.89782f};
     float depthRatio = 1.0f;
+    float uniformDepth = 0.0f;
+    bool usePerspective = true;
+    SpatialEffectMode mode = SpatialEffectMode::WORLD_XYZ_MODE;
 };
 
 struct ImageTestConfig {
@@ -53,7 +56,7 @@ public:
         std::shared_ptr<RSGraphicRootNode> parent,
         const DepthSpaceConfig& config)
     {
-        auto depthNode = RSDepthNode::Create(false, false, nullptr);
+        auto depthNode = RSDepthNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         depthNode->SetBounds({0, 0, static_cast<float>(config.screenWidth), static_cast<float>(config.screenHeight)});
         depthNode->SetFrame({0, 0, static_cast<float>(config.screenWidth), static_cast<float>(config.screenHeight)});
         depthNode->SetDepthSpaceType(config.spaceType);
@@ -110,17 +113,40 @@ public:
         cardNode->SetBackgroundColor(bgColor);
 
         auto spaParaPtr = std::make_shared<SpatialEffectVariantPara>();
-        SpatialEffectPara::CornerPositions corners;
-        corners[SpatialEffectPara::LEFT_TOP_INDEX] = spatialPara.topLeft;
-        corners[SpatialEffectPara::RIGHT_TOP_INDEX] = spatialPara.topRight;
-        corners[SpatialEffectPara::LEFT_BOTTOM_INDEX] = spatialPara.bottomLeft;
-        corners[SpatialEffectPara::RIGHT_BOTTOM_INDEX] = spatialPara.bottomRight;
-        spaParaPtr->position = corners;
         spaParaPtr->occlusionWeight = spatialPara.depthRatio;
+        if (spatialPara.usePerspective) {
+            SpatialEffectPara::CornerPositions corners;
+            corners[SpatialEffectPara::LEFT_TOP_INDEX] = spatialPara.topLeft;
+            corners[SpatialEffectPara::RIGHT_TOP_INDEX] = spatialPara.topRight;
+            corners[SpatialEffectPara::LEFT_BOTTOM_INDEX] = spatialPara.bottomLeft;
+            corners[SpatialEffectPara::RIGHT_BOTTOM_INDEX] = spatialPara.bottomRight;
+            spaParaPtr->position = corners;
+            spaParaPtr->spatialEffectMode = spatialPara.mode;
+        } else {
+            spaParaPtr->position = spatialPara.uniformDepth;
+        }
         cardNode->SetSpatialEffectPara(spaParaPtr);
 
         parent->AddChild(cardNode);
         return cardNode;
+    }
+
+    static std::pair<std::shared_ptr<RSDepthNode>, std::shared_ptr<RSCanvasNode>> CreateScene(
+        std::shared_ptr<RSGraphicRootNode> parent,
+        const std::string& depthImage = "/data/local/tmp/depth1.png",
+        const std::string& bgImage = "/data/local/tmp/bg1.png",
+        const DepthCameraPara& cameraPara = {{0, 0, 0}, {0, 0, 0, 1}, 90.0f, 0.1f, 100.0f},
+        DepthSpaceType spaceType = DepthSpaceType::INSTANCE)
+    {
+        DepthSpaceConfig spaceConfig;
+        spaceConfig.depthImagePath = depthImage;
+        spaceConfig.backgroundImagePath = bgImage;
+        spaceConfig.cameraPara = cameraPara;
+        spaceConfig.spaceType = spaceType;
+
+        auto depthNode = CreateDepthNode(parent, spaceConfig);
+        auto bgNode = CreateBackgroundNode(depthNode, spaceConfig);
+        return {depthNode, bgNode};
     }
 };
 
@@ -437,6 +463,401 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Tes
             depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
         RegisterNode(cardNode);
     }
+}
+
+// ===== Group A: Uniform depth mode (position=float, !PerspectiveEnabled) =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_Weight1)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -50.0f;
+    para.depthRatio = 1.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_Weight0_InRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -50.0f;
+    para.depthRatio = 0.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_Weight0_OutOfRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -200.0f;
+    para.depthRatio = 0.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_Weight0_5)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -50.0f;
+    para.depthRatio = 0.5f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_Weight2)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -50.0f;
+    para.depthRatio = 2.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Uniform_WeightNeg_OutOfRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -0.05f;
+    para.depthRatio = -1.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+// ===== Group B: Perspective + WORLD_XYZ_MODE, occlusionWeight boundary =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Perspective_Weight0_InRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 0.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Perspective_Weight0_OutOfRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -101.0f};
+    para.depthRatio = 0.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Perspective_Weight0_5)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 0.5f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Perspective_Weight2)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 2.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Perspective_WeightNeg_InRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = -1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+// ===== Group C: NDC_XY_WORLD_Z_MODE (CalculateDstPointsByNdcXY + CalculateWorldXYZ) =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_NDC_Weight1)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, -0.5f, -2.0f};
+    para.topRight = {0.5f, -0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, 0.5f, -2.0f};
+    para.bottomRight = {0.5f, 0.5f, -2.0f};
+    para.depthRatio = 1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::NDC_XY_WORLD_Z_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_NDC_Weight0_InRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, -0.5f, -2.0f};
+    para.topRight = {0.5f, -0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, 0.5f, -2.0f};
+    para.bottomRight = {0.5f, 0.5f, -2.0f};
+    para.depthRatio = 0.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::NDC_XY_WORLD_Z_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_NDC_Weight0_OutOfRange)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, -0.5f, -2.0f};
+    para.topRight = {0.5f, -0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, 0.5f, -2.0f};
+    para.bottomRight = {0.5f, 0.5f, -101.0f};
+    para.depthRatio = 0.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::NDC_XY_WORLD_Z_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+// ===== Group D: Degenerate / edge corners =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Collinear_Corners)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.0f, -2.0f};
+    para.topRight = {0.0f, 0.0f, -2.0f};
+    para.bottomLeft = {-0.5f, 0.5f, -2.0f};
+    para.bottomRight = {0.5f, 0.0f, -2.0f};
+    para.depthRatio = 1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Boundary_NearFar)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode());
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig paraNear;
+    paraNear.usePerspective = false;
+    paraNear.uniformDepth = -0.1f;
+    paraNear.depthRatio = 0.0f;
+    auto cardNear = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, paraNear);
+    RegisterNode(cardNear);
+
+    SpatialParaConfig paraFar;
+    paraFar.usePerspective = false;
+    paraFar.uniformDepth = -100.0f;
+    paraFar.depthRatio = 0.0f;
+    auto cardFar = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, 900, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, paraFar);
+    RegisterNode(cardFar);
+}
+
+// ===== Group E: Different camera parameters =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Camera_Fov60)
+{
+    DepthCameraPara cameraPara = {{0, 0, 0}, {0, 0, 0, 1}, 60.0f, 0.1f, 100.0f};
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode(),
+        "/data/local/tmp/depth1.png", "/data/local/tmp/bg1.png", cameraPara);
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Camera_Fov120)
+{
+    DepthCameraPara cameraPara = {{0, 0, 0}, {0, 0, 0, 1}, 120.0f, 0.1f, 100.0f};
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode(),
+        "/data/local/tmp/depth1.png", "/data/local/tmp/bg1.png", cameraPara);
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Camera_NearFar)
+{
+    DepthCameraPara cameraPara = {{0, 0, 0}, {0, 0, 0, 1}, 90.0f, 1.0f, 50.0f};
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode(),
+        "/data/local/tmp/depth1.png", "/data/local/tmp/bg1.png", cameraPara);
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.usePerspective = false;
+    para.uniformDepth = -25.0f;
+    para.depthRatio = 0.0f;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
+}
+
+// ===== Group F: GLOBAL depth space type =====
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spatial_Effect_Global_Space)
+{
+    auto [depthNode, bgNode] = SpatialEffectTestUtil::CreateScene(GetRootNode(),
+        "/data/local/tmp/depth1.png", "/data/local/tmp/bg1.png",
+        {{0, 0, 0}, {0, 0, 0, 1}, 90.0f, 0.1f, 100.0f}, DepthSpaceType::GLOBAL);
+    RegisterNode(depthNode);
+    RegisterNode(bgNode);
+
+    SpatialParaConfig para;
+    para.topLeft = {-0.5f, 0.5f, -2.0f};
+    para.topRight = {0.5f, 0.5f, -2.0f};
+    para.bottomLeft = {-0.5f, -0.5f, -2.0f};
+    para.bottomRight = {0.5f, -0.5f, -2.0f};
+    para.depthRatio = 1.0f;
+    para.usePerspective = true;
+    para.mode = SpatialEffectMode::WORLD_XYZ_MODE;
+
+    auto cardNode = SpatialEffectTestUtil::CreateCardNode(
+        depthNode, CARD_X, CARD_Y, CARD_WIDTH, CARD_HEIGHT, CARD_BG_COLOR, para);
+    RegisterNode(cardNode);
 }
 
 } // namespace OHOS::Rosen

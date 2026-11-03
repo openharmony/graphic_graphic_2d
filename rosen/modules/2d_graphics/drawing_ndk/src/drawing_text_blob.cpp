@@ -15,8 +15,10 @@
 
 #include "drawing_text_blob.h"
 
+#include <cstring>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"
@@ -59,6 +61,33 @@ static const Rect* CastToRect(const OH_Drawing_Rect* cRect)
 static const Point CastToPoint(const OH_Drawing_Point2D& cPoint)
 {
     return {cPoint.x, cPoint.y};
+}
+
+// Wraps the inner text blob list as an API-allocated handle array and keeps every blob alive
+// through g_textBlobMap; the array is allocated before any registration, so a failure leaves
+// no partial state behind.
+static OH_Drawing_ErrorCode CreateTextBlobsArray(const std::vector<std::shared_ptr<TextBlob>>& textBlobList,
+    uint32_t* textBlobsCount, OH_Drawing_TextBlob*** textBlobs)
+{
+    *textBlobsCount = 0;
+    *textBlobs = nullptr;
+    if (textBlobList.empty()) {
+        return OH_DRAWING_SUCCESS;
+    }
+    auto textBlobArray = new (std::nothrow) OH_Drawing_TextBlob* [textBlobList.size()];
+    if (textBlobArray == nullptr) {
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
+    {
+        std::lock_guard<std::mutex> lock(g_textBlobLockMutex);
+        for (size_t i = 0; i < textBlobList.size(); i++) {
+            textBlobArray[i] = reinterpret_cast<OH_Drawing_TextBlob*>(textBlobList[i].get());
+            g_textBlobMap.insert({textBlobArray[i], textBlobList[i]});
+        }
+    }
+    *textBlobsCount = static_cast<uint32_t>(textBlobList.size());
+    *textBlobs = textBlobArray;
+    return OH_DRAWING_SUCCESS;
 }
 
 OH_Drawing_TextBlobBuilder* OH_Drawing_TextBlobBuilderCreate()
@@ -157,6 +186,96 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
     return (OH_Drawing_TextBlob*)textBlob.get();
 }
 
+OH_Drawing_ErrorCode OH_Drawing_TextBlobCreateFromTextWithFallback(const void *text, uint32_t byteLength,
+    const OH_Drawing_Font *cFont, OH_Drawing_TextEncoding textEncoding, OH_Drawing_TextBlob ***textBlobs,
+    uint32_t *textBlobsCount)
+{
+    if (text == nullptr || cFont == nullptr || byteLength == 0 ||
+        textBlobsCount == nullptr || textBlobs == nullptr) {
+        LOGE("OH_Drawing_TextBlobCreateFromTextWithFallback: any of text, font, textBlobsCount and "
+            "textBlobs is nullptr or byteLength is 0.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (textEncoding < TEXT_ENCODING_UTF8 || textEncoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_TextBlobCreateFromTextWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+
+    std::vector<std::shared_ptr<TextBlob>> textBlobList =
+        TextBlob::MakeFromTextWithFallback(text, byteLength, *font, static_cast<TextEncoding>(textEncoding));
+    return CreateTextBlobsArray(textBlobList, textBlobsCount, textBlobs);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TextBlobCreateFromPosTextWithFallback(const void *text, uint32_t byteLength,
+    OH_Drawing_Point2D *cPoints, const OH_Drawing_Font *cFont, OH_Drawing_TextEncoding textEncoding,
+    OH_Drawing_TextBlob ***textBlobs, uint32_t *textBlobsCount)
+{
+    if (text == nullptr || cPoints == nullptr || cFont == nullptr || byteLength == 0 ||
+        textBlobsCount == nullptr ||textBlobs == nullptr) {
+        LOGE("OH_Drawing_TextBlobCreateFromPosTextWithFallback: any of text, points, font, "
+            "textBlobsCount and textBlobs is nullptr or byteLength is 0.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (textEncoding < TEXT_ENCODING_UTF8 || textEncoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_TextBlobCreateFromPosTextWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    const int count = font->CountText(text, byteLength, static_cast<TextEncoding>(textEncoding));
+    if (count <= 0) {
+        *textBlobsCount = 0;
+        *textBlobs = nullptr;
+        return OH_DRAWING_SUCCESS;
+    }
+    Point* pts = new (std::nothrow) Point[count];
+    if (pts == nullptr) {
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
+    for (int i = 0; i < count; ++i) {
+        pts[i] = CastToPoint(cPoints[i]);
+    }
+    std::vector<std::shared_ptr<TextBlob>> textBlobList = TextBlob::MakeFromPosTextWithFallback(text,
+        byteLength, pts, *font, static_cast<TextEncoding>(textEncoding));
+    delete[] pts;
+    return CreateTextBlobsArray(textBlobList, textBlobsCount, textBlobs);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TextBlobCreateFromStringWithFallback(const char *str,
+    const OH_Drawing_Font *cFont, OH_Drawing_TextEncoding textEncoding,
+    OH_Drawing_TextBlob ***textBlobs,  uint32_t *textBlobsCount)
+{
+    if (str == nullptr || cFont == nullptr || textBlobsCount == nullptr || textBlobs == nullptr) {
+        LOGE("OH_Drawing_TextBlobCreateFromStringWithFallback: any of str, font, textBlobsCount and "
+            "textBlobs is nullptr.");
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (textEncoding < TEXT_ENCODING_UTF8 || textEncoding > TEXT_ENCODING_GLYPH_ID) {
+        LOGE("OH_Drawing_TextBlobCreateFromTextWithFallback: encoding is invalid.");
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+
+    std::vector<std::shared_ptr<TextBlob>> textBlobList =
+        TextBlob::MakeFromStringWithFallback(str, *font, static_cast<TextEncoding>(textEncoding));
+    return CreateTextBlobsArray(textBlobList, textBlobsCount, textBlobs);
+}
+
 void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rect* cRect)
 {
     Rect* outRect = const_cast<Rect*>(CastToRect(cRect));
@@ -239,4 +358,17 @@ void OH_Drawing_TextBlobBuilderDestroy(OH_Drawing_TextBlobBuilder* cTextBlobBuil
         return;
     }
     delete CastToTextBlobBuilder(cTextBlobBuilder);
+}
+
+
+OH_Drawing_ErrorCode OH_Drawing_TextBlobsArrayDestroy(OH_Drawing_TextBlob **textBlobs, uint32_t count)
+{
+    if (textBlobs == nullptr || count == 0) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        OH_Drawing_TextBlobDestroy(textBlobs[i]);
+    }
+    delete[] textBlobs;
+    return OH_DRAWING_SUCCESS;
 }

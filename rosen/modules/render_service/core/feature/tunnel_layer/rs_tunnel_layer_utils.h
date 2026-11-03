@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RS_TUNNEL_LAYER_UTILS_H
+#define RS_TUNNEL_LAYER_UTILS_H
+
+#include <cstdint>
+
+#include "platform/common/rs_system_properties.h"
+#include "surface_type.h"
+#include "tunnel_layer_param.h"
+
+namespace OHOS {
+namespace Rosen {
+inline constexpr const char* TUNNEL_DEBUG_PREFIX = "TUNNEL_DEBUG ";
+
+// Consecutive DoComp-success frames required before tunnel can enter ACTIVE.
+// Prevents tunnel activation during unstable composition periods.
+// Threshold set to 5 as a balanced approach: ensures sufficient stability
+// before activation while avoiding excessive delay in tunnel startup.
+inline constexpr uint32_t TUNNEL_STABLE_THRESHOLD = 5;
+
+// Consecutive DoComp-success frames required before NOT_TUNNEL can transition to BUILDING.
+// A surface cannot enter tunnel building until composition has been proven stable for this
+// many consecutive frames, even if layerId/property are already set by the listener.
+// Gates on the arbiter's process-level consecutiveSolePresentCount_ — no per-node counter.
+inline constexpr uint32_t TUNNEL_NOT_TUNNEL_TO_BUILDING_THRESHOLD = 3;
+
+inline bool IsNewTunnelEnabled()
+{
+    return TunnelLayerParam::IsNewTunnelEnabled() && RSSystemProperties::GetNewTunnelEnabled();
+}
+
+inline constexpr bool IsNewTunnelProperty(uint32_t property)
+{
+    return (property & TUNNEL_PROP_BUFFER_ADDR) == TUNNEL_PROP_BUFFER_ADDR;
+}
+
+inline constexpr bool IsNewTunnelLayerValid(uint64_t tunnelLayerId, uint32_t property)
+{
+    return tunnelLayerId != 0 && IsNewTunnelProperty(property);
+}
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // RS_TUNNEL_LAYER_UTILS_H

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "ani_pen.h"
+#include "ani_drawing_transfer_util.h"
 #include "path_ani/ani_path.h"
 #include "color_filter_ani/ani_color_filter.h"
 #include "interop_js/arkts_esvalue.h"
@@ -91,7 +92,7 @@ ani_status AniPen::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "penTransferStaticNative", nullptr, reinterpret_cast<void*>(PenTransferStatic) },
-        ani_native_function { "getPenAddr", nullptr, reinterpret_cast<void*>(GetPenAddr) },
+        ani_native_function { "penTransferDynamicNative", nullptr, reinterpret_cast<void*>(PenTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -701,48 +702,42 @@ ani_object AniPen::GetColor4f(ani_env* env, ani_object obj)
     return aniObj;
 }
 
-ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniPen::PenTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniPen::PenTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsPen = reinterpret_cast<JsPen*>(unwrapResult);
-    if (jsPen->GetPen() == nullptr) {
-        ROSEN_LOGE("AniPen::PenTransferStatic jsPen is null");
-        return CreateAniUndefined(env);
-    }
-
-    auto aniPen = new AniPen(jsPen->GetPen());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().pen,
-        AniGlobalMethod::GetInstance().penCtorWithPtr, reinterpret_cast<ani_long>(aniPen));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
-        delete aniPen;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsPen = reinterpret_cast<JsPen*>(unwrapResult);
+        if (jsPen == nullptr || jsPen->GetPen() == nullptr) {
+            ROSEN_LOGE("AniPen::PenTransferStatic jsPen is null");
+            return CreateAniUndefined(env);
+        }
+        auto aniPen = new AniPen(jsPen->GetPen());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().pen,
+            AniGlobalMethod::GetInstance().penCtorWithPtr, reinterpret_cast<ani_long>(aniPen));
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
+            delete aniPen;
+            return CreateAniUndefined(env);
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniPen::GetPenAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniPen::PenTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, input, AniGlobalField::GetInstance().penNativeObj);
-    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
-        ROSEN_LOGE("AniPen::GetPenAddr aniPen is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().pen)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniPen->GetPenPtrAddr());
-}
-
-std::shared_ptr<Pen>* AniPen::GetPenPtrAddr()
-{
-    return &pen_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniPen = GetNativeFromObj<AniPen>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().penNativeObj);
+            if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
+                ROSEN_LOGE("AniPen::PenTransferDynamic null aniPen");
+                return nullptr;
+            }
+            return JsPen::CreateJsPenDynamic(napiEnv, aniPen->GetPen());
+        });
 }
 
 AniPen::~AniPen()

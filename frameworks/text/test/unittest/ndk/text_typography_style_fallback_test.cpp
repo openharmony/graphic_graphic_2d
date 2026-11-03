@@ -21,6 +21,7 @@
 #include "impl/paragraph_impl.h"
 #include "modules/skparagraph/include/DartTypes.h"
 #include "modules/skparagraph/src/ParagraphImpl.h"
+#include "rosen_text/ref_count_holder.h"
 #include "rosen_text/typography.h"
 
 using namespace testing;
@@ -31,7 +32,8 @@ class NdkTypographyStyleTest : public testing::Test {
 
 static skia::textlayout::ParagraphImpl* GetSkiaParagraph(OH_Drawing_Typography* typography)
 {
-    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::Typography* rosenTypography =
+        reinterpret_cast<OHOS::Rosen::RefCountedHolder<OHOS::Rosen::Typography>*>(typography)->Get();
     OHOS::Rosen::SPText::ParagraphImpl* paragraph =
         reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
     return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());

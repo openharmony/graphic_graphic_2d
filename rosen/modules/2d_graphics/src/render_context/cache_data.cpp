@@ -61,6 +61,10 @@ uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
 
 bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 {
+    if (buffer == nullptr) {
+        LOGE("abandon, beacuse of buffer is nullptr");
+        return false;
+    }
     if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         LOGE("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
         return false;
@@ -127,7 +131,7 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
     return;
 }
 
-void CacheData::CacheReadFromFile(const std::string filePath)
+void CacheData::CacheReadFromFile(std::string filePath)
 {
     if (filePath.length() <= 0) {
         LOGD("abandon, because of empty filename.");
@@ -239,6 +243,7 @@ void CacheData::WriteToFile()
     if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         delete[] buffer;
         fdsan_close_with_tag(fd, LOG_DOMAIN);
+        unlink(cacheDir_.c_str());
         return;
     }
     uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
@@ -397,8 +402,9 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size) const
 
 int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
 {
-    if (size < sizeof(Header)) {
-        LOGD("abandon, not enough room for cache header");
+    if (size < sizeof(Header) || size < sizeof(ShaderData)) {
+        LOGD("abandon, not enough room for cache header or shaderData");
+        return -EINVAL;
     }
 
     if (buffer == nullptr) {
@@ -411,18 +417,27 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
 
     const uint8_t *byteBuffer = reinterpret_cast<const uint8_t *>(buffer);
     for (size_t i = 0; i < numShaders; i++) {
-        if (byteOffset + sizeof(ShaderData) > size) {
+        if (byteOffset > size - sizeof(ShaderData)) {
             shaderPointers_.clear();
+            totalSize_ = 0;
             LOGD("abandon because of insufficient buffer space");
             return -EINVAL;
         }
         const ShaderData *shaderBuffer = reinterpret_cast<const ShaderData *>(&byteBuffer[byteOffset]);
         size_t keySize = shaderBuffer->keySize_;
         size_t valueSize = shaderBuffer->valueSize_;
+        if (keySize > maxKeySize_ || valueSize > maxValueSize_) {
+            shaderPointers_.clear();
+            totalSize_ = 0;
+            LOGD("abandon because of illegal key/value size");
+            return -EINVAL;
+        }
+
         size_t pairSize = sizeof(ShaderData) + keySize + valueSize;
         size_t alignedSize = Align4(pairSize);
-        if (byteOffset + alignedSize > size) {
+        if (alignedSize > size - byteOffset) {
             shaderPointers_.clear();
+            totalSize_ = 0;
             LOGD("abandon, not enough room for cache headers");
             return -EINVAL;
         }

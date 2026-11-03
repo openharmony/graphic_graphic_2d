@@ -32,6 +32,11 @@ class RSPath;
 
 class RSC_EXPORT RSPathAnimation : public RSPropertyAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::PATH;
+    }
+
     RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPath>& animationPath);
     RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
@@ -111,6 +116,7 @@ private:
     float startTangent_ { 0.0f };
     float endTangent_ { 0.0f };
     bool isNeedPath_ { true };
+    bool pathAnimationRemoved_ { true };
     bool needAddOrigin_ { true };
     PropertyId rotationId_ {};
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };

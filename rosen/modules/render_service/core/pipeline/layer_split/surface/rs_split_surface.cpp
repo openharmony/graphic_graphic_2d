@@ -175,7 +175,10 @@ bool SplitSurface::RequestFrame(RSSurfaceRenderParams& params)
     }
     splitCanvas_ = std::make_shared<RSPaintFilterCanvas>(splitRenderFrame_->GetFrame()->GetSurface().get());
     splitCanvas_->SetTargetColorGamut(colorSpace_);
-    splitCanvas_->SetScreenId(params.GetScreenId());
+    auto ancestorScreenDrawable = params.GetAncestorScreenDrawable().lock();
+    auto screenParam = ancestorScreenDrawable ?
+        static_cast<RSScreenRenderParams*>(ancestorScreenDrawable->GetRenderParams().get()) : nullptr;
+    splitCanvas_->SetScreenId(screenParam ? screenParam->GetScreenId() : INVALID_SCREEN_ID);
     splitCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     return true;
 }

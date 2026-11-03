@@ -17,7 +17,9 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_steps_interpolator.h"
 #include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
@@ -376,7 +378,7 @@ HWTEST_F(RSAnimationTimingProtocolTest, MarshallingUnmarshalling001, TestSize.Le
 
 /**
  * @tc.name: SafeCastFillMode001
- * @tc.desc: Verify SafeCastFillMode with valid values returns correct FillMode
+ * @tc.desc: Verify SafeCastFillMode with valid, invalid and custom default values
  * @tc.type:FUNC
  */
 HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode001, TestSize.Level1)
@@ -385,27 +387,9 @@ HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode001, TestSize.Level1)
     EXPECT_EQ(SafeCastFillMode(1), FillMode::FORWARDS);
     EXPECT_EQ(SafeCastFillMode(2), FillMode::BACKWARDS);
     EXPECT_EQ(SafeCastFillMode(3), FillMode::BOTH);
-}
-
-/**
- * @tc.name: SafeCastFillMode002
- * @tc.desc: Verify SafeCastFillMode with invalid values returns default FillMode::FORWARDS
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode002, TestSize.Level1)
-{
     EXPECT_EQ(SafeCastFillMode(-1), FillMode::FORWARDS);
     EXPECT_EQ(SafeCastFillMode(4), FillMode::FORWARDS);
     EXPECT_EQ(SafeCastFillMode(999), FillMode::FORWARDS);
-}
-
-/**
- * @tc.name: SafeCastFillMode003
- * @tc.desc: Verify SafeCastFillMode with custom default value
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode003, TestSize.Level1)
-{
     EXPECT_EQ(SafeCastFillMode(-1, FillMode::NONE), FillMode::NONE);
     EXPECT_EQ(SafeCastFillMode(4, FillMode::BACKWARDS), FillMode::BACKWARDS);
     EXPECT_EQ(SafeCastFillMode(1, FillMode::BACKWARDS), FillMode::FORWARDS);
@@ -413,37 +397,54 @@ HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode003, TestSize.Level1)
 
 /**
  * @tc.name: SafeCastComponentScene001
- * @tc.desc: Verify SafeCastComponentScene with valid values returns correct ComponentScene
+ * @tc.desc: Verify SafeCastComponentScene with valid, invalid and custom default values
  * @tc.type:FUNC
  */
 HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene001, TestSize.Level1)
 {
     EXPECT_EQ(SafeCastComponentScene(0), ComponentScene::UNKNOWN_SCENE);
     EXPECT_EQ(SafeCastComponentScene(1), ComponentScene::SWIPER_FLING);
-}
-
-/**
- * @tc.name: SafeCastComponentScene002
- * @tc.desc: Verify SafeCastComponentScene with invalid values returns default UNKNOWN_SCENE
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene002, TestSize.Level1)
-{
     EXPECT_EQ(SafeCastComponentScene(-1), ComponentScene::UNKNOWN_SCENE);
     EXPECT_EQ(SafeCastComponentScene(2), ComponentScene::UNKNOWN_SCENE);
     EXPECT_EQ(SafeCastComponentScene(999), ComponentScene::UNKNOWN_SCENE);
-}
-
-/**
- * @tc.name: SafeCastComponentScene003
- * @tc.desc: Verify SafeCastComponentScene with custom default value
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene003, TestSize.Level1)
-{
     EXPECT_EQ(SafeCastComponentScene(-1, ComponentScene::SWIPER_FLING), ComponentScene::SWIPER_FLING);
     EXPECT_EQ(SafeCastComponentScene(2, ComponentScene::SWIPER_FLING), ComponentScene::SWIPER_FLING);
     EXPECT_EQ(SafeCastComponentScene(0, ComponentScene::SWIPER_FLING), ComponentScene::UNKNOWN_SCENE);
+}
+
+/**
+ * @tc.name: SafeCastStepsCurvePosition001
+ * @tc.desc: Verify SafeCastStepsCurvePosition with valid, invalid and custom default values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastStepsCurvePosition001, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastStepsCurvePosition(0), StepsCurvePosition::START);
+    EXPECT_EQ(SafeCastStepsCurvePosition(1), StepsCurvePosition::END);
+    EXPECT_EQ(SafeCastStepsCurvePosition(-1), StepsCurvePosition::START);
+    EXPECT_EQ(SafeCastStepsCurvePosition(2), StepsCurvePosition::START);
+    EXPECT_EQ(SafeCastStepsCurvePosition(999), StepsCurvePosition::START);
+    EXPECT_EQ(SafeCastStepsCurvePosition(-1, StepsCurvePosition::END), StepsCurvePosition::END);
+    EXPECT_EQ(SafeCastStepsCurvePosition(2, StepsCurvePosition::END), StepsCurvePosition::END);
+    EXPECT_EQ(SafeCastStepsCurvePosition(0, StepsCurvePosition::END), StepsCurvePosition::START);
+}
+
+/**
+ * @tc.name: SafeCastRotationMode001
+ * @tc.desc: Verify SafeCastRotationMode with valid, invalid and custom default values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastRotationMode001, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastRotationMode(0), RotationMode::ROTATE_NONE);
+    EXPECT_EQ(SafeCastRotationMode(1), RotationMode::ROTATE_AUTO);
+    EXPECT_EQ(SafeCastRotationMode(2), RotationMode::ROTATE_AUTO_REVERSE);
+    EXPECT_EQ(SafeCastRotationMode(-1), RotationMode::ROTATE_NONE);
+    EXPECT_EQ(SafeCastRotationMode(3), RotationMode::ROTATE_NONE);
+    EXPECT_EQ(SafeCastRotationMode(999), RotationMode::ROTATE_NONE);
+    EXPECT_EQ(SafeCastRotationMode(-1, RotationMode::ROTATE_AUTO), RotationMode::ROTATE_AUTO);
+    EXPECT_EQ(SafeCastRotationMode(3, RotationMode::ROTATE_AUTO_REVERSE), RotationMode::ROTATE_AUTO_REVERSE);
+    EXPECT_EQ(SafeCastRotationMode(1, RotationMode::ROTATE_AUTO_REVERSE), RotationMode::ROTATE_AUTO);
 }
 
 /**

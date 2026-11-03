@@ -66,12 +66,12 @@ string WebGLProgram::GetClassName()
 
 WebGLProgram::WebGLProgram(napi_env env, napi_value exports) : NExporter(env, exports), programId_(0)
 {
-    LOGD("WebGLProgram::WebGLProgram %{private}p", this);
+    LOGD("WebGLProgram::WebGLProgram");
 }
 
 WebGLProgram::~WebGLProgram()
 {
-    LOGD("~WebGLProgram::WebGLProgram %{private}p %{public}u", this, programId_);
+    LOGD("~WebGLProgram::WebGLProgram %{public}u", programId_);
 }
 
 bool WebGLProgram::AttachShader(uint32_t index, uint32_t shaderId)

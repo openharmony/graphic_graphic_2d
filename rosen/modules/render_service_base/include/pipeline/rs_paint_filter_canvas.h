@@ -19,6 +19,7 @@
 #include <limits>
 #include <optional>
 #include <stack>
+#include <sys/types.h>
 #include <vector>
 
 #include "common/rs_color.h"
@@ -27,6 +28,7 @@
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
+#include "platform/ohos/backend/rs_engine_header_ext.h"
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
@@ -294,12 +296,20 @@ public:
         HDR_UICAPTURE,
     };
 
+    enum class DisplaySceneType {
+        MAIN_SCREEN = 0,
+        SCREEN_SHOT,
+        VIRTUAL_SCREEN,
+        OTHERS = 2048
+    };
+ 
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
         ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
         bool isEDRSurface = false;
         DisplayIntent displayIntent = DisplayIntent::CANONICAL;
+        DisplaySceneType displaySceneType = DisplaySceneType::MAIN_SCREEN;
     };
 
     enum SaveType : uint8_t {
@@ -354,7 +364,8 @@ public:
     void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
-
+    void SetCrossNodeDraw(bool isCrossNodeDraw);
+    bool IsCrossNodeDraw() const;
     void RecordState(const RSPaintFilterCanvas& other);
     std::weak_ptr<Drawing::Surface> GetWeakSurface();
     // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
@@ -391,6 +402,8 @@ public:
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
         float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
+        // Snapshot timestamp if this cache depends on a snapshot, 0 otherwise.
+        int64_t timestamp_ = 0;
 
         std::shared_ptr<Drawing::Image> GetProviderDataChecked();
     };
@@ -453,8 +466,12 @@ public:
     void SetOnMultipleScreen(bool multipleScreen);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
+    ::pid_t GetPid() const;
+    void SetPid(::pid_t pid);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    bool GetSkipColorSpaceConversion() const;
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
     float GetHDRBrightness() const;
     void SetHDRBrightness(float hdrBrightness);
     float GetBrightnessRatio() const;
@@ -466,6 +483,9 @@ public:
     void SetEDRSurface(bool isEDRSurface);
     bool GetHDREnabledVirtualScreen() const;
     void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    DisplaySceneType GetDisplaySceneType() const;
+    void SetDisplaySceneType(DisplaySceneType displaySceneType);
+    void UpdateDisplaySceneType();
     void SetDisplayIntent(DisplayIntent displayIntent);
     const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
@@ -586,6 +606,7 @@ protected:
 
 private:
     bool isParallelCanvas_ = false;
+    bool isCrossNodeDraw_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
@@ -597,8 +618,10 @@ private:
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    bool skipColorSpaceConversion_ = false;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    ::pid_t pid_ = -1;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     HDRProperties hdrProperties_;
     Drawing::Surface* surface_ = nullptr;

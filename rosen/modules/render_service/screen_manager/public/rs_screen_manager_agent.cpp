@@ -57,7 +57,7 @@ void RSScreenManagerAgentListener::OnHwcEvent(
         if (it != exposedEventCallbacks_.end() && it->second != nullptr) {
             auto callback = it->second;
             auto data = std::make_shared<RSExtScreenUnsupportData>();
-            RS_LOGI("RSScreenManagerAgentListener::OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
+            RS_LOGI("RSScreenManagerAgentListener: OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
                 "deviceId is %{public}u, eventId is %{public}u", deviceId, eventId);
             callback->OnDisplayEvent(data);
         }
@@ -203,8 +203,8 @@ ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint
         return INVALID_SCREEN_ID;
     }
     if (whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
-        RS_LOGW("%{public}s: white list is over max size!", __func__);
-        return INVALID_ARGUMENTS;
+        RS_LOGW("%{public}s: whiteList is over max size!", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
     }
     auto screenId = screenManager_->CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
@@ -374,7 +374,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::
         return StatusCode::INVALID_ARGUMENTS;
     }
     if (blackList.empty()) {
-        RS_LOGW("%{public}s blacklist is empty", __func__);
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         return StatusCode::BLACKLIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -387,7 +387,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::
 int32_t RSScreenManagerAgent::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (blackList.empty()) {
-        RS_LOGW("%{public}s: blackList is over max size!", __func__);
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         return StatusCode::BLACKLIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -404,7 +404,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenWhiteList(ScreenId id, const std::
         return StatusCode::INVALID_ARGUMENTS;
     }
     if (whiteList.empty()) {
-        RS_LOGW("%{public}s whiteList is empty", __func__);
+        RS_LOGW("%{public}s: whiteList is empty.", __func__);
         return StatusCode::WHITELIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -417,7 +417,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenWhiteList(ScreenId id, const std::
 int32_t RSScreenManagerAgent::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
 {
     if (whiteList.empty()) {
-        RS_LOGW("%{public}s: whiteList is over max size!", __func__);
+        RS_LOGW("%{public}s: whiteList is empty.", __func__);
         return StatusCode::WHITELIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -502,13 +502,14 @@ int32_t RSScreenManagerAgent::SetVirtualScreenResolution(ScreenId id, uint32_t w
     return screenManager_->SetVirtualScreenResolution(id, width, height);
 }
 
-int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManager_->SetRogScreenResolution(id, width, height);
+    return screenManager_->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 int32_t RSScreenManagerAgent::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
@@ -574,6 +575,24 @@ int32_t RSScreenManagerAgent::GetScreenColorGamut(ScreenId id, ScreenColorGamut&
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->GetScreenColorGamut(id, mode);
+}
+
+int32_t RSScreenManagerAgent::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSScreenManagerAgent::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->GetVirtualScreenHDRMode(id, mode);
 }
 
 int32_t RSScreenManagerAgent::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
@@ -791,7 +810,7 @@ bool RSScreenManagerAgent::SetVirtualScreenStatus(ScreenId id, VirtualScreenStat
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
+        return false;
     }
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
@@ -811,6 +830,14 @@ void RSScreenManagerAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
         return;
     }
     screenManager_->SetScreenFrameGravity(id, gravity);
+}
+
+void RSScreenManagerAgent::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    if (!screenManager_) {
+        return;
+    }
+    screenManager_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 int32_t RSScreenManagerAgent::SetDualScreenState(ScreenId id, DualScreenStatus status)

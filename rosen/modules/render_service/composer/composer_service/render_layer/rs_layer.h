@@ -152,6 +152,7 @@ public:
     virtual void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount,
         bool needUpdate = true) = 0;
     virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) = 0;
+    virtual bool HasBufferOwnerCountById(uint64_t bufferId) const { return false; }
     virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const = 0;
     virtual std::string GetSurfaceName() const = 0;
     virtual void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) = 0;
@@ -196,15 +197,17 @@ public:
     {
         (void)isDelegateMode;
     };
-    virtual void SetDelegateModeCropRect(const GraphicIRect& crop)
+    virtual void SetDelegateSrcRect(const GraphicIRect& crop)
     {
         (void)crop;
     };
-    virtual GraphicIRect GetDelegateModeCropRect()
+    virtual GraphicIRect GetDelegateSrcRect()
     {
         GraphicIRect rect;
         return rect;
     };
+    virtual void SetAlphaType(GraphicAlphaType alphaType) = 0;
+    virtual GraphicAlphaType GetAlphaType() const = 0;
 };
 
 using RSLayerPtr = std::shared_ptr<RSLayer>;

@@ -95,17 +95,39 @@ HWTEST_F(RSDisplayNodeTest, GetType001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSecurityDisplay001
+ * @tc.name: SetScreenIdTest001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay001, TestSize.Level1)
+HWTEST_F(RSDisplayNodeTest, SetScreenIdTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. create RSDisplayNode
      */
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->SetScreenId(1);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    displayNode->SetScreenId(1);
+    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: SetSecurityDisplayTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetSecurityDisplayTest001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSDisplayNode
+     */
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
     /**
      * @tc.steps: step2. set SecurityDisplay
@@ -115,17 +137,17 @@ HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSecurityDisplay002
+ * @tc.name: SetSecurityDisplayTest002
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay002, TestSize.Level1)
+HWTEST_F(RSDisplayNodeTest, SetSecurityDisplayTest002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. create RSDisplayNode
      */
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     /**
      * @tc.steps: step2. set SecurityDisplay
      */
@@ -134,43 +156,95 @@ HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay002, TestSize.Level1)
     EXPECT_FALSE(displayNode->GetSecurityDisplay());
 }
 
-
 /**
- * @tc.name: GetSecurityDisplay001
+ * @tc.name: GetSecurityDisplayTest001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayNodeTest, GetSecurityDisplay001, TestSize.Level1)
+HWTEST_F(RSDisplayNodeTest, GetSecurityDisplayTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. create RSDisplayNode
      */
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
     EXPECT_FALSE(displayNode->GetSecurityDisplay());
 }
 
 /**
- * @tc.name: SetScreenId001
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: SetScreenRotationTest001
+ * @tc.desc: SetScreenRotation Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
  */
-HWTEST_F(RSDisplayNodeTest, SetScreenId001, TestSize.Level1)
+HWTEST_F(RSDisplayNodeTest, SetScreenRotationTest001, TestSize.Level1)
 {
-    /**
-     * @tc.steps: step1. create RSDisplayNode
-     */
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
-    ASSERT_TRUE(displayNode != nullptr);
-    displayNode->SetScreenId(1);
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetScreenRotation(0);
+    displayNode->SetScreenRotation(1);
+    displayNode->SetScreenRotation(2);
+    displayNode->SetScreenRotation(3);
+    displayNode->SetScreenRotation(4);
+}
+
+/**
+ * @tc.name: SetDisplayNodeConfigTest001
+ * @tc.desc: test results of SetDisplayNodeConfig
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSDisplayNodeTest, SetDisplayNodeConfigTest001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    displayNode->SetDisplayNodeConfig(config);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    displayNode->SetScreenId(1);
-    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    displayNode->SetDisplayNodeConfig(config);
+    ASSERT_EQ(RSTransactionProxy::instance_, nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: IsMirrorDisplayTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, IsMirrorDisplayTest001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_FALSE(displayNode->IsMirrorDisplay());
+}
+
+/**
+ * @tc.name: SetVirtualScreenMuteStatusTest001
+ * @tc.desc: test SetVirtualScreenMuteStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBTNC3
+ */
+HWTEST_F(RSDisplayNodeTest, SetVirtualScreenMuteStatusTest001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    config.screenId = 6000;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    EXPECT_TRUE(displayNode != nullptr);
+
+    displayNode->SetVirtualScreenMuteStatus(true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
+
+    displayNode->SetVirtualScreenMuteStatus(false);
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 
 /**
@@ -192,18 +266,6 @@ HWTEST_F(RSDisplayNodeTest, ClearChildrenTest, TestSize.Level1)
     displayNode->children_.push_back(child2);
     displayNode->ClearChildren();
     EXPECT_TRUE(!displayNode->children_.empty());
-}
-
-/**
- * @tc.name: IsMirrorDisplayTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSDisplayNodeTest, IsMirrorDisplayTest, TestSize.Level1)
-{
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    ASSERT_FALSE(displayNode->IsMirrorDisplay());
 }
 
 /**
@@ -273,59 +335,6 @@ HWTEST_F(RSDisplayNodeTest, OnBoundsSizeChanged, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDisplayMode
- * @tc.desc: test results of SetDisplayMode
- * @tc.type: FUNC
- * @tc.require: issueI9KDPI
- */
-HWTEST_F(RSDisplayNodeTest, SetDisplayMode, TestSize.Level1)
-{
-    RSDisplayNodeConfig displayNodeConfig;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
-    displayNode->SetDisplayNodeConfig(displayNodeConfig);
-    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
-
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    displayNode->SetDisplayNodeConfig(displayNodeConfig);
-    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
-}
-
-/**
- * @tc.name: SetScreenRotation
- * @tc.desc: test results of SetScreenRotation
- * @tc.type: FUNC
- * @tc.require: issueI9KDPI
- */
-HWTEST_F(RSDisplayNodeTest, SetScreenRotation, TestSize.Level1)
-{
-    RSDisplayNodeConfig displayNodeConfig;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
-    uint32_t rotation = 0;
-    displayNode->SetScreenRotation(rotation);
-
-    rotation = 1;
-    displayNode->SetScreenRotation(rotation);
-
-    rotation = 2;
-    displayNode->SetScreenRotation(rotation);
-
-    rotation = 3;
-    displayNode->SetScreenRotation(rotation);
-
-    rotation = 4;
-    displayNode->SetScreenRotation(rotation);
-    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
-
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    displayNode->SetScreenRotation(rotation);
-    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
-}
-
-/**
  * @tc.name: UnmarshallingTest001
  * @tc.desc: Unmarshalling Test
  * @tc.type: FUNC
@@ -353,48 +362,6 @@ HWTEST_F(RSDisplayNodeTest, UnmarshallingTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetScreenRotationTest003
- * @tc.desc: SetScreenRotation Test
- * @tc.type: FUNC
- * @tc.require: issueI9N1QF
- */
-HWTEST_F(RSDisplayNodeTest, SetScreenRotationTest003, TestSize.Level1)
-{
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    EXPECT_TRUE(displayNode != nullptr);
-    displayNode->SetId(0);
-    EXPECT_EQ(displayNode->GetId(), 0);
-    displayNode->SetScreenRotation(0);
-    displayNode->SetScreenRotation(1);
-    displayNode->SetScreenRotation(2);
-    displayNode->SetScreenRotation(3);
-    displayNode->SetScreenRotation(4);
-    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
-}
-
-/**
- * @tc.name: SetSecurityDisplay003
- * @tc.desc: SetScreenRotation Test
- * @tc.type: FUNC
- * @tc.require: issueI9R0EY
- */
-HWTEST_F(RSDisplayNodeTest, SetSecurityDisplay003, TestSize.Level1)
-{
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
-    ASSERT_TRUE(displayNode != nullptr);
-    displayNode->SetSecurityDisplay(false);
-    EXPECT_FALSE(displayNode->GetSecurityDisplay());
-
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    displayNode->SetSecurityDisplay(false);
-    ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
-}
-
-/**
  * @tc.name: ServiceControlBlockTree001
  * @tc.desc: AddDisplayNodeToTree RemoveDisplayNodeFromTree SetScbNodePid Test
  * @tc.type: FUNC
@@ -410,31 +377,6 @@ HWTEST_F(RSDisplayNodeTest, ServiceControlBlockTree001, TestSize.Level1)
     displayNode->AddDisplayNodeToTree();
     // RemoveDisplayNodeFromTree test
     displayNode->RemoveDisplayNodeFromTree();
-}
-
-/**
- * @tc.name: SetVirtualScreenMuteStatus
- * @tc.desc: SetVirtualScreenMuteStatus test.
- * @tc.type: FUNC
- * @tc.require: issueIBTNC3
- */
-HWTEST_F(RSDisplayNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
-{
-    RSDisplayNodeConfig config;
-    config.screenId = 6000;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    EXPECT_TRUE(displayNode != nullptr);
-
-    displayNode->SetVirtualScreenMuteStatus(true);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
-    }
-
-    displayNode->SetVirtualScreenMuteStatus(false);
-    if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
-    }
 }
 
 /**

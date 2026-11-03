@@ -37,19 +37,18 @@ class RenderContextGL : public RenderContext {
 public:
     RenderContextGL();
     ~RenderContextGL() override;
-
-    bool Init() override;
+    bool Init(RenderEngineType type = RenderEngineType::BASIC_RENDER, const std::string& cacheDir = "") override;
     bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
-    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> context = nullptr) override;
+    RenderEngineType GetType() override { return RenderEngineType::BASIC_RENDER; }
+    bool SetUpGpuContext(const std::string& cacheDir = "") override;
     bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingGPUContext(const std::string& cacheDir = "") override;
+    void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext) override;
 
     std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height) override;
     void RenderFrame() override;
     void DamageFrame(const std::vector<RectI> &rects) override;
     void ClearRedundantResources() override;
-    void CreateShareContext() override;
     void DestroyShareContext() override;
     int32_t QueryEglBufferAge() override;
 
@@ -107,6 +106,7 @@ private:
     }
 
     void CreatePbufferSurface();
+    void CreateShareContext();
 #ifndef ROSEN_IOS
     static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc();
     static bool CheckEglExtension(const char* extensions, const char* extension);

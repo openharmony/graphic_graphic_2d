@@ -132,7 +132,7 @@ private:
     GSError SetMetadataForAllSurfaces(uint32_t key, const std::vector<uint8_t>& data);
 
     // Multi-surface private methods
-    void RequestFramesForAllSurfaces(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t tid);
+    void RequestFramesForAllSurfaces(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     void CopyToSecondarySurfaces();
     void FlushAllSurfaces();
     void FlushGpu();

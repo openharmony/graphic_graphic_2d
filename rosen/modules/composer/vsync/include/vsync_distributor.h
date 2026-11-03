@@ -74,7 +74,8 @@ public:
     virtual void CloseReceiveFd() override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
-    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM) override;
+    virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch, FromWhom fromWhom = DEFAULT_FROMWHOM,
+        DvsyncDisableReason disableReason = DEFAULT_DVSYNCDISABLEREASON) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
@@ -164,7 +165,7 @@ public:
     uint32_t GetRefreshRate();
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection,
-        FromWhom fromWhom = DEFAULT_FROMWHOM);
+        FromWhom fromWhom = DEFAULT_FROMWHOM, DvsyncDisableReason disableReason = DEFAULT_DVSYNCDISABLEREASON);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList);
     virtual int64_t GetUiCommandDelayTime();
@@ -182,6 +183,9 @@ public:
     // forcefully enable DVsync in RS
     void ForceRsDVsync(const std::string& sceneId);
     bool DvsyncNeedSkipRsCommitDelay() const;
+
+    // set thermal frame rate limit, 0 means no limit
+    void SetThermalFrameRateLimit(uint32_t frameRate);
 
     // used by VRate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
@@ -281,6 +285,11 @@ private:
     bool dvsyncControllerEnabled_ = false;
     std::map<pid_t, std::vector<sptr<VSyncConnection>>> unalliedWindowConnectionsMap_;
     // End of DVSync
+    
+    // set thermal frame rate limit
+    uint32_t thermalRateLimit_ = 0;
+    int64_t lastThermalTrigTime_ = 0;
+    std::mutex thermalLimitMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -19,7 +19,7 @@
 #include "drawing_image.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -36,12 +36,7 @@ public:
     void TearDown() override;
 };
 
-void NativeImageTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeImageTest::SetUpTestCase() {}
 void NativeImageTest::TearDownTestCase() {}
 void NativeImageTest::SetUp() {}
 void NativeImageTest::TearDown() {}

@@ -1100,33 +1100,134 @@ HWTEST_F(RSOpincDrawCacheTest, DrawAutoCacheWithEmptyRects, TestSize.Level1)
 }
 
 /**
- * @tc.name: HelperPrepareAndFinishOpincSubtreeBranches
- * @tc.desc: Cover PrepareOpincSubtree(30 true/35 false) and FinishOpincSubtree(46 true)
+ * @tc.name: HelperPrepareNestedOpincSubtree
+ * @tc.desc: Cover PrepareOpincSubtree(30 true when depth>0) and FinishOpincSubtree(46 true when depth>1)
  * @tc.type: FUNC
  * @tc.require: issueTddCoverHelperBranches
  */
-HWTEST_F(RSOpincDrawCacheTest, HelperPrepareAndFinishOpincSubtreeBranches, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheTest, HelperPrepareNestedOpincSubtree, TestSize.Level1)
 {
-    auto renderNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
-    auto drawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
-    ASSERT_NE(drawable, nullptr);
-    ASSERT_EQ(drawable->TryGetOpincDrawCachePtr(), nullptr);
+    auto rootNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto rootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode));
+    ASSERT_NE(rootDrawable, nullptr);
+    ASSERT_EQ(rootDrawable->TryGetOpincDrawCachePtr(), nullptr);
 
+    RSRenderParams rootSuggestParams(GenerateUniqueNodeIdForRS());
+    rootSuggestParams.OpincSetIsSuggest(true);
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*rootDrawable, rootSuggestParams);
+    ASSERT_NE(rootDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    auto nestedNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto nestedDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nestedNode));
+    ASSERT_NE(nestedDrawable, nullptr);
+    ASSERT_EQ(nestedDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSRenderParams nestedSuggestParams(GenerateUniqueNodeIdForRS());
+    nestedSuggestParams.OpincSetIsSuggest(true);
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*nestedDrawable, nestedSuggestParams);
+    ASSERT_NE(nestedDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSOpincDrawCacheHelper::FinishOpincSubtree(nestedSuggestParams);
+    RSOpincDrawCacheHelper::FinishOpincSubtree(rootSuggestParams);
+
+    auto normalNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto normalDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(normalNode));
+    ASSERT_NE(normalDrawable, nullptr);
+    RSRenderParams normalParams(GenerateUniqueNodeIdForRS());
+    ASSERT_TRUE(RSOpincDrawCacheHelper::PrepareOpincSubtree(*normalDrawable, normalParams));
+    ASSERT_EQ(normalDrawable->TryGetOpincDrawCachePtr(), nullptr);
+}
+
+/**
+ * @tc.name: HelperPrepareChildAndFinishNoOpBranches
+ * @tc.desc: Cover PrepareOpincSubtree(30 false/35 false when depth>0) and FinishOpincSubtree(46 false, suggest=false)
+ * @tc.type: FUNC
+ * @tc.require: issueTddCoverHelperBranches
+ */
+HWTEST_F(RSOpincDrawCacheTest, HelperPrepareChildAndFinishNoOpBranches, TestSize.Level1)
+{
+    auto rootNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto rootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode));
+    ASSERT_NE(rootDrawable, nullptr);
+
+    RSRenderParams rootSuggestParams(GenerateUniqueNodeIdForRS());
+    rootSuggestParams.OpincSetIsSuggest(true);
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*rootDrawable, rootSuggestParams);
+    ASSERT_NE(rootDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    auto childNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto childDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
+    ASSERT_NE(childDrawable, nullptr);
+    ASSERT_EQ(childDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSRenderParams childNormalParams(GenerateUniqueNodeIdForRS());
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*childDrawable, childNormalParams);
+    ASSERT_NE(childDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSOpincDrawCacheHelper::FinishOpincSubtree(childNormalParams);
+
+    auto verifyNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto verifyDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(verifyNode));
+    ASSERT_NE(verifyDrawable, nullptr);
+    ASSERT_EQ(verifyDrawable->TryGetOpincDrawCachePtr(), nullptr);
+    RSRenderParams verifyParams(GenerateUniqueNodeIdForRS());
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*verifyDrawable, verifyParams);
+    ASSERT_NE(verifyDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSOpincDrawCacheHelper::FinishOpincSubtree(rootSuggestParams);
+
+    auto cleanupNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto cleanupDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cleanupNode));
+    ASSERT_NE(cleanupDrawable, nullptr);
+    RSRenderParams cleanupParams(GenerateUniqueNodeIdForRS());
+    ASSERT_TRUE(RSOpincDrawCacheHelper::PrepareOpincSubtree(*cleanupDrawable, cleanupParams));
+    ASSERT_EQ(cleanupDrawable->TryGetOpincDrawCachePtr(), nullptr);
+}
+
+/**
+ * @tc.name: HelperFinishOpincSubtreeUnderflowProtection
+ * @tc.desc: Cover FinishOpincSubtree(46 false, suggest=true but depth<=0) underflow protection
+ * @tc.type: FUNC
+ * @tc.require: issueTddCoverHelperBranches
+ */
+HWTEST_F(RSOpincDrawCacheTest, HelperFinishOpincSubtreeUnderflowProtection, TestSize.Level1)
+{
     RSRenderParams suggestParams(GenerateUniqueNodeIdForRS());
     suggestParams.OpincSetIsSuggest(true);
-    RSOpincDrawCacheHelper::PrepareOpincSubtree(*drawable, suggestParams);
-    ASSERT_NE(drawable->TryGetOpincDrawCachePtr(), nullptr);
+    RSOpincDrawCacheHelper::FinishOpincSubtree(suggestParams);
+
+    auto rootNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto rootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode));
+    ASSERT_NE(rootDrawable, nullptr);
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*rootDrawable, suggestParams);
+    ASSERT_NE(rootDrawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    auto childNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto childDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(childNode));
+    ASSERT_NE(childDrawable, nullptr);
+    ASSERT_EQ(childDrawable->TryGetOpincDrawCachePtr(), nullptr);
+    RSRenderParams childParams(GenerateUniqueNodeIdForRS());
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*childDrawable, childParams);
+    ASSERT_NE(childDrawable->TryGetOpincDrawCachePtr(), nullptr);
 
     RSOpincDrawCacheHelper::FinishOpincSubtree(suggestParams);
 
-    auto anotherNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
-    auto anotherDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(anotherNode));
-    ASSERT_NE(anotherDrawable, nullptr);
-    RSRenderParams normalParams(GenerateUniqueNodeIdForRS());
-    ASSERT_TRUE(RSOpincDrawCacheHelper::PrepareOpincSubtree(*anotherDrawable, normalParams));
-    ASSERT_EQ(anotherDrawable->TryGetOpincDrawCachePtr(), nullptr);
+    auto cleanupNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto cleanupDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cleanupNode));
+    ASSERT_NE(cleanupDrawable, nullptr);
+    RSRenderParams cleanupParams(GenerateUniqueNodeIdForRS());
+    ASSERT_TRUE(RSOpincDrawCacheHelper::PrepareOpincSubtree(*cleanupDrawable, cleanupParams));
+    ASSERT_EQ(cleanupDrawable->TryGetOpincDrawCachePtr(), nullptr);
 }
 
 /**

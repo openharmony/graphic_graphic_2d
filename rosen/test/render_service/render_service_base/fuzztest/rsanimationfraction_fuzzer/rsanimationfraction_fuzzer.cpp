@@ -64,6 +64,7 @@ void RSAnimationFractionFuzzerTest()
     int64_t delaytime = GetData<int64_t>();
     bool isFinished = GetData<bool>();
     bool isRepeatFinished = GetData<bool>();
+    bool isActualRepeatFinished = GetData<bool>();
     bool isEnable = GetData<bool>();
     float fraction = GetData<float>();
     int remainTime = GetData<int>();
@@ -76,7 +77,7 @@ void RSAnimationFractionFuzzerTest()
     RSAnimationFraction::GetAnimationScale();
     RSAnimationFraction::SetAnimationScale(animationScale);
     auto animationFraction = std::make_shared<RSAnimationFraction>();
-    std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) =
+    std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished) =
         animationFraction->GetAnimationFraction(time, delaytime, isCustom);
     animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
     animationFraction->GetRemainingRepeatCount();

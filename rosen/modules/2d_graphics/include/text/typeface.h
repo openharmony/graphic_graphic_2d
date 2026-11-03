@@ -164,7 +164,8 @@ public:
     bool IsThemeTypeface() const;
     void SetIsThemeTypeface(bool isTheme);
 
-    std::shared_ptr<Data> Serialize() const;
+    std::shared_ptr<Data> Serialize(
+        SerializeBehavior behavior = SerializeBehavior::DO_INCLUDE_DATA) const;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
 
     template<typename T>

@@ -80,6 +80,7 @@ private:
     RSImageCache& operator=(const RSImageCache&) = delete;
     RSImageCache& operator=(const RSImageCache&&) = delete;
     void ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId);
+    static bool IsCacheAccessAllowed(uint64_t uniqueId, pid_t callingPid);
 
     mutable std::mutex mutex_;
     // the second element of pair indicates ref count of skImage/pixelMap by RSImage

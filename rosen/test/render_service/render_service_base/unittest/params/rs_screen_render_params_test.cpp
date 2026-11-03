@@ -142,6 +142,23 @@ HWTEST_F(RSScreenRenderParamsTest, SetNewColorSpace, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDstColorSpace
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetDstColorSpace, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[6];
+    RSScreenRenderParams params(id);
+    params.SetDstColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetDstColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    EXPECT_EQ(params.GetDstColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+}
+
+/**
  * @tc.name: SetNewPixelFormat
  * @tc.desc:
  * @tc.type:FUNC
@@ -323,5 +340,137 @@ HWTEST_F(RSScreenRenderParamsTest, HasForceHwcHdrSurfaceTest, TestSize.Level1)
     params.SetHasForceHwcHdrSurface(true);
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.GetHasForceHwcHdrSurface(), true);
+}
+
+/**
+ * @tc.name: SetVideoDimType_001
+ * @tc.desc: Test SetVideoDimType with MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetVideoDimType_001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+    EXPECT_EQ(params.needSync_, false);
+}
+
+/**
+ * @tc.name: SetVideoDimType_002
+ * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_3D_SBS
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetVideoDimType_002, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetVideoDimType_003
+ * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_3D_TAB
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetVideoDimType_003, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetVideoDimType_004
+ * @tc.desc: Test SetVideoDimType with sequential mode changes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetVideoDimType_004, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
+    EXPECT_EQ(params.GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Test SetUIMode3D with MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetUIMode3D_001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_2D);
+
+    params.SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_2D);
+    EXPECT_EQ(params.needSync_, false);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Test SetUIMode3D with MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetUIMode3D_002, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetUIMode3D_003
+ * @tc.desc: Test SetUIMode3D with MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetUIMode3D_003, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetUIMode3D_004
+ * @tc.desc: Test SetUIMode3D with sequential mode changes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetUIMode3D_004, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+
+    params.SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    params.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+
+    params.SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(params.GetUIMode3D(), UIMode3D::MODE_2D);
 }
 } // namespace OHOS::Rosen

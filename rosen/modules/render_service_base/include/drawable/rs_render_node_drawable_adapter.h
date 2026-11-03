@@ -69,6 +69,7 @@ class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
+    int8_t maskIndex_                   = -1;
     int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
     int8_t colorPickerIndex_           = -1;
@@ -145,6 +146,7 @@ enum class DrawSkipType : uint8_t {
     SCREEN_FREEZE = 36,
     BACKFACE_SKIP = 37,
     MEMORYOVER_SKIP = 38,
+    REBUILDING_SKIP = 39,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -178,6 +180,7 @@ public:
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
+    static bool NeedClearResource();
     static void ClearResource();
     using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
     static void AddToClearDrawables(DrawableVec &vec);
@@ -388,8 +391,10 @@ protected:
     std::unique_ptr<RSRenderGroupCacheAdapter> renderGroupCacheAdapter_ = nullptr;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+    static thread_local NodeId curDrawingCacheRootId_;
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+    static NodeId curDrawingCacheRootId_;
 #endif
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
     // !variables for renderGroup
@@ -411,6 +416,7 @@ private:
     static inline RS_HIDDEN std::mutex cacheMapMutex_;
     static DrawableVec toClearDrawableVec_;
     static CmdListVec toClearCmdListVec_;
+    static inline std::atomic<bool> needClearResource_ = false;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     std::atomic<bool> isOnDraw_ = false;

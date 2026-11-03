@@ -20,11 +20,13 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "params/rs_render_params.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_server/rs_render_process_manager_agent.h"
 #include "render_server/rs_render_service.h"
 #include "render_server/rs_render_service_agent.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_to_service_connection.h"
 
@@ -35,7 +37,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-std::string g_testStr = HGM_CONFIG_PATH;
+bool g_testEmptyPath = false;
 std::string g_customTestXmlPath;
 
 // Helper func to create test XML file
@@ -59,13 +61,13 @@ bool CreateTestXml(const std::string& path, const char* content)
 
 std::string GetHgmXmlPath()
 {
+    if (g_testEmptyPath) {
+        return "";
+    }
     if (!g_customTestXmlPath.empty()) {
         return g_customTestXmlPath;
     }
-    if (g_testStr == HGM_CONFIG_PATH) {
-        return HGM_CONFIG_PATH;
-    }
-    return "";
+    return HGM_CONFIG_PATH;
 }
 
 class HgmRenderContextTest : public testing::Test {
@@ -95,9 +97,9 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest, TestSize.Level1)
     std::vector<std::string> appBufferList;
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
 
-    g_testStr = "";
+    g_testEmptyPath = true;
     EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), XML_FILE_LOAD_FAIL);
-    g_testStr = HGM_CONFIG_PATH;
+    g_testEmptyPath = false;
 
     if (auto xmlDocument_ = xmlReadFile(HGM_CONFIG_PATH, nullptr, 0)) {
         EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -116,7 +118,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest, TestSize.Level1)
  */
 HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
 {
-    RSRenderService renderService;
+    auto renderService = sptr<RSRenderService>::MakeSptr();
     auto& hgmCore = HgmCore::Instance();
     auto mgr = hgmCore.GetFrameRateMgr();
     if (mgr == nullptr) {
@@ -124,24 +126,24 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     }
     auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
-    renderService.hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
-    auto hgmProcessCallback = [hgmContext = renderService.hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+    renderService->hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
+    auto hgmProcessCallback = [hgmContext = renderService->hgmContext_](uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
         const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
         hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     };
-    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
     renderServiceAgent->RegisterHgmProcessCallback(hgmProcessCallback);
-    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
+    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService->renderProcessManager_);
+    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService->screenManager_);
     auto renderToServiceConnection =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
-    renderService.hgmContext_->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
-    renderService.hgmContext_->ltpoEnabled_ = true;
-    renderService.hgmContext_->isDelayMode_ = true;
-    renderService.hgmContext_->pipelineOffsetPulseNum_ = 1;
-    renderService.hgmContext_->isAdaptive_ = SupportASStatus::SUPPORT_AS;
-    renderService.hgmContext_->gameNodeName_ = "gameNodeName";
+    renderService->hgmContext_->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
+    renderService->hgmContext_->ltpoEnabled_ = true;
+    renderService->hgmContext_->isDelayMode_ = true;
+    renderService->hgmContext_->pipelineOffsetPulseNum_ = 1;
+    renderService->hgmContext_->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    renderService->hgmContext_->gameNodeName_ = "gameNodeName";
     hgmCore.SetPendingScreenRefreshRate(60);
     hgmCore.SetPendingConstraintRelativeTime(2);
 
@@ -165,8 +167,8 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     EXPECT_EQ(hgmRenderContext.isAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
     EXPECT_EQ(pipelineParam.pendingScreenRefreshRate, 60);
     EXPECT_EQ(pipelineParam.pendingConstraintRelativeTime, 2);
-    EXPECT_EQ(renderService.hgmContext_->currVsyncId_, 100);
-    EXPECT_EQ(renderService.hgmContext_->rsCurrRange_.preferred_, 60);
+    EXPECT_EQ(renderService->hgmContext_->currVsyncId_, 100);
+    EXPECT_EQ(renderService->hgmContext_->rsCurrRange_.preferred_, 60);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     mgr->rsFrameRateLinker_ = nullptr;
 
@@ -358,62 +360,6 @@ HWTEST_F(HgmRenderContextTest, SetServiceToProcessInfoTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSurfaceData001
- * @tc.desc: Test UpdateSurfaceData with xweb framework node
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmRenderContextTest, UpdateSurfaceData001, TestSize.Level1)
-{
-    std::string frameworkType = "oh_xweb_1";
-    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
-    HgmRenderContext hgmRenderContext(renderToServiceConnection);
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(1, 1));
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(2, 2));
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_NE(surfaceNode2, nullptr);
-    surfaceNode->GetRSSurfaceHandler()->SetConsumer(IConsumerSurface::Create("SurfaceNode"));
-
-    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-    auto surfaceHandler2 = surfaceNode2->GetMutableRSSurfaceHandler();
-    ASSERT_NE(surfaceHandler, nullptr);
-    ASSERT_NE(surfaceHandler2, nullptr);
-    surfaceHandler2->consumer_ = nullptr;
-    hgmRenderContext.surfaceData_.clear();
-
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler2, surfaceNode2);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
-
-    auto consumer = surfaceHandler->GetConsumer();
-    ASSERT_NE(consumer, nullptr);
-
-    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_GAME);
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
-
-    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_CAMERA);
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
-
-    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_VIDEO);
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 0);
-
-    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_DEFAULT);
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 1);
-    const auto& [surfaceName1, id1] = hgmRenderContext.surfaceData_[hgmRenderContext.surfaceData_.size() - 1];
-    EXPECT_NE(surfaceName1, frameworkType);
-
-    consumer->SetSurfaceAppFrameworkType(frameworkType);
-    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
-    EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 2);
-    const auto& [surfaceName2, id2] = hgmRenderContext.surfaceData_[hgmRenderContext.surfaceData_.size() - 1];
-    EXPECT_EQ(surfaceName2, frameworkType);
-}
-
-/**
  * @tc.name: NotifyRpHgmFrameRateTest002
  * @tc.desc: test HgmRenderContext.NotifyRpHgmFrameRate when hgmAbilityEnabled_ is false
  * @tc.type: FUNC
@@ -458,10 +404,10 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                     "<root>\n"
                                     "    <param name=\"ability_enable\" value=\"1\"/>\n"
                                     "</root>\n";
-    std::string testXmlPath1 = "/data/local/tmp/hgm_test_enabled.xml";
+    std::string testXmlPath1 = "/data/test/hgm_test_enabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
         << testXmlPath1;
- 
+
     g_customTestXmlPath = testXmlPath1;
     HgmRenderContext hgmRenderContext1(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext1.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -469,16 +415,16 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
         "hgmAbilityEnabled_ should be true when ability_enable value='1'";
     g_customTestXmlPath.clear();
     std::remove(testXmlPath1.c_str());
- 
+
     // Test Case 2: ability_enable value="0" -> hgmAbilityEnabled_ should be false
     const char* xmlContentDisabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                      "<root>\n"
                                      "    <param name=\"ability_enable\" value=\"0\"/>\n"
                                      "</root>\n";
-    std::string testXmlPath2 = "/data/local/tmp/hgm_test_disabled.xml";
+    std::string testXmlPath2 = "/data/test/hgm_test_disabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
         << testXmlPath2;
- 
+
     g_customTestXmlPath = testXmlPath2;
     HgmRenderContext hgmRenderContext2(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext2.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -486,14 +432,14 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
         "hgmAbilityEnabled_ should be false when ability_enable value='0'";
     g_customTestXmlPath.clear();
     std::remove(testXmlPath2.c_str());
- 
+
     // Test Case 3: No ability_enable node -> hgmAbilityEnabled_ should be true (default)
     const char* xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                    "<root>\n"
                                    "</root>\n";
-    std::string testXmlPath3 = "/data/local/tmp/hgm_test_default.xml";
+    std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
- 
+
     g_customTestXmlPath = testXmlPath3;
     HgmRenderContext hgmRenderContext3(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext3.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -501,5 +447,100 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
         << "hgmAbilityEnabled_ should be true (default) when ability_enable node is absent";
     g_customTestXmlPath.clear();
     std::remove(testXmlPath3.c_str());
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest001
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with non-RENDER_RESOLUTION type and success path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest001, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto origScreenManager = hgmCore.GetScreenManager();
+    auto screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
+    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
+    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
+
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::ID, dummyProperty);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    screen->isRogResolution_ = true;
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    screen->isRogResolution_ = false;
+    hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest002
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION but null screenManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest002, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    auto origScreenManager = hgmCore.GetScreenManager();
+    hgmCore.SetScreenManager(nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: OnScreenPropertyChangedTest003
+ * @tc.desc: Test HgmContext::OnScreenPropertyChanged with RENDER_RESOLUTION and GetRogScreenResolution fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto origScreenManager = hgmCore.GetScreenManager();
+    auto screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
+    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
+    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
+
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    sptr<ScreenPropertyBase> dummyProperty = nullptr;
+    hgmContext->OnScreenPropertyChanged(9999, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    auto screen = screenManagerForProcess->GetScreen(1);
+    ASSERT_NE(screen, nullptr);
+    hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
+    hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: ShowRefreshRateChangeProcessTest
+ * @tc.desc: Verify ShowRefreshRateChangeProcess handles nullptr, invalid string, enable and disable inputs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, ShowRefreshRateChangeProcessTest, TestSize.Level1)
+{
+    std::string propKey = "rosen.showRefreshRate.enabled";
+    auto& mgr = RSRealtimeRefreshRateManager::Instance();
+    bool initial = mgr.GetShowRefreshRateEnabled();
+
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), nullptr, nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "invalid", nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "1", nullptr);
+    EXPECT_TRUE(mgr.GetShowRefreshRateEnabled());
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "0", nullptr);
+    EXPECT_FALSE(mgr.GetShowRefreshRateEnabled());
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), initial ? "1" : "0", nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
 }
 } // namespace OHOS::Rosen

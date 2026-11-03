@@ -29,6 +29,7 @@
 #include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "aihdr_enhancer.h"
+#include "common_state.h"
 #include "render/rs_colorspace_convert.h"
 #include "render/rs_effect_luminance_manager.h"
 #endif
@@ -47,6 +48,7 @@ const std::vector<uint8_t> HDR_VIVID_METADATA = {
     81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0,
     0, 72, 85, 65, 87, 0, 8, 1, 67, 65, 83, 84, 0, 1, 1
 };
+
 }
 
 HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
@@ -97,6 +99,10 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         return false;
     }
     auto& rsLuminance = RSLuminanceControl::Get();
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    Media::VideoProcessingEngine::VpeCommonState::UpdateBundleHdrStatus(surfaceNode.GetBundleName(),
+        static_cast<uint32_t>(surfaceNode.GetVideoHdrStatus()));
+#endif
     if (surfaceNode.GetVideoHdrStatus() == HdrStatus::NO_HDR) {
         surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
@@ -170,7 +176,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
 #ifndef ROSEN_CROSS_PLATFORM
     if (ROSEN_GNE(sdrNits, 0.0f)) {
         scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);
-        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, surfaceNode, scaler, hdrStatus);
+        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, scaler, hdrStatus);
     }
 #endif
 
@@ -395,22 +401,19 @@ void RSHdrUtil::CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
 
 void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR)
 {
-    if (screenNode.GetForceCloseHdr()) {
-        RS_LOGD("RSHdrUtil::SetHDRParam curScreenNode forceclosehdr.");
-        return;
-    }
+    bool isNotForceCloseHdr = !screenNode.GetForceCloseHdr();
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
-        firstLevelNode->SetHDRPresent(true);
+        firstLevelNode->SetHDRPresent(isNotForceCloseHdr);
         if (isEDR) {
-            firstLevelNode->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+            firstLevelNode->UpdateHDRStatus(HdrStatus::HDR_EFFECT, isNotForceCloseHdr);
         }
-        RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
-            node.GetFirstLevelNodeId());
+        RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 ", nodeId: %{public}" PRIu64 ""
+            ", isNotForceCloseHdr: %{public}d", node.GetFirstLevelNodeId(), node.GetId(), isNotForceCloseHdr);
     }
-    node.SetHDRPresent(true);
+    node.SetHDRPresent(isNotForceCloseHdr);
     if (isEDR) {
-        node.UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+        node.UpdateHDRStatus(HdrStatus::HDR_EFFECT, isNotForceCloseHdr);
     }
 }
 
@@ -537,7 +540,20 @@ bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawin
 
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
-    ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
+    HDRMode virtualScreenHDRMode = node.GetScreenProperty().GetVirtualScreenHDRMode();
+    if (virtualScreenHDRMode == HDRMode::NONE) {
+        // NONE: HDR off, the virtual screen goes the SDR path.
+        UpdateVirtualScreenHDRProperties(node, false, false);
+        return;
+    }
+    if (virtualScreenHDRMode == HDRMode::HDR_STATIC) {
+        // HDR_STATIC: the HDR output keeps unchanged during recording, HDR/SDR switches of the
+        // screen content do not change the color gamut of the virtual screen output.
+        UpdateVirtualScreenHDRProperties(node, true, true);
+        return;
+    }
+    // HDR_DYNAMIC: the HDR output follows the HDR status of the screen content dynamically, the
+    // color gamut of the virtual screen output switches when the content switches HDR/SDR.
     if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
@@ -546,29 +562,27 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
         }
         bool mirrorNodeIsHDROn = RSLuminanceControl::Get().IsHdrOn(mirrorNode->GetScreenId()) &&
             mirrorNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR;
-        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        bool isNeedHDRCast = mirrorNodeIsHDROn && hdrCastColorGamut;
         RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast mirrorNodeIsHDROn: %{public}d, "
-            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
-            mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
-        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
+            "HDRMode: %{public}u, GetFirstFrameVirtualScreenInit: %{public}d",
+            mirrorNodeIsHDROn, static_cast<uint32_t>(virtualScreenHDRMode),
+            node.GetFirstFrameVirtualScreenInit());
+        UpdateVirtualScreenHDRProperties(node, mirrorNodeIsHDROn, true);
     } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
                node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
-        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;
         RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast expandIsHDROn: %{public}d, "
-            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
-            expandIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
-        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
+            "HDRMode: %{public}u, GetFirstFrameVirtualScreenInit: %{public}d",
+            expandIsHDROn, static_cast<uint32_t>(virtualScreenHDRMode),
+            node.GetFirstFrameVirtualScreenInit());
+        UpdateVirtualScreenHDRProperties(node, expandIsHDROn, true);
     }
 }
 
-void RSHdrUtil::UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut)
+void RSHdrUtil::UpdateVirtualScreenHDRProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool enableHdr)
 {
     if (node.GetFirstFrameVirtualScreenInit()) {
         node.SetFirstFrameVirtualScreenInit(false);
-        if (hdrCastColorGamut) {
+        if (enableHdr) {
             node.SetFixVirtualBuffer10Bit(true);
         }
     }
@@ -595,15 +609,9 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
     return false;
 }
 
-bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
+bool RSHdrUtil::NeedBackToFP16(bool hasDstAlphaBlendModeNode, RSScreenRenderParams* screenParams)
 {
     if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
-        return true;
-    }
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
-    if (!displayNode) {
-        RS_LOGE("RSHdrUtil::NeedBackToFP16 displayNode is nullptr");
         return true;
     }
     bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
@@ -612,8 +620,7 @@ bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
         hasHwcHdr || colorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
         return true;
     }
-    int dstAlphaCount = displayNode->GetDstAlphaBlendModeNodeCount();
-    return dstAlphaCount > 0;
+    return hasDstAlphaBlendModeNode;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

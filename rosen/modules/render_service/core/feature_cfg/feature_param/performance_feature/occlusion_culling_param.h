@@ -26,12 +26,18 @@ public:
 
     static bool IsStencilPixelOcclusionCullingEnable();
     static bool IsIntraAppControlsLevelOcclusionCullingEnable();
+    static bool IsDynamicLayerSkipEnable();
+    static bool IsVirtualSelfDrawOptEnable();
 protected:
     static void SetStencilPixelOcclusionCullingEnable(bool isEnable);
     static void SetIntraAppControlsLevelOcclusionCullingEnable(bool isEnable);
+    static void SetDynamicLayerSkipEnable(bool isEnable);
+    static void SetVirtualSelfDrawOptEnable(bool isEnable);
 private:
     inline static bool stencilPixelOcclusionCullingEnable_ = false;
     inline static bool intraAppControlsLevelOcclusionCullingEnable_ = false;
+    inline static bool dynamicLayerSkipEnable_ = true;
+    inline static bool virtualSelfDrawOptEnable_ = true;
     friend class OcclusionCullingParamParse;
 };
 } // namespace OHOS::Rosen

@@ -89,6 +89,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT = 54,
     SURFACE_NODE_RECREATE_NODE_AND_SURFACE = 55,
     SURFACE_NODE_SET_DELEGATE_MODE = 56,
+    SURFACE_NODE_SET_SOLID_LAYER_ENABLED = 57,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -110,7 +111,7 @@ public:
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
-    static void ConnectToNodeInRenderService(RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender);
+    static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode);
@@ -155,6 +156,7 @@ public:
     static void SetStaticCachedToRender(RSContext& context, NodeId nodeId, bool isStaticCached);
     static void SetHardwareEnabled(RSContext &context, NodeId nodeId, bool isHardwareEnabled,
         SelfDrawingNodeType isSelfDrawingNodeType, bool isDynamicHardwareEnable);
+    static void SetSolidLayerEnabled(RSContext &context, NodeId nodeId, bool isSolidLayerEnabled);
     static void SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent);
 #ifndef ROSEN_CROSS_PLATFORM
     static void RecreateNodeAndSurface(RSContext& context, const RSSurfaceRenderNodeConfig& config,
@@ -167,7 +169,7 @@ ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE,
         SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
         SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string, uint8_t, enum SurfaceWindowType))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
@@ -191,7 +193,7 @@ ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER,
         SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER,
         SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
@@ -204,7 +206,7 @@ ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize,
         SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
-        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId, sptr<IRemoteObject>))
+        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
         SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
@@ -275,7 +277,7 @@ ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
         SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4<int>))
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED,
         SurfaceNodeCommandHelper::SetWatermarkEnabled, NodeId, std::string, bool))
 ADD_COMMAND(RSSurfaceNodeSetAbilityState,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE,
@@ -288,13 +290,13 @@ ADD_COMMAND(RSSurfaceNodeSetHardwareEnableHint,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
         SurfaceNodeCommandHelper::SetHardwareEnableHint, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::AttachToWindowContainer, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualScreenId,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_SCREEN_ID,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_SCREEN_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualScreenId, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
@@ -323,8 +325,11 @@ ADD_COMMAND(RSSurfaceNodeSetStaticCachedToRender,
 ADD_COMMAND(RSSurfaceNodeSetHardwareEnable,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLED,
         SurfaceNodeCommandHelper::SetHardwareEnabled, NodeId, bool, SelfDrawingNodeType, bool))
+ADD_COMMAND(RSSurfaceNodeSetSolidLayerEnabled,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOLID_LAYER_ENABLED,
+        SurfaceNodeCommandHelper::SetSolidLayerEnabled, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetHidePrivacyContent,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT,
         SurfaceNodeCommandHelper::SetHidePrivacyContent, NodeId, bool))
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeRecreateNodeAndSurface,

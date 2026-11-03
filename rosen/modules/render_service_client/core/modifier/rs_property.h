@@ -86,6 +86,7 @@ class ParticleFieldCollection;
 class RSShader;
 class RSNGEffectUtils;
 class RSUIContext;
+template<typename T> class RSProperty;
 
 /**
  * @brief Defines different types of thresholds for spring animation.
@@ -176,6 +177,11 @@ public:
             type == ModifierNG::RSPropertyType::TRANSLATE);
     }
 
+    template<typename T>
+    std::shared_ptr<RSProperty<T>> CastToPropertyOf(const char* funcName);
+
+    bool CheckPropertyType(RSPropertyType type, const char* funcName) const;
+
 protected:
     virtual void SetIsCustom(bool isCustom) = 0;
     virtual bool GetIsCustom() const = 0;
@@ -226,6 +232,14 @@ protected:
     void MarkCustomModifierDirty();
 
     void MarkNodeDirty();
+
+    void SetDrawNodeIfNeed(RSNode& node, bool affectsRendering) const
+    {
+        if (!node.GetIsDrawn() && affectsRendering) {
+            node.SetDrawNode();
+            node.SetDrawNodeType(DrawNodeType::DrawPropertyType);
+        }
+    }
 
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
 
@@ -280,6 +294,7 @@ private:
         const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b);
     friend class RSTransition;
     friend class RSSpringAnimation;
+    friend class RSAtlasInfoAnimation;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class ModifierNG::RSModifier;
@@ -397,7 +412,7 @@ public:
 
     using RenderPropertyType = typename RSRenderPropertyTraits<T>::Type;
 
-    virtual void Set(const T& value)
+    virtual void Set(const T& value, bool affectsRendering = true)
     {
         if (!IsValid(value)) {
             return;
@@ -411,6 +426,7 @@ public:
         if (node == nullptr) {
             return;
         }
+        SetDrawNodeIfNeed(*node, affectsRendering);
 
         MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
@@ -530,7 +546,7 @@ public:
 
     using RenderPropertyType = RSRenderAnimatableProperty<T>;
 
-    void Set(const T& value) override
+    void Set(const T& value, bool affectsRendering = true) override
     {
         if (!RSProperty<T>::IsValid(value)) {
             return;
@@ -538,13 +554,12 @@ public:
         if (ROSEN_EQ(value, RSProperty<T>::stagingValue_) && !RSPropertyBase::IsDeduplicationEnabled()) {
             return;
         }
-
         auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
             RSProperty<T>::stagingValue_ = value;
             return;
         }
-
+        RSProperty<T>::SetDrawNodeIfNeed(*node, affectsRendering);
         RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto rsUIContext = node->GetRSUIContext();
@@ -565,11 +580,9 @@ public:
                 return;
             }
         }
-
         if (runningPathNum_ > 0) {
             return;
         }
-
         bool hasPropertyAnimation = node->HasPropertyAnimation(RSProperty<T>::id_);
         T sendValue = value;
         if (hasPropertyAnimation) {
@@ -670,7 +683,9 @@ public:
             return true;
         }
 
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(task->GetProperty());
+        auto baseProperty = task->GetProperty();
+        auto renderProperty = baseProperty ?
+            baseProperty->template CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (!renderProperty) {
             return false;
         }
@@ -927,13 +942,23 @@ private:
     friend class RSNGEffectUtils;
 };
 
+template<typename T>
+std::shared_ptr<RSProperty<T>> RSPropertyBase::CastToPropertyOf(const char* funcName)
+{
+    if (!CheckPropertyType(RSPropertyTypeTraits<T>::type, funcName)) {
+        return nullptr;
+    }
+    return std::static_pointer_cast<RSProperty<T>>(shared_from_this());
+}
+
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& node,
     std::weak_ptr<ModifierNG::RSModifier> modifier);
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty();
 template<>
@@ -942,7 +967,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& no
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty();
 template<>
@@ -951,7 +977,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnAttach(RSNode& node
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
 template<>
@@ -960,7 +987,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& nod
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach();
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value,
+    bool affectsRendering);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShapeBase>>::GetRenderProperty();
 

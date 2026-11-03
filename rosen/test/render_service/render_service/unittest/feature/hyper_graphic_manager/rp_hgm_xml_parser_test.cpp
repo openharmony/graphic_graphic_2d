@@ -59,58 +59,6 @@ HWTEST_F(RPHgmXmlParserTest, TestLoadConfiguration, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestParse
- * @tc.desc: test RPHgmXmlParser.Parse
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
-{
-    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
-                                    <Param name="ability_enable" value="1"/>
-                                    <Param name="default_mode" value="-1"/>
-                                    <Params name="additional_touch_rate_config">
-                                        <Test name="AAAAA" value="1"/>
-                                        <Test name="BBBBB" value="2"/>
-                                    </Params>
-                                    <Params name="source_tuning_for_yuv420">
-                                        <Test name="AAAAA" value="1"/>
-                                        <Test name="BBBBB"/>
-                                    </Params>
-                                    <Params name="rs_solid_color_layer_config">
-                                        <Test name="AAAAA" value="1"/>
-                                        <Test name="BBBBB" value="2"/>
-                                    </Params>
-                                </HgmConfig>)");
-
-    std::string noChildXmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>)");
-
-    std::string noChildXmlContent2 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
-                                    <Params name="additional_touch_rate_config">
-                                    </Params>         
-                                    <Params name="source_tuning_for_yuv420">
-                                    </Params>
-                                </HgmConfig>)");
-
-    auto parser = std::make_shared<RPHgmXMLParser>();
-    EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
-    parser->xmlDocument_ = StringToXmlDoc(noChildXmlContent);
-    EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
-
-    xmlFreeDoc(parser->xmlDocument_);
-    parser->xmlDocument_ = StringToXmlDoc(noChildXmlContent2);
-    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
-
-    xmlFreeDoc(parser->xmlDocument_);
-    parser->xmlDocument_ = StringToXmlDoc(xmlContent);
-    EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
-    EXPECT_EQ(parser->appBufferList_.size(), 2);
-    EXPECT_EQ(parser->sourceTuningConfig_.size(), 1);
-}
-
-/**
  * @tc.name: TestHgmAbilityEnabled001
  * @tc.desc: test RPHgmXmlParser.HgmAbilityEnabled when ability_enable is true
  * @tc.type: FUNC
@@ -165,5 +113,57 @@ HWTEST_F(RPHgmXmlParserTest, TestHgmAbilityEnabled003, TestSize.Level1)
     parser->xmlDocument_ = StringToXmlDoc(xmlContent);
     EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
     EXPECT_TRUE(parser->HgmAbilityEnabled());
+}
+
+/**
+ * @tc.name: TestParse
+ * @tc.desc: test RPHgmXmlParser.Parse
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
+{
+    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Param name="ability_enable" value="1"/>
+                                    <Param name="default_mode" value="-1"/>
+                                    <Params name="additional_touch_rate_config">
+                                        <Test name="AAAAA" value="1"/>
+                                        <Test name="BBBBB" value="2"/>
+                                    </Params>
+                                    <Params name="source_tuning_for_yuv420">
+                                        <Test name="AAAAA" value="1"/>
+                                        <Test name="BBBBB"/>
+                                    </Params>
+                                    <Params name="rs_solid_color_layer_config">
+                                        <Test name="AAAAA" value="1"/>
+                                        <Test name="BBBBB" value="2"/>
+                                    </Params>
+                                </HgmConfig>)");
+
+    std::string noChildXmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>)");
+
+    std::string noChildXmlContent2 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Params name="additional_touch_rate_config">
+                                    </Params>         
+                                    <Params name="source_tuning_for_yuv420">
+                                    </Params>
+                                </HgmConfig>)");
+
+    auto parser = std::make_shared<RPHgmXMLParser>();
+    EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
+    parser->xmlDocument_ = StringToXmlDoc(noChildXmlContent);
+    EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
+
+    xmlFreeDoc(parser->xmlDocument_);
+    parser->xmlDocument_ = StringToXmlDoc(noChildXmlContent2);
+    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
+
+    xmlFreeDoc(parser->xmlDocument_);
+    parser->xmlDocument_ = StringToXmlDoc(xmlContent);
+    EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
+    EXPECT_EQ(parser->appBufferList_.size(), 2);
+    EXPECT_EQ(parser->sourceTuningConfig_.size(), 1);
 }
 } // namespace OHOS::Rosen

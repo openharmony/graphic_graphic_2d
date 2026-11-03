@@ -32,7 +32,6 @@
 namespace OHOS::Rosen {
 class RSProperties;
 class RSFilter;
-class RSNGRenderShaderBase;
 namespace Drawing {
 class GEShader;
 class RuntimeEffect;
@@ -78,11 +77,15 @@ private:
     std::unique_ptr<Drawing::Rect> stagingSdfTransformRect_;
     std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
+    int clipType_ = 0;
+    int stagingClipType_ = 0;
+    RRect rRect_;
+    RRect stagingRRect_;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
-    RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
+    RSMaskDrawable(SimpleDrawCmdListPtr&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
     RSMaskDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -94,7 +97,7 @@ private:
 // Background
 class RSBackgroundColorDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundColorDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundColorDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSBackgroundColorDrawable() = default;
@@ -104,7 +107,7 @@ public:
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundShaderDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundShaderDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSBackgroundShaderDrawable() = default;
@@ -120,26 +123,9 @@ private:
 #endif
 };
 
-class RSBackgroundNGShaderDrawable : public RSDrawable {
-public:
-    RSBackgroundNGShaderDrawable() = default;
-    ~RSBackgroundNGShaderDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-private:
-    bool needSync_ = false;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
-    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
-    float cornerRadius_ = 0.f;
-    float stagingCornerRadius_ = 0.f;
-};
-
 class RSBackgroundImageDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundImageDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundImageDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     ~RSBackgroundImageDrawable() override;

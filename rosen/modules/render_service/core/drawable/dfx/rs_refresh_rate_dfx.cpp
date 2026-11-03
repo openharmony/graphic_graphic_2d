@@ -33,6 +33,12 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if (UNLIKELY(!params)) {
         return;
     }
+    auto screenDrawable = params->GetAncestorScreenDrawable().lock();
+    auto screenParams = screenDrawable ?
+        static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get()) : nullptr;
+    if (screenParams && screenParams->GetScreenProperty().IsVirtual()) {
+        return;
+    }
     auto screenId = params->GetScreenId();
     static const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     const char dualDisplay = '2';
@@ -47,9 +53,15 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if (showRealtimeRefreshRate || RSSystemParameters::GetShowRefreshRateEnabled()) {
         info += " " + std::to_string(realtimeRefreshRate);
     }
+
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    GetRefreshRateScaleFactor(screenParams, scaleX, scaleY);
+    float scaleFactor = std::min(scaleX, scaleY);
+
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(100); // 100:Scalar of setting font size
+    font.SetSize(static_cast<int32_t>(100 * scaleFactor)); // 100: Scalar of setting font size
     font.SetTypeface(tf);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
 
@@ -65,6 +77,24 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas.DrawTextBlob(textBlob.get(), 100.f, 200.f);
     canvas.DetachBrush();
+}
+
+void RSRefreshRateDfx::GetRefreshRateScaleFactor(
+    RSScreenRenderParams* screenParams, float& scaleX, float& scaleY) const
+{
+    if (screenParams) {
+        if (const auto& screenProperty = screenParams->GetScreenProperty(); screenProperty.IsRogResolution()) {
+            uint32_t phyWidth = screenProperty.GetPhyWidth();
+            uint32_t phyHeight = screenProperty.GetPhyHeight();
+            if (phyWidth > 0) {
+                scaleX = static_cast<float>(screenProperty.GetWidth()) / static_cast<float>(phyWidth);
+            }
+            if (phyHeight > 0) {
+                scaleY = static_cast<float>(screenProperty.GetHeight()) / static_cast<float>(phyHeight);
+            }
+            RS_LOGD("%{public}s scaleX: %{public}f scaleY: %{public}f", __func__, scaleX, scaleY);
+        }
+    }
 }
 
 bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
@@ -95,7 +125,6 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
             - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
 
-    // 2: if ret is odd, width and height should be swapped
     if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
         std::swap(translateWidth, translateHeight);
     }

@@ -78,6 +78,11 @@ void RSShadow::SetDisableSDFBlur(bool disable)
     disableSDFBlur_ = disable;
 }
 
+void RSShadow::SetClipType(ShadowClipType clipType)
+{
+    clipType_ = clipType;
+}
+
 const Color& RSShadow::GetColor() const
 {
     return color_;
@@ -133,9 +138,14 @@ bool RSShadow::GetDisableSDFBlur() const
     return disableSDFBlur_;
 }
 
+ShadowClipType RSShadow::GetClipType() const
+{
+    return clipType_;
+}
+
 bool RSShadow::IsValid() const
 {
-    return (ROSEN_GNE(GetElevation(), 0.f) && ROSEN_GNE(GetAlpha(), 0.f)) || (ROSEN_GE(GetRadius(), 0.f));
+    return (ROSEN_GNE(elevation_, 0.f) && ROSEN_GNE(GetAlpha(), 0.f)) || (ROSEN_GE(radius_, 0.f));
 }
 
 } // namespace Rosen

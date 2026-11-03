@@ -70,6 +70,8 @@ private:
 
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
+    ErrCode UnRegisterApplicationAgent() override;
+
     ErrCode RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) override;
 
@@ -82,6 +84,9 @@ private:
 
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
+
+    ErrCode BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+        std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success) override;
 
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
@@ -168,6 +173,10 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList) override;
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList) override;
+
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,
@@ -203,6 +212,7 @@ private:
     bool UnRegisterSurfaceNodeBufferReleaseListener() override;
     bool RegisterSurfaceTransactionListenerNew(sptr<RSISurfaceTransactionListener> listener,
         uint64_t listenerId, uint32_t pid, uint32_t tid) override;
+    bool CleanDelegateModeBufferCmd(NodeId id) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

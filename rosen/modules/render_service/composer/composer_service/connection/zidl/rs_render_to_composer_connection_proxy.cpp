@@ -349,5 +349,46 @@ void RSRenderToComposerConnectionProxy::MarkTunnelSurfaceInvalid(uint64_t surfac
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID, parcel, reply, option);
 }
+
+void RSRenderToComposerConnectionProxy::SetActiveRectSwitchStatus(bool flag, const RectI& activeRect)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!parcel.WriteBool(flag) || !parcel.WriteInt32(activeRect.left_) || !parcel.WriteInt32(activeRect.top_) ||
+        !parcel.WriteInt32(activeRect.width_) || !parcel.WriteInt32(activeRect.height_)) {
+        RS_LOGE("%{public}s Write active rect failed", __func__);
+        return;
+    }
+    auto ret = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_ACTIVE_RECT_SWITCH_STATUS, parcel, reply, option);
+    if (ret != COMPOSITOR_ERROR_OK) {
+        RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
+    }
+}
+
+void RSRenderToComposerConnectionProxy::SetSkipDelay(bool skipDelay)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!parcel.WriteBool(skipDelay)) {
+        RS_LOGE("%{public}s WriteBool failed", __func__);
+        return;
+    }
+    auto ret = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY, parcel, reply, option);
+    if (ret != COMPOSITOR_ERROR_OK) {
+        RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

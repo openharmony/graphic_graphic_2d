@@ -81,6 +81,8 @@ enum class FuzzMethod {
     RENDER_SPRING_ANIMATION,
     RENDER_TRANSITION_EFFECT,
     RENDER_TRANSITION,
+    RENDER_CURVE_ANIMATION_WITH_DRAW_CMD_LIST,
+    RENDER_KEYFRAME_ANIMATION_WITH_DRAW_CMD_LIST,
     END
 };
 enum RSTransitionEffectType : uint16_t {
@@ -89,6 +91,21 @@ enum RSTransitionEffectType : uint16_t {
     TRANSLATE,
     ROTATE,
     UNDEFINED,
+};
+
+/*
+ * Mock property class with DRAW_CMD_LIST type for branch coverage testing.
+ */
+class MockCmdListProperty : public RSRenderAnimatableProperty<float> {
+public:
+    explicit MockCmdListProperty(const float& value) : RSRenderAnimatableProperty<float>(value) {}
+    ~MockCmdListProperty() = default;
+
+protected:
+    RSPropertyType GetPropertyType() const override
+    {
+        return RSPropertyType::DRAW_CMD_LIST;
+    }
 };
 } // namespace
 
@@ -251,6 +268,31 @@ void RSRenderCurveAnimationMarshalling(FuzzedDataProvider& FD)
 }
 
 /*
+ * Test Marshalling and Unmarshalling method of the RSRenderCurveAnimation class with DRAW_CMD_LIST properties.
+ * This exercises the DRAW_CMD_LIST branch in ParseParam for improved LCOV coverage.
+ */
+void RSRenderCurveAnimationMarshallingWithDrawCmdList(FuzzedDataProvider& FD)
+{
+    auto propertyId = FD.ConsumeIntegral<PropertyId>();
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(
+        FD.ConsumeFloatingPoint<float>(), propertyId);
+    auto startValue = std::make_shared<MockCmdListProperty>(FD.ConsumeFloatingPoint<float>());
+    auto endValue = std::make_shared<MockCmdListProperty>(FD.ConsumeFloatingPoint<float>());
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        FD.ConsumeIntegral<AnimationId>(), propertyId, originValue, startValue, endValue);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    bool needInterpolator = FD.ConsumeBool();
+    renderCurveAnimation->SetInterpolator(needInterpolator ? interpolator : nullptr);
+    Parcel parcel;
+    renderCurveAnimation->Marshalling(parcel);
+    auto renderAnimation = std::shared_ptr<RSRenderAnimation>(RSRenderCurveAnimation::Unmarshalling(parcel));
+    if (renderAnimation) {
+        renderAnimation->ParseParam(parcel);
+    }
+    renderAnimation.reset();
+}
+
+/*
  * Test Marshalling and Unmarshalling method of the RSRenderInterpolatingSpringAnimation class.
  */
 void RSRenderInterpolatingSpringAnimationMarshalling(FuzzedDataProvider& FD)
@@ -288,8 +330,8 @@ void RSRenderKeyframeAnimationMarshalling(FuzzedDataProvider& FD)
         FD.ConsumeFloatingPoint<float>(), propertyId);
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         FD.ConsumeIntegral<AnimationId>(), propertyId, property);
-    auto keyFrameNum = FD.ConsumeIntegralInRange<int>(0, 5); // max key frame number
-    for (int i = 0; i <= keyFrameNum; i++) {
+    auto keyframeNum = FD.ConsumeIntegralInRange<int>(0, 5); // max key frame number
+    for (int i = 0; i <= keyframeNum; i++) {
         auto fraction = FD.ConsumeFloatingPoint<float>();
         auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(FD.ConsumeFloatingPoint<float>());
         auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());
@@ -301,6 +343,41 @@ void RSRenderKeyframeAnimationMarshalling(FuzzedDataProvider& FD)
         auto endDuration = FD.ConsumeIntegral<int>();
         auto value = std::make_shared<RSRenderAnimatableProperty<float>>(
             FD.ConsumeFloatingPoint<float>(), FD.ConsumeIntegral<PropertyId>());
+        auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());
+        renderKeyframeAnimation->AddKeyframe(startDuration, endDuration, value, interpolator);
+    }
+    renderKeyframeAnimation->SetDurationKeyframe(FD.ConsumeBool());
+    Parcel parcel;
+    renderKeyframeAnimation->Marshalling(parcel);
+    auto renderAnimation = std::shared_ptr<RSRenderAnimation>(RSRenderKeyframeAnimation::Unmarshalling(parcel));
+    renderAnimation.reset();
+}
+
+/*
+ * Test Marshalling and Unmarshalling method of the RSRenderKeyframeAnimation class with DRAW_CMD_LIST properties.
+ * This exercises the DRAW_CMD_LIST branch in ParseParam for improved LCOV coverage.
+ */
+void RSRenderKeyframeAnimationMarshallingWithDrawCmdList(FuzzedDataProvider& FD)
+{
+    auto propertyId = FD.ConsumeIntegral<PropertyId>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(
+        FD.ConsumeFloatingPoint<float>(), propertyId);
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        FD.ConsumeIntegral<AnimationId>(), propertyId, property);
+    // Use MockCmdListProperty for keyframe values to exercise DRAW_CMD_LIST branch
+    auto keyframeNum = FD.ConsumeIntegralInRange<int>(0, 5);
+    for (int i = 0; i <= keyframeNum; i++) {
+        auto fraction = FD.ConsumeFloatingPoint<float>();
+        auto endValue = std::make_shared<MockCmdListProperty>(FD.ConsumeFloatingPoint<float>());
+        auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());
+        renderKeyframeAnimation->AddKeyframe(fraction, endValue, interpolator);
+    }
+    auto durationKeyFrameNum = FD.ConsumeIntegralInRange<int>(0, 5);
+    for (int i = 0; i <= durationKeyFrameNum; i++) {
+        auto startDuration = FD.ConsumeIntegral<int>();
+        auto endDuration = FD.ConsumeIntegral<int>();
+        auto value = std::make_shared<MockCmdListProperty>(
+            FD.ConsumeFloatingPoint<float>());
         auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());
         renderKeyframeAnimation->AddKeyframe(startDuration, endDuration, value, interpolator);
     }
@@ -482,6 +559,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         RSRenderTransitionEffectMarshalling(FD);
     } else if (method == FuzzMethod::RENDER_TRANSITION) {
         RSRenderTransitionMarshalling(FD);
+    } else if (method == FuzzMethod::RENDER_CURVE_ANIMATION_WITH_DRAW_CMD_LIST) {
+        RSRenderCurveAnimationMarshallingWithDrawCmdList(FD);
+    } else if (method == FuzzMethod::RENDER_KEYFRAME_ANIMATION_WITH_DRAW_CMD_LIST) {
+        RSRenderKeyframeAnimationMarshallingWithDrawCmdList(FD);
     }
     return true;
 }

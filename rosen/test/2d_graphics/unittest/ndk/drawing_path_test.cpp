@@ -25,7 +25,7 @@
 #include "utils/scalar.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -46,12 +46,7 @@ constexpr uint32_t INTNUM_TEN = 10;
 constexpr int32_t NEGATIVE_ONE = -1;
 constexpr uint32_t ADDPOLYGON_COUNT = 1;
 
-void NativeDrawingPathTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPathTest::SetUpTestCase() {}
 void NativeDrawingPathTest::TearDownTestCase() {}
 void NativeDrawingPathTest::SetUp() {}
 void NativeDrawingPathTest::TearDown() {}

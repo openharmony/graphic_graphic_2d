@@ -18,7 +18,6 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
-#include "drawable/rs_clip_to_bounds_restore_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_render.h"
@@ -34,7 +33,6 @@
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
@@ -85,7 +83,7 @@ RSPropertyDrawCmdListUpdater::RSPropertyDrawCmdListUpdater(int width, int height
 RSPropertyDrawCmdListUpdater::~RSPropertyDrawCmdListUpdater()
 {
     if (recordingCanvas_ && target_) {
-        target_->stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
+        target_->stagingDrawCmdList_ = RSSimpleDrawCmdList::CreateFromDrawCmdList(recordingCanvas_->GetDrawCmdList());
         target_->needSync_ = true;
         ExtendRecordingCanvas::Recycle(recordingCanvas_);
         recordingCanvas_.reset();
@@ -140,12 +138,24 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
+    stagingGeContainer_ = nullptr;
     if (properties.GetClipBounds() != nullptr) {
         stagingType_ = RSClipToBoundsType::CLIP_PATH;
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
-        stagingSdfDrawRect_ = RSClipToBoundsRestoreDrawable::CalcSdfDrawRect(node, *sdfShape);
+        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+        std::shared_ptr<Drawing::GEShaderShape> geShape =
+            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
+        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingGeContainer_->AddToChainedFilter(geFilter);
+        auto bounds = properties.GetBoundsRect();
+        auto shapeRect = sdfShape->GetTransformDrawRect();
+        stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
+            (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -178,6 +188,7 @@ void RSClipToBoundsDrawable::OnSync()
     type_ = stagingType_;
     nodeId_ = stagingNodeId_;
     isClipRRectOptimization_ = stagingIsClipRRectOptimization_;
+    geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
     sdfDrawRect_ = stagingSdfDrawRect_;
 }
@@ -217,13 +228,24 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
             canvas->ClipRect(boundsRect_, Drawing::ClipOp::INTERSECT, false);
             break;
         }
-        case RSClipToBoundsType::CLIP_SDF: {
-            // Offscreen sized to sdfDrawRect; translate to align sdfDrawRect origin with surface.
+        case RSClipToBoundsType::CLIP_SDF: { // add lambda by sdfClip
+            bool invalid = !geContainer_ || rect == nullptr;
+            if (invalid) {
+                ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
+                return;
+            }
+            geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
+            Drawing::Rect rectRelative { sdfDrawRect_ };
+            rectRelative.MakeOutset(1, 1);
+            RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
+                rect = rectRelative](Drawing::Canvas& canvas) {
+                auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+                geRender->DrawShaderEffect(canvas, *geContainer, rect);
+            };
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RectF sdfRectF(sdfDrawRect_.GetLeft(), sdfDrawRect_.GetTop(),
-                sdfDrawRect_.GetWidth(), sdfDrawRect_.GetHeight());
-            RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, sdfRectF);
-            paintFilterCanvas->Translate(-sdfDrawRect_.GetLeft(), -sdfDrawRect_.GetTop());
+            Drawing::SaveLayerOps slo(&sdfDrawRect_, nullptr);
+            paintFilterCanvas->SaveLayer(slo);
+            paintFilterCanvas->CustomSaveLayer(customFunc);
             break;
         }
         default:
@@ -254,7 +276,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 
 RSFilterDrawable::RSFilterDrawable()
 {
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
@@ -292,17 +314,18 @@ void RSFilterDrawable::OnSync()
 
     lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
         std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
-
+    lastStagingVisibleDrawRect_ = stagingVisibleRectInfo_ != nullptr ?
+        std::make_unique<RectI>(stagingVisibleRectInfo_->drawRect_) : nullptr;
     stagingVisibleRectInfo_ = nullptr;
     stagingIntersectWithDRM_ = false;
     stagingIsDarkColorMode_ = false;
 
     needSync_ = false;
 
-    if (!RSProperties::filterCacheEnabled_ || stagingCacheManager_ == nullptr ||
+    if (!RSFilterCacheManager::IsFilterCacheEnabled() || stagingCacheManager_ == nullptr ||
         cacheManager_ == nullptr || filter_ == nullptr) {
         ROSEN_LOGD("Clear filter cache failed or no need to clear cache, filterCacheEnabled:%{public}d,"
-            "cacheManager:%{public}d, filter:%{public}d", RSProperties::filterCacheEnabled_,
+            "cacheManager:%{public}d, filter:%{public}d", RSFilterCacheManager::IsFilterCacheEnabled(),
             stagingCacheManager_ != nullptr, filter_ == nullptr);
         return;
     }
@@ -678,12 +701,14 @@ void RSFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
     stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
     stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
         GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
-    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
-        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->drawRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::DRAW, defaultRelativeRect), absMatrix);
     if (clipRect.has_value()) {
         stagingVisibleRectInfo_->snapshotRect_ = stagingVisibleRectInfo_->snapshotRect_.IntersectRect(*clipRect);
-        stagingVisibleRectInfo_->totalRect_ = stagingVisibleRectInfo_->totalRect_.IntersectRect(*clipRect);
+        stagingVisibleRectInfo_->drawRect_ = stagingVisibleRectInfo_->drawRect_.IntersectRect(*clipRect);
     }
+    stagingVisibleRectInfo_->totalRect_ =
+        stagingVisibleRectInfo_->snapshotRect_.JoinRect(stagingVisibleRectInfo_->drawRect_);
 }
 
 RectI RSFilterDrawable::GetVisibleTotalRegion(const RectI& defaultValue) const
@@ -699,6 +724,16 @@ RectI RSFilterDrawable::GetVisibleSnapshotRegion(const RectI& defaultValue) cons
 RectI RSFilterDrawable::GetLastVisibleSnapshotRegion(const RectI& defaultValue) const
 {
     return lastStagingVisibleSnapshotRect_ != nullptr ? *lastStagingVisibleSnapshotRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return stagingVisibleRectInfo_ != nullptr ? stagingVisibleRectInfo_->drawRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetLastVisibleDrawRegion(const RectI& defaultValue) const
+{
+    return lastStagingVisibleDrawRect_ != nullptr ? *lastStagingVisibleDrawRect_ : defaultValue;
 }
 
 RectF RSFilterDrawable::GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const

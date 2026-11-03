@@ -27,7 +27,7 @@
 #include "layer_backend/hdi_output.h"
 #include "connection/rs_render_to_composer_connection.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_composer_client.h"
@@ -54,9 +54,6 @@ public:
 
 void RSLayerContextTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     sMgr = std::make_shared<RSRenderComposerManager>(handler);
 }

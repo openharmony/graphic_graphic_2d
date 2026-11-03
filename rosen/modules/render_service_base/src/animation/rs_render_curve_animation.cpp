@@ -71,9 +71,10 @@ void RSRenderCurveAnimation::UpdateFractionAfterContinue()
     }
 }
 
-void RSRenderCurveAnimation::OnAnimate(float fraction)
+bool RSRenderCurveAnimation::OnAnimate(float fraction)
 {
     OnAnimateInner(fraction, interpolator_);
+    return false;
 }
 
 void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator)

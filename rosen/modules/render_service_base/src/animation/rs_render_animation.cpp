@@ -179,7 +179,7 @@ void RSRenderAnimation::FinishOnPosition(RSInteractiveAnimationPosition pos)
     if (pos == RSInteractiveAnimationPosition::START) {
         ProcessFillModeOnFinish(animationFraction_.GetStartFraction());
     } else if (pos == RSInteractiveAnimationPosition::END) {
-        ProcessFillModeOnFinish(animationFraction_.GetEndFraction());
+        ProcessFillModeOnFinish(animationFraction_.GetGroupEndFraction());
     }
 }
 
@@ -280,17 +280,6 @@ void RSRenderAnimation::SetFractionInner(float fraction)
     animationFraction_.UpdateRemainTimeFraction(fraction);
 }
 
-void RSRenderAnimation::Restart()
-{
-    if (!IsRunning() && !IsGroupWaiting()) {
-        ROSEN_LOGE("Failed to Restart animation, animation is not running or groupWaiting!");
-        return;
-    }
-    animationFraction_.ResetFraction();
-    OnSetFraction(0.0f);
-    state_ = AnimationState::RUNNING;
-}
-
 void RSRenderAnimation::Rebuild(float fraction, int64_t time, bool isReverseCycle)
 {
     // Initialize animation before RebuildPropertyValue, especially for spring animations
@@ -303,6 +292,19 @@ void RSRenderAnimation::Rebuild(float fraction, int64_t time, bool isReverseCycl
     animationFraction_.SetRebuildFraction(fraction, time, isReverseCycle);
     currentFraction_ = fraction;
     needUpdateStartTime_ = true;
+}
+
+void RSRenderAnimation::Restart()
+{
+    if (!IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGE("Failed to Restart animation, animation is not running or groupWaiting!");
+        return;
+    }
+    animationFraction_.ResetFraction();
+    OnRestart();
+    OnSetFraction(0.0f);
+    fractionChangeInfo_ = { false, 0.0f };
+    state_ = AnimationState::RUNNING;
 }
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)
@@ -382,7 +384,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     double frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0 / NS_TO_S;
 
     // convert time to fraction
-    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished, isActualRepeatFinished] =
         animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom);
     currentFraction_ = fraction;
     if (isInStartDelay) {
@@ -392,7 +394,9 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     }
 
     RecordLastAnimateValue();
-    OnAnimate(fraction);
+    if (OnAnimate(fraction)) {
+        isFinished = true;
+    }
     DumpFraction(fraction, time);
     UpdateAnimateVelocity(frameInterval);
 

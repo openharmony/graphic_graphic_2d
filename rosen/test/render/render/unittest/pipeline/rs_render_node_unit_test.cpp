@@ -328,12 +328,12 @@ HWTEST_F(RSRenderNodeUnitTest, ValidateLightResourcesTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto& properties = node->GetMutableRenderProperties();
-    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    properties.GetEffect().lightSourcePtr_->intensity_ = floatData[1];
-    EXPECT_TRUE(properties.GetEffect().lightSourcePtr_->IsLightSourceValid());
-    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
-    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->IsIlluminatedValid());
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->intensity_ = floatData[1];
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().lightSourcePtr_->IsLightSourceValid());
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    EXPECT_TRUE(properties.GetEffectProperties().GetShaderEffect().illuminatedPtr_->IsIlluminatedValid());
     node->ValidateLightResources();
 }
 
@@ -408,15 +408,13 @@ HWTEST_F(RSRenderNodeUnitTest, HasBlurFilterTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     EXPECT_FALSE(node.HasBlurFilter());
-    node.renderProperties_.effect_ = std::make_unique<RSProperties::CommonEffectParams>();
-
-    node.renderProperties_.effect_->materialFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().GetFilterEffect().materialFilter_ = std::make_shared<RSFilter>();
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.filter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
 
-    node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     EXPECT_TRUE(node.HasBlurFilter());
     EXPECT_TRUE(node.renderProperties_.GetBackgroundFilter());
 }
@@ -1596,7 +1594,7 @@ HWTEST_F(RSRenderNodeUnitTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node->renderProperties_.filter_ = filter;
+    node->renderProperties_.GetEffectProperties().SetCompositingFilter(filter);
     node->OnTreeStateChanged();
     EXPECT_FALSE(node->isOnTheTree_);
     EXPECT_TRUE(node->HasBlurFilter());
@@ -1773,7 +1771,7 @@ HWTEST_F(RSRenderNodeUnitTest, UpdateVisibleEffectChildTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
-    childNode->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    childNode->GetMutableRenderProperties().GetEffectProperties().GetNodesEffect().useEffect_ = true;
     childNode->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     EXPECT_TRUE(childNode->GetRenderProperties().GetUseEffect());
     node->UpdateVisibleEffectChild(*childNode);

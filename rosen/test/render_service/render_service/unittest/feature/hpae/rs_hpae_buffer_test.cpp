@@ -40,17 +40,12 @@ public:
     void TearDown() override;
 };
 
-void RSHpaeBufferTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSHpaeBufferTest::SetUpTestCase() {}
 
-void RSHpaeBufferTest::TearDownTestCase()
-{}
-void RSHpaeBufferTest::SetUp()
-{}
+void RSHpaeBufferTest::TearDownTestCase() {}
+
+void RSHpaeBufferTest::SetUp() {}
+
 void RSHpaeBufferTest::TearDown()
 {
     usleep(5000);

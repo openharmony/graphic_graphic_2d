@@ -26,6 +26,7 @@ class Vector2 {
 public:
     static constexpr uint32_t V2SIZE = 2;
     static constexpr size_t DATA_SIZE = sizeof(T) * V2SIZE;
+    uint64_t reserved_ = 0;
     union {
         struct {
             T x_;
@@ -37,7 +38,7 @@ public:
     Vector2();
     Vector2(T x, T y);
     explicit Vector2(const T* v);
-    virtual ~Vector2();
+    ~Vector2();
 
     Vector2 Normalized() const;
     T Dot(const Vector2<T>& other) const;
@@ -57,6 +58,8 @@ public:
     bool operator==(const Vector2& other) const;
     bool operator!=(const Vector2& other) const;
     bool IsNearEqual(const Vector2& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsAbsNearEqual(const Vector2& target, const Vector2& threshold) const;
+    void TakeAbsMaxFrom(const Vector2& target);
 
     T* GetData();
 
@@ -245,6 +248,40 @@ bool Vector2<T>::IsNearEqual(const Vector2& other, T threshold) const
     const T* otherData = other.data_;
 
     return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1], threshold));
+}
+
+template<typename T>
+bool Vector2<T>::IsAbsNearEqual(const Vector2& target, const Vector2& threshold) const
+{
+    return false;
+}
+
+template<>
+inline bool Vector2<float>::IsAbsNearEqual(const Vector2<float>& target, const Vector2<float>& threshold) const
+{
+    const float* targetData = target.data_;
+    const float* thresholdData = threshold.data_;
+
+    for (uint32_t i = 0; i < V2SIZE; i++) {
+        if (fabs(data_[i] - targetData[i]) > fabs(thresholdData[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+void Vector2<T>::TakeAbsMaxFrom(const Vector2& target) {}
+
+template<>
+inline void Vector2<float>::TakeAbsMaxFrom(const Vector2<float>& target)
+{
+    const float* targetData = target.data_;
+    for (uint32_t i = 0; i < V2SIZE; i++) {
+        if (fabs(data_[i]) < fabs(targetData[i])) {
+            data_[i] = targetData[i];
+        }
+    }
 }
 
 template<typename T>

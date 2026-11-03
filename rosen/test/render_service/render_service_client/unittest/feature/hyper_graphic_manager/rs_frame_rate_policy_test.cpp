@@ -295,5 +295,160 @@ HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
     usleep(sendMoveDuration);
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
 }
+
+/**
+ * @tc.name: IsAppBufferNodeEmptyName
+ * @tc.desc: IsAppBufferNode returns false when nodeName is empty
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodeEmptyName, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    EXPECT_FALSE(instance->IsAppBufferNode(""));
+}
+
+/**
+ * @tc.name: IsAppBufferNodeNullList
+ * @tc.desc: IsAppBufferNode returns false when sortedAppBufferList is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodeNullList, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto savedList = std::atomic_load(&instance->sortedAppBufferList_);
+    std::atomic_store(&instance->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(nullptr));
+    EXPECT_FALSE(instance->IsAppBufferNode("anyNode"));
+    std::atomic_store(&instance->sortedAppBufferList_, savedList);
+}
+
+/**
+ * @tc.name: IsAppBufferNodePrefixMatch
+ * @tc.desc: IsAppBufferNode returns true when nodeName has a matching prefix
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodePrefixMatch, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto savedList = std::atomic_load(&instance->sortedAppBufferList_);
+
+    const std::string appBuf{"AppBuffer"};
+    const std::string customNode{"CustomNode"};
+    auto testList = std::make_shared<const std::vector<std::string>>(
+        std::vector<std::string>{appBuf, customNode});
+    std::atomic_store(&instance->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    EXPECT_TRUE(instance->IsAppBufferNode(appBuf));
+    EXPECT_TRUE(instance->IsAppBufferNode("AppBufferChild123"));
+    EXPECT_TRUE(instance->IsAppBufferNode(customNode));
+    EXPECT_TRUE(instance->IsAppBufferNode("CustomNodeSub"));
+
+    std::atomic_store(&instance->sortedAppBufferList_, savedList);
+}
+
+/**
+ * @tc.name: IsAppBufferNodeNoMatch
+ * @tc.desc: IsAppBufferNode returns false when no prefix matches
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodeNoMatch, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto savedList = std::atomic_load(&instance->sortedAppBufferList_);
+
+    const std::string appBuf{"AppBuffer"};
+    const std::string customNode{"CustomNode"};
+    auto testList = std::make_shared<const std::vector<std::string>>(
+        std::vector<std::string>{appBuf, customNode});
+    std::atomic_store(&instance->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    EXPECT_FALSE(instance->IsAppBufferNode("OtherNode"));
+    EXPECT_FALSE(instance->IsAppBufferNode("Zzzz"));
+
+    std::atomic_store(&instance->sortedAppBufferList_, savedList);
+}
+
+/**
+ * @tc.name: IsAppBufferNodeBreakEarly
+ * @tc.desc: IsAppBufferNode breaks early when nodeName.front() < uiFwkType.front()
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodeBreakEarly, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto savedList = std::atomic_load(&instance->sortedAppBufferList_);
+
+    const std::string mmmNode{"MmmNode"};
+    const std::string zzzNode{"ZzzNode"};
+    auto testList = std::make_shared<const std::vector<std::string>>(
+        std::vector<std::string>{mmmNode, zzzNode});
+    std::atomic_store(&instance->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    EXPECT_FALSE(instance->IsAppBufferNode("AaaNode"));
+
+    std::atomic_store(&instance->sortedAppBufferList_, savedList);
+}
+
+/**
+ * @tc.name: IsAppBufferNodeShorterName
+ * @tc.desc: IsAppBufferNode returns false when nodeName is shorter than prefix
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, IsAppBufferNodeShorterName, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto savedList = std::atomic_load(&instance->sortedAppBufferList_);
+
+    const std::string longPrefix{"LongPrefixNode"};
+    auto testList = std::make_shared<const std::vector<std::string>>(
+        std::vector<std::string>{longPrefix});
+    std::atomic_store(&instance->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    EXPECT_FALSE(instance->IsAppBufferNode("Long"));
+    EXPECT_FALSE(instance->IsAppBufferNode("Lo"));
+
+    std::atomic_store(&instance->sortedAppBufferList_, savedList);
+}
+
+/**
+ * @tc.name: HgmConfigChangeCallbackWithAppBufferList
+ * @tc.desc: HgmConfigChangeCallback sorts and stores appBufferList atomically
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallbackWithAppBufferList, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    auto configData = std::make_shared<RSHgmConfigData>();
+    const std::string zebra{"Zebra"};
+    const std::string apple{"Apple"};
+    const std::string mango{"Mango"};
+    configData->AddAppBuffer(zebra);
+    configData->AddAppBuffer(apple);
+    configData->AddAppBuffer(mango);
+
+    instance->HgmConfigChangeCallback(configData);
+
+    auto sortedList = std::atomic_load(&instance->sortedAppBufferList_);
+    ASSERT_NE(sortedList, nullptr);
+    ASSERT_EQ(sortedList->size(), 3);
+    EXPECT_EQ((*sortedList)[0], apple);
+    EXPECT_EQ((*sortedList)[1], mango);
+    EXPECT_EQ((*sortedList)[2], zebra);
+
+    EXPECT_TRUE(instance->IsAppBufferNode("AppleNode"));
+    EXPECT_TRUE(instance->IsAppBufferNode(zebra));
+    EXPECT_FALSE(instance->IsAppBufferNode("Banana"));
+}
 } // namespace Rosen
 } // namespace OHOS

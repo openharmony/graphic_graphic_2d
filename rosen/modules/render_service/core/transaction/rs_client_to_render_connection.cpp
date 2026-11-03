@@ -25,12 +25,12 @@
 #include "rs_frame_report.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "rs_profiler.h"
 
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/capture/rs_ui_capture.h"
@@ -57,6 +57,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -87,7 +88,7 @@
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 #undef LOG_TAG
@@ -97,6 +98,18 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int SLEEP_TIME_US = 1000;
+// The high 16 bits of listenerId encode the creator pid; keep in sync with
+// SurfaceTransactionListener::CreateUniqueId in render_service_client.
+constexpr uint32_t LISTENER_ID_PID_SHIFT_BITS = 48;
+constexpr uint32_t PID_MASK_16BIT = 0xFFFF;
+
+// Only 16 pid bits are kept in listenerId, so remote pids are compared in the low 16 bits;
+// pids colliding there are indistinguishable, which is already assumed by listener routing.
+bool IsListenerIdOwnedByRemote(uint64_t listenerId, pid_t remotePid)
+{
+    return static_cast<uint32_t>(listenerId >> LISTENER_ID_PID_SHIFT_BITS) ==
+           (static_cast<uint32_t>(remotePid) & PID_MASK_16BIT);
+}
 const std::string REGISTER_NODE = "RegisterNode";
 const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
@@ -104,7 +117,7 @@ constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
-}
+} // namespace
 const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 
 // we guarantee that when constructing this object,
@@ -177,11 +190,6 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     if (toDelete) {
         auto token = iface_cast<RSIConnectionToken>(GetToken());
         renderPipelineAgent_->RemoveConnection(remotePid_, token);
-
-        auto appToken = renderPipelineAgent_->UnRegisterApplicationAgent(remotePid_);
-        if (appToken && appToken->AsObject() && applicationDeathRecipient_) {
-            appToken->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
-        }
     }
 }
 
@@ -276,12 +284,23 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("RSClientToRenderConnection::CommitTransaction renderPipelineAgent_ is null, "
+            "transaction dropped, hasData:%{public}d", transactionData != nullptr);
         return ERR_INVALID_VALUE;
     }
-    pid_t callingPid = GetCallingPid();
+    pid_t callingPid = RS_PROFILER_GET_CALLING_PID(this);
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    if (transactionData && isNonSystemAppCalling && callingPid <= 0) {
+        // GetCallingPid() may return 0 for asynchronous binder calls, in which case the stub-side
+        // ownership check is skipped; run it here with the connection-level trusted identity.
+        // The node map access is safe on IPC threads: IsCallingPidValid only queries
+        // IsUIExtensionAuthorized, which is mutex-protected. Inaccessible commands are only
+        // marked here (with per-command logs) and dropped later by RSMainThread.
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        transactionData->IsCallingPidValid(remotePid_, nodeMap);
+    }
     return renderPipelineAgent_->CommitTransaction(
         callingPid, isTokenTypeValid, isNonSystemAppCalling, transactionData);
 }
@@ -333,6 +352,22 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
     app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
     return ERR_OK;
 }
+
+ErrCode RSClientToRenderConnection::UnRegisterApplicationAgent()
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto pid = RS_PROFILER_GET_CALLING_PID(this);
+    RS_LOGI("RSClientToRenderConnection::UnRegisterApplicationAgent pid=[%{public}d]", pid);
+    // The agent is keyed on the client process pid on the server side, so resolve it by the calling pid.
+    sptr<IApplicationAgent> app =
+        renderPipelineAgent_->UnRegisterApplicationAgent(static_cast<uint32_t>(pid));
+    if (app != nullptr && app->AsObject() != nullptr && applicationDeathRecipient_ != nullptr) {
+        app->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
+    }
+    return ERR_OK;
+}
 // LCOV_EXCL_STOP
 
 ErrCode RSClientToRenderConnection::RegisterBufferClearListener(
@@ -378,6 +413,16 @@ ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
+}
+
+ErrCode RSClientToRenderConnection::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success);
 }
 
 ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
@@ -429,6 +474,9 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
     if (renderPipelineAgent_ == nullptr) {
         return;
     }
+    // remotePid_ is the trusted identity captured from synchronous binder at connection creation;
+    // GetCallingPid() may return 0 for asynchronous binder calls and cannot be relied upon here.
+    permissions.selfCapture = (ExtractPid(id) == remotePid_);
     renderPipelineAgent_->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
@@ -446,6 +494,16 @@ void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    // remotePid_ is the trusted identity captured from synchronous binder at connection creation;
+    // GetCallingPid() may return 0 for asynchronous binder calls and cannot be relied upon here.
+    if (ExtractPid(id) != remotePid_) {
+        RS_LOGW("RSClientToRenderConnection::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
+                "], remotePid:[%{public}d], pid:[%{public}d]", id, remotePid_, ExtractPid(id));
+        if (callback) {
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
+        }
         return;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -604,7 +662,7 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(remotePid_, nodeId, buffer, resetSurfaceIndex);
+    return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif
 
@@ -619,7 +677,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
-    if (!isSystemCalling && GetCallingPid() != pid) {
+    if (!isSystemCalling && RS_PROFILER_GET_CALLING_PID(this) != pid) {
         RS_LOGE("RSClientToRenderConnection::SetSurfaceWatermark %{public}s,"
             "callingPid != pid", name.c_str());
         return WATER_MARK_RS_CONNECTION_ERROR;
@@ -637,7 +695,7 @@ void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const 
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
-    if (!isSystemCalling && GetCallingPid() != pid) {
+    if (!isSystemCalling && RS_PROFILER_GET_CALLING_PID(this) != pid) {
         RS_LOGE("RSClientToRenderConnection::ClearSurfaceWatermarkForNodes %{public}s,"
             "callingPid != pid", name.c_str());
         return;
@@ -688,10 +746,7 @@ int32_t RSClientToRenderConnection::UnRegisterSurfaceOcclusionChangeCallback(Nod
 
 std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
 {
-    if (!renderPipelineAgent_) {
-        return {};
-    }
-    return renderPipelineAgent_->GetBundleName(pid);
+    return RSMainThread::Instance()->QueryBundleName(pid);
 }
 
 int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
@@ -701,6 +756,33 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
+}
+
+int32_t RSClientToRenderConnection::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetGlobalBlackList(blackList);
+}
+
+int32_t RSClientToRenderConnection::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->AddGlobalBlackList(blackList);
+}
+
+int32_t RSClientToRenderConnection::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RemoveGlobalBlackList(blackList);
 }
 
 ErrCode RSClientToRenderConnection::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
@@ -789,6 +871,16 @@ bool RSClientToRenderConnection::SetDelegateMode(NodeId id, bool isSetDelegateMo
     if (renderPipelineAgent_ == nullptr) {
         return false;
     }
+    // MARK_WEB_NODE is a oneway IPC: GetCallingPid() always returns 0 on Linux kernel binder,
+    // so ownership is validated against remotePid_, the trusted peer pid captured at
+    // (synchronous) connection creation. Only the node owner may enable delegate mode,
+    // otherwise any process could hijack another process's surface into delegate compositing.
+    if (ExtractPid(id) != remotePid_ || pid != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: SetDelegateMode fail: node %{public}" PRIu64
+                " or pid %{public}d not owned by remote pid %{public}d",
+            id, pid, remotePid_);
+        return false;
+    }
     return renderPipelineAgent_->SetDelegateMode(id, isSetDelegateMode, pid);
 }
 
@@ -806,12 +898,39 @@ bool RSClientToRenderConnection::RegisterSurfaceTransactionListenerNew(sptr<RSIS
     if (renderPipelineAgent_ == nullptr) {
         return false;
     }
+    // The delegate identity must belong to the caller itself: surfaceTransactionIdentityInfoMap_
+    // decides which (pid, tid) transactions are diverted into the delegate composite queue, so a
+    // forged identity would hijack another process's transaction flow. remotePid_ also covers
+    // oneway calls where GetCallingPid() returns 0.
+    if (static_cast<pid_t>(pid) != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: RegisterSurfaceTransactionListenerNew fail: "
+                "identity pid %{public}u not owned by remote pid %{public}d",
+            pid, remotePid_);
+        return false;
+    }
+    // listenerId must stay in the caller's own bucket: listeners are grouped by the pid encoded
+    // in its high 16 bits, and a foreign-pid listenerId could fill the victim's bucket up to
+    // MAX_MAP_SIZE and block the victim's own registration.
+    if (!IsListenerIdOwnedByRemote(listenerId, remotePid_)) {
+        RS_LOGE("DelegateModeDebugTag: RegisterSurfaceTransactionListenerNew fail: "
+                "listenerId %{public}" PRIu64 " not owned by remote pid %{public}d",
+            listenerId, remotePid_);
+        return false;
+    }
     return renderPipelineAgent_->RegisterSurfaceTransactionListener(listener, listenerId, pid, tid);
 }
 
 bool RSClientToRenderConnection::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
 {
     if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    // Only the owner may unregister its listener, otherwise one process could tear down
+    // another process's delegate listener and break its buffer release notifications.
+    if (!IsListenerIdOwnedByRemote(listenerId, remotePid_)) {
+        RS_LOGE("DelegateModeDebugTag: UnRegisterSurfaceTransactionListener fail: "
+                "listenerId %{public}" PRIu64 " not owned by remote pid %{public}d",
+            listenerId, remotePid_);
         return false;
     }
     return renderPipelineAgent_->UnRegisterSurfaceTransactionListener(listenerId);
@@ -832,6 +951,20 @@ bool RSClientToRenderConnection::UnRegisterSurfaceNodeBufferReleaseListener()
         return false;
     }
     return renderPipelineAgent_->UnRegisterSurfaceNodeBufferReleaseListener(remotePid_);
+}
+
+bool RSClientToRenderConnection::CleanDelegateModeBufferCmd(NodeId id)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    if (ExtractPid(id) != remotePid_) {
+        RS_LOGE("DelegateModeDebugTag: CleanDelegateModeBufferCmd fail: node %{public}" PRIu64
+                " not owned by remote pid %{public}d",
+            id, remotePid_);
+        return false;
+    }
+    return renderPipelineAgent_->CleanDelegateModeBufferCmd(id, remotePid_);
 }
 } // namespace Rosen
 } // namespace OHOS

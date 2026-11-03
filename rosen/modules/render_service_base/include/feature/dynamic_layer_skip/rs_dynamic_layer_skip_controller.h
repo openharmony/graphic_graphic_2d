@@ -29,13 +29,16 @@ public:
 
     bool IsScreenLayerInvalid() const;
 
+    bool MeetsPreliminarySkipCriteria() const;  // only used for pre-validate, ignore hardware status.
+
     void Init(const RectI& screenRect, bool globalDisabled);
 
     void VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node);
 
     void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
 
-    void VerifyScreenLayerValidity(float screenNodeGlobalZOrder);
+    void VerifyScreenLayerValidity(
+        float screenNodeGlobalZOrder, GraphicColorGamut screenColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
 private:
     void CheckNodeDrawProperty(RSRenderNode& node);
@@ -65,10 +68,16 @@ private:
     }
 
     RectI screenRect_;
+    // for physical screen
     bool screenLayerInvalid_ = false;
     bool globalOccluderDetected_ = false;
     NodeId occluderInstanceRootNodeId_ = INVALID_NODEID;
     std::vector<RSSurfaceRenderNode::WeakPtr> targetSelfDrawingSurface_ = {};
+    // for virtual screen
+    bool virtualScreenLayerInvalid_ = false;
+    bool virtualGlobalOccluderDetected_ = false;
+    NodeId virtualOccluderInstanceRootNodeId_ = INVALID_NODEID;
+    std::vector<RSSurfaceRenderNode::WeakPtr> virtualTargetSelfDrawingSurface_ = {};
     bool globalDisabled_ = false;
     int32_t visitedRenderNodeCount_ = 0;
     bool hasFullScreenSurface_ = false;

@@ -39,18 +39,18 @@ public:
     static napi_value SetCorner(napi_env env, napi_callback_info info);
     static napi_value GetCorner(napi_env env, napi_callback_info info);
     static napi_value Offset(napi_env env, napi_callback_info info);
-    static napi_value RoundRectTransferDynamic(napi_env env, napi_callback_info info);
 
     const RoundRect& GetRoundRect();
     std::shared_ptr<RoundRect> GetRoundRectPtr()
     {
         return m_roundRect;
     }
+    static napi_value CreateJsRoundRectDynamic(napi_env env, const std::shared_ptr<RoundRect> roundRect);
+
 private:
     napi_value OnSetCorner(napi_env env, napi_callback_info info);
     napi_value OnGetCorner(napi_env env, napi_callback_info info);
     napi_value OnOffset(napi_env env, napi_callback_info info);
-    static napi_value CreateJsRoundRectDynamic(napi_env env, const std::shared_ptr<RoundRect> roundRect);
 
     static thread_local napi_ref constructor_;
 

@@ -19,10 +19,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "native_buffer_utils.h"
 #include "native_window.h"
-
 #include "platform/common/rs_log.h"
+#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -127,6 +126,7 @@ Drawing::BackendTexture SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture
 
     // Create BackendTexture
     Drawing::BackendTexture texture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, buffer->GetWidth(), buffer->GetHeight());
     // Destroy nativeWindowBuffer after use
     DestroyNativeWindowBuffer(nativeWindowBuffer);

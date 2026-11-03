@@ -15,6 +15,11 @@
 
 #include "dirty_region/rs_filter_dirty_collector.h"
 
+#include <cmath>
+
+#include "common/rs_obj_abs_geometry.h"
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 bool RSFilterDirtyCollector::enablePartialRender_ = true;
@@ -40,6 +45,25 @@ void RSFilterDirtyCollector::Clear()
     filtersWithBelowDirty_.clear();
     pureCleanFilters_.clear();
     pendingPurgeFilterRegion_.Reset();
+}
+
+void RSFilterDirtyCollector::ScaleSyncedFilterRegions(float scaleX, float scaleY)
+{
+    if (pureCleanFilters_.empty()) {
+        return;
+    }
+    // Non-finite scale would be truncated to undefined int coordinates while mapping regions.
+    if (!std::isfinite(scaleX) || !std::isfinite(scaleY) || ROSEN_LE(scaleX, 0.f) || ROSEN_LE(scaleY, 0.f)) {
+        RS_LOGW("%{public}s invalid scale x:%{public}f y:%{public}f, skip filter region scale",
+            __func__, scaleX, scaleY);
+        return;
+    }
+    Drawing::Matrix scaleMatrix;
+    scaleMatrix.SetScale(scaleX, scaleY);
+    for (auto& filterInfo : pureCleanFilters_) {
+        filterInfo.intersectRegion_ = RSObjAbsGeometry::MapRegion(filterInfo.intersectRegion_, scaleMatrix);
+        filterInfo.filterDirty_ = RSObjAbsGeometry::MapRegion(filterInfo.filterDirty_, scaleMatrix);
+    }
 }
 
 void RSFilterDirtyCollector::AddPendingPurgeFilterRegion(const Occlusion::Region& region)

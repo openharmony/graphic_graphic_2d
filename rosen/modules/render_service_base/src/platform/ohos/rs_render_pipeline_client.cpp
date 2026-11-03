@@ -85,6 +85,17 @@ void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const std::function<
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    // Lazy re-resolution: clients constructed before the render process was registered keep
+    // INVALID_TOKEN_MASK_ID cached in tokenMaskId_. Route them to the render process once it is
+    // the only connection (normal apps), so their transaction index stream stays continuous on
+    // the sequencer that consumes it. With multiple render processes (foundation process) keep
+    // the guarantee fallback instead of picking an arbitrary one.
+    if (isUniRender && tokenMaskId_ == INVALID_TOKEN_MASK_ID) {
+        tokenMaskId_ = RSRenderServiceConnectHub::GetDefaultTokenMaskId();
+        RSRenderServiceConnectHub::SeedTransactionDataIndex(tokenMaskId_);
+    }
+
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection != nullptr) {
         clientToRenderConnection->CommitTransaction(transactionData);
@@ -263,7 +274,10 @@ bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const Buffer
         return false;
     }
     sptr<RSIBufferClearCallback> bufferClearCb = new CustomBufferClearCallback(callback);
-    clientToRenderConnection->RegisterBufferClearListener(id, bufferClearCb);
+    if (clientToRenderConnection->RegisterBufferClearListener(id, bufferClearCb) != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::RegisterBufferClearListener IPC failed, nodeId:%{public}" PRIu64, id);
+        return false;
+    }
     return true;
 }
 
@@ -334,6 +348,24 @@ bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::Pixel
     bool success;
     clientToRenderConnection->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
     return success;
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderPipelineClient::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::BlurPixelMap: clientToRenderConnection is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    clientToRenderConnection->BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success);
+    if (!success || blurredPixelMap == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::BlurPixelMap: BlurPixelMap failed");
+        return nullptr;
+    }
+    return blurredPixelMap;
 }
 
 bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
@@ -418,13 +450,14 @@ public:
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
         CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
+        // Take ownership before any early return so the pixelmaps are always released.
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
         auto client = client_.lock();
         if (!client) {
             ROSEN_LOGE("SurfaceCaptureCallbackDirector::OnSurfaceCapture: client has been destroyed");
             return;
         }
-        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
         client->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
     };
 
@@ -455,10 +488,10 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeSurfaceCapture(
         id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
@@ -500,10 +533,10 @@ bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<S
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
@@ -536,10 +569,10 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->SetWindowFreezeImmediately(
         id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
@@ -620,11 +653,10 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
         }
         std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
-    }
 
-    std::lock_guard<std::mutex> lock(surfaceCaptureCbDirectorMutex_);
-    if (surfaceCaptureCbDirector_ == nullptr) {
-        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        if (surfaceCaptureCbDirector_ == nullptr) {
+            surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(weak_from_this());
+        }
     }
     clientToRenderConnection->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
@@ -1035,6 +1067,36 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
     return clientToRenderConnection->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
+int32_t RSRenderPipelineClient::SetGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->SetGlobalBlackList(blackList);
+}
+
+int32_t RSRenderPipelineClient::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::AddGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->AddGlobalBlackList(blackList);
+}
+
+int32_t RSRenderPipelineClient::RemoveGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::RemoveGlobalBlackList clientToRenderConnection_ is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection->RemoveGlobalBlackList(blackList);
+}
+
 int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
@@ -1224,6 +1286,16 @@ bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
         return false;
     }
     return renderPipeline->UnRegisterSurfaceNodeBufferReleaseListener();
+}
+
+bool RSRenderPipelineClient::CleanDelegateModeBufferCmd(NodeId nodeId)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:CleanDelegateModeBufferCmd renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->CleanDelegateModeBufferCmd(nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

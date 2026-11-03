@@ -961,6 +961,39 @@ HWTEST_F(RSPropertyTest, Set003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAffectsRendering001
+ * @tc.desc: RSProperty Set with affectsRendering false keeps container node undrawn (cpp specializations)
+ * @tc.type: FUNC
+ * @tc.require: issue26598
+ */
+HWTEST_F(RSPropertyTest, SetAffectsRendering001, TestSize.Level1)
+{
+    auto filterNode = RSCanvasNode::Create();
+    auto filterProp = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    filterProp->target_ = filterNode;
+    filterProp->Set(std::make_shared<RSNGBlurFilter>(), false);
+    EXPECT_FALSE(filterNode->GetIsDrawn());
+
+    auto shaderNode = RSCanvasNode::Create();
+    auto shaderProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    shaderProp->target_ = shaderNode;
+    shaderProp->Set(std::make_shared<RSNGContourDiagonalFlowLight>(), false);
+    EXPECT_FALSE(shaderNode->GetIsDrawn());
+
+    auto maskNode = RSCanvasNode::Create();
+    auto maskProp = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    maskProp->target_ = maskNode;
+    maskProp->Set(std::make_shared<RSNGRippleMask>(), false);
+    EXPECT_FALSE(maskNode->GetIsDrawn());
+
+    auto shapeNode = RSCanvasNode::Create();
+    auto shapeProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShapeBase>>>();
+    shapeProp->target_ = shapeNode;
+    shapeProp->Set(std::make_shared<RSNGSDFUnionOpShape>(), false);
+    EXPECT_FALSE(shapeNode->GetIsDrawn());
+}
+
+/**
  * @tc.name: RSNGShaderBaseGetRenderPropertyTest
  * @tc.desc: Test GetRenderPropertyTest for RSProperty<std::shared_ptr<RSNGShaderBase>>
  * @tc.type:FUNC
@@ -1077,4 +1110,47 @@ HWTEST_F(RSPropertyTest, Set004, TestSize.Level1)
     prop2->Set(nullptr);
     EXPECT_EQ(prop2->stagingValue_, nullptr);
 }
+
+/**
+ * @tc.name: FloatPropertyInvalidValueTest
+ * @tc.desc: Test RSProperty<float> rejects inf and nan values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyTest, FloatPropertyInvalidValueTest, TestSize.Level1)
+{
+    RSProperty<float> property(1.0f);
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(std::numeric_limits<float>::infinity());
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(std::numeric_limits<float>::quiet_NaN());
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(2.0f);
+    EXPECT_EQ(property.Get(), 2.0f);
+}
+/**
+ * @tc.name: CastToPropertyOfTypeMatch001
+ * @tc.desc: Verify CastToPropertyOf returns valid pointer when type matches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, CastToPropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(1.0f);
+    auto result = prop->CastToPropertyOf<float>("TestFunc");
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_FLOAT_EQ(result->Get(), 1.0f);
+}
+
+/**
+ * @tc.name: CastToPropertyOfTypeMismatch001
+ * @tc.desc: Verify CastToPropertyOf returns nullptr when type mismatches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, CastToPropertyOfTypeMismatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(1.0f);
+    auto result = prop->CastToPropertyOf<Vector4f>("TestFunc");
+    EXPECT_EQ(result, nullptr);
+}
+
 } // namespace OHOS::Rosen

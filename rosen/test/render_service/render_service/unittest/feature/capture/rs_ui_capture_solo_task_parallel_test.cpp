@@ -62,9 +62,6 @@ class RSUiCaptureSoloTaskParallelTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
-#ifdef RS_ENABLE_VK
-        RsVulkanContext::SetRecyclable(false);
-#endif
         rsInterfaces_ = &RSInterfaces::GetInstance();
 
         RSTestUtil::InitRenderNodeGC();
@@ -82,10 +79,35 @@ public:
 
     static void TearDownTestCase()
     {
-        rsInterfaces_->RemoveVirtualScreen(mirrorConfig_.screenId);
-        rsInterfaces_ = nullptr;
-        renderContext_ = nullptr;
+        if (renderContext_) {
+            renderContext_->drGPUContext_ = nullptr;
+            renderContext_ = nullptr;
+        }
         displayNode_ = nullptr;
+        auto& mainThread = *RSMainThread::Instance();
+        if (mainThread.renderEngine_) {
+            if (mainThread.renderEngine_->renderContext_) {
+                mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+                mainThread.renderEngine_->renderContext_ = nullptr;
+            }
+            if (mainThread.renderEngine_->protectedRenderContext_) {
+                mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+            mainThread.renderEngine_ = nullptr;
+        }
+        auto& rtThread = RSUniRenderThread::Instance();
+        if (rtThread.uniRenderEngine_) {
+            if (rtThread.uniRenderEngine_->renderContext_) {
+                rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rtThread.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+                rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+            rtThread.uniRenderEngine_ = nullptr;
+        }
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
     }
@@ -101,9 +123,7 @@ public:
 #endif // ACE_ENABLE_GL
     }
 
-    void SetUp() override
-    {
-    }
+    void SetUp() override {}
 
     void TearDown() override
     {
@@ -342,6 +362,16 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, Run001, Function | SmallTest | Level2)
 
     handle->CreateResources();
     EXPECT_EQ(handle->Run(), false);
+    if (RSUniRenderThread::Instance().uniRenderEngine_) {
+        if (RSUniRenderThread::Instance().uniRenderEngine_->renderContext_) {
+            RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_) {
+            RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
@@ -361,6 +391,16 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, Run002, Function | SmallTest | Level2)
 
     handle->nodeDrawable_ = nullptr;
     EXPECT_EQ(handle->Run(), false);
+    if (RSUniRenderThread::Instance().uniRenderEngine_) {
+        if (RSUniRenderThread::Instance().uniRenderEngine_->renderContext_) {
+            RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_) {
+            RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        RSUniRenderThread::Instance().uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 

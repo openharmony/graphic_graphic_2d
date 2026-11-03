@@ -24,6 +24,7 @@
 #include "animation/rs_motion_path_option.h"
 #include "modifier/rs_property.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
 #ifdef ROSEN_OHOS
@@ -377,6 +378,48 @@ HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_ReturnTaskExecu
 }
 
 /**
+ * @tc.name: ExecuteSyncPropertiesTask_WithNullTransaction
+ * @tc.desc: Verify ExecuteSyncPropertiesTask when rsUIContext has no transaction
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_WithNullTransaction, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    auto rsUIContext = CreateRSUIContext();
+    // Directly null out the transaction handler to test the false branch
+    rsUIContext->rsTransactionHandler_ = nullptr;
+
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    auto result = animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext);
+    EXPECT_EQ(result, CancelAnimationStatus::TASK_EXECUTION_FAILURE);
+}
+
+/**
+ * @tc.name: ExecuteSyncPropertiesTask_WithNullProxy
+ * @tc.desc: Verify ExecuteSyncPropertiesTask when RSTransactionProxy returns null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_WithNullProxy, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    // Save and null out the singleton instance to test the false branch
+    auto* savedInstance = RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    auto result = animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext);
+    EXPECT_EQ(result, CancelAnimationStatus::TASK_EXECUTION_FAILURE);
+
+    // Restore the singleton instance
+    RSTransactionProxy::instance_ = savedInstance;
+}
+
+/**
  * @tc.name: CreateEmptyAnimationTest
  * @tc.desc: Verify the CreateEmptyAnimation
  * @tc.type: FUNC
@@ -487,4 +530,58 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframeDurationNegative001, TestSize.
     EXPECT_EQ(kfAnim->durationKeyframes_.size(), 0u);
     GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframeDurationNegative001 end";
 }
+/**
+ * @tc.name: AddKeyframeTypeGuard001
+ * @tc.desc: Verify AddKeyframe returns early when animation type is not KEYFRAME (duration-based)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddKeyframeTypeGuard001, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 1000;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+    auto rsUIContext = CreateRSUIContext();
+
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(
+        rsUIContext, property, startValue, endValue);
+    ASSERT_NE(curveAnimation->GetType(), RSAnimationType::KEYFRAME);
+    std::shared_ptr<RSAnimation> animation = curveAnimation;
+    animationParam->AddKeyframe(animation, 0, startValue, endValue);
+    EXPECT_EQ(curveAnimation->GetType(), RSAnimationType::CURVE);
+}
+
+/**
+ * @tc.name: AddKeyframeTypeGuard002
+ * @tc.desc: Verify fraction-based AddKeyframe returns early when animation type is not KEYFRAME
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddKeyframeTypeGuard002, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 1000;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+    auto rsUIContext = CreateRSUIContext();
+
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(
+        rsUIContext, property, startValue, endValue);
+    ASSERT_NE(curveAnimation->GetType(), RSAnimationType::KEYFRAME);
+    std::shared_ptr<RSAnimation> animation = curveAnimation;
+    animationParam->AddKeyframe(animation, startValue, endValue);
+    EXPECT_EQ(curveAnimation->GetType(), RSAnimationType::CURVE);
+}
+
 } // namespace OHOS::Rosen

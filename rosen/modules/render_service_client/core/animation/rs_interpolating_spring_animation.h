@@ -28,6 +28,11 @@ class RSRenderInterpolatingSpringAnimation;
 
 class RSC_EXPORT RSInterpolatingSpringAnimation : public RSPropertyAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::INTERPOLATING_SPRING;
+    }
+
     RSInterpolatingSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
         std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue);
 

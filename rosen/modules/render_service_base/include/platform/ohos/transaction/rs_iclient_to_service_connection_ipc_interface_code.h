@@ -24,6 +24,9 @@ namespace Rosen {
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //If a command is not used and you want to delete it,
 //just COMMENT it - and never use this value anymore
+//If a new SYNCHRONOUS interface's reply can carry binder objects / fds / ashmem, also add
+//its code to IsReplyNotClonable() in rs_client_to_service_connection_proxy.cpp; otherwise
+//the sync-IPC timeout executor fails the call at runtime with UNKNOWN_ERROR.
 enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_UNI_RENDER_ENABLED = 0x000001,
     SET_PHYSICAL_SCREEN_RESOLUTION = 0x000005,
@@ -60,7 +63,6 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     AVCODEC_VIDEO_START = 0x000038,
     AVCODEC_VIDEO_STOP = 0x000039,
     UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 0x00003C,
-    SET_GPU_CRC_DIRTY_ENABLED_PIDLIST = 0x00003E,
     SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST = 0x00003F,
     SET_ROG_SCREEN_RESOLUTION = 0x000041,
     GET_ROG_SCREEN_RESOLUTION = 0x000042,
@@ -95,6 +97,8 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     REMOVE_VIRTUAL_SCREEN_WHITELIST = 0x00200F,
     ADD_VIRTUAL_SCREEN_SURFACE = 0x002010,
     REMOVE_VIRTUAL_SCREEN_SURFACE = 0x002011,
+    SET_VIRTUAL_SCREEN_HDR_MODE = 0x002012,
+    GET_VIRTUAL_SCREEN_HDR_MODE = 0x002013,
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     SET_POINTER_COLOR_INVERSION_CONFIG = 0x004000,
@@ -122,6 +126,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_SCREEN_SWITCHING_NOTIFY_CALLBACK = 0x005011,
     SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK = 0x005012,
     GET_REFRESH_INFO_BY_PID_AND_UNIQUEID = 0x005013,
+    SET_THERMAL_FRAME_RATE_LIMIT = 0x005014,
 
     GET_SCREEN_ACTIVE_MODE = 0x006000,
     GET_SCREEN_SUPPORTED_MODES = 0x006001,
@@ -143,6 +148,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_VIRTUAL_SCREEN_AUTO_ROTATION = 0x007006,
     SET_SCREEN_OFFSET = 0x007007,
     SET_SCREEN_FRAME_GRAVITY = 0x007008,
+    SET_SKIP_COLOR_SPACE_CONVERSION = 0x007009,
     
     CREATE_PIXEL_MAP_FROM_SURFACE = 0x008000,
     GET_SCREEN_HDR_CAPABILITY = 0x008001,
@@ -164,6 +170,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_MEMORY_GRAPHIC = 0x00A000,
     GET_MEMORY_GRAPHICS = 0x00A001,
     GET_TOTAL_APP_MEM_SIZE = 0x00A002,
+    GET_MEMORY_GRAPHICS_BY_RENDER_PID = 0x00A003,
 
     REPORT_JANK_STATS = 0x00B000,
     REPORT_EVENT_RESPONSE = 0x00B001,
@@ -205,6 +212,11 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 
     GET_SCREEN_VCP_FEATURE = 0x014003,
     SET_SCREEN_VCP_FEATURE = 0x014004,
+
+    AUTHORIZE_UIEXTENSION_PID = 0x014005,
+
+    // DisplayEngine control
+    GET_DISPLAY_ENGINE_CONTROL = 0x016000,
 
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,

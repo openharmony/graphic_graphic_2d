@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "rs_sub_thread_cache.h"
 
 #include <memory>
@@ -54,8 +53,8 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #undef LOG_TAG
 #define LOG_TAG "RsSubThreadCache"
@@ -69,7 +68,7 @@ static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
     return matrix;
 }();
 constexpr float SCALE_DIFF = 0.01f;
-}
+} // namespace
 
 namespace OHOS::Rosen::DrawableV2 {
 RsSubThreadCache::RsSubThreadCache()
@@ -188,7 +187,9 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
                 origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
 #endif
-        image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
+        if (cacheCompletedSurface_) {
+            image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
+        }
         return image;
 #endif
     }
@@ -256,7 +257,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     // Use user's gravity
     canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
-    // Apply inverse uifirst scale to resotre canvas to original size before drawing
+    // Apply inverse uifirst scale to restore canvas to original size before drawing
     // Since cache surface was scaled up during uifirst scaling, we need to apply
     // inverse scale to draw the correct original size
     if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
@@ -350,7 +351,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     }
     // Get uifirst scaling parameter and apply scaling to cache size if enabled
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    // Apply uifirst scale ratio to cache widht/height when IsUifirstScale is enabled
+    // Apply uifirst scale ratio to cache width/height when IsUifirstScale is enabled
     if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);
@@ -363,12 +364,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
-        if (func) {
-            std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
-        }
+        ClearCacheSurface(false);
         RS_LOGE("InitCacheSurface gpuContext == nullptr");
         return;
     }
@@ -397,21 +393,27 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3) :
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
         }
+        if (GetSkipColorSpaceConversion()) {
+            colorSpace = nullptr;
+        }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
-            if (func) {
-                std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-                func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                    cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-                ClearCacheSurface();
-            }
+            ClearCacheSurface(false);
             RS_LOGE("InitCacheSurface !cacheBackendTexture_.IsValid() || !vkTextureInfo");
             return;
         }
-        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
+        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory,
+            vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL,
+            RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid,
+            vkTextureInfo->vkAlloc.size);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
@@ -951,13 +953,6 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
     int totalNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
     int totalSurfaces = GetTotalProcessedSurfaceCount();
     RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d", totalSurfaces, totalNodes);
-    if (totalSurfaces <= 0 || totalNodes <= 0) {
-        RS_LOGI("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
-            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
-    } else {
-        RS_LOGD("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
-            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
-    }
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     // uifirst dirty dfx
     UifirstDirtyRegionDfx(*rscanvas, uifirstSurfaceDrawRects);
@@ -1319,7 +1314,9 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (surfaceDrawable && cacheCompletedSurfaceInfo_.isContainShadow) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-        surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        if (surfaceParams) {
+            surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        }
     }
     canvas.Translate(px, py);
     Drawing::Rect absRect;

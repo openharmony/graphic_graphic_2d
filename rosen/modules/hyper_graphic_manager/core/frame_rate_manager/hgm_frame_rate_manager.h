@@ -25,6 +25,7 @@
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
+#include "hgm_dimming_manager.h"
 #include "hgm_frame_voter.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
@@ -198,6 +199,8 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void HandleScreenRenderResolutionChanged();
+
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
@@ -213,10 +216,13 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate);
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData,
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> rsChangeData,
+        int64_t controllerRate);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
+    uint32_t CalcRefreshRateForLtpoVote(const ScreenId id, const FrameRateRange& range) const;
 
     void HandleIdleEvent(bool isIdle);
     void HandleStylusSceneEvent(const std::string& sceneName);
@@ -228,6 +234,7 @@ private:
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
     void HandleScreenLtpoConfig(ScreenId id);
     void HandleScreenFrameRate(std::string curScreenName);
+    void HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData);
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();
 
@@ -309,6 +316,7 @@ private:
     HgmFrameVoter frameVoter_;
     HgmUserDefine userDefine_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
+    HgmDimmingManager dimmingManager_;
 
     std::atomic<bool> voterTouchEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames

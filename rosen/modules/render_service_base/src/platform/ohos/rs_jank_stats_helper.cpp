@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "platform/ohos/rs_jank_stats_helper.h"
 
 namespace OHOS {
@@ -25,7 +27,7 @@ RSJankStatsRenderFrameHelper& RSJankStatsRenderFrameHelper::GetInstance()
 
 void RSJankStatsRenderFrameHelper::JankStatsStart()
 {
-    SetSkipJankAnimatorFrame(false);
+    rtSkipJankAnimatorFrameMap_.clear();
 }
 
 void RSJankStatsRenderFrameHelper::JankStatsAfterSync(const std::unique_ptr<RSRenderThreadParams>& params,
@@ -48,6 +50,14 @@ void RSJankStatsRenderFrameHelper::JankStatsAfterSync(const std::unique_ptr<RSRe
     RSJankStats::GetInstance().SetAccumulatedBufferCount(accumulatedBufferCount);
 }
 
+bool RSJankStatsRenderFrameHelper::IsAllScreensSkipJankAnimatorFrame() const
+{
+    // a frame is counted as skipped only when all physical screens in this frame are skipped
+    return !rtSkipJankAnimatorFrameMap_.empty() &&
+        std::all_of(rtSkipJankAnimatorFrameMap_.begin(), rtSkipJankAnimatorFrameMap_.end(),
+            [](const auto& pair) { return pair.second; });
+}
+
 void RSJankStatsRenderFrameHelper::JankStatsEnd(uint32_t dynamicRefreshRate)
 {
     if (!doJankStats_) {
@@ -57,7 +67,7 @@ void RSJankStatsRenderFrameHelper::JankStatsEnd(uint32_t dynamicRefreshRate)
     RSJankStats::GetInstance().SetOnVsyncStartTime(rsOnVsyncStartTime_, rsOnVsyncStartTimeSteady_,
         rsOnVsyncStartTimeSteadyFloat_);
     RSJankStats::GetInstance().SetImplicitAnimationEnd(rsImplicitAnimationEnd_);
-    RSJankStats::GetInstance().SetEndTime(rtSkipJankAnimatorFrame_.load(),
+    RSJankStats::GetInstance().SetEndTime(IsAllScreensSkipJankAnimatorFrame(),
         rtDiscardJankFrames_.load() || rsDiscardJankFrames_, dynamicRefreshRate);
     SetDiscardJankFrames(false);
 }

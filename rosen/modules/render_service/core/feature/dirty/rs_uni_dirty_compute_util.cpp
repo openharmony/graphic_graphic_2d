@@ -39,6 +39,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -98,9 +99,10 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         Occlusion::Region surfaceVisibleDirtyRegion =
             surfaceCurrentAdvancedDirtyRegion.And(visibleRegion);
         std::vector<RectI> refreshRects = surfaceVisibleDirtyRegion.GetRegionRectIs();
+        RectI absDrawRect = surfaceParams->GetAbsDrawRect();
         refreshRects.emplace_back(surfaceDirtyManager->GetHwcDirtyRegion());
         RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
-            surfaceNodeDrawable->GetId(), refreshRects, screenInfo.width * screenInfo.height);
+            surfaceNodeDrawable->GetId(), refreshRects, absDrawRect.GetWidth() * absDrawRect.GetHeight());
     }
     auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {
@@ -354,8 +356,7 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion,
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
-        .isBackgroundFilterClean_ =
-            (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
+        .isBackgroundFilterClean_ = RSEffectUtils::HasBackgroundDependentFilter(filterProperties) &&
             !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
         .forceDisablePartialRender_ = filterNode.IsPixelStretchValid() ||
             filterNode.GetRenderProperties().NeedDisabledPartialRender()
@@ -454,8 +455,11 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
     const auto& displayDrawables = params.GetDisplayDrawables();
     for (const auto& drawable : displayDrawables) {
         const auto& displayDrawable = static_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable*>(drawable.get());
+        if (UNLIKELY(displayDrawable == nullptr)) {
+            continue;
+        }
         const auto& displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
-        if (UNLIKELY(displayDrawable == nullptr || displayParams == nullptr)) {
+        if (UNLIKELY(displayParams == nullptr)) {
             continue;
         }
         if (RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*displayParams, &params) !=
@@ -473,6 +477,10 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     auto mirrorScreenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    if (UNLIKELY(mirrorScreenParams == nullptr)) {
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mirrorScreenParams!");
+        return false;
+    }
     auto mainDrawable = mirrorScreenParams->GetMirrorSourceDrawable().lock();
     if (mainDrawable == nullptr) {
         RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mainDrawable!");

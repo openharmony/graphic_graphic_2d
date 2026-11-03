@@ -24,6 +24,7 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_macros.h"
+#include "command/rs_node_showing_command.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,7 +89,13 @@ public:
 
     InteractiveImplictAnimatorId GetId() const { return id_; }
 
+    bool IsGroupAnimator() const { return isGroupAnimator_; }
+    int GetRepeatCount() const { return timingProtocol_.GetRepeatCount(); }
+    const std::vector<std::pair<std::weak_ptr<RSAnimation>, NodeId>>& GetAnimations() const { return animations_; }
+
     void SetFinishCallBack(const std::function<void()>& finishCallback);
+
+    RSInteractiveAnimationPosition GetClientFinishPosition(RSInteractiveAnimationPosition position) const;
 
 protected:
     RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
@@ -109,6 +116,10 @@ private:
     static void InitUniRenderEnabled();
     bool IsUniRenderEnabled() const;
     void FinishOnCurrent();
+    void CollectCancelableAnimations(const std::shared_ptr<RSUIContext>& rsUIContext,
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap& propertiesMap);
+    void ApplyShowingPropertyValues(const std::shared_ptr<RSUIContext>& rsUIContext,
+        const RSNodeGetShowingPropertiesAndCancelAnimation& task);
     void CallFinishCallback();
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
         FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;

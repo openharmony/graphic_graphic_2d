@@ -67,6 +67,11 @@ public:
         return false;
     }
 
+    virtual bool FlushCachedProperty()
+    {
+        return false;
+    }
+
     void ResetRSNodeExtendModifierDirty()
     {
         if (auto node = node_.lock()) {
@@ -90,6 +95,15 @@ protected:
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const;
     virtual void UpdateToRender() {}
     virtual void MarkNodeDirty() {}
+    virtual void OnDetachProperty(PropertyId id) {}
+
+    virtual bool IsDefault(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property) const
+    {
+        return false;
+    }
+
+    void AttachPropertyInner(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property,
+        bool affectsRendering);
 
     void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
 
@@ -111,15 +125,16 @@ protected:
     }
 
     template<template<typename> class PropertyType = RSAnimatableProperty, typename T>
-    inline void Setter(RSPropertyType type, const T& value)
+    inline void Setter(RSPropertyType type, const T& value, bool affectsRendering = true)
     {
+        affectsRendering_ |= affectsRendering;
         auto it = properties_.find(type);
         if (it != properties_.end()) {
             auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
-            property->Set(value);
+            property->Set(value, affectsRendering_);
         } else {
             auto property = std::make_shared<PropertyType<T>>(value);
-            AttachProperty(type, property);
+            AttachPropertyInner(type, property, affectsRendering_);
         }
     }
 
@@ -141,17 +156,20 @@ protected:
             DetachProperty(type);
             return;
         }
+        affectsRendering_ = true;
         auto it = properties_.find(type);
         if (it != properties_.end()) {
             auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
-            property->Set(value.value());
+            property->Set(value.value(), affectsRendering_);
         } else {
             std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value.value());
-            AttachProperty(type, property);
+            AttachPropertyInner(type, property, affectsRendering_);
         }
     }
 
     std::map<RSPropertyType, std::shared_ptr<RSPropertyBase>> properties_;
+    bool affectsRendering_{true};
+
 private:
     static ModifierId GenerateModifierId();
     bool isDirty_ { false };

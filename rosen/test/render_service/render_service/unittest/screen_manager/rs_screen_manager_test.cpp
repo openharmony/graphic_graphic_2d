@@ -28,7 +28,7 @@
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "rs_render_composer_manager.h"
 
@@ -92,9 +92,6 @@ void RSScreenManagerTest::SetUpTestCase()
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::powerStatusMock_)), testing::Return(0)));
     EXPECT_CALL(*hdiDeviceMock_, GetPanelPowerStatus(mockScreenId_, _)).WillRepeatedly(
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::panelPowerStatusMock_)), testing::Return(0)));
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
 }
 
 void RSScreenManagerTest::TearDownTestCase()
@@ -673,6 +670,43 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_002, TestSize.Level1)
     ScreenColorGamut mode;
     ASSERT_EQ(SUCCESS, screenManager_->GetScreenColorGamut(id, mode));
     ASSERT_EQ(COLOR_GAMUT_DCI_P3, mode);
+
+    screenManager_->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: Test SetVirtualScreenHDRMode and GetVirtualScreenHDRMode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenHDRMode_001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    // no screen for the id
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->SetVirtualScreenHDRMode(SCREEN_ID, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->GetVirtualScreenHDRMode(SCREEN_ID, mode));
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    // invalid HDR mode
+    ASSERT_EQ(INVALID_ARGUMENTS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_MODE_BUTT));
+    ASSERT_EQ(SUCCESS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SUCCESS, screenManager_->GetVirtualScreenHDRMode(id, mode));
+    ASSERT_EQ(HDRMode::HDR_DYNAMIC, mode);
 
     screenManager_->RemoveVirtualScreen(id);
     sleep(1);
@@ -1769,7 +1803,8 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     ASSERT_EQ(static_cast<StatusCode>(screenManager_->
-        SetRogScreenResolution(INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SCREEN_NOT_FOUND);
+        SetRogScreenResolution(INVALID_SCREEN_ID, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT,
+            ScreenSamplingMode::DEVICE_DSS)), SCREEN_NOT_FOUND);
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
 }
@@ -1795,7 +1830,8 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     ASSERT_EQ(static_cast<StatusCode>(screenManager_->
-        SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SUCCESS);
+        SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT,
+            ScreenSamplingMode::DEVICE_DSS)), SUCCESS);
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
 }
@@ -3418,6 +3454,19 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, SetSkipColorSpaceConversionTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+}
+
+/*
  * @tc.name: ProcessScreenDisConnectedTest
  * @tc.desc: Test ProcessScreenDisConnected
  * @tc.type: FUNC
@@ -3781,6 +3830,38 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
     ASSERT_EQ(screenManager_->AddVirtualScreenWhiteList(screenId, {nodeId}), ERR_OK);
     ASSERT_EQ(screenManager_->RemoveVirtualScreenWhiteList(screenId, {nodeId++}), ERR_OK);
     ASSERT_EQ(screenManager_->RemoveVirtualScreenWhiteList(screenId, {nodeId}), ERR_OK);
+
+    // restore
+    screenManager_->RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetVirtualScreenTypeBlackList001
+ * @tc.desc: type blacklist only keeps CURSOR_NODE, other node types are dropped
+ * @tc.type: FUNC
+ * @tc.require: issue26241
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenTypeBlackList001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    auto screenId = screenManager_->CreateVirtualScreen(
+        "virtual_type_bl", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    auto screen = screenManager_->GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+
+    constexpr NodeType CURSOR_NODE_TYPE = static_cast<NodeType>(RSSurfaceNodeType::CURSOR_NODE);
+    std::vector<NodeType> mixedList = {static_cast<NodeType>(RSSurfaceNodeType::APP_WINDOW_NODE), CURSOR_NODE_TYPE};
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(screenId, mixedList), SUCCESS);
+    auto typeBlackList = screen->GetProperty()->GetTypeBlackList();
+    ASSERT_EQ(typeBlackList.size(), 1);
+    ASSERT_EQ(typeBlackList.count(CURSOR_NODE_TYPE), 1);
+
+    std::vector<NodeType> nonCursorList = {static_cast<NodeType>(RSSurfaceNodeType::APP_WINDOW_NODE),
+        static_cast<NodeType>(RSSurfaceNodeType::STARTING_WINDOW_NODE)};
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(screenId, nonCursorList), SUCCESS);
+    ASSERT_TRUE(screen->GetProperty()->GetTypeBlackList().empty());
+    ASSERT_EQ(screenManager_->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, mixedList), SCREEN_NOT_FOUND);
 
     // restore
     screenManager_->RemoveVirtualScreen(screenId);

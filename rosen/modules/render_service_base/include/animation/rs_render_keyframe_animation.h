@@ -25,6 +25,11 @@ class RSInterpolator;
 
 class RSB_EXPORT RSRenderKeyframeAnimation : public RSRenderPropertyAnimation {
 public:
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::KEYFRAME_ANIMATION;
+    }
+
     RSRenderKeyframeAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
     ~RSRenderKeyframeAnimation() {}
@@ -43,7 +48,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderKeyframeAnimation* Unmarshalling(Parcel& parcel);
 protected:
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
 
     void RebuildPropertyValue(float fraction) override;
 
@@ -57,6 +62,8 @@ private:
     std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     bool isDurationKeyframe_ { false };
+
+    friend class RSKeyframeAnimation;
 };
 } // namespace Rosen
 } // namespace OHOS

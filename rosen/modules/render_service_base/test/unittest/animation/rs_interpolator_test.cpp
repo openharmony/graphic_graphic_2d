@@ -18,6 +18,8 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
+#include "common/rs_common_def.h"
+#include "sandbox_utils.h"
 #include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
@@ -610,6 +612,125 @@ HWTEST_F(RSInterpolatorTest, RSCubicBezierInterpolatorConstructorNaNInf001, Test
     EXPECT_FLOAT_EQ(interp9.controlY1_, 0.0f);
     EXPECT_FLOAT_EQ(interp9.controlX2_, 1.0f);
     EXPECT_FLOAT_EQ(interp9.controlY2_, 1.0f);
+}
+
+/**
+ * @tc.name: UnmarshallingPidMismatch001
+ * @tc.desc: Verify RSInterpolator::Unmarshalling rejects id with mismatched PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, UnmarshallingPidMismatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMismatch001 start";
+    constexpr pid_t fakeCallingPid = 9999;
+    constexpr pid_t otherPid = 1234;
+    RSMarshallingHelper::SetCallingPid(fakeCallingPid);
+
+    Parcel parcel;
+    parcel.WriteUint16(InterpolatorType::LINEAR);
+    uint64_t otherPidId = (static_cast<uint64_t>(otherPid) << 32) | 1;
+    parcel.WriteUint64(otherPidId);
+
+    auto interpolator = RSInterpolator::Unmarshalling(parcel);
+    EXPECT_EQ(interpolator, nullptr);
+
+    RSMarshallingHelper::SetCallingPid(0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMismatch001 end";
+}
+
+/**
+ * @tc.name: UnmarshallingPidMatch001
+ * @tc.desc: Verify RSInterpolator::Unmarshalling accepts id with matching PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, UnmarshallingPidMatch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMatch001 start";
+    constexpr pid_t fakeCallingPid = 9999;
+    RSMarshallingHelper::SetCallingPid(fakeCallingPid);
+
+    Parcel parcel;
+    parcel.WriteUint16(InterpolatorType::LINEAR);
+    uint64_t matchingId = (static_cast<uint64_t>(fakeCallingPid) << 32) | 1;
+    parcel.WriteUint64(matchingId);
+
+    auto interpolator = RSInterpolator::Unmarshalling(parcel);
+    EXPECT_TRUE(interpolator != nullptr);
+
+    RSMarshallingHelper::SetCallingPid(0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest UnmarshallingPidMatch001 end";
+}
+
+/**
+ * @tc.name: Init001
+ * @tc.desc: Verify RSInterpolator::Init() updates DEFAULT->id_ with correct PID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, Init001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Init001 start";
+    RSInterpolator::Init();
+    pid_t currentPid = GetRealPid();
+    pid_t extractedPid = ExtractPid(RSInterpolator::DEFAULT->id_);
+    EXPECT_EQ(extractedPid, currentPid);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Init001 end";
+}
+
+/**
+ * @tc.name: EnsureValidId001
+ * @tc.desc: Verify EnsureValidId returns original id when pid matches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId001 start";
+    RSInterpolator::Init();
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    pid_t currentPid = GetRealPid();
+    EXPECT_EQ(ExtractPid(interpolator->id_), currentPid);
+    EXPECT_EQ(interpolator->EnsureValidId(), interpolator->id_);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId001 end";
+}
+
+/**
+ * @tc.name: EnsureValidId002
+ * @tc.desc: Verify EnsureValidId corrects id when pid is 0 (pre-Init)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId002 start";
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    uint32_t originalCounter = static_cast<uint32_t>(interpolator->id_);
+    interpolator->id_ = static_cast<uint64_t>(originalCounter);
+    pid_t currentPid = GetRealPid();
+    EXPECT_EQ(ExtractPid(interpolator->id_), 0);
+    uint64_t result = interpolator->EnsureValidId();
+    EXPECT_EQ(ExtractPid(result), currentPid);
+    EXPECT_EQ(static_cast<uint32_t>(result), originalCounter);
+    EXPECT_EQ(ExtractPid(interpolator->id_), 0);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId002 end";
+}
+
+/**
+ * @tc.name: EnsureValidId003
+ * @tc.desc: Verify EnsureValidId corrects id when pid is wrong non-zero value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, EnsureValidId003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId003 start";
+    auto interpolator = std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
+    uint32_t originalCounter = static_cast<uint32_t>(interpolator->id_);
+    constexpr pid_t fakeWrongPid = 9999;
+    interpolator->id_ = (static_cast<uint64_t>(fakeWrongPid) << 32) | originalCounter;
+    pid_t currentPid = GetRealPid();
+    EXPECT_NE(ExtractPid(interpolator->id_), currentPid);
+    uint64_t result = interpolator->EnsureValidId();
+    EXPECT_EQ(ExtractPid(result), currentPid);
+    EXPECT_EQ(static_cast<uint32_t>(result), originalCounter);
+    EXPECT_EQ(ExtractPid(interpolator->id_), fakeWrongPid);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest EnsureValidId003 end";
 }
 } // namespace Rosen
 } // namespace OHOS

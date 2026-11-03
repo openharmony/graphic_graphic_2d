@@ -152,7 +152,12 @@ void RSComposerAdapter::DumpLayersToFile(const std::vector<RSLayerPtr>& layers)
             RS_LOGW("RSComposerAdapter::DumpLayersToFile: Open failed!");
             continue;
         }
-        rawDataFile.write(static_cast<const char *>(buffer->GetVirAddr()), buffer->GetSize());
+        auto bufferAddr = buffer->GetVirAddr();
+        if (bufferAddr == nullptr) {
+            RS_LOGE("RSComposerAdapter::DumpLayersToFile: buffer has no vir addr");
+            continue;
+        }
+        rawDataFile.write(static_cast<const char *>(bufferAddr), buffer->GetSize());
         rawDataFile.close();
     }
 }
@@ -524,7 +529,10 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     }
     layer->SetNodeId(node.GetId());  // node id only for dfx
     layer->SetRSLayerId(node.GetId());
-    layer->SetTunnelLayerGeneration(RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()));
+    auto statePtr = node.TryGetTunnelRuntimeState();
+    if (statePtr) {
+        layer->SetTunnelLayerGeneration(statePtr->GetTunnelLayerGeneration());
+    }
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), &node);
     LayerRotate(layer, node);
     RS_LOGD_IF(DEBUG_PIPELINE,
@@ -563,6 +571,10 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        RS_LOGE("RSComposerAdapter::CreateLayer surfaceHandler is nullptr");
+        return nullptr;
+    }
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;

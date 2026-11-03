@@ -121,10 +121,11 @@ CancelAnimationStatus RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     // create task and execute it in RS (timeout is 400ms)
     auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(4e8, std::move(propertiesMap));
     if (rsUIContext == nullptr) {
-        RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
+        if (auto transactionProxy = RSTransactionProxy::GetInstance()) {
+            transactionProxy->ExecuteSynchronousTask(task, isRenderService);
+        }
     } else {
-        auto transaction = rsUIContext->GetRSTransaction();
-        if (transaction != nullptr) {
+        if (auto transaction = rsUIContext->GetRSTransaction()) {
             transaction->ExecuteSynchronousTask(task, isRenderService);
         }
     }
@@ -229,20 +230,18 @@ std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
 void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>& animation,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    if (animation == nullptr) {
+    if (animation == nullptr || animation->GetType() != RSAnimationType::KEYFRAME) {
         return;
     }
 
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
-    if (keyframeAnimation != nullptr) {
-        keyframeAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
-    }
+    keyframeAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
 }
 
 void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>& animation, const int startDuration,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    if (animation == nullptr) {
+    if (animation == nullptr || animation->GetType() != RSAnimationType::KEYFRAME) {
         return;
     }
 
@@ -252,13 +251,11 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
     }
 
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
-    if (keyframeAnimation != nullptr) {
-        if (startDuration > INT32_MAX - duration_) {
-            ROSEN_LOGD("RSImplicitKeyframeAnimationParam::AddKeyframe, duration overflow!");
-            keyframeAnimation->AddKeyFrame(startDuration, INT32_MAX, endValue, timingCurve_);
-        } else {
-            keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
-        }
+    if (startDuration > INT32_MAX - duration_) {
+        ROSEN_LOGD("RSImplicitKeyframeAnimationParam::AddKeyframe, duration overflow!");
+        keyframeAnimation->AddKeyFrame(startDuration, INT32_MAX, endValue, timingCurve_);
+    } else {
+        keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
     }
 }
 

@@ -20,6 +20,7 @@
 #include "common/rs_common_def.h"
 #include "modifier_ng/shadow_modifier/rs_bounds_shadow_modifier.h"
 #include "modifier_ng/shadow_modifier/rs_frame_shadow_modifier.h"
+#include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
@@ -1279,15 +1280,15 @@ HWTEST_F(RSSurfaceNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetGlobalPositionEnabled Test
+ * @tc.name: SetGlobalPositionEnabledTest001
  * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
  * @tc.type: FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabled, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledTest001, TestSize.Level1)
 {
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->SetGlobalPositionEnabled(true);
     ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
     surfaceNode->SetGlobalPositionEnabled(false);
@@ -1646,6 +1647,20 @@ HWTEST_F(RSSurfaceNodeTest, SetHDRBrightnessWithType_OtherType, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsDepthResource
+ * @tc.desc: Test SetIsDepthResource
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetIsDepthResource, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->SetIsDepthResource(false));
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->SetIsDepthResource(true));
+}
+
+/**
  * @tc.name: SetAbilityBGAlpha Test
  * @tc.desc: SetAbilityBGAlpha
  * @tc.type: FUNC
@@ -1922,17 +1937,17 @@ HWTEST_F(RSSurfaceNodeTest, SetApiCompatibleVersion, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSourceVirtualScreenId
+ * @tc.name: SetSourceVirtualScreenIdTest001
  * @tc.desc: Test function SetSourceVirtualScreenId
  * @tc.type: FUNC
  * @tc.require: issueIBIK1X
  */
-HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualScreenId, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualScreenIdTest001, TestSize.Level1)
 {
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ScreenId id = {};
-    surfaceNode->SetSourceVirtualDisplayId(id);
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    ScreenId screenId = 0;
+    surfaceNode->SetSourceVirtualDisplayId(screenId);
     ASSERT_NE(surfaceNode, nullptr);
 }
 
@@ -2018,6 +2033,11 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
+    if (RSRenderThread::Instance().renderContext_ != nullptr) {
+        RSRenderThread::Instance().renderContext_->drGPUContext_ = nullptr;
+    }
+    RSRenderThread::Instance().renderContext_ = nullptr;
+    surfaceNode->surfae_->renderContext_ = nullptr;
 }
 
 /**
@@ -2484,5 +2504,181 @@ HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest002, TestSize.Level1)
 
     // Branch: IsAppWindow false
     EXPECT_FALSE(defaultNode->IsAppWindow());
+}
+
+/**
+ * @tc.name: GetAncoFlags_001
+ * @tc.desc: Verify default AncoFlags value is 0 for newly created surface node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, GetAncoFlags_001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_EQ(surfaceNode->GetAncoFlags(), 0u);
+}
+
+/**
+ * @tc.name: SetAndGetAncoFlags_001
+ * @tc.desc: Verify SetAncoFlags with IS_ANCO_NODE and GetAncoFlags returns same value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAndGetAncoFlags_001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    uint32_t flags = static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE);
+    surfaceNode->SetAncoFlags(flags);
+    EXPECT_EQ(surfaceNode->GetAncoFlags(), flags);
+}
+
+// CreateRenderNode series: cover RSSurfaceNode::CreateRenderNode branches.
+// Branches: leash-window path vs default path, IsRenderServiceNode true/false
+// (controls CreateRenderThreadNode), isWindow true/false.
+
+/**
+ * @tc.name: CreateRenderNode001
+ * @tc.desc: Default type, isWindow=true, not texture export — default command
+ * path, skip RT node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::APP_WINDOW_NODE, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode002
+ * @tc.desc: Default type, isWindow=false — creationConfig_.nodeType forced to
+ * SELF_DRAWING_NODE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::APP_WINDOW_NODE, false);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode003
+ * @tc.desc: LEASH_WINDOW_NODE type — takes the RSSurfaceNodeCreateWithConfig
+ * command path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::LEASH_WINDOW_NODE, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode004
+ * @tc.desc: LEASH_WINDOW_NODE type, isWindow=false — leash path with
+ * isWindow=false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode004, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::LEASH_WINDOW_NODE, false);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode005
+ * @tc.desc: Texture export node — IsRenderServiceNode false,
+ * CreateRenderThreadNode is called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode005, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.isTextureExportNode = true;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode006
+ * @tc.desc: Texture export + LEASH_WINDOW_NODE — leash path +
+ * CreateRenderThreadNode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode006, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.isTextureExportNode = true;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::LEASH_WINDOW_NODE, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode007
+ * @tc.desc: Texture export + isWindow=false — SELF_DRAWING_NODE +
+ * CreateRenderThreadNode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode007, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.isTextureExportNode = true;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, false);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode008
+ * @tc.desc: SELF_DRAWING_NODE type with isWindow=true — isWindow=true, default
+ * command path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode008, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::SELF_DRAWING_NODE, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode009
+ * @tc.desc: ABILITY_COMPONENT_NODE type — default command path, non-leash.
+ *
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode009, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::ABILITY_COMPONENT_NODE, true);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
+}
+
+/**
+ * @tc.name: CreateRenderNode010
+ * @tc.desc: With RSUIContext — ensures GetRSUIContext token path in trace is
+ * exercised.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNode010, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto rsUIContext = CreateRSUIDirector()->GetRSUIContext();
+    auto surfaceNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false, rsUIContext);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->CreateRenderNode());
 }
 } // namespace OHOS::Rosen

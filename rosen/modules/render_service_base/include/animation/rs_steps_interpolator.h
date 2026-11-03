@@ -26,6 +26,9 @@ enum class StepsCurvePosition {
     END,
 };
 
+StepsCurvePosition SafeCastStepsCurvePosition(
+    int32_t val, StepsCurvePosition defaultVal = StepsCurvePosition::START);
+
 class RSB_EXPORT RSStepsInterpolator : public RSInterpolator {
 public:
     RSStepsInterpolator(int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);

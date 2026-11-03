@@ -20,10 +20,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "animation/rs_frame_rate_range.h"
-#include "common/rs_common_def.h"
 #include "hgm_command.h"
 #include "hgm_touch_manager.h"
+
+#include "animation/rs_frame_rate_range.h"
+#include "common/rs_common_def.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS::Rosen {
@@ -36,9 +37,13 @@ using HandleRPFunc = std::function<void(const std::unordered_map<std::string, st
 class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
+    void NotifyVideoParams(const std::unordered_map<std::string, std::string>& videoRateInfo);
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    // RS frame rate control
+    void SetRsFrameRateControlEnabled(bool enabled);
+    bool GetRsFrameRateControlEnabled() const;
     // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
@@ -53,6 +58,7 @@ public:
     // called by RSMainThread
     bool GetVideoCallVsyncChange();
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange);
+    pid_t GetVideoCallPid();
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
     void HandleEnergyCommonData(const EnergyCommonDataMap& commonData);
@@ -63,6 +69,7 @@ private:
     std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     std::atomic<bool> isAnimationEnergyAssuranceEnable_ = false;
     std::atomic<bool> isAnimationEnergyConsumptionAssuranceMode_ = false;
+    std::atomic<bool> rsFrameRateControlEnabled_ = false;
     bool isTouchIdle_ = false;
     int64_t rsAnimationTouchIdleTime_ = 1000;
     std::atomic<uint64_t> firstAnimationTimestamp_ = 0;
@@ -70,23 +77,26 @@ private:
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
-    std::string lastAssuranceLog_;
+    std::string lastAssuranceLog_ = "";
     int32_t currentRefreshMode_ = -1;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
-    std::atomic<pid_t> videoCallPid_{ DEFAULT_PID };
-    std::string videoCallVsyncName_;
-    int videoCallMaxFrameRate_ = 0;
-    std::atomic<bool> isEnableVideoCall_{ false };
-    std::atomic<int32_t> videoBufferCount_{ 0 };
-    std::atomic<bool> isSubmitDecisionTask_{ false };
-    std::atomic<bool> isOnlyVideoCallExist_{ false };
-    std::atomic<bool> isVideoCallVsyncChange_{ false };
+    std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
+    std::atomic<bool> avcodeVideoCallEnable_ = { false };
+    std::string videoCallVsyncName_ = "";
+    std::atomic<int> videoCallMaxFrameRate_ = { 0 };
+    std::atomic<bool> isEnableVideoCall_ = { false };
+    std::atomic<int32_t> videoBufferCount_ = { 0 };
+    std::atomic<bool> isSubmitDecisionTask_ = { false };
+    std::atomic<bool> isOnlyVideoCallExist_ = { false };
+    std::atomic<bool> isVideoCallVsyncChange_ = { false };
+    std::atomic<bool> isVideoCall_ = { false };
+    bool isSyncVideoCallToRp_ = false;
     // concurrency protection >>>
     mutable std::mutex videoCallLock_;
-    std::string videoCallLayerName_;
+    std::string videoCallLayerName_ = "";
     // concurrency protection <<<
-    std::atomic<bool> dragSceneEnable_{ true };
-    std::atomic<pid_t> dragSceneDisablePid_{ 0 };
+    std::atomic<bool> dragSceneEnable_ = { true };
+    std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
     const static std::unordered_map<EnergyEvent, HandleRPFunc> commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();

@@ -105,6 +105,9 @@ HWTEST_F(EffectImageChainUnittest, PrepareTest004, TestSize.Level1)
 {
     auto image = std::make_shared<EffectImageChain>();
     ASSERT_NE(image, nullptr);
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::BASIC_RENDER);
+    image->renderContext_ = renderContext;
     const auto width = 200;
     const auto height = 200;
     auto colorSpace = Drawing::ColorSpace::CreateSRGB();

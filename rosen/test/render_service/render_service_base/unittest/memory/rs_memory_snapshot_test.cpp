@@ -276,6 +276,7 @@ HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Lev
 HWTEST_F(RSMemorySnapshotTest, InitMemoryLimitTest001, testing::ext::TestSize.Level1)
 {
     auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().memoryOverflowCallback_ = nullptr;
     MemorySnapshot::Instance().InitMemoryLimit(callback, 1000, 2000, 2000, 3000);
     MemorySnapshot::Instance().InitMemoryLimit(nullptr, 5000, 6000, 6000, 7000);
     ASSERT_EQ(MemorySnapshot::Instance().singleMemoryWarning_, 1000);
@@ -368,6 +369,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest002, testing::ext::TestSiz
 HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest003, testing::ext::TestSize.Level1)
 {
     auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().memoryOverflowCallback_ = nullptr;
     MemorySnapshot::Instance().InitMemoryLimit(callback, 500, 2000, 2000, 3000);
 
     pid_t pid = 1008;
@@ -398,6 +400,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest003, testing::ext::TestSiz
 HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest004, testing::ext::TestSize.Level1)
 {
     auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().memoryOverflowCallback_ = nullptr;
     MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 20000, 20000, 1000);
 
     pid_t pid1 = 1009;
@@ -937,6 +940,9 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest002, testing::ext::TestSize.Leve
     ASSERT_EQ(info.nativeGpuMemory, memorySize);
     ASSERT_EQ(info.engineGpuMemory, 0);
 
+    ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize + 1024, false, false);
+    ASSERT_TRUE(ret);
+
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
@@ -1063,6 +1069,7 @@ HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidTest003, testing::ext::Test
 
     // Initialize memory limit with callback
     auto callback = [](pid_t, MemorySnapshotInfo, bool) { return true; };
+    MemorySnapshot::Instance().memoryOverflowCallback_ = nullptr;
     MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 10000, 500, 10000);
 
     // Mark process as abnormal

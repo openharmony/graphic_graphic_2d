@@ -1,0 +1,243 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
+#define RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
+
+#include <atomic>
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#include <condition_variable>
+
+#include "common/rs_macros.h"
+#include "common/rs_rect.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "render/rs_filter.h"
+#include "utils/rect.h"
+
+namespace OHOS {
+namespace Rosen {
+class RSDrawingFilter;
+class RSHpaeFilterCacheManager;
+// Note: we don't care about if the filter will be applied to background or foreground, the caller should take care of
+// this. This means if both background and foreground need to apply filter, the caller should create two
+// RSFilterCacheManager, pass the correct dirty region, and call the DrawFilter() in correct order.
+// Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
+class RSB_EXPORT RSFilterCacheManager final {
+public:
+    RSFilterCacheManager();
+    ~RSFilterCacheManager();
+    RSFilterCacheManager(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager(const RSFilterCacheManager&&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&&) = delete;
+
+    const RectI& GetCachedImageRegion() const;
+    FilterCacheType GetCachedType() const;
+
+    bool DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
+            const std::shared_ptr<RSHpaeFilterCacheManager>& hpaeCacheManager, NodeId nodeId);
+
+    // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
+    // regenerate the cache or reuse the existing cache.
+    // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
+    void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, NodeId nodeId,
+        bool manuallyHandleFilterCache = false, bool shouldClearFilteredCache = true,
+        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const std::optional<Drawing::RectI>& dstRect = std::nullopt);
+
+    // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
+    // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
+    const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GeneratedCachedEffectData(RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<RSDrawingFilter>& filter, NodeId filterId,
+        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const std::optional<Drawing::RectI>& dstRect = std::nullopt);
+
+    enum CacheType : uint8_t {
+        CACHE_TYPE_NONE              = 0,
+        CACHE_TYPE_SNAPSHOT          = 1,
+        CACHE_TYPE_FILTERED_SNAPSHOT = 2,
+        CACHE_TYPE_BOTH              = CACHE_TYPE_SNAPSHOT | CACHE_TYPE_FILTERED_SNAPSHOT,
+    };
+
+    void InvalidateFilterCache(FilterCacheType clearType = FilterCacheType::BOTH);
+
+    // To reduce memory usage, clear one of the cached images.
+    void CompactFilterCache();
+
+    inline bool IsCacheValid() const
+    {
+        return cachedSnapshot_ != nullptr || cachedFilteredSnapshot_ != nullptr;
+    }
+
+    static bool GetFilterInvalid();
+    static void SetFilterInvalid(bool invalidFilter);
+
+    bool IsForceUseFilterCache() const;
+    void MarkFilterForceUseCache(bool forceUseCache = true);
+    bool IsForceClearFilterCache() const;
+    void MarkFilterForceClearCache();
+    void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
+    void MarkFilterRegionChanged();
+    void MarkFilterRegionInteractWithDirty();
+    void MarkForceClearCacheWithLastFrame();
+    void MarkFilterRegionIsLargeArea();
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage);
+    void MarkEffectNode();
+    void MarkNeedClearFilterCache(NodeId nodeId);
+    bool NeedPendingPurge() const;
+    bool IsSkippingFrame() const;
+    void MarkRotationChanged();
+    bool IsFilterCacheValidForOcclusion();
+    bool IsFilterCacheValidForPartialRender() const;
+    void MarkNodeIsOccluded(bool isOccluded);
+    bool IsFilterCacheValid() const;
+    void SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager);
+    bool WouldDrawLargeAreaBlur();
+    bool WouldDrawLargeAreaBlurPrecisely();
+    // Returns true if the interval is successfully reduced, returns false otherwise.
+    bool ReduceCacheUpdateInterval();
+    bool ReduceCacheUpdateIntervalIfPendingPurge();
+
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {
+        return cachedFilteredSnapshot_;
+    }
+    RectI GetSnapshotRegion() const { return snapshotRegion_; }
+    void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,
+        bool isHpaeCachedFilteredSnapshot = false);
+
+    bool ForceUpadateCacheByHpae();
+    bool LastHpaeClearCache() const;
+    bool ClearCacheAfterDrawing() const { return renderClearFilteredCacheAfterDrawing_; }
+
+    void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
+    RSFilter::FilterType GetFilterType() const {
+        return filterType_;
+    }
+
+    void MarkDebugEnabled();
+    bool IsFilterCacheMemExceedThreshold() const;
+
+private:
+    void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
+        const Drawing::RectI& srcRect, NodeId filterId = INVALID_NODEID);
+    void GenerateFilteredSnapshot(
+        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
+    bool DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
+        const Drawing::RectI& dst, bool shouldClearFilteredCache);
+    void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,
+        const std::shared_ptr<RSDrawingFilter>& filter) const;
+    bool CanDiscardCanvas(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
+    // Validate the input srcRect and dstRect, and return the validated rects.
+    std::tuple<Drawing::RectI, Drawing::RectI> ValidateParams(RSPaintFilterCanvas& canvas,
+        const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect);
+    std::shared_ptr<Drawing::Surface> CreateOffscreenSurface(Drawing::Surface* surface,
+        const Drawing::RectI& offscreenRect, const std::shared_ptr<RSDrawingFilter>& filter) const;
+
+    std::string GetCacheState() const;
+
+    void UpdateFlags(FilterCacheType type, bool cacheValid);
+    void ClearFilterCache();
+
+    void ReplaceCachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect,
+        int64_t timestamp, std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
+        std::shared_ptr<IGECacheProvider> cacheProvider = nullptr);
+
+    // Current frame's vsync start time; used to tag newly generated snapshots.
+    static int64_t frameTimestamp_;
+    static int64_t GetFrameTimestamp() { return frameTimestamp_; }
+
+    // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
+    // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot_ = nullptr;
+
+    // Region of the cached image, used to determine if we need to invalidate the cache.
+    RectI snapshotRegion_; // Note: in device coordinate.
+
+    // This flag is used to notify unirender_thread need to clear gpu memory.
+    static inline std::atomic_bool filterInvalid_ = false;
+
+    // flags for clearing filter cache
+    NodeId offscreenNodeId_ = INVALID_NODEID;
+
+    // All stagingXXX variables should be read & written by render_service thread
+    bool stagingForceUseCache_ = false;
+    bool stagingForceClearCache_ = false;
+    uint32_t stagingCachedFilterHash_ = 0;
+    bool stagingFilterHashChanged_ = false;
+    bool stagingFilterRegionChanged_ = false;
+    bool stagingFilterInteractWithDirty_ = false;
+    bool stagingRotationChanged_ = false;
+    bool stagingForceClearCacheForLastFrame_ = false;
+    bool stagingIsAIBarInteractWithHWC_ = false;
+    bool stagingIsEffectNode_ = false;
+
+    // clear one of snapshot cache and filtered cache after drawing
+    // All renderXXX variables should be read & written by render_thread or OnSync() function
+    bool renderClearFilteredCacheAfterDrawing_ = false;
+    bool renderFilterHashChanged_ = false;
+    bool renderForceClearCacheForLastFrame_ = false;
+    bool renderIsEffectNode_ = false;
+    bool renderIsSkipFrame_ = false;
+
+    // the type cache needed clear before drawing
+    FilterCacheType stagingClearType_ = FilterCacheType::NONE;
+    FilterCacheType renderClearType_ = FilterCacheType::NONE;
+    FilterCacheType lastCacheType_ = FilterCacheType::NONE;
+    bool stagingIsOccluded_ = false;
+
+    // force cache with cacheUpdateInterval_
+    bool stagingIsLargeArea_ = false;
+    bool canSkipFrame_ = false;
+    bool stagingIsSkipFrame_  = false;
+    RSFilter::FilterType filterType_ = RSFilter::NONE;
+    bool forceUseCache_ = false;
+    bool belowDirty_ = false;
+
+    // Cache age, used to determine if we can delay the cache update.
+    int cacheUpdateInterval_ = 0;
+    bool isFilterCacheValid_ = false; // catch status in current frame
+    // Whether we need to purge the cache after this frame.
+    bool pendingPurge_ = false;
+
+    // last offscreenNodeId_ value
+    NodeId lastOffscreenNodeId_ = INVALID_NODEID;
+
+    bool takeNewSnapshot_ = false;
+    std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
+    bool isHpaeCachedFilteredSnapshot_ = false;
+    bool lastHpaeClearCache_ = false;
+    bool snapshotNeedUpdate_ = false;
+
+    bool debugEnabled_ = false;
+
+    static std::atomic<bool> ccmEffectMergeEnable_;
+    static std::atomic<bool> filterCacheEnabled_;
+public:
+    // Called once per frame during sync (RSDrawFrame::Sync) to set the current vsync start time.
+    static void SetFrameTimestamp(int64_t timestamp) { frameTimestamp_ = timestamp; }
+
+    static void SetEffectMergeEnabledByCCM(bool ccmEnable);
+    static bool IsEffectMergeEnabled();
+    static void SetFilterCacheEnabledByCCM(bool ccmEnable);
+    static bool IsFilterCacheEnabled();
+};
+} // namespace Rosen
+} // namespace OHOS
+#endif
+
+#endif // RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H

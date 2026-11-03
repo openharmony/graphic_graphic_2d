@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
+#include "iconsumer_surface.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
@@ -53,13 +54,13 @@ void RSCanvasDrawingRenderNodeTest::SetUpTestCase()
 {
     canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
 }
+
 void RSCanvasDrawingRenderNodeTest::TearDownTestCase()
 {
-    if (canvas_) {
-        delete canvas_;
-        canvas_ = nullptr;
-    }
+    delete canvas_;
+    canvas_ = nullptr;
 }
+
 void RSCanvasDrawingRenderNodeTest::SetUp() {}
 void RSCanvasDrawingRenderNodeTest::TearDown() {}
 
@@ -89,16 +90,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     // case 1.2: Isn't NeedResetSurface
     rsCanvasDrawingRenderNode.isGpuSurface_ = true;
-    rsCanvasDrawingRenderNode.isNeedProcess_.store(true);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     // case 2.2.1: can GetGravityMatrix, recordingCanvas_ is false
     rsCanvasDrawingRenderNode.isGpuSurface_ = false;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetHeight(3048.0f);
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetWidth(2048.0f);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.recordingCanvas_ == nullptr);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.image_ != nullptr);
     EXPECT_FALSE(canvas_->GetRecordingState());
@@ -200,7 +198,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedResetSurfaceTest, TestSize.Level1)
     rsCanvasDrawingRenderNode.surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(width, height);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.IsNeedResetSurface());
 }
-
 
 /**
  * @tc.name: InitRenderParamsTest
@@ -362,6 +359,16 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
     rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    rsCanvasDrawingRenderNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(rsCanvasDrawingRenderNode->GetId());
+    rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_ = false;
+    rsCanvasDrawingRenderNode->clientRender_ = true;
+    ASSERT_TRUE(rsCanvasDrawingRenderNode->IsBufferDraw());
+    width = 100000;
+    height = 100000;
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
+    ASSERT_TRUE(rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_);
+#endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     Drawing::Canvas canvas(1024, 1096);
     RSPaintFilterCanvas paintCanvas(&canvas);
@@ -449,7 +456,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
     EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 
 /**
@@ -500,6 +506,58 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
     EXPECT_NE(rsCanvasDrawingRenderNode->GetTid(), 1);
     rsCanvasDrawingRenderNode->isPostPlaybacked_ = true;
     rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
+}
+
+/**
+ * @tc.name: CheckCanvasDrawingPostPlaybackedWithContentTest
+ * @tc.desc: Test CheckCanvasDrawingPostPlaybacked with existing CONTENT_STYLE entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedWithContentTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(20);
+    node->isPostPlaybacked_ = true;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    node->CheckCanvasDrawingPostPlaybacked();
+    EXPECT_FALSE(node->isPostPlaybacked_);
+    auto& contentList = node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE];
+    EXPECT_EQ(contentList.size(), 2u);
+}
+
+/**
+ * @tc.name: AddDrawCmdListToEmptyTest
+ * @tc.desc: Test AddDrawCmdListTo when no matching entry or vector is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDrawCmdListToEmptyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(21);
+    // Case 1: key does not exist
+    std::vector<SimpleDrawCmdListPtr> targetVec;
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(targetVec.empty());
+    // Case 2: key exists but vector is empty
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE];
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(targetVec.empty());
+}
+
+/**
+ * @tc.name: AddDrawCmdListToNotEmptyTest
+ * @tc.desc: Test AddDrawCmdListTo when drawCmdListsNG_ has entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDrawCmdListToNotEmptyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(22);
+    auto cmd1 = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    auto cmd2 = std::make_shared<RSSimpleDrawCmdList>(200, 200);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmd1);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmd2);
+    std::vector<SimpleDrawCmdListPtr> targetVec;
+    node->AddDrawCmdListTo(targetVec, ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_EQ(targetVec.size(), 2u);
 }
 
 /**
@@ -836,10 +894,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeCleanCacheTest, TestSi
         return;
     }
     auto surfaceHandler = node->surfaceHandler_;
+    surfaceHandler->SetConsumer(IConsumerSurface::Create("TestConsumer"));
     node->OnDestoryTokenNode();
     ASSERT_EQ(node->surfaceHandler_, nullptr);
     auto registeredHandler = context->GetMutableNodeMap().GetSurfaceHandler(nodeId, false);
     ASSERT_EQ(registeredHandler, surfaceHandler);
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+    ASSERT_TRUE(stagingParams->NeedSync());
 }
 
 /**
@@ -907,6 +969,156 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyModifiersClearsBufferDirtyTest, Tes
     node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::BOUNDS), true);
     node->ApplyModifiers();
     ASSERT_FALSE(node->IsBufferDirty());
+}
+
+/**
+ * @tc.name: SetSurfaceHandlerConsumerSurfaceTest
+ * @tc.desc: Test SetSurfaceHandler sets consumerSurface on staging renderParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, SetSurfaceHandlerConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 30;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    // Set non-null surfaceHandler with consumer
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    auto consumerSurface = IConsumerSurface::Create("TestConsumer");
+    surfaceHandler->SetConsumer(consumerSurface);
+    node->SetSurfaceHandler(surfaceHandler);
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), consumerSurface);
+    // Set nullptr surfaceHandler
+    node->SetSurfaceHandler(nullptr);
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnDestoryTokenNodeClearConsumerSurfaceTest
+ * @tc.desc: Test OnDestoryTokenNode clears consumerSurface on stagingParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeClearConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 32;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    surfaceHandler->SetConsumer(IConsumerSurface::Create("TestConsumer"));
+    context->GetMutableNodeMap().RegisterSurfaceHandler(nodeId, surfaceHandler);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    if (node->surfaceHandler_ == nullptr) {
+        ASSERT_NE(node->stagingRenderParams_, nullptr);
+        return;
+    }
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(stagingParams->GetConsumerSurface(), nullptr);
+    node->OnDestoryTokenNode();
+    ASSERT_EQ(node->surfaceHandler_, nullptr);
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnSyncConsumerSurfaceTest
+ * @tc.desc: Test OnSync syncs consumerSurface from stagingParams to drawable renderParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 33;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    auto consumerSurface = IConsumerSurface::Create("TestConsumer");
+    surfaceHandler->SetConsumer(consumerSurface);
+    context->GetMutableNodeMap().RegisterSurfaceHandler(nodeId, surfaceHandler);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    if (node->surfaceHandler_ == nullptr || node->renderDrawable_ == nullptr) {
+        ASSERT_NE(node->stagingRenderParams_, nullptr);
+        return;
+    }
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(stagingParams->GetConsumerSurface(), nullptr);
+    auto drawableParams = static_cast<RSCanvasDrawingRenderParams*>(
+        node->renderDrawable_->GetRenderParams().get());
+    ASSERT_EQ(drawableParams->GetConsumerSurface(), nullptr);
+    stagingParams->OnSync(node->renderDrawable_->GetRenderParams());
+    ASSERT_EQ(drawableParams->GetConsumerSurface(), consumerSurface);
+}
+
+/**
+ * @tc.name: AddDirtyTypeHasDrawCmdListTest
+ * @tc.desc: Test AddDirtyType sets hasDrawCmdList_ when CONTENT_STYLE modifier has small drawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeHasDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(50);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(
+        Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    Drawing::Brush brush;
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    property->GetRef() = simpleCmdList;
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    RSRenderNode::ModifierNGContainer vecModifier = { modifier };
+    node->modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(node->hasDrawCmdList_);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoHasDrawCmdListTest
+ * @tc.desc: Test UpdateBufferInfo when clientRender_ and hasDrawCmdList_ are true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(51);
+    node->InitRenderParams();
+    node->clientRender_ = true;
+    node->hasDrawCmdList_ = true;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), false);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> ownerCount = nullptr;
+    Rect damageRect;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->hasDrawCmdList_);
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+    EXPECT_TRUE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoFirstBufferNoDrawCmdListTest
+ * @tc.desc: Test UpdateBufferInfo when clientRender_ is true but hasDrawCmdList_ is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(52);
+    node->InitRenderParams();
+    node->clientRender_ = true;
+    node->hasDrawCmdList_ = false;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> ownerCount = nullptr;
+    Rect damageRect;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+    node->UpdateBufferInfo(nullptr, ownerCount, damageRect, fence, nullptr, ownerCount);
+    EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
 }
 #endif
 } // namespace OHOS::Rosen

@@ -93,6 +93,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenColorGa
     return { ScreenPropertyType::COLOR_GAMUT, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetVirtualScreenHDRMode(HDRMode mode)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE>(static_cast<uint32_t>(mode));
+    return { ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenGamutMap(ScreenGamutMap gamutMap)
 {
     UniqueLock lock(propertyMutex_);
@@ -196,7 +203,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveWhiteList(
     for (auto id : whiteList) {
         tmpList.erase(id);
     }
-
     auto prop = property_->Set<ScreenPropertyType::WHITE_LIST>(tmpList);
     return { ScreenPropertyType::WHITE_LIST, prop };
 }
@@ -341,6 +347,21 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSkipColorSpaceConversion(
+    bool skipColorSpaceConversion)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(skipColorSpaceConversion);
+    return { ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::IS_MAIN_SCREEN>(isMainScreen);
+    return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceConfigs(
     const std::vector<SurfaceRegionConfig>& configs)
 {
@@ -373,13 +394,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveSurfaceCon
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
 }
 
-RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
-{
-    UniqueLock lock(propertyMutex_);
-    auto prop = property_->Set<ScreenPropertyType::IS_MAIN_SCREEN>(isMainScreen);
-    return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
-}
-
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsRogResolution(bool isRogResolution)
 {
     UniqueLock lock(propertyMutex_);
@@ -392,6 +406,20 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetHdiRogEnable(
     UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(isHdiRogEnable);
     return { ScreenPropertyType::IS_HDI_ROG_ENABLE, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetDualScreenState(DualScreenStatus dualScreenStatus)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::DUAL_SCREEN_STATE>(static_cast<uint64_t>(dualScreenStatus));
+    return { ScreenPropertyType::DUAL_SCREEN_STATE, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingMode(ScreenSamplingMode samplingMode)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SAMPLING_MODE>(static_cast<uint32_t>(samplingMode));
+    return { ScreenPropertyType::SAMPLING_MODE, prop };
 }
 
 ScreenId RSScreenThreadSafeProperty::GetId() const
@@ -482,6 +510,12 @@ ScreenColorGamut RSScreenThreadSafeProperty::GetScreenColorGamut() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetScreenColorGamut();
+}
+
+HDRMode RSScreenThreadSafeProperty::GetVirtualScreenHDRMode() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetVirtualScreenHDRMode();
 }
 
 ScreenGamutMap RSScreenThreadSafeProperty::GetScreenGamutMap() const
@@ -664,15 +698,16 @@ std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamut
     return property_->GetScreenSupportedColorGamuts();
 }
 
-std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
-{
-    SharedLock lock(propertyMutex_);
-    return property_->GetMultiSurfaceConfigs();
-}
 bool RSScreenThreadSafeProperty::IsMainScreen() const
 {
     SharedLock lock(propertyMutex_);
     return property_->IsMainScreen();
+}
+
+std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetMultiSurfaceConfigs();
 }
 
 bool RSScreenThreadSafeProperty::IsRogResolution() const
@@ -685,6 +720,18 @@ bool RSScreenThreadSafeProperty::GetHdiRogEnable() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetHdiRogEnable();
+}
+
+DualScreenStatus RSScreenThreadSafeProperty::GetDualScreenState() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetDualScreenState();
+}
+
+ScreenSamplingMode RSScreenThreadSafeProperty::GetSamplingMode() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetSamplingMode();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

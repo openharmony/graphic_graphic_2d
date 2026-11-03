@@ -66,9 +66,6 @@ public:
 
 void RSRenderEngineTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSRenderEngineTest::TearDownTestCase() {}

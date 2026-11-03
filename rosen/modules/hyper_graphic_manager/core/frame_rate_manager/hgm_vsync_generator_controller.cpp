@@ -77,7 +77,9 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
 }
 
 int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
-    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime, bool isNeedUpdateAppOffset)
+    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
+    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& rsData,
+    uint64_t targetTime, bool isNeedUpdateAppOffset)
 {
     int64_t vsyncCount = 0;
     if (vsyncGenerator_ == nullptr) {
@@ -94,7 +96,14 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         }
     }
 
-    VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
+    std::vector<VSyncGenerator::ListenerRefreshRateData> listenerRates;
+    if (!appData.empty()) {
+        listenerRates.push_back({ .cb = appController_, .refreshRates = appData });
+    }
+    if (!rsData.empty()) {
+        listenerRates.push_back({ .cb = rsController_, .refreshRates = rsData });
+    }
+
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;
 
     if (currentRate_ != controllerRate) {
@@ -106,7 +115,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         listenerPhase.cb = appController_;
         listenerPhase.phaseByPulseNum = pulseNum_;
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-            listenerRate, listenerPhase, controllerRate, vsyncCount, targetTime);
+            listenerRates, listenerPhase, controllerRate, vsyncCount, targetTime);
         currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum_;
         currentRate_ = controllerRate;
     } else {
@@ -114,7 +123,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
             listenerPhase.cb = appController_;
             listenerPhase.phaseByPulseNum = pulseNum_;
         }
-        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
+        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRates, listenerPhase, controllerRate, vsyncCount);
     }
     return vsyncCount;
 }

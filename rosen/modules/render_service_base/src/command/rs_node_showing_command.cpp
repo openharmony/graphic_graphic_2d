@@ -18,9 +18,11 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t MAX_PROPERTIES_MAP_SIZE = 1024;
 RSNodeGetShowingPropertyAndCancelAnimation::Registrar RSNodeGetShowingPropertyAndCancelAnimation::instance_;
 RSNodeGetShowingPropertiesAndCancelAnimation::Registrar RSNodeGetShowingPropertiesAndCancelAnimation::instance_;
 
@@ -43,6 +45,7 @@ RSCommand* RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(Parcel& par
             RSMarshallingHelper::Unmarshalling(parcel, timeoutNS))) {
         return nullptr;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, targetId);
     auto command = new RSNodeGetShowingPropertyAndCancelAnimation(targetId, property, timeoutNS);
     if (!command->ReadFromParcel(parcel)) {
         delete command;
@@ -95,7 +98,7 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
 bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
     const RSRenderNodeMap& nodeMap) const
 {
-    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(targetId_)) {
+    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionAuthorized(targetId_, callingPid)) {
         ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
@@ -111,7 +114,7 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) c
                   RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
                   RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
                   RSMarshallingHelper::Marshalling(parcel, success_) &&
-                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_) &&
+                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_, MAX_PROPERTIES_MAP_SIZE) &&
                   RSMarshallingHelper::Marshalling(parcel, nodeNotFound_);
     return result;
 }
@@ -147,12 +150,22 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::ReadFromParcel(Parcel& parcel
     if (!RSMarshallingHelper::Unmarshalling(parcel, success_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_, MAX_PROPERTIES_MAP_SIZE)) {
         return false;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, nodeNotFound_)) {
         return false;
     }
+
+#ifdef RS_PROFILER_ENABLED
+    if (RS_PROFILER_IS_PARCEL_MOCK(parcel)) {
+        for (auto it = propertiesMap_.begin(); it != propertiesMap_.end();) {
+            auto node = propertiesMap_.extract(it++);
+            RS_PROFILER_PATCH_NODE_ID(parcel, node.key().first);
+            propertiesMap_.insert(std::move(node));
+        }
+    }
+#endif
     return true;
 }
 
@@ -183,7 +196,7 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid(pid_t calli
 {
     for (auto& [key, _] : propertiesMap_) {
         auto& nodeId = key.first;
-        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId, callingPid)) {
             ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
@@ -237,6 +250,7 @@ bool RSNodeGetAnimationsValueFraction::ReadFromParcel(Parcel& parcel)
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId_)) {
         return false;
     }
+    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId_);
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, animationId_)) {
         return false;
     }
@@ -268,7 +282,7 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
 bool RSNodeGetAnimationsValueFraction::IsCallingPidValid(pid_t callingPid,
     const RSRenderNodeMap& nodeMap) const
 {
-    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId_)) {
+    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionAuthorized(nodeId_, callingPid)) {
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::IsCallingPidValid, "
                 "callingPid [%{public}d] no permission "
                 "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",

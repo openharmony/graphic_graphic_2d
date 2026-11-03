@@ -61,6 +61,8 @@ const std::list<std::u16string> processDumpList = {
 #endif
     u"dumpExistPidMem",
     u"buffer",
+    u"frameStats",
+    u"clearFrameStats",
     u"allInfo",
 };
 
@@ -80,9 +82,8 @@ public:
         const sptr<RSRenderProcessManager> processManager);
 
 private:
-    std::condition_variable processDumpCondVar_;
-    std::mutex processDumpMutex_;
-    std::mutex collectDumpMutex_;
+    std::condition_variable dumpCondVar_;
+    std::mutex dumpMutex_;
     int32_t completionCount_ = 0;
     int32_t processCount_ = 0;
     std::vector<std::string> dumpDataList_;

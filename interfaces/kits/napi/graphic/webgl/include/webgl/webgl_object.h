@@ -69,7 +69,7 @@ public:
         }
         NExporter* webGLObj = nullptr;
         napi_status status = napi_unwrap(env, obj, (void **)&webGLObj);
-        if (status != napi_ok) {
+        if (status != napi_ok || webGLObj == nullptr) {
             return nullptr;
         }
         if (webGLObj->GetClassName() == T::className) {

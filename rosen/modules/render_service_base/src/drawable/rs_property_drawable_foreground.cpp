@@ -218,55 +218,6 @@ bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawable::Ptr RSForegroundShaderDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSForegroundShaderDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-void RSForegroundShaderDrawable::PostUpdate(const RSRenderNode& node)
-{
-    enableEDREffect_ = RSNGRenderShaderHelper::CheckEnableEDR(stagingShader_);
-    if (enableEDREffect_) {
-        screenNodeId_ = node.GetScreenNodeId();
-    }
-}
-
-bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    const auto& shader = properties.GetForegroundShader();
-    if (!shader) {
-        return false;
-    }
-    needSync_ = true;
-    stagingShader_ = shader;
-    PostUpdate(node);
-    return true;
-}
-
-void RSForegroundShaderDrawable::OnSync()
-{
-    if (needSync_ && stagingShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        needSync_ = false;
-    }
-}
-
-void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
-        return;
-    }
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
-}
-
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSCompositingFilterDrawable>(); ret->OnUpdate(node)) {
@@ -279,7 +230,7 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
     stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetFilter();
+    auto& rsFilter = node.GetRenderProperties().GetCompositingFilter();
     if (rsFilter == nullptr) {
         return false;
     }
@@ -325,6 +276,11 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSForegroundFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
+    // Skip empty bounds (also covers the default value before the first OnSync) to avoid
+    // creating a zero-sized offscreen surface in BeginOffscreen.
+    if (ROSEN_LE(boundsRect_.width_, 0.0f) || ROSEN_LE(boundsRect_.height_, 0.0f)) {
+        return;
+    }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
@@ -370,11 +326,12 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     stagingForegroundFilter_ = rsFilter;
     stagingDrawRect_ = nullptr;
+    stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
 
     if (rsFilter->IsDrawingFilter()) {
         auto rsDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
         if (RSNGRenderFilterHelper::HasCustomRegion(rsDrawingFilter->GetNGRenderFilter())) {
-            auto boundsRect = node.GetRenderProperties().GetBoundsRect();
+            auto boundsRect = stagingBoundsRect_;
             // consistent with RSForegroundFilterDrawable's logic for creating offscreenSurface
             // (directly passing the bounds width and height to the MakeSurface()).
             boundsRect.width_ = int(boundsRect.GetWidth());
@@ -387,6 +344,11 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
+    // Must stay symmetric with RSForegroundFilterDrawable::OnDraw's skip condition (same bounds
+    // source and sync gating), so the offscreen setup and the filter restore are skipped together.
+    if (ROSEN_LE(boundsRect_.width_, 0.0f) || ROSEN_LE(boundsRect_.height_, 0.0f)) {
+        return;
+    }
     if (foregroundFilter_ && foregroundFilter_->IsDrawingFilter() && rect) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
         drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(), Drawing::Rect{},
@@ -415,6 +377,7 @@ void RSForegroundFilterRestoreDrawable::OnSync()
     }
     drawRect_ = stagingDrawRect_ != nullptr ?
         std::make_unique<RectF>(*stagingDrawRect_) : nullptr;
+    boundsRect_ = stagingBoundsRect_;
     needSync_ = false;
 }
 
@@ -783,7 +746,7 @@ Vector4f RSSpatialEffectDrawable::CalcDepthPlane(const RSDepthRenderParams& para
     const SpatialEffectVariantPara& variantPara, const std::optional<std::vector<Drawing::Point>>& dstPoints,
     const Drawing::RectI drawRect)
 {
-    bool isSurfaceCase = params.GetDepthSrcSurfaceDrawable().lock() != nullptr;
+    bool isSurfaceCase = !params.GetDepthImage();
     const auto& cameraPara = params.GetDepthCameraPara();
     Vector2f nearFar = cameraPara.has_value() ?
         Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
@@ -917,7 +880,8 @@ std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CreateOcclusionImage(co
     Vector2f nearFar = cameraPara.has_value() ?
         Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
         Vector2f(0.1f, 100.f);
-    const auto& depthImage = depthParam.GetDepthImage();
+    const auto& depthImage = depthParam.GetDepthImage() ? depthParam.GetDepthImage() :
+        depthParam.GetSurfaceDepthImage();
     if (depthImage == nullptr) {
         RS_LOGE("RSSpatialEffectDrawable::CreateOcclusionImage depth image is nullptr");
         return nullptr;
@@ -927,7 +891,7 @@ std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CreateOcclusionImage(co
     CalcDepthMapMatrix(depthMapMatrix, drawRect, depthParam);
     auto depthPlane = CalcDepthPlane(depthParam, spatialEffectPara_.value(), spatialEffectDstPoints_, drawRect);
     Vector2f normalizedNearFar = {0.0, 0.0};
-    bool isSurfaceCase = depthParam.GetDepthSrcSurfaceDrawable().lock() != nullptr;
+    bool isSurfaceCase = !depthParam.GetDepthImage();
     normalizedNearFar.x_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.x_, nearFar) : nearFar.x_;
     normalizedNearFar.y_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.y_, nearFar) : nearFar.y_;
     auto occlusionImage = RSPropertyDrawableUtils::DrawDepthOcclusion(canvas, backgroundImage, depthImage,

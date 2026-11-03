@@ -20,23 +20,9 @@ module_output_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSAnimationBaseFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_base/fuzztest/rsanimationbase_fuzzer"
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-  ]
-  deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-  ]
+  
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
   cflags = [
     "-g",
     "-O0",
@@ -46,6 +32,17 @@ ohos_fuzztest("RSAnimationBaseFuzzTest") {
     "-Dprotected=public",
   ]
   sources = [ "rsanimationbase_fuzzer.cpp" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "graphic_surface:sync_fence",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
 }
 
 ###############################################################################

@@ -15,8 +15,28 @@
 
 #include "animation/rs_animation_timing_protocol.h"
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
+FillMode SafeCastFillMode(int32_t val, FillMode defaultVal)
+{
+    if (val < 0 || val > static_cast<int32_t>(FillMode::BOTH)) {
+        ROSEN_LOGE("SafeCastFillMode: invalid value %{public}d, using default", val);
+        return defaultVal;
+    }
+    return static_cast<FillMode>(val);
+}
+
+ComponentScene SafeCastComponentScene(int32_t val, ComponentScene defaultVal)
+{
+    if (val < 0 || val > static_cast<int32_t>(ComponentScene::SWIPER_FLING)) {
+        ROSEN_LOGE("SafeCastComponentScene: invalid value %{public}d, using default", val);
+        return defaultVal;
+    }
+    return static_cast<ComponentScene>(val);
+}
+
 RSAnimationTimingProtocol::~RSAnimationTimingProtocol() = default;
 const RSAnimationTimingProtocol RSAnimationTimingProtocol::DEFAULT = RSAnimationTimingProtocol(300);
 const RSAnimationTimingProtocol RSAnimationTimingProtocol::IMMEDIATE = RSAnimationTimingProtocol(0);

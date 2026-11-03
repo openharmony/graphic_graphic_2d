@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "accesstoken_kit.h"
 #ifdef SUPPORT_ACCESS_TOKEN
@@ -988,6 +989,19 @@ bool DOGetScreenSupportedHDRFormats()
     return true;
 }
 
+bool DOVirtualScreenHDRMode()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t mode = GetData<uint32_t>();
+    rsToServiceConn_->SetVirtualScreenHDRMode(id, static_cast<HDRMode>(mode));
+    HDRMode mode1 = HDRMode::NONE;
+    rsToServiceConn_->GetVirtualScreenHDRMode(id, mode1);
+    return true;
+}
+
 bool DOGetScreenSupportedColorSpaces()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1442,9 +1456,10 @@ bool DoSendVideoRateInfo()
     if (rsToServiceConn_ == nullptr) {
         return false;
     }
+    FuzzedDataProvider fdp(g_data, g_size);
+    std::string key = fdp.ConsumeRandomLengthString(64);
+    std::string value = fdp.ConsumeRandomLengthString(128);
     std::unordered_map<std::string, std::string> videoRateInfo;
-    std::string key = GetData<std::string>();
-    std::string value = GetData<std::string>();
     videoRateInfo[key] = value;
     rsToServiceConn_->SendVideoRateInfo(videoRateInfo);
     return true;
@@ -1608,6 +1623,16 @@ bool DoFreezeScreen()
     return true;
 }
 
+bool DoGetDisplayEngineControl()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+ 
+    rsToServiceConn_->GetDisplayEngineControl();
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1682,6 +1707,7 @@ void DoFuzzerTest2()
     DoSetGlobalDarkColorMode();
     DoSetPixelFormat();
     DOGetScreenSupportedHDRFormats();
+    DOVirtualScreenHDRMode();
     DOGetScreenSupportedColorSpaces();
     DOSetVirtualScreenRefreshRate();
     DOSetSystemAnimatedScenes();
@@ -1737,6 +1763,7 @@ void DoFuzzerTest3()
     DoClearUifirstCache();
     DoTakeSurfaceCaptureWithAllWindows();
     DoFreezeScreen();
+    DoGetDisplayEngineControl();
 }
 } // namespace Rosen
 } // namespace OHOS

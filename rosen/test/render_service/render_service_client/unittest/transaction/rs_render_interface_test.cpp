@@ -14,7 +14,15 @@
  */
 #include "gtest/gtest.h"
 
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -157,13 +165,17 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
         {}
     };
     auto callback = std::make_shared<TestSurfaceCapture>();
-    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
-    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto rsUiDirector = RSUIDirector::CreateRSUIDirector();
+    ASSERT_NE(rsUiDirector, nullptr);
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector->GetRSUIContext());
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
     RSSurfaceCaptureConfig captureConfig;
-    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+    auto rsRenderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(rsRenderInterface, nullptr);
+    auto res = rsRenderInterface->TakeUICaptureInRangeWithConfig(
         canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
     EXPECT_EQ(res, true);
@@ -234,4 +246,168 @@ HWTEST_F(RSRenderInterfaceTest, GetPixelmapTest003, TestSize.Level1)
     bool result = renderInterface->GetPixelmap(1, nullptr, &rect, nullptr);
     EXPECT_FALSE(result);
 }
+
+/**
+ * @tc.name: BlurPixelMapTest001
+ * @tc.desc: test BlurPixelMap returns nullptr when renderPipelineClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest001, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    renderInterface->renderPipelineClient_ = nullptr;
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest002
+ * @tc.desc: test BlurPixelMap returns nullptr when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest002, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto result = renderInterface->BlurPixelMap(nullptr, 5.0f);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: BlurPixelMapTest003
+ * @tc.desc: test BlurPixelMap delegates to pipeline client
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, BlurPixelMapTest003, TestSize.Level1)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    auto result = renderInterface->BlurPixelMap(pixelMap, 5.0f);
+    if (result != nullptr) {
+        EXPECT_EQ(result->GetWidth(), 10);
+        EXPECT_EQ(result->GetHeight(), 10);
+    }
+}
+
+/**
+ * @tc.name: GlobalBlackListTest001
+ * @tc.desc: test Set/Add/RemoveGlobalBlackList delegate to render pipeline client
+ * @tc.type: FUNC
+ * @tc.require: issue26140
+ */
+HWTEST_F(RSRenderInterfaceTest, GlobalBlackListTest001, TestSize.Level2)
+{
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+
+    std::vector<NodeId> blackList = {1};
+    int32_t ret = renderInterface->SetGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->AddGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+    ret = renderInterface->RemoveGlobalBlackList(blackList);
+    EXPECT_GE(ret, -1);
+}
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: RebuildInactiveRootNodeIfNeeded001
+ * @tc.desc: test RebuildInactiveRootNodeIfNeeded early return branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, RebuildInactiveRootNodeIfNeeded001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remote;
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    // branch 1: node without RSUIContext (uiContext null)
+    RSSurfaceNodeConfig config1;
+    auto surfaceNode1 = RSSurfaceNode::Create(config1);
+    ASSERT_NE(surfaceNode1, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode1, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 2: uiContext exists but rootNodeId == 0
+    auto uiContext2 = std::make_shared<RSUIContext>(uint64_t(1), remote);
+    RSSurfaceNodeConfig config2;
+    auto surfaceNode2 = RSSurfaceNode::Create(config2, true, uiContext2);
+    ASSERT_NE(surfaceNode2, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode2, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 3: rootNodeId non-zero but rootNode not registered (null)
+    auto uiContext3 = std::make_shared<RSUIContext>(uint64_t(2), remote);
+    constexpr NodeId rootNodeId = 5000;
+    uiContext3->rootNodeId_ = rootNodeId;
+    RSSurfaceNodeConfig config3;
+    auto surfaceNode3 = RSSurfaceNode::Create(config3, true, uiContext3);
+    ASSERT_NE(surfaceNode3, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode3, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+
+    // branch 4: rootNode registered but not INACTIVE (default ACTIVE)
+    auto uiContext4 = std::make_shared<RSUIContext>(uint64_t(3), remote);
+    auto rootNode4 = RSRootNode::Create(false, true, uiContext4);
+    ASSERT_NE(rootNode4, nullptr);
+    uiContext4->rootNodeId_ = rootNode4->GetId();
+    uiContext4->nodeMap_.RegisterNode(rootNode4);
+    RSSurfaceNodeConfig config4;
+    auto surfaceNode4 = RSSurfaceNode::Create(config4, true, uiContext4);
+    ASSERT_NE(surfaceNode4, nullptr);
+    renderInterface->RebuildInactiveRootNodeIfNeeded(surfaceNode4, captureConfig);
+    EXPECT_FALSE(captureConfig.isSync);
+}
+
+/**
+ * @tc.name: PrepareSyncCaptureIfNeeded001
+ * @tc.desc: test PrepareSyncCaptureIfNeeded rebuilds inactive root node and sets TakeSurfaceForUIFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, PrepareSyncCaptureIfNeeded001, TestSize.Level1)
+{
+    sptr<IRemoteObject> remote;
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    ASSERT_NE(renderInterface, nullptr);
+    auto uiContext = std::make_shared<RSUIContext>(uint64_t(4), remote);
+    // isTextureExportNode=true so RebuildTree returns early after SetRebuildState
+    auto rootNode = RSRootNode::Create(false, true, uiContext);
+    ASSERT_NE(rootNode, nullptr);
+    uiContext->rootNodeId_ = rootNode->GetId();
+    rootNode->nodeState_ = RSNodeState::INACTIVE;
+    uiContext->nodeMap_.RegisterNode(rootNode);
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config, true, uiContext);
+    ASSERT_NE(surfaceNode, nullptr);
+    bool backupUniRender = RSSystemProperties::isUniRenderEnabled_;
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    RSSurfaceCaptureConfig captureConfig;
+    renderInterface->PrepareSyncCaptureIfNeeded(surfaceNode, captureConfig);
+    EXPECT_TRUE(captureConfig.isSync);
+    RSSystemProperties::isUniRenderEnabled_ = backupUniRender;
+}
+#endif
 } // namespace OHOS::Rosen

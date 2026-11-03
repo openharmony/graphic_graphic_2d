@@ -148,6 +148,21 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, value.AsRgbaInt());
 }
 
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const AtlasInfo& value)
+{
+    auto image = RSPixelMapUtil::ExtractDrawingImage(value.pixelMap);
+    geFilter.SetParam("AtlasFrameMask_Image", image);
+    geFilter.SetParam("AtlasFrameMask_FrameIndex", value.frameIndex);
+    geFilter.SetParam("AtlasFrameMask_Cols", value.cols);
+    geFilter.SetParam("AtlasFrameMask_Rows", value.rows);
+    geFilter.SetParam("AtlasFrameMask_FrameWidth", value.frameWidth);
+    geFilter.SetParam("AtlasFrameMask_FrameHeight", value.frameHeight);
+    geFilter.SetParam("AtlasFrameMask_Padding", value.padding);
+    geFilter.SetParam("AtlasFrameMask_Mode", value.mode);
+    geFilter.SetParam("AtlasFrameMask_TotalFrame", value.totalFrame);
+}
+
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, int value)
 {
     hash = hashFunc_(&value, sizeof(value), hash);
@@ -262,13 +277,31 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RSCo
     hash = hashFunc_(&color, sizeof(color), hash);
 }
 
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const AtlasInfo& value)
+{
+    auto image = RSPixelMapUtil::ExtractDrawingImage(value.pixelMap);
+    if (image) {
+        auto imageUniqueID = image->GetUniqueID();
+        hash = hashFunc_(&imageUniqueID, sizeof(imageUniqueID), hash);
+    }
+    hash = hashFunc_(&value.frameIndex, sizeof(float), hash);
+    hash = hashFunc_(&value.cols, sizeof(int32_t), hash);
+    hash = hashFunc_(&value.rows, sizeof(int32_t), hash);
+    hash = hashFunc_(&value.mode, sizeof(int32_t), hash);
+    hash = hashFunc_(&value.frameWidth, sizeof(float), hash);
+    hash = hashFunc_(&value.frameHeight, sizeof(float), hash);
+    hash = hashFunc_(&value.padding, sizeof(float), hash);
+    hash = hashFunc_(&value.totalFrame, sizeof(int32_t), hash);
+}
+
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSPath> value)
 {
     if (!value) {
         return;
     }
-    auto pathDistance = value->GetDistance();
-    hash = hashFunc_(&pathDistance, sizeof(pathDistance), hash);
+    auto data = value->GetDrawingPath().Serialize();
+    uint32_t nullPath = 0;
+    hash = data ? hashFunc_(data->GetData(), data->GetSize(), hash) : hashFunc_(&nullPath, sizeof(nullPath), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

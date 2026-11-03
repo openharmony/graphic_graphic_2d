@@ -19,7 +19,7 @@
 #include "rs_layer.h"
 #include "rs_render_surface_layer.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void RsRenderComposerContextTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RsRenderComposerContextTest::SetUpTestCase() {}
 void RsRenderComposerContextTest::TearDownTestCase() {}
 void RsRenderComposerContextTest::SetUp() {}
 void RsRenderComposerContextTest::TearDown() {}

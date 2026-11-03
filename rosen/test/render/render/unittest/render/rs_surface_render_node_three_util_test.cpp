@@ -151,57 +151,6 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateDrawingCacheNodes, TestSize.Lev
 }
 
 /**
- * @tc.name: UpdateFilterCacheStatusWithVisible
- * @tc.desc: test results of UpdateFilterCacheStatusWithVisible
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateFilterCacheStatusWithVisible, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    bool visible = true;
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    renderNode->UpdateFilterCacheStatusWithVisible(visible);
-    ASSERT_TRUE(renderNode->prevVisible_);
-}
-
-/**
- * @tc.name: UpdateFilterCacheStatusIfNodeStatic
- * @tc.desc: test results of UpdateFilterCacheStatusIfNodeStatic
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
-    auto mockNode1 = std::make_shared<RSEffectRenderNode>(id + 1);
-    node->filterNodes_.emplace_back(mockNode1);
-    auto mockNode2 = std::make_shared<RSRenderNode>(id + 2);
-    node->filterNodes_.emplace_back(mockNode2);
-    auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
-    mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode3);
-    auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
-    mockNode4->isOnTheTree_ = true;
-    mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode4);
-    std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
-    node->filterNodes_.emplace_back(mockNode5);
-    node->dirtyManager_->UpdateCacheableFilterRect({0, 0, 100, 100});
-    node->oldDirtyInSurface_ = {0, 0, 10, 10};
-    std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
-    mockNode6->isOnTheTree_ = true;
-    mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
-    node->filterNodes_.emplace_back(mockNode6);
-    node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
-    ASSERT_NE(node->filterNodes_.size(), 0);
-}
-
-/**
  * @tc.name: ResetOpaqueRegion
  * @tc.desc: test results of ResetOpaqueRegion
  * @tc.type: FUNC
@@ -754,12 +703,13 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, ResetIsBufferFlushed, TestSize.Level1
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     testNode->stagingRenderParams_ = nullptr;
+    testNode->isBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetIsBufferFlushed();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
+    testNode->isBufferFlushed_ = true;
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
@@ -776,11 +726,13 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, ResetSurfaceNodeStates, TestSize.Leve
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     testNode->stagingRenderParams_ = nullptr;
+    testNode->isBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetSurfaceNodeStates();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+    testNode->isBufferFlushed_ = true;
 
     testNode->ResetSurfaceNodeStates();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
@@ -819,7 +771,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeUtilTest, DealWithDrawBehindWindowTransparentRe
 
     auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
     testNode->opaqueRegion_ = regionBeforeProcess;
-    testNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    testNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     testNode->drawBehindWindowRegion_ = defaultSmallRect;
     testNode->childrenBlurBehindWindow_ = { INVALID_NODEID };
 

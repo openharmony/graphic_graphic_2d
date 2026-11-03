@@ -78,6 +78,8 @@ ohos_unittest("RSScreenManagerTest") {
     "hisysevent:libhisysevent",
     "egl:libEGL",
     "opengles:libGLES",
+    "libxml2:libxml2",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
   ]
 
   # Add memmgr client dependency when memory manager integration is enabled so
@@ -469,6 +471,12 @@ ohos_unittest("TouchScreenTest") {
 ohos_unittest("RSScreenTest") {
   module_out_path = module_output_path
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
+
   sources = [
     "../pipeline/mock/mock_hdi_device.cpp",
     "rs_screen_test.cpp",
@@ -531,6 +539,7 @@ ohos_unittest("RSScreenTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "libxml2:libxml2",
   ]
 
   subsystem_name = "graphic"
@@ -592,6 +601,34 @@ ohos_unittest("DemoGetScreenCapabilityTest") {
   module_out_path = module_output_path
 
   sources = [ "demo_get_screen_capability.cpp" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_client/core/transaction",
+    "$graphic_2d_root/rosen/modules/render_service_base/include/screen_manager",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+##############################  DemoSkipColorSpaceConversionTest  ##################################
+ohos_unittest("DemoSkipColorSpaceConversionTest") {
+  module_out_path = module_output_path
+
+  sources = [ "demo_skip_color_space_conversion.cpp" ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_client/core/transaction",

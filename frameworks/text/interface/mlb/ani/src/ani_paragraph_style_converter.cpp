@@ -164,8 +164,27 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
 
 void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
 {
-    AniTextUtils::ReadOptionalEnumField(
-        env, obj, AniTextEnum::textAlign, AniGlobalMethod::GetInstance().textTabAlignment, textTab.alignment);
+    TextAlign textAlign = TextAlign::LEFT;
+    ani_status result = AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::textAlign, AniGlobalMethod::GetInstance().textTabAlignment, textAlign);
+    if (result == ANI_OK) {
+        switch (textAlign) {
+            case TextAlign::LEFT:
+            case TextAlign::RIGHT:
+            case TextAlign::CENTER: {
+                textTab.alignment = textAlign;
+                break;
+            }
+            default: {
+                textTab.alignment = TextAlign::LEFT;
+                break;
+            }
+        }
+    } else {
+        TEXT_LOGE("Invalid param alignment, ret %{public}d", result);
+        return;
+    }
+
     ani_double tempLocation;
     ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().textTabLocation, &tempLocation);
     if (ret == ANI_OK) {

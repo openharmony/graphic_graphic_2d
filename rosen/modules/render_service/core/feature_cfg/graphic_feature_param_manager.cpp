@@ -97,6 +97,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VirtualScreenParallelParam>(); }},
     {FEATURE_CONFIGS[BACKGROUND_REBUILD], [] { return std::make_unique<BackgroundRebuildParamParse>(); },
         [] { return std::make_unique<BackgroundRebuildParam>(); }},
+    {FEATURE_CONFIGS[TUNNEL_LAYER], [] { return std::make_unique<TunnelLayerParamParse>(); },
+        [] { return std::make_unique<TunnelLayerParam>(); }},
 };
 
 void GraphicFeatureParamManager::Init()

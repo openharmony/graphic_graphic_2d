@@ -93,6 +93,10 @@ private:
     std::queue<uint64_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<uint64_t, std::unique_ptr<EglImageResource>> imageCacheSeqs_; // guarded by opMutex_
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    std::unique_ptr<EglImageResource> FindUnMapImageBySeqNumLocked(uint64_t bufferId, pid_t& threadIndex);
+    void DispatchUnMapImageTaskByThreadIndex(uint64_t bufferId,
+        pid_t threadIndex, std::unique_ptr<EglImageResource> resource);
+    void UnMapEglImageFromSurfaceBufferForUniRedrawLock(uint64_t bufferId);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -59,6 +59,7 @@ public:
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
     static bool GetShowRefreshRateEnabled(int *changed = nullptr);
+    static void SetShowRefreshRateEnabled(bool enabled);
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static RsParallelType GetRsParallelType();
     static RsSurfaceCaptureType GetRsSurfaceCaptureType();
@@ -84,6 +85,7 @@ public:
     static bool GetIsCopybitSupported();
     static bool GetArsrPreEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
+    static bool GetCanvasDrawingNodeLockEnabled();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
     static bool GetDDGRSLREnabled();

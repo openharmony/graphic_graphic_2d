@@ -62,7 +62,7 @@ public:
     static void ResumeOpincCanvasTranslate(DrawableV2::RSRenderNodeDrawable& drawable, RSPaintFilterCanvas& canvas);
 
 private:
-    static thread_local bool inOpincSuggestSubtree_;
+    static thread_local int32_t inOpincSuggestSubtreeDepth_;
 };
 } // namespace OHOS::Rosen
 

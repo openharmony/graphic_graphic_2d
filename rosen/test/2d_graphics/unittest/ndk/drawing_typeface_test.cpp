@@ -21,7 +21,7 @@
 #include "text/typeface.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 
 using namespace testing;
@@ -38,13 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingTypefaceTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
-
+void NativeDrawingTypefaceTest::SetUpTestCase() {}
 void NativeDrawingTypefaceTest::TearDownTestCase() {}
 void NativeDrawingTypefaceTest::SetUp() {}
 void NativeDrawingTypefaceTest::TearDown() {}

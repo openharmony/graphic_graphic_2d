@@ -46,6 +46,7 @@ enum class RSLayerCmdType : uint16_t {
     TYPE,
     TRANSFORM,
     COMPOSITION_TYPE,
+    ALPHA_TYPE,
     VISIBLE_REGIONS,
     DIRTY_REGIONS,
     BLEND_TYPE,
@@ -99,7 +100,7 @@ enum class RSLayerCmdType : uint16_t {
     TUNNEL_LAYER_GENERATION,
     VCLD_INFO,
     SPLIT_LAYER_TAG,
-    DELEGATE_MODE_CROP_RECT,
+    DELEGATE_MODE_SRC_RECT,
     DELEGATE_MODE,
 
     LAYER_CMD = 254,

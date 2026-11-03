@@ -110,9 +110,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDest
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     ASSERT_EQ(connHub->renderService_, nullptr);
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        std::cout << "Run Callback" << std::endl;
-    });
     connHub->Destroy();
 }
 
@@ -130,22 +127,13 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
     RSApplicationAgentImpl::Instance();
-    RSApplicationAgentImpl::Destroy();
-    RSApplicationAgentImpl::Destroy();
+    RSApplicationAgentImpl::Release(true);
+    RSApplicationAgentImpl::Release(true);
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     RSApplicationAgentImpl::Instance();
 
-    auto connHub2 = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
-    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 1);
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
-    connHub2->OnDiedCallbacks_[1] = nullptr;
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        std::cout << "Runing APPLICATION_AGENT callback" << std::endl;
-    });
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     auto instance3 = RSApplicationAgentImpl::Instance();
@@ -153,157 +141,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
 }
 #endif
 #endif
-/**
- * @tc.name: SetOnConnectCallbackTest001
- * @tc.desc: branch 1 - instance_ is nullptr, outer if false, callback not invoked
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnConnectCallbackTest001, TestSize.Level1)
-{
-    auto savedInstance = RSRenderServiceConnectHub::instance_;
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    bool invoked = false;
-    auto cb = [&invoked](sptr<RSIClientToRenderConnection>&) { invoked = true; };
-    RSRenderServiceConnectHub::SetOnConnectCallback(cb);
-    RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-    RSRenderServiceConnectHub::instance_ = savedInstance;
-    ASSERT_FALSE(invoked);
-}
-
-/**
- * @tc.name: SetOnConnectCallbackTest002
- * @tc.desc: branch 2 - renderConn_ is nullptr, outer if false, callback not invoked
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnConnectCallbackTest002, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto savedRenderConn = connHub->renderConn_;
-    connHub->renderConn_ = nullptr;
-    bool invoked = false;
-    auto cb = [&invoked](sptr<RSIClientToRenderConnection>&) { invoked = true; };
-    RSRenderServiceConnectHub::SetOnConnectCallback(cb);
-    RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-    connHub->renderConn_ = savedRenderConn;
-    ASSERT_FALSE(invoked);
-}
-
-/**
- * @tc.name: SetOnConnectCallbackTest003
- * @tc.desc: branch 3 - cb is nullptr, inner if false, stored callback empty
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnConnectCallbackTest003, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto savedRenderConn = connHub->renderConn_;
-    if (!savedRenderConn) {
-        connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
-    }
-    RSRenderServiceConnectHub::SetOnConnectCallback(nullptr);
-    connHub->renderConn_ = savedRenderConn;
-    ASSERT_FALSE((bool)RSRenderServiceConnectHub::onConnectCallback_);
-}
-
-/**
- * @tc.name: SetOnConnectCallbackTest004
- * @tc.desc: branch 4 - cb non-null and renderConn_ non-null, inner if true, callback invoked
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnConnectCallbackTest004, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto savedRenderConn = connHub->renderConn_;
-    if (!savedRenderConn) {
-        connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
-    }
-    bool invoked = false;
-    auto cb = [&invoked](sptr<RSIClientToRenderConnection>&) { invoked = true; };
-    RSRenderServiceConnectHub::SetOnConnectCallback(cb);
-    RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-    connHub->renderConn_ = savedRenderConn;
-    ASSERT_TRUE(invoked);
-}
-
-/**
- * @tc.name: SetOnDiedCallbackTest001
- * @tc.desc: branch 1 - instance is nullptr, return early, callback not stored
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnDiedCallbackTest001, TestSize.Level1)
-{
-    auto saved = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    saved->OnDiedCallbacks_.erase(key);
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {});
-    RSRenderServiceConnectHub::instance_ = saved;
-    ASSERT_EQ(saved->OnDiedCallbacks_.count(key), 0);
-}
-
-/**
- * @tc.name: SetOnDiedCallbackTest002
- * @tc.desc: branch 2 - instance is not nullptr, callback stored in OnDiedCallbacks_
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnDiedCallbackTest002, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {});
-    bool stored = connHub->OnDiedCallbacks_.count(key) > 0;
-    connHub->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(stored);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest001
- * @tc.desc: branch 1 - isDestructionProcess is true, return early, callback not erased
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest001, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    connHub->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, true);
-    bool preserved = connHub->OnDiedCallbacks_.count(key) > 0;
-    connHub->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(preserved);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest002
- * @tc.desc: branch 2 - isDestructionProcess is false and instance is nullptr, return early
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest002, TestSize.Level1)
-{
-    auto saved = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    saved->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    RSRenderServiceConnectHub::instance_ = saved;
-    bool preserved = saved->OnDiedCallbacks_.count(key) > 0;
-    saved->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(preserved);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest003
- * @tc.desc: branch 3 - isDestructionProcess is false and instance is not nullptr, callback erased
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest003, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    connHub->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    ASSERT_EQ(connHub->OnDiedCallbacks_.count(key), 0);
-}
-
 /**
  * @tc.name: GetDefaultTokenMaskIdTest001
  * @tc.desc: branch 1 - connHub is nullptr, return INVALID_TOKEN_MASK_ID
@@ -485,6 +322,190 @@ HWTEST_F(RSRenderServiceConnectHubTest, OnRemoteDiedTest004, TestSize.Level1)
     ASSERT_EQ(connHub->connRenderProcesses_.count(TEST_ID), 0);
 }
 
+/**
+ * @tc.name: AddRenderProcessConnectionTokenNullRenderPrecess
+ * @tc.desc: Pass nullptr renderPrecess to AddRenderProcessConnectionToken,
+ *          verify early return without adding entry to connRenderProcesses_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionTokenNullRenderPrecess, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    constexpr uint64_t takeMaskId = 99999;
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<IRemoteObject> remote = nullptr;
+    sptr<RSIConnectToRenderProcess> nullProcess = nullptr;
+    sptr<RSIClientToRenderConnection> nullConn = nullptr;
+    connHub->AddRenderProcessConnectionToken(takeMaskId, token, remote, nullProcess, nullConn);
+    EXPECT_EQ(connHub->connRenderProcesses_.count(takeMaskId), 0u);
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest001
+ * @tc.desc: branch 1 - tokenMaskId is INVALID_TOKEN_MASK_ID, return early without touching hub state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest001, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(INVALID_TOKEN_MASK_ID);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest002
+ * @tc.desc: branch 2 - connHub instance is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest002, TestSize.Level1)
+{
+    auto saved = RSRenderServiceConnectHub::instance_;
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    constexpr uint64_t takeMaskId = 66600;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    RSRenderServiceConnectHub::instance_ = saved;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest003
+ * @tc.desc: branch 3 - tokenMaskId not found in connRenderProcesses_, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest003, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66601;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest004
+ * @tc.desc: branch 4 - clientToRenderConnection is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest004, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66602;
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest005
+ * @tc.desc: branch 5 - renderConn_ is nullptr, return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest005, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66603;
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = new RSClientToRenderConnectionProxy(nullptr);
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = nullptr;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest006
+ * @tc.desc: branch 6 - source connection issued no index (sourceIndex == 0), target stays 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest006, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66604;
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = new RSClientToRenderConnectionProxy(nullptr);
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), 0u);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest007
+ * @tc.desc: branch 7 - source issued indices and target still holds default, seed succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest007, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66605;
+    constexpr uint32_t sourceIndex = 7;
+    auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = source;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), sourceIndex);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
+
+/**
+ * @tc.name: SeedTransactionDataIndexTest008
+ * @tc.desc: branch 8 - target already issued its own indices, seed fails and value is kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, SeedTransactionDataIndexTest008, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    auto savedMap = connHub->connRenderProcesses_;
+    auto savedRenderConn = connHub->renderConn_;
+    connHub->connRenderProcesses_.clear();
+    constexpr uint64_t takeMaskId = 66606;
+    constexpr uint32_t sourceIndex = 9;
+    constexpr uint32_t targetIndex = 3;
+    auto source = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(source->SeedTransactionDataIndex(sourceIndex));
+    auto target = sptr<RSClientToRenderConnectionProxy>(new RSClientToRenderConnectionProxy(nullptr));
+    ASSERT_TRUE(target->SeedTransactionDataIndex(targetIndex));
+    RenderProcessInfo info;
+    info.token = new IRemoteStub<RSIConnectionToken>();
+    info.clientToRenderConnection = target;
+    connHub->connRenderProcesses_[takeMaskId] = info;
+    connHub->renderConn_ = source;
+    RSRenderServiceConnectHub::SeedTransactionDataIndex(takeMaskId);
+    EXPECT_EQ(target->GetTransactionDataIndex(), targetIndex);
+    connHub->renderConn_ = savedRenderConn;
+    connHub->connRenderProcesses_ = savedMap;
+}
 
 } // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS

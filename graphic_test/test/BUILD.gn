@@ -23,6 +23,7 @@ hardware_manager_sources = []
 open_capability_sources = [
     "open_capability/pixmap/create_pixel_map_from_surface_test.cpp",
     "open_capability/pixmap/pixelmap_display_test.cpp",
+    "open_capability/pixmap/pixelmap_draw_api_test.cpp",
 ]
 rs_display_effect_sources = [
   "rs_display_effect/animation/anim_callback_animation_test.cpp",
@@ -77,6 +78,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/appearance_pixelstretch_test.cpp",
   "rs_display_effect/property_display/appearance_point_light_test.cpp",
   "rs_display_effect/property_display/appearance_shadow_test.cpp",
+  "rs_display_effect/property_display/appearance_shadow_clip_type_test.cpp",
   "rs_display_effect/property_display/appearance_spatial_effect_test.cpp",
   "rs_display_effect/property_display/appearance_spherize_test.cpp",
   "rs_display_effect/property_display/appearance_visibility_test.cpp",
@@ -96,6 +98,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/color_picker_modifier_test.cpp",
   "rs_display_effect/property_display/display_node_properties_test.cpp",
   "rs_display_effect/property_display/fg_alpha_blur_test.cpp",
+  "rs_display_effect/property_display/fg_alpha_colorfulbrightnessblender_test.cpp",
   "rs_display_effect/property_display/fg_alpha_colorbrightness_test.cpp",
   "rs_display_effect/property_display/fg_alpha_colorfilter_test.cpp",
   "rs_display_effect/property_display/fg_alpha_envfgcolor_test.cpp",
@@ -107,6 +110,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/fg_alpha_sdf_light_test.cpp",
   "rs_display_effect/property_display/fg_alpha_shader_test.cpp",
   "rs_display_effect/property_display/fg_blur_test.cpp",
+  "rs_display_effect/property_display/fg_colorfulbrightnessblender_test.cpp",
   "rs_display_effect/property_display/fg_colorbrightness_test.cpp",
   "rs_display_effect/property_display/fg_colorfilter_test.cpp",
   "rs_display_effect/property_display/fg_dynamicdimdegree_test.cpp",
@@ -175,6 +179,8 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_mask_test/ng_mask_radial_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_wave_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_pixel_map_test.cpp",
+  "rs_effect_feature/ng_mask_test/ng_mask_fractal_glass_test.cpp",
+  "rs_effect_feature/ng_mask_test/ng_mask_binocular_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_harmonium_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_wavy_ripple_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_light_test.cpp",
@@ -194,6 +200,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_point_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_glass_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_sdf_test.cpp",
+  "rs_effect_feature/ng_shader_test/ng_shader_cosmos_ring_shadow_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_hdrdarken_blender_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_content_light_test.cpp",
@@ -236,7 +243,10 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_sound_wave_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_heat_distortion_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_blur_bubbles_rise_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_map_color_by_brightness_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_effect_light_cave_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_distort_light_test.cpp",
 ]
 rs_framework_sources = [
   "rs_framework/uni_render_ui/surface_test.cpp",

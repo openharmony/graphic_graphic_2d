@@ -37,8 +37,6 @@ namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
 constexpr uint32_t WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT = 6 * 1024 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
-constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
-constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
 constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 }
 #endif
@@ -145,8 +143,8 @@ int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::
     if (securityMask) {
         securityMask->GetImageInfo(imageInfo);
     }
-    if (securityMask && (imageInfo.size.width > SECURITYMASK_IMAGE_WIDTH_LIMIT ||
-        imageInfo.size.height > SECURITYMASK_IMAGE_HEIGHT_LIMIT)) {
+    if (securityMask && (imageInfo.size.width > SECURITYMASK_IMAGE_SIZE_LIMIT ||
+        imageInfo.size.height > SECURITYMASK_IMAGE_SIZE_LIMIT)) {
         ROSEN_LOGE("SetScreenSecurityMask failed, securityMask width: %{public}d, height: %{public}d is error",
             imageInfo.size.width, imageInfo.size.height);
         return RS_CONNECTION_ERROR;
@@ -348,6 +346,11 @@ void RSInterfaces::SetRefreshRateMode(int32_t refreshRateMode)
     renderServiceClient_->SetRefreshRateMode(refreshRateMode);
 }
 
+void RSInterfaces::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    renderServiceClient_->SetThermalFrameRateLimit(frameRate);
+}
+
 void RSInterfaces::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
     int32_t animatorExpectedFrameRate)
 {
@@ -478,11 +481,12 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
     return false;
 }
 
-int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
-    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u", __func__, id,
-            width, height);
-    return renderServiceClient_->SetRogScreenResolution(id, width, height);
+    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u, "
+        "samplingMode:%{public}u", __func__, id, width, height, static_cast<uint32_t>(samplingMode));
+    return renderServiceClient_->SetRogScreenResolution(id, width, height, samplingMode);
 }
 
 int32_t RSInterfaces::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
@@ -655,6 +659,16 @@ int32_t RSInterfaces::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return renderServiceClient_->SetScreenColorGamut(id, modeIdx);
 }
 
+int32_t RSInterfaces::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    return renderServiceClient_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSInterfaces::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    return renderServiceClient_->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     return renderServiceClient_->SetScreenGamutMap(id, mode);
@@ -777,6 +791,11 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offSetY
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
     renderServiceClient_->SetScreenFrameGravity(id, gravity);
+}
+
+void RSInterfaces::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    renderServiceClient_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
@@ -902,6 +921,12 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
 {
     return renderServiceClient_->GetMemoryGraphics();
 }
+
+std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    return renderServiceClient_->GetMemoryGraphicsByRenderPid(renderPid);
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
@@ -1085,6 +1110,11 @@ void RSInterfaces::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t d
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
 {
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback, unobscured);
+}
+
+bool RSInterfaces::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
+{
+    return renderServiceClient_->AuthorizeUIExtensionPid(nodeId, guestPid, authorized);
 }
 
 bool RSInterfaces::SetAncoForceDoDirect(bool direct)

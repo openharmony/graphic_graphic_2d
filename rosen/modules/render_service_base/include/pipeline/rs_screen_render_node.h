@@ -523,6 +523,19 @@ public:
         childHwcNodes_.clear();
     }
 
+    void AddOffTreeHwcRegion(RSSurfaceNodeType nodeType, const RectI& rect)
+    {
+        if (rect.IsEmpty()) {
+            return;
+        }
+        offTreeHwcRegions_.emplace_back(nodeType, rect);
+    }
+
+    std::vector<std::pair<RSSurfaceNodeType, RectI>> TakeOffTreeHwcRegions()
+    {
+        return std::exchange(offTreeHwcRegions_, {});
+    }
+
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
     {
         targetSurfaceRenderNodeId_ = nodeId;
@@ -556,6 +569,7 @@ public:
 
     void SetHasGlassFree3DLayer(bool hasGlassFree3DLayer);
     bool GetHasGlassFree3DLayer() const;
+    void SetSwingEnabled(bool isEnabled);
 
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
@@ -585,6 +599,7 @@ protected:
 private:
     void InitRenderParams() override;
     void CollectHdrStatusMap(NodeId id, HdrStatus hdrStatus);
+    void ScaleSyncDirtyManagerForRogIfNeed(const std::shared_ptr<RSDirtyRegionManager>& syncDirtyManager) const;
 
     bool hasChildCrossNode_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
@@ -637,6 +652,7 @@ private:
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
+    std::vector<std::pair<RSSurfaceNodeType, RectI>> offTreeHwcRegions_;
     std::vector<std::string> windowsName_;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;

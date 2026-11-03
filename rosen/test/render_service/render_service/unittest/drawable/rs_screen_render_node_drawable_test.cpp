@@ -41,6 +41,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "pipeline/rs_test_util.h"
 #include "screen_manager/rs_screen.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -71,6 +72,7 @@ public:
 
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static void CleanUpUniRenderEngine();
     void SetUp() override;
     void TearDown() override;
 
@@ -81,16 +83,66 @@ private:
 
 void RSScreenRenderNodeDrawableTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     // init vsync, default 60hz
     auto receiver = std::make_shared<VSyncReceiver>(nullptr, nullptr, nullptr, "generator_test");
     receiver->init_ = true;
     RSMainThread::Instance()->receiver_ = receiver;
 }
 
-void RSScreenRenderNodeDrawableTest::TearDownTestCase() {}
+void RSScreenRenderNodeDrawableTest::TearDownTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+    auto* mainThread = RSMainThread::Instance();
+    if (mainThread && mainThread->context_) {
+        auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+        nodeMap.FilterNodeByPid(0, true);
+    }
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+    CleanUpUniRenderEngine();
+}
+
+void RSScreenRenderNodeDrawableTest::CleanUpUniRenderEngine()
+{
+    auto* mainThread = RSMainThread::Instance();
+    if (mainThread && mainThread->renderEngine_) {
+        auto* engine = mainThread->renderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread->renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        auto* engine = rtThread.uniRenderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
+
 void RSScreenRenderNodeDrawableTest::SetUp()
 {
     if (!clientHasSet) {
@@ -243,6 +295,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
@@ -250,6 +304,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     screenDrawable_->surfaceCreated_ = true;
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -295,6 +350,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
+    CleanUpUniRenderEngine();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->forceCommitReason_ = 1;
     RSUniRenderThread::Instance().Sync(move(renderParams));
@@ -719,9 +775,16 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest003, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     screenDrawable_->OnDraw(canvas);
-    RSUniRenderThread::Instance().uniRenderEngine_.reset();
+
+    RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
+    if (RSUniRenderThread::Instance().uniRenderEngine_->renderContext_) {
+        RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = nullptr;
+    }
+    CleanUpUniRenderEngine();
     // when realTid != RSUniRenderThread::Instance().GetTId()
     RSUniRenderThread::Instance().tid_ = realTid + 1;
     screenDrawable_->OnDraw(canvas);
@@ -889,6 +952,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
@@ -961,6 +1025,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     screenDrawable_->OnDraw(canvas);
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
@@ -1948,8 +2013,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrame_NullRenderEngine, TestSize
     ASSERT_NE(params, nullptr);
 
     // ensure render engine is null
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-
+    CleanUpUniRenderEngine();
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     auto renderFrame = screenDrawable_->RequestFrame(*params, processor);
     EXPECT_EQ(renderFrame, nullptr);
@@ -2070,6 +2134,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignWithGpuTile, TestS
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
@@ -2086,7 +2151,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignWithGpuTile, TestS
     EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited());
     EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2127,6 +2192,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 0));
     EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
     screenDrawable_->OnDraw(canvas);
+
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2149,7 +2216,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-
+    CleanUpUniRenderEngine();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
     renderParams->isOpDropped_ = true;
@@ -2161,6 +2228,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     EXPECT_EQ(RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD, 1);
 
     screenDrawable_->OnDraw(canvas);
+
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2327,5 +2396,188 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_PrepareForDrawFalse
     int32_t tid = -200;
 
     screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
+}
+
+/**
+ * @tc.name: OnDrawTest_3DMode2D
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DMode2D, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_2D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
+/**
+ * @tc.name: OnDrawTest_3DModeShutter
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeShutter, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+}
+
+/**
+ * @tc.name: OnDrawTest_3DModeGlassesFree
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeGlassesFree, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: OnDraw_ActiveRectChanged_PushesToComposerClientManager
+ * @tc.desc: Test OnDraw pushes changed revise rect to composer client manager and caches it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_PushesToComposerClientManager, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+    RectI activeRect(0, 0, 100, 100);
+    RectI maskRect(0, 0, 100, 100);
+    RectI reviseRect(10, 10, 50, 50);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, maskRect, reviseRect));
+
+    Drawing::Canvas canvas;
+    // first draw: reviseRect differs from lastReviseRect_ (true branch), manager is non-null
+    // (holds no client for this screen), push path executes without crash
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.top_, reviseRect.top_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.width_, reviseRect.width_);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.height_, reviseRect.height_);
+
+    // second draw: reviseRect equals lastReviseRect_ (false branch), no push, no crash
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+}
+
+/**
+ * @tc.name: OnDraw_ActiveRectChanged_NullManager_NoCrash
+ * @tc.desc: Test OnDraw skips pushing active rect when composer client manager is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDraw_ActiveRectChanged_NullManager_NoCrash, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+    RectI activeRect(0, 0, 100, 100);
+    RectI maskRect(0, 0, 100, 100);
+    RectI reviseRect(20, 20, 60, 60);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, maskRect, reviseRect));
+
+    // simulate no composer client available (empty manager, GetComposerClient returns nullptr)
+    auto& rtThread = RSUniRenderThread::Instance();
+    auto savedManager = rtThread.composerClientManager_;
+    rtThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
+
+    Drawing::Canvas canvas;
+    // reviseRect differs from lastReviseRect_ (true branch), SetActiveRectSwitchStatus is a no-op with no client
+    EXPECT_NO_FATAL_FAILURE(screenDrawable_->OnDraw(canvas));
+    EXPECT_EQ(screenDrawable_->lastReviseRect_.left_, reviseRect.left_);
+
+    rtThread.composerClientManager_ = savedManager;
+}
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_NullParams
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, params is nullptr (inner if short-circuit)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_NullParams, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto savedParams = std::move(screenDrawable_->renderParams_);
+    screenDrawable_->renderParams_ = nullptr;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
+    screenDrawable_->renderParams_ = std::move(savedParams);
+}
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_ScreenLayerInvalid
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, screenLayerInvalid_ is true (inner if false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_ScreenLayerInvalid, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->GetLayerSkipContext().screenLayerInvalid_ = true;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
+    params->GetLayerSkipContext().screenLayerInvalid_ = false;
+}
+
+/**
+ * @tc.name: SkipFrame_ByActiveRefreshRate_ScreenLayerValid
+ * @tc.desc: test SkipFrame SKIP_FRAME_BY_ACTIVE_REFRESH_RATE, screenLayerInvalid_ is false (inner if true)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_ScreenLayerValid, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    uint32_t refreshRate = 60;
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>({1, 30, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE});
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(std::make_tuple(1, 1, 30));
+    screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->GetLayerSkipContext().screenLayerInvalid_ = false;
+    bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
+    EXPECT_TRUE(result);
 }
 } // namespace OHOS::Rosen

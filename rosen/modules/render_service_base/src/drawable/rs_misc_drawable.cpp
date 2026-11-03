@@ -180,14 +180,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE &&
         modifierTypeNG_ == ModifierNG::RSModifierType::CONTENT_STYLE) {
         auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
-        auto& cmdLists = drawingNode.GetDrawCmdListsNG();
-        auto itr = cmdLists.find(modifierTypeNG_);
-        if (itr == cmdLists.end() || itr->second.empty()) {
-            return false;
-        }
-        for (auto& cmd : itr->second) {
-            stagingDrawCmdListVec_.emplace_back(cmd);
-        }
+        drawingNode.AddDrawCmdListTo(stagingDrawCmdListVec_, modifierTypeNG_);
     } else {
         RSRenderNode::ModifierNGContainer customModifiers(modifiers.begin(), modifiers.end());
         std::stable_sort(
@@ -305,7 +298,9 @@ RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
 
 void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 {
-    enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
+    const auto& properties = node.GetRenderProperties();
+    enableEDREffect_ = properties.GetFgBrightnessEnableEDR() ||
+        properties.GetColorfulBrightnessBlenderEnableEDR();
     if (enableEDREffect_) {
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSBeginBlenderDrawable:PostUpdate node[%" PRIu64 "] has edr brightness", node.GetId());
@@ -350,6 +345,13 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
             stagingPropertyDescription_ = properties.GetHdrDarkenBlenderDescription();
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeHdrDarkenBlender(properties.GetHdrDarkenBlenderParams().value());
+        stagingIsDangerous_ = false;
+    } else if (properties.IsColorfulBrightnessBlenderValid()) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            stagingPropertyDescription_ = properties.GetColorfulBrightnessBlenderDescription();
+        }
+        stagingBlender_ = RSPropertyDrawableUtils::MakeColorfulBrightnessBlender(
+            *properties.GetColorfulBrightnessBlenderParams());
         stagingIsDangerous_ = false;
     } else {
         return false;

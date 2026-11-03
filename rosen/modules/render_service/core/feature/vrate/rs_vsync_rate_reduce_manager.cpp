@@ -170,7 +170,26 @@ void RSVsyncRateReduceManager::SetUniVsync()
     RS_TRACE_FUNC();
     UpdateRatesLevel();
     CalcRates();
-    lastVSyncRateMap_ = vSyncRateMap_;
+    UpdateLastVSyncRateMap();
+}
+
+void RSVsyncRateReduceManager::UpdateLastVSyncRateMap()
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (auto it = lastVSyncRateMap_.begin(); it != lastVSyncRateMap_.end();) {
+        if (vSyncRateMap_.find(it->first) != vSyncRateMap_.end()) {
+            ++it;
+        } else if (it->second <= DEFAULT_RATE) {
+            it = lastVSyncRateMap_.erase(it);
+        } else {
+            // Node off tree but still alive: preserve; node destroyed: erase.
+            auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(it->first);
+            it = (node == nullptr) ? lastVSyncRateMap_.erase(it) : ++it;
+        }
+    }
+    for (const auto& [nodeId, rate] : vSyncRateMap_) {
+        lastVSyncRateMap_[nodeId] = rate;
+    }
 }
 
 int RSVsyncRateReduceManager::UpdateRatesLevel()

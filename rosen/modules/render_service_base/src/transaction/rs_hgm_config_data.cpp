@@ -20,6 +20,7 @@ namespace {
     static constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
     constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
     constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
+    constexpr uint32_t MAX_APP_BUFFER_SIZE = 64;
 }
 
 namespace OHOS {
@@ -60,27 +61,64 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         data->AddAnimDynamicItem(item);
     }
 
-    uint32_t pageNameSize;
-    if (!parcel.ReadUint32(pageNameSize)) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read page base Failed");
+    if (!UnmarshallingAppBufferList(parcel, *data)) {
+        RS_LOGE("%{public}s: UnmarshallingAppBufferList failed", __func__);
         delete data;
         return nullptr;
     }
-    if (pageNameSize > MAX_PAGE_NAME_SIZE) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read failed, page size:%{public}u", pageNameSize);
+    if (!UnmarshallingPageNameList(parcel, *data)) {
+        RS_LOGE("%{public}s: UnmarshallingPageNameList failed", __func__);
         delete data;
         return nullptr;
+    }
+    return data;
+}
+
+bool RSHgmConfigData::UnmarshallingAppBufferList(Parcel& parcel, RSHgmConfigData& data)
+{
+    uint32_t appBufferSize;
+    if (!parcel.ReadUint32(appBufferSize)) {
+        RS_LOGE("%{public}s: read appBufferSize failed", __func__);
+        return false;
+    }
+    if (appBufferSize > MAX_APP_BUFFER_SIZE) {
+        RS_LOGE("%{public}s: read vector failed, size:%{public}" PRIu32 ", maxSize:%{public}" PRIu32,
+            __func__, appBufferSize, MAX_APP_BUFFER_SIZE);
+        return false;
+    }
+    for (uint32_t i = 0; i < appBufferSize; ++i) {
+        std::string appBuffer;
+        if (!parcel.ReadString(appBuffer)) {
+            RS_LOGE("%{public}s: read app buffer failed", __func__);
+            return false;
+        }
+        if (!appBuffer.empty()) {
+            data.AddAppBuffer(std::move(appBuffer));
+        }
+    }
+    return true;
+}
+
+bool RSHgmConfigData::UnmarshallingPageNameList(Parcel& parcel, RSHgmConfigData& data)
+{
+    uint32_t pageNameSize;
+    if (!parcel.ReadUint32(pageNameSize)) {
+        RS_LOGE("%{public}s: read pageNameSize failed", __func__);
+        return false;
+    }
+    if (pageNameSize > MAX_PAGE_NAME_SIZE) {
+        RS_LOGE("%{public}s: page size:%{public}" PRIu32 " exceeds max", __func__, pageNameSize);
+        return false;
     }
     for (uint32_t i = 0; i < pageNameSize; i++) {
         std::string pageName;
         if (!parcel.ReadString(pageName)) {
-            RS_LOGE("RSHgmConfigData Unmarshalling read page data failed");
-            delete data;
-            return nullptr;
+            RS_LOGE("%{public}s: read pageName failed", __func__);
+            return false;
         }
-        data->AddPageName(pageName);
+        data.AddPageName(pageName);
     }
-    return data;
+    return true;
 }
 
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
@@ -100,6 +138,17 @@ bool RSHgmConfigData::Marshalling(Parcel& parcel) const
         if (!flag) {
             RS_LOGE("RSHgmConfigData::Marshalling parse config item failed");
             return flag;
+        }
+    }
+
+    if (!parcel.WriteUint32(appBufferList_.size())) {
+        RS_LOGE("%{public}s: write appBufferList size failed", __func__);
+        return false;
+    }
+    for (const auto& item : appBufferList_) {
+        if (!parcel.WriteString(item)) {
+            RS_LOGE("%{public}s: write app buffer failed", __func__);
+            return false;
         }
     }
 

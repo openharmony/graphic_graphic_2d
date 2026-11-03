@@ -554,7 +554,7 @@ HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid005, TestSize.Level1)
     RSContext context;
     InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
     NodeId uiExtNodeId = (2ULL << 32) | 1;
-    context.GetMutableNodeMap().uiExtensionSurfaceNodes_.insert(uiExtNodeId);
+    context.GetMutableNodeMap().AuthorizeUIExtensionPid(uiExtNodeId, 1, true);
     std::vector<std::pair<NodeId, AnimationId>> animations = {{uiExtNodeId, 1}};
     bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
         animations, __PRETTY_FUNCTION__);
@@ -682,6 +682,40 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateParticleAnimationNGFailedDuplicate001
+ * @tc.desc: Verify CreateParticleAnimationNG does not attach a particle animation when AddAnimation fails
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateParticleAnimationNGFailedDuplicate001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 2;
+    auto node = std::make_shared<RSRenderNode>(targetId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+
+    constexpr PropertyId firstPropertyId = 101;
+    constexpr PropertyId secondPropertyId = 102;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    auto firstAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, firstPropertyId, particlesRenderParams);
+    auto secondAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, secondPropertyId, particlesRenderParams);
+    AnimationCommandHelper::CreateParticleAnimationNG(*context, targetId, 201, firstAnimation);
+    auto animationManager = node->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    ASSERT_EQ(animationManager->GetAnimation(ANIMATION_ID), firstAnimation);
+    ASSERT_EQ(animationManager->GetParticleAnimations().size(), 1u);
+
+    AnimationCommandHelper::CreateParticleAnimationNG(*context, targetId, 202, secondAnimation);
+    EXPECT_EQ(animationManager->GetAnimation(ANIMATION_ID), firstAnimation);
+    EXPECT_EQ(animationManager->GetAnimationsSize(), 1u);
+    EXPECT_TRUE(secondAnimation->GetTarget() == nullptr);
+    EXPECT_EQ(animationManager->GetParticleAnimations().size(), 1u);
+    EXPECT_TRUE(animationManager->GetParticleAnimations().count(firstPropertyId) == 1);
+    EXPECT_TRUE(animationManager->GetParticleAnimations().count(secondPropertyId) == 0);
+}
+
+/**
  * @tc.name: CreateAnimation002
  * @tc.desc: Verify CreateAnimation with null animation
  * @tc.type:FUNC
@@ -745,6 +779,65 @@ HWTEST_F(RSAnimationCommandTest, RebuildAnimation004, TestSize.Level1)
     EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
     EXPECT_TRUE(animation->target_ != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation004 end";
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorGroup008
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup reuses existing group animator
+ *           when called with the same groupId (get-or-create pattern)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup008, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup008 start";
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = 10008;
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+
+    std::vector<std::pair<NodeId, AnimationId>> animations1;
+    animations1.push_back({ 10001, 20001 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations1, false, timingProtocol);
+    auto animator1 = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator1 != nullptr);
+    EXPECT_TRUE(animator1->IsTimeDriven());
+
+    std::vector<std::pair<NodeId, AnimationId>> animations2;
+    animations2.push_back({ 10002, 20002 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations2, false, timingProtocol);
+    auto animator2 = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator2 != nullptr);
+    EXPECT_EQ(animator1.get(), animator2.get());
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup008 end";
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorGroup009
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup returns early when existing
+ *           animator is not a TimeDrivenGroupAnimator (IsTimeDriven guard)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup009, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup009 start";
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = 10009;
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+
+    auto nonTimeDriven = std::make_shared<RSRenderInteractiveImplictAnimator>(groupId, context.weak_from_this());
+    context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(nonTimeDriven);
+    EXPECT_FALSE(nonTimeDriven->IsTimeDriven());
+
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animations.push_back({ 10001, 20001 });
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId, animations, true, timingProtocol);
+
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId);
+    EXPECT_TRUE(animator != nullptr);
+    EXPECT_FALSE(animator->IsTimeDriven());
+    EXPECT_EQ(animator.get(), nonTimeDriven.get());
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup009 end";
 }
 
 } // namespace OHOS::Rosen

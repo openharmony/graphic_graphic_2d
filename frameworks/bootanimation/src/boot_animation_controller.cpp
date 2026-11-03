@@ -30,11 +30,32 @@ namespace {
     const std::string BOOT_CUSTOM_CONFIG_PATH_ENTERPRISE_DEVICE
         = "/data/service/el1/public/edm/config/system/all/graphic/bootanimation/bootanimation_custom_config.json";
     const std::string SYS_PARAM_IS_ENTERPRISE_DEVICE = "const.edm.is_enterprise_device_provisioned";
+#ifdef IS_CAR
+    // 0: 不满足启动条件 1: 普通冷启动场景 2: 鸡叫冷启动场景（要投票，但是不能播开机动画）
+    static constexpr int BOOT_CONDITION_NOT_SATISFIED = 0;
+    static constexpr int NORMAL_COLD_BOOT = 1;
+    static constexpr int SCHEDULED_REBOOT_COLD_BOOT = 2;
+#endif
 }
 
 void BootAnimationController::Start()
 {
     LOGI("BootAnimationController START");
+#ifdef IS_CAR
+    int powerState = WaitPowerStateChange();
+    if (powerState == NORMAL_COLD_BOOT) {
+        LOGI("normal cold boot, play boot animation");
+    } else if (powerState == SCHEDULED_REBOOT_COLD_BOOT) {
+        if (!system::GetBoolParameter(BOOT_ANIMATION_READY, false)) {
+            system::SetParameter(BOOT_ANIMATION_READY, "true");
+        }
+        if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
+            system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+        }
+        system::SetParameter(BOOT_ANIMATION_FINISHED, "true");
+        return;
+    }
+#endif
     WaitRenderServiceInit();
     std::string path = GetConfigFilePath();
     if (!ParseBootConfig(path, duration_, isCompatible_, isMultiDisplay_, animationConfigs_)) {
@@ -50,6 +71,45 @@ void BootAnimationController::Start()
         strategy_->Display(duration_, animationConfigs_);
     }
 }
+
+#ifdef IS_CAR
+#include <dlfcn.h>
+#if (defined(__aarch64__) || defined(__x86_64__))
+#define CHECK_START_ANIMATION_EXT_PATH "/system/lib64/libcar_bootanimation_ext.z.so"
+#else
+#define CHECK_START_ANIMATION_EXT_PATH "/system/lib/libcar_bootanimation_ext.z.so"
+#endif
+#define CHECK_START_ANIMATION_EXT_FUNC_NAME "IsActiveState"
+typedef int (*IsActiveStateFunc)();
+
+int BootAnimationController::WaitPowerStateChange() const
+{
+    LOGI("WaitPowerStateChange");
+    void *handler = dlopen(CHECK_START_ANIMATION_EXT_PATH, RTLD_LAZY | RTLD_NODELETE);
+    if (handler == nullptr) {
+        LOGE("WaitPowerStateChange Dlopen failed, reason: %{public}s", dlerror());
+        return BOOT_CONDITION_NOT_SATISFIED;
+    }
+    LOGI("WaitPowerStateChange dlopen success");
+    IsActiveStateFunc CheckPowerStateFunc = (IsActiveStateFunc)dlsym(handler, CHECK_START_ANIMATION_EXT_FUNC_NAME);
+    if (CheckPowerStateFunc == nullptr) {
+        LOGE("WaitPowerStateChange find function failed, reason: %{public}s", dlerror());
+        dlclose(handler);
+        return BOOT_CONDITION_NOT_SATISFIED;
+    }
+    LOGI("WaitPowerStateChange find function success");
+    int powerState = BOOT_CONDITION_NOT_SATISFIED;
+    while (powerState == BOOT_CONDITION_NOT_SATISFIED) {
+        powerState = CheckPowerStateFunc();
+        if (powerState == BOOT_CONDITION_NOT_SATISFIED) {
+            usleep(SLEEP_TIME_US);
+        }
+    }
+    dlclose(handler);
+    LOGI("WaitPowerStateChange End, powerState: %{public}d", powerState);
+    return powerState;
+}
+#endif
 
 void BootAnimationController::WaitRenderServiceInit() const
 {

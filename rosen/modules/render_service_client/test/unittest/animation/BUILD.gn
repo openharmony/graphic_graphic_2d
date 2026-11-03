@@ -57,13 +57,11 @@ ohos_unittest("RSAnimationTest1") {
     "rs_implicit_animator_test.cpp",
     "rs_interactive_implict_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
-    "rs_particle_animation_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
 
   deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics",
     "$rosen_root/modules/render_service_client:librender_service_client",
     "$rosen_root/modules/render_service_client:render_service_client_src",
   ]
@@ -90,11 +88,9 @@ ohos_unittest("RSAnimationTest2") {
     "rs_showing_properties_freezer_test.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
-
   configs = [ ":rs_animation_test_config" ]
 
-  deps = [ 
+  deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
     "$rosen_root/modules/render_service_client:render_service_client_src",
   ]

@@ -41,6 +41,11 @@ enum class RSRenderAnimationType {
     PROPERTY_ANIMATION,
     TRANSITION,
     PARTICLE_ANIMATION,
+    SPRING_ANIMATION,
+    CURVE_ANIMATION,
+    KEYFRAME_ANIMATION,
+    PATH_ANIMATION,
+    INTERPOLATING_SPRING_ANIMATION,
 };
 
 class RSB_EXPORT RSRenderAnimation : public Parcelable {
@@ -101,6 +106,15 @@ public:
 
     bool GetDirection() const { return animationFraction_.GetDirection(); }
 
+    void SetGroupReverseCycle(bool isReverse) { animationFraction_.SetGroupReverseCycle(isReverse); }
+    bool GetGroupReverseCycle() const { return animationFraction_.GetGroupReverseCycle(); }
+    float GetGroupEndFraction() const { return animationFraction_.GetGroupEndFraction(); }
+
+    void SetGroupAutoReverse(bool autoReverse) { animationFraction_.SetGroupAutoReverse(autoReverse); }
+    bool GetGroupAutoReverse() const { return animationFraction_.GetGroupAutoReverse(); }
+    void SetGroupRepeatCount(int repeatCount) { animationFraction_.SetGroupRepeatCount(repeatCount); }
+    int GetGroupRepeatCount() const { return animationFraction_.GetGroupRepeatCount(); }
+
     bool GetCurrentIsReverseCycle() const { return animationFraction_.GetCurrentIsReverseCycle(); }
 
     bool IsGroupAnimationChild() const { return isGroupAnimationChild_; }
@@ -108,6 +122,7 @@ public:
     void SetGroupAnimator(const std::shared_ptr<RSRenderTimeDrivenGroupAnimator>& groupAnimator)
     {
         isGroupAnimationChild_ = true;
+        animationFraction_.SetGroupAnimationChild(true);
         groupAnimator_ = groupAnimator;
     }
 
@@ -120,6 +135,7 @@ public:
     bool IsCalculateAniamtionValue() const { return calculateAnimationValue_; }
 
     bool GetNeedUpdateStartTime() const { return needUpdateStartTime_; }
+    void SetNeedUpdateStartTime(bool value) { needUpdateStartTime_ = value; }
 
     void SetValueFraction(float fraction) { lastValueFraction_ = fraction; }
 
@@ -156,6 +172,8 @@ protected:
 
     virtual void OnSetFraction(float fraction) {}
 
+    virtual void OnRestart() {}
+
     virtual void UpdateFractionAfterContinue() {}
 
     virtual void OnAttach() {}
@@ -164,7 +182,7 @@ protected:
 
     virtual void OnInitialize(int64_t time, bool isCustom = false) { needInitialize_ = false; }
 
-    virtual void OnAnimate(float fraction) {}
+    virtual bool OnAnimate(float fraction) { return false; }
 
     virtual void DumpFraction(float fraction, int64_t time) {}
 
@@ -175,6 +193,8 @@ protected:
     virtual void UpdateAnimateVelocity(double frameInterval) {}
 
     virtual void ProcessAnimateVelocityUnderAngleRotation(double frameInterval) {}
+
+    virtual void ProcessOnRepeatFinish();
 
     void FinishOnCurrentPosition();
 
@@ -193,8 +213,6 @@ private:
     void ProcessFillModeOnStart(float startFraction);
 
     void ProcessFillModeOnFinish(float endFraction);
-
-    void ProcessOnRepeatFinish();
 
     void AnimateOnGroupWaiting(int64_t time, bool isCustom);
 

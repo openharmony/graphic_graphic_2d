@@ -223,7 +223,7 @@ void RSProfiler::DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out
     if (node.GetBootAnimation()) {
         out["GetBootAnimation"] = true;
     }
-    if (node.IsContainBootAnimation()) {
+    if (node.isContainBootAnimation_) {
         out["isContainBootAnimation_"] = true;
     }
     if (node.dirtyStatus_ != RSRenderNode::NodeDirty::CLEAN) {
@@ -249,7 +249,9 @@ static std::string Hex(uint32_t value)
 
 void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
 {
-    if (node.modifiersNG_.empty()) {
+    // Copying is intentional to make it thread-safe
+    const auto modifiers = node.GetAllModifiers(); // NOLINT
+    if (modifiers.empty()) {
         return;
     }
 
@@ -260,15 +262,15 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
             type != static_cast<uint16_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME)) {
             continue;
         }
-        const auto& slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
-        if (slot.empty()) {
+        const auto it = modifiers.find(static_cast<ModifierNG::RSModifierType>(type));
+        if (it == modifiers.end() || it->second.empty()) {
             continue;
         }
         modifiersJson.PushObject();
         modifiersJson["type"] = type;
         auto& modifierDesc = modifiersJson["modifiers"];
         modifierDesc.PushArray();
-        for (const auto& modifier : slot) {
+        for (const auto& modifier : it->second) {
             if (modifier) {
                 DumpNodeDrawCmdModifier(*modifier, modifierDesc);
             }
@@ -475,7 +477,7 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
     if (properties.border_ && properties.border_->HasBorder()) {
         out["Border"] = properties.border_->ToString();
     }
-    auto filter = properties.GetFilter();
+    auto filter = properties.GetCompositingFilter();
     if (filter && filter->IsValid()) {
         out["Filter"] = filter->GetDescription();
     }

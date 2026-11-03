@@ -2703,5 +2703,163 @@ HWTEST_F(RSPaintFilterCanvasTest, GetOffscreenCanvasVectorTest_Two_Offscreen_Can
 
     EXPECT_EQ(mainCanvas.GetOffscreenCanvasVector().size(), 2);
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: UpdateDisplaySceneType001
+ * @tc.desc: Test UpdateDisplaySceneType with NON_SHOT and non-virtual screen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
+    canvas.SetOnMultipleScreen(false);
+    canvas.SetHDREnabledVirtualScreen(false);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::MAIN_SCREEN);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType002
+ * @tc.desc: Test UpdateDisplaySceneType with SDR_SCREENSHOT (shotType != NON_SHOT)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType002, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    canvas.SetOnMultipleScreen(false);
+    canvas.SetHDREnabledVirtualScreen(false);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType003
+ * @tc.desc: Test UpdateDisplaySceneType with HDR_SCREENSHOT (shotType != NON_SHOT)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType003, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType004
+ * @tc.desc: Test UpdateDisplaySceneType with NON_SHOT and IsOnMultipleScreen = true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType004, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
+    canvas.SetOnMultipleScreen(true);
+    canvas.SetHDREnabledVirtualScreen(false);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::VIRTUAL_SCREEN);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType005
+ * @tc.desc: Test UpdateDisplaySceneType with NON_SHOT and GetHDREnabledVirtualScreen = true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType005, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
+    canvas.SetOnMultipleScreen(false);
+    canvas.SetHDREnabledVirtualScreen(true);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::VIRTUAL_SCREEN);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType006
+ * @tc.desc: Test UpdateDisplaySceneType with NON_SHOT and both virtual screen flags true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType006, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
+    canvas.SetOnMultipleScreen(true);
+    canvas.SetHDREnabledVirtualScreen(true);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::VIRTUAL_SCREEN);
+}
+ 
+/**
+ * @tc.name: UpdateDisplaySceneType007
+ * @tc.desc: Test UpdateDisplaySceneType shotType takes priority over virtual screen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType007, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT);
+    canvas.SetOnMultipleScreen(true);
+    canvas.SetHDREnabledVirtualScreen(true);
+ 
+    canvas.UpdateDisplaySceneType();
+ 
+    // shotType != NON_SHOT should take priority over virtual screen
+    EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT);
+}
+#endif
+
+/**
+ * @tc.name: NullCanvasGettersTest
+ * @tc.desc: Test base getters return default values when internal canvas is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, NullCanvasGettersTest, TestSize.Level1)
+{
+    RSPaintFilterCanvas nullCanvas(static_cast<Drawing::Canvas*>(nullptr));
+    EXPECT_EQ(nullCanvas.GetTotalMatrix(), Drawing::Matrix());
+    // qualified call: static overload in RSPaintFilterCanvas hides the base no-arg version
+    EXPECT_EQ(nullCanvas.RSPaintFilterCanvasBase::GetLocalClipBounds(), Drawing::Rect());
+    EXPECT_EQ(nullCanvas.GetDeviceClipBounds(), Drawing::RectI());
+    EXPECT_EQ(nullCanvas.GetRoundInDeviceClipBounds(), Drawing::RectI());
+    EXPECT_EQ(nullCanvas.GetSaveCount(), 0);
+}
+
+/**
+ * @tc.name: SetSkipColorSpaceConversionTest
+ * @tc.desc: SetSkipColorSpaceConversionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetSkipColorSpaceConversionTest, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetSkipColorSpaceConversion(true);
+    EXPECT_EQ(canvas.GetSkipColorSpaceConversion(), true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

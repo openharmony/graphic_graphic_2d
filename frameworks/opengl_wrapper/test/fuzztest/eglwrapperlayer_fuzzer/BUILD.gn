@@ -39,6 +39,7 @@ ohos_fuzztest("EGLWrapperLayerFuzzTest") {
     "egl:libEGL",
     "opengles:libGLES",
     "jsoncpp:jsoncpp",
+    "bounds_checking_function:libsec_shared",
   ]
 }
 

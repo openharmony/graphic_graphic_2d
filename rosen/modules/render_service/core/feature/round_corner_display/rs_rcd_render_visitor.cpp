@@ -26,7 +26,7 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
     renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 }
 
-bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
+bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, const Drawing::Bitmap& layerBitmap)
 {
     node.ResetCurrentFrameBufferConsumed();
     auto availableBufferCnt = node.GetAvailableBufferCount();
@@ -61,7 +61,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
         bufferOwnerCount);
     node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
-    if (!node.SetHardwareResourceToBuffer()) {
+    if (!node.SetHardwareResourceToBuffer(layerBitmap)) {
         RS_LOGE("RSRcdRenderVisitor SetHardwareResourceToBuffer Failed!");
         return false;
     }
@@ -81,6 +81,31 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(
         return;
     }
     uniProcessor_->ProcessRcdSurface(node);
+}
+
+void RSRcdRenderVisitor::CleanCache(std::shared_ptr<RSSurfaceOhos>& rsSurface)
+{
+    if (rsSurface == nullptr) {
+        RS_LOGE("RSRcdRenderVisitor::CleanCache no RSSurface found");
+        return;
+    }
+    auto surfaceTarget = rsSurface->GetSurface();
+    if (surfaceTarget == nullptr) {
+        RS_LOGE("RSRcdRenderVisitor::CleanCache no RSSurface found");
+        return;
+    }
+    surfaceTarget->CleanCache(true);
+}
+
+void RSRcdRenderVisitor::SetScalingMode(RSRcdSurfaceRenderNode& node)
+{
+    auto consumer = node.GetConsumer();
+    auto buffer = node.GetBuffer();
+    if (consumer == nullptr || buffer == nullptr) {
+        return;
+    }
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    consumer->SetScalingMode(buffer->GetSeqNum(), scalingMode);
 }
 
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
@@ -115,33 +140,27 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return false;
     }
 
-    if (layerInfo == nullptr || (!node.PrepareHardwareResourceBuffer(layerInfo))) {
+    Drawing::Bitmap layerBitmap;
+    if (layerInfo == nullptr || (!node.PrepareHardwareResourceBuffer(layerInfo, layerBitmap))) {
         RS_LOGE("PrepareHardwareResourceBuffer is wrong");
         return false;
     }
 
     rsSurface->SetTimeOut(node.GetHardenBufferRequestConfig().timeout);
-    auto renderFrame = renderEngine_->RequestFrame(rsSurface,
-        node.GetHardenBufferRequestConfig(), true, false);
+    auto renderFrame = renderEngine_->RequestFrame(rsSurface, node.GetHardenBufferRequestConfig(), true, false);
     if (renderFrame == nullptr) {
-        if (rsSurface->GetSurface() != nullptr) {
-            rsSurface->GetSurface()->CleanCache(true);
-        }
+        CleanCache(rsSurface);
         RS_LOGE("RSRcdRenderVisitor Request Frame Failed");
         return false;
     }
     renderFrame->Flush();
-    if (!ConsumeAndUpdateBuffer(node)) {
+    if (!ConsumeAndUpdateBuffer(node, layerBitmap)) {
         RS_LOGE("RSRcdRenderVisitor ConsumeAndUpdateBuffer Failed");
         return false;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    if (node.GetConsumer() && node.GetBuffer()) {
-        node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
-    }
-
+    SetScalingMode(node);
     uniProcessor_->ProcessRcdSurface(node);
-    node.PrintRcdNodeInfo();
+    node.PrintRcdNodeInfo(layerBitmap);
     return true;
 }
 

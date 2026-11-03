@@ -33,6 +33,7 @@
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_callback_router.h"
+#include "ui/rs_ui_context_manager.h"
 #endif
 
 namespace OHOS {
@@ -43,6 +44,11 @@ bool RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
 namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+constexpr const char* UI_LOCK_TASK_NAME = "UILockTask";
+constexpr int UI_LOCK_DURATION_MS = 3000;
+std::mutex g_uiLockMutex;
+std::condition_variable g_uiLockCV;
+std::atomic<uint32_t> g_lockEpoch = 0;
 const bool PRE_ALLOCATE_DMA_ENABLED =
     RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
 const bool RENDER_DMA_ENABLED =
@@ -55,6 +61,14 @@ public:
     void OnCanvasSurfaceBufferChanged(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override
     {
+        auto nodeIndex = nodeId & 0xFFFFFFFF;
+        if (nodeIndex == 0) {
+            // Reuse this Callback for lock notification from RS (not the Callback's literal meaning).
+            // nodeId encodes pid only, resetSurfaceIndex: non-zero = start lock, 0 = cancel lock.
+            LockOrUnlockUI(resetSurfaceIndex != 0);
+            return;
+        }
+
         auto node = RSCanvasCallbackRouter::GetInstance().RouteToNode(nodeId);
         if (node == nullptr) {
             RS_LOGE("GlobalCanvasSurfaceBufferCallback: Node not found or destroyed, nodeId=%{public}" PRIu64, nodeId);
@@ -62,6 +76,21 @@ public:
         }
 
         node->OnSurfaceBufferChanged(buffer, resetSurfaceIndex);
+    }
+
+    void LockOrUnlockUI(bool needLock)
+    {
+        RS_LOGE("LockOrUnlockUI, needLock=%{public}d", needLock);
+        uint32_t epoch = g_lockEpoch.fetch_add(1) + 1;
+        g_uiLockCV.notify_all();
+        if (needLock) {
+            RSUIContextManager::MutableInstance().RemoveUITask(UI_LOCK_TASK_NAME);
+            RSUIContextManager::MutableInstance().PostUITask([epoch] {
+                    std::unique_lock<std::mutex> uiLock(g_uiLockMutex);
+                    g_uiLockCV.wait_for(uiLock, std::chrono::milliseconds(UI_LOCK_DURATION_MS),
+                        [epoch] { return g_lockEpoch.load() != epoch; });
+                }, UI_LOCK_TASK_NAME);
+        }
     }
 };
 #endif
@@ -128,16 +157,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
 #endif
     if (node->hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        auto uiContext = node->GetRSUIContext();
-        auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
-        if (canvasModifiersDrawAgent != nullptr) {
-            static std::once_flag flag;
-            std::call_once(flag, [canvasModifiersDrawAgent]() {
-                canvasModifiersDrawAgent->QueryMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_);
-            });
-            std::weak_ptr<RSRenderInterface> weakInterface = uiContext->GetRSRenderInterface();
-            canvasModifiersDrawAgent->OnNodeCreate(node->GetId(), weakInterface);
-        }
+        node->OnCreate();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         preAllocateDmaCcm_ = false;
@@ -161,6 +181,34 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     return node;
 }
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSCanvasDrawingNode::OnCreate()
+{
+    auto nodeId = GetId();
+    auto uiContext = GetRSUIContext();
+    if (uiContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null uiContext, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto canvasModifiersDrawAgent = uiContext->GetCanvasModifiersDrawAgent();
+    if (canvasModifiersDrawAgent == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null canvasModifiersDrawAgent, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto renderInterface = uiContext->GetRSRenderInterface();
+    if (renderInterface == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null renderInterface, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+
+    static std::once_flag flag;
+    std::call_once(flag,
+        [renderInterface]() { renderInterface->GetMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_); });
+    std::weak_ptr<RSRenderInterface> weakInterface = renderInterface;
+    canvasModifiersDrawAgent->OnNodeCreate(nodeId, weakInterface);
+}
+#endif
+
 void RSCanvasDrawingNode::CreateRenderNode()
 {
     std::unique_ptr<RSCommand> command =
@@ -168,7 +216,7 @@ void RSCanvasDrawingNode::CreateRenderNode()
     AddCommand(command, IsRenderServiceNode());
 }
 
-bool RSCanvasDrawingNode::ResetSurface(int width, int height)
+bool RSCanvasDrawingNode::ResetSurface(int width, int height, bool forceDisableDmaPreAllocate)
 {
     if (width > EDGE_WIDTH_LIMIT) {
         ROSEN_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 "width:%{public}d height:%{public}d",
@@ -182,6 +230,10 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 #endif
     } else {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (preAllocateDmaCcm_ && forceDisableDmaPreAllocate) {
+            preAllocateDmaCcm_ = false;
+            RSCanvasCallbackRouter::GetInstance().UnregisterNode(GetId());
+        }
         if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
             std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
             resetSurfaceIndex_ = GenerateResetSurfaceIndex();
@@ -363,7 +415,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             }
             auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
             RSRenderThread::Instance().PostSyncTask(getBitmapTask);
-            if (!bitmap.IsValid()) {
+            if (bitmap.IsValid()) {
                 return false;
             }
         }
@@ -469,12 +521,13 @@ bool RSCanvasDrawingNode::RenderInClient(Drawing::DrawCmdListPtr drawCmdList)
     if (canvasModifiersDrawAgent == nullptr) {
         return false;
     }
-
-    if (drawCmdList != nullptr && !drawCmdList->IsEmpty()) {
-        std::unique_lock<std::mutex> uiLock(uiContext->uiMutex_);
-        uiContext->uiCV_.wait(uiLock, [uiContext] { return !uiContext->canBlockUIThread_; });
-        canvasModifiersDrawAgent->UpdateCanvasContent(GetId(), drawCmdList);
+    if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
+        return false;
     }
+
+    std::unique_lock<std::mutex> uiLock(uiContext->uiMutex_);
+    uiContext->uiCV_.wait(uiLock, [uiContext] { return !uiContext->canBlockUIThread_; });
+    canvasModifiersDrawAgent->UpdateCanvasContent(GetId(), drawCmdList);
     return true;
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE

@@ -53,10 +53,10 @@ namespace Rosen {
 
 #define TEXT_PRINT_LIMIT(type, level, intervals, canPrint, frequency)                                    \
     do {                                                                                                 \
-        static auto last = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>();   \
+        static auto last = std::chrono::time_point<std::chrono::steady_clock, std::chrono::seconds>();   \
         static uint32_t supressed = 0;                                                                   \
-        static int printCount = 0;                                                                       \
-        auto now = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()); \
+        static uint32_t printCount = 0;                                                                  \
+        auto now = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now()); \
         auto duration = now - last;                                                                      \
         if (duration.count() >= (intervals)) {                                                           \
             last = now;                                                                                  \

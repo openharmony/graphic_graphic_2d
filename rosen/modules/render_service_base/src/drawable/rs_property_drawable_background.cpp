@@ -21,6 +21,7 @@
 #ifdef ROSEN_OHOS
 #include "common/rs_common_tools.h"
 #endif
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -40,10 +41,11 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "vulkan_context/native_buffer_utils.h"
+#include "vulkan_context/rs_vulkan_context.h"
 #endif
 #include "render/rs_drawing_filter.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -98,6 +100,8 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingColorStrategy_ = properties.GetShadowColorStrategy();
     stagingRadius_ = properties.GetShadowRadius();
     stagingDisableSDFBlur_ = properties.GetShadowDisableSDFBlur();
+    stagingClipType_ = properties.GetShadowClipType();
+    stagingRRect_ = properties.GetRRect();
     needSync_ = true;
 
     stagingGeContainer_ = nullptr;
@@ -140,6 +144,8 @@ void RSShadowDrawable::OnSync()
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
     disableSDFBlur_ = stagingDisableSDFBlur_;
+    clipType_ = stagingClipType_;
+    rRect_ = stagingRRect_;
     geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
 }
@@ -160,6 +166,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
+    bool useBoundsClip = !isFilled_ && clipType_ == ShadowClipType::BOUNDS_SHAPE;
     if (geContainer_) {
         geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
@@ -177,12 +184,12 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     }
     if (ROSEN_GNE(elevation_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadow(canvas, path, offsetX_, offsetY_,
-            elevation_, isFilled_, shadowColor);
+            elevation_, isFilled_, shadowColor, useBoundsClip, rRect_);
         return;
     }
     if (ROSEN_GE(radius_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
-            radius_, isFilled_, shadowColor, disableSDFBlur_);
+            radius_, isFilled_, shadowColor, disableSDFBlur_, useBoundsClip, rRect_);
         return;
     }
 }
@@ -350,67 +357,6 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawable::Ptr RSBackgroundNGShaderDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSBackgroundNGShaderDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-};
-
-bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    const auto& shader = properties.GetBackgroundNGShader();
-    if (!shader) {
-        return false;
-    }
-    RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(properties, shader, node.GetId());
-    needSync_ = true;
-    stagingShader_ = shader;
-    stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;
-    return true;
-}
-
-void RSBackgroundNGShaderDrawable::OnSync()
-{
-    if (needSync_ && stagingShader_) {
-        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer);
-        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
-        visualEffectContainer_ = visualEffectContainer;
-        needSync_ = false;
-    }
-    cornerRadius_ = stagingCornerRadius_;
-}
-
-void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect *rect) const
-{
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
-        return;
-    }
-    auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
-    if (effectData != nullptr) {
-        RSTagTracker tag(canvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FROSTEDGLASS_EFFECT);
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-            RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(),
-                visualEffectContainer_, Drawing::GE_SHADER_FROSTED_GLASS_EFFECT,
-                Drawing::GE_SHADER_FROSTED_GLASS_EFFECT_SHAPE);
-            return;
-        }
-        visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
-            effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
-        visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
-    } else {
-        visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
-    }
-    visualEffectContainer_->UpdateCornerRadius(cornerRadius_);
-    visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
-}
-
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -473,8 +419,7 @@ void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
@@ -491,12 +436,15 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
+        auto renderEngineType = canvas.GetRenderEngineType();
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
             nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
-                RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+                vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return nullptr;
         }
@@ -847,7 +795,7 @@ void RSUseEffectDrawable::OnSync()
 
 void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+    if (!RSFilterCacheManager::IsEffectMergeEnabled()) {
         return;
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
@@ -1047,7 +995,7 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         canvas->ClipPath(*clipPath_, Drawing::ClipOp::INTERSECT, true);
     }
     if (renderIntersectWithDRM_) {
-        RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
+        RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
             filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
         return;
     }

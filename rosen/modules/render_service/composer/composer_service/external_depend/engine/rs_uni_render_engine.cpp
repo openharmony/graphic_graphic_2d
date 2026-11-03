@@ -17,6 +17,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "engine/rs_uni_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "info_collection/rs_frame_stats_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_util.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -57,6 +58,10 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     canvas.ConcatMatrix(params.matrix);
     RS_TRACE_NAME_FMT("RSUniRenderEngine::DrawSurfaceNodeWithParams ignoreAlpha[%d]", params.ignoreAlpha);
     if (!params.useCPU) {
+        if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
+            RSFrameStatsCollection::GetInstance().IncrementBySurfaceNode(
+                surfaceDrawable.GetName(), "DrawImageGPUCount");
+        }
 #ifdef RS_ENABLE_TV_PQ_METADATA
         auto& renderParams = surfaceDrawable.GetRenderParams();
         if (renderParams) {
@@ -75,9 +80,17 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 
 void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
+    VideoInfo videoInfo;
+    auto image = CreateImageFromBuffer(canvas, params, videoInfo);
+    if (image == nullptr) {
+        return;
+    }
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
-    DrawImage(canvas, params);
+    bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
+    auto filterMode = needBilinear ? Drawing::FilterMode::LINEAR : Drawing::FilterMode::NEAREST;
+    auto samplingOptions = Drawing::SamplingOptions(filterMode, Drawing::MipmapMode::NONE);
+    DrawImageRect(canvas, image, params, samplingOptions);
     canvas.Restore();
 }
 
@@ -151,7 +164,15 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         // if rotation fixed or use hpae offline, no further scaling will be performed
         bool rotationFixed = layer->GetRotationFixed();
         if (!rotationFixed) {
-            params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
+            // Case 1: DEVICE_GPU sampling with uni-render — GPU has already applied scaling,
+            //         skip ROG post-scale to avoid double scaling
+            // Case 2: Other sampling modes or non-uni-render — apply ROG post-scale normally
+            bool skipRogPostScale = (composerScreenInfo.samplingMode == ScreenSamplingMode::DEVICE_GPU) &&
+                layer->GetUniRenderFlag();
+            if (!skipRogPostScale) {
+                params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(),
+                    composerScreenInfo.GetRogHeightRatio());
+            }
         }
         params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -188,6 +209,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         layerBackgroundColor.r, layerBackgroundColor.g,
         layerBackgroundColor.b, layerBackgroundColor.a
     };
+
     // clip round rect when drm has radius info
     if (!drmCornerRadiusInfo.empty()) {
         auto rect = RectF();

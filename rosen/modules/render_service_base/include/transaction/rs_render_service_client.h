@@ -188,6 +188,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
+    void SetThermalFrameRateLimit(uint32_t frameRate);
+
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate);
 
@@ -213,7 +215,8 @@ public:
     std::string GetRefreshInfoToSP(NodeId id);
     std::string GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId);
 
-    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
 
 #ifndef ROSEN_ARKUI_X
@@ -252,6 +255,8 @@ public:
     MemoryGraphic GetMemoryGraphic(int pid);
 
     std::vector<MemoryGraphic> GetMemoryGraphics();
+    
+    std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid);
 #endif // !ROSEN_ARKUI_X
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
@@ -271,6 +276,10 @@ public:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode);
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
+
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode);
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
@@ -320,6 +329,8 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
 
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
@@ -399,6 +410,11 @@ public:
     bool SetUIMode3D(UIMode3D mode);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
+
+    // Host (UEA) authorizes/revokes a guest (UEC) pid for a UIExtension surface node it owns;
+    // goes through the client-to-service connection, synchronous; the return value reflects
+    // whether the render process accepted and applied the request.
+    bool AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 

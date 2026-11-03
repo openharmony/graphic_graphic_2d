@@ -33,6 +33,7 @@
 #include <iremote_object.h>
 #include <memory>
 #include <mutex>
+#include <set>
 
 #include "animation/rs_animation.h"
 #include "animation/rs_implicit_animator.h"
@@ -94,6 +95,16 @@ public:
     inline const RSNodeMapV2& GetNodeMap() const
     {
         return nodeMap_;
+    }
+
+    /**
+     * @brief Gets the root node ID associated with this context.
+     *
+     * @return The NodeId of the root node.
+     */
+    inline NodeId GetRootNodeId() const
+    {
+        return rootNodeId_;
     }
 
     /**
@@ -231,6 +242,9 @@ public:
      */
     void RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id);
 
+    // Collect node ids that are children of any group animator, so they can be kept alive across background.
+    std::set<NodeId> GetGroupAnimationNodeIds();
+
     void SetColorSpace(GraphicColorGamut colorSpace)
     {
         colorSpace_ = colorSpace;
@@ -263,13 +277,12 @@ private:
     bool DestroyModifiersDraw();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    void SetCacheDir(const std::string& cacheFilePath);
+
     CommitTransactionCallback CreateCommitTransactionCallback();
     void UnblockUIThread();
 
-    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent()
-    {
-        return canvasModifiersDrawAgent_;
-    }
+    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent();
 
     void OnCanvasDrawingNodeUpdate()
     {
@@ -313,6 +326,8 @@ private:
     std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
 
     bool canvasDrawingNodeUpdated_ = false;
+
+    std::string cacheDir_;
 
     std::mutex uiMutex_;
     std::condition_variable uiCV_;

@@ -69,10 +69,11 @@ namespace {
     constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t LOADING_FPS = 30;
-    constexpr const int32_t PERIOD_FPS = 10;
+    constexpr const int32_t STAGE_DURATION_MS = 667;
+    constexpr const int32_t NUM_STAGES = 3;
+    constexpr const int32_t CYCLE_DURATION_MS = STAGE_DURATION_MS * NUM_STAGES;
     constexpr const int32_t CHANGE_FREQ = 4;
-    constexpr const float TEN_FRAME_TIMES = 10.0f;
+    constexpr const int32_t BASE_REFRESH_RATE = 60;
     constexpr const float SHARP_CURVE_CTLX1 = 0.33f;
     constexpr const float SHARP_CURVE_CTLY1 = 0.0f;
     constexpr const float SHARP_CURVE_CTLX2 = 0.67f;
@@ -83,6 +84,13 @@ namespace {
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
     constexpr const int DOUBLE_TIMES = 2;
+    constexpr float POWERED_BY_ASPECT_RATIO = 4.0f;
+    constexpr float POWERED_BY_BOTTOM_RATIO = 0.08f;
+    constexpr float POWERED_BY_WIDTH_PHONE = 0.32f;
+    constexpr float POWERED_BY_WIDTH_OTHER = 0.25f;
+    constexpr float POWERED_BY_WIDTH_WEARABLE = 0.50f;
+    constexpr float DOT_IMAGE_GAP_RATIO = 0.05f;
+    constexpr float MIN_TEXT_DOT_GAP_RATIO = 0.02f;
 }
 
 BootCompileProgress::~BootCompileProgress()
@@ -108,6 +116,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+    refreshRate_ = modeInfo.GetScreenRefreshRate();
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -144,6 +153,11 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
+    if (!rsUIDirector_) {
+        LOGE("rsUIDirector create failed");
+        compileRunner_->Stop();
+        return false;
+    }
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
     if (!rsUIContext) {
         LOGE("rsUIContext is nullptr");
@@ -168,6 +182,11 @@ bool BootCompileProgress::CreateCanvasNode()
     rsUIDirector_->SendMessages();
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
+    if (!rsCanvasNode_) {
+        LOGE("rsCanvasNode create failed");
+        compileRunner_->Stop();
+        return false;
+    }
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     SetFrame();
     rsCanvasNode_->SetBackgroundColor(Rosen::Drawing::Color::COLOR_TRANSPARENT);
@@ -210,7 +229,9 @@ bool BootCompileProgress::RegisterVsyncCallback()
         .userData_ = this,
         .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
-    ret = receiver_->SetVSyncRate(fcb, CHANGE_FREQ);
+    uint32_t baseRefreshRate = (refreshRate_ > 0) ? refreshRate_ : BASE_REFRESH_RATE;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(baseRefreshRate * CHANGE_FREQ / BASE_REFRESH_RATE));
+    ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         compileRunner_->Stop();
         LOGE("set vsync rate failed");
@@ -220,7 +241,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
     startTimeMs_ = GetSystemCurrentTime();
     endTimePredictMs_ = startTimeMs_ + timeLimitSec_ * SEC_MS;
 
-    LOGI("RegisterVsyncCallback success");
+    LOGI("RegisterVsyncCallback success, rate: %{public}u, freq: %{public}d", baseRefreshRate, changeFreq);
     return true;
 }
 
@@ -252,8 +273,8 @@ void BootCompileProgress::DrawCompileProgress()
 {
     UpdateCompileProgress();
 
-    auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(rsCanvasNode_->BeginRecording(windowWidth_,
-        isWearable_ ? HEIGHT_WEARABLE : std::max(windowWidth_, windowHeight_) * HEIGHT_PERCENT));
+    auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(
+        rsCanvasNode_->BeginRecording(frameWidth_, static_cast<int32_t>(frameHeight_)));
     if (canvas == nullptr) {
         LOGE("DrawCompileProgress canvas is null");
         return;
@@ -289,7 +310,7 @@ void BootCompileProgress::DrawCompileProgress()
     canvas->AttachBrush(whiteBrush);
 
     auto textWidth = font.MeasureText(info, strlen(info), Rosen::Drawing::TextEncoding::UTF8, nullptr);
-    float scalarX = windowWidth_ / NUMBER_TWO - textWidth / NUMBER_TWO;
+    float scalarX = (static_cast<float>(frameWidth_) - textWidth) / NUMBER_TWO;
     float scalarY = TEXT_BLOB_OFFSET + textBound->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
     canvas->DetachBrush();
@@ -306,12 +327,12 @@ void BootCompileProgress::DrawCompileProgress()
 
 void BootCompileProgress::DrawCircle(Rosen::Drawing::RecordingCanvas* canvas)
 {
-    int32_t freqNum = times_++;
+    int64_t now = GetSystemCurrentTime();
     for (int i = 0; i < CIRCLE_NUM; i++) {
-        canvas->AttachBrush(DrawProgressPoint(i, freqNum));
-        int pointX = windowWidth_/2.0f + 4 * currentRadius_ * (i - 1);
+        canvas->AttachBrush(DrawProgressPoint(i, now));
+        int pointX = frameWidth_ / 2.0f + 4 * currentRadius_ * (i - 1);
         int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius_;
-        canvas->DrawCircle({pointX, pointY}, currentRadius_);
+        canvas->DrawCircle({ pointX, pointY }, currentRadius_);
         canvas->DetachBrush();
     }
 }
@@ -378,19 +399,23 @@ void BootCompileProgress::SetFrameForRog()
     fontSize_ = TranslateVp2Pixel(rogMin, FONT_SIZE_PHONE);
     currentRadius_ = TranslateVp2Pixel(rogMin, RADIUS);
 
-    rsCanvasNode_->SetFrame(posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT);
+    float frameHeight = rogHeight_ * HEIGHT_PERCENT;
+    rsCanvasNode_->SetFrame(posX, posY, windowWidth_, frameHeight);
+    frameWidth_ = windowWidth_;
+    frameHeight_ = frameHeight;
     LOGI("SetFrame ROG Rect:[%{public}f, %{public}f, %{public}d, %{public}f], fontSize: %{public}d, "
-         "currentRadius: %{public}f", posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT, fontSize_, currentRadius_);
+         "currentRadius: %{public}f",
+        posX, posY, windowWidth_, frameHeight, fontSize_, currentRadius_);
 }
 
-Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
+Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int64_t timeMs)
 {
-    int32_t fpsNo = frameNum % LOADING_FPS;
-    int32_t fpsStage = fpsNo / PERIOD_FPS;
-    float input  = fpsNo % PERIOD_FPS / TEN_FRAME_TIMES;
+    int32_t cyclePos = static_cast<int32_t>(timeMs % CYCLE_DURATION_MS);
+    int32_t stage = cyclePos / STAGE_DURATION_MS;
+    float input = static_cast<float>(cyclePos % STAGE_DURATION_MS) / static_cast<float>(STAGE_DURATION_MS);
 
-    float startOpaCity = OPACITY_ARR[idx][fpsStage][0];
-    float endOpaCity = OPACITY_ARR[idx][fpsStage][1];
+    float startOpaCity = OPACITY_ARR[idx][stage][0];
+    float endOpaCity = OPACITY_ARR[idx][stage][1];
 
     float fraction = sharpCurve_->Interpolate(input);
     float opacity = startOpaCity + (endOpaCity - startOpaCity) * fraction;
@@ -413,7 +438,19 @@ void BootCompileProgress::RecordDeviceType()
     }
 }
 
-void BootCompileProgress::SetSpecialProgressFrame(int32_t maxLength, int32_t screenId)
+float BootCompileProgress::GetPoweredByImageWidth()
+{
+    int32_t shortSide = std::min(windowWidth_, windowHeight_);
+    if (isWearable_) {
+        return shortSide * POWERED_BY_WIDTH_WEARABLE;
+    }
+    if (isOther_) {
+        return shortSide * POWERED_BY_WIDTH_OTHER;
+    }
+    return windowWidth_ * POWERED_BY_WIDTH_PHONE;
+}
+
+void BootCompileProgress::SetSpecialProgressFrame(int32_t screenId)
 {
     auto it = progressConfigsMap_.find(screenId);
     if (it == progressConfigsMap_.end()) {
@@ -422,34 +459,77 @@ void BootCompileProgress::SetSpecialProgressFrame(int32_t maxLength, int32_t scr
     }
     BootAnimationProgressConfig progressConfig = it->second;
     float positionX = progressConfig.progressOffset == -1 ? 0 : progressConfig.progressOffset;
-    float positionY = progressConfig.progressHeight == -1 ? windowHeight_ - maxLength * OFFSET_Y_PERCENT
-        : progressConfig.progressHeight;
-    float frameHeight = progressConfig.progressFrameHeight == -1 ? maxLength * HEIGHT_PERCENT
-        : progressConfig.progressFrameHeight;
+    float frameHeight;
+    if (progressConfig.progressFrameHeight != -1) {
+        frameHeight = progressConfig.progressFrameHeight;
+    } else if (isOther_) {
+        float textDotGap = static_cast<float>(windowHeight_) * MIN_TEXT_DOT_GAP_RATIO;
+        float contentMinHeight = static_cast<float>(TEXT_BLOB_OFFSET) + static_cast<float>(fontSize_) + textDotGap +
+                                 currentRadius_ * DOUBLE_TIMES + static_cast<float>(TEXT_BLOB_OFFSET);
+        frameHeight = std::max(static_cast<float>(windowHeight_) * HEIGHT_PERCENT, contentMinHeight);
+    } else {
+        frameHeight = windowHeight_ * HEIGHT_PERCENT;
+    }
+    float positionY;
+    if (progressConfig.progressHeight != -1) {
+        positionY = progressConfig.progressHeight;
+    } else if (isOther_) {
+        float imageWidth = GetPoweredByImageWidth();
+        float imageHeight = imageWidth / POWERED_BY_ASPECT_RATIO;
+        float imageTopFromBottom = static_cast<float>(windowHeight_) * POWERED_BY_BOTTOM_RATIO + imageHeight;
+        float dotImageGap = static_cast<float>(windowHeight_) * DOT_IMAGE_GAP_RATIO;
+        float frameBottomFromBottom = imageTopFromBottom + dotImageGap;
+        positionY = static_cast<float>(windowHeight_) - frameBottomFromBottom - frameHeight;
+    } else {
+        positionY = windowHeight_ - windowHeight_ * OFFSET_Y_PERCENT;
+    }
     rsCanvasNode_->SetFrame(positionX, positionY, windowWidth_, frameHeight);
+    frameWidth_ = windowWidth_;
+    frameHeight_ = frameHeight;
     fontSize_ = progressConfig.progressFontSize == -1 ? fontSize_ : progressConfig.progressFontSize;
     currentRadius_ = progressConfig.progressRadiusSize == -1 ? currentRadius_ : progressConfig.progressRadiusSize;
     if (progressConfig.progressDegree > 0) {
         rsCanvasNode_->SetRotation(progressConfig.progressDegree);
     }
+    LOGI("SetSpecialProgressFrame Rect:[%{public}f, %{public}f, %{public}d, %{public}f]", positionX, positionY,
+        windowWidth_, frameHeight);
 }
 
 void BootCompileProgress::SetFrame()
 {
     int32_t maxLength = std::max(windowWidth_, windowHeight_);
-    int32_t tempScreenId = screenStatus_ == -1 ? static_cast<int32_t> (screenId_) : screenStatus_;
+    int32_t tempScreenId = screenStatus_ == -1 ? static_cast<int32_t>(screenId_) : screenStatus_;
     if (!progressConfigsMap_.empty() && progressConfigsMap_.find(tempScreenId) != progressConfigsMap_.end()) {
-        SetSpecialProgressFrame(maxLength, tempScreenId);
+        SetSpecialProgressFrame(tempScreenId);
     } else if (isWearable_) {
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
+        frameWidth_ = windowWidth_;
+        frameHeight_ = HEIGHT_WEARABLE;
     } else {
         int32_t rogMaxLen = std::max(rogWidth_, rogHeight_);
         bool isRogMode = rogWidth_ > 0 && rogHeight_ > 0 && rogMaxLen != maxLength;
         if (isRogMode) {
             SetFrameForRog();
+        } else if (isOther_) {
+            float textDotGap = static_cast<float>(windowHeight_) * MIN_TEXT_DOT_GAP_RATIO;
+            float contentMinHeight = static_cast<float>(TEXT_BLOB_OFFSET) + static_cast<float>(fontSize_) +
+                                     textDotGap + currentRadius_ * DOUBLE_TIMES +
+                                     static_cast<float>(TEXT_BLOB_OFFSET);
+            float frameHeight = std::max(static_cast<float>(windowHeight_) * HEIGHT_PERCENT, contentMinHeight);
+            float imageWidth = GetPoweredByImageWidth();
+            float imageHeight = imageWidth / POWERED_BY_ASPECT_RATIO;
+            float imageTopFromBottom = static_cast<float>(windowHeight_) * POWERED_BY_BOTTOM_RATIO + imageHeight;
+            float dotImageGap = static_cast<float>(windowHeight_) * DOT_IMAGE_GAP_RATIO;
+            float frameBottomFromBottom = imageTopFromBottom + dotImageGap;
+            float positionY = static_cast<float>(windowHeight_) - frameBottomFromBottom - frameHeight;
+            rsCanvasNode_->SetFrame(0, positionY, windowWidth_, frameHeight);
+            frameWidth_ = windowWidth_;
+            frameHeight_ = frameHeight;
         } else {
-            rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
-                                    maxLength * HEIGHT_PERCENT);
+            float frameHeight = windowHeight_ * HEIGHT_PERCENT;
+            rsCanvasNode_->SetFrame(0, windowHeight_ - windowHeight_ * OFFSET_Y_PERCENT, windowWidth_, frameHeight);
+            frameWidth_ = windowWidth_;
+            frameHeight_ = frameHeight;
         }
     }
 }

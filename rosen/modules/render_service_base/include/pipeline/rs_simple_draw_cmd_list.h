@@ -150,8 +150,6 @@ private:
     bool noNeedUICaptured_ = false;
 
     std::vector<std::shared_ptr<Drawing::DrawOpItem>> drawOpItems_;
-
-    mutable std::recursive_mutex mutex_;
 };
 
 using SimpleDrawCmdListPtr = std::shared_ptr<RSSimpleDrawCmdList>;

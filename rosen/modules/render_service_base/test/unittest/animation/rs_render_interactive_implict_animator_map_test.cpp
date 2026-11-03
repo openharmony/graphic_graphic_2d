@@ -15,10 +15,12 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -354,6 +356,43 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorMapTest, UpdateGroupAnimators009, Tes
     EXPECT_FALSE(result);
 
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorMapTest UpdateGroupAnimators009 end";
+}
+
+/**
+ * @tc.name: UpdateGroupAnimators010
+ * @tc.desc: Verify running+background group animator does not set hasRunningGroupAnimators
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorMapTest, UpdateGroupAnimators010, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    int64_t minLeftDelayTime = 0;
+    int64_t timestamp = 1000;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1); // infinite -> IsBackground can return true
+    auto animator =
+        std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+    // Set up background condition
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(NODE_ID, context);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    surfaceNode->instanceRootNodeId_ = NODE_ID;
+    context->GetMutableNodeMap().renderNodeMap_[0][NODE_ID] = surfaceNode;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    animation->targetId_ = NODE_ID;
+    animator->cachedAnimations_.emplace_back(animation);
+    animator->state_ = GroupAnimatorState::RUNNING;
+    context->GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+
+    // IsRunning=true && IsBackground=true -> should NOT set hasRunningGroupAnimators
+    bool result = context->GetInteractiveImplictAnimatorMap().UpdateGroupAnimators(timestamp, minLeftDelayTime);
+    EXPECT_FALSE(result);
 }
 
 } // namespace Rosen

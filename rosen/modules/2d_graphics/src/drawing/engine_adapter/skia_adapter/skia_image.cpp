@@ -732,6 +732,9 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
             writer.writeUInt(0);
         } else {
             auto data = pixmap.colorSpace()->serialize();
+            if (data == nullptr) {
+                return nullptr;
+            }
             writer.writeUInt(data->size());
             writer.writeByteArray(data->data(), data->size());
         }

@@ -106,6 +106,7 @@ ohos_unittest("RSNodeCommandTest1") {
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
     "rs_command_factory_test.cpp",
+    "rs_depth_node_command_test.cpp",
     "rs_display_node_command_test.cpp",
     "rs_effect_node_command_test.cpp",
     "rs_frame_rate_linker_command_test.cpp",
@@ -114,6 +115,7 @@ ohos_unittest("RSNodeCommandTest1") {
     "rs_node_showing_command_test.cpp",
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",
+    "rs_spatial_effect_command_test.cpp",
     "rs_surface_node_command_test.cpp",
   ]
 
@@ -149,6 +151,49 @@ ohos_unittest("RSNodeCommandTest1") {
   subsystem_name = "graphic"
 }
 
+##############################  RSDelegateCompositeCommandTest  ##################################
+ohos_unittest("RSDelegateCompositeCommandTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_delegate_composite_command_test.cpp",
+  ]
+
+  configs = [
+    ":render_test",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+  ]
+
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -165,5 +210,6 @@ group("unittest") {
     ":RSAnimationCommandBaseTest",
     ":RSUIDirectorCommandTest",
     ":RSNodeCommandTest1",
+    ":RSDelegateCompositeCommandTest",
   ]
 }

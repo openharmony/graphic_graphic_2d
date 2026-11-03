@@ -29,15 +29,11 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_node_animation_test.cpp",
+    "rs_node_transition_pair_test.cpp",
     "rs_path_animation_test.cpp",
-    "rs_supplement_animation_test.cpp",
-    "rs_timing_curve_animation_test.cpp",
   ]
 
-  include_dirs = [
-    "/graphic_2d/rosen/test/include",
-    "/graphic_2d/utils/log",
-  ]
+  include_dirs = [ "/graphic_2d/rosen/test/include" ]
   configs = [
     ":ui_test",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
@@ -61,7 +57,6 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "hisysevent:libhisysevent",
     "image_framework:image_native",
     "opengles:libGLES",
-    "hilog:libhilog",
     "graphic_surface:surface_static",
   ]
 }

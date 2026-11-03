@@ -19,10 +19,10 @@
 #include <surface.h>
 
 #include "platform/drawing/rs_surface.h"
+#include <render_context/render_context.h>
 
 namespace OHOS {
 namespace Rosen {
-class RenderContext;
 class RSSurfaceOhos : public RSSurface {
 public:
     RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)
@@ -47,7 +47,6 @@ public:
     virtual void SetTimeOut(int32_t timeOut);
 protected:
     sptr<Surface> producer_;
-    std::shared_ptr<RenderContext> context_ = nullptr;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     int32_t pixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;

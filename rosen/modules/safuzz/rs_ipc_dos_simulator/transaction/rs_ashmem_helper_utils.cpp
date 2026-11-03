@@ -30,9 +30,9 @@ std::shared_ptr<MessageParcel> RSAshmemHelperVariant::CreateAshmemParcel(std::sh
 
     size_t dataSize = dataParcel->GetDataSize();
 
-    // if want a full copy of parcel, need to save its data and fds both:
-    // 1. save origin parcel data to ashmeme and record the fd to new parcel
-    // 2. save all fds and their offsets in new parcel
+    // 1. save origin parcel data to a memfd and record the fd to new parcel
+    // 2. save all fds and their offsets in new parcel, erase fd payloads in the memfd copy
+    // 3. seal the memfd so the content is immutable for everyone
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
     if (!ashmemAllocator) {
         SAFUZZ_LOGE("RSAshmemHelperVariant::CreateAshmemParcel failed, ashmemAllocator is nullptr");
@@ -64,8 +64,19 @@ std::shared_ptr<MessageParcel> RSAshmemHelperVariant::CreateAshmemParcel(std::sh
         // save array that record the offsets of all fds
         ashmemParcel->WriteBuffer(
             reinterpret_cast<void*>(dataParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
-        // save all fds of origin parcel
-        RSAshmemHelper::CopyFileDescriptor(ashmemParcel.get(), dataParcel);
+        // save all fds of origin parcel; refuse ashmem parcel for non-fd objects
+        if (!RSAshmemHelper::CopySupportedObjectsToParcel(ashmemParcel.get(), dataParcel)) {
+            SAFUZZ_LOGE("RSAshmemHelperVariant::CreateAshmemParcel: CopySupportedObjectsToParcel failed");
+            return nullptr;
+        }
+        // erase fd payloads in the memfd copy
+        RSAshmemHelper::EraseSupportedObjectsInAshmem(ashmemAllocator->GetData(), *dataParcel);
+    }
+
+    // 3. seal the memfd to keep deep parse paths reachable on the receiver side
+    if (!ashmemAllocator->Seal()) {
+        SAFUZZ_LOGE("RSAshmemHelperVariant::CreateAshmemParcel: Seal failed");
+        return nullptr;
     }
 
     return ashmemParcel;

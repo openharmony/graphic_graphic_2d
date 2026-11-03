@@ -15,7 +15,7 @@
 
 #include "vsync_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "rs_render_service.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -131,6 +131,9 @@ void RSVsyncManager::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType typ
 {
     if (type == ScreenPropertyType::POWER_STATUS) {
         auto prop = static_cast<ScreenProperty<uint32_t>*>(property.GetRefPtr());
+        if (!prop) {
+            return;
+        }
         auto status = static_cast<ScreenPowerStatus>(prop->Get());
         if (vsyncSampler_ != nullptr) {
             vsyncSampler_->ProcessVSyncScreenIdWhilePowerStatusChanged(id, status, handler, isFoldScreen);

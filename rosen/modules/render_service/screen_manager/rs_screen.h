@@ -17,9 +17,7 @@
 #define RS_SCREEN
 
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <shared_mutex>
 #include <unordered_set>
 
 #include <hdi_display_type.h>
@@ -64,7 +62,8 @@ public:
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
 
-    void SetRogResolution(uint32_t width, uint32_t height);
+    void SetRogResolution(uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode);
     int32_t GetRogResolution(uint32_t& width, uint32_t& height);
 
     int32_t SetResolution(uint32_t width, uint32_t height);
@@ -76,6 +75,7 @@ public:
     uint32_t PhyHeight() const;
 
     void DisplayDump(int32_t screenIndex, std::string& dumpString);
+
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval);
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate);
     void SetScreenVsyncEnabled(bool enabled) const;
@@ -96,7 +96,7 @@ public:
     PanelPowerStatus GetPanelPowerStatus() const;
 
     int32_t SetDualScreenState(DualScreenStatus status);
-    int32_t SetAsMainScreen(bool isMainScreen);
+    void SetAsMainScreen(bool isMainScreen);
     bool IsMainScreen() const;
 
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
@@ -113,6 +113,8 @@ public:
 
     int32_t SetScreenColorGamut(int32_t modeIdx);
     int32_t GetScreenColorGamut(ScreenColorGamut& mode) const;
+    int32_t SetVirtualScreenHDRMode(HDRMode mode);
+    int32_t GetVirtualScreenHDRMode(HDRMode& mode) const;
     int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut>& mode) const;
     int32_t SetScreenGamutMap(ScreenGamutMap mode);
     int32_t GetScreenGamutMap(ScreenGamutMap& mode) const;
@@ -130,9 +132,11 @@ public:
     int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
 
     uint32_t SetScreenActiveRect(const Rect& activeRect);
+    RectI GetActiveRect() const;
+    RectI GetMaskRect() const;
+    RectI GetReviseRect() const;
 
     // virtual screen
-
     // Multi-surface virtual screen (for mirror/extend mode with multiple surfaces)
     using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
     void SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs);
@@ -149,7 +153,6 @@ public:
     bool GetVirtualScreenAutoRotation() const;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode);
-    ScreenScaleMode GetScaleMode() const;
 
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus);
 
@@ -177,6 +180,7 @@ public:
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(int32_t gravity);
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
 
     void SetDisablePowerOffRenderControl(bool disable);
     void SetScreenSwitchStatus(bool status);
@@ -231,7 +235,8 @@ private:
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     mutable std::mutex supportedPhysicalHDRFormatsMutex_;
-    std::atomic<bool> specialHDRFormatsInit_ = false;
+    std::mutex surfaceConfigsMutex_;
+    bool specialHDRFormatsInit_ = false;
 
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;

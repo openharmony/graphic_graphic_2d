@@ -78,6 +78,8 @@ protected:
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
     void SetScreenLinearMatrix(const std::vector<float>& matrix);
+    void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect);
+    void SetSkipDelay(bool skipDelay);
 
 private:
     mutable std::recursive_mutex rsLayerTransMutex_;

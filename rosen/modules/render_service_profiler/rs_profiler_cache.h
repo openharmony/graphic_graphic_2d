@@ -17,6 +17,7 @@
 #define RS_PROFILER_CACHE_H
 
 #include <map>
+#include <memory>
 #include <mutex>
 #include <sstream>
 
@@ -38,7 +39,7 @@ public:
     explicit Image() = default;
 
     size_t Size() const;
-    void Serialize(Archive& archive);
+    bool Serialize(Archive& archive);
     bool IsValid() const;
 
 public:
@@ -55,9 +56,10 @@ public:
 class RSB_EXPORT ImageCache final {
 public:
     static uint64_t New();
+    static bool Add(uint64_t id, const std::shared_ptr<Image>& image);
     static bool Add(uint64_t id, Image&& image);
     static bool Exists(uint64_t id);
-    static Image* Get(uint64_t id);
+    static std::shared_ptr<Image> Get(uint64_t id);
     static Image Copy(uint64_t id);
     static size_t Size();
     static size_t Consumption();
@@ -66,19 +68,23 @@ public:
 
     static std::string Dump();
 
-    static void Serialize(Archive& archive);
-    static void Deserialize(Archive& archive);
+    static bool Serialize(Archive& archive);
+    static bool Deserialize(Archive& archive);
 
     // deprecated
-    static void Serialize(FILE* file);
-    static void Deserialize(FILE* file);
-    static void Serialize(std::stringstream& stream);
-    static void Deserialize(std::stringstream& stream);
+    static bool Serialize(FILE* file);
+    static bool Deserialize(FILE* file);
+    static bool Serialize(std::stringstream& stream);
+    static bool Deserialize(std::stringstream& stream);
+
+private:
+    static bool Insert(uint64_t id, const std::shared_ptr<Image>& image);
+    static void Clear();
 
 private:
     static std::atomic_uint64_t id_;
     static std::mutex mutex_;
-    static std::map<uint64_t, Image> cache_;
+    static std::map<uint64_t, std::shared_ptr<Image>> cache_;
     static std::atomic_size_t consumption_;
 };
 

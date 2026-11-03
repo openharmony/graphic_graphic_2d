@@ -55,6 +55,7 @@ ohos_unittest("RSCanvasCallbackRouterTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -97,10 +98,12 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
     "c_utils:utils",
     "egl:libEGL",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -137,6 +140,44 @@ ohos_unittest("RSCanvasNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
+    "opengles:libGLES",
+  ]
+}
+
+##############################  RSRenderServiceClientTest  ##################################
+ohos_unittest("RSDepthNodeTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_depth_node_test.cpp" ]
+
+  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+
+  configs = [
+    ":ui_test",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+  ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -174,6 +215,7 @@ ohos_unittest("RSDisplayNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -210,6 +252,7 @@ ohos_unittest("RSEffectNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -250,6 +293,10 @@ ohos_unittest("RSNodeTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+    "memmgr:memmgrclient",
+    "init:libbegetutil",
   ]
 }
 
@@ -285,6 +332,7 @@ ohos_unittest("RSProxyNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -321,6 +369,7 @@ ohos_unittest("RSRootNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -356,6 +405,7 @@ ohos_unittest("RSSurfaceExtractorTest") {
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "init:libbegetutil",
     "image_framework:image_native",
     "opengles:libGLES",
   ]
@@ -431,6 +481,7 @@ ohos_unittest("RSTextureExportTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -470,6 +521,7 @@ ohos_unittest("RSUIContextTest") {
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 }
 
@@ -517,6 +569,7 @@ ohos_unittest("RSUIDirectorTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "init:libbegetutil",
   ]
 }
 
@@ -552,6 +605,7 @@ ohos_unittest("RSUnionNodeTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -588,6 +642,7 @@ ohos_unittest("RSNodeDumpTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "init:libbegetutil",
     "opengles:libGLES",
   ]
 }
@@ -608,6 +663,7 @@ group("unittest") {
     ":RSCanvasCallbackRouterTest",
     ":RSCanvasDrawingNodeTest",
     ":RSCanvasNodeTest",
+    ":RSDepthNodeTest",
     ":RSDisplayNodeTest",
     ":RSEffectNodeTest",
     # ":RSNodeTest",

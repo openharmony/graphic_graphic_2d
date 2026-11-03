@@ -197,7 +197,7 @@ T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char
     }
     napi_value& resObject = propertyNameValue ? propertyNameValue : object;
     if (resObject) {
-        return napi_unwrap(env, resObject, (void **)(&pointerValue)) == napi_ok ?
+        return napi_unwrap_s(env, resObject, &T::NAPI_TYPE_TAG, (void **)(&pointerValue)) == napi_ok ?
             reinterpret_cast<T*>(pointerValue) : nullptr;
     }
     return nullptr;
@@ -218,7 +218,7 @@ T* CheckSendableParamsAndGetThis(const napi_env env, napi_callback_info info, co
     }
     napi_value& resObject = propertyNameValue ? propertyNameValue : object;
     if (resObject) {
-        return napi_unwrap_sendable(env, resObject, (void **)(&pointerValue)) == napi_ok ?
+        return napi_unwrap_sendable_s(env, resObject, &T::NAPI_TYPE_TAG, (void **)(&pointerValue)) == napi_ok ?
             reinterpret_cast<T*>(pointerValue) : nullptr;
     }
     return nullptr;

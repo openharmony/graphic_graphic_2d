@@ -137,14 +137,8 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
             AddCommand(command, isWindow);
         }
 #ifdef ROSEN_OHOS
-        if (rsUIContext != nullptr) {
-            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-                GetId(), rsUIContext->GetConnectToRender());
-            AddCommand(command, isWindow);
-        } else {
-            ROSEN_LOGE("RSSurfaceNode::SendDataToRender,"
-                "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
-        }
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+        AddCommand(command, isWindow);
 #endif
 
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
@@ -275,9 +269,8 @@ void RSSurfaceNode::CreateNodeInRenderThread()
         AddCommand(command, false);
 
 #ifdef ROSEN_OHOS
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-        GetId(), GetRSUIContext()->GetConnectToRender());
-    AddCommand(command, false);
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+        AddCommand(command, false);
 #endif
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
@@ -460,8 +453,7 @@ void RSSurfaceNode::CreateRenderNodeForTextureExportSwitch()
     AddCommand(command, IsRenderServiceNode());
     if (!IsRenderServiceNode()) {
         hasCreateRenderNodeInRT_ = true;
-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-            GetId(), GetRSUIContext()->GetConnectToRender());
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
         AddCommand(command, false);
 
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
@@ -494,6 +486,7 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
     if (!isTextureExportNode_) {
         SetIsTextureExportNode(isTextureExportNode);
         DoFlushModifier();
+        SetUIContextToken();
         return;
     }
     CreateRenderNodeForTextureExportSwitch();
@@ -677,6 +670,7 @@ template<typename Modifier, typename ValueType>
 std::shared_ptr<ModifierNG::RSModifier> RSSurfaceNode::CreateShadowModifierAndProperty(
     SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType)
 {
+    std::unique_lock<std::recursive_mutex> lock(shadowNode->propertyMutex_);
     auto srcModifier = GetModifierCreatedBySetter(Modifier::Type);
     if (srcModifier == nullptr) {
         RS_LOGE("RSSurfaceNode::CreateShadowModifierAndProperty, no source modifier, nodeId=%{public}" PRIu64
@@ -695,7 +689,6 @@ std::shared_ptr<ModifierNG::RSModifier> RSSurfaceNode::CreateShadowModifierAndPr
         shadowModifier = std::make_shared<Modifier>();
         shadowModifier->id_ = srcModifier->GetId();
         shadowModifier->OnAttach(*shadowNode);
-        std::unique_lock<std::recursive_mutex> lock(shadowNode->propertyMutex_);
         shadowNode->modifiersNG_.emplace(shadowModifier->GetId(), shadowModifier);
         shadowNode->modifiersNGCreatedBySetter_.emplace(shadowModifier->GetType(), shadowModifier);
     }
@@ -919,6 +912,15 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     });
 }
 
+void RSSurfaceNode::SetSolidLayerEnabled(bool isEnabled)
+{
+    RS_TRACE_NAME_FMT("SetSolidLayerEnabled id:%" PRIu64 " enabled:%d", GetId(), isEnabled);
+    ROSEN_LOGI("SetSolidLayerEnabled id:%{public}" PRIu64 " enabled:%{public}d", GetId(), isEnabled);
+    SetRSCmdProperty<SolidLayerEnabledCmdModifier>(SolidLayerEnabledCmdParam{
+        isEnabled
+    });
+}
+
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     SetRSCmdProperty<ForceHardwareAndFixRotationCmdModifier>(ForceHardwareAndFixRotationCmdParam{
@@ -1119,9 +1121,15 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
 
 void RSSurfaceNode::SetAncoFlags(uint32_t flags)
 {
+    ancoFlags_.store(flags);
     SetRSCmdProperty<AncoFlagsCmdModifier>(AncoFlagsCmdParam{
         flags
     });
+}
+
+uint32_t RSSurfaceNode::GetAncoFlags() const
+{
+    return ancoFlags_.load();
 }
 
 void RSSurfaceNode::SetSkipDraw(bool skip)
@@ -1488,14 +1496,8 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
         AddCommand(command, isWindow);
     }
 #ifdef ROSEN_OHOS
-    auto uiContext = GetRSUIContext();
-    if (LIKELY(uiContext != nullptr)) {
-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
-        uiContext->GetConnectToRender());
-        AddCommand(command, isWindow);
-    } else {
-        ROSEN_LOGE("RSSurfaceNode::CreateRenderThreadNode rsUIContext is nullptr");
-    }
+    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+    AddCommand(command, isWindow);
 #endif
     RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
     command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
@@ -1572,20 +1574,20 @@ GSError RSSurfaceNode::ReleaseBuffer(uint32_t sequence, sptr<SyncFence> fence)
     return delegateCompositeBufMgr_->ReleaseBuffer(sequence, fence);
 }
 
-void RSSurfaceNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateDstRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateDstRect(x, y, w, h);
 }
 
-void RSSurfaceNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+void RSSurfaceNode::SetDelegateSrcRect(float x, float y, float w, float h)
 {
     if (!delegateCompositeBufMgr_) {
         return;
     }
-    delegateCompositeBufMgr_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+    delegateCompositeBufMgr_->SetDelegateSrcRect(x, y, w, h);
 }
 
 bool RSSurfaceNode::SetDelegateMode(bool isDelegateMode)

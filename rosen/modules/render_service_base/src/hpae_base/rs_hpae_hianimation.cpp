@@ -242,7 +242,7 @@ int32_t HianimationManager::HianimationAlgoDeInit()
     }
 
     RS_OPTIONAL_TRACE_NAME("Hianimation: HianimationAlgoDeInit");
-    HPAE_LOGI("HianimationAlgoDeInit");
+    HPAE_LOGD("HianimationAlgoDeInit");
 
     for (auto taskId : taskIdMap_) {
         HPAE_LOGW("force destroy task: %d", taskId);

@@ -41,6 +41,9 @@ protected:
     /* specify exclusive verification rules here */
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
+    /* specify feature verification rules here (e.g., profiler feature gate) */
+    bool IsFeatureVerificationPassed(CodeUnderlyingType code) override;
+
 private:
     DISALLOW_COPY_AND_MOVE(RSIClientToServiceConnectionInterfaceCodeAccessVerifier);
 #ifdef ENABLE_IPC_SECURITY

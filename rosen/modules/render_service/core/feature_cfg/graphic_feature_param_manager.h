@@ -69,6 +69,8 @@
 #include "ui_capture_param.h"
 #include "image_enhance_param_parse.h"
 #include "image_enhance_param.h"
+#include "tunnel_layer_param_parse.h"
+#include "tunnel_layer_param.h"
 #include "video_metadata_param_parse.h"
 #include "video_metadata_param.h"
 #include "smart_cache_param_parse.h"
@@ -87,12 +89,14 @@
 #include "background_rebuild_param_parse.h"
 #include "background_rebuild_param.h"
 
+
 namespace OHOS::Rosen {
 struct ModuleConfig {
     std::string name;
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
+
 
 class GraphicFeatureParamManager : public RefBase {
 public:

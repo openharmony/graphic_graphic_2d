@@ -259,6 +259,9 @@ std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() co
 void RSSubThreadManager::ScheduleRenderNodeDrawable(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
+    if (threadList_.empty()) {
+        return;
+    }
     if (UNLIKELY(!nodeDrawable)) {
         RS_LOGE("ScheduleRenderNodeDrawable nodeDrawable nullptr");
         return;

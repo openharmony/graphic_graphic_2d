@@ -54,6 +54,8 @@ lb_include_dirs = [
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
   "$graphic_2d_root/rosen/modules/render_service",
   "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+  "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
   "$graphic_2d_root/rosen/modules/render_service_base/include",
   "$graphic_2d_root/rosen/modules/render_service_base/src",
   "$graphic_2d_root/rosen/modules/utils",
@@ -62,6 +64,7 @@ lb_include_dirs = [
 lb_core_deps = [
   "$graphic_2d_root/rosen/modules/composer:libcomposer",
   "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  "$graphic_2d_root/rosen/modules/render_service:librender_service",
   "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
 ]

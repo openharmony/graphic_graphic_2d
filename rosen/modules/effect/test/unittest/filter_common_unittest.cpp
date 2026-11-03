@@ -422,5 +422,57 @@ HWTEST_F(FilterCommonUnittest, FilterCommon_AddNextFilterLimit, TestSize.Level1)
     filter->AddNextFilter(extraBlur);
     ASSERT_TRUE(filter->effectFilters_.size() == FilterCommon::MAX_FILTER_COUNT);
 }
+
+/**
+ * @tc.name: FilterCommon_SetMapColorByBrightness
+ * @tc.desc: Create a mapColorByBrightness effect filter with valid params.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_SetMapColorByBrightness, TestSize.Level1)
+{
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(filter != nullptr);
+
+    std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.5f, 1.0f}};
+    std::vector<float> positions = {0.0f, 1.0f};
+    ASSERT_TRUE(filter->SetMapColorByBrightness(colors, positions) == true);
+}
+
+/**
+ * @tc.name: FilterCommon_SetMapColorByBrightnessNullConstructor
+ * @tc.desc: Ensure SetMapColorByBrightness returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_SetMapColorByBrightnessNullConstructor, TestSize.Level1)
+{
+    FilterCommon::sConstructor_ = nullptr;
+    std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}};
+    std::vector<float> positions = {0.5f};
+    ASSERT_TRUE(FilterCommon::SetMapColorByBrightness(colors, positions) == false);
+}
+
+/**
+ * @tc.name: FilterCommon_SetMapColorByBrightnessInvalidParams
+ * @tc.desc: Ensure SetMapColorByBrightness returns false when params are invalid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_SetMapColorByBrightnessInvalidParams, TestSize.Level1)
+{
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(filter != nullptr);
+
+    std::vector<Vector4f> emptyColors;
+    std::vector<float> emptyPositions;
+    ASSERT_TRUE(filter->SetMapColorByBrightness(emptyColors, emptyPositions) == false);
+    ASSERT_TRUE(filter->effectFilters_.empty());
+
+    std::vector<Vector4f> colors = {{1.0f, 0.0f, 0.5f, 1.0f}};
+    std::vector<float> mismatchedPositions = {0.0f, 1.0f};
+    ASSERT_TRUE(filter->SetMapColorByBrightness(colors, mismatchedPositions) == false);
+}
 } // namespace Rosen
 } // namespace OHOS

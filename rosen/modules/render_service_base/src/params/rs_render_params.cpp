@@ -168,24 +168,6 @@ void RSRenderParams::SetChildHasVisibleEffect(bool val)
     needSync_ = true;
 }
 
-void RSRenderParams::SetCacheSize(Vector2f size)
-{
-    if (!renderGroupCache_) {
-        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
-    }
-    if (renderGroupCache_ && renderGroupCache_->SetCacheSize(size)) {
-        needSync_ = true;
-    }
-}
-
-Vector2f RSRenderParams::GetCacheSize() const
-{
-    if (renderGroupCache_) {
-        return renderGroupCache_->GetCacheSize();
-    }
-    return Vector2f();
-}
-
 void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced)
 {
     if (lastFrameSynced) {
@@ -385,17 +367,19 @@ bool RSRenderParams::IsRenderGroupIncludeProperty() const
     return false;
 }
 
-void RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
+bool RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
 {
     if (GetRSFreezeFlag() == freezeFlag) {
-        return;
+        return false;
     }
     if (!renderGroupCache_) {
         renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
-    if (renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
+    if (renderGroupCache_ && renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
         needSync_ = true;
+        return true;
     }
+    return false;
 }
 
 bool RSRenderParams::GetRSFreezeFlag() const
@@ -689,6 +673,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetPtr->hasSandBox_ = hasSandBox_;
     targetPtr->localDrawRect_ = localDrawRect_;
     targetPtr->id_ = id_;
+    targetPtr->cacheSize_ = cacheSize_;
     targetPtr->frameGravity_ = frameGravity_;
     targetPtr->childHasVisibleFilter_ = childHasVisibleFilter_;
     targetPtr->childHasVisibleEffect_ = childHasVisibleEffect_;
@@ -697,7 +682,11 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetPtr->isDrawingCacheChanged_ = targetPtr->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     targetPtr->shadowRect_ = shadowRect_;
     if (renderGroupCache_) {
-        targetPtr->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+        if (targetPtr->renderGroupCache_ == nullptr) {
+            targetPtr->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+        } else {
+            *targetPtr->renderGroupCache_ = *renderGroupCache_;
+        }
     }
     targetPtr->isRepaintBoundary_ = isRepaintBoundary_;
     targetPtr->alphaOffScreen_ = alphaOffScreen_;

@@ -129,6 +129,8 @@ public:
 
     virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
 
+    virtual sptr<IRemoteObject> GetDisplayEngineControl() = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
@@ -158,6 +160,8 @@ public:
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
 
+    virtual void SetThermalFrameRateLimit(uint32_t frameRate) = 0;
+
     virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) = 0;
 
@@ -181,7 +185,8 @@ public:
     virtual ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) = 0;
     virtual ErrCode GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId, std::string& enable) = 0;
 
-    virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+    virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+        ScreenSamplingMode samplingMode) = 0;
     virtual int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) = 0;
 
     virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
@@ -222,6 +227,8 @@ public:
 
     virtual ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) = 0;
 
+    virtual std::vector<MemoryGraphic> GetMemoryGraphicsByRenderPid(int32_t renderPid) = 0;
+
     virtual ErrCode GetScreenBacklight(uint64_t id, int32_t& level) = 0;
 
     virtual void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) = 0;
@@ -238,6 +245,10 @@ public:
     virtual int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) = 0;
 
     virtual int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) = 0;
+
+    virtual int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) = 0;
+
+    virtual int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) = 0;
 
     virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
 
@@ -286,6 +297,8 @@ public:
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
+
+    virtual void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) = 0;
 
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
@@ -378,6 +391,11 @@ public:
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
 
+    // Host (UEA) authorizes/revokes a guest (UEC) pid for a UIExtension surface node it owns;
+    // render_service forwards it to the render process. Synchronous: the return value reflects
+    // whether the render process accepted and applied the request.
+    virtual int32_t AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized) = 0;
+
     virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
 
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
@@ -420,8 +438,6 @@ public:
     virtual RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
-
-    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) = 0;
 
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 

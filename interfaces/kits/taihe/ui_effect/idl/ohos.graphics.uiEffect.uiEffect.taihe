@@ -18,6 +18,7 @@
 
 from ohos.graphics.uiEffect use BrightnessBlenderParam;
 from ohos.multimedia.image.image use PixelMap;
+from ohos.graphics.drawing use AtlasImage;
 
 @!sts_inject("""
 static { loadLibrary("uieffect_taihe_native.z"); }
@@ -90,6 +91,15 @@ struct Color {
   alpha: f64;
 }
 
+struct WarpedRingParam {
+  radius: f64;
+  baseHalfWidth: f64;
+  widthVariation: f64;
+  rotateAngle: f64;
+  rotate3DProgress: f64;
+  noiseEvolution: f64;
+}
+
 struct LiquidMaterialEffectParam {
   enable : bool;
   distortProgress : f64;
@@ -141,6 +151,9 @@ interface Filter {
     @optional bloom: Optional<bool>): Filter;
   ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
     @optional alphaMask: Optional<Mask>): Filter;
+  SpinBlur(center: @sts_type("common2D.Point") Opaque, angle: f64, samples: i32): Filter;
+  HaloBloom(tintColor: Color, bloomFactor: f64, glowExposure: f64): Filter;
+  MapColorByBrightness(colors: Array<Color>, positions: Array<f64>): Filter;
   getNativePtr(): i64;
 }
 
@@ -151,6 +164,9 @@ interface Mask {
 @static("Mask")
 function CreateRippleMask(center: @sts_type("common2D.Point") Opaque, radius: f64, width: f64,
   @optional offset: Optional<f64>): Mask;
+
+@static("Mask")
+function CreateWarpedRingMask(ringParam: WarpedRingParam): Mask;
 
 @static("Mask")
 @rename("createPixelMapMask")
@@ -172,6 +188,81 @@ function CreateRadialGradientMask(center: @sts_type("common2D.Point") Opaque, ra
 @static("Mask")
 function CreateUseEffectMask(useEffect: bool): Mask;
 
+@static("Mask")
+function CreateBinocularMask(radiusX: f64, radiusY: f64, gap: f64, softness: f64): Mask;
+
+@static("Mask")
+function CreateFractalGlassMask(glassNum: i32, glassStrength: f64, glassSoftness: f64, isSymmetric: bool,
+  @optional refractMask: Optional<PixelMap>): Mask;
+
+enum PrismShapeType: i32 {
+  ROUNDED_RECT = 0,
+  ELLIPSE = 1
+}
+
+struct SweepRefractionParam {
+  maskRadius: f64;
+  edgeThickness: f64;
+  refractAmount: f64;
+  rippleWidth: f64;
+  sweepOffset: f64;
+  chromaDelta: f64;
+}
+
+struct SweepRefractionMaskOptions {
+  @optional shapeType: Optional<PrismShapeType>;
+  @optional cornerRadius: Optional<f64>;
+  @optional prismWidth: Optional<f64>;
+  @optional prismHeight: Optional<f64>;
+  @optional sweepCenterX: Optional<f64>;
+  @optional sweepCenterY: Optional<f64>;
+}
+
+@static("Mask")
+function CreateSweepRefractionMask(param: SweepRefractionParam,
+  @optional options: Optional<SweepRefractionMaskOptions>): Mask;
+
+@static("Mask")
+function CreateAtlasFrameMask(atlasImage: AtlasImage): Mask;
+
+struct GlassMarbleMaterialParam {
+  averageBgColor : Color;
+  opacity : f64;
+  shapeScale : f64;
+  shadowOffset : f64;
+  shadowRadius : f64;
+  shadowEdgeSoftness : f64;
+  shadowOpacity : f64;
+  causticOffset : f64;
+  causticRadius : f64;
+  causticEdgeSoftness : f64;
+  causticOpacity : f64;
+  @optional reflectionMap : Optional<PixelMap>;
+}
+
+@tuple
+struct GlassMarbleSphereCenter {
+  x: f64;
+  y: f64;
+}
+
+struct GlassMarbleSphereParam {
+  center : GlassMarbleSphereCenter;
+  radius : f64;
+}
+
+union GlassMarbleShell {
+  mask: Mask;
+  sphereParam: GlassMarbleSphereParam;
+}
+
+struct GlassMarbleContentParam {
+  @optional contentMask : Optional<Mask>;
+  contentTintColor : Color;
+  contentScale : f64;
+  contentSaturation : f64;
+  contentDispersion : f64;
+}
 
 interface VisualEffect {
   BackgroundColorBlender(blender: BrightnessBlender): VisualEffect;
@@ -181,6 +272,9 @@ interface VisualEffect {
     lightIntensity: f64, borderWidth: f64): VisualEffect;
   LiquidMaterial(param : LiquidMaterialEffectParam, useEffectMask: Mask, @optional distortMask: Optional<Mask>,
     @optional brightnessParam: Optional<BrightnessParam>): VisualEffect;
+  GlassMarbleEffect(material: GlassMarbleMaterialParam,
+    marbleShell: GlassMarbleShell,
+    @optional content: Optional<GlassMarbleContentParam>): VisualEffect;
   getNativePtr(): i64;
 }
 

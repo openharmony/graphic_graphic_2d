@@ -22,10 +22,12 @@
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "tool_napi/js_tool.h"
 #endif
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsTypeface::constructor_ = nullptr;
+thread_local std::shared_ptr<Typeface> JsTypeface::drawingTypeface_ = nullptr;
 const std::string CLASS_NAME = "Typeface";
 napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
 {
@@ -38,7 +40,6 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("makeFromFileWithArguments", JsTypeface::MakeFromFileWithArguments),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFile", JsTypeface::MakeFromRawFile),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFileWithArguments", JsTypeface::MakeFromRawFileWithArguments),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsTypeface::TypefaceTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -74,9 +75,14 @@ napi_value JsTypeface::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsTypeface *jsTypeface = new JsTypeface(JsTypeface::GetZhCnTypeface());
+    std::shared_ptr<Typeface> typeface = drawingTypeface_;
+    if (typeface == nullptr) {
+        typeface = JsTypeface::GetZhCnTypeface();
+    }
 
-    status = napi_wrap(env, jsThis, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+    JsTypeface *jsTypeface = new JsTypeface(typeface);
+
+    status = napi_wrap_s(env, jsThis, jsTypeface, JsTypeface::Destructor, nullptr, &TYPEFACE_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsTypeface;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -133,32 +139,24 @@ napi_value JsTypeface::CreateJsTypefaceWithCache(napi_env env, const std::shared
 
 napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Typeface> typeface)
 {
+    if (typeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::CreateJsTypeface typeface is nullptr!");
+        return nullptr;
+    }
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsTypeface::CreateJsTypeface get reference value failed!");
         return nullptr;
     }
+    drawingTypeface_ = typeface;
     napi_value result = nullptr;
-    napi_create_object(env, &result);
-    if (result == nullptr) {
-        ROSEN_LOGE("JsTypeface::CreateJsTypeface create object failed!");
-        return nullptr;
-    }
-    JsTypeface* jsTypeface = new JsTypeface(typeface);
-    status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+    status = napi_new_instance(env, constructor, 0, nullptr, &result);
+    drawingTypeface_ = nullptr;
     if (status != napi_ok) {
-        delete jsTypeface;
-        ROSEN_LOGE("JsTypeface::CreateJsTypeface failed to wrap native instance");
+        ROSEN_LOGE("JsTypeface::CreateJsTypeface new instance failed");
         return nullptr;
     }
-    napi_property_descriptor resultFuncs[] = {
-        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
-        DECLARE_NAPI_FUNCTION("makeFromCurrent", JsTypeface::MakeFromCurrent),
-        DECLARE_NAPI_FUNCTION("isBold", JsTypeface::IsBold),
-        DECLARE_NAPI_FUNCTION("isItalic", JsTypeface::IsItalic),
-    };
-    napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return result;
 }
 
@@ -183,7 +181,7 @@ std::shared_ptr<Typeface> JsTypeface::GetZhCnTypeface()
 
 napi_value JsTypeface::GetFamilyName(napi_env env, napi_callback_info info)
 {
-    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    JsTypeface* me = CheckParamsAndGetThisWithTag<JsTypeface>(env, info, &TYPEFACE_TYPE_TAG);
     return (me != nullptr) ? me->OnGetFamilyName(env, info) : nullptr;
 }
 
@@ -191,7 +189,8 @@ napi_value JsTypeface::OnGetFamilyName(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
 
     auto name = m_typeface->GetFamilyName();
@@ -206,7 +205,8 @@ napi_value JsTypeface::ConvertTypefaceToJsValue(napi_env env, JsTypeface* typefa
         ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue Create Typeface failed!");
         return nullptr;
     }
-    napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
+    napi_status status = napi_wrap_s(env, jsObj, typeface, JsTypeface::Destructor,
+        nullptr, &TYPEFACE_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue failed to wrap native instance");
         return nullptr;
@@ -223,7 +223,7 @@ napi_value JsTypeface::ConvertTypefaceToJsValue(napi_env env, JsTypeface* typefa
 
 napi_value JsTypeface::MakeFromCurrent(napi_env env, napi_callback_info info)
 {
-    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    JsTypeface* me = CheckParamsAndGetThisWithTag<JsTypeface>(env, info, &TYPEFACE_TYPE_TAG);
     return (me != nullptr) ? me->OnMakeFromCurrent(env, info) : nullptr;
 }
 
@@ -231,12 +231,13 @@ napi_value JsTypeface::OnMakeFromCurrent(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     JsTypeFaceArguments* jsTypefaceArguments = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsTypefaceArguments);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsTypefaceArguments, &TYPEFACE_ARGUMENTS_TYPE_TAG);
 
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
@@ -312,7 +313,7 @@ napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_inf
     GET_JSVALUE_PARAM(ARGC_ZERO, text);
 
     JsTypeFaceArguments* jsTypefaceArguments = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsTypefaceArguments);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsTypefaceArguments, &TYPEFACE_ARGUMENTS_TYPE_TAG);
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
 
@@ -362,7 +363,8 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
         !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile get rawfilebuffer failed!");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. Failed to obtain the resourceinfo object or the rawfilebuffer");
     }
 
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
@@ -402,11 +404,12 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
     if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
         !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
             ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments get rawfilebuffer failed.");
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter error. Failed to obtain the resourceinfo object or the rawfilebuffer");
     }
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
     JsTypeFaceArguments* jsTypefaceArguments = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsTypefaceArguments);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsTypefaceArguments, &TYPEFACE_ARGUMENTS_TYPE_TAG);
     FontArguments fontArguments;
     JsTypeFaceArguments::ConvertToFontArguments(jsTypefaceArguments->GetTypeFaceArgumentsHelper(), fontArguments);
 
@@ -438,32 +441,9 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
 #endif
 }
 
-napi_value JsTypeface::TypefaceTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Typeface> typeface = *reinterpret_cast<std::shared_ptr<Typeface>*>(addr);
-    if (typeface == nullptr) {
-        return nullptr;
-    }
-    return CreateJsTypeface(env, typeface);
-}
-
 napi_value JsTypeface::IsBold(napi_env env, napi_callback_info info)
 {
-    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    JsTypeface* me = CheckParamsAndGetThisWithTag<JsTypeface>(env, info, &TYPEFACE_TYPE_TAG);
     return (me != nullptr) ? me->OnIsBold(env, info) : nullptr;
 }
 
@@ -471,7 +451,8 @@ napi_value JsTypeface::OnIsBold(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
     auto result = m_typeface->GetBold();
     return CreateJsValue(env, result);
@@ -479,7 +460,7 @@ napi_value JsTypeface::OnIsBold(napi_env env, napi_callback_info info)
 
 napi_value JsTypeface::IsItalic(napi_env env, napi_callback_info info)
 {
-    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    JsTypeface* me = CheckParamsAndGetThisWithTag<JsTypeface>(env, info, &TYPEFACE_TYPE_TAG);
     return (me != nullptr) ? me->OnIsItalic(env, info) : nullptr;
 }
 
@@ -487,7 +468,8 @@ napi_value JsTypeface::OnIsItalic(napi_env env, napi_callback_info info)
 {
     if (m_typeface == nullptr) {
         ROSEN_LOGE("[NAPI]typeface is null");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter error. The Typeface object is invalid.");
     }
 
     auto result = m_typeface->GetItalic();

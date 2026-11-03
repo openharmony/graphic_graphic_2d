@@ -28,6 +28,27 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockRenderProcessManager : public RSRenderProcessManager {
+public:
+    explicit MockRenderProcessManager(RSRenderService& renderService) : RSRenderProcessManager(renderService) {}
+    ~MockRenderProcessManager() noexcept override = default;
+
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId) const override { return nullptr; }
+    std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override { return {}; }
+    sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId) const override { return nullptr; }
+    sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByPid(pid_t pid) const override { return nullptr; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t) override { return nullptr; }
+
+    sptr<IRemoteObject> OnScreenConnected(ScreenId, const std::shared_ptr<HdiOutput>&,
+        const sptr<RSScreenProperty>&) override { return nullptr; }
+    void OnScreenDisconnected(ScreenId) override {}
+    void OnScreenPropertyChanged(ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&) override {}
+    void OnScreenRefresh(ScreenId) override {}
+    void OnVirtualScreenConnected(ScreenId, ScreenId, const sptr<RSScreenProperty>&) override {}
+    void OnVirtualScreenDisconnected(ScreenId) override {}
+};
+}
 class RSRenderServiceStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -136,6 +157,24 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub005, TestSize.Level1)
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
     int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceStub006
+ * @tc.desc: Test if the code is denied by the interface code access gate.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(0xFFFF);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**

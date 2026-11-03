@@ -33,6 +33,7 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateJsPath(napi_env env, std::shared_ptr<Path> path);
+    static napi_value CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path);
     static napi_value MoveTo(napi_env env, napi_callback_info info);
     static napi_value LineTo(napi_env env, napi_callback_info info);
     static napi_value ArcTo(napi_env env, napi_callback_info info);
@@ -80,7 +81,6 @@ public:
     static napi_value Interpolate(napi_env env, napi_callback_info info);
     static napi_value IsEqual(napi_env env, napi_callback_info info);
     static napi_value IsInterpolate(napi_env env, napi_callback_info info);
-    static napi_value PathTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsInverseFillType(napi_env env, napi_callback_info info);
     static napi_value ToggleInverseFillType(napi_env env, napi_callback_info info);
     static napi_value GetLastPoint(napi_env env, napi_callback_info info);
@@ -142,7 +142,6 @@ private:
     napi_value OnToggleInverseFillType(napi_env env, napi_callback_info info);
     napi_value OnGetLastPoint(napi_env env, napi_callback_info info);
     napi_value OnIsEqual(napi_env env, napi_callback_info info);
-    static napi_value CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Path> m_path = nullptr;

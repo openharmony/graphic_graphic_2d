@@ -45,7 +45,6 @@ RSSimpleDrawCmdList::RSSimpleDrawCmdList() = default;
 Drawing::DrawCmdListPtr RSSimpleDrawCmdList::ConvertToDrawCmdList() const
 {
     auto recordingCanvas_ = ExtendRecordingCanvas::Obtain(width_, height_, true);
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!drawOpItems_.empty()) {
         Drawing::Rect tmpRect(0, 0, width_, height_);
         for (auto op : drawOpItems_) {
@@ -67,7 +66,6 @@ RSSimpleDrawCmdList::RSSimpleDrawCmdList(
 
 std::vector<std::shared_ptr<Drawing::DrawOpItem>> RSSimpleDrawCmdList::GetDrawOpItems() const
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     std::vector<std::shared_ptr<Drawing::DrawOpItem>> drawOpItems(drawOpItems_);
     return drawOpItems;
 }
@@ -75,32 +73,29 @@ std::vector<std::shared_ptr<Drawing::DrawOpItem>> RSSimpleDrawCmdList::GetDrawOp
 Drawing::RectF RSSimpleDrawCmdList::GetCmdlistDrawRegion()
 {
     Drawing::Rect cmdlistDrawRegion;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-        for (const auto& op : drawOpItems_) {
-            if (!op) {
-                continue;
-            }
-            const auto& type = op->GetType();
-            switch (type) {
-                // dst opItem
-                case Drawing::DrawOpItem::PATH_OPITEM:
-                case Drawing::DrawOpItem::TEXT_BLOB_OPITEM:
-                case Drawing::DrawOpItem::RECT_OPITEM:
-                    cmdlistDrawRegion.Join(op->GetOpItemCmdlistDrawRegion());
-                    break;
-                // not dst opItem, but will appear in dst scene
-                case Drawing::DrawOpItem::CLIP_RECT_OPITEM:
-                case Drawing::DrawOpItem::CLIP_ROUND_RECT_OPITEM:
-                case Drawing::DrawOpItem::CONCAT_MATRIX_OPITEM:
-                case Drawing::DrawOpItem::SCALE_OPITEM:
-                case Drawing::DrawOpItem::SAVE_OPITEM:
-                case Drawing::DrawOpItem::RESTORE_OPITEM:
-                case Drawing::DrawOpItem::PIXELMAP_RECT_OPITEM:
-                    break;
-                default:
-                    return Drawing::Rect(0, 0, 0, 0);
-            }
+    for (const auto& op : drawOpItems_) {
+        if (!op) {
+            continue;
+        }
+        const auto& type = op->GetType();
+        switch (type) {
+            // dst opItem
+            case Drawing::DrawOpItem::PATH_OPITEM:
+            case Drawing::DrawOpItem::TEXT_BLOB_OPITEM:
+            case Drawing::DrawOpItem::RECT_OPITEM:
+                cmdlistDrawRegion.Join(op->GetOpItemCmdlistDrawRegion());
+                break;
+            // not dst opItem, but will appear in dst scene
+            case Drawing::DrawOpItem::CLIP_RECT_OPITEM:
+            case Drawing::DrawOpItem::CLIP_ROUND_RECT_OPITEM:
+            case Drawing::DrawOpItem::CONCAT_MATRIX_OPITEM:
+            case Drawing::DrawOpItem::SCALE_OPITEM:
+            case Drawing::DrawOpItem::SAVE_OPITEM:
+            case Drawing::DrawOpItem::RESTORE_OPITEM:
+            case Drawing::DrawOpItem::PIXELMAP_RECT_OPITEM:
+                break;
+            default:
+                return Drawing::Rect(0, 0, 0, 0);
         }
     }
     return cmdlistDrawRegion;
@@ -108,14 +103,12 @@ Drawing::RectF RSSimpleDrawCmdList::GetCmdlistDrawRegion()
 
 bool RSSimpleDrawCmdList::IsEmpty() const
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return drawOpItems_.empty();
 }
 
 void RSSimpleDrawCmdList::Dump(std::string& out)
 {
     bool found = false;
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto& item : drawOpItems_) {
         if (item == nullptr) {
             continue;
@@ -132,12 +125,9 @@ void RSSimpleDrawCmdList::Dump(std::string& out)
 size_t RSSimpleDrawCmdList::GetSize() const
 {
     size_t totalSize = sizeof(*this);
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-        for (const auto& op : drawOpItems_) {
-            if (op) {
-                totalSize += op->GetOpSize();
-            }
+    for (const auto& op : drawOpItems_) {
+        if (op) {
+            totalSize += op->GetOpSize();
         }
     }
     return totalSize;
@@ -150,19 +140,16 @@ size_t RSSimpleDrawCmdList::GetOpItemSize() const
 
 void RSSimpleDrawCmdList::ClearOp()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     drawOpItems_.clear();
 }
 
 void RSSimpleDrawCmdList::AddDrawOp(std::shared_ptr<Drawing::DrawOpItem>&& drawOpItem)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     drawOpItems_.emplace_back(drawOpItem);
 }
 
 void RSSimpleDrawCmdList::PlaybackByVector(Drawing::Canvas& canvas, const Drawing::Rect* rect)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (drawOpItems_.empty()) {
         return;
     }
@@ -176,7 +163,6 @@ void RSSimpleDrawCmdList::PlaybackByVector(Drawing::Canvas& canvas, const Drawin
 
 void RSSimpleDrawCmdList::UpdateNodeIdToPicture(Drawing::NodeId nodeId)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (const auto& opItem : drawOpItems_) {
         if (opItem) {
             opItem->SetNodeId(nodeId);
@@ -186,7 +172,6 @@ void RSSimpleDrawCmdList::UpdateNodeIdToPicture(Drawing::NodeId nodeId)
 
 void RSSimpleDrawCmdList::Purge()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto op : drawOpItems_) {
         if (!op) {
             continue;

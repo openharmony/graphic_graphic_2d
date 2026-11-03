@@ -21,10 +21,10 @@
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "image/gpu_context.h"
 #include "draw/surface.h"
+#include "render_context/render_context.h"
 #endif
 
 namespace OHOS::Rosen {
-class RenderContext;
 
 class RSB_EXPORT RSBackgroundThread final {
 public:
@@ -35,6 +35,7 @@ public:
     void InitRenderContext(std::shared_ptr<RenderContext> context);
     void CleanGrResource();
     std::shared_ptr<Drawing::GPUContext> GetShareGPUContext() const;
+    std::shared_ptr<RenderContext> GetRenderContext() const;
     void HoldSurface(std::shared_ptr<Drawing::Surface> surface);
 #endif
 private:

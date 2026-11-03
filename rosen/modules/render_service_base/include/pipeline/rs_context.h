@@ -26,7 +26,8 @@
 #include "sync_fence.h"
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
-#include "feature/capture/rs_ui_capture_helper.h"
+#include "feature/capture/rs_sync_capture_helper.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
@@ -81,6 +82,16 @@ public:
     const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
+    }
+
+    RSPersistentPropertyManager& GetMutablePersistentPropertyManager()
+    {
+        return persistentPropertyManager_;
+    }
+
+    const RSPersistentPropertyManager& GetPersistentPropertyManager() const
+    {
+        return persistentPropertyManager_;
     }
 
     std::set<NodeId>& GetWebNodeMap()
@@ -231,12 +242,12 @@ public:
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
 
-    RSUiCaptureHelper& GetUiCaptureHelper()
+    RSSyncCaptureHelper& GetSyncCaptureHelper()
     {
-        if (!uiCaptureHelper_) {
-            uiCaptureHelper_ = std::make_unique<RSUiCaptureHelper>();
-        }
-        return *uiCaptureHelper_;
+        std::call_once(syncCaptureHelperInitFlag_, [this]() {
+            syncCaptureHelper_ = std::make_unique<RSSyncCaptureHelper>();
+        });
+        return *syncCaptureHelper_;
     }
 
     uint32_t GetUnirenderVisibleLeashWindowCount()
@@ -264,6 +275,19 @@ public:
         if (recreateNodeCallBack_) {
             recreateNodeCallBack_(nodeId, surfaceBufferInterface);
         }
+    }
+
+    void SetGetBundleNameFunc(std::function<std::string(pid_t)> func)
+    {
+        getBundleNameFunc_ = std::move(func);
+    }
+
+    std::string QueryBundleName(pid_t pid) const
+    {
+        if (getBundleNameFunc_) {
+            return getBundleNameFunc_(pid);
+        }
+        return {};
     }
 
     std::shared_ptr<RSUIRenderDirector> GetUIRenderDirector(pid_t pid, uint64_t token);
@@ -300,6 +324,7 @@ private:
     std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void(NodeId, std::weak_ptr<RSSurfaceBufferInterface>)> recreateNodeCallBack_;
     std::function<void()> vsyncRequestFunc_;
+    std::function<std::string(pid_t)> getBundleNameFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
@@ -307,9 +332,11 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
-    std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
+    std::unique_ptr<RSSyncCaptureHelper> syncCaptureHelper_;
+    std::once_flag syncCaptureHelperInitFlag_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
     RSPowerOffRenderController powerOffRenderController_;
+    RSPersistentPropertyManager persistentPropertyManager_;
 
     std::unordered_map<pid_t, std::unordered_map<uint64_t, std::shared_ptr<RSUIRenderDirector>>> uiRenderDirectors_;
     std::mutex uiRenderDirectorsMutex_;

@@ -49,7 +49,7 @@ public:
 
 private:
     struct ScreenDrawableInfo {
-        std::shared_ptr<DrawableV2::RSScreenRenderNodeDrawable> drawable;
+        std::shared_ptr<DrawableV2::RSScreenRenderNodeDrawable> drawable = nullptr;
         RSScreenRenderParams* params = nullptr;
         ScreenId screenId = INVALID_SCREEN_ID;
         bool IsValid() const { return drawable && params; }
@@ -59,6 +59,7 @@ private:
     void InitializeThread(ScreenId screenId, std::shared_ptr<ffrt::queue>& ffrtThread);
     void IncrementPendingTaskCount(size_t nodeCount);
     void DecrementPendingTaskCount(ScreenId screenId);
+    void DecrementPendingTaskCountLocked(ScreenId screenId);
     std::shared_ptr<ffrt::queue> AssignThreadIndex(ScreenId screenId);
     std::shared_ptr<RSUniRenderEngine> GetVirtualScreenRenderEngine(ScreenId screenId);
     void SyncCollectedInfo(const std::unordered_set<NodeId>& nodeIds);

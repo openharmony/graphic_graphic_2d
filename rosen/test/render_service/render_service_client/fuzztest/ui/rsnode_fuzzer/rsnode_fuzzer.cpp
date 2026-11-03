@@ -239,6 +239,7 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->SetShadowAlpha(GetData<float>());
     surfaceNode->SetShadowElevation(GetData<float>());
     surfaceNode->SetShadowRadius(GetData<float>());
+    surfaceNode->SetShadowClipType(GetData<int>());
 
     surfaceNode->SetFrameGravity(GetData<Gravity>());
     surfaceNode->SetClipToBounds(GetData<bool>());

@@ -929,6 +929,22 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MoveCommandByNodeIdNullHandler
+ * @tc.desc: Pass nullptr as transactionHandler to MoveCommandByNodeId, verify early return
+ *          without crash (covers the defensive null check added in security hardening)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdNullHandler, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(nullptr, nodeId);
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
+}
+
+/**
  * @tc.name: AddCommandFromRT001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -1975,6 +1991,22 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommands001, Te
 }
 
 /**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommandsNullHandler
+ * @tc.desc: Pass nullptr as transactionHandler, verify early return without crash
+ *          (covers the defensive null check added in security hardening)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommandsNullHandler, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeIdExcludeTreeCommands(nullptr, nodeId);
+    ASSERT_NE(preTransaction->renderThreadClient_, nullptr);
+}
+
+/**
  * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands001
  * @tc.desc: Source stack empty, target stack empty, move to implicitTransactionData_
  * @tc.type: FUNC
@@ -2170,5 +2202,34 @@ HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands0
     EXPECT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
 }
 
+/**
+ * @tc.name: GetTransactionDataIndex001
+ * @tc.desc: Test GetTransactionDataIndex with atomic load/store on callback and direct paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, GetTransactionDataIndex001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_EQ(transaction->GetTransactionDataIndex(), 0);
+    auto pipelineClient = std::make_shared<RSRenderPipelineClient>();
+    transaction->renderPipelineClient_ = pipelineClient;
+    constexpr uint32_t expectedIndex = 42;
+    transaction->SetCommitTransactionCallback(
+        [&expectedIndex](std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&,
+            std::atomic<uint32_t>& index) { index.store(expectedIndex, std::memory_order_relaxed); });
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(1);
+    ASSERT_EQ(transaction->GetTransactionDataIndex(), expectedIndex);
+    // Direct path: remove callback, store comes from GetIndex()
+    transaction->SetCommitTransactionCallback(nullptr);
+    std::unique_ptr<RSCommand> command2 =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddRemoteCommand(command2, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(1);
+    ASSERT_NE(transaction->GetTransactionDataIndex(), expectedIndex);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -25,8 +25,16 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
 [[maybe_unused]] constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
+constexpr int16_t MAX_ALPHA = 255;
 
 namespace {
+static bool IsTransparentNode(const RSRenderNode& node)
+{
+    const auto& properties = node.GetRenderProperties();
+    return ROSEN_NE(node.GetGlobalAlpha(), 1.0f) ||
+        properties.GetBackgroundColor().GetAlpha() < MAX_ALPHA || ROSEN_NE(properties.GetAlpha(), 1.0f);
+}
+
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
 {
     node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
@@ -122,7 +130,7 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 }
 
 void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
-    bool isAccessibilityConfigChanged)
+    bool isAccessibilityConfigChanged, const bool& hasAncestorRenderGroup)
 {
     const auto* opincRootCache = node.TryGetOpincRootCachePtr();
     // The opinc state needs to be reset in the following cases:
@@ -135,7 +143,13 @@ void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkI
         (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged);
     if (opincRootCache != nullptr) {
         auto& mutableOpincRootCache = node.GetOpincRootCache();
-        mutableOpincRootCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
+        RS_OPTIONAL_TRACE_FMT("QuickMarkStableNode id:%" PRIu64 ", isSelfDirty:%d, subD:%d, conD:%d, group:%d, "
+                              "acc:%d, ancRG:%d",
+            node.GetId(), isSelfDirty, node.IsSubTreeDirty(), node.IsContentDirty(),
+            node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE,
+            (mutableOpincRootCache.OpincGetRootFlag() && isAccessibilityConfigChanged), hasAncestorRenderGroup);
+        mutableOpincRootCache.OpincQuickMarkStableNode(
+            unchangeMarkInApp, unchangeMarkEnable, isSelfDirty || hasAncestorRenderGroup);
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (unchangeMarkEnable && stagingRenderParams) {
@@ -161,9 +175,10 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
 }
 
 void RSOpincManager::QuickCheckOpincStable(
-    RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode)
+    RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+    bool& hasUnstableOpincNode, bool hasAncestorRenderGroup)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s, nodeId:" PRIu64, __func__, node.GetId());
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s, nodeId:%" PRIu64, __func__, node.GetId());
     const auto* nodeOpincRootCache = node.TryGetOpincRootCachePtr();
     if (!GetOPIncSwitch() || !node.GetOpincCache().HasUnstableOpincNode()) {
         RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -179,14 +194,16 @@ void RSOpincManager::QuickCheckOpincStable(
 
         if (childOpincRootCache == nullptr || !childOpincRootCache->IsSuggestOpincNode()
             || childOpincRootCache->IsOpincUnchangeState()) {
-            QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+            QuickCheckOpincStable(
+                *child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode, hasAncestorRenderGroup);
             opincCache.SetHasUnstableOpincNode(childHasUnstableOpincNode);
             allChildHasUnstableOpincNode |= childHasUnstableOpincNode;
             continue;
         }
 
-        QuickMarkStableNode(*child, unchangeMarkInApp, unchangeMarkEnable, false);
-        QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+        QuickMarkStableNode(*child, unchangeMarkInApp, unchangeMarkEnable, false, hasAncestorRenderGroup);
+        QuickCheckOpincStable(
+            *child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode, hasAncestorRenderGroup);
         UpdateRootFlag(*child, unchangeMarkEnable);
         child->AddToPendingSyncList();
 
@@ -361,15 +378,15 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         if (layerCurDirty.Intersect(nodeAbsRect)) {
             layerCurDirty = layerCurDirty.IntersectRect(nodeAbsRect);
             RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", clip layerCurDirty to intersect with nodeAbsRect:[%d,%d,%d,%d]",
-                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
-                layerCurDirty.GetHeight());
+                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(),
+                layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
             layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
             layerPartRenderDirtyManager->UpdateDirty();
         } else {
             layerCurDirty = nodeAbsRect;
             RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty not intersect, use full nodeAbsRect:[%d,%d,%d,%d]",
-                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
-                layerCurDirty.GetHeight());
+                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(),
+                layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
             layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
             layerPartRenderDirtyManager->UpdateDirty();
         }
@@ -413,9 +430,9 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     if (!layerPartRenderCache->IsLayerPartRender()) {
         return;
     }
-
-    if (node.GetOpincCache().IsMaterialNode()) {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node, suspend layer part render", node.GetId());
+    if (node.GetOpincCache().IsMaterialNode() || IsTransparentNode(node)) {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node or transparent background or transparent node,"
+            "suspend layer part render", node.GetId());
         mutableLayerPartRenderCache.MarkSuggestLayerPartRenderNode(false);
         mutableLayerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
         return;

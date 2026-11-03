@@ -373,4 +373,38 @@ HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus001, TestSize.Level
     bool virtualScreenMuteStatus = false;
     DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, 5, virtualScreenMuteStatus);
 }
+
+/**
+ * @tc.name: CreateInvalidRotation001
+ * @tc.desc: Create rejects out-of-range mirrorSourceRotation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, CreateInvalidRotation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config;
+    config.mirrorSourceRotation = static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1;
+    DisplayNodeCommandHelper::Create(context, id, config);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayModeInvalidRotation001
+ * @tc.desc: SetDisplayMode rejects out-of-range mirrorSourceRotation without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeInvalidRotation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig validConfig { 0, DisplayMode::MIRROR, 0 };
+    DisplayNodeCommandHelper::Create(context, id, validConfig);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+
+    RSDisplayNodeConfig badConfig { 0, DisplayMode::MIRROR, 0 };
+    badConfig.mirrorSourceRotation = static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1;
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, badConfig);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
 } // namespace OHOS::Rosen

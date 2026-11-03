@@ -35,6 +35,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -55,8 +56,10 @@ RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdL
 std::unordered_map<NodeId, Drawing::Matrix> RSRenderNodeDrawableAdapter::unobscuredUECMatrixMap_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+thread_local NodeId RSRenderNodeDrawableAdapter::curDrawingCacheRootId_ = 0;
 #else
 RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+NodeId RSRenderNodeDrawableAdapter::curDrawingCacheRootId_ = 0;
 #endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
@@ -124,7 +127,15 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
                 ROSEN_LOGE("%{public}s, nodeId in cache: %{public}" PRIu64 ", nodeType=%{public}u, "
                     "drawableType=%{public}u", __func__, id, node->GetType(), drawableSptr->GetNodeType());
                 if (node->GetType() == drawableSptr->GetNodeType()) {
-                    return drawableSptr;
+                    // Check if cached drawable belongs to the same node object.
+                    // Same NodeId but different node means old node is still held
+                    // (e.g. GoStop), its drawable has stale state and must not be reused.
+                    auto cachedNode = drawableSptr->renderNode_.lock();
+                    if (cachedNode && cachedNode.get() == node.get()) {
+                        return drawableSptr;
+                    }
+                    ROSEN_LOGE("%{public}s, stale drawable for nodeId: %{public}" PRIu64
+                        ", cached node mismatch, will regenerate", __func__, id);
                 }
             }
             RenderNodeDrawableCache_.erase(cacheIt);
@@ -136,7 +147,8 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
 #ifndef ROSEN_ARKUI_X
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
+        RS_LOGE_LIMIT(__func__, __line__,
+            "RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
 #endif
         return nullptr;
     }
@@ -533,7 +545,14 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     if (drawCmdList_.empty() || curDrawingCacheRoot_ == nullptr) {
         return;
     }
-    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    // curDrawingCacheRoot_ is a raw pointer that may dangle if the object is freed while still referenced.
+    // Validate via GetDrawableById(curDrawingCacheRootId_) — weak_ptr lock returns nullptr if the object was freed.
+    auto cacheRootDrawable = GetDrawableById(curDrawingCacheRootId_);
+    if (cacheRootDrawable == nullptr || cacheRootDrawable.get() != curDrawingCacheRoot_) {
+        RS_LOGE("curDrawingCacheRoot_ may be dangling, callerNodeId=%{public}" PRIu64, GetId());
+        return;
+    }
+    auto& withoutFilterMatrixMap = cacheRootDrawable->GetWithoutFilterMatrixMap();
     withoutFilterMatrixMap[GetId()] = canvas.GetTotalMatrix();
 }
 
@@ -700,15 +719,21 @@ void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(const Drawing::Matrix&
     inverseMatrix.MapRect(rect, deviceRect);
 }
 
+bool RSRenderNodeDrawableAdapter::NeedClearResource()
+{
+    return needClearResource_.load();
+}
+
 void RSRenderNodeDrawableAdapter::ClearResource()
 {
-    if (toClearDrawableVec_.empty() && toClearCmdListVec_.empty()) {
+    if (!NeedClearResource()) {
         return;
     }
     RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
         toClearDrawableVec_.size(), toClearCmdListVec_.size());
     toClearDrawableVec_.clear();
     toClearCmdListVec_.clear();
+    needClearResource_.store(false);
 }
 
 void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
@@ -717,6 +742,7 @@ void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
         toClearDrawableVec_.push_back(drawable);
     }
     vec.clear();
+    needClearResource_.store(needClearResource_.load() || !toClearDrawableVec_.empty());
 }
 
 void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
@@ -725,6 +751,7 @@ void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
         toClearCmdListVec_.push_back(cmdList);
     }
     vec.clear();
+    needClearResource_.store(needClearResource_.load() || !toClearCmdListVec_.empty());
     if (toClearCmdListVec_.size() >= CMD_LIST_COUNT_WARNING_LIMIT) {
         ROSEN_LOGW("%{public}s, cmdList count(%{public}zu) out of limit", __func__, toClearCmdListVec_.size());
     }
@@ -777,8 +804,7 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
 
 bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForPartialRender() const
 {
-    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSSystemProperties::GetFilterCacheEnabled()
-        && RSFilterCacheManager::isCCMFilterCacheEnable_ && RSUniRenderJudgement::IsUniRender();
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSFilterCacheManager::IsFilterCacheEnabled();
     if (!sysPropEnable) {
         return false;
     }

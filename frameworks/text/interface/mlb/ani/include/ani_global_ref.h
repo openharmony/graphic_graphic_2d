@@ -281,6 +281,8 @@ public:
     ani_method rectStyleRightTopRadius;
     ani_method rectStyleRightBottomRadius;
     ani_method rectStyleLeftBottomRadius;
+    ani_method rectStyleBorderColor;
+    ani_method rectStyleBorderWidth;
     ani_method pathGetNative;
     ani_method placeholderSpanWidth;
     ani_method placeholderSpanHeight;

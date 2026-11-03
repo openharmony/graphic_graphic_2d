@@ -120,6 +120,9 @@ public:
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
+    std::shared_ptr<Media::PixelMap> BlurPixelMap(
+        std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius);
+
     bool SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation);
 
@@ -201,6 +204,12 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    int32_t SetGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+
+    int32_t RemoveGlobalBlackList(const std::vector<NodeId>& blackList);
+
     int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     void SetFreeMultiWindowStatus(bool enable);
@@ -236,6 +245,7 @@ public:
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
     bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener);
     bool UnRegisterSurfaceNodeBufferReleaseListener();
+    bool CleanDelegateModeBufferCmd(NodeId id);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
@@ -273,7 +283,6 @@ private:
     };
 
     std::mutex mutex_;
-    std::mutex surfaceCaptureCbDirectorMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;

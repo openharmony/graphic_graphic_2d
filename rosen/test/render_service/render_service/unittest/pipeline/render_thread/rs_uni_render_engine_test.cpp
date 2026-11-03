@@ -25,6 +25,9 @@
 #include "rs_surface_solid_filled_color_layer.h"
 #include "rs_render_surface_solid_filled_color_layer.h"
 #include "composer/composer_service/layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
+#include "surface_buffer.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,9 +44,6 @@ public:
 
 void RSUniRenderEngineTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderEngineTest::TearDownTestCase() {}
@@ -499,6 +499,31 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayerPreProcess_DrmCornerRadiusTransparentTe
     EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayerPreProcess(*canvas, layer, screenInfo));
 }
 
+#ifdef RS_ENABLE_VK
+static sptr<SurfaceBuffer> CreateCanvasDrawingTestBuffer()
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    if (!buffer) {
+        return nullptr;
+    }
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    if (ret != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+#endif
+
 /**
  * @tc.name: DrawCanvasDrawingNodeWithParamsTest001
  * @tc.desc: Test DrawCanvasDrawingNodeWithParams
@@ -506,6 +531,7 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayerPreProcess_DrmCornerRadiusTransparentTe
  */
 HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize.Level1)
 {
+    // 1. image == nullptr: default BufferDrawParam with no buffer
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
@@ -513,6 +539,48 @@ HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize
     BufferDrawParam params;
     params.matrix = Drawing::Matrix();
     uniRenderEngine->DrawCanvasDrawingNodeWithParams(*canvas, params);
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawCanvasDrawingNodeWithParams(*canvas, params));
+
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        // 2. needBilinear == true: valid buffer + scale matrix
+        auto renderEngineScale = std::make_shared<RSUniRenderEngine>();
+        renderEngineScale->Init();
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngineScale->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvasScale = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+        ASSERT_NE(recordingCanvasScale, nullptr);
+        BufferDrawParam paramsScale;
+        paramsScale.buffer = CreateCanvasDrawingTestBuffer();
+        ASSERT_NE(paramsScale.buffer, nullptr);
+        paramsScale.useBilinearInterpolation = true;
+        paramsScale.srcRect = Drawing::Rect(0, 0, 100, 100);
+        paramsScale.dstRect = Drawing::Rect(0, 0, 100, 100);
+        Drawing::Matrix scaleMatrix;
+        scaleMatrix.SetScale(2.0f, 2.0f);
+        paramsScale.matrix = scaleMatrix;
+        renderEngineScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasScale, paramsScale);
+
+        // 3. needBilinear == false: valid buffer + identity matrix, no scale
+        auto renderEngineNoScale = std::make_shared<RSUniRenderEngine>();
+        renderEngineNoScale->Init();
+        auto drawingRecordingCanvasNoScale = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvasNoScale->SetGrRecordingContext(
+            renderEngineNoScale->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvasNoScale = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvasNoScale.get());
+        ASSERT_NE(recordingCanvasNoScale, nullptr);
+        BufferDrawParam paramsNoScale;
+        paramsNoScale.buffer = CreateCanvasDrawingTestBuffer();
+        ASSERT_NE(paramsNoScale.buffer, nullptr);
+        paramsNoScale.useBilinearInterpolation = true;
+        paramsNoScale.srcRect = Drawing::Rect(0, 0, 100, 100);
+        paramsNoScale.dstRect = Drawing::Rect(0, 0, 100, 100);
+        paramsNoScale.matrix = Drawing::Matrix();
+        renderEngineNoScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasNoScale, paramsNoScale);
+        EXPECT_NO_FATAL_FAILURE(
+            renderEngineNoScale->DrawCanvasDrawingNodeWithParams(*recordingCanvasNoScale, paramsNoScale));
+    }
+#endif
 }
 
 /**
@@ -827,5 +895,112 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers_NotSolidFilledColorLayer_BlackColor00
     
     ComposerScreenInfo screenInfo;
     EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo, output));
+}
+/**
+ * @tc.name: DrawLayers_RogScale_DeviceGpuUniRender
+ * @tc.desc: Test DrawLayers when DEVICE_GPU + uniRenderFlag = true, PostScale should be skipped
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_RogScale_DeviceGpuUniRender, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layer->SetRotationFixed(false);
+    layer->SetUniRenderFlag(true);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer != nullptr) {
+        layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    }
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = 100;
+    screenInfo.height = 200;
+    screenInfo.phyWidth = 200;
+    screenInfo.phyHeight = 400;
+    screenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+}
+
+/**
+ * @tc.name: DrawLayers_RogScale_DeviceGpuNonUniRender
+ * @tc.desc: Test DrawLayers when DEVICE_GPU + uniRenderFlag = false, PostScale should be skipped
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_RogScale_DeviceGpuNonUniRender, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layer->SetRotationFixed(false);
+    layer->SetUniRenderFlag(false);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer != nullptr) {
+        layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    }
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = 100;
+    screenInfo.height = 200;
+    screenInfo.phyWidth = 200;
+    screenInfo.phyHeight = 400;
+    screenInfo.samplingMode = ScreenSamplingMode::DEVICE_GPU;
+
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+}
+
+/**
+ * @tc.name: DrawLayers_RogScale_NonDeviceGpu
+ * @tc.desc: Test DrawLayers when SamplingMode is NOT DEVICE_GPU, PostScale should be execute
+ * @tc.type: FUNC
+ * @tc.require: issue no.
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_RogScale_NonDeviceGpu, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layer->SetRotationFixed(false);
+    layer->SetUniRenderFlag(true);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer != nullptr) {
+        layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    }
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    screenInfo.width = 100;
+    screenInfo.height = 200;
+    screenInfo.phyWidth = 200;
+    screenInfo.phyHeight = 400;
+    screenInfo.samplingMode = ScreenSamplingMode::OFFSCREEN;
+
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo));
 }
 } // namespace OHOS::Rosen

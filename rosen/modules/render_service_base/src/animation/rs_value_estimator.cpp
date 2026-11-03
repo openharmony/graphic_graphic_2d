@@ -74,8 +74,10 @@ void RSCurveValueEstimator<SimpleDrawCmdListPtr>::InitCurveAnimationValue(
     const std::shared_ptr<RSRenderPropertyBase>& property, const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue, const std::shared_ptr<RSRenderPropertyBase>& lastValue)
 {
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>(property);
-    auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>(endValue);
+    auto animatableProperty = property ?
+        property->CastToAnimatablePropertyOf<SimpleDrawCmdListPtr>(__func__) : nullptr;
+    auto animatableEndValue = endValue ?
+        endValue->CastToAnimatablePropertyOf<SimpleDrawCmdListPtr>(__func__) : nullptr;
     if (animatableProperty && animatableEndValue) {
         property_ = animatableProperty;
         auto rsDrawCmdList = std::make_shared<RSDrawCmdList>(animatableProperty->Get(), animatableEndValue->Get());

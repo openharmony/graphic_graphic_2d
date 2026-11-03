@@ -16,14 +16,15 @@
 #include "rs_service_to_render_connection_stub.h"
 
 #include "buffer_utils.h"
-#include "rs_iservice_to_render_connection_ipc_interface_code.h"
-#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "rs_profiler.h"
 #include "common/rs_xcollie.h"
-#include "platform/common/rs_log.h"
-#include "transaction/rs_marshalling_helper.h"
 #include "gfx/dump/rs_dump_manager.h"
-#include "rs_profiler.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "rs_ipc_persistence_manager.h"
+#include "rs_iservice_to_render_connection_ipc_interface_code.h"
+#include "transaction/rs_marshalling_helper.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -31,15 +32,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
 #ifdef RS_ENABLE_TV_PQ_METADATA
 constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 constexpr size_t PIDLIST_SIZE_MAX = 128;
-constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
 constexpr uint32_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
+constexpr uint32_t LIVE_MAX_ENTRIES = 1;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -407,60 +407,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetVmaCacheStatus(flag);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK): {
-            if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
-                RS_LOGI("RSServiceToRenderStub::SET_WATERMARK Current disenable water mark");
-                break;
-            }
-            pid_t callingPid;
-            if (!data.ReadInt32(callingPid)) {
-                ret = ERR_INVALID_VALUE;
-                break;
-            }
-            std::string name;
-            if (!data.ReadString(name)) {
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-            if (watermark == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                RS_LOGE("RSServiceToRenderStub::SET_WATERMARK:std::shared_ptr<Media::PixelMap> watermark == nullptr");
-                break;
-            }
-            uint32_t rowCount = 0;
-            uint32_t colCount = 0;
-            if (!data.ReadUint32(rowCount)) {
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadUint32(colCount)) {
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            bool success;
-            if (SetWatermark(callingPid, name, watermark, success, rowCount, colCount) != ERR_OK || !success) {
-                RS_LOGE("RSServiceToRenderStub::SetWatermark failed");
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK): {
-            std::shared_ptr<Media::PixelMap> watermarkImg =
-                std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-            bool isShow{false};
-            if (!data.ReadBool(isShow)) {
-                RS_LOGE("RSServiceToRenderStub::SHOW_WATERMARK Read isShow failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!watermarkImg) {
-                RS_LOGE("RSServiceToRenderStub::SHOW_WATERMARK watermarkImg is nullptr");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            ShowWatermark(watermarkImg, isShow);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UIFIRST_SCALE): {
             float scaleFactor { 1.0f };
             if (!data.ReadFloat(scaleFactor)) {
@@ -622,20 +568,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             ReportGameStateData(info);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED): {
-            bool enabled {false};
-            if (!data.ReadBool(enabled)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BEHIND_WINDOW_FILTER_ENABLED Read enabled failed");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto err = SetBehindWindowFilterEnabled(enabled);
-            if (err != ERR_OK) {
-                RS_LOGE("RSServiceToRenderStub::SET_BEHIND_WINDOW_FILTER_ENABLED Write status failed");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED): {
             bool enabled;
             if (GetBehindWindowFilterEnabled(enabled) != ERR_OK || !reply.WriteBool(enabled)) {
@@ -749,6 +681,25 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             int32_t status = RegisterUIExtensionCallback(pid, userId, callback, unobscured);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSServiceToRenderStub::REGISTER_UIEXTENSION_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID): {
+            int32_t pid{0};
+            uint64_t nodeId{0};
+            int32_t guestPid{0};
+            bool authorized{false};
+            bool enforceQuota{false};
+            if (!data.ReadInt32(pid) || !data.ReadUint64(nodeId) || !data.ReadInt32(guestPid) ||
+                !data.ReadBool(authorized) || !data.ReadBool(enforceQuota)) {
+                RS_LOGE("RSServiceToRenderStub::AUTHORIZE_UIEXTENSION_PID Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = AuthorizeUIExtensionPid(pid, nodeId, guestPid, authorized, enforceQuota);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSServiceToRenderStub::AUTHORIZE_UIEXTENSION_PID Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -880,12 +831,21 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             ScreenId screenId{INVALID_SCREEN_ID};
             uint32_t width{0};
             uint32_t height{0};
-            if (!data.ReadUint64(screenId) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+            uint32_t samplingMode{0};
+            if (!data.ReadUint64(screenId) || !data.ReadUint32(width) || !data.ReadUint32(height) ||
+                !data.ReadUint32(samplingMode)) {
                 RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto replyMessage = SetRogScreenResolution(screenId, width, height);
+            if (samplingMode > static_cast<uint32_t>(ScreenSamplingMode::OFFSCREEN)) {
+                RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Invalid parameter,"
+                    " samplingMode: %{public}u", samplingMode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto replyMessage = SetRogScreenResolution(screenId, width, height,
+                static_cast<ScreenSamplingMode>(samplingMode));
             RS_LOGI("SET_ROG_SCREEN_RESOLUTION replyMsg: %{public}d", replyMessage);
             reply.WriteInt32(replyMessage);
             break;
@@ -906,83 +866,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetColorFollow(nodeIdStr, isColorFollow);
             break;
         }
-        case static_cast<uint32_t>(
-            RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
-            pid_t remotePid;
-            if (!data.ReadInt32(remotePid)) {
-                ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                           "remotePid failed");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            uint32_t size;
-            if (!data.ReadUint32(size)) {
-                ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                           "size failed");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            RectConstraint constraint;
-            if (size > MAX_PID_SIZE_NUMBER) {
-                ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK "
-                           "size number is too large.");
-                break;
-            }
-            bool shouldBreak = false;
-            for (uint32_t i = 0; i < size; ++i) {
-                pid_t pid;
-                if (!data.ReadInt32(pid)) {
-                    ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                               "pid failed");
-                    ret = ERR_INVALID_REPLY;
-                    shouldBreak = true;
-                    break;
-                }
-                constraint.pids.insert(pid);
-            }
-            if (shouldBreak) {
-                break;
-            }
-            if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
-                !data.ReadInt32(constraint.range.highLimit.width) ||
-                !data.ReadInt32(constraint.range.highLimit.height)) {
-                ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                           "rectRange failed");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSISelfDrawingNodeRectChangeCallback> callback =
-                iface_cast<RSISelfDrawingNodeRectChangeCallback>(remoteObject);
-            if (callback == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            int32_t status = RegisterSelfDrawingNodeRectChangeCallback(remotePid, constraint, callback);
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(
-            RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
-            pid_t remotePid;
-            if (!data.ReadInt32(remotePid)) {
-                ROSEN_LOGE("RSIServiceToRenderConnectionStub::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                           "remotePid failed");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            int32_t status = UnRegisterSelfDrawingNodeRectChangeCallback(remotePid);
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -997,67 +880,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
-            bool enabled{false};
-            int32_t type{0};
-            if (!data.ReadBool(enabled) || !data.ReadInt32(type)) {
-                RS_LOGE("RSServiceToRenderStub::SET_SHOW_REFRESH_RATE_ENABLED Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetShowRefreshRateEnabled(enabled, type);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED): {
             bool enable = false;
             if (GetShowRefreshRateEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
                 RS_LOGE("RSServiceToRenderStub::GET_SHOW_REFRESH_RATE_ENABLED Write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT): {
-            uint32_t deviceId{0};
-            if (!data.ReadUint32(deviceId)) {
-                RS_LOGE("HandleHwcEvent: read deviceId err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            uint32_t eventId{0};
-            if (!data.ReadUint32(eventId)) {
-                RS_LOGE("HandleHwcEvent: read eventId err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            std::vector<int32_t> eventData;
-            if (!data.ReadInt32Vector(&eventData)) {
-                RS_LOGE("HandleHwcEvent: read eventData err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (eventData.size() > HWC_EVENT_DATA_SIZE_MAX) {
-                RS_LOGE("HandleHwcEvent: eventData size %{public}zu exceeds max %{public}zu.",
-                    eventData.size(), HWC_EVENT_DATA_SIZE_MAX);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            HandleHwcEvent(deviceId, eventId, eventData);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            std::vector<int32_t> pidList;
-            if (!data.ReadInt32Vector(&pidList)) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (pidList.size() > PIDLIST_SIZE_MAX) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
-                    pidList.size(), PIDLIST_SIZE_MAX);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetGpuCrcDirtyEnabledPidList(pidList);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {
@@ -1238,6 +1066,49 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetApsConfigParams(event, params);
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SEND_TRANSFER): {
+            uint32_t typeIdVal;
+            if (!data.ReadUint32(typeIdVal)) {
+                RS_LOGE("%{public}s: Read typeId failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            // Same gate as the old SET_WATERMARK case: reject before any parcel parsing when the
+            // feature is off. Live path only; the replay path must keep deserializing, otherwise a
+            // persisted watermark plus a disabled property would fail the whole snapshot and break
+            // render process restart. Apply() re-checks the property to guard the replay path.
+            if (static_cast<RSIServiceToRenderConnectionInterfaceCode>(typeIdVal) ==
+                RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK &&
+                !RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
+                RS_LOGI("%{public}s: watermark disabled by system property, typeId=%{public}u",
+                    __func__, typeIdVal);
+                break;
+            }
+            int32_t deserErr = ERR_NULL_OBJECT;
+            auto transfer = RSIpcPersistenceManager::CreateTransferByTypeId(
+                static_cast<RSIServiceToRenderConnectionInterfaceCode>(typeIdVal), data, deserErr, LIVE_MAX_ENTRIES);
+            if (!transfer) {
+                RS_LOGE("%{public}s: CreateTransferByTypeId failed for %{public}u, err=%{public}d",
+                    __func__, typeIdVal, deserErr);
+                ret = deserErr;
+                break;
+            }
+            int32_t sendRet = SendTransfer(transfer);
+            if (sendRet != StatusCode::SUCCESS) {
+                RS_LOGE("%{public}s: SendTransfer failed for %{public}u, err=%{public}d",
+                    __func__, typeIdVal, sendRet);
+                ret = sendRet;
+                break;
+            }
+            if (transfer->IsSync()) {
+                if (!transfer->StubMarshalling(reply)) {
+                    RS_LOGE("%{public}s: ReplyMarshalling failed for %{public}u", __func__, typeIdVal);
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
+            }
             break;
         }
         default:

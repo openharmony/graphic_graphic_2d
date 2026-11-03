@@ -36,7 +36,13 @@ enum LayerDrawContent : size_t {
 class RSDynamicLayerSkipController;
 struct RSB_EXPORT LayerSkipContext {
     bool screenLayerInvalid_ = false;
+    bool virtualScreenLayerInvalid_ = false;
     std::vector<NodeId> relevantSurfaceNodeIds_ = {};
+    std::vector<NodeId> virtualRelevantSurfaceNodeIds_ = {};
+    // LeashPersistentId of the first-level leash surface of the synced virtual
+    // target self-drawing surface. Reset at the start of SyncFrom so that a
+    // main-screen Reset() cannot clobber the value the virtual screen reads.
+    LeashPersistentId rootLeashPersistId_ = INVALID_LEASH_PERSISTENTID;
     void SyncFrom(const RSDynamicLayerSkipController& controller);
     void Reset();
 };

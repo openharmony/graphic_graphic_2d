@@ -36,6 +36,11 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        RS_LOGE("Remote is nullptr.");
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     uint64_t screenId = releaseLayerInfo.screenId;
     auto timestampVec = releaseLayerInfo.timestampVec;
     auto releaseBufferFenceVec = releaseLayerInfo.releaseBufferFenceVec;
@@ -82,16 +87,23 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
             return -1;
         }
         if (std::get<1>(releaseBufferFenceVec[i]) != nullptr) {
-            data.WriteBool(true);
+            if (!data.WriteBool(true)) {
+                ROSEN_LOGE("%{public}s write buffer flag true failed", __func__);
+                return -1;
+            }
             if (WriteSurfaceBufferImplWithAllProperties(data, std::get<1>(releaseBufferFenceVec[i])->GetSeqNum(),
                 std::get<1>(releaseBufferFenceVec[i])) != GSERROR_OK) {
                 ROSEN_LOGE("%{public}s write surface buffer failed", __func__);
                 return -1;
             }
         } else {
-            data.WriteBool(false);
+            if (!data.WriteBool(false)) {
+                ROSEN_LOGE("%{public}s write buffer flag false failed", __func__);
+                return -1;
+            }
         }
-        if (!std::get<2>(releaseBufferFenceVec[i])->WriteToMessageParcel(data)) {
+        auto fence = std::get<2>(releaseBufferFenceVec[i]);
+        if (fence && !fence->WriteToMessageParcel(data)) {
             ROSEN_LOGE("%{public}s write Fence failed", __func__);
             return -1;
         }
@@ -101,7 +113,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         return -1;
     }
     uint32_t code = static_cast<uint32_t>(ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
@@ -123,6 +135,11 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        RS_LOGE("Remote is nullptr.");
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: write InterfaceToken failed", __func__);
@@ -148,7 +165,7 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
 
     RS_LOGI("%{public}s conn write vsyncId = %{public}" PRIu64 " remoteObj successfully", __func__, vsyncId);
     uint32_t code = static_cast<uint32_t>(NOTIFY_LPP_LAYER_TO_RENDER);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
@@ -167,6 +184,11 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLayerStateChangedToRender(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        RS_LOGE("Remote is nullptr.");
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: write InterfaceToken failed", __func__);
@@ -186,7 +208,7 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLayerStateChangedToRender(
     }
 
     uint32_t code = static_cast<uint32_t>(NOTIFY_LAYER_STATE_CHANGED_TO_RENDER);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;

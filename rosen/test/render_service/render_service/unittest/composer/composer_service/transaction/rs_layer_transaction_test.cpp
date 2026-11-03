@@ -47,9 +47,6 @@ void RSLayerTransactionTest::TearDown() {}
 
 void RSLayerTransactionTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     handler_ = std::make_shared<RSLayerTransactionHandler>();
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();

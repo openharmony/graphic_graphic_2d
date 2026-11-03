@@ -221,6 +221,20 @@ public:
             case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
             case RSPropertyType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
             case RSPropertyType::HDR_DARKEN_BLENDER_PARAMS: return "HdrDarkenBlenderParams";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_DARKEN_WEIGHT: return "ColorfulBrightnessDarkenWeight";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_FRACTION: return "ColorfulBrightnessFraction";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_CUBIC_RATE: return "ColorfulBrightnessCubicRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_QUAD_RATE: return "ColorfulBrightnessQuadRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_LINEAR_RATE: return "ColorfulBrightnessLinearRate";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_DEGREE: return "ColorfulBrightnessDegree";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_SATURATION: return "ColorfulBrightnessSaturation";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_POSITIVE_COEFF: return "ColorfulBrightnessPositiveCoeff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_NEGATIVE_COEFF: return "ColorfulBrightnessNegativeCoeff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_VIBRANCY_STRENGTH: return "ColorfulBrightnessVibrancyStrength";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_LUMA_DIFF: return "ColorfulBrightnessLumaDiff";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_HDR_ENABLED: return "ColorfulBrightnessHdrEnabled";
+            case RSPropertyType::COLORFUL_BRIGHTNESS_TINTED_COLOR_PERCENT:
+                return "ColorfulBrightnessTintedColorPercent";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";
@@ -277,6 +291,7 @@ public:
             case RSPropertyType::BLOOM: return "Bloom";
             case RSPropertyType::FOREGROUND_EFFECT_RADIUS: return "ForegroundEffectRadius";
             case RSPropertyType::USE_SHADOW_BATCHING: return "UseShadowBatching";
+            case RSPropertyType::SHADOW_CLIP_TYPE: return "ShadowClipType";
             case RSPropertyType::MOTION_BLUR_PARA: return "MotionBlurPara";
             case RSPropertyType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
@@ -340,8 +355,6 @@ public:
             case RSPropertyType::COLOR_PICKER_STRATEGY : return "ColorPickerStrategy";
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
-            case RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME :
-                return "ColorPickerLastContrastColorScheme";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
             case RSPropertyType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";

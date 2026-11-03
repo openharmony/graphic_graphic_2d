@@ -65,6 +65,8 @@ enum class RSDumpID : uint8_t {
     EXIST_PID_MEM_INFO,
     CURRENT_FRAME_BUFFER,
     UICONTEXT_STATES_INFO,
+    FRAME_STATS_INFO,
+    FRAME_STATS_CLEAR,
 };
 
 // Define a function type alias for the dump point handling function
@@ -127,6 +129,8 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"dumpExistPidMem", { { RSDumpID::EXIST_PID_MEM_INFO }, "dumpExistPidMem [pid], dump exist pid mem info" } },
     { u"buffer", { { RSDumpID::CURRENT_FRAME_BUFFER }, "dump current frame buffer"} },
     { u"uiContextState", { { RSDumpID::UICONTEXT_STATES_INFO }, "dumpUIContextState [pid] [token]" } },
+    { u"frameStats", { {RSDumpID::FRAME_STATS_INFO }, "dump frame stats counters"} },
+    { u"clearFrameStats", { {RSDumpID::FRAME_STATS_CLEAR }, "clear frame stats counters"} },
 };
 
 const std::unordered_set<std::u16string> excludeCmds_ = { u"buffer" };

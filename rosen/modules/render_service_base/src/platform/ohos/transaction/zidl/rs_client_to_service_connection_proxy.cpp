@@ -15,6 +15,7 @@
 
 #include "rs_client_to_service_connection_proxy.h"
 #include "common/rs_common_def.h"
+#include "platform/ohos/transaction/rs_ipc_sync_executor.h"
 #ifndef ENABLE_RS_PROXY
 #include <algorithm>
 #include <cstdint>
@@ -41,7 +42,15 @@ static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map s
 static constexpr int ZERO = 0; // empty map size
 static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
 #endif
+// Only GET_DEFAULT_SCREEN_ID is routed through ExecuteSyncWithTimeout; all other synchronous
+// IPCs use the direct in-thread SendRequest without timeout protection.
+[[maybe_unused]] bool ShouldUseTimeoutProtection(uint32_t code)
+{
+    return static_cast<RSIClientToServiceConnectionInterfaceCode>(code) ==
+        RSIClientToServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID;
+}
 }
 
 RSClientToServiceConnectionProxy::RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -58,12 +67,12 @@ ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     option.SetFlags(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("GetUniRenderEnabled: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return false;
+        return ERR_INVALID_VALUE;
     }
     if (!reply.ReadBool(enable)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetUniRenderEnabled Read enable failed!");
@@ -526,7 +535,7 @@ ErrCode RSClientToServiceConnectionProxy::AddVirtualScreenBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -562,7 +571,7 @@ ErrCode RSClientToServiceConnectionProxy::RemoveVirtualScreenBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -598,7 +607,7 @@ ErrCode RSClientToServiceConnectionProxy::AddVirtualScreenWhiteList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -634,7 +643,7 @@ ErrCode RSClientToServiceConnectionProxy::RemoveVirtualScreenWhiteList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -1238,6 +1247,29 @@ void RSClientToServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMod
     }
 }
 
+void RSClientToServiceConnectionProxy::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetThermalFrameRateLimit: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint32(frameRate)) {
+        ROSEN_LOGE("SetThermalFrameRateLimit: WriteUint32 frameRate err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_THERMAL_FRAME_RATE_LIMIT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy SetThermalFrameRateLimit sendrequest error : %{public}d", err);
+        return;
+    }
+}
+
 void RSClientToServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
     int32_t animatorExpectedFrameRate)
 {
@@ -1379,11 +1411,9 @@ std::vector<int32_t> RSClientToServiceConnectionProxy::GetScreenSupportedRefresh
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates Read rateCount failed");
         return screenSupportedRates;
     }
-    size_t readableSize = reply.GetReadableBytes();
-    size_t len = static_cast<size_t>(rateCount);
-    if (len > readableSize || len > screenSupportedRates.max_size()) {
-        RS_LOGE("RSClientToServiceConnectionProxy::GetDescriptor() GetScreenSupportedRefreshRates "
-            "fail read vector, size : %{public}zu, readableSize : %{public}zu", len, readableSize);
+    if (rateCount > MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE) {
+        RS_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates "
+            "fail read vector, size : %{public}" PRIu64, rateCount);
         return screenSupportedRates;
     }
     screenSupportedRates.resize(rateCount);
@@ -1577,7 +1607,8 @@ ErrCode RSClientToServiceConnectionProxy::GetRefreshInfoByPidAndUniqueId(
     return ERR_OK;
 }
 
-int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height,
+    ScreenSamplingMode samplingMode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1596,6 +1627,10 @@ int32_t RSClientToServiceConnectionProxy::SetRogScreenResolution(ScreenId id, ui
     }
     if (!data.WriteUint32(height)) {
         ROSEN_LOGE("SetRogScreenResolution: WriteUint32 height err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(samplingMode))) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint32 samplingMode err.");
         return WRITE_PARCEL_ERR;
     }
     auto code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
@@ -1804,38 +1839,6 @@ void RSClientToServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenP
     }
 }
 
-bool RSClientToServiceConnectionProxy::WriteSurfaceCaptureConfig(
-    const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
-{
-    if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
-        !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
-        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
-        !data.WriteBool(captureConfig.isHdrCapture) ||
-        !data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent)) ||
-        !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
-        !data.WriteBool(captureConfig.needErrorCode) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
-        !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
-        !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
-        !data.WriteFloat(captureConfig.specifiedAreaRect.left_) ||
-        !data.WriteFloat(captureConfig.specifiedAreaRect.top_) ||
-        !data.WriteFloat(captureConfig.specifiedAreaRect.right_) ||
-        !data.WriteFloat(captureConfig.specifiedAreaRect.bottom_) ||
-        !data.WriteUInt64Vector(captureConfig.blackList) ||
-        !data.WriteUint32(captureConfig.backGroundColor) ||
-        !data.WriteUint32(captureConfig.colorSpace.first) ||
-        !data.WriteBool(captureConfig.colorSpace.second) ||
-        !data.WriteUint32(captureConfig.dynamicRangeMode.first) ||
-        !data.WriteBool(captureConfig.dynamicRangeMode.second)) {
-        ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
-        return false;
-    }
-    return true;
-}
-
 bool RSClientToServiceConnectionProxy::WriteSurfaceCaptureBlurParam(
     const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data)
 {
@@ -2007,6 +2010,55 @@ ErrCode RSClientToServiceConnectionProxy::GetMemoryGraphics(std::vector<MemoryGr
         }
     }
     return ERR_OK;
+}
+
+std::vector<MemoryGraphic> RSClientToServiceConnectionProxy::GetMemoryGraphicsByRenderPid(int32_t renderPid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<MemoryGraphic> memoryGraphics;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: WriteInterfaceToken GetDescriptor err.");
+        return memoryGraphics;
+    }
+
+    if (!data.WriteInt32(renderPid)) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: writeInt32 renderPid err.");
+        return memoryGraphics;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS_BY_RENDER_PID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: SendRequest err=%{public}d", err);
+        return memoryGraphics;
+    }
+
+    uint64_t count{0};
+    if (!reply.ReadUint64(count)) {
+        ROSEN_LOGE("GetMemoryGraphicsByRenderPid: Read count failed");
+        return memoryGraphics;
+    }
+    size_t readableSize = reply.GetReadableBytes();
+    size_t len = static_cast<size_t>(count);
+    if (len > readableSize || len > memoryGraphics.max_size()) {
+        RS_LOGE("RSClientToServiceConnectionProxy::GetDescriptor() GetMemoryGraphicsByRenderPid Failed to read vector, "
+                "size:%{public}zu, readableSize:%{public}zu", len, readableSize);
+        return memoryGraphics;
+    }
+    memoryGraphics.resize(count);
+    for (uint64_t index = 0; index < count; index++) {
+        sptr<MemoryGraphic> item = reply.ReadParcelable<MemoryGraphic>();
+        if (item == nullptr) {
+            continue;
+        } else {
+            memoryGraphics[index] = *item;
+        }
+    }
+    return memoryGraphics;
 }
 
 ErrCode RSClientToServiceConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
@@ -2467,6 +2519,77 @@ int32_t RSClientToServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetScreenColorGamut Read result failed");
         return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(mode))) {
+        ROSEN_LOGE("SetVirtualScreenHDRMode: WriteUint32 mode err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenHDRMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetVirtualScreenHDRMode: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("GetVirtualScreenHDRMode: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    if (result == SUCCESS) {
+        uint32_t readMode{0};
+        if (!reply.ReadUint32(readMode)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode Read mode failed");
+            return READ_PARCEL_ERR;
+        }
+        if (readMode >= static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetVirtualScreenHDRMode mode out of range: %{public}u",
+                readMode);
+            return READ_PARCEL_ERR;
+        }
+        mode = static_cast<HDRMode>(readMode);
     }
     return result;
 }
@@ -3136,7 +3259,12 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         uint8_t rspRpc = Drawing::REGISTERED;
         do {
             MessageParcel replyNeedRegister;
-            int32_t err = SendRequest(code, data, replyNeedRegister, option);
+            // RegisterTypeface retries SendRequest in a loop; retrying interfaces are out of
+            // the timeout-offloading scope and keep the direct SendRequest path.
+            if (!Remote()) {
+                return false;
+            }
+            int32_t err = Remote()->SendRequest(code, data, replyNeedRegister, option);
             if (err != NO_ERROR || !replyNeedRegister.ReadUint8(rspRpc)) {
                 RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
                 return false;
@@ -3151,7 +3279,10 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     RSMarshallingHelper::Marshalling(data, typeface);
 
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
-    int32_t err = SendRequest(code, data, reply, option);
+    if (!Remote()) {
+        return false;
+    }
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGD_IF(DEBUG_IPC, "RSClientToServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
         return false;
@@ -3441,6 +3572,29 @@ void RSClientToServiceConnectionProxy::SetScreenFrameGravity(ScreenId id, int32_
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
+    }
+}
+
+void RSClientToServiceConnectionProxy::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (!data.WriteUint64(id) || !data.WriteBool(skipColorSpaceConversion)) {
+        ROSEN_LOGE("%{public}s: write error.", __func__);
+        return;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: Send Request err.", __func__);
@@ -3872,6 +4026,31 @@ ErrCode RSClientToServiceConnectionProxy::SetUifirstScale(float scaleFactor)
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
+}
+
+sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetDisplayEngineControl()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl GetDescriptor err.");
+        return nullptr;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl: Send Request err.");
+        return nullptr;
+    }
+    sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
+    if (rObj == nullptr) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl: obj is nullptr");
+    }
+    return rObj;
 }
 
 void RSClientToServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
@@ -5029,6 +5208,37 @@ int32_t RSClientToServiceConnectionProxy::RegisterUIExtensionCallback(
     }
 }
 
+int32_t RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid(NodeId nodeId, pid_t guestPid, bool authorized)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(nodeId) || !data.WriteInt32(static_cast<int32_t>(guestPid)) ||
+        !data.WriteBool(authorized)) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: Write parcel err.");
+        return RS_CONNECTION_ERROR;
+    }
+    // synchronous: the result reflects whether render_service accepted the request and the
+    // render process applied the authorization to its node map
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AUTHORIZE_UIEXTENSION_PID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("AuthorizeUIExtensionPid: SendRequest err %{public}d.", err);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::AuthorizeUIExtensionPid Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id,
     VirtualScreenStatus screenStatus, bool& success)
 {
@@ -5074,13 +5284,19 @@ ErrCode RSClientToServiceConnectionProxy::SetLayerTop(const std::string &nodeIdS
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
-        uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
-        int32_t err = SendRequest(code, data, reply, option);
-        if (err != NO_ERROR) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
-            return ERR_INVALID_VALUE;
-        }
+    if (!data.WriteString(nodeIdStr)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteString failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isTop)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: WriteBool failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: Send Request err.");
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
@@ -5239,7 +5455,17 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
     if (!Remote()) {
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
+#ifdef ENABLE_RS_PROXY
     return Remote()->SendRequest(code, data, reply, option);
+#else
+    // Only GET_DEFAULT_SCREEN_ID is routed through ExecuteSyncWithTimeout; all other
+    // synchronous IPCs use the direct in-thread SendRequest without timeout protection.
+    if (ShouldUseTimeoutProtection(code)) {
+        return RSSIpcSyncExecutor::GetInstance().ExecuteSyncWithTimeout(
+            Remote(), code, data, reply, option, RSSystemProperties::GetIpcSyncTimeoutMs());
+    }
+    return Remote()->SendRequest(code, data, reply, option);
+#endif
 }
 #ifndef ENABLE_RS_PROXY
 ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched()
@@ -5545,7 +5771,14 @@ RetCodeHrpService RSClientToServiceConnectionProxy::ProfilerServicePopulateFiles
         return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
     }
 
+    const uint32_t MAX_POPULATE_FILES_COUNT = 1024;
+    if (retCount > MAX_POPULATE_FILES_COUNT) {
+        ROSEN_LOGE("retCount too large: %{public}u", retCount);
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+
     std::vector<HrpServiceFileInfo> retFiles;
+    retFiles.reserve(retCount);
     for (uint32_t i = 0; i < retCount; i++) {
         HrpServiceFileInfo fi {};
         if (!reply.ReadString(fi.name) || !reply.ReadUint32(fi.size) || !reply.ReadBool(fi.isDir) ||
@@ -5583,11 +5816,6 @@ bool RSClientToServiceConnectionProxy::ProfilerIsSecureScreen()
         return false;
     }
     return retValue;
-}
-
-ErrCode RSClientToServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList)

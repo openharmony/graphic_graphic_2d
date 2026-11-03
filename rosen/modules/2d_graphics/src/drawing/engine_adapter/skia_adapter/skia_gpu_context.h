@@ -132,10 +132,12 @@ public:
     void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
 
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) override;
-    
-    void SetAbnormalPid(pid_t pid) override;
 
     void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback) override;
+
+    void SetAbnormalPid(pid_t pid) override;
+
+    void RemoveAbnormalPid(pid_t pid) override;
 
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;
@@ -170,6 +172,8 @@ public:
     void SetEarlyZEnabled(bool flag) override;
 
     void SetParam(const std::string& name, const std::string& value) override;
+
+    void SetTextCacheEnforced(bool isEnforced) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

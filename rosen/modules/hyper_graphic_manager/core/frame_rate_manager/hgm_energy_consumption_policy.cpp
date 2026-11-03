@@ -17,13 +17,14 @@
 
 #include <functional>
 
-#include "common/rs_common_hook.h"
 #include "hgm_core.h"
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
+
+#include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -38,6 +39,7 @@ const std::unordered_map<std::string, std::vector<uint32_t>> UI_RATE_TYPE_NAME_M
 constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
 constexpr int64_t DEFAULT_RS_ANIMATION_TOUCH_UP_TIME = 1000;
+constexpr int32_t FPS_MARGIN = 3;
 constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 constexpr int64_t DESCISION_VIDEO_CALL_TIME = 500;
 }
@@ -158,7 +160,7 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(const std::unordered_map
 void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::unordered_map<std::string, std::string>& commonData)
 {
     auto componentIter = commonData.find("COMPONENT_NAME");
-    std::string componentName;
+    std::string componentName = "";
     if (componentIter != commonData.end()) {
         componentName = componentIter->second;
     }
@@ -290,7 +292,7 @@ void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo& eventInf
     if (isEnableVideoCall_.load() && !eventInfo.eventStatus) {
         videoCallVsyncName_ = "";
         videoCallPid_.store(DEFAULT_PID);
-        videoCallMaxFrameRate_ = 0;
+        videoCallMaxFrameRate_.store(0);
         isEnableVideoCall_.store(false);
         HgmTaskHandleThread::Instance().PostTask([this]() { VoterVideoCallFrameRate(); });
     }
@@ -301,9 +303,9 @@ void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo& eventInf
             return;
         }
         videoCallVsyncName_ = vsyncName;
-        videoCallPid_ = pid;
+        videoCallPid_.store(pid);
         isEnableVideoCall_.store(true);
-        videoCallMaxFrameRate_ = static_cast<int>(eventInfo.maxRefreshRate);
+        videoCallMaxFrameRate_.store(static_cast<int>(eventInfo.maxRefreshRate));
         isVideoCallVsyncChange_.store(true);
         HGM_LOGD("SetVideoCallSceneInfo set videoCall VsyncName = %s, pid = %d", vsyncName.c_str(),
             (int)videoCallPid_.load());
@@ -365,13 +367,30 @@ bool HgmEnergyConsumptionPolicy::GetVideoCallVsyncChange()
 bool HgmEnergyConsumptionPolicy::GetVideoCallFrameRate(
     pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange)
 {
-    if (!isEnableVideoCall_.load() || pid != videoCallPid_.load() || vsyncName != videoCallVsyncName_ ||
-        !isOnlyVideoCallExist_.load() || videoCallMaxFrameRate_ == 0) {
+    if (pid != videoCallPid_.load() || vsyncName != videoCallVsyncName_) {
         return false;
     }
-    finalRange.Merge({ OLED_NULL_HZ, OLED_144_HZ, videoCallMaxFrameRate_ });
-    RS_TRACE_NAME_FMT("GetVideoCallFrameRate limit video call frame rate %d", finalRange.preferred_);
-    return true;
+    bool isVideoCall = true;
+    if (!isEnableVideoCall_.load() || !isOnlyVideoCallExist_.load() ||
+        videoCallMaxFrameRate_.load() == 0 || !avcodeVideoCallEnable_.load()) {
+        isVideoCall = false;
+    }
+    if (isVideoCall_.load() != isVideoCall) {
+        isSyncVideoCallToRp_ = false;
+    }
+    if (isVideoCall_.load() && isVideoCall && isSyncVideoCallToRp_) {
+        // Enable the policy after the status is synchronized to the RP.
+        finalRange.Merge({ OLED_NULL_HZ, OLED_144_HZ, videoCallMaxFrameRate_.load() });
+        RS_TRACE_NAME_FMT("GetVideoCallFrameRate limit video call frame rate %d", finalRange.preferred_);
+    }
+    isVideoCall_.store(isVideoCall);
+    return isVideoCall;
+}
+
+pid_t HgmEnergyConsumptionPolicy::GetVideoCallPid()
+{
+    isSyncVideoCallToRp_ = true;
+    return isVideoCall_.load() ? videoCallPid_.load() : DEFAULT_PID;
 }
 
 void HgmEnergyConsumptionPolicy::VoterVideoCallFrameRate()
@@ -477,5 +496,41 @@ void HgmEnergyConsumptionPolicy::VoterVideoFrameRate(const std::unordered_map<st
 bool HgmEnergyConsumptionPolicy::GetPowerIdle()
 {
     return isTouchIdle_;
+}
+
+void HgmEnergyConsumptionPolicy::NotifyVideoParams(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto pidIt = videoRateInfo.find("pid");
+    if (pidIt == videoRateInfo.end()) {
+        return;
+    }
+    if (!XMLParser::IsNumber(pidIt->second)) {
+        return;
+    }
+    auto rateIt = videoRateInfo.find("decRate");
+    if (rateIt == videoRateInfo.end()) {
+        return;
+    }
+    if (!XMLParser::IsNumber(rateIt->second)) {
+        return;
+    }
+
+    pid_t pid = static_cast<pid_t>(std::stoi(pidIt->second));
+    int32_t decRate = static_cast<int32_t>(std::stoi(rateIt->second));
+    if (isEnableVideoCall_.load() && pid == videoCallPid_.load()) {
+        avcodeVideoCallEnable_.store(decRate < videoCallMaxFrameRate_.load() + FPS_MARGIN);
+        HGM_LOGI("rate:%{public}d pid:%{public}d avcodeVideoCallEnable:%{public}d",
+            decRate, pid, avcodeVideoCallEnable_.load());
+    }
+}
+
+void HgmEnergyConsumptionPolicy::SetRsFrameRateControlEnabled(bool enabled)
+{
+    rsFrameRateControlEnabled_.store(enabled);
+}
+
+bool HgmEnergyConsumptionPolicy::GetRsFrameRateControlEnabled() const
+{
+    return rsFrameRateControlEnabled_.load();
 }
 } // namespace OHOS::Rosen

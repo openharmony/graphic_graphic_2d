@@ -26,11 +26,11 @@
 
 namespace OHOS::Rosen {
 
-class FontCollectionMgr final {
+class RS_EXPORT FontCollectionMgr final {
 public:
     static FontCollectionMgr& GetInstance();
     ~FontCollectionMgr() = default;
-    
+
     void InsertLocalInstance(uint64_t envId, std::shared_ptr<FontCollection> fontCollection);
     std::shared_ptr<FontCollection> GetLocalInstance(uint64_t envId);
     void DestroyLocalInstance(uint64_t envId);

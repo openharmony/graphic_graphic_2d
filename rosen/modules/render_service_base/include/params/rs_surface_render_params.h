@@ -23,6 +23,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "feature/uifirst/rs_uifirst_params.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "params/rs_render_params.h"
@@ -37,6 +38,8 @@
 
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
+class RSDirtyRegionManager;
+struct ScreenInfo;
 struct RSLayerInfo {
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicIRect srcRect = {0};
@@ -353,6 +356,9 @@ public:
     void SetPartialSynced(bool isPartialSynced);
     bool IsPartialSynced() const;
 
+    void SetUifirstDisabledByAnimationOverlap(bool disabled);
+    bool GetUifirstDisabledByAnimationOverlap() const;
+
     inline void UpdateLastCacheSize()
     {
         uifirstParams_.lastCacheSize = GetCacheSize();
@@ -379,6 +385,7 @@ public:
 
     void SetOldDirtyInSurface(const RectI& oldDirtyInSurface) override;
     RectI GetOldDirtyInSurface() const override;
+    void ClipAndScaleDirtyManager(const std::shared_ptr<RSDirtyRegionManager>& dirtyManager) const;
 
     void SetVisibleRegion(const Occlusion::Region& visibleRegion);
     Occlusion::Region GetVisibleRegion() const override;
@@ -405,6 +412,8 @@ public:
     bool GetRebuildingState() const;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetSolidLayerEnabled(bool enabled);
+    bool GetSolidLayerEnabled() const;
     void SetNeedMakeImage(bool enabled);
     bool GetNeedMakeImage() const override;
     void SetHardCursorStatus(bool status);
@@ -464,9 +473,6 @@ public:
 
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
-
-    void SetScreenId(ScreenId screenId);
-    ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer,
@@ -619,6 +625,20 @@ public:
         return hasHdrPresent_;
     }
 
+    void SetHasDstAlphaBlendModeNode(bool hasDstAlphaBlendModeNode)
+    {
+        if (hasDstAlphaBlendModeNode_ == hasDstAlphaBlendModeNode) {
+            return;
+        }
+        hasDstAlphaBlendModeNode_ = hasDstAlphaBlendModeNode;
+        needSync_ = true;
+    }
+
+    bool GetHasDstAlphaBlendModeNode() const
+    {
+        return hasDstAlphaBlendModeNode_;
+    }
+
     void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
@@ -744,7 +764,13 @@ public:
     }
 
     Color GetSolidLayerColor() const { return solidLayerColor_; }
-    void SetSolidLayerColor(const Color& solidLayerColor) { solidLayerColor_ = solidLayerColor; }
+    void SetSolidLayerColor(const Color& solidLayerColor)
+    {
+        if (solidLayerColor_ != solidLayerColor) {
+            solidLayerColor_ = solidLayerColor;
+            needSync_ = true;
+        }
+    }
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
@@ -921,11 +947,56 @@ public:
 
     void SetDelegateMode(bool flag);
     bool GetDelegateMode() const;
-    void SetDelegateDstRect(const RectI& rect);
-    const RectI& GetDelegateDstRect() const;
-    void SetDelegateSrcRect(const RectI& rect);
-    const RectI& GetDelegateSrcRect() const;
+    void SetDelegateDstRect(const RectF& rect);
+    const RectF& GetDelegateDstRect() const;
+    void SetDelegateSrcRect(const RectF& rect);
+    const RectF& GetDelegateSrcRect() const;
+
+    void SetTunnelState(RSTunnelRuntimeState::TunnelState state)
+    {
+        if (tunnelState_ != state) {
+            tunnelState_ = state;
+            needSync_ = true;
+        }
+    }
+    RSTunnelRuntimeState::TunnelState GetTunnelState() const { return tunnelState_; }
+    void SetTunnelLayerId(uint64_t id)
+    {
+        if (tunnelLayerId_ != id) {
+            tunnelLayerId_ = id;
+            needSync_ = true;
+        }
+    }
+    uint64_t GetTunnelLayerId() const { return tunnelLayerId_; }
+    void SetTunnelLayerProperty(uint32_t property)
+    {
+        if (tunnelLayerProperty_ != property) {
+            tunnelLayerProperty_ = property;
+            needSync_ = true;
+        }
+    }
+    uint32_t GetTunnelLayerProperty() const { return tunnelLayerProperty_; }
+    void SetTunnelLayerGeneration(uint64_t generation)
+    {
+        if (tunnelLayerGeneration_ != generation) {
+            tunnelLayerGeneration_ = generation;
+            needSync_ = true;
+        }
+    }
+    uint64_t GetTunnelLayerGeneration() const { return tunnelLayerGeneration_; }
+    void SetIsLppTunnel(bool isLpp)
+    {
+        if (isLppTunnel_ != isLpp) {
+            isLppTunnel_ = isLpp;
+            needSync_ = true;
+        }
+    }
+    bool GetIsLppTunnel() const { return isLppTunnel_; }
+
 private:
+    void SyncVisibleRegions(RSSurfaceRenderParams* targetSurfaceParams) const;
+    bool GetScreenInfoIfNeedRogScale(ScreenInfo& screenInfo) const;
+
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
@@ -997,6 +1068,7 @@ private:
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
 #endif
     bool isHardwareEnabled_ = false;
+    bool isSolidLayerEnabled_ = false;
     bool needMakeImage_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1042,6 +1114,7 @@ private:
     bool hasFingerprint_ = false;
     // hdr
     bool hasHdrPresent_ = false;
+    bool hasDstAlphaBlendModeNode_ = false;
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
@@ -1080,13 +1153,20 @@ private:
     ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
     int32_t rotationCorrectionDegree_ = 0;
 
-    RectI delegateDstRect_;
-    RectI delegateSrcRect_;
+    RectF delegateDstRect_;
+    RectF delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
 
-    ScreenId screenId_ = INVALID_SCREEN_ID;
     // for layer splitter
     bool splitLayerTag_ = false;
+
+    // L1 tunnel state mirror (per-frame, staging -> RT). Default NOT_TUNNEL so non-tunnel
+    // surfaces never trigger GRAPHIC_LAYER_TYPE_TUNNEL on the RT side.
+    RSTunnelRuntimeState::TunnelState tunnelState_ = RSTunnelRuntimeState::TunnelState::NOT_TUNNEL;
+    uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
+    bool isLppTunnel_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

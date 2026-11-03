@@ -104,8 +104,8 @@ public:
 
     bool Create(const std::string& fname);
     bool Open(const std::string& fname, std::string& error);
-
     bool IsOpen() const;
+    void Close();
 
     void SetWriteTime(double time);
     double GetWriteTime() const;
@@ -113,7 +113,7 @@ public:
     const std::string& GetHeaderFirstFrame() const;
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
     void InsertHeaderData(size_t offset, const std::string& data);
-    void SetHeaderFailedNodeCount(size_t offset, uint32_t failedNodeCount);
+    void SetHeaderFailedNodeCount(size_t offset, uint32_t count);
 
     const std::vector<std::pair<uint64_t, int64_t>>& GetAnimeStartTimes() const;
     void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes);
@@ -125,10 +125,6 @@ public:
     void LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value);
 
     void UnwriteRSData();
-
-    void WriteAnimationStartTime();
-    bool ReadAnimationStartTime();
-    bool ReadLayersOffset();
 
     void WriteRSData(double time, const void* data, size_t size);
     void WriteOGLData(uint32_t layer, double time, const void* data, size_t size);
@@ -154,7 +150,7 @@ public:
     bool GFXMetricsEOF(uint32_t layer) const;
     bool LogEventEOF(uint32_t layer) const;
 
-    double GetEOFTime();
+    double GetEOFTime() const;
 
     bool ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLData(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
@@ -165,12 +161,9 @@ public:
     bool ReadLogEvent(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool GetDataCopy(std::vector<uint8_t>& data); // copy the content of RSFile so far
 
-    bool HasLayer(uint32_t layer) const;
-
     void SetPreparedHeader(const std::vector<uint8_t>& headerData);
     void GetPreparedHeader(std::vector<uint8_t>& headerData);
     void SetPreparedHeaderMode(bool mode);
-    void Close();
 
     uint32_t GetVersion() const;
     void SetVersion(uint32_t version);
@@ -178,22 +171,28 @@ public:
     static const std::string& GetDefaultPath();
 
     void CacheVsyncId2Time(uint32_t layer);
-    int64_t GetClosestVsyncId(int64_t vsyncId);
-    double ConvertVsyncId2Time(int64_t vsyncId);
+    int64_t GetClosestVsyncId(int64_t vsyncId) const;
+    double ConvertVsyncId2Time(int64_t vsyncId) const;
     int64_t ConvertTime2VsyncId(double time) const;
-    void GetVsyncList(std::set<int64_t>& vsyncList) const;
-    void GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const;
+    std::vector<int64_t> GetVsyncList() const;
+    std::pair<double, double> GetStartAndEndTime() const;
 
 private:
     void WriteHeaders();
     void WriteHeader();
     void LayerWriteHeader(uint32_t layer);
 
+    void WriteAnimationStartTime();
+    bool ReadAnimationStartTime();
+    bool ReadLayersOffset();
+
+    bool HasLayer(uint32_t layer) const;
+
     template<typename Track>
     void LayerWriteHeaderOfTrack(const Track& track)
     {
         uint32_t recordSize = track.size();
-        Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
+        Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
         for (auto item : track) {
             offsetVersionHandler_.WriteU64(file_, item.first);
             offsetVersionHandler_.WriteU64(file_, item.second);
@@ -209,23 +208,27 @@ private:
     template<typename Track>
     bool LayerReadHeaderOfTrack(Track& track)
     {
-        uint32_t recordSize = 0u;
-        Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+        uint32_t count = 0u;
+        if (!Utils::FileRead(file_, &count, sizeof(count))) {
+            return false;
+        }
         // chunkSizeMax bounds total bytes; convert to element count to avoid huge resize
         constexpr size_t trackElementSize = sizeof(typename Track::value_type);
-        constexpr size_t recordCountMax = chunkSizeMax / trackElementSize;
-        if (recordSize > recordCountMax) {
+        constexpr size_t maxCount = chunkSizeMax / trackElementSize;
+        if (count > maxCount) {
             return false;
         }
         // reject if declared bytes exceed remaining file size
-        const size_t declaredBytes = static_cast<size_t>(recordSize) * trackElementSize;
+        const size_t declaredBytes = static_cast<size_t>(count) * trackElementSize;
         if (declaredBytes > Utils::FileSize(file_)) {
             return false;
         }
-        track.resize(recordSize);
-        for (size_t i = 0; i < recordSize; i++) {
-            offsetVersionHandler_.ReadU64(file_, track[i].first);
-            offsetVersionHandler_.ReadU64(file_, track[i].second);
+        track.resize(count);
+        for (size_t i = 0; i < count; i++) {
+            if (!offsetVersionHandler_.ReadU64(file_, track[i].first) ||
+                !offsetVersionHandler_.ReadU64(file_, track[i].second)) {
+                return false;
+            }
         }
         return true;
     }
@@ -246,6 +249,7 @@ private:
 
 private:
     FILE* file_ = nullptr;
+    mutable std::mutex mutex_;
     uint32_t versionId_ = 0;
     double writeStartTime_ = 0.0;
     uint64_t headerOff_ = 0u;
@@ -254,7 +258,6 @@ private:
     uint64_t writeDataOff_ = 0u; // last byte of file where we can continue writing
     std::string headerFirstFrame_;
     std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes_;
-    mutable std::mutex writeMutex_;
     bool wasChanged_ = false;
     std::vector<uint8_t> preparedHeader_;
     bool preparedHeaderMode_ = false;

@@ -14,6 +14,8 @@
  */
 
 #include "ani_canvas.h"
+#include "ani_drawing_transfer_util.h"
+#include "record_cmd_utils_ani/ani_record_cmd_utils.h"
 
 #include <cstdint>
 
@@ -50,7 +52,10 @@
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
+#include "record_cmd_ani/ani_record_cmd.h"
+
 #include "drawing/canvas_napi/js_canvas.h"
+#include "render/rs_pixel_map_shader.h"
 
 namespace OHOS::Rosen {
 using namespace Media;
@@ -264,14 +269,20 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh paint is invalid");
         return;
     }
-    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
-    if (image == nullptr) {
-        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh image is nullptr");
-        return;
+    if (m_canvas->GetDrawingType() != Drawing::DrawingType::RECORDING) {
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
+        if (image == nullptr) {
+            ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh image is nullptr");
+            return;
+        }
+        auto shader = Drawing::ShaderEffect::CreateImageShader(
+            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+        m_canvas->GetMutableBrush().SetShaderEffect(shader);
+    } else {
+        auto shader = Drawing::ShaderEffect::CreateExtendShader(std::make_shared<RSPixelMapShader>(pixelMap,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix()));
+        m_canvas->GetMutableBrush().SetShaderEffect(shader);
     }
-    auto shader = Drawing::ShaderEffect::CreateImageShader(*image,
-        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
-    m_canvas->GetMutableBrush().SetShaderEffect(shader);
     m_canvas->DrawVertices(*builder.Detach(), Drawing::BlendMode::MODULATE);
 }
 }
@@ -360,6 +371,7 @@ static const std::array g_methods = {
     ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
         reinterpret_cast<void*>(AniCanvas::DrawSingleCharacterWithFeatures) },
     ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
+    ani_native_function { "drawRecordCmd", nullptr, reinterpret_cast<void*>(AniCanvas::DrawRecordCmd) },
 };
 
 ani_status AniCanvas::AniInit(ani_env *env)
@@ -377,9 +389,7 @@ ani_status AniCanvas::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "canvasTransferStaticNative", nullptr, reinterpret_cast<void*>(CanvasTransferStatic) },
-        ani_native_function { "getCanvasAddr", nullptr, reinterpret_cast<void*>(GetCanvasAddr) },
-        ani_native_function { "getPixelMapAddr", nullptr, reinterpret_cast<void*>(GetPixelMapAddr) },
-        ani_native_function { "getOwned", nullptr, reinterpret_cast<void*>(GetCanvasOwned) },
+        ani_native_function { "canvasTransferDynamicNative", nullptr, reinterpret_cast<void*>(CanvasTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -845,6 +855,18 @@ void AniCanvas::DrawImageRectInner(std::shared_ptr<Media::PixelMap> pixelmap,
     if (!m_canvas) {
         return;
     }
+    if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
+        Drawing::Rect srcRect(0, 0, pixelmap->GetWidth(), pixelmap->GetHeight());
+        if (samplingOptions && samplingOptions->GetSamplingOptions()) {
+            canvas_->DrawPixelMapRect(pixelmap, srcRect, rect, *samplingOptions->GetSamplingOptions(),
+                SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        } else {
+            canvas_->DrawPixelMapRect(
+                pixelmap, srcRect, rect, Drawing::SamplingOptions(), SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        }
+        return;
+    }
     std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelmap);
     if (image == nullptr) {
         ROSEN_LOGE("AniCanvas::DrawImageRectInner image is nullptr");
@@ -892,10 +914,9 @@ bool AniCanvas::GetVertices(ani_env* env, ani_array verticesObj, float* vertices
     for (uint32_t i = 0; i < verticesSize; i++) {
         ani_double vertex;
         ani_ref vertexRef;
-        if (ANI_OK !=  env->Array_Get(verticesObj, static_cast<ani_size>(i), &vertexRef) ||
-            ANI_OK !=  env->Object_CallMethod_Double(
-                static_cast<ani_object>(vertexRef), AniGlobalMethod::GetInstance().doubleGet, &vertex)) {
-            delete []vertices;
+        if (ANI_OK != env->Array_Get(verticesObj, static_cast<ani_size>(i), &vertexRef) ||
+            ANI_OK != env->Primitive_Unbox_Double(static_cast<ani_object>(vertexRef), &vertex)) {
+            delete[] vertices;
             return false;
         }
         vertices[i] = vertex;
@@ -908,10 +929,8 @@ bool AniCanvas::GetVerticesUint16(ani_env* env, ani_array verticesObj, uint16_t*
     for (uint32_t i = 0; i < verticesSize; i++) {
         ani_int vertex;
         ani_ref vertexRef;
-        if (ANI_OK != env->Array_Get(
-            verticesObj, static_cast<ani_size>(i), &vertexRef) ||
-            ANI_OK != env->Object_CallMethod_Int(
-                static_cast<ani_object>(vertexRef), AniGlobalMethod::GetInstance().intGet, &vertex)) {
+        if (ANI_OK != env->Array_Get(verticesObj, static_cast<ani_size>(i), &vertexRef) ||
+            ANI_OK != env->Primitive_Unbox_Int(static_cast<ani_object>(vertexRef), &vertex)) {
             ROSEN_LOGE("AniCanvas::GetVerticesUint16 vertices is invalid");
             return false;
         }
@@ -1777,6 +1796,10 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
                            ani_array positionsObj, ani_int positionOffset,
                            ani_int glyphCount, ani_object fontObj)
 {
+    if (env == nullptr) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs env is null");
+        return;
+    }
     auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
     if (!aniCanvas || !aniCanvas->GetCanvas()) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs canvas is nullptr.");
@@ -1836,6 +1859,24 @@ void AniCanvas::DrawRegion(ani_env* env, ani_object obj, ani_object regionObj)
         return;
     }
     aniCanvas->GetCanvas()->DrawRegion(*aniRegion->GetRegion());
+    aniCanvas->NotifyDirty();
+}
+
+void AniCanvas::DrawRecordCmd(ani_env* env, ani_object obj, ani_object recordCmdObj)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawRecordCmd canvas is nullptr.");
+        return;
+    }
+    auto aniRecordCmd = GetNativeFromObj<AniRecordCmd>(
+        env, recordCmdObj, AniGlobalField::GetInstance().recordCmdNativeObj);
+    if (aniRecordCmd == nullptr || aniRecordCmd->GetRecordCmd() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniCanvas::DrawRecordCmd recordCmd is nullptr.");
+        return;
+    }
+    aniCanvas->GetCanvas()->DrawRecordCmd(aniRecordCmd->GetRecordCmd());
     aniCanvas->NotifyDirty();
 }
 
@@ -2532,88 +2573,60 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
 
 ani_object AniCanvas::CanvasTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsCanvas = reinterpret_cast<JsCanvas*>(unwrapResult);
-    if (jsCanvas->GetCanvasPtr() == nullptr) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic jsCanvas is null");
-        return CreateAniUndefined(env);
-    }
-
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsCanvas = reinterpret_cast<JsCanvas*>(unwrapResult);
+        if (jsCanvas == nullptr || jsCanvas->GetCanvasPtr() == nullptr) {
+            ROSEN_LOGE("AniCanvas::CanvasTransferStatic jsCanvas is null");
+            return CreateAniUndefined(env);
+        }
 #ifdef ROSEN_OHOS
-    if (jsCanvas->GetPixelMap() == nullptr) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic pixelMap is null");
-        return CreateAniUndefined(env);
-    }
+        if (jsCanvas->GetPixelMap() == nullptr) {
+            ROSEN_LOGE("AniCanvas::CanvasTransferStatic pixelMap is null");
+            return CreateAniUndefined(env);
+        }
 #endif
-    auto aniCanvas = new AniCanvas(jsCanvas->GetCanvasPtr(), jsCanvas->GetOwned());
+        auto aniCanvas = new AniCanvas(jsCanvas->GetCanvasPtr());
 #ifdef ROSEN_OHOS
-    aniCanvas->mPixelMap_ = jsCanvas->GetPixelMap();
+        aniCanvas->mPixelMap_ = jsCanvas->GetPixelMap();
 #endif
-    ani_object aniCanvasObj = CreateAniObject(env, AniGlobalClass::GetInstance().canvas,
-        AniGlobalMethod::GetInstance().canvasCtorWithPtr, reinterpret_cast<ani_long>(aniCanvas));
-    if (IsUndefined(env, aniCanvasObj)) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed create aniCanvas");
-        delete aniCanvas;
-        return CreateAniUndefined(env);
-    }
-    return aniCanvasObj;
+        ani_object aniCanvasObj = CreateAniObject(env, AniGlobalClass::GetInstance().canvas,
+            AniGlobalMethod::GetInstance().canvasCtorWithPtr, reinterpret_cast<ani_long>(aniCanvas));
+        if (IsUndefined(env, aniCanvasObj)) {
+            ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed create aniCanvas");
+            delete aniCanvas;
+            return CreateAniUndefined(env);
+        }
+        return aniCanvasObj;
+    });
 }
 
-ani_long AniCanvas::GetCanvasAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniCanvas::CanvasTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, input, AniGlobalField::GetInstance().canvasNativeObj);
-    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
-        ROSEN_LOGE("AniCanvas::GetCanvasAddr aniCanvas is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().canvas)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniCanvas->GetCanvas());
-}
-
-ani_long AniCanvas::GetPixelMapAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
-{
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniCanvas = GetNativeFromObj<AniCanvas>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().canvasNativeObj);
+            if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+                ROSEN_LOGE("AniCanvas::CanvasTransferDynamic null aniCanvas");
+                return nullptr;
+            }
 #ifdef ROSEN_OHOS
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, input, AniGlobalField::GetInstance().canvasNativeObj);
-    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
-        ROSEN_LOGE("AniCanvas::GetPixelMapAddr aniCanvas is null");
-        return 0;
-    }
-    if (aniCanvas->mPixelMap_ == nullptr) {
-        ROSEN_LOGE("AniCanvas::GetPixelMapAddr pixelMap is null");
-        return 0;
-    }
-    return reinterpret_cast<ani_long>(aniCanvas->GetPixelMapPtrAddr());
+            return JsCanvas::CreateJsCanvasDynamic(napiEnv, aniCanvas->GetCanvas(), aniCanvas->mPixelMap_);
+#else
+            return JsCanvas::CreateJsCanvas(napiEnv, aniCanvas->GetCanvas());
 #endif
-    return 0;
+        });
 }
-
-ani_boolean AniCanvas::GetCanvasOwned(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
-{
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, input, AniGlobalField::GetInstance().canvasNativeObj);
-    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
-        ROSEN_LOGE("AniCanvas::GetPixelMapAddr aniCanvas is null");
-        return false;
-    }
-    return aniCanvas->owned_;
-}
-
-#ifdef ROSEN_OHOS
-std::shared_ptr<Media::PixelMap>* AniCanvas::GetPixelMapPtrAddr()
-{
-    return &mPixelMap_;
-}
-#endif
 
 AniCanvas::~AniCanvas()
 {
+    if (creator_ != nullptr) {
+        creator_->OnCanvasDestroyed(this);
+    }
     if (owned_) {
         delete m_canvas;
     }

@@ -79,7 +79,7 @@ private:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void UpdateSlrScale(const RSScreenProperty& screenProperty, float srcWidth, float srcHeight,
-        RSScreenRenderParams* params = nullptr);
+        RSScreenRenderParams* params = nullptr, bool isRotationChanged = false);
     void ScaleCanvasIfNeeded(const RSScreenProperty& screenProperty);
     void ClearTransparentBeforeSaveLayer();
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
@@ -87,6 +87,9 @@ private:
     std::vector<RectI> CalculateVirtualDirty(std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
         RSScreenRenderNodeDrawable& curScreenDrawable, RSLogicalDisplayRenderParams& params,
         Drawing::Matrix canvasMatrix);
+    void ScaleMatrixByInverseRogRatio(Drawing::Matrix& canvasMatrix, const ScreenInfo& mainScreenInfo) const;
+    void MapDamageRegionRects(const std::vector<RectI>& damageRegionRects, const ScreenInfo& mainScreenInfo,
+        Occlusion::Region& mappedDamageRegion, const Drawing::Matrix& canvasMatrix) const;
     void UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
         int32_t bufferage, bool useAlignedDirtyRegion = false);
     std::shared_ptr<Drawing::ShaderEffect> MakeBrightnessAdjustmentShader(const std::shared_ptr<Drawing::Image>& image,

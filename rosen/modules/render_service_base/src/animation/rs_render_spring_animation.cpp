@@ -65,9 +65,22 @@ void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingR
     }
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
-    blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
+    double blendDurationNs = static_cast<double>(blendDuration) * SECOND_TO_NANOSECOND;
+    blendDuration_ = (blendDurationNs < 0.0 || blendDurationNs >= static_cast<double>(UINT64_MAX))
+        ? 0 : static_cast<uint64_t>(blendDurationNs);
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
-    convergeParams_ = convergeParams;
+    if (convergeParams.has_value()) {
+        if (!std::isfinite(convergeParams->convergeProgressThreshold_) ||
+            convergeParams->convergeProgressThreshold_ < 0.0f || convergeParams->convergeProgressThreshold_ > 1.0f ||
+            !std::isfinite(convergeParams->convergeResponseFactor_) || convergeParams->convergeResponseFactor_ < 0.0f) {
+            ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, invalid convergeParams, set nullopt", __func__);
+        } else if (!(ROSEN_EQ(convergeParams->convergeProgressThreshold_, 1.0f) ||
+                       ROSEN_EQ(convergeParams->convergeResponseFactor_, 1.0f))) {
+            // Both being set to 1 is the default value for the upper layer and should remain consistent with the
+            // original.
+            convergeParams_ = convergeParams;
+        }
+    }
 }
 
 void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
@@ -82,47 +95,62 @@ void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
     needLogicallyFinishCallback_ = true;
 }
 
-void RSRenderSpringAnimation::OnAnimate(float fraction)
+bool RSRenderSpringAnimation::OnAnimate(float fraction)
 {
     if (GetPropertyId() == 0) {
         // calculateAnimationValue_ is embedded modify for stat animate frame drop
         calculateAnimationValue_ = false;
-        return;
+        return false;
     }
     if (springValueEstimator_ == nullptr) {
         ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, springValueEstimator is null");
-        return;
+        return false;
     }
     if (ROSEN_EQ(fraction, 1.0f, FRACTION_THRESHOLD)) {
         prevMappedTime_ = GetDuration() * MILLISECOND_TO_SECOND;
+        if (isConverging_) {
+            prevMappedTime_ -= lastConvergeTime_;
+        }
         springValueEstimator_->UpdateAnimationValue(prevMappedTime_, GetAdditive());
-        return;
+        return true;
     }
-
-    prevMappedTime_ = GetDuration() * fraction * MILLISECOND_TO_SECOND;
+    CheckStartConverge();
+    auto mappedTime = GetDuration() * fraction * MILLISECOND_TO_SECOND;
+    if (isConverging_) {
+        UpdateSpringConvergeParameters();
+        // Since the converged spring parameters have been updated, the difference from lastConvergeTime_ should be used
+        // as the time input.
+        prevMappedTime_ = mappedTime - lastConvergeTime_;
+    } else {
+        prevMappedTime_ = mappedTime;
+    }
     springValueEstimator_->UpdateAnimationValue(prevMappedTime_, GetAdditive());
+    if (CheckConvergeStatus(mappedTime)) {
+        return true;
+    }
 
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto currentValue = springValueEstimator_->GetAnimationProperty();
         if (currentValue == nullptr) {
             ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, failed to get current animation value");
-            return;
+            return false;
         }
         auto targetValue = animationFraction_.GetCurrentIsReverseCycle() ? startValue_ : endValue_;
         if (!currentValue->IsNearEqual(targetValue, zeroThreshold_)) {
-            return;
+            return false;
         }
         auto zeroValue = startValue_ - startValue_;
         auto velocity = springValueEstimator_->GetPropertyVelocity(prevMappedTime_);
         if (velocity == nullptr) {
             ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, failed to get velocity");
-            return;
+            return false;
         }
         if ((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
             CallLogicallyFinishCallback();
             needLogicallyFinishCallback_ = false;
         }
     }
+    return false;
 }
 
 void RSRenderSpringAnimation::RebuildPropertyValue(float fraction)
@@ -176,7 +204,10 @@ void RSRenderSpringAnimation::InheritSpringAnimation(
         return;
     }
 
-    // extract spring status from previous spring animation
+    if (prevAnimation->GetType() != RSRenderAnimationType::SPRING_ANIMATION) {
+        ROSEN_LOGE("RSRenderSpringAnimation::InheritSpringAnimation, prevAnimation is not spring type");
+        return;
+    }
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
 
     // inherit spring status from previous spring animation
@@ -205,6 +236,13 @@ void RSRenderSpringAnimation::InheritSpringAnimation(
         blendDuration_ = prevSpringAnimation->blendDuration_;
     }
 
+    // blend duration should not exceed previous animation duration
+    uint64_t prevDurationNs = static_cast<uint64_t>(prevSpringAnimation->GetDuration()) *
+        static_cast<uint64_t>(SECOND_TO_NANOSECOND * MILLISECOND_TO_SECOND);
+    if (blendDuration_ > prevDurationNs) {
+        blendDuration_ = prevDurationNs;
+    }
+
     // set previous spring animation to FINISHED
     prevSpringAnimation->FinishOnCurrentPosition();
 }
@@ -231,7 +269,10 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time, bool isCustom)
         return;
     }
 
-    if (blendDuration_) {
+    isCustom_ = isCustom;
+
+    // The blend takes effect only in non-convergence mode.
+    if (blendDuration_ && !isConverging_) {
         auto lastFrameTime = animationFraction_.GetLastFrameTime();
 
         // reset animation fraction
@@ -265,7 +306,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time, bool isCustom)
     springValueEstimator_->SetMinimumAmplitudeRatio(minimumAmplitudeRatio_);
     springValueEstimator_->UpdateSpringParameters();
 
-    if (blendDuration_) {
+    if (blendDuration_ && !isConverging_) {
         // blend is still in progress, no need to estimate duration, use 300ms as default
         SetDuration(300);
     } else {
@@ -335,6 +376,94 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
     return true;
 }
 
+void RSRenderSpringAnimation::UpdateSpringConvergeParameters()
+{
+    // It is used to update initialOffset_ and initialVelocity_ of the spring model.
+    InheritSpringStatus(this, isCustom_);
+    response_ = std::max(convergeParams_->convergeResponseFactor_ * response_, SPRING_MIN_RESPONSE);
+    springValueEstimator_->SetResponse(response_);
+    springValueEstimator_->UpdateSpringParameters();
+}
+
+bool RSRenderSpringAnimation::IsConvergeCloseToTarget() const
+{
+    // Ensure that springValueEstimator_ is not nullptr
+    if (!endThreshold_) {
+        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get endThreshold", __func__);
+        return false;
+    }
+    if (!endValue_) {
+        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get endValue", __func__);
+        return false;
+    }
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        auto currentValue = springValueEstimator_->GetAnimationProperty();
+        if (!currentValue) {
+            ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get current animation value", __func__);
+            return false;
+        }
+        // Determine whether it is sufficiently close to the endValue_, and each dimension must meet the requirement.
+        return currentValue->IsAbsNearEqual(endValue_, endThreshold_);
+    }
+    auto frameThreshold = springValueEstimator_->GetFrameThreshold(prevMappedTime_);
+    if (!frameThreshold) {
+        ROSEN_LOGE("RSRenderSpringAnimation::%{public}s, failed to get frame threshold", __func__);
+        return false;
+    }
+    // amplitude envelope (frameThreshold) is compared against zero to decide convergence.
+    auto zeroValue = endValue_ - endValue_;
+    return frameThreshold->IsAbsNearEqual(zeroValue, endThreshold_);
+}
+
+bool RSRenderSpringAnimation::IsConvergeEnd() const
+{
+    // Ensure that springValueEstimator_ is not nullptr
+    // In convergence mode, it can only stop in advance if it is not in overshoot and is sufficiently close to the
+    // target value.
+    return !springValueEstimator_->WillOverShoot() && IsConvergeCloseToTarget();
+}
+
+void RSRenderSpringAnimation::CheckStartConverge()
+{
+    if (!convergeParams_.has_value()) {
+        return;
+    }
+    if (isConverging_) {
+        return;
+    }
+    if (springValueEstimator_->IsStartConverging(prevMappedTime_, convergeParams_->convergeProgressThreshold_)) {
+        isConverging_ = true;
+        lastConvergeTime_ = prevMappedTime_;
+
+        // When entering convergence mode, if the blend is also in progress, the duration is calculated in
+        // advance to ensure that the duration is calculated based on the original spring parameters.
+        if (blendDuration_) {
+            SetDuration(std::lroundf(springValueEstimator_->UpdateDuration() * SECOND_TO_MILLISECOND));
+            RSRenderPropertyAnimation::OnInitialize(0);
+        }
+
+        auto originInitialOffset = springValueEstimator_->GetInitialOffset();
+        endThreshold_ = originInitialOffset * std::min(minimumAmplitudeRatio_, SPRING_TRAIL_END_THRESHOLD);
+        auto duration = GetDuration() * MILLISECOND_TO_SECOND;
+        auto originLastFrameThreshold = springValueEstimator_->GetFrameThreshold(duration);
+        endThreshold_->TakeAbsMaxFrom(originLastFrameThreshold);
+    }
+}
+
+bool RSRenderSpringAnimation::CheckConvergeStatus(float time)
+{
+    if (!isConverging_) {
+        return false;
+    }
+    if (IsConvergeEnd()) {
+        return true;
+    }
+    // It is the mappedTime of the previous frame, which is used to calculate the time input of the spring model after
+    // the parameters are updated.
+    lastConvergeTime_ = time;
+    return false;
+}
+
 bool RSRenderSpringAnimation::GetNeedLogicallyFinishCallback() const
 {
     return needLogicallyFinishCallback_;
@@ -377,6 +506,13 @@ void RSRenderSpringAnimation::InitValueEstimator()
     springValueEstimator_->InitRSSpringValueEstimator(property_, startValue_, endValue_, lastValue_);
     springValueEstimator_->SetResponse(response_);
     springValueEstimator_->SetDampingRatio(dampingRatio_);
+}
+
+void RSRenderSpringAnimation::ProcessOnRepeatFinish()
+{
+    RSRenderPropertyAnimation::ProcessOnRepeatFinish();
+    isConverging_ = false;
+    lastConvergeTime_ = 0.0f;
 }
 } // namespace Rosen
 } // namespace OHOS

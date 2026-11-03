@@ -16,9 +16,7 @@
 #include "animation/rs_animation_manager.h"
 
 #include <algorithm>
-#include <sstream>
 #include <string>
-#include <thread>
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
@@ -37,18 +35,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSRootRenderNode;
-
-RSAnimationManager::RSAnimationManager() : creationTid_(std::this_thread::get_id()) {}
-
-RSAnimationManager::~RSAnimationManager()
-{
-    if (auto currentTid = std::this_thread::get_id(); currentTid != creationTid_) {
-        std::ostringstream oss;
-        oss << "creationTid=" << creationTid_ << ", currentTid=" << currentTid;
-        ROSEN_LOGE(
-            "RSAnimationManager::~RSAnimationManager, destroyed on non-main thread, %{public}s", oss.str().c_str());
-    }
-}
 
 void RSAnimationManager::DumpAnimations(std::string& out) const
 {
@@ -173,15 +159,19 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
     EraseIf(animations_, [this, &hasRunningAnimation, time, &needRequestNextVsync, nodeIsOnTheTree,
         &isCalculateAnimationValue, abilityState, &minLeftDelayTime](auto& iter) -> bool {
         auto& animation = iter.second;
-        // infinite iteration animation out of the tree or in the background does not request vsync
-        if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) &&
-            animation->GetRepeatCount() == -1) {
+        // infinite iteration animation out of the tree or in the background does not request vsync.
+        // For group animation children, only suspend if the group itself is infinite-loop;
+        // finite-loop group children should finish normally (the group animator will FinishAnimator too).
+        bool isInfiniteLoop = animation->IsGroupAnimationChild() ?
+            (animation->GetGroupRepeatCount() == -1) : (animation->GetRepeatCount() == -1);
+        if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) && isInfiniteLoop) {
             RS_TRACE_NAME_FMT("InfiniteAnim Suspend animId:%llu nodeId:%llu pid:%d onTree:%d abilityState:%d",
                 animation->GetAnimationId(), animation->GetTargetId(), GetAnimationPid(), nodeIsOnTheTree,
                 static_cast<int>(abilityState));
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
-            if (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION &&
-                !animation->GetNeedUpdateStartTime()) {
+            // Suspend keeps lastFrameTime_ stale across background; mark needUpdateStartTime so the first
+            // foreground frame resets lastFrameTime_ via SetStartTime, avoiding a huge deltaTime jump.
+            if (!animation->GetNeedUpdateStartTime()) {
                 animation->needUpdateStartTime_ = true;
             }
             return false;
@@ -279,6 +269,11 @@ void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSCo
         }
         // Only infinite loop animations need to be rebuilt, normal animations will finish when going to background
         if (animation->GetRepeatCount() != infiniteRepeatCount) {
+            ROSEN_LOGW("RSAnimationManager::DestroyInRender, non-infinite animation[%{public}" PRIu64
+                "] finished via DestroyInRender", animation->GetAnimationId());
+            animation->Finish();
+            animation->RemoveFromGroupAnimator();
+            OnAnimationFinished(animation);
             continue;
         }
         bool isParticle = (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION);
@@ -298,8 +293,8 @@ void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSCo
             if (modifierNG != nullptr) {
                 target->RemoveModifierNG(modifierNG->GetId());
             }
-            animation->Detach();
         }
+        animation->Detach();
     }
     animations_.clear();
     particleAnimations_.clear();

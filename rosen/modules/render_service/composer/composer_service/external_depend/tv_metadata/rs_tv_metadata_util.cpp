@@ -77,9 +77,8 @@ void RSTvMetadataUtil::CopyFromLayersToSurface(const std::vector<RSLayerPtr>& la
 
 void RSTvMetadataUtil::CombineMetadataForAllLayers(const std::vector<RSLayerPtr>& layers)
 {
-    TvPQMetadata tvUniRenderMetadata = { 0 };
+    static TvPQMetadata tvUniRenderMetadata = { 0 };
     TvPQMetadata tvSelfDrawMetadata = { 0 };
-    sptr<SurfaceBuffer> tvUniRenderBuffer = nullptr;
     sptr<SurfaceBuffer> tvSelfDrawBuffer = nullptr;
 
     uint32_t zorderMin = 0;
@@ -96,7 +95,6 @@ void RSTvMetadataUtil::CombineMetadataForAllLayers(const std::vector<RSLayerPtr>
             continue;
         }
         if (layer->GetUniRenderFlag()) {
-            tvUniRenderBuffer = buffer;
             tvUniRenderMetadata = tvMetadata;
         } else if (tvSelfDrawBuffer == nullptr || zorderMin > layer->GetZorder()) {
             static_cast<void>(MetadataHelper::EraseVideoTVInfoKey(tvSelfDrawBuffer));

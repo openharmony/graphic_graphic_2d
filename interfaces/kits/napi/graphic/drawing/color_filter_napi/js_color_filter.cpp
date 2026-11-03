@@ -19,6 +19,7 @@
 #include "draw/color.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -34,7 +35,6 @@ napi_value JsColorFilter::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("createLumaColorFilter", JsColorFilter::CreateLumaColorFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createMatrixColorFilter", JsColorFilter::CreateMatrixColorFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createLightingColorFilter", JsColorFilter::CreateLightingColorFilter),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsColorFilter::ColorFilterTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -87,7 +87,8 @@ napi_value JsColorFilter::Constructor(napi_env env, napi_callback_info info)
 
     JsColorFilter *jsColorFilter = new JsColorFilter();
 
-    status = napi_wrap(env, jsThis, jsColorFilter, JsColorFilter::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsColorFilter, JsColorFilter::Destructor,
+        nullptr, &COLOR_FILTER_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsColorFilter;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -114,7 +115,7 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
         ROSEN_LOGE("JsColorFilter::CreateBlendModeColorFilter Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
 
     int32_t jsMode = 0;
@@ -130,10 +131,10 @@ napi_value JsColorFilter::CreateComposeColorFilter(napi_env env, napi_callback_i
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsColorFilter *jsColorFilter1 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsColorFilter1);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsColorFilter1, &COLOR_FILTER_TYPE_TAG);
 
     JsColorFilter *jsColorFilter2 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsColorFilter2);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsColorFilter2, &COLOR_FILTER_TYPE_TAG);
 
     std::shared_ptr<ColorFilter> colorFilter1 = jsColorFilter1->GetColorFilter();
     std::shared_ptr<ColorFilter> colorFilter2 = jsColorFilter2->GetColorFilter();
@@ -171,11 +172,10 @@ napi_value JsColorFilter::CreateMatrixColorFilter(napi_env env, napi_callback_in
 
     uint32_t arrayLength = 0;
     if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Invalid array length.");
     }
     if (arrayLength != ColorMatrix::MATRIX_SIZE) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "parameter array length verification failed.");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter error. Incorrect array size.");
     }
 
     scalar matrix[ColorMatrix::MATRIX_SIZE];
@@ -208,13 +208,13 @@ napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], mulColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter0 verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[0] value range error. The range of color channels must be [0, 255].");
     }
     ColorQuad addColor;
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ONE], addColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[1] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter1 verification failed. The range of color channels must be [0, 255].");
+            "Parameter error. param[1] value range error. The range of color channels must be [0, 255].");
     }
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLightingColorFilter(mulColor, addColor);
@@ -223,44 +223,27 @@ napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_
 
 napi_value JsColorFilter::Create(napi_env env, const std::shared_ptr<ColorFilter> colorFilter)
 {
+    if (colorFilter == nullptr) {
+        ROSEN_LOGE("[NAPI]JsColorFilter is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || colorFilter == nullptr) {
-        ROSEN_LOGE("[NAPI]Object or JsColorFilter is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("[NAPI]napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsColorFilter> jsColorFilter = std::make_unique<JsColorFilter>(colorFilter);
-    napi_wrap(env, objValue, jsColorFilter.release(), JsColorFilter::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("[NAPI]objValue is null!");
+    status = napi_wrap_s(env, objValue, jsColorFilter.get(), JsColorFilter::Finalizer,
+        nullptr, &COLOR_FILTER_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("[NAPI]Failed to wrap native instance");
         return nullptr;
     }
+    jsColorFilter.release();
     return objValue;
-}
-
-napi_value JsColorFilter::ColorFilterTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<ColorFilter> colorFilter = *reinterpret_cast<std::shared_ptr<ColorFilter>*>(addr);
-    if (colorFilter == nullptr) {
-        return nullptr;
-    }
-    return JsColorFilter::Create(env, colorFilter);
 }
 
 std::shared_ptr<ColorFilter> JsColorFilter::GetColorFilter()

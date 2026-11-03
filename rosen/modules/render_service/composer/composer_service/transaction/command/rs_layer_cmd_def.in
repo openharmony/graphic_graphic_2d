@@ -21,6 +21,7 @@ DECLARE_RSLAYER_CMD(Zorder, int32_t, ZORDER)
 DECLARE_RSLAYER_CMD(Type, GraphicLayerType, TYPE)
 DECLARE_RSLAYER_CMD(Transform, GraphicTransformType, TRANSFORM)
 DECLARE_RSLAYER_CMD(CompositionType, GraphicCompositionType, COMPOSITION_TYPE)
+DECLARE_RSLAYER_CMD(AlphaType, GraphicAlphaType, ALPHA_TYPE)
 DECLARE_RSLAYER_CMD(Gravity, int32_t, GRAVITY)
 DECLARE_RSLAYER_CMD(BlendType, GraphicBlendType, BLEND_TYPE)
 
@@ -62,7 +63,7 @@ DECLARE_RSLAYER_CMD(CropRect, GraphicIRect, CROP_RECT)
 DECLARE_RSLAYER_CMD(AncoSrcRect, GraphicIRect, ANCO_SRC_RECT)
 DECLARE_RSLAYER_CMD(VisibleRegions, std::vector<GraphicIRect>, VISIBLE_REGIONS)
 DECLARE_RSLAYER_CMD(DirtyRegions, std::vector<GraphicIRect>, DIRTY_REGIONS)
-DECLARE_RSLAYER_CMD(DelegateModeCropRect, GraphicIRect, DELEGATE_MODE_CROP_RECT)
+DECLARE_RSLAYER_CMD(DelegateSrcRect, GraphicIRect, DELEGATE_MODE_SRC_RECT)
 
 // rect_matrix command
 DECLARE_RSLAYER_CMD(Matrix, GraphicMatrix, MATRIX)

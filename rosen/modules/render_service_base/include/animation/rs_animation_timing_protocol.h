@@ -28,10 +28,7 @@ enum class FillMode {
     BOTH,
 };
 
-inline FillMode SafeCastFillMode(int32_t val, FillMode defaultVal = FillMode::FORWARDS)
-{
-    return (val >= 0 && val <= static_cast<int32_t>(FillMode::BOTH)) ? static_cast<FillMode>(val) : defaultVal;
-}
+FillMode SafeCastFillMode(int32_t val, FillMode defaultVal = FillMode::FORWARDS);
 
 enum class FinishCallbackType {
     TIME_SENSITIVE,

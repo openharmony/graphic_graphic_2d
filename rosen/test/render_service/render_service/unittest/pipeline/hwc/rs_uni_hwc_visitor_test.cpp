@@ -47,6 +47,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "hdr/rs_base_hdr_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1431,7 +1433,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByAlpha_002, TestSize.Level2)
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, TestSize.Level1)
 {
-    std::vector<RectI> abovedBounds;
+    std::vector<std::pair<RectI, RectI>> abovedBounds;
 
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
@@ -1442,8 +1444,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-
+    // test curScreenNode_ is nullptr
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+
     // test hwcNodes is empty
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 
@@ -1455,7 +1468,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 
     // test hwcNodes is not empty, and abovedBounds is not empty
-    abovedBounds.emplace_back(RectI{0, 0, 200, 200});
+    abovedBounds.emplace_back(RectI{0, 0, 200, 200}, RectI{0, 0, 200, 200});
     rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
 }
 
@@ -1468,9 +1481,18 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, Test
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+ 
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    std::vector<RectI> abovedBounds;
+    std::vector<std::pair<RectI, RectI>> abovedBounds;
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
@@ -1508,10 +1530,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, Test
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps003, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    std::vector<RectI> aboveBounds;
+    std::vector<std::pair<RectI, RectI>> aboveBounds;
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
 
     RSSurfaceRenderNodeConfig surfaceConfig;
@@ -2968,6 +2999,40 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_005, Function | SmallTest | 
 }
 
 /**
+ * @tc.name: UpdateHwcNodeMatrix_001
+ * @tc.desc: Test UpdateHwcNodeMatrix Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeMatrix_001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    auto surfaceNode = std::make_shared<RSRenderNode>(nodeId);
+    surfaceNode->InitRenderParams();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeMatrix(surfaceNode, matrix);
+    Drawing::Matrix expectedMatrix;
+    EXPECT_EQ(matrix, expectedMatrix);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeMatrix_002
+ * @tc.desc: Test UpdateHwcNodeMatrix Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeMatrix_002, TestSize.Level2)
+{
+    auto surfaceNode = nullptr;
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeMatrix(surfaceNode, matrix);
+    Drawing::Matrix expectedMatrix;
+    EXPECT_EQ(matrix, expectedMatrix);
+}
+
+/**
  * @tc.name: UpdateHwcNodeClipRectAndMatrix_001
  * @tc.desc: Test UpdateHwcNodeClipRectAndMatrix
  * @tc.type: FUNC
@@ -3015,296 +3080,14 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
     rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
-    // Trigger the guard (visitor dirtyFlag_) so the top-down refresh runs and computes each
-    // ancestor's absMatrix_, which the function reads back as the chain transform (matrix output).
-    rsUniRenderVisitor->dirtyFlag_ = true;
     RectI clipRect;
     Drawing::Matrix matrix;
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
-    // clipRect still comes from the bottom-up clip accumulation mapped by rootNode.absMatrix.
     RectI expectedClipRect = {50, 10, 20, 30};
+    Drawing::Matrix expectedMatrix;
+    expectedMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
     EXPECT_EQ(clipRect, expectedClipRect);
-    // matrix output is now hwcNode's direct-parent (canvasNode2) absMatrix (the chain transform,
-    // including inter-node offset bridging) -- read it back for direct comparison.
-    EXPECT_EQ(matrix, canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-}
-
-/**
- * @tc.name: UpdateHwcNodeClipRectAndMatrix_002
- * @tc.desc: Verify intermediate ancestor boundsGeo_ is refreshed top-down in a skipped subtree,
- *           so that later up-traversal intersection/occlusion checks read correct GetAbsRect().
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_002, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
-    leashWindowNode->InitRenderParams();
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    // Two-level ancestor chain: rootNode -> canvasNode1 -> canvasNode2 -> surfaceNode.
-    // Their bounds positions act as translations (no trans_ set, so UpdateAbsMatrix2D uses x_, y_).
-    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode1->InitRenderParams();
-    canvasNode1->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100); // translate(10, 20)
-    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode2->InitRenderParams();
-    canvasNode2->renderProperties_.boundsGeo_->SetRect(5, 5, 50, 50);     // translate(5, 5)
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
-    surfaceNode->renderProperties_.clipToBounds_ = true;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->isHardwareEnabledNode_ = true;
-    leashWindowNode->AddChild(rootNode);
-    rootNode->AddChild(canvasNode1);
-    canvasNode1->AddChild(canvasNode2);
-    canvasNode2->AddChild(surfaceNode);
-    // Simulate the stale ancestor absMatrix that a real skipped subtree would carry in.
-    Drawing::Matrix staleMatrix;
-    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
-    canvasNode1->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
-    canvasNode2->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
-    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
-    // The ancestor refresh is gated on the visitor's dirtyFlag_ (accumGeoDirty). Set it so the
-    // guard triggers the refresh (models "parent chain moved").
-    rsUniRenderVisitor->dirtyFlag_ = true;
-    RectI clipRect;
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
-
-    // canvasNode1 refreshed from rootNode(identity): absMatrix = translate(10, 20).
-    Drawing::Matrix expectedAbsMatrix1;
-    expectedAbsMatrix1.SetMatrix(1.f, 0.f, 10.f, 0.f, 1.f, 20.f, 0.f, 0.f, 1.f);
-    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix1);
-    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(10, 20, 100, 100));
-    // canvasNode2 refreshed from the already-refreshed canvasNode1: absMatrix = translate(10+5, 20+5).
-    Drawing::Matrix expectedAbsMatrix2;
-    expectedAbsMatrix2.SetMatrix(1.f, 0.f, 15.f, 0.f, 1.f, 25.f, 0.f, 0.f, 1.f);
-    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix2);
-    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(15, 25, 50, 50));
-}
-
-/**
- * @tc.name: UpdateHwcNodeClipRectAndMatrix_003
- * @tc.desc: Verify the ancestor refresh is skipped (static-scene fast path) when the hwcNode's
- *           absolute transform is unchanged since the previous frame.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_003, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
-    leashWindowNode->InitRenderParams();
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode1->InitRenderParams();
-    canvasNode1->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100);
-    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode2->InitRenderParams();
-    canvasNode2->renderProperties_.boundsGeo_->SetRect(5, 5, 50, 50);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
-    surfaceNode->renderProperties_.clipToBounds_ = true;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->isHardwareEnabledNode_ = true;
-    leashWindowNode->AddChild(rootNode);
-    rootNode->AddChild(canvasNode1);
-    canvasNode1->AddChild(canvasNode2);
-    canvasNode2->AddChild(surfaceNode);
-    // Stale ancestor geometry that must be left untouched when the refresh is skipped.
-    Drawing::Matrix staleMatrix;
-    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
-    canvasNode1->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
-    canvasNode2->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
-    // dirtyFlag_ is left false (visitor clean), i.e. the subtree is static -> the guard must skip
-    // the ancestor refresh.
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
-    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
-    RectI clipRect;
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
-
-    // Ancestor boundsGeo_ NOT refreshed: absMatrix stays at the stale value.
-    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), staleMatrix);
-    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), staleMatrix);
-}
-
-/**
- * @tc.name: UpdateHwcNodeClipRectAndMatrix_004
- * @tc.desc: Verify a surface ancestor with GetGlobalPositionEnabled folds the prepared display
- *           offset into its refreshed geometry, matching RSRenderNode::UpdateDrawRect case b.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_004, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
-    leashWindowNode->InitRenderParams();
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    // Intermediate surface ancestor with global position enabled (multi-display): the prepared
-    // display offset must be subtracted when refreshing its geometry.
-    auto surfaceAncestor = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceAncestor->InitRenderParams();
-    surfaceAncestor->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
-    surfaceAncestor->SetGlobalPositionEnabled(true);
-    surfaceAncestor->SetPreparedDisplayOffsetX(100);
-    surfaceAncestor->SetPreparedDisplayOffsetY(200);
-    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    hwcNode->InitRenderParams();
-    hwcNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
-    hwcNode->renderProperties_.clipToBounds_ = true;
-    hwcNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    hwcNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    hwcNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    hwcNode->isHardwareEnabledNode_ = true;
-    leashWindowNode->AddChild(rootNode);
-    rootNode->AddChild(surfaceAncestor);
-    surfaceAncestor->AddChild(hwcNode);
-    // Seed a stale ancestor absMatrix.
-    Drawing::Matrix staleMatrix;
-    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
-    surfaceAncestor->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
-    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
-    // Set the visitor's dirtyFlag_ so the guard fires.
-    rsUniRenderVisitor->dirtyFlag_ = true;
-    RectI clipRect;
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(hwcNode, *rootNode, clipRect, matrix);
-
-    // parent(identity) then PreTranslate(-offsetX, -offsetY) -> translate(-100, -200).
-    Drawing::Matrix expectedAbsMatrix;
-    expectedAbsMatrix.SetMatrix(1.f, 0.f, -100.f, 0.f, 1.f, -200.f, 0.f, 0.f, 1.f);
-    EXPECT_EQ(surfaceAncestor->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix);
-    EXPECT_EQ(surfaceAncestor->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(-100, -200, 50, 50));
-}
-
-/**
- * @tc.name: UpdateHwcNodeClipRectAndMatrix_005
- * @tc.desc: Cover the ancestors.empty() branch: hwcNode hangs directly off rootNode (no
- *           intermediate ancestor), so the chain transform equals rootNode.absMatrix.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_005, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
-    leashWindowNode->InitRenderParams();
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    // Give rootNode a non-trivial absMatrix so the branch result is observable (not identity==identity).
-    Drawing::Matrix rootAbsMatrix;
-    rootAbsMatrix.SetMatrix(1.f, 0.f, 100.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
-    rootNode->renderProperties_.boundsGeo_->SetAbsMatrix(rootAbsMatrix);
-    // hwcNode is a DIRECT child of rootNode -> the ancestors vector collected inside
-    // UpdateHwcNodeClipRectAndMatrix is empty, exercising the ancestors.empty() branch.
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.boundsGeo_->SetRect(10, 20, 50, 50); // own matrix translate(10, 20)
-    surfaceNode->renderProperties_.clipToBounds_ = true;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->isHardwareEnabledNode_ = true;
-    leashWindowNode->AddChild(rootNode);
-    rootNode->AddChild(surfaceNode);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
-    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
-    rsUniRenderVisitor->dirtyFlag_ = true; // trigger guard -> refresh runs
-    RectI clipRect;
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
-
-    // ancestors.empty() branch: chain transform = rootNode.absMatrix directly (no parent.absMatrix_).
-    EXPECT_EQ(matrix, rootAbsMatrix);
-    Drawing::Matrix expectedHwcAbs;
-    expectedHwcAbs.SetMatrix(1.f, 0.f, 110.f, 0.f, 1.f, 120.f, 0.f, 0.f, 1.f);
-    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedHwcAbs);
-    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(110, 120, 50, 50));
-}
-
-/**
- * @tc.name: RefreshAncestorGeometryInSkippedSubTree_001
- * @tc.desc: Verify the helper is a no-op for empty/nullptr ancestors and a null hwcNode leaf.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, RefreshAncestorGeometryInSkippedSubTree_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode->InitRenderParams();
-    rootNode->AddChild(surfaceNode);
-    // surfaceNode is NOT passed as the hwcNode leaf (nullptr), so its boundsGeo_ must stay untouched.
-    Drawing::Matrix surfaceAbsMatrix;
-    surfaceAbsMatrix.SetMatrix(1.f, 0.f, 7.f, 0.f, 1.f, 8.f, 0.f, 0.f, 1.f);
-    surfaceNode->renderProperties_.boundsGeo_->SetAbsMatrix(surfaceAbsMatrix);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    std::vector<std::shared_ptr<RSRenderNode>> emptyAncestors;
-    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(nullptr, *rootNode, emptyAncestors);
-    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), surfaceAbsMatrix);
-
-    std::vector<std::shared_ptr<RSRenderNode>> ancestors;
-    ancestors.push_back(nullptr);
-    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(nullptr, *rootNode, ancestors);
-    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), surfaceAbsMatrix);
-}
-
-/**
- * @tc.name: RefreshAncestorGeometryInSkippedSubTree_002
- * @tc.desc: Verify the helper updates the hwcNode leaf's boundsGeo_ (offset = nullopt) as the last
- *           top-down step, using the direct-parent absMatrix as the chain transform.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, RefreshAncestorGeometryInSkippedSubTree_002, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode->InitRenderParams();
-    canvasNode->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100); // translate(10, 20)
-    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    hwcNode->InitRenderParams();
-    hwcNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);        // own matrix = identity
-    rootNode->AddChild(canvasNode);
-    canvasNode->AddChild(hwcNode);
-    std::vector<std::shared_ptr<RSRenderNode>> ancestors = {canvasNode};
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(hwcNode, *rootNode, ancestors);
-
-    // canvasNode refreshed from rootNode(identity): absMatrix = translate(10, 20).
-    Drawing::Matrix expectedCanvasAbs;
-    expectedCanvasAbs.SetMatrix(1.f, 0.f, 10.f, 0.f, 1.f, 20.f, 0.f, 0.f, 1.f);
-    EXPECT_EQ(canvasNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedCanvasAbs);
-    // hwcNode leaf refreshed with offset=nullopt: absMatrix = parent.absMatrix (chain) * own matrix_.
-    EXPECT_EQ(hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedCanvasAbs);
-    EXPECT_EQ(hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(10, 20, 50, 50));
+    EXPECT_EQ(matrix, expectedMatrix);
 }
 
 /**
@@ -4085,6 +3868,37 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_003, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeInfo_004
+ * @tc.desc: Test UpdateHwcNodeInfo with curScreenNode_ nullptr (no crash, screenChanged=false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+    // curScreenNode_ is nullptr by default
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "UpdateHwcNodeInfo_004";
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetNodeName("testNode");
+    rsSurfaceRenderNode->SetHardwareForcedDisabledState(false);
+
+    Drawing::Matrix absMatrix;
+    absMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    // Should not crash when curScreenNode_ is nullptr; screenChanged is false via short-circuit
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, false);
+    SUCCEED();
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByGlobalPosition_001
  * @tc.desc: Test UpdateHwcNodeEnableByGlobalPosition when firstLevelNode is null
  * @tc.type: FUNC
@@ -4170,5 +3984,848 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalPosition_003, TestSize.
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalPosition(*surfaceNode);
 
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_HardwareForcedDisabled_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when hwcNode is already hardware forced disabled.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_HardwareForcedDisabled_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(true);
+    ASSERT_TRUE(hwcNode->IsHardwareForcedDisabled());
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_NoDisplayNode_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when curLogicalDisplayNode_ is null.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_NoDisplayNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+ 
+    rsUniRenderVisitor->curLogicalDisplayNode_ = nullptr;
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGtm_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_GTM.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGtm_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+    hwcNode->SetDisplayNit(1000.0f);
+    hwcNode->SetSdrNit(500.0f);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGainmap_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_GAINMAP.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(
+    RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRGainmap_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    hwcNode->SetDisplayNit(1000.0f);
+    hwcNode->SetSdrNit(500.0f);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRAi2020_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is AI_HDR_VIDEO_AI2020.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(
+    RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_AIHDRAi2020_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_AI2020);
+    hwcNode->SetDisplayNit(1000.0f);
+    hwcNode->SetSdrNit(500.0f);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NonAIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is HDR_VIDEO (non-AI HDR).
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NonAIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorNonZero_AIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is non-zero (not off-peak).
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorNonZero_AIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NoHdr_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when brightnessFactor is 0 and HdrStatus is NO_HDR.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BrightnessFactorZero_NoHdr_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::NO_HDR);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_NullParams_AIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when hwcNodeParams is nullptr.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_NullParams_AIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+    hwcNode->GetStagingRenderParams().reset();
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_BufferConsumed_AIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when buffer is consumed (isConsumed=true).
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_BufferConsumed_AIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+    hwcNode->SetDisplayNit(1000.0f);
+    hwcNode->SetSdrNit(500.0f);
+    hwcNode->GetRSSurfaceHandler()->SetCurrentFrameBufferConsumed();
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+ 
+/**
+@tc.name: UpdateHwcNodeEnableByForceDisableHdr_SameNit_AIHDR_001
+@tc.desc: Test UpdateHwcNodeEnableByForceDisableHdr when displayNit equals sdrNit.
+@tc.type: FUNC
+@tc.require: issueIAJY2P
+*/
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByForceDisableHdr_SameNit_AIHDR_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+    std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayNodeConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+ 
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+    hwcNode->SetDisplayNit(500.0f);
+    hwcNode->SetSdrNit(500.0f);
+ 
+    rsUniHwcVisitor->UpdateHwcNodeEnableByForceDisableHdr(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_001
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when consumer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_002
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize < DEFAULT_QUEUE_SIZE
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_003
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize < DEFAULT_QUEUE_SIZE,
+ *           hardware composer should not be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_003, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(3);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(3);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_004
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize >= DEFAULT_QUEUE_SIZE
+ *           and frameTimeInterval > autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_004, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(5);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_005
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval boundary when queueSize >= DEFAULT_QUEUE_SIZE
+ *           and frameTimeInterval == autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(5);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(5);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_006
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when handler is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_006, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    // Set surfaceHandler_ to nullptr to cover the handler == nullptr early return
+    surfaceNode->surfaceHandler_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    // handler == nullptr → early return, no state change
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFrameTimeInterval_007
+ * @tc.desc: Test UpdateHwcNodeEnableByFrameTimeInterval when queueSize == DEFAULT_QUEUE_SIZE (boundary)
+ *           and frameTimeInterval >= autoSwitchInterval, hardware composer should be forced disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFrameTimeInterval_007, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    // Set queueSize exactly to DEFAULT_QUEUE_SIZE (4) to cover the boundary
+    psurf->SetQueueSize(4);
+
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(surfaceNode);
+    // queueSize(4) >= DEFAULT_QUEUE_SIZE(4) && frameTimeInterval(10) >= autoSwitchInterval(5)
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001
+ * @tc.desc: Test UpdateHwcNodeEnable when GetComposerAutoSwitch is true and hwcNode is anco node,
+ *           UpdateHwcNodeEnableByFrameTimeInterval should be called and hardware composer disabled
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchTrue_AncoNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    auto hwcConsumer = hwcNodePtr->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(hwcConsumer, nullptr);
+    auto hwcProducer = hwcConsumer->GetProducer();
+    auto hwcPsurf = Surface::CreateSurfaceAsProducer(hwcProducer);
+    hwcPsurf->SetQueueSize(5);
+    // Push directly into childHwcNodes_ to make GetChildHwcNodes return it
+    displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    // Set auto switch enabled and conditions for UpdateHwcNodeEnableByFrameTimeInterval to disable
+    auto oldComposerAutoSwitch = RSUniRenderUtil::GetComposerAutoSwitch();
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetComposerAutoSwitch(true);
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFrameTimeInterval(hwcNodePtr);
+    EXPECT_TRUE(hwcNodePtr->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnable_AutoSwitchFalse_AncoNode_001
+ * @tc.desc: Test UpdateHwcNodeEnable when GetComposerAutoSwitch is false and hwcNode is anco node,
+ *           UpdateHwcNodeEnableByFrameTimeInterval should not be called
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_AutoSwitchFalse_AncoNode_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    displayNode->childHwcNodes_.emplace_back(hwcNodePtr);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    // Set auto switch disabled, even though frameTimeInterval >= autoSwitchInterval
+    auto oldComposerAutoSwitch = RSUniRenderUtil::GetComposerAutoSwitch();
+    auto oldFrameTimeInterval = RSUniRenderUtil::GetFrameTimeInterval();
+    auto oldAutoSwitchInterval = RSUniRenderUtil::GetAutoSwitchInterval();
+    RSUniRenderUtil::SetComposerAutoSwitch(false);
+    RSUniRenderUtil::SetFrameTimeInterval(10);
+    RSUniRenderUtil::SetAutoSwitchInterval(5);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(hwcNodePtr->IsHardwareForcedDisabled());
+
+    RSUniRenderUtil::SetComposerAutoSwitch(oldComposerAutoSwitch);
+    RSUniRenderUtil::SetFrameTimeInterval(oldFrameTimeInterval);
+    RSUniRenderUtil::SetAutoSwitchInterval(oldAutoSwitchInterval);
+}
+
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds001
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds with null staging render params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds001, TestSize.Level1)
+{
+    // node is created without InitRenderParams, so staging render params is nullptr
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_EQ(surfaceNode->GetStagingRenderParams().get(), nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+    surfaceNode->SetDstRect({0, 0, 100, 100});
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // no crash when staging render params is nullptr
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds002
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when solidLayer flag is not enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds002, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest002";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // solidLayer flag is false: dstRect equal to / smaller than / offset from boundsRect, flag keeps false
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(false);
+    surfaceNode->SetDstRect({0, 0, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    surfaceNode->SetDstRect({100, 100, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds003
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect covers boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds003, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest003";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect equals boundsRect: solidLayer keeps enabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is larger than boundsRect and fully covers it: solidLayer keeps enabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({-50, -50, 300, 300});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds004
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect is smaller than boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds004, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest004";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect is smaller than boundsRect (letterbox, same top-left): solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is inside boundsRect (centered): solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({25, 25, 150, 150});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+ 
+/**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds005
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when dstRect partially overlaps,
+ *           is disjoint from or is empty against boundsRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds005, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest005";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+ 
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+ 
+    // dstRect partially overlaps boundsRect without covering it: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({100, 100, 200, 200});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is disjoint from boundsRect: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({500, 500, 100, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+ 
+    // dstRect is empty: solidLayer is disabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 0, 0});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_FALSE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+
+/**
+ * @tc.name: UpdateRectInfoAndLeftTopForDelegateModeCoverage001
+ * @tc.desc: cover the delegate-mode=true edges of RSUniHwcVisitor::UpdateRectInfoForDelegateMode and
+ *           UpdateLeftAndTopForDelegateMode in one test (delegate-mode=false edges are already
+ *           exercised by the existing UpdateSrcRect001/002/003 tests).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateRectInfoAndLeftTopForDelegateModeCoverage001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.SetDelegateMode(true);
+    node1.SetDelegateSrcRect(RectF(1.f, 2.f, 10.f, 20.f));
+    node1.SetDelegateDstRect(RectF(3.f, 4.f, 30.f, 40.f));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    // UpdateRectInfoForDelegateMode true edge: int32 buffer sizes take truncated delegate width/height,
+    // float bounds sizes take exact delegate dst width/height.
+    int32_t bufferWidth = 100;
+    int32_t bufferHeight = 200;
+    float boundsWidth = 300.f;
+    float boundsHeight = 400.f;
+    rsUniHwcVisitor->UpdateRectInfoForDelegateMode(node1, bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    EXPECT_EQ(bufferWidth, 10);
+    EXPECT_EQ(bufferHeight, 20);
+    EXPECT_FLOAT_EQ(boundsWidth, 30.f);
+    EXPECT_FLOAT_EQ(boundsHeight, 40.f);
+    // UpdateLeftAndTopForDelegateMode true edge: srcRect translated by (delegateSrcRect.left, top) = (1, 2)
+    Drawing::Rect srcRect(5.f, 6.f, 15.f, 16.f);
+    rsUniHwcVisitor->UpdateLeftAndTopForDelegateMode(node1, srcRect);
+    EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
+    EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
 }
 } // namespace OHOS::Rosen

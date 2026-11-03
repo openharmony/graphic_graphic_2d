@@ -14,6 +14,7 @@
  */
 
 #include "ani_typeface.h"
+#include "ani_drawing_transfer_util.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
@@ -52,7 +53,8 @@ ani_status AniTypeface::AniInit(ani_env *env)
             reinterpret_cast<void*>(MakeFromRawFile) },
         ani_native_function { "typefaceTransferStaticNative", nullptr,
             reinterpret_cast<void*>(TypefaceTransferStatic) },
-        ani_native_function { "getTypefaceAddr", nullptr, reinterpret_cast<void*>(GetTypefaceAddr) },
+        ani_native_function { "typefaceTransferDynamicNative", nullptr,
+            reinterpret_cast<void*>(TypefaceTransferDynamic) },
         ani_native_function { "makeFromRawFileWithArguments", nullptr,
             reinterpret_cast<void*>(MakeFromRawFileWithArguments) },
     };
@@ -353,31 +355,22 @@ ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object
 
 ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsTypeface = reinterpret_cast<JsTypeface*>(unwrapResult);
-    if (jsTypeface->GetTypeface() == nullptr) {
-        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic jsTypeface is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsTypeface = reinterpret_cast<JsTypeface*>(unwrapResult);
+        if (jsTypeface == nullptr || jsTypeface->GetTypeface() == nullptr) {
+            ROSEN_LOGE("AniTypeface::TypefaceTransferStatic jsTypeface is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
-    ani_object aniTypefaceObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtorWithPtr, reinterpret_cast<ani_long>(aniTypeface));
-    if (IsUndefined(env, aniTypefaceObj)) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
-        return CreateAniUndefined(env);
-    }
-    return aniTypefaceObj;
+        auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
+        ani_object aniTypefaceObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+            AniGlobalMethod::GetInstance().typefaceCtorWithPtr, reinterpret_cast<ani_long>(aniTypeface));
+        if (IsUndefined(env, aniTypefaceObj)) {
+            delete aniTypeface;
+            ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed cause aniObj is undefined");
+        }
+        return aniTypefaceObj;
+    });
 }
 
 ani_boolean AniTypeface::IsBold(ani_env* env, ani_object obj)
@@ -400,19 +393,22 @@ ani_boolean AniTypeface::IsItalic(ani_env* env, ani_object obj)
     return aniTypeface->GetTypeface()->GetItalic();
 }
 
-ani_long AniTypeface::GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniTypeface::TypefaceTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, input, AniGlobalField::GetInstance().typefaceNativeObj);
-    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
-        ROSEN_LOGE("AniTypeface::GetTypefaceAddr aniTypeface is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().typeface)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniTypeface->GetTypefacePtrAddr());
-}
-
-std::shared_ptr<Typeface>* AniTypeface::GetTypefacePtrAddr()
-{
-    return &typeface_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniTypeface = GetNativeFromObj<AniTypeface>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().typefaceNativeObj);
+            if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+                ROSEN_LOGE("AniTypeface::TypefaceTransferDynamic null aniTypeface");
+                return nullptr;
+            }
+            return JsTypeface::CreateJsTypeface(napiEnv, aniTypeface->GetTypeface());
+        });
 }
 
 std::shared_ptr<Typeface> AniTypeface::GetTypeface()

@@ -22,6 +22,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -623,6 +624,22 @@ HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpace001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsDepthBackground
+ * @tc.desc: test SetIsDepthBackground
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetIsDepthBackground, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->SetIsDepthBackground(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+    node->SetIsDepthBackground(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+}
+
+/**
  * @tc.name: MarkNodeColorSpaceTest002
  * @tc.desc: MarkNodeColorSpace test.
  * @tc.type: FUNC
@@ -815,10 +832,10 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap003, TestSize.Level1)
 
     node.UpdateDisplayBlendModeMap(true, displayNodeId);
     // should return early because EDR gain is disabled or hardware HDR is disabled by default
-    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 
     node.UpdateDisplayBlendModeMap(false, displayNodeId);
-    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+    EXPECT_FALSE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**
@@ -867,7 +884,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap005, TestSize.Level1)
 
     // Manually add to blendModeNodeMap to simulate a previous increase
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_NE(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
+    EXPECT_TRUE(displayNode->HasDstAlphaBlendModeNode());
 }
 
 /**

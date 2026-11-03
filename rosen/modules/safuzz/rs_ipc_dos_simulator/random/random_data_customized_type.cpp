@@ -545,6 +545,21 @@ RSHdrDarkenBlenderPara RandomDataCustomizedType::GetRandomRSHdrDarkenBlenderPara
     return {RandomDataBasicType::GetRandomFloat(), RandomDataCustomizedType::GetRandomVector3f()};
 }
 
+AtlasInfo RandomDataCustomizedType::GetRandomAtlasInfo()
+{
+    AtlasInfo info;
+    info.mode = RandomDataBasicType::GetRandomInt32();
+    info.rows = RandomDataBasicType::GetRandomInt32();
+    info.cols = RandomDataBasicType::GetRandomInt32();
+    info.frameWidth = RandomDataBasicType::GetRandomFloat();
+    info.frameHeight = RandomDataBasicType::GetRandomFloat();
+    info.padding = RandomDataBasicType::GetRandomFloat();
+    info.totalFrame = RandomDataBasicType::GetRandomInt32();
+    info.pixelMap = nullptr;
+    info.frameIndex = RandomDataBasicType::GetRandomFloat();
+    return info;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut RandomDataCustomizedType::GetRandomGraphicColorGamut()
 {
@@ -794,6 +809,13 @@ DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
     static constexpr int DRAW_NODE_TYPE_MAX = 3;
     int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
     return static_cast<DrawNodeType>(randomIndex);
+}
+
+DepthSpaceType RandomDataCustomizedType::GetRandomDepthSpaceType()
+{
+    static constexpr int DEPTH_SPACE_TYPE_INDEX_MAX = 1;
+    int randomIndex = RandomEngine::GetRandomIndex(DEPTH_SPACE_TYPE_INDEX_MAX);
+    return static_cast<DepthSpaceType>(randomIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

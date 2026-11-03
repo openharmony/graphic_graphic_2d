@@ -76,7 +76,10 @@ class RSNGShapeBase;
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
 #define SHAPE_PTR std::shared_ptr<RSNGShapeBase>
 
-#include "effect/rs_render_property_tag_def.in"
+#include "effect/rs_render_property_tag_filter_def.in"
+#include "effect/rs_render_property_tag_mask_def.in"
+#include "effect/rs_render_property_tag_shader_def.in"
+#include "effect/rs_render_property_tag_shape_def.in"
 
 #undef MASK_PTR
 #undef SHAPE_PTR

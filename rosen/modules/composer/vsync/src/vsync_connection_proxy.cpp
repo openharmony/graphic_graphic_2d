@@ -17,6 +17,9 @@
 #include "graphic_common.h"
 #include "vsync_log.h"
 
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001400
+
 constexpr int MAX_RETRY = 5;
 constexpr int RETRY_INTERVAL = 1000; // 1000us = 1ms
 constexpr unsigned int DVSYNC_ANIMATION_LIST_SIZE_MAX = 20;
@@ -65,7 +68,8 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
+VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom,
+    DvsyncDisableReason disableReason)
 {
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
@@ -81,6 +85,10 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom f
     }
     if (!arg.WriteUint8(static_cast<uint8_t>(fromWhom))) {
         VLOGE("Failed to write fromWhom:%{public}u", static_cast<uint8_t>(fromWhom));
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteUint8(static_cast<uint8_t>(disableReason))) {
+        VLOGE("Failed to write disableReason:%{public}u", static_cast<uint8_t>(disableReason));
         return VSYNC_ERROR_API_FAILED;
     }
     auto remote = Remote();
@@ -200,6 +208,7 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
         VLOGE("GetReceiveFd Invalid fd:%{public}d", fd);
         return VSYNC_ERROR_API_FAILED;
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     return VSYNC_ERROR_OK;
 }
 

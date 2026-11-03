@@ -33,6 +33,10 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "string_utils.h"
 
+#ifdef RES_SCHED_ENABLE
+#include "ressched_event_listener.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
@@ -117,7 +121,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
-    RequestFramesForAllSurfaces(screenDrawable, tid);
+    RequestFramesForAllSurfaces(screenDrawable);
     // surfaceFrames_[0] is always the primary surface (the first successfully created frame).
     if (surfaceFrames_.empty()) {
         RS_LOGD("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): "
@@ -542,6 +546,10 @@ void RSUniRenderVirtualProcessor::PostProcess()
         return;
     }
 
+#ifdef RES_SCHED_ENABLE
+    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+#endif
+
     if (surfaceFrames_.size() == 1) {
         auto& frame = surfaceFrames_[0].frame;
         auto surfaceOhos = frame->GetSurface();
@@ -745,7 +753,7 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(DrawableV2::RSScreenRende
 }
 
 void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
-    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t tid)
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     RS_TRACE_FUNC();
     surfaceFrames_.clear();
@@ -785,7 +793,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
 #ifdef RS_ENABLE_GL
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             frame = renderEngine_->RequestFrame(config.surface, renderFrameConfig_, forceCPU_, false,
-                frameContextConfig, tid);
+                frameContextConfig);
         }
 #endif
         if (frame == nullptr) {
@@ -800,7 +808,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
             }
             frame = renderEngine_->RequestFrame(
                 std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
-                frameContextConfig, tid);
+                frameContextConfig);
         }
 
         if (frame == nullptr) {
@@ -848,8 +856,6 @@ void RSUniRenderVirtualProcessor::CopyToSecondarySurfaces()
     Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     // Copy to secondary surfaces
     for (size_t i = 1; i < surfaceFrames_.size(); ++i) {
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copying to surface index %zu", __func__, i);
-
         auto& canvas = surfaceFrames_[i].canvas;
         if (!canvas) {
             RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: Canvas is null for surface index %{public}zu",
@@ -860,7 +866,7 @@ void RSUniRenderVirtualProcessor::CopyToSecondarySurfaces()
 
         RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s: Copied to surface index %{public}zu",
             __func__, i);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copied to surface index %zu", __func__, i);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copied to surface index %zu", __func__, i);
     }
 }
 
@@ -959,7 +965,7 @@ void RSUniRenderVirtualProcessor::BlitRegionsToSurfaces(const std::shared_ptr<Dr
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RSUniRenderVirtualProcessor::%{public}s: Blitted region [%{public}d,%{public}d,%{public}d,%{public}d]"
              " to surface index %{public}zu", __func__, region.left_, region.top_, region.width_, region.height_, i);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Blitted region [%d,%d,%d,%d]"
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Blitted region [%d,%d,%d,%d]"
              " to surface index %zu", __func__, region.left_, region.top_, region.width_, region.height_, i);
     }
 }

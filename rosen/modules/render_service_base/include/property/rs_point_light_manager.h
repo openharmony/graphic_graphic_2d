@@ -48,8 +48,9 @@ private:
     RSPointLightManager& operator=(const RSPointLightManager&) = delete;
     RSPointLightManager& operator=(RSPointLightManager&&) = delete;
     void ClearDirtyList();
-    void CheckIlluminated(
-        const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode);
+    void CheckIlluminated(const std::shared_ptr<RSRenderNode>& lightSourceNode,
+        const std::shared_ptr<RSRenderNode>& illuminatedNode, bool isLightSourceDirty);
+    void EnsureAbsMatrixUpdated(const std::shared_ptr<RSRenderNode>& node);
     void PrepareLight(std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& map,
         std::vector<std::weak_ptr<RSRenderNode>>& dirtyList, bool isLightSourceDirty);
     std::optional<Vector4f> CalculateLightRelativePosition(
@@ -63,6 +64,7 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> previousFrameIlluminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
+    NodeId logicalDisplayNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

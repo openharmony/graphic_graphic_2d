@@ -91,6 +91,7 @@ ohos_source_set("render_service_base_src") {
   sources = [
     #animation
     "src/animation/rs_animation_fraction.cpp",
+    "src/animation/rs_animation_common.cpp",
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_marshalling.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
@@ -105,6 +106,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_particle_ripple_field.cpp",
     "src/animation/rs_particle_velocity_field.cpp",
     "src/animation/rs_render_animation.cpp",
+    "src/animation/rs_render_atlas_info_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interactive_implict_animator.cpp",
     "src/animation/rs_render_interactive_implict_animator_map.cpp",
@@ -185,9 +187,9 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_node_showing_command.cpp",
     "src/command/rs_proxy_node_command.cpp",
     "src/command/rs_root_node_command.cpp",
+    "src/command/rs_spatial_effect_command.cpp",
     "src/command/rs_surface_node_command.cpp",
     "src/command/rs_ui_director_command.cpp",
-    "src/command/rs_spatial_effect_command.cpp",
     "src/command/rs_union_node_command.cpp",
     "src/command/rs_delegate_composite_command.cpp",
 
@@ -195,7 +197,12 @@ ohos_source_set("render_service_base_src") {
     "src/offscreen_render/rs_offscreen_render_thread.cpp",
 
     #display_engine
+    "src/display_engine/ipc_callbacks/rs_de_status_change_callback_proxy.cpp",
+    "src/display_engine/ipc_callbacks/rs_de_status_change_callback_stub.cpp",
     "src/display_engine/rs_backlight_thread.cpp",
+    "src/display_engine/rs_display_engine_control.cpp",
+    "src/display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code_access_verifier.cpp",
+    "src/display_engine/transaction/zidl/rs_display_engine_control_stub.cpp",
 
     #common
     "src/common/rs_background_thread.cpp",
@@ -313,6 +320,7 @@ ohos_source_set("render_service_base_src") {
 
     #property
     "src/property/rs_point_light_manager.cpp",
+    "src/property/rs_effect_properties.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
     "src/property/rs_property_trace.cpp",
@@ -346,8 +354,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_effect_luminance_manager.cpp",
     "src/render/rs_filter.cpp",
-    "src/render/rs_filter_cache_manager.cpp",
-    "src/render/rs_filter_cache_memory_controller.cpp",
     "src/render/rs_flow_light_sweep_shader.cpp",
     "src/render/rs_fly_out_shader_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
@@ -411,6 +417,7 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
 
     #info_collection
+    "src/info_collection/rs_frame_stats_collection.cpp",
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
     "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
     "src/info_collection/rs_hdr_collection.cpp",
@@ -421,17 +428,20 @@ ohos_source_set("render_service_base_src") {
     "src/monitor/self_drawing_node_monitor.cpp",
 
     #feature
-    "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/capture/rs_sync_capture_helper.cpp",
     "src/feature/color_picker/color_pick_alt_manager.cpp",
     "src/feature/color_picker/rs_color_picker_manager.cpp",
     "src/feature/color_picker/rs_color_picker_thread.cpp",
     "src/feature/color_picker/rs_color_picker_utils.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
     "src/feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.cpp",
+    "src/feature/filter_cache_manager/rs_filter_cache_manager.cpp",
+    "src/feature/filter_cache_manager/rs_filter_cache_memory_controller.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
+    "src/feature/persistent_property/rs_persistent_property_manager.cpp",
     "src/feature/layer/rs_layer_cache_manager_base.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_root_cache.cpp",
@@ -453,7 +463,6 @@ ohos_source_set("render_service_base_src") {
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
-    "src/dirty_region/rs_gpu_dirty_collector.cpp",
     "src/dirty_region/rs_optimize_canvas_dirty_collector.cpp",
   ]
 
@@ -461,15 +470,14 @@ ohos_source_set("render_service_base_src") {
     sources += [
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
-      "src/drawable/rs_clip_to_bounds_restore_drawable.cpp",
       "src/drawable/rs_coverage_ng_shader_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
-      "src/drawable/rs_material_shader_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
+      "src/drawable/rs_effect_drawable_utils.cpp",
+      "src/drawable/rs_shader_drawable.cpp",
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
       "src/drawable/rs_property_drawable_foreground.cpp",
-      "src/drawable/rs_overlay_ng_shader_drawable.cpp",
       "src/drawable/rs_property_drawable_utils.cpp",
       "src/drawable/rs_render_node_drawable_adapter.cpp",
       "src/drawable/rs_render_node_shadow_drawable.cpp",
@@ -503,6 +511,9 @@ ohos_source_set("render_service_base_src") {
       #luminance
       "src/display_engine/rs_luminance_control.cpp",
 
+      #swing
+      "src/display_engine/rs_display_effect_swing_control.cpp",
+
       "src/transaction/rs_buffer_transaction.cpp",
     ]
   } else {
@@ -512,6 +523,9 @@ ohos_source_set("render_service_base_src") {
 
       #luminance
       "src/display_engine/mingw/rs_luminance_control.cpp",
+
+      #swing
+      "src/display_engine/mingw/rs_display_effect_swing_control.cpp",
     ]
   }
 
@@ -774,6 +788,7 @@ ohos_source_set("render_service_base_src") {
     external_deps += [
       "media_foundation:media_foundation",
       "video_processing_engine:videoprocessingengine",
+      "hiview:xperfservice_client",
     ]
     sources += [
       "src/display_engine/rs_vpe_manager.cpp",

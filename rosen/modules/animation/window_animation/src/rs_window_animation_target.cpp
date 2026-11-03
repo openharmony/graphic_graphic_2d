@@ -82,6 +82,11 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
         WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
         return false;
     }
+    constexpr size_t kMaxNameLen = 512;
+    if (bundleName_.size() > kMaxNameLen || abilityName_.size() > kMaxNameLen) {
+        WALOGE("RSWindowAnimationTarget::ReadFromParcel, string too long");
+        return false;
+    }
     bool isRSProxyNode;
     if (!parcel.ReadBool(isRSProxyNode)) {
         WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");

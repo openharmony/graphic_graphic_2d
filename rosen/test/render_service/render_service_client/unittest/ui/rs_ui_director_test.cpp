@@ -19,6 +19,7 @@
 #include "surface.h"
 
 #include "animation/rs_render_animation.h"
+#include "animation/rs_interactive_implict_animator.h"
 #include "modifier/rs_modifier_manager.h"
 #include "transaction/rs_interfaces.h"
 #include "pipeline/rs_node_map.h"
@@ -30,10 +31,6 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
-
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,15 +64,14 @@ public:
     void TearDown() override;
 };
 
-void RSUIDirectorTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSUIDirectorTest::SetUpTestCase() {}
 void RSUIDirectorTest::TearDownTestCase()
 {
-    RSRenderThread::Instance().renderContext_ = nullptr;
+    auto& renderThread = RSRenderThread::Instance();
+    if (renderThread.renderContext_ != nullptr) {
+        renderThread.renderContext_->drGPUContext_ = nullptr;
+        renderThread.renderContext_ = nullptr;
+    }
 }
 void RSUIDirectorTest::SetUp() {}
 void RSUIDirectorTest::TearDown() {}
@@ -84,7 +80,13 @@ std::shared_ptr<RSUIDirector> RSUIDirectorTest::CreateRSUIDirector()
 {
     auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
     sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    if (connectToRender == nullptr) {
+        return nullptr;
+    }
     auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+    if (rsUIContext == nullptr) {
+        return nullptr;
+    }
     std::shared_ptr<RSUIDirector> rsUiDirector = OHOS::Rosen::RSUIDirector::Create(connectToRender, rsUIContext);
     return rsUiDirector;
 }
@@ -1599,24 +1601,6 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnCanvasDrawingNodeRenderStartEndTest
- * @tc.desc: Test canvas drawing node render start/end bookkeeping
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIDirectorTest, OnCanvasDrawingNodeRenderStartEndTest, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_NE(director, nullptr);
-    NodeId nodeId1 = 1001;
-    NodeId nodeId2 = 1002;
-    director->OnCanvasDrawingNodeRenderStart(nodeId1);
-    director->OnCanvasDrawingNodeRenderStart(nodeId2);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId1);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId2);
-    SUCCEED();
-}
-
-/**
  * @tc.name: AnimationDestroyInRenderCallbackProcessorInvalidTest
  * @tc.desc: Test AnimationDestroyInRenderCallbackProcessor with invalid token, invalid node id and valid node
  * @tc.type: FUNC
@@ -1796,6 +1780,29 @@ HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest003, TestSize.Level1)
     director->ReleaseRenderNode();
     EXPECT_EQ(lazyNode->GetNodeState(), RSNodeState::LAZY_LOAD);
 }
+
+/**
+ * @tc.name: ReleaseRenderNodeAncoNodeSkipTest
+ * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branch:
+ *   SURFACE_NODE with IS_ANCO_NODE flag -> skip release (state stays ACTIVE)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeAncoNodeSkipTest, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    sptr<IRemoteObject> emptyRemote;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(6, emptyRemote);
+    director->skipDestroyUIContext_ = false;
+    RSSurfaceNodeConfig c;
+    auto ancoNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director->GetRSUIContext());
+    ASSERT_NE(ancoNode, nullptr);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    ancoNode->hasCreateRenderNodeInRS_ = true;
+    director->ReleaseRenderNode();
+    EXPECT_EQ(ancoNode->GetNodeState(), RSNodeState::ACTIVE);
+}
 #endif
 /**
  * @tc.name: RebuildNodeTreeTest001
@@ -1848,6 +1855,46 @@ HWTEST_F(RSUIDirectorTest, RebuildNodeTreeTest003, TestSize.Level1)
     ctx->SetRebuildState(RebuildState::Rebuilding);
     director->RebuildNodeTree();
     EXPECT_EQ(ctx->GetRebuildState(), RebuildState::Normal);
+}
+
+/**
+ * @tc.name: ReleaseRenderNodeSkipGroupAnimationNode
+ * @tc.desc: Verify ReleaseRenderNode skips nodes that are in groupAnimNodeIds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeSkipGroupAnimationNode, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    sptr<IRemoteObject> emptyRemote;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(1, emptyRemote);
+    director->skipDestroyUIContext_ = false;
+
+    // Create a canvas node and register it in the context's node map
+    auto canvasNode = RSCanvasNode::Create(false, false, director->GetRSUIContext());
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->hasCreateRenderNodeInRS_ = true;
+    NodeId nodeId = canvasNode->GetId();
+
+    // Inject a group animator with infinite repeat + animation entry for this node
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetRepeatCount(-1);
+    RSAnimationTimingCurve timingCurve;
+    auto animator = std::make_shared<RSInteractiveImplictAnimator>(
+        director->GetRSUIContext(), timingProtocol, timingCurve, true);
+    animator->animations_.emplace_back(std::weak_ptr<RSAnimation>(), nodeId);
+    director->GetRSUIContext()->AddInteractiveImplictAnimator(animator);
+
+    // Verify the node ID is in groupAnimNodeIds
+    auto groupAnimNodeIds = director->GetRSUIContext()->GetGroupAnimationNodeIds();
+    EXPECT_GT(groupAnimNodeIds.count(nodeId), static_cast<size_t>(0));
+
+    // ReleaseRenderNode should skip this node (groupAnimNodeIds contains its ID)
+    auto stateBefore = canvasNode->GetNodeState();
+    director->ReleaseRenderNode();
+    // Node should NOT be released: state unchanged
+    EXPECT_EQ(canvasNode->GetNodeState(), stateBefore);
 }
 
 } // namespace OHOS::Rosen

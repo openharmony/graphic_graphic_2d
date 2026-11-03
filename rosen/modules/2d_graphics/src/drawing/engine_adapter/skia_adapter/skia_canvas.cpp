@@ -40,6 +40,8 @@
 #include "SkOverdrawCanvas.h"
 #include "include/utils/SkNoDrawCanvas.h"
 #include "src/core/SkCanvasPriv.h"
+#include "src/core/SkDrawShadowInfo.h"
+#include "utils/shadow_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -512,8 +514,24 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     const SkPoint3* point2 = reinterpret_cast<const SkPoint3*>(&devLightPos);
     SkColor color1 = ambientColor.CastToColorQuad();
     SkColor color2 = spotColor.CastToColorQuad();
-    SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
-    if (skPathImpl != nullptr) {
+    auto shadowFlag = GetShadowFlag(flag);
+    auto isRecordCmd = GetShadowIsRecordCmd(flag);
+    SkShadowFlags flags = static_cast<SkShadowFlags>(shadowFlag);
+    if (skPathImpl == nullptr) {
+        LOGE("skia path is null, %{public}s return", __FUNCTION__);
+        return;
+    }
+    if (isRecordCmd) {
+        SkDrawShadowRec rec;
+        rec.fZPlaneParams = *point1;
+        rec.fLightPos = *point2;
+        rec.fLightRadius = lightRadius;
+        rec.fAmbientColor = color1;
+        rec.fSpotColor = color2;
+        rec.fFlags = flags;
+        rec.isLimitElevation = false;
+        skCanvas_->private_draw_shadow_rec(skPathImpl->GetPath(), rec);
+    } else {
         SkShadowUtils::DrawShadow(
             skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags);
     }
@@ -1120,6 +1138,20 @@ void SkiaCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
 #endif
 }
 
+// clipOp from deserialized cmd list may be out of range, fallback to kDifference at the adapter boundary
+static SkClipOp ConvertToSkClipOp(ClipOp op)
+{
+    switch (op) {
+        case ClipOp::DIFFERENCE:
+            return SkClipOp::kDifference;
+        case ClipOp::INTERSECT:
+            return SkClipOp::kIntersect;
+        default:
+            LOGE("SkiaCanvas invalid clipOp %{public}d, fallback to DIFFERENCE", static_cast<int>(op));
+            return SkClipOp::kDifference;
+    }
+}
+
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     if (!skCanvas_) {
@@ -1127,7 +1159,7 @@ void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
         return;
     }
     const SkRect* clipRect = reinterpret_cast<const SkRect*>(&rect);
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRect(*clipRect, clipOp, doAntiAlias);
 }
 
@@ -1138,7 +1170,7 @@ void SkiaCanvas::ClipIRect(const RectI& rect, ClipOp op)
         return;
     }
     SkRect clipRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRect(clipRect, clipOp, false);
 }
 
@@ -1150,7 +1182,7 @@ void SkiaCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAnt
     }
     SkRRect rRect;
     RoundRectCastToSkRRect(roundRect, rRect);
-    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    SkClipOp clipOp = ConvertToSkClipOp(op);
     skCanvas_->clipRRect(rRect, clipOp, doAntiAlias);
 }
 
@@ -1174,7 +1206,7 @@ void SkiaCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
     }
     auto skPathImpl = path.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
-        SkClipOp clipOp = static_cast<SkClipOp>(op);
+        SkClipOp clipOp = ConvertToSkClipOp(op);
         skCanvas_->clipPath(skPathImpl->GetPath(), clipOp, doAntiAlias);
     }
 }
@@ -1187,7 +1219,7 @@ void SkiaCanvas::ClipRegion(const Region& region, ClipOp op)
     }
     auto skRegionImpl = region.GetImpl<SkiaRegion>();
     if (skRegionImpl != nullptr) {
-        SkClipOp clipOp = static_cast<SkClipOp>(op);
+        SkClipOp clipOp = ConvertToSkClipOp(op);
         skCanvas_->clipRegion(*(skRegionImpl->GetSkRegion()), clipOp);
     }
 }

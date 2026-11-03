@@ -1102,5 +1102,130 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRateNotEnabled, Function | Sma
     EXPECT_EQ(result, -1);
     hgmCore.mPolicyConfigData_ = mPolicyConfigData;
 }
+
+/**
+ * @tc.name: HgmScreenUpdateRenderResolutionTest001
+ * @tc.desc: Test HgmScreen::UpdateRenderResolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmScreenUpdateRenderResolutionTest001, Function | SmallTest | Level1)
+{
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    sptr<HgmScreen> screen = new HgmScreen(0, 0, screenSize);
+    float oldPpi = screen->GetPpi();
+    float oldXDpi = screen->GetXDpi();
+    float oldYDpi = screen->GetYDpi();
+    EXPECT_FALSE(screen->UpdateRenderResolution(0, 1080));
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 0));
+    EXPECT_FALSE(screen->UpdateRenderResolution(720, 1080));
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(685, 1080));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(685, 1218));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_NE(screen->GetYDpi(), oldYDpi);
+
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_NE(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 685;
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyHeight_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_NE(screen->GetPpi(), oldPpi);
+    EXPECT_NE(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyHeight_ = 1218;
+    EXPECT_TRUE(screen->UpdateRenderResolution(720, 1080));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+
+    screen->phyWidth_ = 0;
+    screen->phyHeight_ = 0;
+    EXPECT_TRUE(screen->UpdateRenderResolution(1440, 2160));
+    EXPECT_FLOAT_EQ(screen->GetPpi(), oldPpi);
+    EXPECT_FLOAT_EQ(screen->GetXDpi(), oldXDpi);
+    EXPECT_FLOAT_EQ(screen->GetYDpi(), oldYDpi);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest001
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with non-existent screen and non-self-owned screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest001, Function | SmallTest | Level1)
+{
+    auto& instance = HgmCore::Instance();
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(9999, 720, 1080), HGM_NO_SCREEN);
+    ScreenId screenId = 20;
+    bool isSelfOwnedScreen = false;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 720, 1080), HGM_NO_SCREEN);
+    instance.RemoveScreen(screenId);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest002
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with existing screen and same resolution (no change)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest002, Function | SmallTest | Level1)
+{
+    auto& instance = HgmCore::Instance();
+    ScreenId screenId = 20;
+    bool isSelfOwnedScreen = true;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    sptr<HgmScreen> screen = instance.GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+    screen->isSelfOwnedScreenFlag_.store(true);
+    uint32_t curWidth = static_cast<uint32_t>(screenSize.width);
+    uint32_t curHeight = static_cast<uint32_t>(screenSize.height);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, curWidth, curHeight), HGM_ERROR);
+    instance.RemoveScreen(screenId);
+}
+
+/**
+ * @tc.name: HgmCoreUpdateScreenRenderResolutionTest003
+ * @tc.desc: Test HgmCore::UpdateScreenRenderResolution with existing screen and new resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmCoreUpdateScreenRenderResolutionTest003, Function | SmallTest | Level1)
+{
+    auto& instance = HgmCore::Instance();
+    ScreenId screenId = 21;
+    bool isSelfOwnedScreen = true;
+    instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
+    sptr<HgmScreen> screen = instance.GetScreen(screenId);
+    ASSERT_NE(screen, nullptr);
+    screen->isSelfOwnedScreenFlag_.store(true);
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 1440, 2160), EXEC_SUCCESS);
+    auto origFrameRateMgr = instance.hgmFrameRateMgr_;
+    instance.hgmFrameRateMgr_ = nullptr;
+    EXPECT_EQ(instance.UpdateScreenRenderResolution(screenId, 720, 1080), EXEC_SUCCESS);
+    instance.hgmFrameRateMgr_ = origFrameRateMgr;
+    instance.RemoveScreen(screenId);
+}
 } // namespace Rosen
 } // namespace OHOS

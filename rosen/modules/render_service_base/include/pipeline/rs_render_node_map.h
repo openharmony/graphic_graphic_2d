@@ -40,6 +40,8 @@ class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
+    void RegisterSurfaceRenderNode(pid_t pid, uint64_t token);
+    void RemoveSurfaceNodeMap(pid_t pid, uint64_t token);
 
     void RegisterUnTreeNode(NodeId id);
     bool UnRegisterUnTreeNode(NodeId id);
@@ -78,11 +80,19 @@ public:
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
-    bool IsUIExtensionSurfaceNode(NodeId id) const;
+    // UIExtension cross-process authorization: the host (UEA) owns the NodeId, the guest (UEC) pid
+    // must be explicitly authorized by the host before it can create the node or send commands.
+    bool IsUIExtensionAuthorized(NodeId id, pid_t callingPid) const;
+    // enforcePerHostQuota: true for untrusted (non-system or unidentified) hosts, limiting how many
+    // entries one host pid may hold so a malicious app cannot block other apps' authorizations
+    bool AuthorizeUIExtensionPid(NodeId id, pid_t guestPid, bool enforcePerHostQuota);
+    bool RevokeUIExtensionPid(NodeId id, pid_t guestPid);
+    // returns the authorized guest (UEC) pid of the node, 0 if not authorized
+    pid_t GetUIExtensionGuestPid(NodeId id) const;
     void DestroyTokenNode(pid_t pid, uint64_t token);
 
-    // Pending buffer map keyed by AppWindow NodeId, value is LeashWindow NodeId for sibling grouping
-    // appWindow must be non-null and confirmed as AppWindow by caller
+    // Add the AppWindow and its different-token sibling AppWindows under the same LeashWindow to the pending map.
+    // Skips if the AppWindow is already in the map or has no sibling with a different token.
     void AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow);
     bool HasPendingUIBufferEntry(NodeId appWindowId) const;
     void RemovePendingUIBufferEntry(NodeId appWindowId);
@@ -154,6 +164,9 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSLogicalDisplayRenderNode>> logicalDisplayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
     std::unordered_map<NodeId, bool> purgeableNodeMap_;
+    // record backgroundNode
+    std::unordered_map<pid_t, std::unordered_map<uint64_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>>>
+        backgroundSurfaceNodeMap_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>>
         selfDrawingNodeInProcess_;
     std::unordered_set<NodeId> unInTreeNodeSet_;
@@ -165,10 +178,16 @@ private:
 
     void Initialize(const std::weak_ptr<RSContext>& context);
 
-    void AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void CollectSelfDrawingNodeOfSubTree(std::vector<NodeId>& vec, const std::shared_ptr<RSBaseRenderNode> rootNode);
-    std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
+    // key: UIExtension surface node id, value: authorized guest (UEC) pid; entries are created
+    // only by AuthorizeUIExtensionPid (pre-authorization before node registration is allowed)
+    std::unordered_map<NodeId, pid_t> uiExtensionSurfaceNodes_;
+    // entry count per host pid, kept in sync with uiExtensionSurfaceNodes_ under the same mutex
+    // so the per-host quota check in AuthorizeUIExtensionPid is O(1)
+    std::unordered_map<pid_t, size_t> uiExtensionHostEntryCounts_;
+    // caller must hold uiExtensionSurfaceNodesMutex_
+    void DecreaseUIExtensionHostEntryCount(pid_t hostPid);
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> needAttachedNode_;
 

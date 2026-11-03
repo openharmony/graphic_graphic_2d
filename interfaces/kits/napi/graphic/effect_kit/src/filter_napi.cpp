@@ -53,7 +53,7 @@ struct FilterAsyncContext {
     napi_value this_ = nullptr;
 
     // build error msg
-    napi_value errorMsg = nullptr;
+    std::string errorMsg;
 
     // param
     FilterNapi* filterNapi = nullptr;
@@ -66,12 +66,11 @@ static std::unordered_map<FilterNapi*, std::atomic_bool> filterNapiManager;
 
 static const std::string CLASS_NAME = "Filter";
 
-void BuildMsgOnError(napi_env env, const std::unique_ptr<FilterAsyncContext>& ctx,
-    bool assertion, const std::string& msg)
+void BuildMsgOnError(const std::unique_ptr<FilterAsyncContext>& ctx, bool assertion, const std::string& msg)
 {
     if (!assertion) {
         EFFECT_LOG_E("%{public}s", msg.c_str());
-        napi_create_string_utf8(env, msg.c_str(), NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+        ctx->errorMsg = msg;
     }
 }
 
@@ -85,8 +84,12 @@ static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ct
 
     if (ctx->status == SUCCESS) {
         result[0] = valueParam;
-    } else if (ctx->errorMsg != nullptr) {
-        result[1] = ctx->errorMsg;
+    } else if (!ctx->errorMsg.empty()) {
+        napi_status status = napi_create_string_utf8(env, ctx->errorMsg.c_str(), NAPI_AUTO_LENGTH, &result[1]);
+        if (status != napi_ok) {
+            EFFECT_LOG_E("FilterAsyncCommonComplete failed to create error message");
+            napi_create_string_utf8(env, "FilterNapi Internal Error", NAPI_AUTO_LENGTH, &result[NUM_1]);
+        }
     } else {
         napi_create_string_utf8(env, "FilterNapi Internal Error", NAPI_AUTO_LENGTH, &result[NUM_1]);
     }
@@ -129,7 +132,9 @@ FilterNapi::FilterNapi() : env_(nullptr), wrapper_(nullptr)
 FilterNapi::~FilterNapi()
 {
     EFFECT_LOG_D("~FilterNapi");
-    napi_delete_reference(env_, wrapper_);
+    if (env_ != nullptr && wrapper_ != nullptr) {
+        napi_delete_reference(env_, wrapper_);
+    }
 }
 
 void FilterNapi::Destructor(napi_env env,
@@ -290,7 +295,9 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
 napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
+    napi_status status = napi_create_object(env, &objValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && objValue != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi CreateEffectFromPtr create object fail"));
 
     FilterNapi* filterNapi = new (std::nothrow) FilterNapi();
     if (filterNapi == nullptr) {
@@ -298,7 +305,7 @@ napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::
     }
     filterNapi->env_ = env;
     filterNapi->srcPixelMap_  = pixelMap;
-    auto status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
+    status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
         &FilterNapi::NAPI_TYPE_TAG, nullptr);
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi CreateEffectFromPtr wrap fail"));
@@ -361,7 +368,7 @@ void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void
     napi_value value = nullptr;
     if (ctx->dstPixelMap_ == nullptr) {
         ctx->status = ERROR;
-        napi_create_string_utf8(env, "FilterNapi dst pixel map is null", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+        ctx->errorMsg = "FilterNapi dst pixel map is null";
     } else {
         std::lock_guard<std::mutex> lock(ctx->filterNapi->getPixelMapAsyncCompleteMutex_);
         value = Media::PixelMapNapi::CreatePixelMap(env, ctx->dstPixelMap_);
@@ -416,10 +423,10 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     napi_status status;
     std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
     EFFECT_JS_ARGS(env, info, status, argc, argv, ctx->this_);
-    BuildMsgOnError(env, ctx, status == napi_ok, "FilterNapi GetPixelMapAsync parsing input fail");
+    BuildMsgOnError(ctx, status == napi_ok, "FilterNapi GetPixelMapAsync parsing input fail");
     NAPI_CALL(env, napi_unwrap_s(env, ctx->this_, &FilterNapi::NAPI_TYPE_TAG,
         reinterpret_cast<void**>(&(ctx->filterNapi))));
-    BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi GetPixelMapAsync filter is nullptr");
+    BuildMsgOnError(ctx, (ctx->filterNapi != nullptr), "FilterNapi GetPixelMapAsync filter is nullptr");
     if (argc >= NUM_1) {
         if (EffectKitNapiUtils::GetInstance().GetType(env, argv[0]) == napi_boolean) {
             EFFECT_NAPI_CHECK_RET_D(napi_get_value_bool(env, argv[0], &(ctx->forceCPU)) == napi_ok, nullptr,
@@ -441,7 +448,7 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     const char* workName = isHighPriority ? "GetPixelMapAsyncHighPrio" : "GetPixelMapAsync";
     napi_qos_t qos = isHighPriority ? napi_qos_user_initiated : napi_qos_default;
     
-    if (ctx->errorMsg != nullptr) {
+    if (!ctx->errorMsg.empty()) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "GetPixelMapAsyncError",
             [](napi_env env, void* data) { EFFECT_LOG_E("FilterNapi GetPixelMapAsync extracting param fail"); },

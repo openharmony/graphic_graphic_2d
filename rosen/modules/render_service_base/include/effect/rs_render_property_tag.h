@@ -53,7 +53,10 @@ class RSNGRenderShapeBase; // forward declaration, impl in rs_render_shape_base.
 // RSShapeRecursionGuard. Do NOT add FILTER_PTR/SHADER_PTR here.
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
 #define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
-#include "effect/rs_render_property_tag_def.in"
+#include "effect/rs_render_property_tag_filter_def.in"
+#include "effect/rs_render_property_tag_mask_def.in"
+#include "effect/rs_render_property_tag_shader_def.in"
+#include "effect/rs_render_property_tag_shape_def.in"
 
 #undef MASK_PTR
 #undef SHAPE_PTR
@@ -150,6 +153,17 @@ enum class RSNGEffectType : int16_t {
     SPATIAL_POINT_LIGHT,
     SPATIAL_GLASS_EFFECT,
     MOTION_BLUR,
+    FRACTAL_GLASS_MASK,
+    BINOCULAR_MASK,
+    SWEEP_REFRACTION_MASK,
+    SPIN_BLUR,
+    HALO_BLOOM,
+    WARPED_RING_MASK,
+    MAP_COLOR_BY_BRIGHTNESS,
+    GLASS_EFFECT,
+    ATLAS_FRAME_MASK,
+    DISTORT_LIGHT,
+    COSMOS_RING_SHADOW,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

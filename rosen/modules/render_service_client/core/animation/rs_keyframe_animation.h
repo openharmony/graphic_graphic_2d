@@ -33,6 +33,11 @@ class RSRenderKeyframeAnimation;
 
 class RSC_EXPORT RSKeyframeAnimation : public RSPropertyAnimation {
 public:
+    RSAnimationType GetType() const override
+    {
+        return RSAnimationType::KEYFRAME;
+    }
+
     RSKeyframeAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property);
     virtual ~RSKeyframeAnimation() = default;
 
