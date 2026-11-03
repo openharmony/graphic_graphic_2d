@@ -263,6 +263,9 @@ private:
     RSUifirstManager(const RSUifirstManager&&);
     RSUifirstManager& operator=(const RSUifirstManager&);
     RSUifirstManager& operator=(const RSUifirstManager&&);
+    void PushPendingMissionCenterScene(SystemAnimatedScenes scene);
+    // return the ended scene only when all pending animations have ended
+    SystemAnimatedScenes PopPendingMissionCenterScene();
 
     void PostSubTask(NodeId id);
     void UpdateCompletedSurface(NodeId id);
@@ -363,7 +366,10 @@ private:
     std::atomic<bool> isRecentTaskScene_ = false;
     // tracks the whole mission center state (enter animation + steady + exit animation)
     std::atomic<bool> isInMissionCenterState_ = false;
-    std::atomic<bool> isExitingMissionCenter_ = false;
+    // pending mission center animations, ended one by one by OTHERS votes in FIFO order
+    std::list<SystemAnimatedScenes> pendingMissionCenterScenes_;
+    // guards pendingMissionCenterScenes_ on IPC threads
+    std::mutex pendingMissionCenterScenesMutex_;
     std::atomic<bool> isSnapshotRotationScene_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;

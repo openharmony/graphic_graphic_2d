@@ -1609,22 +1609,20 @@ void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimated
             break;
         // enter and exit mission center are two independent animations
         case SystemAnimatedScenes::ENTER_MISSION_CENTER:
-            // entering multi-task state, keep state until exit animation ends
             isInMissionCenterState_.store(true);
-            isExitingMissionCenter_.store(false);
+            PushPendingMissionCenterScene(SystemAnimatedScenes::ENTER_MISSION_CENTER);
             break;
         case SystemAnimatedScenes::EXIT_MISSION_CENTER:
-            // mark exiting so OTHERS can leave the multi-task state
-            isExitingMissionCenter_.store(true);
+            PushPendingMissionCenterScene(SystemAnimatedScenes::EXIT_MISSION_CENTER);
             break;
         case SystemAnimatedScenes::SNAPSHOT_ROTATION:
             isSnapshotRotationScene_.store(true);
             break;
-        // enter and exit mission center animation ends
+        // each OTHERS ends the oldest pending animation (1:1 FIFO pairing)
         case SystemAnimatedScenes::OTHERS:
-            if (isInMissionCenterState_.load() && isExitingMissionCenter_.load()) {
+            // leave multi-task state only after the exit animation is the last one to end
+            if (PopPendingMissionCenterScene() == SystemAnimatedScenes::EXIT_MISSION_CENTER) {
                 isInMissionCenterState_.store(false);
-                isExitingMissionCenter_.store(false);
             }
             isSnapshotRotationScene_.store(false);
             break;
@@ -1632,6 +1630,26 @@ void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimated
             isSnapshotRotationScene_.store(false);
             break;
     }
+}
+
+void RSUifirstManager::PushPendingMissionCenterScene(SystemAnimatedScenes scene)
+{
+    std::lock_guard<std::mutex> lock(pendingMissionCenterScenesMutex_);
+    pendingMissionCenterScenes_.push_back(scene);
+}
+
+SystemAnimatedScenes RSUifirstManager::PopPendingMissionCenterScene()
+{
+    std::lock_guard<std::mutex> lock(pendingMissionCenterScenesMutex_);
+    if (pendingMissionCenterScenes_.empty()) {
+        return SystemAnimatedScenes::OTHERS;
+    }
+    SystemAnimatedScenes endedScene = pendingMissionCenterScenes_.front();
+    pendingMissionCenterScenes_.pop_front();
+    if (!pendingMissionCenterScenes_.empty()) {
+        return SystemAnimatedScenes::OTHERS;
+    }
+    return endedScene;
 }
 
 bool RSUifirstManager::NodeIsInCardWhiteList(RSRenderNode& node)

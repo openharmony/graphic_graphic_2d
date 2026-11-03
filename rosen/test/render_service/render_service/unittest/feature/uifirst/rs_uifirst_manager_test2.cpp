@@ -630,6 +630,8 @@ HWTEST_F(RSUifirstManagerTest2, ResetWindowCache, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, IsInMissionCenterState, TestSize.Level1)
 {
+    uifirstManager_.pendingMissionCenterScenes_.clear();
+    uifirstManager_.isInMissionCenterState_.store(false);
     // enter mission center animation starts: state should be active
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_MISSION_CENTER);
     ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
@@ -640,6 +642,32 @@ HWTEST_F(RSUifirstManagerTest2, IsInMissionCenterState, TestSize.Level1)
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::EXIT_MISSION_CENTER);
     ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
     // exit animation ends (OTHERS): leave multi-task state
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), false);
+}
+
+/**
+ * @tc.name: IsInMissionCenterStateQuickExit
+ * @tc.desc: Test IsInMissionCenterState when exit starts before enter animation ends
+ * @tc.type: FUNC
+ * @tc.require: #IBVTGU
+ */
+HWTEST_F(RSUifirstManagerTest2, IsInMissionCenterStateQuickExit, TestSize.Level1)
+{
+    uifirstManager_.pendingMissionCenterScenes_.clear();
+    uifirstManager_.isInMissionCenterState_.store(false);
+    // exit mission center animation starts before the enter animation ends
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_MISSION_CENTER);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::EXIT_MISSION_CENTER);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    // the first OTHERS ends the interrupted enter animation: state must remain active
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), true);
+    // the second OTHERS ends the exit animation: leave multi-task state
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
+    ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), false);
+    // extra OTHERS votes change nothing
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
     ASSERT_EQ(uifirstManager_.IsInMissionCenterState(), false);
 }
