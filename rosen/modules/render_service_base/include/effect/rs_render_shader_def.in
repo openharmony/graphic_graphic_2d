@@ -391,16 +391,6 @@ DECLARE_SHADER(GlassEffect, GLASS_EFFECT,
     ADD_PROPERTY_TAG(GlassEffect, ReflectionImage)
 );
 
-DECLARE_SHADER(CosmosRingShadow, COSMOS_RING_SHADOW,
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius),
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth),
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadius),
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset),
-    ADD_PROPERTY_TAG(CosmosRingShadow, Softness),
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowOffset),
-    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowColor)
-);
-
 DECLARE_SHADER(CosmosRing, COSMOS_RING,
     ADD_PROPERTY_TAG(CosmosRing, Progress),
     ADD_PROPERTY_TAG(CosmosRing, Radius),
@@ -470,4 +460,14 @@ DECLARE_SHADER(CosmosRing, COSMOS_RING,
     ADD_PROPERTY_TAG(CosmosRing, ParticleFadePower),
     ADD_PROPERTY_TAG(CosmosRing, ParticleOpacity),
     ADD_PROPERTY_TAG(CosmosRing, ParticleSizeVariation)
+);
+
+DECLARE_SHADER(CosmosRingShadow, COSMOS_RING_SHADOW,
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, Softness),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowColor)
 );

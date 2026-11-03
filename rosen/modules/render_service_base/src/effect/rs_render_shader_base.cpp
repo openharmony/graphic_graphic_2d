@@ -118,12 +118,12 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderGlassEffect>();
         }
     },
-    {RSNGEffectType::COSMOS_RING_SHADOW, [] {
-            return std::make_shared<RSNGRenderCosmosRingShadow>();
-        }
-    },
     {RSNGEffectType::COSMOS_RING, [] {
             return std::make_shared<RSNGRenderCosmosRing>();
+        }
+    },
+    {RSNGEffectType::COSMOS_RING_SHADOW, [] {
+            return std::make_shared<RSNGRenderCosmosRingShadow>();
         }
     },
 };

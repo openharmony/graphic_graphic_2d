@@ -353,14 +353,6 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(GlassEffect, ShapeMask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(GlassEffect, ContentMask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(GlassEffect, ReflectionImage, std::shared_ptr<Media::PixelMap>);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, Softness, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowOffset, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowColor, Vector4f);
-
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Progress, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Width, float);
@@ -429,3 +421,11 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, ParticleFadeMin, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, ParticleFadePower, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, ParticleOpacity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, ParticleSizeVariation, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, Softness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowColor, Vector4f);
