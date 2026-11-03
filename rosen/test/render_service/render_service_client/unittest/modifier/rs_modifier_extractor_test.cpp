@@ -787,4 +787,13 @@ HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest010, TestSize.Level1
     RSModifierExtractor extractor(node->GetId());
     EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
 }
+
+HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegreeTest011, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+    node->SetGrayScale(0.5f);
+    RSModifierExtractor extractor(node->GetId());
+    EXPECT_FLOAT_EQ(extractor.GetLightUpEffectDegree(), 0.f);
+}
 } // namespace OHOS::Rosen
