@@ -80,12 +80,12 @@ public:
     std::shared_ptr<Drawing::GPUContext> CreateDrawingGPUContext(const std::string& cacheDir = "");
     void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext>& gpuContext);
 
-    // only for effect kit
-    static std::unique_ptr<RsVulkanContext> GetForEffectKit();
-    static void ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext);
 private:
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
     RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
+    // only for effect kit
+    static std::unique_ptr<RsVulkanContext> GetForEffectKit();
+    static void ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext);
 };
 } // namespace Rosen
 } // namespace OHOS
