@@ -37,7 +37,7 @@ public:
     }
 };
 
-GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Set_Cosmos_Ring_And_Particle_Test)
+GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Set_Cosmos_Ring_Test)
 {
     // ---- CosmosRing main ring shader ----
     auto ringShader = std::make_shared<RSNGCosmosRing>();
@@ -92,33 +92,23 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Set_Cosmos_Ring_And_Particle_T
     ringShader->Setter<CosmosRingGlowSaturationTag>(1.f);
     ringShader->Setter<CosmosRingGlowExposureTag>(6.59f);
     ringShader->Setter<CosmosRingProgressTag>(0.5f);
-
-    // ---- CosmosRingParticle shader ----
-    auto particleShader = std::make_shared<RSNGCosmosRingParticle>();
-    particleShader->Setter<CosmosRingParticleParticleCountTag>(65.f);
-    particleShader->Setter<CosmosRingParticleParticleSizeTag>(3.7f);
-    particleShader->Setter<CosmosRingParticleSizeVariationTag>(0.35f);
-    particleShader->Setter<CosmosRingParticleDispersionStrengthTag>(0.01f);
-    particleShader->Setter<CosmosRingParticleScaleTag>(1.f);
-    particleShader->Setter<CosmosRingParticleYPositionTag>(0.f);
-    particleShader->Setter<CosmosRingParticleInnerRadiusTag>(65.f);
-    particleShader->Setter<CosmosRingParticleOuterRadiusTag>(113.f);
-    particleShader->Setter<CosmosRingParticleSpeedTag>(45.f);
-    particleShader->Setter<CosmosRingParticleMidColorTag>(
-        Vector4f(0x0B / 255.0f, 0x5C / 255.0f, 0xFF / 255.0f, 1.0f));
-    particleShader->Setter<CosmosRingParticleTintStrengthTag>(0.55f);
-    particleShader->Setter<CosmosRingParticleBrightnessTag>(2.04f);
-    particleShader->Setter<CosmosRingParticleOpacityTag>(1.f);
-    particleShader->Setter<CosmosRingParticleFadePowerTag>(3.f);
-    particleShader->Setter<CosmosRingParticleFadeMinTag>(0.3f);
-    particleShader->Setter<CosmosRingParticleBirthPeakTag>(0.15f);
-    particleShader->Setter<CosmosRingParticleSeedTag>(50.f);
-    particleShader->Setter<CosmosRingParticleUpdateIntervalTag>(1.f);
-    particleShader->Setter<CosmosRingParticleEnableCacheTag>(true);
-    particleShader->Setter<CosmosRingParticleProgressTag>(0.5f);
-
-    // Chain ring + particle via Append, then attach to a child node's background.
-    ringShader->Append(particleShader);
+    ringShader->Setter<CosmosRingParticleEnableTag>(true);
+    ringShader->Setter<CosmosRingParticleCountTag>(65.f);
+    ringShader->Setter<CosmosRingParticleSizeTag>(3.7f);
+    ringShader->Setter<CosmosRingSizeVariationTag>(0.35f);
+    ringShader->Setter<CosmosRingDispersionStrengthTag>(0.01f);
+    ringShader->Setter<CosmosRingScaleTag>(1.f);
+    ringShader->Setter<CosmosRingYPositionTag>(0.f);
+    ringShader->Setter<CosmosRingInnerRadiusTag>(65.f);
+    ringShader->Setter<CosmosRingOuterRadiusTag>(113.f);
+    ringShader->Setter<CosmosRingSpeedTag>(45.f);
+    ringShader->Setter<CosmosRingTintStrengthTag>(0.55f);
+    ringShader->Setter<CosmosRingBrightnessTag>(2.04f);
+    ringShader->Setter<CosmosRingOpacityTag>(1.f);
+    ringShader->Setter<CosmosRingFadePowerTag>(3.f);
+    ringShader->Setter<CosmosRingFadeMinTag>(0.3f);
+    ringShader->Setter<CosmosRingBirthPeakTag>(0.15f);
+    ringShader->Setter<CosmosRingSeedTag>(50.f);
 
     // Background node (full screen, white image)
     auto bgNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});

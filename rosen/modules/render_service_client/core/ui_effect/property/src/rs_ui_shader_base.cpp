@@ -117,10 +117,6 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGCosmosRing>();
         }
     },
-    {RSNGEffectType::COSMOS_RING_PARTICLE, [] {
-            return std::make_shared<RSNGCosmosRingParticle>();
-        }
-    },
 };
 
 namespace {

@@ -126,10 +126,6 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderCosmosRing>();
         }
     },
-    {RSNGEffectType::COSMOS_RING_PARTICLE, [] {
-            return std::make_shared<RSNGRenderCosmosRingParticle>();
-        }
-    },
 };
 
 using ShaderGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderShaderBase>, const RectF&)>;

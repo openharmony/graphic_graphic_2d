@@ -165,7 +165,6 @@ enum class RSNGEffectType : int16_t {
     DISTORT_LIGHT,
     COSMOS_RING_SHADOW,
     COSMOS_RING,
-    COSMOS_RING_PARTICLE,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
