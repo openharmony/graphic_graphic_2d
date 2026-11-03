@@ -1505,6 +1505,7 @@ HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
     // update on existing shadow_ does not recreate it
     properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
     EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
+}
 
 
 } // namespace Rosen

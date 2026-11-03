@@ -5031,6 +5031,7 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
     properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
+}
 
 
 } // namespace Rosen
