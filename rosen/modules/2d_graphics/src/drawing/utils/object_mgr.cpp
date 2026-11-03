@@ -71,23 +71,19 @@ std::shared_ptr<Typeface> TypefaceMgr::Find(void* key)
 
 bool TypefaceMgr::Remove(void* key)
 {
-    std::shared_ptr<Typeface> typeface = nullptr;
-    {
-        std::unique_lock lock(mutex_);
-        auto iter = typeface_.find(key);
-        if (iter == typeface_.end()) {
-            return false;
-        }
-        typeface = iter->second;
-        typeface_.erase(iter);
-    }
+    std::unique_lock lock(mutex_);
+    auto iter = typeface_.find(key);
+    if (iter != typeface_.end()) {
 #ifdef USE_M133_SKIA
-    // Skia cache cleanup runs outside the lock to avoid calling into Skia while holding mutex_
-    if (typeface != nullptr) {
-        SkGraphics::RemoveCacheByUniqueId(typeface->GetUniqueID());
-    }
+        if (iter->second != nullptr) {
+            SkGraphics::RemoveCacheByUniqueId(iter->second->GetUniqueID());
+        }
 #endif
-    return true;
+        typeface_.erase(iter);
+        return true;
+    } else {
+        return false;
+    }
 }
 } // namespace Drawing
 } // namespace Rosen
