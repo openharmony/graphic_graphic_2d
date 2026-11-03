@@ -2602,4 +2602,37 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterEmptyDrawRect, testing::e
     DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&mockCanvas, &rect, container);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: DrawColorNGFilterImageNullptr
+ * @tc.desc: DrawColorNGFilter with surface that returns nullptr from GetImageSnapshot.
+ *          Covers: image==nullptr->true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterImageNullptr, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    Drawing::Surface emptySurface;
+    MockSurfaceCanvas mockCanvas(std::make_shared<Drawing::Surface>(std::move(emptySurface)), 100, 100);
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&mockCanvas, &rect, container);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawColorNGFilterResImageNullptr
+ * @tc.desc: DrawColorNGFilter with empty visualEffectContainer so ApplyImageEffect returns nullptr.
+ *          Covers: resImage==nullptr->true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorNGFilterResImageNullptr, testing::ext::TestSize.Level1)
+{
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    MockSurfaceCanvas mockCanvas(surface, 100, 100);
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    DrawableV2::RSEffectDrawableUtils::DrawColorNGFilter(&mockCanvas, &rect, container);
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen
