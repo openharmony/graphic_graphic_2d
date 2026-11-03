@@ -95,20 +95,22 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Set_Cosmos_Ring_Test)
     ringShader->Setter<CosmosRingParticleEnableTag>(true);
     ringShader->Setter<CosmosRingParticleCountTag>(65.f);
     ringShader->Setter<CosmosRingParticleSizeTag>(3.7f);
-    ringShader->Setter<CosmosRingSizeVariationTag>(0.35f);
-    ringShader->Setter<CosmosRingDispersionStrengthTag>(0.01f);
-    ringShader->Setter<CosmosRingScaleTag>(1.f);
-    ringShader->Setter<CosmosRingYPositionTag>(0.f);
-    ringShader->Setter<CosmosRingInnerRadiusTag>(65.f);
-    ringShader->Setter<CosmosRingOuterRadiusTag>(113.f);
-    ringShader->Setter<CosmosRingSpeedTag>(45.f);
-    ringShader->Setter<CosmosRingTintStrengthTag>(0.55f);
-    ringShader->Setter<CosmosRingBrightnessTag>(2.04f);
-    ringShader->Setter<CosmosRingOpacityTag>(1.f);
-    ringShader->Setter<CosmosRingFadePowerTag>(3.f);
-    ringShader->Setter<CosmosRingFadeMinTag>(0.3f);
-    ringShader->Setter<CosmosRingBirthPeakTag>(0.15f);
-    ringShader->Setter<CosmosRingSeedTag>(50.f);
+    ringShader->Setter<CosmosRingParticleSizeVariationTag>(0.35f);
+    ringShader->Setter<CosmosRingParticleDispersionStrengthTag>(0.01f);
+    ringShader->Setter<CosmosRingParticleScaleTag>(1.f);
+    ringShader->Setter<CosmosRingParticleYPositionTag>(0.f);
+    ringShader->Setter<CosmosRingParticleInnerRadiusTag>(65.f);
+    ringShader->Setter<CosmosRingParticleOuterRadiusTag>(113.f);
+    ringShader->Setter<CosmosRingParticleSpeedTag>(45.f);
+    ringShader->Setter<CosmosRingParticleMidColorTag>(
+        Vector4f(0x0B / 255.0f, 0x5C / 255.0f, 0xFF / 255.0f, 1.0f));
+    ringShader->Setter<CosmosRingParticleTintStrengthTag>(0.55f);
+    ringShader->Setter<CosmosRingParticleBrightnessTag>(2.04f);
+    ringShader->Setter<CosmosRingParticleOpacityTag>(1.f);
+    ringShader->Setter<CosmosRingParticleFadePowerTag>(3.f);
+    ringShader->Setter<CosmosRingParticleFadeMinTag>(0.3f);
+    ringShader->Setter<CosmosRingParticleBirthPeakTag>(0.15f);
+    ringShader->Setter<CosmosRingParticleSeedTag>(50.f);
 
     // Background node (full screen, white image)
     auto bgNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
