@@ -415,6 +415,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                     parent->RemoveChildFromFulllist(pair.first);
                 }
             }
+            pair.second->RemoveFromTree(true);
             return true;
         });
     }
