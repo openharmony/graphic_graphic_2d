@@ -18,6 +18,7 @@
 #include <functional>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "impl_interface/gpu_context_impl.h"
 #include "trace_memory_dump.h"
@@ -414,6 +415,12 @@ public:
      * @param value             Value to set.
      */
     void SetParam(const std::string& name, const std::string& value);
+
+    /**
+     * @brief                   Set all params.
+     * @param params            A map of all params.
+     */
+    void SetParam(const std::unordered_map<std::string, std::string>& params);
 
     void SetTextCacheEnforced(bool isEnforced);
 private:

@@ -57,6 +57,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VirtualScreenParallelConfig",
     "BackgroundRebuildConfig",
     "TunnelLayerConfig",
+    "DDGRConfig",
 };
 
 enum FeatureModule {
@@ -93,6 +94,7 @@ enum FeatureModule {
     VIRTUAL_SCREEN_PARALLEL,
     BACKGROUND_REBUILD,
     TUNNEL_LAYER,
+    DDGR_CONFIG,
     // Do not change it.
     ENUM_LENGTH,
 };

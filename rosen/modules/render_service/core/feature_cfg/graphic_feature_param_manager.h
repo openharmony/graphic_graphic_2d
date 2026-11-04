@@ -88,6 +88,8 @@
 #include "virtual_screen_parallel_param.h"
 #include "background_rebuild_param_parse.h"
 #include "background_rebuild_param.h"
+#include "ddgr_config_param_parse.h"
+#include "ddgr_config_param.h"
 
 
 namespace OHOS::Rosen {
