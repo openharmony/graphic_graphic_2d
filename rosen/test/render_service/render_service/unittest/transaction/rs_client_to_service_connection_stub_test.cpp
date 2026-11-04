@@ -7805,5 +7805,34 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetMemoryGraphicsByRenderPid002, T
     int32_t ret = connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_STATE);
 }
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOff
+ * @tc.desc: Test SetApsConfigParams with event == ApsEventType::SWIPER_BOOST_OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOff, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params = { { "SWIPER_BOOST_OFF", "TRUE" } };
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOffEmptyParams
+ * @tc.desc: Test SetApsConfigParams SWIPER_BOOST_OFF with empty params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOffEmptyParams, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params;
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 } // namespace OHOS::Rosen
 #endif
