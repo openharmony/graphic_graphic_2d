@@ -5033,5 +5033,18 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
 }
 
 
+/**
+ * @tc.name: DumpColorNGFilter001
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter001") == std::string::npos);
+}
+
 } // namespace Rosen
 } // namespace OHOS
