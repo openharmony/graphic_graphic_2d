@@ -53,6 +53,8 @@ private:
     mutable std::mutex screenContextsMutex_;
     std::shared_ptr<ScreenReportContext> GetOrCreateScreenContext(uint64_t screenId);
     std::shared_ptr<ScreenReportContext> GetScreenContext(uint64_t screenId) const;
+    void RemoveScreenContext(uint64_t screenId);
+    static bool IsSampleTimeReached(uint64_t lastReportTime, uint64_t currTime);
     std::atomic<uint32_t> currentPid_;
     uint32_t currentType_;
     std::chrono::steady_clock::time_point beginTimeStamp_;

@@ -82,12 +82,16 @@ void ResschedEventListener::HandleDrawFrameEventReport(uint32_t eventValue,
         ctx->isFirstReport.store(true);
         ctx->lastReportTime.store(0);
     } else if (eventValue == ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP) {
-        ctx->isNeedReport.store(false);
-        ctx->isFirstReport.store(false);
+        RemoveScreenContext(screenId);
     }
     RS_TRACE_NAME_FMT("HandleDrawFrameEventReport eventValue:%u screenId:%" PRIu64, eventValue, screenId);
 }
 
+
+bool ResschedEventListener::IsSampleTimeReached(uint64_t lastReportTime, uint64_t currTime)
+{
+    return currTime > lastReportTime && currTime - lastReportTime >= SAMPLE_TIME;
+}
 
 void ResschedEventListener::ReportFrameToRSS(uint64_t screenId)
 {
@@ -99,9 +103,8 @@ void ResschedEventListener::ReportFrameToRSS(uint64_t screenId)
     uint64_t currTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
-    if (ctx->isFirstReport.load() ||
-        ctx->lastReportTime.load() == 0 || (currTime > ctx->lastReportTime.load() &&
-        currTime - ctx->lastReportTime.load() >= SAMPLE_TIME)) {
+    if (ctx->isFirstReport.load() || ctx->lastReportTime.load() == 0 ||
+        IsSampleTimeReached(ctx->lastReportTime.load(), currTime)) {
         RS_TRACE_NAME_FMT("ReportFrameToRSS screenId:%" PRIu64, screenId);
         uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
         int64_t value = 0;
@@ -135,6 +138,12 @@ std::shared_ptr<ScreenReportContext> ResschedEventListener::GetScreenContext(uin
         return it->second;
     }
     return nullptr;
+}
+
+void ResschedEventListener::RemoveScreenContext(uint64_t screenId)
+{
+    std::lock_guard<std::mutex> lock(screenContextsMutex_);
+    screenContexts_.erase(screenId);
 }
 
 bool ResschedEventListener::GetIsNeedReport() const

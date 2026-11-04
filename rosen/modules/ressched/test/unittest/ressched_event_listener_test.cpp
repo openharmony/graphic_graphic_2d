@@ -482,6 +482,51 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS_WithValidQueue, Functio
     ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
     sleep(1);
 }
+
+/*
+* Function: HandleDrawFrameEventReport_StopRemovesScreenContext
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test draw frame report stop removes the screen context instead of keeping it
+*/
+HWTEST_F(ResschedEventListenerTest, HandleDrawFrameEventReport_StopRemovesScreenContext, Function | MediumTest | Level3)
+{
+    auto listener = ResschedEventListener::GetInstance();
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["screenId"] = "20";
+    listener->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_START, extInfo);
+    ASSERT_NE(listener->screenContexts_.find(20), listener->screenContexts_.end());
+
+    listener->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_DRAW_FRAME_REPORT_STOP, extInfo);
+    ASSERT_EQ(listener->screenContexts_.find(20), listener->screenContexts_.end());
+}
+
+/*
+* Function: IsSampleTimeReached_Boundary
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test IsSampleTimeReached for sample interval boundary and clock rollback
+*/
+HWTEST_F(ResschedEventListenerTest, IsSampleTimeReached_Boundary, Function | MediumTest | Level3)
+{
+    constexpr uint64_t TEST_SAMPLE_TIME_NS = 100000000; // keep in sync with SAMPLE_TIME in ressched_event_listener.cpp
+    constexpr uint64_t BASE_TIME_NS = 1000000000;
+
+    // below sample interval since last report
+    ASSERT_FALSE(ResschedEventListener::IsSampleTimeReached(BASE_TIME_NS, BASE_TIME_NS + TEST_SAMPLE_TIME_NS - 1));
+
+    // exactly reaches sample interval
+    ASSERT_TRUE(ResschedEventListener::IsSampleTimeReached(BASE_TIME_NS, BASE_TIME_NS + TEST_SAMPLE_TIME_NS));
+
+    // clock rollback must not underflow into a huge interval
+    ASSERT_FALSE(ResschedEventListener::IsSampleTimeReached(BASE_TIME_NS, BASE_TIME_NS - 1));
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
