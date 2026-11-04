@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <functional>
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 #include "common/rs_background_thread.h"
@@ -45,6 +47,20 @@ constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
 constexpr uint32_t DEFAULT_WEIGHT = 1260;
 constexpr uint32_t DEFAULT_HIGHT = 2720;
+
+class CaptureBlacklistProbeDrawable final : public DrawableV2::RSRenderNodeDrawable {
+public:
+    CaptureBlacklistProbeDrawable(std::shared_ptr<const RSRenderNode> node, std::function<void()> onCapture)
+        : RSRenderNodeDrawable(std::move(node)), onCapture_(std::move(onCapture)) {}
+
+    void OnCapture(Drawing::Canvas&) override
+    {
+        onCapture_();
+    }
+
+private:
+    std::function<void()> onCapture_;
+};
 
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
 public:
@@ -149,6 +165,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     bool CheckSurfaceCaptureCallback();
+    void CaptureDisplayWithProbe(RSSurfaceCaptureTaskParallel& task, std::function<void()> onCapture);
     static std::shared_ptr<CustomizedSurfaceCapture> surfaceCaptureCb_;
     static RSInterfaces* rsInterfaces_;
     static std::shared_ptr<RSSurfaceNode> surfaceNode_;
@@ -166,6 +183,22 @@ std::shared_ptr<RSCanvasNode> RSSurfaceCaptureTaskParallelTest::canvasNode_ = nu
 sptr<RSScreenManager> RSSurfaceCaptureTaskParallelTest::screenManager_ = sptr<RSScreenManager>::MakeSptr();
 std::shared_ptr<AppExecFwk::EventRunner> RSSurfaceCaptureTaskParallelTest::runner_ = nullptr;
 std::shared_ptr<AppExecFwk::EventHandler> RSSurfaceCaptureTaskParallelTest::handler_ = nullptr;
+
+void RSSurfaceCaptureTaskParallelTest::CaptureDisplayWithProbe(
+    RSSurfaceCaptureTaskParallel& task, std::function<void()> onCapture)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    bool captureCalled = false;
+    CaptureBlacklistProbeDrawable displayDrawable(std::make_shared<RSRenderNode>(task.nodeId_), [&] {
+        captureCalled = true;
+        onCapture();
+    });
+    task.CaptureDisplayNode(displayDrawable, canvas, {}, RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    RSUniRenderThread::ResetCaptureParam();
+    EXPECT_TRUE(captureCalled);
+    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+}
 
 bool RSSurfaceCaptureTaskParallelTest::CheckSurfaceCaptureCallback()
 {
@@ -1814,222 +1847,173 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
 }
 
 /*
- * @tc.name: CaptureDisplayNodeBlacklistCacheFlag001
- * @tc.desc: Test CaptureDisplayNode restores blacklist flag on ancestor cache root after capture
+ * @tc.name: ResolveBlacklistAncestors
+ * @tc.desc: Cover empty, unmatched, node-id and shared-ancestor branches; a leash persistent id entry is not
+ * resolved.
  * @tc.type: FUNC
  * @tc.require: issues/26642
  */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag001, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, ResolveBlacklistAncestors, TestSize.Level2)
 {
-    NodeId displayId = 888001;
-    NodeId cacheRootId = 888002;
-    NodeId blacklistedId = 888003;
-    auto displayNode = std::make_shared<RSRenderNode>(displayId);
-    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
-    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
-    blacklistedNode->SetParent(cacheRootNode);
-    cacheRootNode->SetParent(displayNode);
+    constexpr NodeId ROOT_ID = 888001;
+    constexpr NodeId FIRST_ID = 888002;
+    constexpr NodeId SECOND_ID = 888003;
+    constexpr NodeId UNMATCHED_ID = 888004;
+    constexpr NodeId PERSISTENT_ID = 888005;
+    RSSurfaceCaptureTaskParallel emptyTask(ROOT_ID, {});
+    emptyTask.ResolveBlacklistAncestorNodeIds();
+    EXPECT_TRUE(emptyTask.blacklistAncestorNodeIds_.empty());
+    CaptureDisplayWithProbe(emptyTask, [] {});
+    auto root = std::make_shared<RSRenderNode>(ROOT_ID);
+    auto first = std::make_shared<RSSurfaceRenderNode>(FIRST_ID);
+    auto second = std::make_shared<RSSurfaceRenderNode>(SECOND_ID);
+    auto unmatched = std::make_shared<RSSurfaceRenderNode>(UNMATCHED_ID);
+    first->SetParent(root);
+    second->SetParent(root);
+    second->SetLeashPersistentId(PERSISTENT_ID);
+    std::vector<std::shared_ptr<RSRenderNode>> nodes = {root, first, second, unmatched};
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
-    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
-    ASSERT_NE(displayDrawable, nullptr);
-    ASSERT_NE(cacheRootDrawable, nullptr);
-    ASSERT_NE(DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(blacklistedNode), nullptr);
-    const auto& params = cacheRootDrawable->GetRenderParams();
-    ASSERT_NE(params, nullptr);
-    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
-    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
-
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.blackList.push_back(blacklistedId);
-    RSSurfaceCaptureParam captureParam;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
-        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
-    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
-    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
-    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
-
-    nodeMap.UnregisterRenderNode(displayId);
-    nodeMap.UnregisterRenderNode(cacheRootId);
-    nodeMap.UnregisterRenderNode(blacklistedId);
+    for (const auto& node : nodes) {
+        ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+    }
+    RSSurfaceCaptureConfig config;
+    // A leash persistent id in the blacklist is not resolved; known limitation of this implementation.
+    config.blackList = {FIRST_ID, PERSISTENT_ID};
+    RSSurfaceCaptureTaskParallel task(ROOT_ID, config);
+    const std::vector<NodeId> expected = {ROOT_ID, FIRST_ID};
+    for (bool repeat : {false, true}) {
+        SCOPED_TRACE(repeat);
+        task.ResolveBlacklistAncestorNodeIds();
+        std::sort(task.blacklistAncestorNodeIds_.begin(), task.blacklistAncestorNodeIds_.end());
+        EXPECT_EQ(task.blacklistAncestorNodeIds_, expected);
+    }
+    for (const auto& node : nodes) {
+        nodeMap.UnregisterRenderNode(node->GetId());
+    }
 }
 
 /*
- * @tc.name: CaptureDisplayNodeBlacklistCacheFlag002
- * @tc.desc: Test CaptureDisplayNode keeps pre-existing blacklist flag after capture
+ * @tc.name: CaptureBlacklistCacheBranches
+ * @tc.desc: Cover missing drawables/params, disabled/forced/frozen caches and restoration of both flag values.
  * @tc.type: FUNC
  * @tc.require: issues/26642
  */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag002, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureBlacklistCacheBranches, TestSize.Level2)
 {
-    NodeId displayId = 888011;
-    NodeId cacheRootId = 888012;
-    NodeId blacklistedId = 888013;
-    auto displayNode = std::make_shared<RSRenderNode>(displayId);
-    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
-    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
-    blacklistedNode->SetParent(cacheRootNode);
-    cacheRootNode->SetParent(displayNode);
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
-    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
-    ASSERT_NE(displayDrawable, nullptr);
-    ASSERT_NE(cacheRootDrawable, nullptr);
-    ASSERT_NE(DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(blacklistedNode), nullptr);
-    const auto& params = cacheRootDrawable->GetRenderParams();
-    ASSERT_NE(params, nullptr);
-    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
-    // Pre-existing flag, e.g. set by the main-thread mechanism for a persistent blacklist.
-    params->SetNodeGroupHasChildInBlacklist(true);
-    EXPECT_TRUE(params->NodeGroupHasChildInBlacklist());
-
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.blackList.push_back(blacklistedId);
-    RSSurfaceCaptureParam captureParam;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
-        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
-    EXPECT_TRUE(params->NodeGroupHasChildInBlacklist());
-
-    nodeMap.UnregisterRenderNode(displayId);
-    nodeMap.UnregisterRenderNode(cacheRootId);
-    nodeMap.UnregisterRenderNode(blacklistedId);
+    constexpr NodeId MISSING_ID = 888011;
+    constexpr NodeId NO_PARAMS_ID = 888012;
+    constexpr NodeId DISABLED_ID = 888013;
+    constexpr NodeId FORCED_ID = 888014;
+    constexpr NodeId FROZEN_ID = 888015;
+    const auto makeDrawable = [](NodeId id) {
+        return DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(std::make_shared<RSRenderNode>(id));
+    };
+    auto noParams = makeDrawable(NO_PARAMS_ID);
+    auto disabled = makeDrawable(DISABLED_ID);
+    auto forced = makeDrawable(FORCED_ID);
+    auto frozen = makeDrawable(FROZEN_ID);
+    ASSERT_NE(noParams, nullptr);
+    ASSERT_NE(disabled, nullptr);
+    ASSERT_NE(forced, nullptr);
+    ASSERT_NE(frozen, nullptr);
+    ASSERT_NE(disabled->GetRenderParams(), nullptr);
+    ASSERT_NE(forced->GetRenderParams(), nullptr);
+    ASSERT_NE(frozen->GetRenderParams(), nullptr);
+    noParams->renderParams_.reset();
+    forced->GetRenderParams()->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    frozen->GetRenderParams()->SetRSFreezeFlag(true, true);
+    RSSurfaceCaptureTaskParallel task(MISSING_ID, {});
+    task.blacklistAncestorNodeIds_ = {MISSING_ID, NO_PARAMS_ID, DISABLED_ID, FORCED_ID, FROZEN_ID};
+    for (bool original : {false, true}) {
+        forced->GetRenderParams()->SetNodeGroupHasChildInBlacklist(original);
+        CaptureDisplayWithProbe(task, [&] {
+            EXPECT_FALSE(disabled->GetRenderParams()->NodeGroupHasChildInBlacklist());
+            EXPECT_TRUE(forced->GetRenderParams()->NodeGroupHasChildInBlacklist());
+            EXPECT_TRUE(frozen->GetRenderParams()->NodeGroupHasChildInBlacklist());
+        });
+        EXPECT_EQ(forced->GetRenderParams()->NodeGroupHasChildInBlacklist(), original);
+        EXPECT_FALSE(frozen->GetRenderParams()->NodeGroupHasChildInBlacklist());
+    }
 }
 
 /*
- * @tc.name: CaptureDisplayNodeBlacklistCacheFlag003
- * @tc.desc: Test CaptureDisplayNode skips blacklist ids absent from the node map and
- *           nodes whose drawable was never generated, while still flagging the cache root
+ * @tc.name: CreateResourcesBlacklistAncestorDisplay
+ * @tc.desc: Verify display resource creation resolves blacklist ancestors.
  * @tc.type: FUNC
  * @tc.require: issues/26642
  */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag003, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResourcesBlacklistAncestorDisplay, TestSize.Level2)
 {
-    NodeId displayId = 888021;
-    NodeId cacheRootId = 888022;
-    NodeId blacklistedId = 888023;
-    NodeId unregisteredId = 888024;
-    NodeId noDrawableId = 888025;
-    auto displayNode = std::make_shared<RSRenderNode>(displayId);
-    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
-    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
-    auto noDrawableNode = std::make_shared<RSRenderNode>(noDrawableId);
-    blacklistedNode->SetParent(cacheRootNode);
+    constexpr NodeId DISPLAY_ID = 888065;
+    constexpr NodeId SCREEN_NODE_ID = 888066;
+    constexpr int32_t CAPTURE_SIZE = 100;
+    constexpr NodeId CACHE_ROOT_ID = 888067;
+    constexpr NodeId SURFACE_ID = 888068;
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(DISPLAY_ID, displayConfig);
+    auto cacheRootNode = std::make_shared<RSRenderNode>(CACHE_ROOT_ID);
+    auto blacklistedNode = std::make_shared<RSSurfaceRenderNode>(SURFACE_ID);
     cacheRootNode->SetParent(displayNode);
+    blacklistedNode->SetParent(cacheRootNode);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(SCREEN_NODE_ID, 1, context);
+    displayNode->SetParent(screenNode);
+    auto contentRect = displayNode->GetDisplayContentRect();
+    contentRect.w = CAPTURE_SIZE;
+    contentRect.h = CAPTURE_SIZE;
+    displayNode->SetDisplayContentRect(contentRect);
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(noDrawableNode));
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
-    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
-    ASSERT_NE(displayDrawable, nullptr);
-    ASSERT_NE(cacheRootDrawable, nullptr);
-    const auto& params = cacheRootDrawable->GetRenderParams();
-    ASSERT_NE(params, nullptr);
-    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
-    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
 
     RSSurfaceCaptureConfig captureConfig;
-    captureConfig.blackList.push_back(unregisteredId);
-    captureConfig.blackList.push_back(noDrawableId);
-    captureConfig.blackList.push_back(blacklistedId);
-    RSSurfaceCaptureParam captureParam;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
-        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
-    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
-    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
-    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.blackList.push_back(SURFACE_ID);
+    RSSurfaceCaptureTaskParallel task(DISPLAY_ID, captureConfig);
+    ASSERT_TRUE(task.CreateResources());
+    EXPECT_FALSE(task.blacklistAncestorNodeIds_.empty());
+    EXPECT_NE(std::find(task.blacklistAncestorNodeIds_.begin(), task.blacklistAncestorNodeIds_.end(),
+        CACHE_ROOT_ID), task.blacklistAncestorNodeIds_.end());
 
-    nodeMap.UnregisterRenderNode(displayId);
-    nodeMap.UnregisterRenderNode(cacheRootId);
-    nodeMap.UnregisterRenderNode(blacklistedId);
-    nodeMap.UnregisterRenderNode(noDrawableId);
+    nodeMap.UnregisterRenderNode(DISPLAY_ID);
+    nodeMap.UnregisterRenderNode(CACHE_ROOT_ID);
+    nodeMap.UnregisterRenderNode(SURFACE_ID);
 }
 
 /*
- * @tc.name: CaptureDisplayNodeBlacklistCacheFlag004
- * @tc.desc: Test CaptureDisplayNode skips ancestors whose cache type is DISABLED_CACHE so they
- *           are not flagged, while a FORCED_CACHE ancestor above them is flagged and restored
+ * @tc.name: CreateResourcesBlacklistAncestorSurface
+ * @tc.desc: Verify surface resource creation skips blacklist ancestor resolution.
  * @tc.type: FUNC
  * @tc.require: issues/26642
  */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag004, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResourcesBlacklistAncestorSurface, TestSize.Level2)
 {
-    NodeId displayId = 888031;
-    NodeId disabledCacheRootId = 888032;
-    NodeId forcedCacheRootId = 888033;
-    NodeId blacklistedId = 888034;
-    auto displayNode = std::make_shared<RSRenderNode>(displayId);
-    auto disabledCacheNode = std::make_shared<RSRenderNode>(disabledCacheRootId);
-    auto forcedCacheNode = std::make_shared<RSRenderNode>(forcedCacheRootId);
-    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
-    blacklistedNode->SetParent(forcedCacheNode);
-    forcedCacheNode->SetParent(disabledCacheNode);
-    disabledCacheNode->SetParent(displayNode);
+    constexpr NodeId SURFACE_ID = 888069;
+    constexpr NodeId CHILD_ID = 888070;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(SURFACE_ID);
+    surfaceNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    surfaceNode->shouldPaint_ = true;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(CHILD_ID);
+    childNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    surfaceNode->AddChild(childNode, -1);
+    surfaceNode->GenerateFullChildrenList();
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(disabledCacheNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(forcedCacheNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
-    auto disabledCacheDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(disabledCacheNode));
-    auto forcedCacheDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(forcedCacheNode));
-    ASSERT_NE(displayDrawable, nullptr);
-    ASSERT_NE(disabledCacheDrawable, nullptr);
-    ASSERT_NE(forcedCacheDrawable, nullptr);
-    const auto& disabledParams = disabledCacheDrawable->GetRenderParams();
-    const auto& forcedParams = forcedCacheDrawable->GetRenderParams();
-    ASSERT_NE(disabledParams, nullptr);
-    ASSERT_NE(forcedParams, nullptr);
-    ASSERT_EQ(disabledParams->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-    forcedParams->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
-    EXPECT_FALSE(forcedParams->NodeGroupHasChildInBlacklist());
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(childNode));
 
     RSSurfaceCaptureConfig captureConfig;
-    captureConfig.blackList.push_back(blacklistedId);
-    RSSurfaceCaptureParam captureParam;
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
-        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
-    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
-    EXPECT_FALSE(forcedParams->NodeGroupHasChildInBlacklist());
-    EXPECT_FALSE(disabledParams->NodeGroupHasChildInBlacklist());
-    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+    captureConfig.blackList.push_back(SURFACE_ID);
+    RSSurfaceCaptureTaskParallel task(SURFACE_ID, captureConfig);
+    ASSERT_TRUE(task.CreateResources());
+    EXPECT_TRUE(task.blacklistAncestorNodeIds_.empty());
 
-    nodeMap.UnregisterRenderNode(displayId);
-    nodeMap.UnregisterRenderNode(disabledCacheRootId);
-    nodeMap.UnregisterRenderNode(forcedCacheRootId);
-    nodeMap.UnregisterRenderNode(blacklistedId);
+    nodeMap.UnregisterRenderNode(SURFACE_ID);
+    nodeMap.UnregisterRenderNode(CHILD_ID);
 }
 
 /*
