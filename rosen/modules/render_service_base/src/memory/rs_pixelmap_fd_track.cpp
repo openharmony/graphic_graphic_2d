@@ -15,6 +15,7 @@
 
 #include "memory/rs_pixelmap_fd_track.h"
 
+#include <chrono>
 #include <fstream>
 #include <sstream>
 
@@ -38,7 +39,7 @@ const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
 const std::string RS_FD_MEM_PATH = "/data/service/el0/render_service/renderservice_fdmem.txt";
 }
 
-void RSPixelMapFdTrack::AddFdRecord(int32_t pid, const void* addr, Media::AllocatorType allocType)
+void RSPixelMapFdTrack::AddFdRecord(int32_t pid, const void* addr, Media::AllocatorType allocType, uint64_t uniqueId)
 {
     if (pid <= INVALID_PID) {
         return;
@@ -47,17 +48,19 @@ void RSPixelMapFdTrack::AddFdRecord(int32_t pid, const void* addr, Media::Alloca
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    auto [it, isNewElement] = addrTracker_[pid].insert(addr);
+    auto [it, isNewElement] = addrTracker_[pid].try_emplace(addr, uniqueId);
     if (!isNewElement) {
         return;
     }
+    int32_t fdCount = 0;
     if (allocType == Media::AllocatorType::SHARE_MEM_ALLOC) {
-        fdCountTracker_[pid] += FD_COUNT_SHARE_MEM;
-        fdTotal_ += FD_COUNT_SHARE_MEM;
+        fdCount = FD_COUNT_SHARE_MEM;
     } else if (allocType == Media::AllocatorType::DMA_ALLOC) {
-        fdCountTracker_[pid] += FD_COUNT_DMA;
-        fdTotal_ += FD_COUNT_DMA;
+        fdCount = FD_COUNT_DMA;
     }
+    fdCountTracker_[pid] += fdCount;
+    fdTotal_ += fdCount;
+    UpdateUniqueIdStat(uniqueId, pid, fdCount);
 }
 
 void RSPixelMapFdTrack::RemoveFdRecord(int32_t pid, const void* addr, Media::AllocatorType allocType)
@@ -73,20 +76,25 @@ void RSPixelMapFdTrack::RemoveFdRecord(int32_t pid, const void* addr, Media::All
     if (it == addrTracker_.end()) {
         return;
     }
-    size_t eraseCount = it->second.erase(addr);
-    if (eraseCount == 0) {
+    auto addrIt = it->second.find(addr);
+    if (addrIt == it->second.end()) {
         return;
     }
+    uint64_t uniqueId = addrIt->second;
+    it->second.erase(addrIt);
+    int32_t fdCount = 0;
     if (allocType == Media::AllocatorType::SHARE_MEM_ALLOC) {
-        fdCountTracker_[pid] -= FD_COUNT_SHARE_MEM;
-        fdTotal_ -= FD_COUNT_SHARE_MEM;
+        fdCount = FD_COUNT_SHARE_MEM;
     } else if (allocType == Media::AllocatorType::DMA_ALLOC) {
-        fdCountTracker_[pid] -= FD_COUNT_DMA;
-        fdTotal_ -= FD_COUNT_DMA;
+        fdCount = FD_COUNT_DMA;
     }
+    fdCountTracker_[pid] -= fdCount;
+    fdTotal_ -= fdCount;
+    UpdateUniqueIdStat(uniqueId, pid, -fdCount);
     if (it->second.empty()) {
         addrTracker_.erase(it);
         fdCountTracker_.erase(pid);
+        lastWarningTime_.erase(pid);
     }
 }
 
@@ -95,8 +103,15 @@ bool RSPixelMapFdTrack::CheckFdRecordAndKillProcess(int32_t pid)
     std::unordered_map<int32_t, int32_t> pidsToKill;
 #ifdef RS_ENABLE_UNI_RENDER
     CheckFdRecordAndGetPidsToKill(pidsToKill, pid);
+    if (pidsToKill.empty()) {
+        // fd total over MAX_TOTAL_FD always fills pidsToKill, so the warning report below and the
+        // over-limit report above never happen in the same call: exactly one hisyseeventwrite
+        // per call, and GetTopFdCountPid is reached by either path only once
+        CheckFdWarningAndReport();
+        return true;
+    }
     for (const auto [ pidToKill, fdCount ] : pidsToKill) {
-        ReportFdOverLimit(pidToKill);
+        ReportFdOverLimit(pidToKill, "FD", MAX_TOTAL_FD, fdCount);
         std::string reason = "fd count " + std::to_string(fdCount) + " exceeds limit";
         bool success = KillProcessByPid(pidToKill, reason);
         if (success) {
@@ -110,12 +125,19 @@ bool RSPixelMapFdTrack::CheckFdRecordAndKillProcess(int32_t pid)
 void RSPixelMapFdTrack::ClearFdRecordByPid(int32_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    addrTracker_.erase(pid);
-    auto it = fdCountTracker_.find(pid);
-    if (it != fdCountTracker_.end()) {
-        fdTotal_ -= it->second;
-        fdCountTracker_.erase(it);
+    auto it = addrTracker_.find(pid);
+    if (it != addrTracker_.end()) {
+        for (const auto& entry : it->second) {
+            RemoveUniqueIdStat(entry.second, pid);
+        }
+        addrTracker_.erase(it);
     }
+    auto countIt = fdCountTracker_.find(pid);
+    if (countIt != fdCountTracker_.end()) {
+        fdTotal_ -= countIt->second;
+        fdCountTracker_.erase(countIt);
+    }
+    lastWarningTime_.erase(pid);
 }
 
 void RSPixelMapFdTrack::CheckFdRecordAndGetPidsToKill(std::unordered_map<int32_t, int32_t>& pidsToKill,
@@ -154,6 +176,14 @@ bool RSPixelMapFdTrack::CheckFdTotal(int32_t& topFdCountPid, int32_t& topFdCount
     if (fdTotal_ <= MAX_TOTAL_FD) {
         return true;
     }
+    GetTopFdCountPid(topFdCountPid, topFdCount);
+    ROSEN_LOGE("RSPixelMapFdTrack::CheckFdTotal failed, fd total %{public}" PRId32 " exceeds limit %{public}" PRId32
+        ", top1 pid %{public}" PRId32 " fd count %{public}" PRId32, fdTotal_, MAX_TOTAL_FD, topFdCountPid, topFdCount);
+    return false;
+}
+
+void RSPixelMapFdTrack::GetTopFdCountPid(int32_t& topFdCountPid, int32_t& topFdCount) const
+{
     for (const auto& [ pid, fdCount ] : fdCountTracker_) {
         if (fdCount < topFdCount) {
             continue;
@@ -169,9 +199,92 @@ bool RSPixelMapFdTrack::CheckFdTotal(int32_t& topFdCountPid, int32_t& topFdCount
             topFdCountPid = pid;
         }
     }
-    ROSEN_LOGE("RSPixelMapFdTrack::CheckFdTotal failed, fd total %{public}" PRId32 " exceeds limit %{public}" PRId32
-        ", top1 pid %{public}" PRId32 " fd count %{public}" PRId32, fdTotal_, MAX_TOTAL_FD, topFdCountPid, topFdCount);
-    return false;
+}
+
+void RSPixelMapFdTrack::CheckFdWarningAndReport()
+{
+    int32_t topFdCountPid = INVALID_PID;
+    int32_t topFdCount = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (fdTotal_ <= WARNING_THRESHOLD || fdTotal_ > MAX_TOTAL_FD) {
+            return;
+        }
+        GetTopFdCountPid(topFdCountPid, topFdCount);
+        if (topFdCountPid == INVALID_PID) {
+            return;
+        }
+        auto now = std::chrono::steady_clock::now();
+        int64_t nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+        auto it = lastWarningTime_.find(topFdCountPid);
+        if (it != lastWarningTime_.end()) {
+            int64_t elapsedSeconds = (nowNs - it->second) / std::nano::den;
+            if (elapsedSeconds < WARNING_RATE_LIMIT_SECONDS) {
+                ROSEN_LOGD("RSPixelMapFdTrack::CheckFdWarningAndReport skip, pid %{public}" PRId32
+                    " rate limited, elapsed %{public}" PRId64 "s", topFdCountPid, elapsedSeconds);
+                return;
+            }
+        }
+        lastWarningTime_[topFdCountPid] = nowNs;
+        ROSEN_LOGW("RSPixelMapFdTrack::CheckFdWarningAndReport warning, fd total %{public}" PRId32
+            ", top1 pid %{public}" PRId32 " fd count %{public}" PRId32, fdTotal_, topFdCountPid, topFdCount);
+    }
+    // report outside the mutex, ReportFdOverLimit does file and hisyseevent io
+    ReportFdOverLimit(topFdCountPid, "FD_WARNING", WARNING_THRESHOLD, topFdCount);
+}
+
+void RSPixelMapFdTrack::UpdateUniqueIdStat(uint64_t uniqueId, int32_t pid, int32_t delta)
+{
+    if (uniqueId == 0) {
+        return; // pixelmaps without RSImage uniqueId tag are not counted
+    }
+    auto it = pixelMapFdCountTracker_.find(uniqueId);
+    if (it == pixelMapFdCountTracker_.end()) {
+        if (delta <= 0) {
+            return;
+        }
+        it = pixelMapFdCountTracker_.emplace(uniqueId, 0).first;
+    }
+    topUniqueIdTracker_.erase({it->second, uniqueId, pid});
+    it->second += delta;
+    if (it->second <= 0) {
+        pixelMapFdCountTracker_.erase(it);
+        return;
+    }
+    topUniqueIdTracker_.emplace(TopEntry{it->second, uniqueId, pid});
+}
+
+void RSPixelMapFdTrack::RemoveUniqueIdStat(uint64_t uniqueId, int32_t pid)
+{
+    if (uniqueId == 0) {
+        return; // pixelmaps without RSImage uniqueId tag are not counted
+    }
+    auto it = pixelMapFdCountTracker_.find(uniqueId);
+    if (it == pixelMapFdCountTracker_.end()) {
+        return; // already removed with an earlier addr of the same uniqueId
+    }
+    // a uniqueId always belongs to one pid, so clearing the pid drops the whole stat entry
+    topUniqueIdTracker_.erase({it->second, uniqueId, pid});
+    pixelMapFdCountTracker_.erase(it);
+}
+
+void RSPixelMapFdTrack::GetTopPixelMapsInfo(std::string& topPixelMapsInfo)
+{
+    RS_TRACE_NAME("RSPixelMapFdTrack::GetTopPixelMapsInfo");
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    // topUniqueIdTracker_ is maintained incrementally in Add/Remove/Clear paths, so building the
+    // section only walks the top entries instead of scanning and sorting addrTracker_
+    int32_t dumpedCount = 0;
+    for (const auto& entry : topUniqueIdTracker_) {
+        if (dumpedCount >= TOP_DUMP_COUNT) {
+            break;
+        }
+        // uniqueId embeds pid in the high 32 bits and pid is printed separately, keep the image id only
+        topPixelMapsInfo += "uniqueId: " + std::to_string(static_cast<uint32_t>(entry.uniqueId)) + ", pid: " +
+            std::to_string(entry.pid) + ", fdCount: " + std::to_string(entry.fdCount) + "\n";
+        dumpedCount++;
+    }
 }
 
 bool RSPixelMapFdTrack::KillProcessByPid(int32_t pid, const std::string& reason)
@@ -189,9 +302,9 @@ bool RSPixelMapFdTrack::KillProcessByPid(int32_t pid, const std::string& reason)
 #endif
 }
 
-void RSPixelMapFdTrack::ReportFdOverLimit(int32_t pid)
+void RSPixelMapFdTrack::ReportFdOverLimit(int32_t pid, const std::string& type, int32_t fdThreshold, int32_t fdNum)
 {
-    RS_TRACE_NAME_FMT("RSPixelMapFdTrack::ReportFdOverLimit pid %" PRId32, pid);
+    RS_TRACE_NAME_FMT("RSPixelMapFdTrack::ReportFdOverLimit pid %" PRId32 " type %s", pid, type.c_str());
 
     std::string ashmemInfo;
     ReadAshmemInfoFromFile(ASHMEM_INFO_PATH, ashmemInfo, pid);
@@ -199,17 +312,23 @@ void RSPixelMapFdTrack::ReportFdOverLimit(int32_t pid)
     std::string dmaBufInfo;
     ReadDmaBufInfoFromFile(DMABUF_INFO_PATH, dmaBufInfo, pid);
 
-    std::string combinedInfo = "=== AshmemInfo ===\n" + ashmemInfo + "\n\n=== DmaBufInfo ===\n" + dmaBufInfo;
+    std::string topPixelMapsInfo;
+    GetTopPixelMapsInfo(topPixelMapsInfo);
+
+    std::string combinedInfo = "=== AshmemInfo ===\n" + ashmemInfo + "\n\n=== DmaBufInfo ===\n" + dmaBufInfo +
+        "\n\n=== TopFdPixelMapsByUniqueId ===\n" + topPixelMapsInfo;
     WriteFdMemInfoToFile(RS_FD_MEM_PATH, combinedInfo);
 
 #ifdef RS_ENABLE_UNI_RENDER
     RS_TRACE_NAME("RSPixelMapFdTrack::ReportFdOverLimit HiSysEventWrite");
     int ret = RSHiSysEvent::EventWrite(RSEventName::RENDER_MEMORY_OVER_WARNING, RSEventType::RS_STATISTIC,
         "PID", pid,
-        "TYPE", "FD",
+        "TYPE", type,
+        "FD_THRESHOLD", fdThreshold,
+        "FD_NUM", fdNum,
         "FILEPATH", RS_FD_MEM_PATH);
-    ROSEN_LOGW("RSPixelMapFdTrack::ReportFdOverLimit HiSysEventWrite, pid = %{public}" PRId32 " ret = %{public}d",
-        pid, ret);
+    ROSEN_LOGW("RSPixelMapFdTrack::ReportFdOverLimit HiSysEventWrite, pid = %{public}" PRId32
+        " type = %{public}s ret = %{public}d", pid, type.c_str(), ret);
 #endif
 }
 

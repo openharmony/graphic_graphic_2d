@@ -89,7 +89,7 @@ public:
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log,
         std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func, bool isLite = false);
-    void AddPictureRecord(const void* addr, MemoryInfo info);
+    void AddPictureRecord(const void* addr, MemoryInfo info, uint64_t uniqueId = 0);
     void RemovePictureRecord(const void* addr);
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
     bool CheckPixelMapFdCountAndKillProcess(pid_t pid);

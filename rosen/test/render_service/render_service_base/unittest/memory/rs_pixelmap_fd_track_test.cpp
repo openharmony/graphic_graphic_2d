@@ -17,6 +17,7 @@
 
 #include "memory/rs_pixelmap_fd_track.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 
@@ -520,14 +521,30 @@ HWTEST_F(RSPixelMapFdTrackTest, KillProcessByPidTest001, testing::ext::TestSize.
 
 /**
  * @tc.name: ReportFdOverLimitTest001
- * @tc.desc: Test function ReportFdOverLimit
+ * @tc.desc: Test function ReportFdOverLimit with FD type
  * @tc.type: FUNC
  * @tc.require: issue#21888
  */
 HWTEST_F(RSPixelMapFdTrackTest, ReportFdOverLimitTest001, testing::ext::TestSize.Level1)
 {
+    RSPixelMapFdTrack tracker;
     int32_t pid = 1234;
-    RSPixelMapFdTrack::ReportFdOverLimit(pid);
+    tracker.ReportFdOverLimit(pid, "FD", RSPixelMapFdTrack::MAX_APP_FD, RSPixelMapFdTrack::MAX_APP_FD + 1);
+    EXPECT_TRUE(pid);
+}
+
+/**
+ * @tc.name: ReportFdOverLimitTest002
+ * @tc.desc: Test function ReportFdOverLimit with FD_WARNING type
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ReportFdOverLimitTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 1234;
+    tracker.ReportFdOverLimit(pid, "FD_WARNING", RSPixelMapFdTrack::WARNING_THRESHOLD,
+        RSPixelMapFdTrack::WARNING_THRESHOLD);
     EXPECT_TRUE(pid);
 }
 
@@ -1447,5 +1464,897 @@ HWTEST_F(RSPixelMapFdTrackTest, KillProcessByPidTest002, testing::ext::TestSize.
     RSPixelMapFdTrack tracker;
     bool success = tracker.KillProcessByPid(pid, reason);
     EXPECT_FALSE(success);
+}
+
+/**
+ * @tc.name: GetTopFdCountPidTest001
+ * @tc.desc: Test function GetTopFdCountPid selects the pid with the largest fd count
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopFdCountPidTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    tracker.fdCountTracker_[100] = 3000;
+    tracker.fdCountTracker_[200] = 5000;
+
+    int32_t topFdCountPid = 0;
+    int32_t topFdCount = 0;
+    tracker.GetTopFdCountPid(topFdCountPid, topFdCount);
+
+    EXPECT_EQ(topFdCountPid, 200);
+    EXPECT_EQ(topFdCount, 5000);
+}
+
+/**
+ * @tc.name: GetTopFdCountPidTest002
+ * @tc.desc: Test function GetTopFdCountPid skips pids whose fd count is below the current top
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopFdCountPidTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    // seed a running top so the only entry is strictly smaller and must be skipped
+    tracker.fdCountTracker_[100] = 3000;
+
+    int32_t topFdCountPid = 200;
+    int32_t topFdCount = 5000;
+    tracker.GetTopFdCountPid(topFdCountPid, topFdCount);
+
+    EXPECT_EQ(topFdCountPid, 200);
+    EXPECT_EQ(topFdCount, 5000);
+}
+
+/**
+ * @tc.name: GetTopFdCountPidTest003
+ * @tc.desc: Test function GetTopFdCountPid keeps the higher pid when fd counts are equal
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopFdCountPidTest003, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    tracker.fdCountTracker_[100] = 5000;
+    tracker.fdCountTracker_[200] = 5000;
+
+    int32_t topFdCountPid = 0;
+    int32_t topFdCount = 0;
+    tracker.GetTopFdCountPid(topFdCountPid, topFdCount);
+
+    EXPECT_EQ(topFdCountPid, 200);
+    EXPECT_EQ(topFdCount, 5000);
+}
+
+/**
+ * @tc.name: GetTopFdCountPidTest004
+ * @tc.desc: Test function GetTopFdCountPid keeps the current pid when an equal-count pid is lower
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopFdCountPidTest004, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    tracker.fdCountTracker_[100] = 5000;
+
+    int32_t topFdCountPid = 300;
+    int32_t topFdCount = 5000;
+    tracker.GetTopFdCountPid(topFdCountPid, topFdCount);
+
+    EXPECT_EQ(topFdCountPid, 300);
+    EXPECT_EQ(topFdCount, 5000);
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest001
+ * @tc.desc: Test function CheckFdWarningAndReport does not report when fd total is below threshold
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 - 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest002
+ * @tc.desc: Test function CheckFdWarningAndReport does not report when fd total exceeds max limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::MAX_TOTAL_FD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest003
+ * @tc.desc: Test function CheckFdWarningAndReport does not report when no valid top pid exists
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest003, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    // fdTotal_ and fdCountTracker_ can only desync in abnormal states, so seed the members directly
+    tracker.fdTotal_ = RSPixelMapFdTrack::WARNING_THRESHOLD + 1;
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest004
+ * @tc.desc: Test function CheckFdWarningAndReport does not report when fd total equals warning threshold
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest004, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest005
+ * @tc.desc: Test function CheckFdWarningAndReport reports when fd total reaches max total limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest005, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::MAX_TOTAL_FD / 2; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest006
+ * @tc.desc: Test function CheckFdWarningAndReport reports only the top fd count pid
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest006, testing::ext::TestSize.Level1)
+{
+    int32_t otherPidDmaRecords = 1000;
+    RSPixelMapFdTrack tracker;
+    int32_t topPid = 100;
+    int32_t otherPid = 200;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(topPid, addr, allocType);
+    }
+    for (int32_t i = 0; i < otherPidDmaRecords; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x100000 + i * 8);
+        tracker.AddFdRecord(otherPid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
+    EXPECT_EQ(tracker.lastWarningTime_.count(topPid), 1);
+    EXPECT_EQ(tracker.lastWarningTime_.count(otherPid), 0);
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest007
+ * @tc.desc: Test function CheckFdWarningAndReport skips report within rate limit window
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest007, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+    ASSERT_EQ(tracker.lastWarningTime_.count(pid), 1);
+    int64_t firstReportTime = tracker.lastWarningTime_[pid];
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_[pid], firstReportTime);
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest008
+ * @tc.desc: Test function CheckFdWarningAndReport reports again after rate limit expires
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest008, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+    auto now = std::chrono::steady_clock::now();
+    int64_t nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+    // last warning happened exactly one rate limit window ago, so a new warning must be reported
+    int64_t expiredTimeNs = nowNs - RSPixelMapFdTrack::WARNING_RATE_LIMIT_SECONDS * std::nano::den;
+    tracker.lastWarningTime_[pid] = expiredTimeNs;
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+    EXPECT_GT(tracker.lastWarningTime_[pid], expiredTimeNs);
+}
+
+/**
+ * @tc.name: CheckFdWarningAndReportTest009
+ * @tc.desc: Test function CheckFdWarningAndReport reports when fd total is above warning threshold
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest009, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+}
+
+/**
+ * @tc.name: CheckFdTotalBoundaryTest001
+ * @tc.desc: Test function CheckFdTotal with fd total exactly at the limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdTotalBoundaryTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid1 = 100;
+    int32_t pid2 = 200;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::MAX_TOTAL_FD / 4; i++) {
+        const void* addr1 = reinterpret_cast<const void*>(0x1000 + i * 8);
+        const void* addr2 = reinterpret_cast<const void*>(0x100000 + i * 8);
+        tracker.AddFdRecord(pid1, addr1, allocType);
+        tracker.AddFdRecord(pid2, addr2, allocType);
+    }
+
+    int32_t topFdCountPid = 0;
+    int32_t topFdCount = 0;
+    bool result = tracker.CheckFdTotal(topFdCountPid, topFdCount);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(topFdCountPid, 0);
+    EXPECT_EQ(topFdCount, 0);
+}
+
+/**
+ * @tc.name: CheckFdRecordAndKillProcessWarningTest001
+ * @tc.desc: Test function CheckFdRecordAndKillProcess triggers fd warning when total is in warning range
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdRecordAndKillProcessWarningTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    bool result = tracker.CheckFdRecordAndKillProcess(pid);
+
+    EXPECT_TRUE(result);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+#else
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+#endif
+}
+
+/**
+ * @tc.name: CheckFdRecordAndKillProcessKillTest001
+ * @tc.desc: Test function CheckFdRecordAndKillProcess reports FD over limit and kills when count exceeds limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdRecordAndKillProcessKillTest001, testing::ext::TestSize.Level1)
+{
+    constexpr int32_t nonExistentPid = 123456789; // larger than kernel pid_max, never a real process
+    RSPixelMapFdTrack tracker;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::MAX_APP_FD + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(nonExistentPid, addr, allocType);
+    }
+
+    bool result = tracker.CheckFdRecordAndKillProcess(nonExistentPid);
+
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(result);
+#else
+    EXPECT_TRUE(result);
+#endif
+    // fd total exceeds max limit, so the warning path must be skipped
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: ClearFdRecordByPidLastWarningTimeTest001
+ * @tc.desc: Test function ClearFdRecordByPid clears warning rate limit state of the pid
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ClearFdRecordByPidLastWarningTimeTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+    ASSERT_EQ(tracker.lastWarningTime_.count(pid), 1);
+
+    tracker.ClearFdRecordByPid(pid);
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+    EXPECT_EQ(tracker.fdTotal_, 0);
+
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+    // rate limit state was cleared, so the warning is reported again immediately
+    tracker.CheckFdWarningAndReport();
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+}
+
+/**
+ * @tc.name: AddFdRecordWithTagTest001
+ * @tc.desc: Test function AddFdRecord stores the uniqueId tag of the pixelmap
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, AddFdRecordWithTagTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId = 12345;
+
+    tracker.AddFdRecord(pid, addr, allocType, uniqueId);
+
+    EXPECT_EQ(tracker.addrTracker_[pid][addr], uniqueId);
+}
+
+/**
+ * @tc.name: AddFdRecordWithTagTest002
+ * @tc.desc: Test function AddFdRecord keeps the first tag when adding a duplicate address
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, AddFdRecordWithTagTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t firstUniqueId = 12345;
+    constexpr uint64_t secondUniqueId = 67890;
+
+    tracker.AddFdRecord(pid, addr, allocType, firstUniqueId);
+    tracker.AddFdRecord(pid, addr, allocType, secondUniqueId);
+
+    EXPECT_EQ(tracker.addrTracker_[pid][addr], firstUniqueId);
+}
+
+/**
+ * @tc.name: AddFdRecordWithTagTest003
+ * @tc.desc: Test function AddFdRecord isolates tags of the same address across pids
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, AddFdRecordWithTagTest003, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid1 = 100;
+    int32_t pid2 = 200;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId1 = 12345;
+    constexpr uint64_t uniqueId2 = 67890;
+
+    tracker.AddFdRecord(pid1, addr, allocType, uniqueId1);
+    tracker.AddFdRecord(pid2, addr, allocType, uniqueId2);
+
+    EXPECT_EQ(tracker.addrTracker_[pid1][addr], uniqueId1);
+    EXPECT_EQ(tracker.addrTracker_[pid2][addr], uniqueId2);
+}
+
+/**
+ * @tc.name: AddFdRecordWithTagTest004
+ * @tc.desc: Test function AddFdRecord without uniqueId stores zero tag
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, AddFdRecordWithTagTest004, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    tracker.AddFdRecord(pid, addr, allocType);
+
+    EXPECT_EQ(tracker.addrTracker_[pid][addr], 0);
+}
+
+/**
+ * @tc.name: RemoveFdRecordTagTest001
+ * @tc.desc: Test function RemoveFdRecord clears the tag so a re-added address gets the new tag
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordTagTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t firstUniqueId = 12345;
+    constexpr uint64_t secondUniqueId = 67890;
+
+    tracker.AddFdRecord(pid, addr, allocType, firstUniqueId);
+    tracker.RemoveFdRecord(pid, addr, allocType);
+    tracker.AddFdRecord(pid, addr, allocType, secondUniqueId);
+
+    EXPECT_EQ(tracker.addrTracker_[pid][addr], secondUniqueId);
+}
+
+/**
+ * @tc.name: ClearFdRecordByPidTagTest001
+ * @tc.desc: Test function ClearFdRecordByPid clears tags of the pid
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ClearFdRecordByPidTagTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    const void* addr = reinterpret_cast<const void*>(0x1000);
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId = 12345;
+    constexpr uint64_t newUniqueId = 67890;
+
+    tracker.AddFdRecord(pid, addr, allocType, uniqueId);
+    tracker.ClearFdRecordByPid(pid);
+    EXPECT_TRUE(tracker.addrTracker_.find(pid) == tracker.addrTracker_.end());
+
+    tracker.AddFdRecord(pid, addr, allocType, newUniqueId);
+    EXPECT_EQ(tracker.addrTracker_[pid][addr], newUniqueId);
+}
+
+/**
+ * @tc.name: RemoveFdRecordUniqueIdStatTest001
+ * @tc.desc: Test function RemoveFdRecord decrements the uniqueId stat maintained by the tracker
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordUniqueIdStatTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    constexpr uint64_t uniqueId = 12345;
+
+    // each DMA pixelmap holds 2 fds, so the stat counts fds instead of pixelmaps
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, uniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType, uniqueId);
+    EXPECT_EQ(tracker.pixelMapFdCountTracker_[uniqueId], 4);
+    auto topIt = tracker.topUniqueIdTracker_.find({4, uniqueId, pid});
+    ASSERT_TRUE(topIt != tracker.topUniqueIdTracker_.end());
+    // pid rides in the top entry as payload and is printed by the dump
+    EXPECT_EQ(topIt->pid, pid);
+
+    tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType);
+    EXPECT_EQ(tracker.pixelMapFdCountTracker_[uniqueId], 2);
+    EXPECT_EQ(tracker.topUniqueIdTracker_.count({2, uniqueId, pid}), 1);
+    EXPECT_EQ(tracker.topUniqueIdTracker_.count({4, uniqueId, pid}), 0);
+
+    tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType);
+    EXPECT_TRUE(tracker.pixelMapFdCountTracker_.find(uniqueId) == tracker.pixelMapFdCountTracker_.end());
+    EXPECT_TRUE(tracker.topUniqueIdTracker_.empty());
+}
+
+/**
+ * @tc.name: RemoveFdRecordLastWarningTimeTest001
+ * @tc.desc: Test function RemoveFdRecord clears warning rate limit state of the pid
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordLastWarningTimeTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId = 12345;
+
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, uniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType, uniqueId);
+    tracker.lastWarningTime_[pid] = 1000;
+
+    // the pid still holds records, so the rate limit state is kept
+    tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType);
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+
+    // the last record of the pid is removed, so the rate limit state is cleared
+    tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType);
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+}
+
+/**
+ * @tc.name: ClearFdRecordByPidUniqueIdStatTest001
+ * @tc.desc: Test function ClearFdRecordByPid clears uniqueId stats of the pid
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ClearFdRecordByPidUniqueIdStatTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t firstUniqueId = 12345;
+    constexpr uint64_t secondUniqueId = 67890;
+
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, firstUniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType, firstUniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x3000), allocType, secondUniqueId);
+    EXPECT_EQ(tracker.pixelMapFdCountTracker_.size(), 2);
+    EXPECT_EQ(tracker.topUniqueIdTracker_.size(), 2);
+
+    tracker.ClearFdRecordByPid(pid);
+    EXPECT_TRUE(tracker.pixelMapFdCountTracker_.empty());
+    EXPECT_TRUE(tracker.topUniqueIdTracker_.empty());
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest001
+ * @tc.desc: Test function GetTopPixelMapsInfo appends entries even when fd total is within limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    // fd total stays far below the limit, the section must still be produced
+    constexpr uint64_t uniqueId = 12345;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, uniqueId);
+    std::string dumpInfo;
+
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 12345, pid: 100, fdCount: 1") != std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest002
+ * @tc.desc: Test function GetTopPixelMapsInfo appends top tags sorted by fd count descending
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid1 = 100;
+    int32_t pid2 = 200;
+    constexpr uint64_t bigUniqueId = 300;
+    constexpr uint64_t smallUniqueId = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    for (int32_t i = 0; i < 3; i++) {
+        tracker.AddFdRecord(pid1, reinterpret_cast<const void*>(0x1000 + i * 8), allocType, bigUniqueId);
+    }
+    for (int32_t i = 0; i < 2; i++) {
+        tracker.AddFdRecord(pid2, reinterpret_cast<const void*>(0x2000 + i * 8), allocType, smallUniqueId);
+    }
+    // untagged pixelmap must be excluded from the dump
+    tracker.AddFdRecord(pid2, reinterpret_cast<const void*>(0x3000), allocType, 0);
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 300, pid: 100, fdCount: 3") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 100, pid: 200, fdCount: 2") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 300") < dumpInfo.find("uniqueId: 100"));
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 0,") == std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest003
+ * @tc.desc: Test function GetTopPixelMapsInfo appends at most top 10 uniqueIds
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest003, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    uint64_t tagNum = 11;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    // uniqueId t owns t pixelmaps, so uniqueId 1 is rank 11 and must be dropped
+    for (uint64_t uniqueId = 1; uniqueId <= tagNum; uniqueId++) {
+        for (uint64_t i = 0; i < uniqueId; i++) {
+            const void* addr = reinterpret_cast<const void*>(0x10000 + uniqueId * 0x100 + i * 8);
+            tracker.AddFdRecord(pid, addr, allocType, uniqueId);
+        }
+    }
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 11, pid: 100, fdCount: 11") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 2, pid: 100, fdCount: 2") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 1,") == std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest004
+ * @tc.desc: Test function GetTopPixelMapsInfo keeps all tags when there are exactly 10
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest004, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    uint64_t tagNum = 10;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    for (uint64_t uniqueId = 1; uniqueId <= tagNum; uniqueId++) {
+        for (uint64_t i = 0; i < uniqueId; i++) {
+            const void* addr = reinterpret_cast<const void*>(0x10000 + uniqueId * 0x100 + i * 8);
+            tracker.AddFdRecord(pid, addr, allocType, uniqueId);
+        }
+    }
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 10, pid: 100, fdCount: 10") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 1, pid: 100, fdCount: 1") != std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest005
+ * @tc.desc: Test function GetTopPixelMapsInfo appends no entry when all pixelmaps are untagged
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest005, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    // untagged pixelmaps never enter the uniqueId stat, so no entry is appended
+    tracker.AddFdRecord(100, reinterpret_cast<const void*>(0x1000), allocType, 0);
+    tracker.AddFdRecord(200, reinterpret_cast<const void*>(0x2000), allocType, 0);
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.empty());
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest006
+ * @tc.desc: Test function GetTopPixelMapsInfo sorts equal fd counts by uniqueId ascending
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest006, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    constexpr uint64_t firstUniqueId = 100;
+    constexpr uint64_t secondUniqueId = 200;
+    constexpr uint64_t thirdUniqueId = 300;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    for (int32_t i = 0; i < 2; i++) {
+        tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000 + i * 8), allocType, thirdUniqueId);
+        tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x2000 + i * 8), allocType, firstUniqueId);
+        tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x3000 + i * 8), allocType, secondUniqueId);
+    }
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 100") < dumpInfo.find("uniqueId: 200"));
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 200") < dumpInfo.find("uniqueId: 300"));
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest007
+ * @tc.desc: Test function GetTopPixelMapsInfo appends the section after existing content
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest007, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    std::string existingContent = "old fd mem info";
+    constexpr uint64_t uniqueId = 12345;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, uniqueId);
+
+    std::string dumpInfo = existingContent;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.rfind(existingContent, 0) == 0);
+    EXPECT_TRUE(dumpInfo.size() > existingContent.size());
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 12345, pid: 100, fdCount: 1") != std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest008
+ * @tc.desc: Test function GetTopPixelMapsInfo prints only the low 32 bits of uniqueId
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest008, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    // uniqueId embeds pid in the high 32 bits, the dump must keep the image id part only
+    constexpr uint32_t imageId = 4660;
+    constexpr uint64_t fullUniqueId = (100ULL << 32) | imageId;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, fullUniqueId);
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 4660, pid: 100, fdCount: 1") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find(std::to_string(fullUniqueId)) == std::string::npos);
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest009
+ * @tc.desc: Test function GetTopPixelMapsInfo ranks uniqueIds by fd count, not pixelmap count
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest009, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    constexpr uint64_t shareMemUniqueId = 100;
+    constexpr uint64_t dmaUniqueId = 200;
+    constexpr uint64_t mixedUniqueId = 300;
+    Media::AllocatorType shareMemType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    Media::AllocatorType dmaType = Media::AllocatorType::DMA_ALLOC;
+    // a DMA pixelmap holds 2 fds and a SHARE_MEM pixelmap holds 1 fd, the stat must count fds
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), dmaType, dmaUniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x2000), shareMemType, shareMemUniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x3000), dmaType, mixedUniqueId);
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x4000), shareMemType, mixedUniqueId);
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 300, pid: 100, fdCount: 3") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 200, pid: 100, fdCount: 2") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 100, pid: 100, fdCount: 1") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 300") < dumpInfo.find("uniqueId: 200"));
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 200") < dumpInfo.find("uniqueId: 100"));
+}
+
+/**
+ * @tc.name: GetTopPixelMapsInfoTest010
+ * @tc.desc: Test function GetTopPixelMapsInfo breaks equal fd counts by larger pid, then uniqueId
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, GetTopPixelMapsInfoTest010, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t smallPid = 100;
+    int32_t largePid = 200;
+    constexpr uint64_t firstUniqueId = 1;
+    constexpr uint64_t secondUniqueId = 2;
+    constexpr uint64_t thirdUniqueId = 3;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    // all entries tie on fd count: the larger pid ranks first, then the same pid sorts by uniqueId
+    tracker.AddFdRecord(smallPid, reinterpret_cast<const void*>(0x1000), allocType, firstUniqueId);
+    tracker.AddFdRecord(smallPid, reinterpret_cast<const void*>(0x2000), allocType, secondUniqueId);
+    tracker.AddFdRecord(largePid, reinterpret_cast<const void*>(0x3000), allocType, thirdUniqueId);
+
+    std::string dumpInfo;
+    tracker.GetTopPixelMapsInfo(dumpInfo);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 3, pid: 200, fdCount: 1") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 1, pid: 100, fdCount: 1") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 2, pid: 100, fdCount: 1") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 3") < dumpInfo.find("uniqueId: 1"));
+    EXPECT_TRUE(dumpInfo.find("uniqueId: 1") < dumpInfo.find("uniqueId: 2"));
+}
+
+/**
+ * @tc.name: CheckFdRecordAndKillProcessDumpTest001
+ * @tc.desc: Test function CheckFdRecordAndKillProcess dumps top pixelmaps by uniqueId when total exceeds limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdRecordAndKillProcessDumpTest001, testing::ext::TestSize.Level1)
+{
+    constexpr int32_t nonExistentPid = 123456789; // larger than kernel pid_max, never a real process
+    constexpr uint64_t uniqueId = 987654321;
+    RSPixelMapFdTrack tracker;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::MAX_APP_FD + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(nonExistentPid, addr, allocType, uniqueId);
+    }
+
+    bool result = tracker.CheckFdRecordAndKillProcess(nonExistentPid);
+
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(result);
+    std::ifstream file("/data/service/el0/render_service/renderservice_fdmem.txt");
+    std::string content;
+    std::getline(file, content, '\0');
+    file.close();
+    EXPECT_TRUE(content.find("=== TopFdPixelMapsByUniqueId ===") != std::string::npos);
+    EXPECT_TRUE(content.find("uniqueId: 987654321, pid: 123456789, fdCount: 29001") != std::string::npos);
+#else
+    EXPECT_TRUE(result);
+#endif
+    // fd total exceeds max limit, so the warning path must be skipped
+    EXPECT_TRUE(tracker.lastWarningTime_.empty());
 }
 } // namespace OHOS::Rosen

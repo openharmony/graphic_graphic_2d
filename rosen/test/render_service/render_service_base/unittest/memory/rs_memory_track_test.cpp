@@ -604,6 +604,28 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithPixelMapTest, testing::ext::Test
 }
 
 /**
+ * @tc.name: AddPictureRecordWithUniqueIdTest
+ * @tc.desc: Test AddPictureRecord forwards the uniqueId tag to the fd tracker
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithUniqueIdTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x5000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 11002;
+    info.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId = (static_cast<uint64_t>(11002) << 32) | 58; // pid << 32 | id, same as RSImage
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info, uniqueId);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    EXPECT_EQ(test1.pixelMapFdTracker_.addrTracker_[11002][addr], uniqueId);
+    test1.RemovePictureRecord(addr);
+    EXPECT_TRUE(test1.pixelMapFdTracker_.addrTracker_.find(11002) == test1.pixelMapFdTracker_.addrTracker_.end());
+}
+
+/**
  * @tc.name: AddPictureRecordWithSkImageTest
  * @tc.desc: Test AddPictureRecord with MEM_SKIMAGE type does not trigger fd tracking.
  * @tc.type: FUNC
