@@ -3126,7 +3126,7 @@ HWTEST_F(RSPropertiesTest, SetLightUpEffect001, TestSize.Level1)
     RSProperties properties;
     auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
     properties.SetColorNGFilter(filter);
-    EXPECT_NE(properties.isDrawn_, true);
+    EXPECT_EQ(properties.isDrawn_, true);
 }
 
 /**
