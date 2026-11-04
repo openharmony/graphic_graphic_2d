@@ -50,10 +50,10 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Set_Cosmos_Ring_Test)
     ringShader->Setter<CosmosRingNoise2DensityTag>(10.5f);
     ringShader->Setter<CosmosRingNoise2PeriodTag>(7);
     ringShader->Setter<CosmosRingNoise2ContrastTag>(1.28f);
-    ringShader->Setter<CosmosRingNoise2FlowFreqTag>(6);
-    ringShader->Setter<CosmosRingNoise2WarpAmountTag>(1.35f);
-    ringShader->Setter<CosmosRingNoise2OrbitPhaseTag>(0.25f);
-    ringShader->Setter<CosmosRingNoise2WarpAnisoTag>(1.8f);
+    ringShader->Setter<CosmosRingNoise2FlowFreqTag>(4);
+    ringShader->Setter<CosmosRingNoise2WarpAmountTag>(1.0f);
+    ringShader->Setter<CosmosRingNoise2OrbitPhaseTag>(0.27f);
+    ringShader->Setter<CosmosRingNoise2WarpAnisoTag>(1.2f);
     ringShader->Setter<CosmosRingNoiseSeedTag>(29);
     ringShader->Setter<CosmosRingChromaStrengthTag>(0.69f);
     ringShader->Setter<CosmosRingMidColorTag>(
