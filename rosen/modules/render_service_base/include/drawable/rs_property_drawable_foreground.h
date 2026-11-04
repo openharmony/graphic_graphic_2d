@@ -130,6 +130,8 @@ private:
     bool needSync_ = false;
     RectF boundsRect_;
     RectF stagingBoundsRect_;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId renderNodeId_ = INVALID_NODEID;
 };
 
 class RSForegroundFilterRestoreDrawable : public RSDrawable {
