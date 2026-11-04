@@ -38,6 +38,8 @@ group("graphic_common_test") {
     "rosen/modules/composer:test",
     "rosen/modules/create_pixelmap_surface:test",
     "rosen/modules/effect/test/unittest:test",
+    "rosen/modules/render_service_base/test:test",
+    "rosen/modules/render_service_client:test",
     "rosen/test/frame_analyzer:test",
     "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",
