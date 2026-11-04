@@ -61,6 +61,9 @@ public:
     void SetMaskBrush(const Drawing::Brush& brush);
     Drawing::Brush GetMaskBrush() const;
     bool MarshallingPathAndBrush(Parcel& parcel) const;
+    // The parameter is Drawing::CmdListData (std::pair<const void*, size_t>), spelled as the
+    // underlying type to avoid pulling recording/cmd_list.h into this header.
+    bool SanitizeArenaVptrs(const std::pair<const void*, size_t>& cmdListData) const;
     void SetSvgDom(const sk_sp<SkSVGDOM>& svgDom);
     sk_sp<SkSVGDOM> GetSvgDom() const;
     std::shared_ptr<Drawing::Picture> GetSvgPicture() const;
