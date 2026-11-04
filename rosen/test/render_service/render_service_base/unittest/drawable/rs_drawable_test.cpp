@@ -63,6 +63,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG, drawableVec);
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CHILDREN) != dirtySlots.end());
 }
+
 /**
  * @tc.name: UpdateDirtySlots
  * @tc.desc: Test UpdateDirtySlots
@@ -105,6 +106,7 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     nodeTwo.GetMutableRenderProperties().SetBackgroundColor(Color(255, 255, 255, 255));
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
 }
+
 /**
  * @tc.name: FuzeDrawableSlots
  * @tc.desc: Test FuzeDrawableSlots
@@ -137,6 +139,7 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::COLOR_FILTER)] = colorFilterDrawable;
     ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
 }
+
 /**
  * @tc.name: UpdateSaveRestore001
  * @tc.desc: Test UpdateSaveRestore
@@ -190,6 +193,7 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_EQ(drawableVecStatus, 63);
 }
+
 /**
  * @tc.name: UpdateSaveRestore002
  * @tc.desc: Test UpdateSaveRestore
@@ -230,13 +234,13 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore002, TestSize.Level1)
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_EQ(drawableVecStatus, 62);
 }
+
 /**
  * @tc.name: ResetPixelStretchSlotTest
  * @tc.desc: Test
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, ResetPixelStretchSlotTest, TestSize.Level1)
 {
     NodeId id = 1;
@@ -248,13 +252,13 @@ HWTEST_F(RSDrawableTest, ResetPixelStretchSlotTest, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = drawable;
     RSDrawable::ResetPixelStretchSlot(node, drawableVec);
 }
+
 /**
  * @tc.name: CanFusePixelStretchTest
  * @tc.desc: Test
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, CanFusePixelStretchTest, TestSize.Level1)
 {
     NodeId id = 1;
@@ -272,13 +276,13 @@ HWTEST_F(RSDrawableTest, CanFusePixelStretchTest, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = drawable2;
     ASSERT_TRUE(RSDrawable::CanFusePixelStretch(drawableVec));
 }
+
 /**
  * @tc.name: CanFusePixelStretchTest002
  * @tc.desc: Test
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, CanFusePixelStretchTest002, TestSize.Level1)
 {
     NodeId id = 1;
@@ -324,6 +328,7 @@ HWTEST_F(RSDrawableTest, CalculateDrawableVecStatus_BufferDirty, TestSize.Level1
     ASSERT_TRUE(drawableVecStatus & DrawableVecStatus::FRAME_NOT_EMPTY);
     ASSERT_TRUE(drawableVecStatus & DrawableVecStatus::NODE_NOT_EMPTY);
 }
+
 /**
  * @tc.name: CalculateDrawableVecStatus_BufferNotDirty
  * @tc.desc: Test CalculateDrawableVecStatus does not set FRAME_NOT_EMPTY when no content and buffer not dirty

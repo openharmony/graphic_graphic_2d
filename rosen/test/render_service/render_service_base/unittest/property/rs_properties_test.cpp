@@ -3401,8 +3401,7 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter001, TestSize.Level1)
     properties.SetSaturate(saturate);
     std::optional<float> sepia = std::optional<float>(1.f);
     properties.SetSepia(sepia);
-    std::optional<float> invert = std::optional<float>(1.f);
-    properties.SetInvert(invert);
+    props.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
     std::optional<float> hueRotate = std::optional<float>(1.f);
     properties.SetHueRotate(hueRotate);
     Color color(255, 0, 0);

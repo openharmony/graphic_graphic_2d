@@ -1506,7 +1506,5 @@ HWTEST_F(RSEffectPropertiesTest, SetShadowClipType001, TestSize.Level1)
     properties.SetShadowClipType(ShadowClipType::DEFAULT_SHAPE);
     EXPECT_EQ(properties.GetShadow()->GetClipType(), ShadowClipType::DEFAULT_SHAPE);
 }
-
-
 } // namespace Rosen
 } // namespace OHOS
