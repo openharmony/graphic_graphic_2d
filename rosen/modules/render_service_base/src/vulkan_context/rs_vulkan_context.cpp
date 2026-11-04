@@ -73,10 +73,15 @@ std::unique_ptr<RsVulkanContext> RsVulkanContext::GetForEffectKit()
 
 void RsVulkanContext::ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext)
 {
-    if (vkContext->type_ != RenderEngineType::EFFECT_KIT) {
+    if (vkContext == nullptr) {
+        ROSEN_LOGE("RsVulkanContext::ReleaseContextForEffectKit vkContext is null");
         return;
     }
-    if (vkContext && vkContext->vulkanInterface_) {
+    if (vkContext->type_ != RenderEngineType::EFFECT_KIT) {
+        ROSEN_LOGE("RsVulkanContext::ReleaseContextForEffectKit vkContext is not EFFECT_KIT");
+        return;
+    }
+    if (vkContext->vulkanInterface_) {
         vkContext->vulkanInterface_->ReleaseVulkanResource();
         vkContext->vulkanInterface_.reset();
     }
