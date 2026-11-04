@@ -43,6 +43,9 @@
 #include "drawing_text_declaration.h"
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
+#include "drawing_error_code.h"
+
+typedef struct OH_Drawing_FontFamilyMapping OH_Drawing_FontFamilyMapping;
 
 #ifdef __cplusplus
 extern "C" {
@@ -588,6 +591,68 @@ uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length);
  *
  */
 OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontType, size_t* pathCount);
+
+/**
+ * @brief Copy the contents of the font mapping table.
+ * @param outCopiedMappings [out] Copy the contents of the font mapping table.
+ * @param count [out] Pointer to the number of entries in the font mapping table.
+ * @return Execution result.
+ *     <br>**OH_DRAWING_SUCCESS** if the operation is successful.
+ *     <br>**OH_DRAWING_ERROR_INCORRECT_PARAMETER** if **outCopiedMappings** or **count** is a null pointer.
+ * @since 26.1.0
+ * @release OH_Drawing_FreeFontFamilyMappings {outCopiedMappings}
+ */
+OH_Drawing_ErrorCode OH_Drawing_CopyFontFamilyMappings(const OH_Drawing_FontFamilyMapping*** outCopiedMappings,
+    uint32_t* count);
+
+/**
+ * @brief Releasing the Font Mapping Table
+ * @param mappings [in] Pointer to the font mapping table.
+ * @since 26.1.0
+ */
+void OH_Drawing_FreeFontFamilyMappings(const OH_Drawing_FontFamilyMapping** mappings);
+
+/**
+ * @brief Obtains the source family name based on the font mapping entry handle.
+ *
+ * @param mapping [in] Handle pointer to the content of a specific entry in the font mapping table.
+ * @param sourceFamily [out] Pointer to the source font family name. It is used as an output parameter.
+ * @return Execution result.
+ *     <br>**OH_DRAWING_SUCCESS** if the operation is successful.
+ *     <br>**OH_DRAWING_ERROR_INCORRECT_PARAMETER** if **mapping** or **sourceFamily** is a null pointer.
+ * @since 26.1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetSourceFamilyFromMapping(const OH_Drawing_FontFamilyMapping* mapping,
+    const char** sourceFamily);
+
+/**
+ * @brief Obtains the number of target family names in the font mapping table.
+ *
+ * @param mapping [in] Handle pointer to the content of a specific entry in the font mapping table.
+ * @param targetCount [out] Pointer to the number of target family names. It is used as an output parameter.
+ * @return Execution result.
+ *     <br>**OH_DRAWING_SUCCESS** if the operation is successful.
+ *     <br>**OH_DRAWING_ERROR_INCORRECT_PARAMETER** if **mapping** or **targetCount** is a null pointer.
+ * @since 26.1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTargetCountFromMapping(const OH_Drawing_FontFamilyMapping* mapping,
+    uint32_t* targetCount);
+
+/**
+ * @brief Obtains the target family name of a specific entry in the font mapping table.
+ *
+ * @param mapping [in] Handle pointer to the content of a specific entry in the font mapping table.
+ * @param index [in] Indicates the location index of the target family name.
+ * @param targetFamily [out] Pointer to the target family name. It is used as an output parameter.
+ * @return Execution result.
+ *     <br>**OH_DRAWING_SUCCESS** if the operation is successful.
+ *     <br>**OH_DRAWING_ERROR_INCORRECT_PARAMETER** if **mapping** or **targetFamily** is a null pointer.
+ *     <br>**OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE** if **index** out of range.
+ * @since 26.1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTargetFamilyFromMapping(const OH_Drawing_FontFamilyMapping* mapping,
+    uint32_t index, const char** targetFamily);
+
 #ifdef __cplusplus
 }
 #endif

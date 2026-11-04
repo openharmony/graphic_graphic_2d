@@ -17,8 +17,10 @@
 
 #include <shared_mutex>
 #include <set>
+#include <string>
 #include <string_ex.h>
 #include <unordered_map>
+#include <vector>
 
 #include "array_mgr.h"
 #include "font_descriptor_mgr.h"
@@ -612,4 +614,108 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
 
         return coordinates;
     }
+}
+
+struct OH_Drawing_FontFamilyMapping {
+    std::string srcFont;
+    std::vector<std::string> targetFonts;
+};
+
+OH_Drawing_ErrorCode OH_Drawing_CopyFontFamilyMappings(
+    const OH_Drawing_FontFamilyMapping*** outCopiedMappings, uint32_t* count)
+{
+    if (outCopiedMappings == nullptr || count == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    *outCopiedMappings = nullptr;
+    *count = 0;
+
+    auto mapTable = FontDescriptorMgrInstance.GetFontMapTable();
+    if (mapTable == nullptr) {
+        TextEngine::FontConfigJson fontConfigJson;
+        fontConfigJson.ParseFontMapTable();
+        FontDescriptorMgrInstance.SetFontMapTable(fontConfigJson.GetFontMapTable());
+        mapTable = FontDescriptorMgrInstance.GetFontMapTable();
+    }
+    if (mapTable == nullptr || mapTable->empty()) {
+        return OH_DRAWING_SUCCESS; // empty but valid
+    }
+
+    uint32_t numEntries = static_cast<uint32_t>(mapTable->size());
+    *count = numEntries;
+
+    // Allocate array of pointers (one per entry)
+    const OH_Drawing_FontFamilyMapping** result = static_cast<const OH_Drawing_FontFamilyMapping**>
+        (malloc((numEntries + 1) * sizeof(OH_Drawing_FontFamilyMapping*)));
+    if (result == nullptr) {
+        *count = 0;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    // Allocate each mapping entry and copy data
+    for (uint32_t i = 0; i < numEntries; ++i) {
+        OH_Drawing_FontFamilyMapping* entry = new (std::nothrow) OH_Drawing_FontFamilyMapping();
+        if (entry == nullptr) {
+            // Rollback: free already allocated entries
+            for (uint32_t j = 0; j < i; ++j) {
+                delete result[j];
+            }
+            free(result);
+            *count = 0;
+            return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+        }
+        entry->srcFont = (*mapTable)[i].srcFont;
+        entry->targetFonts = (*mapTable)[i].targetFonts;
+        result[i] = entry;
+    }
+    result[numEntries] = nullptr; // null-terminated sentinel
+
+    *outCopiedMappings = result;
+    return OH_DRAWING_SUCCESS;
+}
+
+void OH_Drawing_FreeFontFamilyMappings(const OH_Drawing_FontFamilyMapping** mappings)
+{
+    if (mappings == nullptr) {
+        return;
+    }
+    // Entries are contiguous until the null sentinel
+    for (uint32_t i = 0; mappings[i] != nullptr; ++i) {
+        delete mappings[i];
+    }
+    free(const_cast<OH_Drawing_FontFamilyMapping**>(mappings));
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetSourceFamilyFromMapping(
+    const OH_Drawing_FontFamilyMapping* mapping, const char** sourceFamily)
+{
+    if (mapping == nullptr || sourceFamily == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *sourceFamily = mapping->srcFont.c_str();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetTargetCountFromMapping(
+    const OH_Drawing_FontFamilyMapping* mapping, uint32_t* targetCount)
+{
+    if (mapping == nullptr || targetCount == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *targetCount = static_cast<uint32_t>(mapping->targetFonts.size());
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetTargetFamilyFromMapping(
+    const OH_Drawing_FontFamilyMapping* mapping, uint32_t index, const char** targetFamily)
+{
+    if (mapping == nullptr || targetFamily == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if (index >= mapping->targetFonts.size()) {
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    *targetFamily = mapping->targetFonts[index].c_str();
+    return OH_DRAWING_SUCCESS;
 }

@@ -75,4 +75,16 @@ void FontDescriptorMgr::DeleteDynamicTypefaceFromCache(const std::string &family
     std::unique_lock guard(parserMtx_);
     descCache_.DeleteDynamicTypefaceFromCache(familyName);
 }
+
+void FontDescriptorMgr::SetFontMapTable(std::shared_ptr<TextEngine::FontMapTable> mapTable)
+{
+    std::unique_lock guard(parserMtx_);
+    fontMapTable_ = mapTable;
+}
+
+std::shared_ptr<TextEngine::FontMapTable> FontDescriptorMgr::GetFontMapTable()
+{
+    std::shared_lock guard(parserMtx_);
+    return fontMapTable_;
+}
 } // namespace OHOS::Rosen
