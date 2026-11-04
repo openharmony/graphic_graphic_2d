@@ -330,4 +330,40 @@ HWTEST_F(RSTagTrackerTest, GetCurrentGpuResourceTagTest001, TestSize.Level1)
     Drawing::GPUResourceTag result = RSTagTracker::GetCurrentGpuResourceTag(gpuContext.get());
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSTagTrackerSourceTypeNodeId001
+ * @tc.desc: Verify the new RSTagTracker(gpuContext, SOURCETYPE, NodeId) ctor handles a null gpuContext safely
+ *           without dereferencing it, leaving gpuContext_ null.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTrackerSourceTypeNodeId001, TestSize.Level1)
+{
+    RSTagTracker::UpdateReleaseResourceEnabled(true);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    NodeId nodeId = 1024;
+    RSTagTracker tagTracker(gpuContext, RSTagTracker::SOURCETYPE::SOURCE_BEHINDWOENABLEVQMA, nodeId);
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
+    tagTracker.SetTagEnd();
+    EXPECT_FALSE(tagTracker.isSetTagEnd_);
+}
+
+/**
+ * @tc.name: RSTagTrackerSourceTypeNodeId002
+ * @tc.desc: Verify the new ctor returns early when releaseResourceEnabled is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTrackerSourceTypeNodeId002, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RSTagTracker::UpdateReleaseResourceEnabled(false);
+    NodeId nodeId = 4096;
+    RSTagTracker tagTracker(gpuContext, RSTagTracker::SOURCETYPE::SOURCE_BEHINDWOENABLEVQMA, nodeId);
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
+    tagTracker.SetTagEnd();
+    EXPECT_FALSE(tagTracker.isSetTagEnd_);
+    RSTagTracker::UpdateReleaseResourceEnabled(true);
+}
 } // namespace OHOS::Rosen

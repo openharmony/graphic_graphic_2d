@@ -53,6 +53,7 @@ struct GPUResourceTag {
     uint64_t fWid;  // id of window
     uint32_t fFid;  // id of type
     uint32_t fSid{0}; // id of source type in ondraw phase
+    uint64_t fNid{0}; // id of node for component deduplication
     std::string fName;
 
     static void SetCurrentNodeId(uint64_t nodeId);
