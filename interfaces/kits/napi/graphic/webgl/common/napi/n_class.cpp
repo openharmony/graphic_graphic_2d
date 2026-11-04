@@ -40,6 +40,7 @@ tuple<bool, napi_value> NClass::DefineClass(napi_env env, string className, napi
 {
     napi_value classVal = nullptr;
     NClass &nClass = NClass::GetInstance();
+    lock_guard(nClass.exClassMapLock);
     if (nClass.env != nullptr && env != nClass.env) {
         return { false, nullptr };
     }
