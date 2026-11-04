@@ -98,6 +98,7 @@ ohos_unittest("VsyncManagerTest") {
     "init:libbegetutil",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "samgr:samgr_proxy",
     "sensor:sensor_interface_native",
     "libxml2:libxml2",
   ]
@@ -200,6 +201,7 @@ ohos_unittest("VSyncManagerAgentTest") {
     "init:libbegetutil",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "samgr:samgr_proxy",
     "sensor:sensor_interface_native",
     "libxml2:libxml2",
   ]

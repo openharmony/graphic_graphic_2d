@@ -20,6 +20,7 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "params/rs_render_params.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_server/rs_render_process_manager_agent.h"
 #include "render_server/rs_render_service.h"
@@ -517,5 +518,29 @@ HWTEST_F(HgmRenderContextTest, OnScreenPropertyChangedTest003, TestSize.Level1)
     ASSERT_NE(screen, nullptr);
     hgmContext->OnScreenPropertyChanged(1, ScreenPropertyType::RENDER_RESOLUTION, dummyProperty);
     hgmCore.SetScreenManager(origScreenManager);
+}
+
+/**
+ * @tc.name: ShowRefreshRateChangeProcessTest
+ * @tc.desc: Verify ShowRefreshRateChangeProcess handles nullptr, invalid string, enable and disable inputs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, ShowRefreshRateChangeProcessTest, TestSize.Level1)
+{
+    std::string propKey = "rosen.showRefreshRate.enabled";
+    auto& mgr = RSRealtimeRefreshRateManager::Instance();
+    bool initial = mgr.GetShowRefreshRateEnabled();
+
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), nullptr, nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "invalid", nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "1", nullptr);
+    EXPECT_TRUE(mgr.GetShowRefreshRateEnabled());
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), "0", nullptr);
+    EXPECT_FALSE(mgr.GetShowRefreshRateEnabled());
+    HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), initial ? "1" : "0", nullptr);
+    EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
 }
 } // namespace OHOS::Rosen

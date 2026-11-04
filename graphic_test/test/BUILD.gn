@@ -23,6 +23,7 @@ hardware_manager_sources = []
 open_capability_sources = [
     "open_capability/pixmap/create_pixel_map_from_surface_test.cpp",
     "open_capability/pixmap/pixelmap_display_test.cpp",
+    "open_capability/pixmap/pixelmap_draw_api_test.cpp",
 ]
 rs_display_effect_sources = [
   "rs_display_effect/animation/anim_callback_animation_test.cpp",
@@ -199,6 +200,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_point_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_glass_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_sdf_test.cpp",
+  "rs_effect_feature/ng_shader_test/ng_shader_cosmos_ring_shadow_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_hdrdarken_blender_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_content_light_test.cpp",

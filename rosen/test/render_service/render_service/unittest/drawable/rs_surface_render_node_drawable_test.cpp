@@ -4153,4 +4153,442 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_Hardware
 
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
 }
+
+/**
+ * @tc.name: OnDrawTextCacheRestore001
+ * @tc.desc: UifirstBlockedByAnimationOverlap is false — textCacheRestore not emplaced.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = false; // not blocked, skip emplace
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore002
+ * @tc.desc: Blocked is true, no sandbox, matrix has no perspective — not emplaced.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true; // blocked
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1); // identity, no perspective
+    surfaceParams->SetMatrix(matrix);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore003
+ * @tc.desc: Blocked + perspective + valid GPU context — happy path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true; // blocked
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // persp0 != 0, has perspective
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>(); // valid GPU context
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore004
+ * @tc.desc: Blocked + perspective + null GPU context — ctor/dtor no-op, no crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true; // blocked
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = nullptr; // null context, ctor/dtor no-op
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore005
+ * @tc.desc: HasSandBox true + perspective + valid context — uses GetParentSurfaceMatrix.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->SetHasSandBox(true); // sandbox, use parent matrix
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>(); // valid GPU context
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore006
+ * @tc.desc: Perspective from canvas matrix, not params — emplace still happens.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix paramsMatrix;
+    paramsMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1); // params has no perspective
+    surfaceParams->SetMatrix(paramsMatrix);
+
+    Drawing::Matrix canvasMatrix;
+    canvasMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // canvas has perspective, emplace after PreConcat
+    canvas_->SetMatrix(canvasMatrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore007
+ * @tc.desc: Emplaced then OnDraw returns early via SkipDraw — verifies RAII dtor fires.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore007, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = true; // skip draw, early return after emplace
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective, emplace happens
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    EXPECT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::SURFACE_PARAMS_SKIP_DRAW);
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore008
+ * @tc.desc: Emplaced then OnDraw returns early via mirror skip — verifies RAII dtor fires.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore008, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective, emplace happens
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    // mirror screen + node in skip list triggers early return after emplace
+    std::unordered_set<NodeId> skipNodeIds = { surfaceParams->GetId() };
+    RSUniRenderThread::Instance().SetBlackList(skipNodeIds);
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    EXPECT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::SURFACE_SKIP_IN_MIRROR);
+
+    RSUniRenderThread::Instance().SetBlackList({});
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore009
+ * @tc.desc: Emplaced then OnDraw returns early via clone source — verifies RAII dtor fires.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore009, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective, emplace happens
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    // valid cloneSourceDrawable triggers early return after emplace
+    NodeId cloneId = 2;
+    auto cloneNode = std::make_shared<RSSurfaceRenderNode>(cloneId);
+    auto cloneDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cloneNode);
+    ASSERT_NE(cloneDrawable, nullptr);
+    cloneDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(cloneId);
+    surfaceParams->cloneSourceDrawable_ = cloneDrawable;
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    canvas_->canvas_->gpuContext_ = nullptr;
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore010
+ * @tc.desc: HasSandBox true + no perspective — not emplaced.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore010, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->SetHasSandBox(true); // sandbox, use parent matrix
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1); // identity, no perspective
+    surfaceParams->SetMatrix(matrix);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    CleanUpUniRenderEngine();
+}
+
+/**
+ * @tc.name: OnDrawTextCacheRestore011
+ * @tc.desc: HasSandBox true + perspective + null context — ctor/dtor no-op.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawTextCacheRestore011, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetDoubleSidedEnabled(true);
+    surfaceParams->SetHasSandBox(true); // sandbox, use parent matrix
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    surfaceParams->isSkipDraw_ = false;
+    surfaceParams->uifirstParams_.uifirstDisabledByAnimationOverlap = true;
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 1, 0, 1); // has perspective
+    surfaceParams->SetMatrix(matrix);
+
+    canvas_->canvas_->gpuContext_ = nullptr; // null context, ctor/dtor no-op
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    CleanUpUniRenderEngine();
+}
 } // namespace OHOS::Rosen

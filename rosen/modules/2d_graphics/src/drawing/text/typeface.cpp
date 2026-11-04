@@ -97,11 +97,6 @@ Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefa
 
 Typeface::~Typeface()
 {
-#ifdef USE_M133_SKIA
-    if (typefaceImpl_) {
-        SkGraphics::RemoveCacheByUniqueId(typefaceImpl_->GetUniqueID());
-    }
-#endif
 }
 
 std::shared_ptr<Typeface> Typeface::MakeDefault()

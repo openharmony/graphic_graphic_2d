@@ -21,7 +21,13 @@
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSBoundsModifier : public RSModifier {
 public:
-    RSBoundsModifier() = default;
+    inline static const Vector4f DEFAULT_BOUNDS{0.f};
+
+    RSBoundsModifier()
+    {
+        affectsRendering_ = false;
+    }
+
     ~RSBoundsModifier() = default;
 
     static inline constexpr auto Type = RSModifierType::BOUNDS;
@@ -54,6 +60,16 @@ public:
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
+
+protected:
+    bool IsDefault(RSPropertyType type, const std::shared_ptr<RSPropertyBase>& property) const override
+    {
+        if (type != RSPropertyType::BOUNDS) {
+            return false;
+        }
+        auto bounds = GetterWithoutCheck<Vector4f>(property);
+        return bounds.x_ == DEFAULT_BOUNDS.x_ && bounds.y_ == DEFAULT_BOUNDS.y_;
+    }
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_MODIFIER_H

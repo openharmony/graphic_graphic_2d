@@ -23,6 +23,7 @@ ohos_unittest("EffectTest") {
   sources = [
     "color_picker_common_unittest.cpp",
     "color_picker_unittest.cpp",
+    "color_picker_unittest2.cpp",
     "test_picture_files.cpp",
   ]
 

@@ -278,5 +278,15 @@ void RSComposerContext::SetActiveRectSwitchStatus(bool flag, const RectI& active
     }
     rsComposerConnection_->SetActiveRectSwitchStatus(flag, activeRect);
 }
+
+void RSComposerContext::SetSkipDelay(bool skipDelay)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->SetSkipDelay(skipDelay);
+}
 } // namespace Rosen
 } // namespace OHOS

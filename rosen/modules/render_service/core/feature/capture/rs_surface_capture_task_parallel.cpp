@@ -37,6 +37,7 @@
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
@@ -59,6 +60,40 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t ALPHA_MASK = 0xFF000000;
+
+// Flag ancestor cache roots of each blacklisted surface so capture bypasses their caches,
+// and return the original flags for the caller to restore after capture. Reading the node
+// map and walking parents is race-free here: the capture flow runs on the main thread and
+// PostSyncTask blocks it until this render-thread task finishes.
+std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>>
+MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& blackList)
+{
+    std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>> flaggedDrawables;
+    std::unordered_set<RSRenderParams*> touchedParams;
+    for (NodeId blackId : blackList) {
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(blackId);
+        if (node == nullptr) {
+            continue;
+        }
+        for (auto cur = node; cur != nullptr; cur = cur->GetParent().lock()) {
+            auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(cur->GetId());
+            if (drawable == nullptr) {
+                continue;
+            }
+            const auto& params = drawable->GetRenderParams();
+            if (params == nullptr || params->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
+                !touchedParams.insert(params.get()).second) {
+                continue;
+            }
+            flaggedDrawables.emplace_back(drawable, params->NodeGroupHasChildInBlacklist());
+            params->SetNodeGroupHasChildInBlacklist(true);
+        }
+    }
+    if (!flaggedDrawables.empty()) {
+        RS_TRACE_NAME_FMT("MarkCaptureBlacklistAncestorCacheRoots flagged:%zu", flaggedDrawables.size());
+    }
+    return flaggedDrawables;
+}
 
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
@@ -213,6 +248,12 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
 
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         surfaceNode_ = surfaceNode;
+        if (!surfaceNode->IsAppWindow() && !surfaceNode->IsLeashWindow()) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: surfaceNode is not appWindow or"
+                " leashWindow, nodeType:%{public}u nodeName:%{public}s",
+                static_cast<uint8_t>(surfaceNode->GetSurfaceNodeType()),
+                surfaceNode->GetNodeName().c_str());
+        }
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
@@ -226,8 +267,43 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode should not paint!");
             return false;
         }
-        if (curNode->GetSortedChildren()->size() == 0) {
-            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+
+        auto contentNode = curNode;
+        if (curNode->IsLeashWindow()) {
+            const auto& leashChildren = curNode->GetSortedChildren();
+            if (leashChildren != nullptr && !leashChildren->empty()) {
+                auto firstChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(leashChildren->front());
+                if (firstChild && firstChild->IsAppWindow()) {
+                    contentNode = firstChild;
+                } else {
+                    RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: leashWindow id:%{public}" PRIu64
+                        " has no appWindow child, firstChild id:%{public}" PRIu64,
+                        curNode->GetId(), firstChild ? firstChild->GetId() : 0);
+                }
+            } else {
+                RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: leashWindow id:%{public}" PRIu64
+                    " has no child to drill down", curNode->GetId());
+            }
+        }
+        bool hasNoChild = contentNode->GetSortedChildren()->size() == 0;
+        RS_LOGI("RSSurfaceCaptureTaskParallel::CreateResources hasNoChild check: useCurWindow:%{public}d,"
+            " surfaceNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d],"
+            " curNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d],"
+            " contentNode[id:%{public}" PRIu64 " isAppWindow:%{public}d isLeashWindow:%{public}d"
+            " childSize:%{public}zu abilityState:%{public}d hasDestoryRebuild:%{public}d],"
+            " hasNoChild:%{public}d",
+            captureConfig_.useCurWindow,
+            surfaceNode->GetId(), surfaceNode->IsAppWindow(), surfaceNode->IsLeashWindow(),
+            curNode->GetId(), curNode->IsAppWindow(), curNode->IsLeashWindow(),
+            contentNode->GetId(), contentNode->IsAppWindow(), contentNode->IsLeashWindow(),
+            contentNode->GetSortedChildren()->size(),
+            static_cast<uint8_t>(contentNode->GetAbilityState()), contentNode->HasDestoryRebuild(),
+            hasNoChild);
+
+        if (hasNoChild) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+            errorCode_ = CaptureError::WINDOW_CAPTURE_NO_CHILD;
+            return false;
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
@@ -689,6 +765,8 @@ int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
 void RSSurfaceCaptureTaskParallel::AddBlur(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius)
 {
+    RS_LOGI("RSSurfaceCaptureTaskParallel::AddBlur");
+    RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::AddBlur");
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
     auto image = surface->GetImageSnapshot();
@@ -956,8 +1034,15 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
     RSUniRenderThread::Instance().SetBlackList(blackList);
+    auto flaggedDrawables = MarkCaptureBlacklistAncestorCacheRoots(blackList);
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
     displayNodeDrawable.OnCapture(canvas);
+    for (const auto& [drawable, inBlacklist] : flaggedDrawables) {
+        const auto& params = drawable->GetRenderParams();
+        if (params != nullptr) {
+            params->SetNodeGroupHasChildInBlacklist(inBlacklist);
+        }
+    }
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
             RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
     RSUniRenderThread::Instance().SetBlackList({});

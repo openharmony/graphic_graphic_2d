@@ -40,6 +40,7 @@ public:
     virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) = 0;
     virtual void MarkTunnelSurfaceInvalid(uint64_t surfaceId) = 0;
     virtual void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) = 0;
+    virtual void SetSkipDelay(bool skipDelay) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"IRSRenderToComposerConnection");
 
 protected:
@@ -55,6 +56,7 @@ protected:
         IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS,
         IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID,
         IRENDER_TO_COMPOSER_CONNECTION_SET_ACTIVE_RECT_SWITCH_STATUS,
+        IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY,
     };
 };
 } // namespace OHOS::Rosen

@@ -2552,5 +2552,302 @@ HWTEST_F(RSFilterCacheManagerTest, GenerateCachedEffectData_SurfaceValidForSnaps
     rsFilterCacheManager->snapshotNeedUpdate_ = true;
     rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
 }
+
+/**
+ * @tc.name: GetCachedImageRegionTest001
+ * @tc.desc: test GetCachedImageRegion when cache is invalid, should return empty rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetCachedImageRegionTest001, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_FALSE(rsFilterCacheManager->IsCacheValid());
+    auto& region = rsFilterCacheManager->GetCachedImageRegion();
+    RectI emptyRect;
+    EXPECT_EQ(region.GetLeft(), emptyRect.GetLeft());
+    EXPECT_EQ(region.GetTop(), emptyRect.GetTop());
+    EXPECT_EQ(region.GetWidth(), emptyRect.GetWidth());
+    EXPECT_EQ(region.GetHeight(), emptyRect.GetHeight());
+}
+
+/**
+ * @tc.name: GetCachedImageRegionTest002
+ * @tc.desc: test GetCachedImageRegion when cache is valid, should return snapshotRegion_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetCachedImageRegionTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bmp.Build(100, 100, format);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+    Drawing::RectI rect(10, 20, 110, 120);
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image, rect);
+    rsFilterCacheManager->snapshotRegion_ = RectI(10, 20, 100, 100);
+
+    EXPECT_TRUE(rsFilterCacheManager->IsCacheValid());
+    auto& region = rsFilterCacheManager->GetCachedImageRegion();
+    EXPECT_EQ(region.GetLeft(), 10);
+    EXPECT_EQ(region.GetTop(), 20);
+    EXPECT_EQ(region.GetWidth(), 100);
+    EXPECT_EQ(region.GetHeight(), 100);
+}
+
+/**
+ * @tc.name: ReduceCacheUpdateIntervalTest001
+ * @tc.desc: test ReduceCacheUpdateInterval when cacheUpdateInterval_ <= 0, should return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, ReduceCacheUpdateIntervalTest001, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    EXPECT_FALSE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+
+    rsFilterCacheManager->cacheUpdateInterval_ = -1;
+    EXPECT_FALSE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+}
+
+/**
+ * @tc.name: ReduceCacheUpdateIntervalTest002
+ * @tc.desc: test ReduceCacheUpdateInterval when cacheUpdateInterval_ > 0, should decrement and set pendingPurge_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, ReduceCacheUpdateIntervalTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->cacheUpdateInterval_ = 3;
+    rsFilterCacheManager->pendingPurge_ = false;
+    EXPECT_TRUE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 2);
+    EXPECT_TRUE(rsFilterCacheManager->pendingPurge_);
+
+    EXPECT_TRUE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 1);
+
+    EXPECT_TRUE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 0);
+
+    EXPECT_FALSE(rsFilterCacheManager->ReduceCacheUpdateInterval());
+}
+
+/**
+ * @tc.name: GetCachedSnapshotAndFilteredSnapshotTest
+ * @tc.desc: test GetCachedSnapshot and GetCachedFilteredSnapshot getters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetCachedSnapshotAndFilteredSnapshotTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_EQ(rsFilterCacheManager->GetCachedSnapshot(), nullptr);
+    EXPECT_EQ(rsFilterCacheManager->GetCachedFilteredSnapshot(), nullptr);
+
+    auto snapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = snapshot;
+    EXPECT_EQ(rsFilterCacheManager->GetCachedSnapshot(), snapshot);
+
+    auto filteredSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = filteredSnapshot;
+    EXPECT_EQ(rsFilterCacheManager->GetCachedFilteredSnapshot(), filteredSnapshot);
+}
+
+/**
+ * @tc.name: GetSnapshotRegionTest
+ * @tc.desc: test GetSnapshotRegion getter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetSnapshotRegionTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    auto region = rsFilterCacheManager->GetSnapshotRegion();
+    EXPECT_EQ(region.GetLeft(), 0);
+    EXPECT_EQ(region.GetTop(), 0);
+    EXPECT_EQ(region.GetWidth(), 0);
+    EXPECT_EQ(region.GetHeight(), 0);
+
+    rsFilterCacheManager->snapshotRegion_ = RectI(50, 60, 200, 300);
+    region = rsFilterCacheManager->GetSnapshotRegion();
+    EXPECT_EQ(region.GetLeft(), 50);
+    EXPECT_EQ(region.GetTop(), 60);
+    EXPECT_EQ(region.GetWidth(), 200);
+    EXPECT_EQ(region.GetHeight(), 300);
+}
+
+/**
+ * @tc.name: LastHpaeClearCacheTest
+ * @tc.desc: test LastHpaeClearCache getter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, LastHpaeClearCacheTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_FALSE(rsFilterCacheManager->LastHpaeClearCache());
+
+    rsFilterCacheManager->lastHpaeClearCache_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->LastHpaeClearCache());
+
+    rsFilterCacheManager->lastHpaeClearCache_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->LastHpaeClearCache());
+}
+
+/**
+ * @tc.name: ClearCacheAfterDrawingTest
+ * @tc.desc: test ClearCacheAfterDrawing getter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearCacheAfterDrawingTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_FALSE(rsFilterCacheManager->ClearCacheAfterDrawing());
+
+    rsFilterCacheManager->renderClearFilteredCacheAfterDrawing_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->ClearCacheAfterDrawing());
+
+    rsFilterCacheManager->renderClearFilteredCacheAfterDrawing_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->ClearCacheAfterDrawing());
+}
+
+/**
+ * @tc.name: GetFilterTypeTest
+ * @tc.desc: test GetFilterType getter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, GetFilterTypeTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_EQ(rsFilterCacheManager->GetFilterType(), RSFilter::NONE);
+
+    rsFilterCacheManager->filterType_ = RSFilter::MATERIAL;
+    EXPECT_EQ(rsFilterCacheManager->GetFilterType(), RSFilter::MATERIAL);
+
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    EXPECT_EQ(rsFilterCacheManager->GetFilterType(), RSFilter::AIBAR);
+}
+
+/**
+ * @tc.name: MarkDebugEnabledTest
+ * @tc.desc: test MarkDebugEnabled sets debugEnabled_ to true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkDebugEnabledTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_FALSE(rsFilterCacheManager->debugEnabled_);
+    rsFilterCacheManager->MarkDebugEnabled();
+    EXPECT_TRUE(rsFilterCacheManager->debugEnabled_);
+}
+
+/**
+ * @tc.name: SetEffectMergeEnabledByCCMTest001
+ * @tc.desc: test SetEffectMergeEnabledByCCM(false) makes IsEffectMergeEnabled return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, SetEffectMergeEnabledByCCMTest001, TestSize.Level1)
+{
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(false);
+    EXPECT_FALSE(RSFilterCacheManager::IsEffectMergeEnabled());
+}
+
+/**
+ * @tc.name: SetEffectMergeEnabledByCCMTest002
+ * @tc.desc: test SetEffectMergeEnabledByCCM(true), IsEffectMergeEnabled depends on system property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, SetEffectMergeEnabledByCCMTest002, TestSize.Level1)
+{
+    RSFilterCacheManager::SetEffectMergeEnabledByCCM(true);
+    // IsEffectMergeEnabled returns ccmEffectMergeEnable_ && RSSystemProperties::GetEffectMergeEnabled()
+    // Default system property value is 1 (enabled), so it should return true
+    EXPECT_TRUE(RSFilterCacheManager::IsEffectMergeEnabled());
+}
+
+/**
+ * @tc.name: SetFilterCacheEnabledByCCMTest001
+ * @tc.desc: test SetFilterCacheEnabledByCCM(false) makes IsFilterCacheEnabled return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, SetFilterCacheEnabledByCCMTest001, TestSize.Level1)
+{
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+}
+
+/**
+ * @tc.name: SetFilterCacheEnabledByCCMTest002
+ * @tc.desc: test SetFilterCacheEnabledByCCM(true), IsFilterCacheEnabled depends on system properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, SetFilterCacheEnabledByCCMTest002, TestSize.Level1)
+{
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
+    // IsFilterCacheEnabled returns filterCacheEnabled_.load()
+    // SetFilterCacheEnabledByCCM stores ccmEnable && GetFilterCacheEnabled() && IsUniRender()
+    // Result depends on RS_ENABLE_UNI_RENDER compile flag and system property; verify no crash
+    RSFilterCacheManager::IsFilterCacheEnabled();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: MarkInForegroundFilterAndCheckNeedForceClearCacheWithCacheType
+ * @tc.desc: test MarkInForegroundFilterAndCheckNeedForceClearCache when nodeId changes and cache type is not NONE,
+ *           should mark force clear cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkInForegroundFilterAndCheckNeedForceClearCacheWithCacheType, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::SNAPSHOT;
+    rsFilterCacheManager->lastOffscreenNodeId_ = 1000;
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+
+    rsFilterCacheManager->MarkInForegroundFilterAndCheckNeedForceClearCache(2000);
+
+    EXPECT_TRUE(rsFilterCacheManager->stagingForceClearCache_);
+    EXPECT_EQ(rsFilterCacheManager->offscreenNodeId_, 2000);
+}
+
+/**
+ * @tc.name: MarkInForegroundFilterAndCheckNeedForceClearCacheSameNodeId
+ * @tc.desc: test MarkInForegroundFilterAndCheckNeedForceClearCache when nodeId is the same, should not force clear
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkInForegroundFilterAndCheckNeedForceClearCacheSameNodeId, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::SNAPSHOT;
+    rsFilterCacheManager->lastOffscreenNodeId_ = 1000;
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+
+    rsFilterCacheManager->MarkInForegroundFilterAndCheckNeedForceClearCache(1000);
+
+    EXPECT_FALSE(rsFilterCacheManager->stagingForceClearCache_);
+    EXPECT_EQ(rsFilterCacheManager->offscreenNodeId_, 1000);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -224,6 +224,11 @@ public:
         (void)activeRect;
     }
 
+    void SetSkipDelay(bool skipDelay) override
+    {
+        (void)skipDelay;
+    }
+
     bool commitTunnelCalled = false;
     uint32_t commitTunnelCallCount = 0;
     int32_t commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;

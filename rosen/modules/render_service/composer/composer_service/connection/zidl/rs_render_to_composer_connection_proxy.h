@@ -38,6 +38,7 @@ public:
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override;
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override;
     void SetActiveRectSwitchStatus(bool flag, const RectI& activeRect) override;
+    void SetSkipDelay(bool skipDelay) override;
 
 private:
     bool FillParcelWithTransactionData(std::unique_ptr<RSLayerTransactionData>& transactionData,

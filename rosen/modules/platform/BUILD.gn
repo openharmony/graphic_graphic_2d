@@ -57,6 +57,9 @@ ohos_source_set("impl_eventhandler") {
   ]
   defines = [ "LOG_DOMAIN=0xD001200" ]
   cflags = [ "-std=c++17" ]
+  if (platform == "linux") {
+    cflags += [ "-fvisibility=hidden" ]
+  }
   deps = [ ":utils" ]
 
   external_deps = [

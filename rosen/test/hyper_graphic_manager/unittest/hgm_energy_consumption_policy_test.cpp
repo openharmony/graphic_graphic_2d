@@ -1736,5 +1736,229 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, NotifyVideoParamsTest9, TestSize.Level0
     policy.NotifyVideoParams(videoRateInfo);
     ASSERT_EQ(policy.avcodeVideoCallEnable_.load(), false);
 }
+
+/**
+ * @tc.name: EnableSwipeDynamicRefreshRate_NotAutoMode
+ * @tc.desc: Test currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnableSwipeDynamicRefreshRate_NotAutoMode, TestSize.Level0)
+{
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO + 1;
+    policy.disableSwiperTouchHigh_ = false;
+    std::unordered_map<std::string, std::string> configMap = { { "SWIPER_BOOST_OFF", "TRUE" } };
+    policy.EnableSwipeDynamicRefreshRate(configMap);
+    ASSERT_TRUE(policy.disableSwiperTouchHigh_);
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: EnableSwipeDynamicRefreshRate_AutoMode_EmptyConfigMap
+ * @tc.desc: Test currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO and configMap is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnableSwipeDynamicRefreshRate_AutoMode_EmptyConfigMap, TestSize.Level0)
+{
+    // currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO && configMap.empty()
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    std::unordered_map<std::string, std::string> configMap;
+    policy.EnableSwipeDynamicRefreshRate(configMap);
+    ASSERT_FALSE(policy.disableSwiperTouchHigh_);
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: EnableSwipeDynamicRefreshRate_AutoMode_OnlySwiperBoostOffTrue
+ * @tc.desc: Test currentRefreshMode_ == AUTO and configMap only has SWIPER_BOOST_OFF = "TRUE"
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnableSwipeDynamicRefreshRate_AutoMode_OnlySwiperBoostOffTrue, TestSize.Level0)
+{
+    // configMap has SWIPER_BOOST_OFF == "TRUE"
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    std::unordered_map<std::string, std::string> configMap = { { "SWIPER_BOOST_OFF", "TRUE" } };
+    policy.EnableSwipeDynamicRefreshRate(configMap);
+    ASSERT_TRUE(policy.disableSwiperTouchHigh_);
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: EnableSwipeDynRefreshRate_AutoMode_SwiperBoostOffOthersFalse
+ * @tc.desc: Test configMap has SWIPER_BOOST_OFF and other keys with "FALSE" value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnableSwipeDynRefreshRate_AutoMode_SwiperBoostOffOthersFalse, TestSize.Level0)
+{
+    // configMap has SWIPER_BOOST_OFF and other keys with value "FALSE"
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    std::unordered_map<std::string, std::string> configMap = {
+        { "SWIPER_BOOST_OFF", "FALSE" }, { "OTHER_KEY", "FALSE" } };
+    policy.EnableSwipeDynamicRefreshRate(configMap);
+    ASSERT_FALSE(policy.disableSwiperTouchHigh_);
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: EnableSwipeDynRefreshRate_AutoMode_NonEmptyNoSwiperBoostOff
+ * @tc.desc: Test configMap is not empty but has no SWIPER_BOOST_OFF key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnableSwipeDynRefreshRate_AutoMode_NonEmptyNoSwiperBoostOff, TestSize.Level0)
+{
+    // configMap is not empty but has no SWIPER_BOOST_OFF key
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    std::unordered_map<std::string, std::string> configMap = { { "OTHER_KEY", "TRUE" } };
+    policy.EnableSwipeDynamicRefreshRate(configMap);
+    ASSERT_FALSE(policy.disableSwiperTouchHigh_);
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate_NotAutoMode
+ * @tc.desc: Test currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate_NotAutoMode, TestSize.Level0)
+{
+    // currentRefreshMode_ != HGM_REFRESHRATE_MODE_AUTO
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO + 1;
+    policy.disableSwiperTouchHigh_ = true;
+    FrameRateRange finalRange = { 120, 120, 120, DRAG_FRAME_RATE_TYPE };
+    ASSERT_FALSE(policy.DisableTouchHighFrameRate(finalRange));
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate_AutoMode_SwiperTouchHighFalse
+ * @tc.desc: Test currentRefreshMode_ == AUTO and !disableSwiperTouchHigh_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate_AutoMode_SwiperTouchHighFalse, TestSize.Level0)
+{
+    // currentRefreshMode_ == HGM_REFRESHRATE_MODE_AUTO && !disableSwiperTouchHigh_
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    policy.disableSwiperTouchHigh_ = false;
+    FrameRateRange finalRange = { 120, 120, 120, DRAG_FRAME_RATE_TYPE, ComponentScene::UNKNOWN_SCENE };
+    ASSERT_FALSE(policy.DisableTouchHighFrameRate(finalRange));
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate_AutoMode_SwiperFling
+ * @tc.desc: Test disableSwiperTouchHigh_ with componentScene_ == SWIPER_FLING
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate_AutoMode_SwiperFling, TestSize.Level0)
+{
+    // disableSwiperTouchHigh_ && componentScene_ == ComponentScene::SWIPER_FLING
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    policy.disableSwiperTouchHigh_ = true;
+    FrameRateRange finalRange = {
+        120, 120, 120, 0, ComponentScene::SWIPER_FLING };
+    ASSERT_TRUE(policy.DisableTouchHighFrameRate(finalRange));
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate_AutoMode_SwiperDragType
+ * @tc.desc: Test disableSwiperTouchHigh_ with SWIPER_DRAG_FRAME_RATE_TYPE flag set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate_AutoMode_SwiperDragType, TestSize.Level0)
+{
+    // disableSwiperTouchHigh_ && type_ & SWIPER_DRAG_FRAME_RATE_TYPE
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    policy.disableSwiperTouchHigh_ = true;
+    FrameRateRange finalRange = {
+        120, 120, 120, SWIPER_DRAG_FRAME_RATE_TYPE, ComponentScene::UNKNOWN_SCENE };
+    ASSERT_TRUE(policy.DisableTouchHighFrameRate(finalRange));
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
+
+/**
+ * @tc.name: DisableTouchHighFrameRate_AutoMode_DefaultSceneNoSwiperType
+ * @tc.desc: Test disableSwiperTouchHigh_ with default scene and no swiper type
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, DisableTouchHighFrameRate_AutoMode_DefaultSceneNoSwiperType, TestSize.Level0)
+{
+    // disableSwiperTouchHigh_ && componentScene_ != SWIPER_FLING && !(type_ & SWIPER_DRAG)
+    auto& policy = HgmEnergyConsumptionPolicy::Instance();
+    auto savedRefreshMode = policy.currentRefreshMode_;
+    auto savedDisableSwiperTouchHigh = policy.disableSwiperTouchHigh_;
+
+    policy.currentRefreshMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    policy.disableSwiperTouchHigh_ = true;
+    FrameRateRange finalRange = {
+        120, 120, 120, SCROLLABLE_DRAG_FRAME_RATE_TYPE, ComponentScene::UNKNOWN_SCENE };
+    ASSERT_FALSE(policy.DisableTouchHighFrameRate(finalRange));
+
+    policy.currentRefreshMode_ = savedRefreshMode;
+    policy.disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
+}
 } // namespace Rosen
 } // namespace OHOS

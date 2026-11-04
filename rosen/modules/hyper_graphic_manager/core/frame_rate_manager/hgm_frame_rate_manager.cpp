@@ -398,13 +398,19 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & DRAG_FRAME_RATE_TYPE);
+    bool disableTouchHigh = HgmEnergyConsumptionPolicy::Instance().DisableTouchHighFrameRate(finalRange);
+    bool isDragScene = finalRange.type_ & DRAG_FRAME_RATE_TYPE;
+    frameVoter_.SetDisableTouchHighFrame(isDragScene || disableTouchHigh);
     if (finalRange.IsValid()) {
-        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRateForLtpoVote(curScreenId_.load(), finalRange));
+        auto refreshRate = CalcRefreshRateForLtpoVote(curScreenId_.load(), finalRange);
+        if (isDragScene) {
+            refreshRate = UpdateFrameRateWithDelay(refreshRate);
+        }
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("%s: isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d], desc: [%s]",
-            __func__, frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("%s: isDragScene: [%d], videoSlideDisable: [%d], refreshRate: [%d], "
+            "lastLTPORefreshRate_: [%d], desc: [%s]", __func__, isDragScene, disableTouchHigh, refreshRate,
+            lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             { "VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo() }, ADD_VOTE);
     } else {
@@ -414,10 +420,6 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 
 uint32_t HgmFrameRateManager::UpdateFrameRateWithDelay(uint32_t refreshRate)
 {
-    if (!frameVoter_.IsDragScene()) {
-        return refreshRate;
-    }
-
     auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
                     .time_since_epoch()).count();
     if (refreshRate < lastLTPORefreshRate_ && curTime - lastLTPOVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {

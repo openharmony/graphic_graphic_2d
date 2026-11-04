@@ -22,6 +22,7 @@
 #include <surface.h>
 #include "transaction/rs_transaction_data.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,6 +67,8 @@ public:
     bool ProcessBufferReleaseInfo(uint64_t bufferId);
     void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo>& infos, NodeId nodeId, uint64_t queueId);
     void ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>>& cmdqueue, RSContext& context);
+    bool QueryAndResetCommandProcessFlag();
+    void UpdateHardWareForcedDisabledStateForDelegateMode(std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr);
 private:
     void AddBufferReleaseInfoInner(pid_t pid, OnCompletedRet& ret);
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
@@ -90,6 +93,8 @@ private:
     using singlePidCmdMap = std::map<uint64_t, std::queue<std::unique_ptr<RSCommand>>>;
     using surfaceTransactionCmdMap = std::map<uint64_t, singlePidCmdMap>;
     std::unordered_map<pid_t, surfaceTransactionCmdMap> allPidCmdMap_;
+
+    bool hasCommandProcess_ = false; // must use it in rsMainThread
 };
 } // namespace Rosen
 } // namespace OHOS

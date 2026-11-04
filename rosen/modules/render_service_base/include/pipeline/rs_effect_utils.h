@@ -71,6 +71,16 @@ public:
     // Sets the current vsync start time for RSFilterCacheManager to tag
     // newly generated cache data.
     static void Sync(int64_t vsyncStartTime);
+
+    // HVE precondition: check whether the renderNode carries a filter/effect
+    // requiring HVE processing. Sole caller is HveFilter::CheckPrecondition.
+    static bool HasValidFilterOrEffect(const RSRenderNode& renderNode);
+
+private:
+    // Walk up to the enclosing EFFECT_NODE and verify it has a valid background filter.
+    static bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
+    // Walk the parent chain for a valid UseEffect node, then validate via HasValidEffectNode.
+    static bool HasValidEffect(const RSRenderNode* node);
 };
 } // namespace Rosen
 } // namespace OHOS

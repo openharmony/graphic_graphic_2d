@@ -85,6 +85,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
@@ -767,6 +768,36 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             if (success) {
                 RSMarshallingHelper::Marshalling(reply, pixelmap);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP): {
+            RSMarshallingHelper::UnmarshallingTransactionVer(data);
+            std::shared_ptr<Media::PixelMap> pixelMap;
+            if (!RSMarshallingHelper::Unmarshalling(data, pixelMap) || pixelMap == nullptr) {
+                RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP unmarshal pixelMap failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            float blurRadius{0.f};
+            if (!data.ReadFloat(blurRadius)) {
+                RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP ReadFloat blurRadius failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::shared_ptr<Media::PixelMap> blurredPixelMap;
+            bool success{false};
+            if (BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success) != ERR_OK ||
+                !reply.WriteBool(success)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (success && blurredPixelMap != nullptr) {
+                if (!RSMarshallingHelper::Marshalling(reply, blurredPixelMap)) {
+                    RS_LOGE("RSClientToRenderConnectionStub::BLUR_PIXEL_MAP Marshalling failed");
+                    ret = ERR_INVALID_REPLY;
+                }
             }
             break;
         }

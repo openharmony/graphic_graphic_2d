@@ -253,13 +253,15 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value)
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for filter properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -307,13 +309,15 @@ void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value)
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for filter properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -359,13 +363,15 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnDetach()
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value)
+void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for mask properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
@@ -413,13 +419,15 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach()
 // LCOV_EXCL_STOP
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value)
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value,
+    bool affectsRendering)
 {
     auto node = target_.lock();
     if (node == nullptr) {
         stagingValue_ = value;
         return;
     }
+    SetDrawNodeIfNeed(*node, affectsRendering);
 
     // Incremental update for mask properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {

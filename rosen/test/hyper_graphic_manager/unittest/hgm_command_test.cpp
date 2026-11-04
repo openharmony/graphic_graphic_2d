@@ -47,6 +47,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+constexpr uint32_t delay_110Ms = 110;
 std::string g_mockStr = {CONFIG_FILE_PRODUCT};
 }
 
@@ -634,6 +635,38 @@ HWTEST_F(HgmCommandTest, HgmCoreInit001, Function | SmallTest | Level0)
     hgmCore.mPolicyConfigData_ = std::move(oriData);
     EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
     hgmCore.Init();
+}
+
+/**
+ * @tc.name: RefreshRateModeChangeProcessTest
+ * @tc.desc: Verify RefreshRateModeChangeProcess handles nullptr, invalid string, zero, same-mode and valid mode inputs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, RefreshRateModeChangeProcessTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    LoadXmlContent1();
+    std::string propKey = "persist.rosen.sethgmrefreshratemode.enabled";
+    int32_t prevMode = hgmCore.GetCurrentRefreshRateMode();
+
+    HgmCore::RefreshRateModeChangeProcess(propKey.c_str(), nullptr, nullptr);
+    HgmCore::RefreshRateModeChangeProcess(propKey.c_str(), "invalid", nullptr);
+    HgmCore::RefreshRateModeChangeProcess(propKey.c_str(), "0", nullptr);
+
+    hgmCore.SetRefreshRateMode(-1);
+    int32_t curMode = hgmCore.GetCurrentRefreshRateMode();
+
+    std::string sameMode = std::to_string(curMode);
+    HgmCore::RefreshRateModeChangeProcess(propKey.c_str(), sameMode.c_str(), nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    EXPECT_EQ(hgmCore.GetCurrentRefreshRateMode(), curMode);
+
+    HgmCore::RefreshRateModeChangeProcess(propKey.c_str(), "1", nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+
+    hgmCore.SetRefreshRateMode(prevMode);
 }
 } // namespace Rosen
 } // namespace OHOS

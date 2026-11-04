@@ -804,6 +804,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
             }
 #endif
         });
+    context_->SetGetBundleNameFunc(
+        [this](pid_t pid) { return QueryBundleName(pid); });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
 #ifdef RES_SCHED_ENABLE
     int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(gettid(),
@@ -1038,7 +1040,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     }
 
     ClearSurfaceWatermark(pid);
-    ClearInheritedProperties(pid);
+    ClearPersistentProperties(pid);
 
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();
@@ -1843,10 +1845,17 @@ void RSMainThread::TraverseNodeForDelegateMode()
         return;
     }
     RS_TRACE_NAME("TraverseNodeForDelegateMode");
+    std::set<NodeId> quickPrepareNodeIds;
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->InitForDelegateMode(*screenNode, GetRenderEngine());
     for (const auto& nodeId : webNodeIds) {
-        UpdateNodeInfoForDelegateMode(nodeId, uniVisitor);
+        UpdateNodeInfoForDelegateMode(nodeId, uniVisitor, quickPrepareNodeIds);
+    }
+    for (const auto& nodeId : quickPrepareNodeIds) {
+        auto instanceRootNode = GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (instanceRootNode != nullptr) {
+            instanceRootNode->QuickPrepare(uniVisitor);
+        }
     }
 
     UpdateZorderForDelegateMode();
@@ -1854,7 +1863,7 @@ void RSMainThread::TraverseNodeForDelegateMode()
 }
 
 void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
-    const std::shared_ptr<RSNodeVisitor> &uniVisitor)
+    const std::shared_ptr<RSNodeVisitor> &uniVisitor, std::set<NodeId>& quickPrepareNodeIds)
 {
     if (rsNodeId <= 0) {
         return;
@@ -1874,7 +1883,7 @@ void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
     node->AddDirtyType(ModifierNG::RSModifierType::FRAME);
     RSUniHwcComputeUtil::UpdateHwcNodeProperty(node);
-    node->QuickPrepare(uniVisitor);
+    quickPrepareNodeIds.emplace(node->GetInstanceRootNodeId());
 }
 
 void RSMainThread::ProcessCommandForUniRender()
@@ -1895,6 +1904,11 @@ void RSMainThread::ProcessCommandForUniRender()
     bool splitLayerFlag = doDirectComposition_ ? true : false;
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         delegateModeFlag &= UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
+    } else {
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        isWebCommandOnly_ = RsDelegateCompositeCallbackManager::GetInstance().QueryAndResetCommandProcessFlag();
+        RS_OPTIONAL_TRACE_NAME_FMT("invalid TransactionDataMap, isWebCommandOnly=%d", isWebCommandOnly_);
+#endif
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
@@ -2368,6 +2382,8 @@ void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNod
 {
     auto filterIds = HveFilter::GetHveFilter().GetFilterIds(surfaceNode->GetId());
     if (!filterIds.empty()) {
+        auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+        Occlusion::Region belowDirty(Occlusion::Rect(geoPtr ? geoPtr->GetAbsRect() : surfaceNode->GetAbsDrawRect()));
         for (const auto& id : filterIds) {
             auto node = GetContext().GetNodeMap().GetRenderNode(id);
             if (node == nullptr) {
@@ -2375,6 +2391,12 @@ void RSMainThread::HveHandleFilterNodes(const std::shared_ptr<RSSurfaceRenderNod
                 continue;
             }
             node->SetContentDirty();
+            if (node->GetRenderProperties().GetMaterialFilter()) {
+                node->UpdateFilterCacheWithBelowDirty(belowDirty, RSDrawableSlot::MATERIAL_FILTER);
+            }
+            if (node->GetRenderProperties().GetBackgroundFilter()) {
+                node->UpdateFilterCacheWithBelowDirty(belowDirty);
+            }
         }
     }
     HveFilter::GetHveFilter().ClearSurfaceToFilterNodeMap();
@@ -2534,8 +2556,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
                 surfaceNode->SetIntersectWithFilterNode(false);
-                HveFilter::GetHveFilter().IsApsConfigParamsEnabled()?
-                    HveHandleFilterNodes(surfaceNode) : surfaceNode->SetContentDirty();
+                HveHandleFilterNodes(surfaceNode);
                 doDirectComposition_ = false;
                 AddDisableReason("surfaceNode intersects with hve filter[" +
                     surfaceNode->GetName() + "[" + std::to_string(surfaceNode->GetId()) + "]]");
@@ -5710,7 +5731,7 @@ void RSMainThread::ClearSurfaceWatermark(pid_t pid)
     RequestNextVSync();
 }
 
-void RSMainThread::ClearInheritedProperties(pid_t pid)
+void RSMainThread::ClearPersistentProperties(pid_t pid)
 {
     if (context_) {
         context_->GetMutablePersistentPropertyManager().ClearByPid(pid);
@@ -6728,6 +6749,36 @@ void RSMainThread::ResetDisableReasons()
 std::string RSMainThread::GetDisableReasons() const
 {
     return directCompositionDisableReasons_;
+}
+
+std::string RSMainThread::QueryBundleName(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
+        return it->second;
+    }
+    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        RS_LOGE("QueryBundleName get appMgrClient fail.");
+        return {};
+    }
+
+    std::string bundleName{};
+    int32_t uid{0};
+    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+    if ((ret != ERR_OK) || bundleName.empty()) {
+        RS_LOGE("QueryBundleName failed, pid=%{public}d ret=%{public}d.", pid, ret);
+        return {};
+    }
+
+    pidToBundleName_.emplace(pid, bundleName);
+    return bundleName;
+}
+
+void RSMainThread::RemoveBundleNameFromCache(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    pidToBundleName_.erase(pid);
 }
 } // namespace Rosen
 } // namespace OHOS

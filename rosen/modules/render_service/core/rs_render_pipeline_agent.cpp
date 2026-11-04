@@ -79,6 +79,8 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "app_mgr_client.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
+#include "feature/capture/rs_blur_pixelmap.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #undef LOG_TAG
 #define LOG_TAG "RSRenderPipelineAgent"
 
@@ -1277,6 +1279,95 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
     return ERR_OK;
 }
 
+void RSRenderPipelineAgent::PostBlurTaskToBackground(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+    std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+    std::shared_ptr<std::promise<bool>> promise)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto& bgThread = RSBackgroundThread::Instance();
+    auto bgRenderContext = bgThread.GetRenderContext();
+    auto bgGpuContext = bgThread.GetShareGPUContext();
+    if (bgRenderContext == nullptr || bgGpuContext == nullptr) {
+        return;
+    }
+    auto bgBlurTask = [pixelMap, blurRadius, blurredResult, promise,
+                          bgGpuContext, bgRenderContext]() {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+        bool ret = BlurPixelMapImpl(pixelMap, blurRadius, *blurredResult,
+            bgGpuContext.get(), bgRenderContext.get());
+#else
+        bool ret = false;
+#endif
+        promise->set_value(ret);
+    };
+    bgThread.PostTask(bgBlurTask);
+#else
+    promise->set_value(false);
+#endif
+}
+
+void RSRenderPipelineAgent::PostBlurTaskToRenderThread(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius,
+    std::shared_ptr<std::shared_ptr<Media::PixelMap>> blurredResult,
+    std::shared_ptr<std::promise<bool>> promise, RSUniRenderThread* renderThread)
+{
+    auto blurTask = [pixelMap, blurRadius, blurredResult, promise]() {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+        bool ret = BlurPixelMapOnRenderThread(pixelMap, blurRadius, *blurredResult);
+#else
+        bool ret = false;
+#endif
+        promise->set_value(ret);
+    };
+    renderThread->PostTask(blurTask);
+}
+
+ErrCode RSRenderPipelineAgent::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    RS_LOGI("RSRenderPipelineAgent::BlurPixelMap start, blurRadius:%{public}f", blurRadius);
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: pixelMap is nullptr");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: pipeline is nullptr");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    auto promise = std::make_shared<std::promise<bool>>();
+    std::future<bool> future = promise->get_future();
+    auto blurredResult = std::make_shared<std::shared_ptr<Media::PixelMap>>();
+    bool useBackground = false;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto bgRenderContext = RSBackgroundThread::Instance().GetRenderContext();
+    auto bgGpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
+    useBackground = (bgRenderContext != nullptr && bgGpuContext != nullptr);
+#endif
+    if (useBackground) {
+        PostBlurTaskToBackground(pixelMap, blurRadius, blurredResult, promise);
+    } else {
+        RS_LOGW("RSRenderPipelineAgent::BlurPixelMap: fallback to render thread");
+        PostBlurTaskToRenderThread(pixelMap, blurRadius, blurredResult, promise,
+            pipeline->GetUniRenderThread());
+    }
+    constexpr auto BLUR_TIMEOUT = std::chrono::milliseconds(166);
+    if (future.wait_for(BLUR_TIMEOUT) != std::future_status::ready) {
+        RS_LOGE("RSRenderPipelineAgent::BlurPixelMap: timeout waiting for blur task");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    success = future.get();
+    if (success) {
+        blurredPixelMap = *blurredResult;
+    }
+    RS_LOGI("RSRenderPipelineAgent::BlurPixelMap end, success:%{public}d", success);
+    return ERR_OK;
+}
+
 ErrCode RSRenderPipelineAgent::ReportJankStats()
 {
     auto pipeline = rsRenderPipeline_.lock();
@@ -1740,7 +1831,11 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& mem
     std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
     MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
     std::vector<pid_t> pids;
+    pid_t selfPid = getpid();
     for (const auto& [pid, info] : snapshotMap) {
+        if (pid == 0 || pid == selfPid) {
+            continue;
+        }
         pids.emplace_back(pid);
     }
 
@@ -2341,13 +2436,10 @@ void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
                 return;
             }
             mainThread->CleanResources(pid, forRefresh);
+            mainThread->RemoveBundleNameFromCache(pid);
         }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
     pipeline->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
@@ -2625,31 +2717,6 @@ void RSRenderPipelineAgent::SetCacheEnabledForRotation(bool enabled)
         return;
     }
     RSSystemProperties::SetCacheEnabledForRotation(enabled);
-}
-
-std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
-        return it->second;
-    }
-
-    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
-    if (appMgrClient == nullptr) {
-        RS_LOGE("GetBundleName get appMgrClient fail.");
-        return {};
-    }
-
-    std::string bundleName{};
-    int32_t uid{0};
-    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
-    if ((ret != ERR_OK) || bundleName.empty()) {
-        RS_LOGE("GetBundleName failed, ret=%{public}d.", ret);
-        return {};
-    }
-
-    pidToBundleName_.emplace(pid, bundleName);
-    return bundleName;
 }
 
 void RSRenderPipelineAgent::AddTransactionDataPidInfo(pid_t remotePid)

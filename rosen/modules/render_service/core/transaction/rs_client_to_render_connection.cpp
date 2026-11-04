@@ -415,6 +415,16 @@ ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr
     return renderPipelineAgent_->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
 }
 
+ErrCode RSClientToRenderConnection::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->BlurPixelMap(pixelMap, blurRadius, blurredPixelMap, success);
+}
+
 ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {
@@ -736,10 +746,7 @@ int32_t RSClientToRenderConnection::UnRegisterSurfaceOcclusionChangeCallback(Nod
 
 std::string RSClientToRenderConnection::GetBundleName(pid_t pid)
 {
-    if (!renderPipelineAgent_) {
-        return {};
-    }
-    return renderPipelineAgent_->GetBundleName(pid);
+    return RSMainThread::Instance()->QueryBundleName(pid);
 }
 
 int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
