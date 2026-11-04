@@ -5045,6 +5045,5 @@ HWTEST_F(RSPropertiesTest, DumpColorNGFilter001, TestSize.Level1)
     std::string dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ColorNGFilter001") == std::string::npos);
 }
-
 } // namespace Rosen
 } // namespace OHOS
