@@ -21,6 +21,10 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t delay_110Ms = 110;
+}
+
 class RSRealtimeRefreshRateManagerTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
@@ -505,18 +509,22 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, RSInterface001, TestSize.Level1)
     auto& instance = RSInterfaces::GetInstance();
 
     instance.SetShowRefreshRateEnabled(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     bool ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, true);
 
     instance.SetShowRefreshRateEnabled(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, true);
 
     instance.SetShowRefreshRateEnabled(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, false);
 
     instance.SetShowRefreshRateEnabled(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, false);
 }
