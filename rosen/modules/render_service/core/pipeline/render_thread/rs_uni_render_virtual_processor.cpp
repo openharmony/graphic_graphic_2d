@@ -547,7 +547,7 @@ void RSUniRenderVirtualProcessor::PostProcess()
     }
 
 #ifdef RES_SCHED_ENABLE
-    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+    ResschedEventListener::GetInstance()->ReportFrameToRSS(screenInfo_.id);
 #endif
 
     if (surfaceFrames_.size() == 1) {
