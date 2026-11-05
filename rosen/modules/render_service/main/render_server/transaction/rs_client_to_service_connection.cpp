@@ -841,8 +841,7 @@ ErrCode RSClientToServiceConnection::GetShowRefreshRateEnabled(bool& enable)
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-    enable = RSSystemParameters::GetShowRefreshRateEnabled();
-    return ERR_OK;
+    return serviceToRenderConns[0]->GetShowRefreshRateEnabled(enable);
 }
 
 void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_t type)
