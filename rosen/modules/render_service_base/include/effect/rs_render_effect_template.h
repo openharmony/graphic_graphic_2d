@@ -105,6 +105,7 @@ public:
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
+            case RSNGEffectType::SDF_UBER_SHAPE: return "SdfUber";
             case RSNGEffectType::SDF_DISTORT_OP_SHAPE: return "SDFDistortOpShape";
             case RSNGEffectType::SDF_SUB_OP_SHAPE: return "SDFSubOpShape";
             case RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE: return "SDFSmoothSubOpShape";

@@ -16,6 +16,7 @@
 #include "pipeline/rs_union_render_node.h"
 
 #include "common/rs_optional_trace.h"
+#include "ge_sdf_uber_shader_shape.h"
 #include "memory/rs_memory_track.h"
 #include "params/rs_render_params.h"
 #include "visitor/rs_node_visitor.h"
@@ -25,6 +26,15 @@ namespace Rosen {
 namespace {
 constexpr float SCALE_EPSILON = 0.0001f;
 constexpr size_t MAX_UNION_CHILDREN_SIZE = 256;
+
+// First leaf decides the tree type; same type keeps it; mixed collapses to OTHER.
+UberType ResolveUberType(UberType current, UberType leafType)
+{
+    if (current == UberType::UNDETERMINED || current == leafType) {
+        return leafType;
+    }
+    return UberType::OTHER;
+}
 } // namespace
 
 RSUnionRenderNode::RSUnionRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -84,6 +94,10 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
     RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f] unimode[%d]",
         unionChildren_.size(), GetRenderProperties().GetUnionSpacing(), unionMode_);
     std::shared_ptr<RSNGRenderShapeBase> root;
+    // Reset the classification before branching so the empty-children path
+    // never observes stale values from a previous call.
+    uberType_ = UberType::UNDETERMINED;
+    uberLeafCount_ = 0;
     if (unionChildren_.empty()) {
         if (GetRenderProperties().GetSDFShape() &&
             GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
@@ -94,11 +108,11 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
         std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
         boundingBox_ = RectI(0, 0, 0, 0);
         if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 1) {
-            gravityCenter_ =  GetGravityCenter();
+            gravityCenter_ = GetGravityCenter();
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
                 SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
-            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
-                SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(
+                shapeQueue);
         } else if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 0) {
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
                 SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
@@ -111,6 +125,7 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
                 SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
         }
     }
+    root = WrapWithUberShapeIfApplicable(root);
     if (root && (!GetRenderProperties().GetSDFShape() ||
         GetRenderProperties().GetSDFShape()->CalculateHash() != root->CalculateHash())) {
         GetMutableRenderProperties().InternalSetSDFShape(root);
@@ -251,6 +266,117 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
     childShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     return childShape;
+}
+
+// Single-point mapping from every SDF node type to its uber type.
+UberType RSUnionRenderNode::GetSDFUberNodeType(const std::shared_ptr<RSNGRenderShapeBase>& shape)
+{
+    switch (shape->GetType()) {
+        case RSNGEffectType::SDF_TRANSFORM_SHAPE:
+        case RSNGEffectType::SDF_UNION_OP_SHAPE:
+        case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE:
+            return UberType::OP;
+        case RSNGEffectType::SDF_RRECT_SHAPE:
+            // GE refines non-uniform radii into the G1 uber kind (per-corner
+            // evaluation), so every RRect leaf is a valid basic shape.
+            return UberType::BASIC_SHAPE;
+        case RSNGEffectType::SDF_TRIANGLE_SHAPE:
+        case RSNGEffectType::SDF_ELLIPSE_SHAPE:
+            return UberType::BASIC_SHAPE;
+        case RSNGEffectType::SDF_PIXELMAP_SHAPE: {
+            auto pixelmapShape = std::static_pointer_cast<RSNGRenderSDFPixelmapShape>(shape);
+            if (pixelmapShape->Getter<SDFPixelmapShapeImageRenderTag>()->Get()) {
+                return UberType::PIXELMAP;
+            }
+            // Fallback classification, not an error: an app-configured empty image is a legal
+            // tree that simply keeps the cascade; runs inline every frame so must stay LOGD.
+            RS_LOGD("RSUnionRenderNode::GetSDFUberNodeType: other because PixelMap image is null");
+            return UberType::OTHER;
+        }
+        default:
+            // Same as above: a mixed/unsupported leaf tree is a legal fallback configuration,
+            // logged per leaf per frame, so DEBUG level keeps it observable without spam.
+            RS_LOGD("RSUnionRenderNode::GetSDFUberNodeType: other because unsupported type=[%{public}d] "
+                    "(type string: %{public}s)",
+                static_cast<int>(shape->GetType()),
+                RSNGRenderEffectHelper::GetEffectTypeString(shape->GetType()).c_str());
+            return UberType::OTHER;
+    }
+}
+
+// Called inline from GenerateSDFLeaf; OP nodes recurse so every real leaf
+// contributes one type decision and increments uberLeafCount_.
+void RSUnionRenderNode::UpdateUberTreeType(const std::shared_ptr<RSNGRenderShapeBase>& shape)
+{
+    RSShapeRecursionGuard guard;
+    if (guard.ExceedsLimit()) {
+        uberType_ = UberType::OTHER;
+        return;
+    }
+    if (!shape) {
+        uberType_ = UberType::OTHER;
+        return;
+    }
+    UberType type = GetSDFUberNodeType(shape);
+    if (type != UberType::OP) {
+        ++uberLeafCount_;
+        uberType_ = ResolveUberType(uberType_, type);
+        return;
+    }
+    switch (shape->GetType()) {
+        case RSNGEffectType::SDF_TRANSFORM_SHAPE: {
+            auto transformShape = std::static_pointer_cast<RSNGRenderSDFTransformShape>(shape);
+            UpdateUberTreeType(transformShape->Getter<SDFTransformShapeShapeRenderTag>()->Get());
+            return;
+        }
+        case RSNGEffectType::SDF_UNION_OP_SHAPE: {
+            auto opShape = std::static_pointer_cast<RSNGRenderSDFUnionOpShape>(shape);
+            UpdateUberTreeType(opShape->Getter<SDFUnionOpShapeShapeXRenderTag>()->Get());
+            UpdateUberTreeType(opShape->Getter<SDFUnionOpShapeShapeYRenderTag>()->Get());
+            return;
+        }
+        case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: {
+            auto opShape = std::static_pointer_cast<RSNGRenderSDFSmoothUnionOpShape>(shape);
+            UpdateUberTreeType(opShape->Getter<SDFSmoothUnionOpShapeShapeXRenderTag>()->Get());
+            UpdateUberTreeType(opShape->Getter<SDFSmoothUnionOpShapeShapeYRenderTag>()->Get());
+            return;
+        }
+        default:
+            return;
+    }
+}
+
+std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::WrapWithUberShapeIfApplicable(
+    std::shared_ptr<RSNGRenderShapeBase> root)
+{
+    RS_TRACE_NAME_FMT("RSUnionRenderNode::WrapWithUberShapeIfApplicable, children[%lu], treeType[%d], leaves[%d]",
+        unionChildren_.size(), static_cast<int>(uberType_), uberLeafCount_);
+    bool isUberable = uberType_ == UberType::BASIC_SHAPE || uberType_ == UberType::PIXELMAP;
+    // Gravity pull warps in the cascaded Transform layers; the uber math does
+    // not inline it, so such trees must keep the cascade.
+    if (!root || !isUberable || unionMode_ == 1) {
+        return root;
+    }
+    bool isBasicShape = uberType_ == UberType::BASIC_SHAPE;
+    int leafMin = isBasicShape ? Drawing::BASIC_SHAPE_LEAF_MIN : Drawing::PIXELMAP_UBER_LEAF_MIN;
+    int leafMax = isBasicShape ? Drawing::BASIC_SHAPE_LEAF_MAX : Drawing::PIXELMAP_UBER_LEAF_MAX;
+    if (uberLeafCount_ < leafMin || uberLeafCount_ > leafMax) {
+        RS_LOGD("RSUnionRenderNode::WrapWithUberShapeIfApplicable: leaf count %{public}d out of spec range "
+                "[%{public}d, %{public}d], keep cascaded rendering", uberLeafCount_, leafMin, leafMax);
+        return root;
+    }
+    Drawing::GESDFUberType uberType = uberType_ == UberType::BASIC_SHAPE
+                                          ? Drawing::GESDFUberType::BASIC_SHAPE_UBER
+                                          : Drawing::GESDFUberType::PIXELMAP_ATLAS_UBER;
+    auto uberShape =
+        std::static_pointer_cast<RSNGRenderSDFUberShape>(RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UBER_SHAPE));
+    if (!uberShape) {
+        RS_LOGE("RSUnionRenderNode::WrapWithUberShapeIfApplicable create uber shape fail");
+        return root;
+    }
+    uberShape->Setter<SDFUberShapeUberTypeRenderTag>(static_cast<int>(uberType));
+    uberShape->Setter<SDFUberShapeShapeRenderTag>(root);
+    return uberShape;
 }
 
 void RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(const std::shared_ptr<RSRenderNode> node)

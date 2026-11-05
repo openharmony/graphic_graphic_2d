@@ -28,6 +28,16 @@ namespace Rosen {
 namespace {
 constexpr size_t ROOT_VOLUME = 2;
 }
+
+// Uber tree classification for the SDF_UBER_SHAPE flag decision.
+enum class UberType : uint8_t {
+    UNDETERMINED = 0, // no leaf classified yet
+    OP,               // transform / union / smooth union (structural, recursed through)
+    BASIC_SHAPE,       // rrect (any corner radii) / triangle / ellipse
+    PIXELMAP,         // pixelmap with a non-empty image
+    OTHER,            // null / empty image / unsupported type
+};
+
 class RSB_EXPORT RSUnionRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::UNION_NODE;
@@ -98,6 +108,7 @@ private:
             }
             boundingBox_ = boundingBox_.JoinRect(GenerateSDFDrawingRect(child));
             auto childShape = GetOrCreateChildSDFShape(child);
+            UpdateUberTreeType(childShape);
             auto transformShape = CreateChildToContainerSDFTransformShape(child, childShape);
             if (shapeQueue.empty()) {
                 RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, shapeTree full");
@@ -120,6 +131,11 @@ private:
     std::shared_ptr<RSNGRenderShapeBase> CreateChildToContainerSDFTransformShape(
         std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape);
     std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child);
+    // Uber collapse classification: called inline in GenerateSDFLeaf (zero
+    // extra traversal); also counts real leaves into uberLeafCount_.
+    void UpdateUberTreeType(const std::shared_ptr<RSNGRenderShapeBase>& shape);
+    static UberType GetSDFUberNodeType(const std::shared_ptr<RSNGRenderShapeBase>& shape);
+    std::shared_ptr<RSNGRenderShapeBase> WrapWithUberShapeIfApplicable(std::shared_ptr<RSNGRenderShapeBase> root);
     Vector2f GetGravityCenter();
     static std::shared_ptr<RSUnionRenderNode> FindClosestUnionAncestor(const std::shared_ptr<RSRenderNode> node);
 
@@ -129,6 +145,10 @@ private:
     float gravityStrength_ = 0.0f;
     float gravityHotZone_ = 0.0f;
     RectI boundingBox_;
+    // Tree type and real leaf count accumulated in GenerateSDFLeaf, consumed
+    // by WrapWithUberShapeIfApplicable.
+    UberType uberType_ = UberType::UNDETERMINED;
+    int uberLeafCount_ = 0;
     friend class UnionNodeCommandHelper;
 };
 } // namespace Rosen
