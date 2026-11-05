@@ -28,6 +28,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -177,7 +178,15 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
     sptr<IBufferProducer> bp = IConsumerSurface::Create("DisplayNode")->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
 
-    toServiceCONN->CreateVirtualScreen(name, width, height, pSurface, screenId, flags);
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = pSurface;
+    option.associatedScreenId = screenId;
+    option.flags = flags;
+    int32_t errorCode = 0;
+    toServiceCONN->CreateVirtualScreen(option, errorCode);
 }
 } // namespace Mock
 

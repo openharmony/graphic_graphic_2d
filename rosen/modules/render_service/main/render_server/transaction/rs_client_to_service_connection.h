@@ -103,14 +103,7 @@ private:
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
-    ScreenId CreateVirtualScreen(
-        const std::string &name,
-        uint32_t width,
-        uint32_t height,
-        sptr<Surface> surface,
-        ScreenId associatedScreenId,
-        int32_t flags = 0,
-        std::vector<NodeId> whiteList = {}) override;
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t &errorCode) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) override;
 

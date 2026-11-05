@@ -17,6 +17,7 @@
 
 #include "common/rs_special_layer_manager.h"
 #include "feature/capture/rs_ui_capture.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "ui/rs_surface_node.h"
@@ -85,8 +86,16 @@ HWTEST_F(RSServiceClientTest, CreateVirtualScreen, TestSize.Level2)
 {
     ASSERT_NE(rsClient, nullptr);
     std::vector<NodeId> whiteList = {1};
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
+    RSVirtualScreenOption option;
+    option.name = "virtual0";
+    option.width = 320;
+    option.height = 180;
+    option.surface = nullptr;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    option.whiteList = whiteList;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
@@ -228,8 +237,15 @@ HWTEST_F(RSServiceClientTest, GetAllScreenIds001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     uint32_t defaultWidth = 480;
     uint32_t defaultHeight = 320;
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     auto screenIds = rsClient->GetAllScreenIds();
     ASSERT_NE(screenIds.size(), 0);
@@ -820,8 +836,15 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenResolution001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     uint32_t newWidth = 1920;
@@ -1007,8 +1030,15 @@ HWTEST_F(RSServiceClientTest, GetScreenColorGamut001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     int32_t modeIdx = 0;
@@ -1034,8 +1064,15 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenHDRMode001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     EXPECT_EQ(rsClient->SetVirtualScreenHDRMode(virtualScreenId, HDRMode::HDR_STATIC), StatusCode::SUCCESS);
@@ -1086,8 +1123,15 @@ HWTEST_F(RSServiceClientTest, SetScreenCorrection001, TestSize.Level1)
 {
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = nullptr;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
     uint32_t ret = rsClient->SetScreenCorrection(virtualScreenId, ScreenRotation::ROTATION_90);
     ASSERT_EQ(ret, SUCCESS);
@@ -1109,8 +1153,15 @@ HWTEST_F(RSServiceClientTest, SetVirtualMirrorScreenCanvasRotation001, TestSize.
     uint32_t defaultWidth = 1344;
     uint32_t defaultHeight = 2772;
     EXPECT_NE(psurface, nullptr);
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
@@ -1131,8 +1182,15 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
     uint32_t defaultWidth = 1344;
     uint32_t defaultHeight = 2772;
     EXPECT_NE(psurface, nullptr);
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::SUCCESS);
     EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, false), StatusCode::SUCCESS);
@@ -1173,8 +1231,15 @@ HWTEST_F(RSServiceClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level
     uint32_t defaultWidth = 1344;
     uint32_t defaultHeight = 2772;
     EXPECT_NE(psurface, nullptr);
-    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    RSVirtualScreenOption option;
+    option.name = "virtualScreenTest";
+    option.width = defaultWidth;
+    option.height = defaultHeight;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
@@ -1573,6 +1638,75 @@ HWTEST_F(RSServiceClientTest, SetApsConfigParams_Success, TestSize.Level1)
 
     bool result = rsClient->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenWithOption001
+ * @tc.desc: Test CreateVirtualScreen with RSVirtualScreenOption returns SUCCESS when service is connected
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, CreateVirtualScreenWithOption001, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSVirtualScreenOption option;
+    option.name = "virtualOption0";
+    option.width = 320;
+    option.height = 180;
+    option.surface = nullptr;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
+    if (virtualScreenId != INVALID_SCREEN_ID) {
+        EXPECT_EQ(errorCode, StatusCode::SUCCESS);
+        rsClient->RemoveVirtualScreen(virtualScreenId);
+    }
+}
+
+/**
+ * @tc.name: CreateVirtualScreenWithHdrMode001
+ * @tc.desc: Test CreateVirtualScreen with hdrMode=HDR_DYNAMIC does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, CreateVirtualScreenWithHdrMode001, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSVirtualScreenOption option;
+    option.name = "virtualHdr0";
+    option.width = 720;
+    option.height = 1280;
+    option.surface = nullptr;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    option.hdrMode = HDRMode::HDR_DYNAMIC;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
+    if (virtualScreenId != INVALID_SCREEN_ID) {
+        rsClient->RemoveVirtualScreen(virtualScreenId);
+    }
+}
+
+/**
+ * @tc.name: CreateVirtualScreenWithInvalidSize001
+ * @tc.desc: Test CreateVirtualScreen with out-of-range width returns INVALID_SCREEN_ID via errorCode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, CreateVirtualScreenWithInvalidSize001, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSVirtualScreenOption option;
+    option.name = "virtualInvalid0";
+    option.width = 65537; // out-of-range width for test
+    option.height = 180;
+    option.surface = nullptr;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = -1;
+    int32_t errorCode = -1;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -50,6 +50,7 @@
 #include "screen_manager/screen_types.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "multiscreen_param.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
@@ -1981,12 +1982,24 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScree
     auto screenManagerAgent = connection->screenManagerAgent_;
     ASSERT_NE(screenManagerAgent, nullptr);
     connection->screenManagerAgent_ = nullptr;
-    connection->CreateVirtualScreen("test", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    {
+        RSVirtualScreenOption option;
+        option.name = "test";
+        option.associatedScreenId = INVALID_SCREEN_ID;
+        int32_t errorCode = StatusCode::SUCCESS;
+        connection->CreateVirtualScreen(option, errorCode);
+    }
     connection->CleanVirtualScreens();
     connection->screenManagerAgent_ = screenManagerAgent;
     auto screenManager = connection->screenManagerAgent_->screenManager_;
     connection->screenManagerAgent_->screenManager_ = nullptr;
-    connection->CreateVirtualScreen("test", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    {
+        RSVirtualScreenOption option;
+        option.name = "test";
+        option.associatedScreenId = INVALID_SCREEN_ID;
+        int32_t errorCode = StatusCode::SUCCESS;
+        connection->CreateVirtualScreen(option, errorCode);
+    }
     connection->screenManagerAgent_->screenManager_ = screenManager;
     connection->CleanVirtualScreens();
 }
@@ -2136,6 +2149,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScree
     data.WriteUint64(64);
     data.WriteUint32(32);
     data.WriteUInt64Vector({64});
+    data.WriteUint32(static_cast<uint32_t>(HDRMode::NONE));
     ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
 }
 
@@ -3931,16 +3945,25 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest001, TestSi
     int32_t flags = 0;
     std::vector<NodeId> whiteList;
 
-    auto res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    int32_t errorCode = StatusCode::SUCCESS;
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = nullptr;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = whiteList;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
     ASSERT_NE(res, 0);
-    width = 65537;
-    height = 65537;
-    res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    option.width = 65537;
+    option.height = 65537;
+    res = connection->CreateVirtualScreen(option, errorCode);
     ASSERT_EQ(res, INVALID_SCREEN_ID);
 
     auto screenManagerAgent = connection->screenManagerAgent_;
     connection->screenManagerAgent_ = nullptr;
-    res = connection->CreateVirtualScreen(name, width, height, nullptr, associatedScreenId, flags, whiteList);
+    res = connection->CreateVirtualScreen(option, errorCode);
     EXPECT_EQ(res, INVALID_SCREEN_ID);
 
     // restore screenManagerAgent
@@ -3974,7 +3997,16 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest002, TestSi
     auto surface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(surface, nullptr);
 
-    auto res = connection->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+    int32_t errorCode = StatusCode::SUCCESS;
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = whiteList;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
     if (res != INVALID_SCREEN_ID) {
         SUCCEED();
     }
@@ -4006,8 +4038,123 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest003, TestSi
     auto surface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(surface, nullptr);
 
-    auto res = connection->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+    int32_t errorCode = StatusCode::SUCCESS;
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = whiteList;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
     EXPECT_EQ(res, INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenTest004
+ * @tc.desc: Test CreateVirtualScreen writes back errorCode when the delegate rejects the option
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest004, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    // width/height exceed MAX_VIRTUAL_SCREEN_WIDTH/HEIGHT, ValidateVirtualScreenLimits rejects it.
+    RSVirtualScreenOption option;
+    option.name = "TestVirtualScreen";
+    option.width = 65537;
+    option.height = 65537;
+    option.associatedScreenId = 0;
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(res, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_CreateVirtualScreen_HdrMode_Test001
+ * @tc.desc: Test CREATE_VIRTUAL_SCREEN stub reads hdrMode successfully and replies id + errorCode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScreen_HdrMode_Test001, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteString("name");
+    data.WriteUint32(1920);
+    data.WriteUint32(1080);
+    data.WriteBool(false);
+    data.WriteUint64(64);
+    data.WriteUint32(32);
+    data.WriteUInt64Vector({64});
+    data.WriteUint32(static_cast<uint32_t>(HDRMode::HDR_STATIC));
+    ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
+    // The stub must write back the virtual screen id and the errorCode from the delegate.
+    ScreenId id = INVALID_SCREEN_ID;
+    ASSERT_TRUE(reply.ReadUint64(id));
+    int32_t errorCode = StatusCode::SUCCESS;
+    ASSERT_TRUE(reply.ReadInt32(errorCode));
+    EXPECT_GE(errorCode, 0);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_CreateVirtualScreen_HdrMode_Test002
+ * @tc.desc: Test CREATE_VIRTUAL_SCREEN stub rejects an out-of-range hdrMode (HDR_MODE_BUTT)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScreen_HdrMode_Test002, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteString("name");
+    data.WriteUint32(1920);
+    data.WriteUint32(1080);
+    data.WriteBool(false);
+    data.WriteUint64(64);
+    data.WriteUint32(32);
+    data.WriteUInt64Vector({64});
+    data.WriteUint32(static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT));
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_CreateVirtualScreen_HdrMode_Test003
+ * @tc.desc: Test CREATE_VIRTUAL_SCREEN stub rejects a parcel that ends before the hdrMode field
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScreen_HdrMode_Test003, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteString("name");
+    data.WriteUint32(1920);
+    data.WriteUint32(1080);
+    data.WriteBool(false);
+    data.WriteUint64(64);
+    data.WriteUint32(32);
+    data.WriteUInt64Vector({64});
+    // hdrMode is intentionally omitted; ReadUint32 fails so the stub returns ERR_INVALID_DATA.
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
 }
 
 /**
@@ -4423,7 +4570,15 @@ HWTEST_F(RSClientToServiceConnectionStubTest, AddRemoveVirtualScreenWhiteListRep
 
     sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
-    ScreenId virtualScreenId = connection->CreateVirtualScreen("ut_whitelist", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    // width/height use a valid value so that ValidateVirtualScreenLimits passes and a real
+    // virtualScreenId is returned, otherwise the subsequent whitelist IPC would be skipped.
+    RSVirtualScreenOption vsOption;
+    vsOption.name = "ut_whitelist";
+    vsOption.width = 100;
+    vsOption.height = 100;
+    vsOption.associatedScreenId = INVALID_SCREEN_ID;
+    int32_t errorCode = StatusCode::SUCCESS;
+    ScreenId virtualScreenId = connection->CreateVirtualScreen(vsOption, errorCode);
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     MessageParcel reply;

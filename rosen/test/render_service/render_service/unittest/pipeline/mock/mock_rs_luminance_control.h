@@ -52,6 +52,7 @@ public:
     MOCK_METHOD(bool, IsHdrPictureOn, (), (override));
     MOCK_METHOD(bool, IsForceCloseHdr, (), (override, const));
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
+    MOCK_METHOD(bool, IsCloseHdrWhenMultiDisplaysOn, (), (override, const));
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
     MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));

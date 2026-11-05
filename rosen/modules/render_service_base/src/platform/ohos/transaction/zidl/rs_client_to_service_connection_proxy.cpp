@@ -358,81 +358,100 @@ std::vector<ScreenId> RSClientToServiceConnectionProxy::GetAllScreenIds()
 }
 
 ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
-    const std::string &name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
+    const RSVirtualScreenOption &vsOption,
+    int32_t &errorCode)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
+    errorCode = StatusCode::SUCCESS;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("CreateVirtualScreen: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteString(name)) {
+    if (!data.WriteString(vsOption.name)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteString name err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
-    if (!data.WriteUint32(width)) {
+    if (!data.WriteUint32(vsOption.width)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteUint32 width err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
-    if (!data.WriteUint32(height)) {
+    if (!data.WriteUint32(vsOption.height)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteUint32 height err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
-    if (surface != nullptr) {
-        auto producer = surface->GetProducer();
+    if (vsOption.surface != nullptr) {
+        auto producer = vsOption.surface->GetProducer();
         if (producer != nullptr) {
             if (!data.WriteBool(true)) {
                 ROSEN_LOGE("CreateVirtualScreen: WriteBool [true] err.");
+                errorCode = StatusCode::WRITE_PARCEL_ERR;
                 return INVALID_SCREEN_ID;
             }
             if (!data.WriteRemoteObject(producer->AsObject())) {
                 ROSEN_LOGE("CreateVirtualScreen: WriteRemoteObject producer->AsObject() err.");
+                errorCode = StatusCode::WRITE_PARCEL_ERR;
                 return INVALID_SCREEN_ID;
             }
         } else {
             if (!data.WriteBool(false)) {
                 ROSEN_LOGE("CreateVirtualScreen: WriteBool [false] err.");
+                errorCode = StatusCode::WRITE_PARCEL_ERR;
                 return INVALID_SCREEN_ID;
             }
         }
     } else {
         if (!data.WriteBool(false)) {
             ROSEN_LOGE("CreateVirtualScreen: WriteBool [false] err.");
+            errorCode = StatusCode::WRITE_PARCEL_ERR;
             return INVALID_SCREEN_ID;
         }
     }
-    if (!data.WriteUint64(associatedScreenId)) {
+    if (!data.WriteUint64(vsOption.associatedScreenId)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteUint64 associatedScreenId err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
-    if (!data.WriteInt32(flags)) {
+    if (!data.WriteInt32(vsOption.flags)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteInt32 flags err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
-    if (!data.WriteUInt64Vector(whiteList)) {
+    if (!data.WriteUInt64Vector(vsOption.whiteList)) {
         ROSEN_LOGE("CreateVirtualScreen: WriteUInt64Vector whiteList err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(vsOption.hdrMode))) {
+        ROSEN_LOGE("CreateVirtualScreen: WriteUint32 hdrMode err.");
+        errorCode = StatusCode::WRITE_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::%{public}s: Send Request err.", __func__);
+        errorCode = StatusCode::RS_CONNECTION_ERROR;
         return INVALID_SCREEN_ID;
     }
 
     uint64_t id{0};
     if (!reply.ReadUint64(id)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::CreateVirtualScreen Read id failed");
+        errorCode = StatusCode::READ_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
+    }
+    if (!reply.ReadInt32(errorCode)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::CreateVirtualScreen Read errorCode failed");
+        errorCode = StatusCode::READ_PARCEL_ERR;
         return INVALID_SCREEN_ID;
     }
     return id;

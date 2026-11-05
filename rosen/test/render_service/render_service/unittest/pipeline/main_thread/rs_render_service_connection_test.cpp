@@ -23,6 +23,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_service/core/transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -41,6 +42,23 @@ public:
     void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
 };
 } // namespace
+
+static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::string& name,
+    uint32_t width, uint32_t height, sptr<Surface> surface = nullptr,
+    ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    return sm->CreateVirtualScreen(option);
+}
+
 class RSRenderServiceConnectionTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -331,7 +349,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceCustomWatermarkTest001, TestSi
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
-    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    auto id = MakeVirtualScreen(screenManager, name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     screenManager->defaultScreenId_ = id;
@@ -703,13 +721,22 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateVirtualScreen001, TestSize.Level2)
     uint32_t width = 100;
     uint32_t height = 100;
     std::vector<NodeId> whiteList(MAX_SPECIAL_LAYER_NUM + 1);
-    ScreenId screenId = rsRenderServiceConnection->CreateVirtualScreen(
-        name, width, height, nullptr, INVALID_SCREEN_ID, -1, whiteList);
+    RSVirtualScreenOption vsOption;
+    vsOption.name = name;
+    vsOption.width = width;
+    vsOption.height = height;
+    vsOption.surface = nullptr;
+    vsOption.associatedScreenId = INVALID_SCREEN_ID;
+    vsOption.flags = -1;
+    vsOption.whiteList = whiteList;
+    int32_t errorCode = StatusCode::SUCCESS;
+    ScreenId screenId = rsRenderServiceConnection->CreateVirtualScreen(vsOption, errorCode);
     ASSERT_EQ(screenId, INVALID_SCREEN_ID);
 
     // retry with empty whitelist
-    screenId = rsRenderServiceConnection->CreateVirtualScreen(
-        name, width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    vsOption.whiteList = {};
+    errorCode = StatusCode::SUCCESS;
+    screenId = rsRenderServiceConnection->CreateVirtualScreen(vsOption, errorCode);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     // restore
     rsRenderServiceConnection->RemoveVirtualScreen(screenId);
@@ -894,7 +921,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest00
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
-    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    auto screenId = MakeVirtualScreen(screenManager, name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
 
     NodeId nodeId = 0XFFFFFFFFFFFF1234;

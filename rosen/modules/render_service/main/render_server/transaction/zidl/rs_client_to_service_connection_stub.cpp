@@ -471,8 +471,26 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ScreenId id = CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
-            if (!reply.WriteUint64(id)) {
+            // The hdrMode field is appended at the tail of the legacy parcel; a parcel without it
+            // (legacy format) falls back to HDRMode::NONE, which equals the legacy default.
+            uint32_t hdrMode = static_cast<uint32_t>(HDRMode::NONE);
+            if (!data.ReadUint32(hdrMode) || hdrMode >= static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN invalid hdrMode:%{public}u", hdrMode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RSVirtualScreenOption vsOption;
+            vsOption.name = std::move(name);
+            vsOption.width = width;
+            vsOption.height = height;
+            vsOption.surface = surface;
+            vsOption.associatedScreenId = associatedScreenId;
+            vsOption.flags = flags;
+            vsOption.whiteList = std::move(whiteList);
+            vsOption.hdrMode = static_cast<HDRMode>(hdrMode);
+            int32_t errorCode = StatusCode::SUCCESS;
+            ScreenId id = CreateVirtualScreen(vsOption, errorCode);
+            if (!reply.WriteUint64(id) || !reply.WriteInt32(errorCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN Write id failed!");
                 ret = ERR_INVALID_REPLY;
             }

@@ -51,6 +51,7 @@
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -350,7 +351,15 @@ bool DoCreateVirtualScreen()
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> bp = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-    rsToServiceConn_->CreateVirtualScreen("name", SCREEN_WIDTH, SCREEN_HEIGHT, pSurface, id, flags);
+    RSVirtualScreenOption option;
+    option.name = "name";
+    option.width = SCREEN_WIDTH;
+    option.height = SCREEN_HEIGHT;
+    option.surface = pSurface;
+    option.associatedScreenId = id;
+    option.flags = flags;
+    int32_t errorCode = 0;
+    rsToServiceConn_->CreateVirtualScreen(option, errorCode);
     rsToServiceConn_->SetVirtualScreenSurface(id, pSurface);
     rsToServiceConn_->RemoveVirtualScreen(id);
     return true;

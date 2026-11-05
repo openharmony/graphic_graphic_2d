@@ -365,9 +365,7 @@ void ProcessPendingConnections();
 void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
 
 // Virtual screen
-ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
-    sptr<Surface> surface, ScreenId associatedScreenId = 0, int32_t flags = 0,
-    std::vector<uint64_t> whiteList = {});
+ScreenId CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t *errorCode = nullptr);
 void RemoveVirtualScreen(ScreenId id);
 
 // Property set/get (delegate to RSScreen)

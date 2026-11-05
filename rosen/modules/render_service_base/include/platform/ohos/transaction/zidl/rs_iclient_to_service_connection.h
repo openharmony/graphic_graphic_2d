@@ -51,6 +51,7 @@
 #include "screen_manager/rs_screen_hdr_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/rs_surface_region_config.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "transaction/rs_transaction_data.h"
 #include "ivsync_connection.h"
@@ -96,13 +97,8 @@ public:
     virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
     virtual ScreenId CreateVirtualScreen(
-        const std::string &name,
-        uint32_t width,
-        uint32_t height,
-        sptr<Surface> surface,
-        ScreenId associatedScreenId = 0,
-        int32_t flags = 0,
-        std::vector<NodeId> whiteList = {}) = 0;
+        const RSVirtualScreenOption &option,
+        int32_t &errorCode) = 0;
 
     // Multi-surface virtual screen dynamic surface management
     virtual int32_t AddVirtualScreenSurface(

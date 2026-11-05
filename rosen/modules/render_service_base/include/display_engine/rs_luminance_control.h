@@ -107,6 +107,7 @@ public:
     virtual bool IsHdrPictureOn() = 0;
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
+    virtual bool IsCloseHdrWhenMultiDisplaysOn() const = 0;
     virtual bool IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) = 0;
     virtual bool IsScreenNoHeadroom(ScreenId) const = 0;
     virtual double GetMaxScaler(ScreenId screenId) const = 0;
@@ -161,6 +162,7 @@ public:
     RSB_EXPORT bool IsHdrPictureOn();
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
+    RSB_EXPORT bool IsCloseHdrWhenMultiDisplaysOn();
     RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId) const;
     RSB_EXPORT double GetMaxScaler(ScreenId screenId) const;
     RSB_EXPORT BrightnessInfo GetBrightnessInfo(ScreenId screenId);

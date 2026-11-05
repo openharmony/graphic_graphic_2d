@@ -63,6 +63,7 @@
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
@@ -106,6 +107,29 @@ namespace {
 }
 
 namespace OHOS::Rosen {
+
+// Adapter that bridges the legacy CreateVirtualScreen(name, w, h, surface, ...)
+// call sites to the new RSVirtualScreenOption-based signature, keeping test
+// changes compile-only without introducing new cases.
+static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::string& name,
+    uint32_t width, uint32_t height, sptr<Surface> surface = nullptr,
+    ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    if (sm == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    return sm->CreateVirtualScreen(option);
+}
+
 class RSChildrenDrawableAdapter : public RSDrawable {
 public:
     RSChildrenDrawableAdapter() = default;
@@ -241,7 +265,7 @@ ScreenId RSUniRenderVisitorTest::CreateVirtualScreen()
     }
     std::vector<NodeId> whiteList = {1};
 
-    auto screenId = screenManager_->CreateVirtualScreen(
+    auto screenId = MakeVirtualScreen(screenManager_,
         name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     if (screenId == INVALID_SCREEN_ID) {
         RS_LOGE("create virtual screen failed");
@@ -2223,7 +2247,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
     rsUniRenderVisitor->HandleColorGamuts(*screenNode);
     ASSERT_EQ(screenNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager_, "virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
     screenNode->screenId_ = virtualScreenId;
 
@@ -2303,7 +2327,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts004, TestSize.Level2)
     rsScreen->supportedPhysicalColorGamuts_ = { COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3 };
     screenManager->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 004", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager, "virtual screen 004", 0, 0, nullptr);
     screenNode->screenInfo_.id = virtualScreenId;
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
@@ -4301,9 +4325,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualDisplayInfo003, TestSize.Level2)
     RSDisplayNodeConfig displayConfig;
 
     // 480, 320 width and height for test
-    auto id = screenManager_->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    auto id = MakeVirtualScreen(screenManager_, "virtualScreen01", 480, 320, nullptr);
     // 480, 320 width and height for test
-    auto mirrorId = screenManager_->CreateVirtualScreen("virtualScreen02", 480, 320, nullptr);
+    auto mirrorId = MakeVirtualScreen(screenManager_, "virtualScreen02", 480, 320, nullptr);
 
     displayConfig.screenId = id;
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(
@@ -7328,7 +7352,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager_, "virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     RSDisplayNodeConfig config;
@@ -10346,7 +10370,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut001, TestSize.Leve
 {
     sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager, "virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     auto rsContext = std::make_shared<RSContext>();
@@ -10374,7 +10398,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut002, TestSize.Leve
 {
     sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager, "virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     auto rsContext = std::make_shared<RSContext>();
@@ -10402,7 +10426,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleVirtualScreenColorGamut003, TestSize.Leve
 {
     sptr<RSScreenManager> screenManager = screenManager_;
     ASSERT_NE(screenManager, nullptr);
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager, "virtual screen 002", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     auto rsContext = std::make_shared<RSContext>();

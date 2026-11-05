@@ -53,6 +53,7 @@
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -70,6 +71,21 @@ const OHOS::Rosen::RectI DEFAULT_SCREEN_RECT = { 0, 0, 1000, 1000 };
 } // namespace
 
 namespace OHOS::Rosen {
+static ScreenId MakeVirtualScreen(sptr<RSScreenManager>& sm, const std::string& name, uint32_t width, uint32_t height,
+    sptr<Surface> surface = nullptr, ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    return sm->CreateVirtualScreen(option);
+}
+
 class RSChildrenDrawableAdapter : public RSDrawable {
 public:
     RSChildrenDrawableAdapter() = default;
@@ -163,7 +179,7 @@ ScreenId RSUniRenderVisitorUnitTest::CreateVirtualScreen(sptr<RSScreenManager> s
     }
     std::vector<NodeId> whiteList = { 1 };
 
-    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
+    auto screenId = MakeVirtualScreen(screenManager, name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     if (screenId == INVALID_SCREEN_ID) {
         RS_LOGE("create virtual screen failed");
         return INVALID_SCREEN_ID;
@@ -1400,7 +1416,7 @@ HWTEST_F(RSUniRenderVisitorUnitTest, UpdateBlackListRecord001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    auto id = MakeVirtualScreen(screenManager, "virtualScreen01", 480, 320, nullptr);
     ScreenId screenId = id;
     auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
@@ -1727,7 +1743,7 @@ HWTEST_F(RSUniRenderVisitorUnitTest, HandleColorGamuts001, TestSize.Level2)
 {
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager, "virtual screen 001", 0, 0, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     auto rsContext = std::make_shared<RSContext>();

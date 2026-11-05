@@ -43,6 +43,7 @@ struct VirtualScreenConfigs {
     int32_t flags = 0; // reserve flag.
     std::unordered_set<uint64_t> whiteList = {};
     std::vector<SurfaceRegionConfig> surfaceConfigs;
+    HDRMode hdrMode = HDRMode::NONE; // applied to the screen property on construction
 };
 
 class RSScreen : public std::enable_shared_from_this<RSScreen> {

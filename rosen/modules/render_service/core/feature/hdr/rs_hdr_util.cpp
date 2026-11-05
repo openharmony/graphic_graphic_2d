@@ -542,11 +542,19 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
     HDRMode virtualScreenHDRMode = node.GetScreenProperty().GetVirtualScreenHDRMode();
     if (virtualScreenHDRMode == HDRMode::NONE) {
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus screenId: %{public}" PRIu64 ", HDRMode: %{public}u, "
+            "FirstFrameInit: %{public}d, FixVirtualBuffer10Bit: %{public}d",
+            node.GetScreenId(), static_cast<uint32_t>(virtualScreenHDRMode), node.GetFirstFrameVirtualScreenInit(),
+            node.GetFixVirtualBuffer10Bit());
         // NONE: HDR off, the virtual screen goes the SDR path.
         UpdateVirtualScreenHDRProperties(node, false, false);
         return;
     }
     if (virtualScreenHDRMode == HDRMode::HDR_STATIC) {
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus screenId: %{public}" PRIu64 ", HDRMode: %{public}u, "
+            "FirstFrameInit: %{public}d, FixVirtualBuffer10Bit: %{public}d",
+            node.GetScreenId(), static_cast<uint32_t>(virtualScreenHDRMode), node.GetFirstFrameVirtualScreenInit(),
+            node.GetFixVirtualBuffer10Bit());
         // HDR_STATIC: the HDR output keeps unchanged during recording, HDR/SDR switches of the
         // screen content do not change the color gamut of the virtual screen output.
         UpdateVirtualScreenHDRProperties(node, true, true);

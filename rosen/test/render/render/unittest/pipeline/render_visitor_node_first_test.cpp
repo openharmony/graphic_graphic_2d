@@ -59,6 +59,7 @@
 #include "pipeline/rs_union_render_node.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -76,6 +77,21 @@ const OHOS::Rosen::RectI DEFAULT_SCREEN_RECT = { 0, 0, 1001, 1001 };
 } // namespace
 
 namespace OHOS::Rosen {
+static ScreenId MakeVirtualScreen(sptr<RSScreenManager>& sm, const std::string& name, uint32_t width, uint32_t height,
+    sptr<Surface> surface = nullptr, ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    return sm->CreateVirtualScreen(option);
+}
+
 class RenderChildrenDrawableAdapter : public RSDrawable {
 public:
     RenderChildrenDrawableAdapter() = default;
@@ -166,7 +182,7 @@ ScreenId UniRenderVisitorTest::CreateVirtualScreen(sptr<RSScreenManager> screenM
     }
     std::vector<NodeId> whiteList = { 1 };
 
-    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
+    auto screenId = MakeVirtualScreen(screenManager, name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     if (screenId == INVALID_SCREEN_ID) {
         RS_LOGE("create virtual screen failed");
         return INVALID_SCREEN_ID;

@@ -19,6 +19,7 @@
 
 #include "feature/capture/rs_ui_capture.h"
 #include "render/rs_typeface_cache.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
 #include "transaction/rs_render_service_client.h"
@@ -1232,6 +1233,73 @@ HWTEST_F(RSInterfacesTest, SetUIMode3D_003, TestSize.Level1)
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     bool res = instance.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenOption001
+ * @tc.desc: test new overload CreateVirtualScreen(option, errorCode) does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, CreateVirtualScreenOption001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    RSVirtualScreenOption option;
+    option.name = "rsi_option_test";
+    option.width = 320;
+    option.height = 180;
+    option.surface = nullptr;
+    int32_t errorCode = StatusCode::SUCCESS;
+    ScreenId id = instance.CreateVirtualScreen(option, &errorCode);
+    if (id != INVALID_SCREEN_ID) {
+        instance.RemoveVirtualScreen(id);
+    }
+    // The render service is available in the test environment, so creation must succeed.
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenOption002
+ * @tc.desc: test new overload CreateVirtualScreen(option) with default nullptr errorCode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, CreateVirtualScreenOption002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    RSVirtualScreenOption option;
+    option.name = "rsi_option_hdr_test";
+    option.width = 320;
+    option.height = 180;
+    option.surface = nullptr;
+    option.hdrMode = HDRMode::HDR_DYNAMIC;
+    ScreenId id = instance.CreateVirtualScreen(option);
+    if (id != INVALID_SCREEN_ID) {
+        instance.RemoveVirtualScreen(id);
+    }
+    // The render service is available in the test environment, so creation must succeed.
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: CreateVirtualScreenLegacy001
+ * @tc.desc: test legacy overload CreateVirtualScreen still works (regression)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, CreateVirtualScreenLegacy001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    ScreenId id = instance.CreateVirtualScreen("legacy", 320, 180, nullptr, INVALID_SCREEN_ID, 0, {});
+    if (id != INVALID_SCREEN_ID) {
+        instance.RemoveVirtualScreen(id);
+    }
+    // The render service is available in the test environment, so creation must succeed.
+    EXPECT_NE(id, INVALID_SCREEN_ID);
 }
 
 /**

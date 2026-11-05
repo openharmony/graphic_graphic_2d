@@ -22,6 +22,7 @@
 #include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_surface_region_config.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,8 +62,7 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
     void MarkPowerOffNeedProcessOneFrame();
 
-    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
-        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t &errorCode);
     void RemoveVirtualScreen(ScreenId id);
     void CleanVirtualScreens();
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);

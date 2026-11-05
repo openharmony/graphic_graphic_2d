@@ -34,12 +34,29 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "surface_buffer_impl.h"
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::string& name,
+    uint32_t width, uint32_t height, sptr<Surface> surface = nullptr,
+    ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    return sm->CreateVirtualScreen(option);
+}
+
 constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
 constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
@@ -2058,7 +2075,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager_, "virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -2111,7 +2128,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     auto node = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     ASSERT_NE(node, nullptr);
     // set screen
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager_, "virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -2233,7 +2250,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = MakeVirtualScreen(screenManager_, "virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
