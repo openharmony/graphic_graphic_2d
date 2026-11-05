@@ -1129,7 +1129,7 @@ public:
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // Called every frame to handle state transitions and sync
     // return true if current state is COLOR_PICK and need to transition back to PREPARING
-    bool PrepareColorPicker(bool darkMode);
+    bool PrepareColorPicker(bool darkMode, bool restoreEnabled = false);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 

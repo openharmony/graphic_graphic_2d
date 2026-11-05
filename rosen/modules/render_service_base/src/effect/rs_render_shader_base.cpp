@@ -122,6 +122,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderPointLight>();
         }
     },
+    {RSNGEffectType::COSMOS_RING_SHADOW, [] {
+            return std::make_shared<RSNGRenderCosmosRingShadow>();
+        }
+    },
 };
 
 using ShaderGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderShaderBase>, const RectF&)>;

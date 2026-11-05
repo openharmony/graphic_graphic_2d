@@ -75,7 +75,7 @@ const auto EMPTY_RECT = RectF();
 template<auto Setter, class T>
 void SetPointLightRenderTag(RSEffectProperties& prop, T value)
 {
-    auto shader = RSEffectDrawableUtils::FindShader(prop.GetCoverageNGShader(), RSNGEffectType::POINT_LIGHT);
+    auto shader = DrawableV2::RSEffectDrawableUtils::FindShader(prop.GetCoverageNGShader(), RSNGEffectType::POINT_LIGHT);
     if (shader == nullptr) {
         auto rsNGShader = std::make_shared<RSNGRenderPointLight>();
         std::invoke(Setter, rsNGShader, value, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
@@ -107,9 +107,21 @@ void SetLightPoint<&RSProperties::NoticeLightColor, PointLightLightColorRenderTa
     }
 }
 
-void NoticePointLight(RSProperties& prop, const RSNGRenderPointLight& shader)
+template<>
+void SetLightPoint<&RSProperties::SetLightColor, PointLightLightColorRenderTag>(RSProperties& prop,
+    const RSNGRenderPointLight& shader)
 {
-    auto pointLightShader = RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
+    auto value = shader.Getter<PointLightLightColorRenderTag>();
+    if (value) {
+        auto vec4 = value->Get();
+        Color color{vec4.x_, vec4.y_, vec4.z_, vec4.w_};
+        prop.SetLightColor(color);
+    }
+}
+
+void NoticePointLight(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
+{
+    auto pointLightShader = DrawableV2::RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
     if (pointLightShader == nullptr) {
         return;
     }
@@ -122,6 +134,23 @@ void NoticePointLight(RSProperties& prop, const RSNGRenderPointLight& shader)
     SetLightPoint<&RSProperties::NoticeIlluminatedType, PointLightIlluminatedTypeRenderTag>(prop, *rsNGShader);
     SetLightPoint<&RSProperties::NoticeBloom, PointLightBloomRenderTag>(prop, *rsNGShader);
     SetLightPoint<&RSProperties::NoticeLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
+}
+
+void NoticeCoverage(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
+{
+    auto pointLightShader = DrawableV2::RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
+    if (pointLightShader == nullptr) {
+        return;
+    }
+    RS_LOGD_IF(DEBUG_PIPELINE, "NoticeCoverage drawLight");
+    auto rsNGShader = std::static_pointer_cast<RSNGRenderPointLight>(pointLightShader);
+    SetLightPoint<&RSProperties::SetLightIntensity, PointLightLightIntensityRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetLightPosition, PointLightLightPositionRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetIlluminatedBorderWidth, PointLightIlluminatedBorderWidthRenderTag>(prop,
+        *rsNGShader);
+    SetLightPoint<&RSProperties::SetIlluminatedType, PointLightIlluminatedTypeRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetBloom, PointLightBloomRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
 }
 } // namespace
 
@@ -1534,7 +1563,7 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
             return;
         }
         auto animation = animationManager->GetParticleAnimation();
-        if (animation == nullptr) {
+        if (animation == nullptr || animation->GetType() != RSRenderAnimationType::PARTICLE_ANIMATION) {
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
@@ -3998,7 +4027,7 @@ void RSProperties::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightIlluminatedBorderWidthRenderTag>, float>(
         GetEffectProperties(), illuminatedBorderWidth);
-    NoticeLightPosition(NoticeIlluminatedBorderWidth);
+    NoticeIlluminatedBorderWidth(illuminatedBorderWidth);
 }
 
 void RSProperties::SetIlluminatedType(int illuminatedType)
@@ -4017,8 +4046,7 @@ void RSProperties::SetBloom(float bloomIntensity)
 
 void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    NoticePointLight(*this, coverageShader);
-    GetEffectProperties().SetCoverageNGShader(coverageShader);
+    NoticeCoverage(*this, coverageShader);
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;

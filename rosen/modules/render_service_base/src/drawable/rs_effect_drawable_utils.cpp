@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
+#include "render/rs_effect_luminance_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -41,7 +42,7 @@ void ClearPointLight(RSNGRenderPointLight& shader)
     shader.Setter<PointLightLightIntensitiesRenderTag>({});
 }
 
-void CollectLightSource(std::vector<>& entries,
+void CollectLightSource(std::vector<std::pair<RSLightSource, Vector4f>>& entries,
     const std::unordered_map<NodeId, std::pair<RSLightSource, Vector4f>>& lightMap)
 {
     entries.clear();
@@ -93,15 +94,15 @@ void SetPointLightPropToShader(const RSProperties& prop, RSNGRenderPointLight& s
         lightIntensities.push_back(entry.first.GetLightIntensity());
     }
 
-    pointLightShader->Setter<PointLightLightPositionsRenderTag>(lightPositions);
-    pointLightShader->Setter<PointLightLightColorsRenderTag>(lightColors);
-    pointLightShader->Setter<PointLightLightIntensitiesRenderTag>(lightIntensities);
+    shader.Setter<PointLightLightPositionsRenderTag>(lightPositions);
+    shader.Setter<PointLightLightColorsRenderTag>(lightColors);
+    shader.Setter<PointLightLightIntensitiesRenderTag>(lightIntensities);
 
     bool enableEDREffect = illuminated->GetIlluminatedType() == IlluminatedType::NORMAL_BORDER_CONTENT &&
-        std::any_of(entries.entries.begin(), entries.end(), [] (const auto& pair) {
+        std::any_of(entries.begin(), entries.end(), [] (const auto& pair) {
             return ROSEN_GNE(pair.first.GetLightIntensity(), 1.0f);
         });
-    shader.Settre<PointLightEnableEDREffectRenderTag>(enableEDREffect);
+    shader.Setter<PointLightEnableEDREffectRenderTag>(enableEDREffect);
 }
 } // namespace
 
@@ -188,14 +189,14 @@ RectF RSEffectDrawableUtils::CalcShaderDrawRect(
 std::shared_ptr<RSNGRenderShaderBase> RSEffectDrawableUtils::FindShader(
     const std::shared_ptr<RSNGRenderShaderBase>& shader, RSNGEffectType type)
 {
-    if (!shaderr) {
+    if (!shader) {
         return nullptr;
     }
 
     // walk the shader chain to find such as POINT_LIGHT shaders
     auto current = shader;
     while (current) {
-        if (current-GetType() == type) {
+        if (current->GetType() == type) {
             return current;
         }
         current = current->GetNext();
@@ -220,14 +221,14 @@ void RSEffectDrawableUtils::SetPointLightData(
 
     // GEO property
     auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
-    pointLightShader->Setter<PointLightShapeRenderTag>();
+    pointLightShader->Setter<PointLightShapeRenderTag>(sdfShape);
 
     auto propRRect = properties.GetRRect();
     auto borderWidth = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));
     pointLightShader->Setter<PointLightIlluminatedTypeRenderTag>(borderWidth);
     Vector4f width = { borderWidth / 2.0f, borderWidth / 2.0f, borderWidth / 2.0f, borderWidth / 2.0f};
     auto borderRRect = propRRect.Inset(width);
-    auto sdfDrawRect = RSPropertyDrawableUtils::Rec2Vector4f(no.CalcBoundingBox());
+    auto sdfDrawRect = RSPropertyDrawableUtils::Rect2Vector4f(node.CalcBoundingBox());
     pointLightShader->Setter<PointLightContentRRectRenderTag>(propRRect);
     pointLightShader->Setter<PointLightBorderRRectRenderTag>(borderRRect);
     pointLightShader->Setter<PointLightDrawRectRenderTag>(sdfDrawRect);

@@ -152,7 +152,9 @@ void AnimationCommandHelper::CreateParticleAnimationNG(RSContext& context, NodeI
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
         animation->GetRenderParticle(), animation->GetPropertyId());
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier<RSRenderParticleVector>(

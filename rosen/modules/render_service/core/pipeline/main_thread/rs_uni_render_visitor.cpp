@@ -4881,6 +4881,8 @@ void RSUniRenderVisitor::PrepareColorPickers()
     const auto& nodeMap = ctx->GetContext().GetNodeMap();
     const auto& surfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
     const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
+    const bool rebuildEnabled =
+        RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::RebuildDebugEnabled();
 
     const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
     for (auto nodeId : colorPickerNodeIds) {
@@ -4890,7 +4892,7 @@ void RSUniRenderVisitor::PrepareColorPickers()
         if (!filterNode || !surfaceNode) {
             continue;
         }
-        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode());
+        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode(), rebuildEnabled);
         if (resetState) {
             // Reset to PREPARING state after color pick is complete
             PostColorPickerStateTask(filterNode->weak_from_this(), DrawableV2::ColorPickerState::PREPARING, 0);

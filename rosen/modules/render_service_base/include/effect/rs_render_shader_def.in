@@ -411,3 +411,13 @@ DECLARE_SHADER(GlassEffect, GLASS_EFFECT,
     ADD_PROPERTY_TAG(GlassEffect, ContentMask),
     ADD_PROPERTY_TAG(GlassEffect, ReflectionImage)
 );
+
+DECLARE_SHADER(CosmosRingShadow, COSMOS_RING_SHADOW,
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, Softness),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowColor)
+);

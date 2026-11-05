@@ -2900,14 +2900,16 @@ std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerD
     return nullptr;
 }
 
-bool RSRenderNode::PrepareColorPicker(bool darkMode)
+bool RSRenderNode::PrepareColorPicker(bool darkMode, bool restoreEnabled)
 {
     auto drawable = GetColorPickerDrawable();
     if (!drawable) {
         return false;
     }
 
-    RSColorPickerUtils::RestoreContrastColorScheme(*this);
+    if (restoreEnabled) {
+        RSColorPickerUtils::RestoreContrastColorScheme(*this);
+    }
 
     if (GetRenderProperties().GetColorPicker() &&
         GetRenderProperties().GetColorPicker()->lastContrastColorScheme != ContrastColorScheme::INVALID) {
@@ -5162,7 +5164,7 @@ void RSRenderNode::UpdatePointLightDirtySlot()
     }
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
-    SetEnableHdrEffect(drawablePtr->GetEnableEDR());
+    SetEnableHdrEffect(enableHdrEffect);
 }
 
 void RSRenderNode::AddToPendingSyncList()

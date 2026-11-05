@@ -285,7 +285,7 @@ public:
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
-    void ClearInheritedProperties(pid_t pid);
+    void ClearPersistentProperties(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -473,6 +473,11 @@ public:
     void MarkNodeDirty(uint64_t nodeId);
     void ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
+
+    // Query bundleName by pid, used by base-layer commands (e.g. RecreateNodeAndSurface)
+    // to compensate bundleName lost during rebuild. RSMainThread is a singleton, no UAF risk.
+    std::string QueryBundleName(pid_t pid);
+    void RemoveBundleNameFromCache(pid_t pid);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -972,6 +977,10 @@ private:
 
     // for protectiveSolidNode
     std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
+
+    // for QueryBundleName
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    std::mutex pidToBundleMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

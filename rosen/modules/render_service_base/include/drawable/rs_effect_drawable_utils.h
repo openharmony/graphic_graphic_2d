@@ -21,7 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "property/rs_properties_def.h"
-
+#include "effect/rs_render_property_tag.h"
 namespace OHOS::Rosen {
 class RSNGRenderShaderBase;
 class RSNGRenderShapeBase;

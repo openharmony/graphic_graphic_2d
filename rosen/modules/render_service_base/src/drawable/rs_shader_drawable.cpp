@@ -40,7 +40,7 @@ bool RSShaderDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     RSEffectDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
-    RSEffectDrawableUtils::SetPointLightData(properties, node);
+    RSEffectDrawableUtils::SetPointLightData(shader, node);
     stagingShader_ = shader;
 
     stagingNodeId_ = node.GetId();
@@ -211,6 +211,26 @@ std::shared_ptr<RSNGRenderShaderBase> RSOverlayNGShaderDrawable::GetShader(const
 void RSOverlayNGShaderDrawable::DfxOnDraw() const
 {
     RS_OPTIONAL_TRACE_FMT("RSOverlayNGShaderDrawable, nodeId:%{public}" PRIu64
+                          ", drawRect:%{public}s, cornerRadius:%{public}f",
+        nodeId_, drawRect_.ToString().c_str(), cornerRadius_);
+}
+
+RSDrawable::Ptr RSCoverageNGShaderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSCoverageNGShaderDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+};
+
+std::shared_ptr<RSNGRenderShaderBase> RSCoverageNGShaderDrawable::GetShader(const RSProperties& properties) const
+{
+    return properties.GetCoverageNGShader();
+}
+
+void RSCoverageNGShaderDrawable::DfxOnDraw() const
+{
+    RS_OPTIONAL_TRACE_FMT("RSCoverageNGShaderDrawable, nodeId:%{public}" PRIu64
                           ", drawRect:%{public}s, cornerRadius:%{public}f",
         nodeId_, drawRect_.ToString().c_str(), cornerRadius_);
 }

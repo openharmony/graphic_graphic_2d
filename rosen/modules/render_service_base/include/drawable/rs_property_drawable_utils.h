@@ -54,6 +54,7 @@ class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
+    static Vector4f Rect2Vector4f(const RectF& r);
     static RectI DrawingRectI2RectI(const Drawing::RectI& r);
     static RRect GetRRectForDrawingBorder(
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);

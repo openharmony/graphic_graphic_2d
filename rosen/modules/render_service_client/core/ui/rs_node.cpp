@@ -3903,7 +3903,7 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
 
 void RSNode::SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& coverageShader)
 {
-    if (!backgroundShader) {
+    if (!coverageShader) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COVERAGE_NG_SHADER);

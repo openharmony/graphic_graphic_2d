@@ -624,6 +624,8 @@ public:
         return bundleName_;
     }
 
+    void SetBundleName(const std::string& bundleName);
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;

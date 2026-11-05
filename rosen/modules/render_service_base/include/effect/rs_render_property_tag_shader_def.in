@@ -365,6 +365,14 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, LightIntensities, std::vector<flo
 DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, DisplayHeadroom, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, EnableEDREffect, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, Shape, std::shared_ptr<RSNGRenderShapeBase>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, ContentRRect, RRect);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, BorderRRect, RRect);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(PointLight, DrawRect, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(PointLight, ContentRRect, RRect);
+DECLARE_ANIMATABLE_PROPERTY_TAG(PointLight, BorderRRect, RRect);
+DECLARE_ANIMATABLE_PROPERTY_TAG(PointLight, DrawRect, Vector4f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, Softness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRingShadow, ShadowColor, Vector4f);
