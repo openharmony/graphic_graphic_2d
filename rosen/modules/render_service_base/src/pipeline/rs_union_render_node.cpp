@@ -94,8 +94,6 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
     RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f] unimode[%d]",
         unionChildren_.size(), GetRenderProperties().GetUnionSpacing(), unionMode_);
     std::shared_ptr<RSNGRenderShapeBase> root;
-    // Reset the classification before branching so the empty-children path
-    // never observes stale values from a previous call.
     uberType_ = UberType::UNDETERMINED;
     uberLeafCount_ = 0;
     if (unionChildren_.empty()) {
@@ -111,8 +109,8 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
             gravityCenter_ = GetGravityCenter();
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
                 SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
-            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(
-                shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
+                SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
         } else if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 0) {
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
                 SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
@@ -268,7 +266,6 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
     return childShape;
 }
 
-// Single-point mapping from every SDF node type to its uber type.
 UberType RSUnionRenderNode::GetSDFUberNodeType(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
     switch (shape->GetType()) {
@@ -277,9 +274,6 @@ UberType RSUnionRenderNode::GetSDFUberNodeType(const std::shared_ptr<RSNGRenderS
         case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE:
             return UberType::OP;
         case RSNGEffectType::SDF_RRECT_SHAPE:
-            // GE refines non-uniform radii into the G1 uber kind (per-corner
-            // evaluation), so every RRect leaf is a valid basic shape.
-            return UberType::BASIC_SHAPE;
         case RSNGEffectType::SDF_TRIANGLE_SHAPE:
         case RSNGEffectType::SDF_ELLIPSE_SHAPE:
             return UberType::BASIC_SHAPE;
@@ -288,14 +282,10 @@ UberType RSUnionRenderNode::GetSDFUberNodeType(const std::shared_ptr<RSNGRenderS
             if (pixelmapShape->Getter<SDFPixelmapShapeImageRenderTag>()->Get()) {
                 return UberType::PIXELMAP;
             }
-            // Fallback classification, not an error: an app-configured empty image is a legal
-            // tree that simply keeps the cascade; runs inline every frame so must stay LOGD.
             RS_LOGD("RSUnionRenderNode::GetSDFUberNodeType: other because PixelMap image is null");
             return UberType::OTHER;
         }
         default:
-            // Same as above: a mixed/unsupported leaf tree is a legal fallback configuration,
-            // logged per leaf per frame, so DEBUG level keeps it observable without spam.
             RS_LOGD("RSUnionRenderNode::GetSDFUberNodeType: other because unsupported type=[%{public}d] "
                     "(type string: %{public}s)",
                 static_cast<int>(shape->GetType()),
@@ -304,8 +294,6 @@ UberType RSUnionRenderNode::GetSDFUberNodeType(const std::shared_ptr<RSNGRenderS
     }
 }
 
-// Called inline from GenerateSDFLeaf; OP nodes recurse so every real leaf
-// contributes one type decision and increments uberLeafCount_.
 void RSUnionRenderNode::UpdateUberTreeType(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
     RSShapeRecursionGuard guard;
@@ -352,8 +340,6 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::WrapWithUberShapeIfAppli
     RS_TRACE_NAME_FMT("RSUnionRenderNode::WrapWithUberShapeIfApplicable, children[%lu], treeType[%d], leaves[%d]",
         unionChildren_.size(), static_cast<int>(uberType_), uberLeafCount_);
     bool isUberable = uberType_ == UberType::BASIC_SHAPE || uberType_ == UberType::PIXELMAP;
-    // Gravity pull warps in the cascaded Transform layers; the uber math does
-    // not inline it, so such trees must keep the cascade.
     if (!root || !isUberable || unionMode_ == 1) {
         return root;
     }

@@ -123,7 +123,6 @@ enum class RSNGEffectType : int16_t {
     SDF_DISTORT_OP_SHAPE,
     SDF_SUB_OP_SHAPE,
     SDF_SMOOTH_SUB_OP_SHAPE,
-    SDF_UBER_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     DOT_MATRIX_SHADER,
@@ -165,6 +164,7 @@ enum class RSNGEffectType : int16_t {
     ATLAS_FRAME_MASK,
     DISTORT_LIGHT,
     COSMOS_RING_SHADOW,
+    SDF_UBER_SHAPE,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
