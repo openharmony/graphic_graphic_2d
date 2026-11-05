@@ -1202,5 +1202,18 @@ HWTEST_F(RsVulkanInterfaceTest, ConfigureExtensions001, TestSize.Level1)
     vkInterface.ConfigureExtensions();
     EXPECT_EQ(vkInterface.type_, RenderEngineType::BASIC_RENDER);
 }
+
+/**
+ * @tc.name: ReleaseVulkanResource001
+ * @tc.desc: Test ReleaseVulkanResource
+ * @tc.type: FUNC
+ * @tc.require: issue26667
+ */
+HWTEST_F(RsVulkanInterfaceTest, ReleaseVulkanResource001, TestSize.Level1)
+{
+    RsVulkanInterface vkInterface;
+    vkInterface.ReleaseVulkanResource();
+    ASSERT_NE(vkInterface.device_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

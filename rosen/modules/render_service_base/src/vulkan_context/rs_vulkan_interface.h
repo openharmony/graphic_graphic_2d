@@ -233,6 +233,7 @@ public:
         VkSubmitInfo* pSubmits, VkFence fence);
     static VKAPI_ATTR VkResult HookedVkQueueSubmitForProtectedRedraw(VkQueue queue, uint32_t submitCount,
         VkSubmitInfo* pSubmits, VkFence fence);
+    void ReleaseVulkanResource();
 
 private:
     std::mutex graphicsQueueMutex_;
