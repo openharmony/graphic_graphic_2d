@@ -1143,6 +1143,21 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
     EXPECT_NE(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::RENDER_SERVICE_NULL);
 }
 
+/**
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: SetPostProcessingShader Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetPostProcessingShader(1, param), StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_NE(rsClient->SetPostProcessingShader(1, param), StatusCode::RENDER_SERVICE_NULL);
+}
+
 /*
  * @tc.name: SetVirtualMirrorScreenScaleMode Test
  * @tc.desc: SetVirtualMirrorScreenScaleMode Test

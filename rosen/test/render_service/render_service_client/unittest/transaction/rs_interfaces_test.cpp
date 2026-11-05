@@ -1234,4 +1234,25 @@ HWTEST_F(RSInterfacesTest, SetUIMode3D_003, TestSize.Level1)
     EXPECT_TRUE(res);
 }
 
+/**
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test RSInterfaces::SetPostProcessingShader
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    std::vector<uint8_t> param = { 1, 2, 3 };
+
+    int32_t ret = instance.SetPostProcessingShader(1, param);
+    EXPECT_TRUE(ret == static_cast<int32_t>(StatusCode::RENDER_SERVICE_NULL) ||
+        ret == static_cast<int32_t>(StatusCode::SUCCESS) ||
+        ret == static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND) ||
+        ret == static_cast<int32_t>(StatusCode::VIRTUAL_SCREEN) ||
+        ret == static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS) ||
+        ret == static_cast<int32_t>(StatusCode::RS_CONNECTION_ERROR));
+}
+
 } // namespace OHOS::Rosen

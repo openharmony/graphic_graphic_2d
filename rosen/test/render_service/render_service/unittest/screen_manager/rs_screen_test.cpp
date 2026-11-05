@@ -143,6 +143,26 @@ HWTEST_F(RSScreenTest, DisplayDump_004, testing::ext::TestSize.Level2)
 }
 
 /*
+ * @tc.name: DisplayDump_005
+ * @tc.desc: Test PhysicalScreen DisplayDump with post processing shader
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, DisplayDump_005, testing::ext::TestSize.Level2)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    rsScreen->SetPostProcessingShader(param);
+
+    std::string dumpString;
+    int32_t screenIndex = 0;
+    rsScreen->DisplayDump(screenIndex, dumpString);
+    ASSERT_NE(dumpString.find("postProcessingShaderSize"), std::string::npos);
+}
+
+/*
  * @tc.name: SetResolution_001
  * @tc.desc: SetResolution Test
  * @tc.type: FUNC
@@ -2368,6 +2388,22 @@ HWTEST_F(RSScreenTest, SetTypeBlackList_001, testing::ext::TestSize.Level1)
 
     std::unordered_set<uint8_t> blackList {};
     rsScreen->SetTypeBlackList(blackList);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: SetPostProcessingShader Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetPostProcessingShader_001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    rsScreen->SetPostProcessingShader(param);
+    EXPECT_EQ(rsScreen->property_.GetPostProcessingShader(), param);
 }
 
 /*

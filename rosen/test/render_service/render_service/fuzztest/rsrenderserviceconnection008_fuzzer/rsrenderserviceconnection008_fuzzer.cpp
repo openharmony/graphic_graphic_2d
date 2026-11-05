@@ -29,6 +29,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <vector>
 
 #include "message_parcel.h"
 #include "securec.h"
@@ -64,7 +65,8 @@ const uint8_t DO_GET_SCREEN_TYPE = 10;
 const uint8_t DO_SET_SCREEN_SKIP_FRAME_INTERVAL = 11;
 const uint8_t DO_SET_VIRTUAL_SCREEN_HDR_MODE = 12;
 const uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 13;
-const uint8_t TARGET_SIZE = 14;
+const uint8_t DO_SET_POST_PROCESSING_SHADER = 14;
+const uint8_t TARGET_SIZE = 15;
 
 
 const uint8_t* DATA = nullptr;
@@ -339,6 +341,24 @@ void DoSetScreenSkipFrameInterval()
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
+void DoSetPostProcessingShader()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint16_t paramSize = GetData<uint16_t>();
+    std::vector<uint8_t> param;
+    for (uint16_t i = 0; i < paramSize; i++) {
+        param.push_back(GetData<uint8_t>());
+    }
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUInt8Vector(param);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -540,6 +560,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE:
             OHOS::Rosen::DoGetVirtualScreenHDRMode();
+            break;
+        case OHOS::Rosen::DO_SET_POST_PROCESSING_SHADER:
+            OHOS::Rosen::DoSetPostProcessingShader();
             break;
         default:
             return -1;

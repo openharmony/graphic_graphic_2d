@@ -125,6 +125,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
@@ -1715,6 +1716,21 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             int32_t result = SetScreenCorrection(id, static_cast<ScreenRotation>(screenRotation));
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_CORRECTION Write parcel failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER): {
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<uint8_t> param;
+            if (!data.ReadUint64(id) || !data.ReadUInt8Vector(&param)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_POST_PROCESSING_SHADER read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetPostProcessingShader(id, param);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_POST_PROCESSING_SHADER Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

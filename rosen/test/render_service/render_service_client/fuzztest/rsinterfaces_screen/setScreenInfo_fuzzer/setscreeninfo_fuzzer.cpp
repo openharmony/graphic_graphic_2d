@@ -16,6 +16,7 @@
 #include "setscreeninfo_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
+#include <vector>
 
 #include "transaction/rs_interfaces.h"
 
@@ -42,7 +43,8 @@ const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 12;
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 13;
 const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 14;
 const uint8_t DO_SET_AS_MAIN_SCREEN = 15;
-const uint8_t TARGET_SIZE = 16;
+const uint8_t DO_SET_POST_PROCESSING_SHADER = 16;
+const uint8_t TARGET_SIZE = 17;
 
 void DoSetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
@@ -186,6 +188,13 @@ void DoSetScreenFrameGravity(FuzzedDataProvider& fdp)
     g_rsInterfaces->SetScreenFrameGravity(id, gravity);
 }
 
+void DoSetPostProcessingShader(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    std::vector<uint8_t> param = fdp.ConsumeRemainingBytes<uint8_t>();
+    g_rsInterfaces->SetPostProcessingShader(id, param);
+}
+
 } // namespace
 
 } // namespace Rosen
@@ -258,6 +267,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_FRAME_GRAVITY:
             OHOS::Rosen::DoSetScreenFrameGravity(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_POST_PROCESSING_SHADER:
+            OHOS::Rosen::DoSetPostProcessingShader(fdp);
             break;
         default:
             return -1;

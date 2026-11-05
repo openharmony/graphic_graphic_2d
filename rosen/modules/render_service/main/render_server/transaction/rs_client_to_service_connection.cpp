@@ -1378,6 +1378,15 @@ int32_t RSClientToServiceConnection::SetScreenCorrection(ScreenId id, ScreenRota
     return screenManagerAgent_->SetScreenCorrection(id, screenRotation);
 }
 
+int32_t RSClientToServiceConnection::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetPostProcessingShader(id, param);
+}
+
 bool RSClientToServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     if (!screenManagerAgent_) {
