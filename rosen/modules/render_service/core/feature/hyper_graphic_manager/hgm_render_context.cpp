@@ -122,9 +122,12 @@ void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSCont
     }
     bool isGameSelfNodeOnTree = false;
     bool isOtherSelfNodeOnTree = false;
+    pid_t shellAssistantAncoPid = -1;
+    pid_t firstOtherSelfNodePid = -1;
     auto& nodeMap = rsContext->GetNodeMap();
     nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [this, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree, &nodeMap]
+        [this, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree, &nodeMap,
+         &shellAssistantAncoPid, &firstOtherSelfNodePid]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
         if (surfaceNode == nullptr) {
             return false;
@@ -134,18 +137,36 @@ void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSCont
             auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
                 nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
             const auto& nodeName = surfaceNode->GetName();
-            bool isGameNode = (gameNodeName_ == nodeName) ||
-                (!gameNodeName_.empty() && nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0 &&
-                 nodeName.find(gameNodeName_) != std::string::npos);
+            bool isShellAssistantAncoGameNode = !gameNodeName_.empty() &&
+                nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0 &&
+                nodeName.find(gameNodeName_) != std::string::npos;
+            bool isGameNode = (gameNodeName_ == nodeName) || isShellAssistantAncoGameNode;
             if (isGameNode) {
                 isGameSelfNodeOnTree = true;
+                if (isShellAssistantAncoGameNode) {
+                    shellAssistantAncoPid = ExtractPid(surfaceNode->GetId());
+                }
             } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
-                isOtherSelfNodeOnTree = true;
-                return true;
+                pid_t nodePid = ExtractPid(surfaceNode->GetId());
+                if (shellAssistantAncoPid != -1) {
+                    if (nodePid != shellAssistantAncoPid) {
+                        isOtherSelfNodeOnTree = true;
+                        return true;
+                    }
+                } else if (firstOtherSelfNodePid == -1) {
+                    firstOtherSelfNodePid = nodePid;
+                } else if (nodePid != firstOtherSelfNodePid) {
+                    isOtherSelfNodeOnTree = true;
+                    return true;
+                }
             }
         }
         return false;
     });
+    if (firstOtherSelfNodePid != -1 && !isOtherSelfNodeOnTree &&
+        shellAssistantAncoPid != firstOtherSelfNodePid) {
+        isOtherSelfNodeOnTree = true;
+    }
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
 
     uint32_t windowCount = nodeMap.GetVisibleLeashWindowCount();
