@@ -57,6 +57,12 @@ group("unittest") {
   if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable) {
     deps += [ ":RSHeteroHDRHpaeTest" ]
   }
+  if (graphic_2d_feature_multi_display_features_enable) {
+    deps += [
+      ":RSMultiDisplayScreenInterpolationHelperTest",
+      ":RSMultiDisplayPostProcessingUtilsTest",
+    ]
+  }
   if (graphic_2d_feature_enable_rdo) {
     deps += [ ":RSRDOTest" ]
   }
@@ -1995,6 +2001,67 @@ ohos_unittest("RSSpecialLayerUtilsTest") {
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSMultiDisplayScreenInterpolationHelperTest
+ohos_unittest("RSMultiDisplayScreenInterpolationHelperTest") {
+  module_out_path = module_output_path
+  sources = [
+    "multi_display_features/rs_multi_display_screen_interpolation_helper_test.cpp",
+  ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core/feature/multi_display_features",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "googletest:gmock_main",
+    "hitrace:hitrace_meter",
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:buffer_handle",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSMultiDisplayPostProcessingUtilsTest
+ohos_unittest("RSMultiDisplayPostProcessingUtilsTest") {
+  module_out_path = module_output_path
+  sources = [
+    "multi_display_features/rs_multi_display_post_processing_utils_test.cpp",
+  ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core/feature/multi_display_features",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server/server_config",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "googletest:gmock_main",
+    "hitrace:hitrace_meter",
+    "skia:skia_canvaskit",
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "graphic_surface:buffer_handle",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
   }
 }
 

@@ -98,8 +98,15 @@ RSScreen::RSScreen(ScreenId id)
     property_.SetName(name);
     property_.SetState(ScreenState::HDI_OUTPUT_ENABLE);
     PhysicalScreenInit();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    InterpolationFeatureInit();
+    HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", render w * h: [%{public}u * %{public}u], "
+        "physical w * h: [%{public}u * %{public}u], screenType: %{public}u}", id, property_.GetWidth(),
+        property_.GetHeight(), property_.GetPhyWidth(), property_.GetPhyHeight(), property_.GetScreenType());
+#else
     HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
         "screenType: %{public}u}", id, property_.GetWidth(), property_.GetHeight(), property_.GetScreenType());
+#endif
 }
 
 RSScreen::RSScreen(const VirtualScreenConfigs &configs)
@@ -227,6 +234,31 @@ void RSScreen::PhysicalScreenInit() noexcept
             DEFAULT_SKIP_FRAME_INTERVAL, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
 }
+
+#ifdef RS_MULTI_DISPLAY_FEATURES
+void RSScreen::InterpolationFeatureInit() noexcept
+{
+    if (!RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable()) {
+        return;
+    }
+    auto id = property_.GetId();
+    auto param = RSMultiDisplayFeatureParam::GetInterpolationParams(id);
+    if (param.has_value()) {
+        uint32_t realWidth = param->realWidth;
+        uint32_t realHeight = param->realHeight;
+        uint32_t phyWidth = property_.GetPhyWidth();
+        uint32_t phyHeight = property_.GetPhyHeight();
+        interpolationHelper_ = std::make_unique<RSMultiDisplayScreenInterpolationHelper>(realWidth, realHeight);
+        if (interpolationHelper_) {
+            interpolationHelper_->BackupAndModifyDisplayInfo(capability_, supportedModes_);
+            property_.SetResolution(std::make_pair(realWidth, realHeight));
+            HILOG_COMM_INFO("%{public}s: screenId:%{public}" PRIu64 " interpolation enabled, "
+                "resolution spoofed [%{public}u x %{public}u] -> [%{public}u x %{public}u]",
+                __func__, id, phyWidth, phyHeight, realWidth, realHeight);
+        }
+    }
+}
+#endif
 
 void RSScreen::ScreenCapabilityInit() noexcept
 {
@@ -377,6 +409,14 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     auto activeMode = GetActiveMode();
     if (activeMode) {
         auto prop = property_.SetPhysicalModeParams(activeMode->width, activeMode->height, activeMode->freshRate);
+#ifdef RS_MULTI_DISPLAY_FEATURES
+        if (interpolationHelper_) {
+            auto originMode = interpolationHelper_->GetOriginModeInfo(activeMode->id);
+            if (originMode.has_value()) {
+                prop = property_.SetPhysicalModeParams(originMode->width, originMode->height, originMode->freshRate);
+            }
+        }
+#endif
         NotifyScreenPropertyChange(prop);
         WriteHisyseventEpsLcdInfo(activeMode.value());
         RS_LOGD_IF(DEBUG_SCREEN, "%{public}s screenId:%{public}" PRIu64

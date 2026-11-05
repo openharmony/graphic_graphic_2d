@@ -22,16 +22,6 @@
 #include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
-struct SplitScreenParams {
-    ScreenId mainDisplayId = INVALID_SCREEN_ID;
-    ScreenId subDisplayId = INVALID_SCREEN_ID;
-};
-
-struct SplitScreenFeature {
-    bool enabled = false;
-    std::unordered_map<ScreenId, SplitScreenParams> params;
-};
-
 struct InterpolationParams {
     ScreenId displayId = INVALID_SCREEN_ID;
     uint32_t realWidth = 0;

@@ -15,6 +15,7 @@
 
 #include "drawable/rs_screen_render_node_drawable.h"
 
+#include <algorithm>
 #include <memory>
 #include <parameters.h>
 #include <string>
@@ -27,6 +28,9 @@
 #include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#include "rs_multi_display_post_processing_utils.h"
+#endif
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -114,6 +118,30 @@ std::string RectVectorToString(const std::vector<RectI>& regionRects)
     }
     return results;
 }
+#ifdef RS_MULTI_DISPLAY_FEATURES
+bool HasEffectiveDamage(const std::vector<RectI>& damageRects)
+{
+    return std::any_of(damageRects.begin(), damageRects.end(),
+        [](const RectI& rect) { return rect.width_ > 0 && rect.height_ > 0; });
+}
+
+bool PrepareInterpolationOffscreen(RSPaintFilterCanvas& canvas,
+    RSMultiDisplayInterpolationFilterParams& filterParams, const ScreenInfo& screenInfo)
+{
+    if (!filterParams.filterOn) {
+        RS_LOGD("%{public}s: interpolation filter off, skip offscreen prepare", __func__);
+        return false;
+    }
+    ComposerScreenInfo composerScreenInfo;
+    RSComposerClient::ConvertScreenInfo(screenInfo, composerScreenInfo);
+    bool prepared = RSMultiDisplayPostProcessingUtils::Prepare(canvas, filterParams, composerScreenInfo);
+    RS_LOGD("%{public}s: screenId:%{public}" PRIu64 " offscreen prepare result:%{public}d"
+        ", offscreen(fake):[%{public}u x %{public}u], target(physical):[%{public}u x %{public}u]",
+        __func__, screenInfo.id, prepared, composerScreenInfo.width, composerScreenInfo.height,
+        composerScreenInfo.phyWidth, composerScreenInfo.phyHeight);
+    return prepared;
+}
+#endif
 } // namespace
 
 void DrawEdgeGradientStrip(RSPaintFilterCanvas& canvas, float left, float top, float right, float bottom,
@@ -244,6 +272,14 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     RSComposerClient::ConvertScreenInfo(params.GetScreenProperty().GetScreenInfo(), composerScreenInfo);
     auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(
         composerScreenInfo, false, params.GetNewColorSpace(), params.GetNewPixelFormat());
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    auto interpolationParam = RSMultiDisplayPostProcessingUtils::GetActiveInterpolationParams(
+        composerScreenInfo.id, composerScreenInfo.width, composerScreenInfo.height);
+    if (interpolationParam.has_value()) {
+        RSMultiDisplayPostProcessingUtils::AdjustBufferConfigForInterpolation(
+            composerScreenInfo.phyWidth, composerScreenInfo.phyHeight, bufferConfig);
+    }
+#endif
     RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d, lastPixelFormat: %{public}d",
         params.GetNewColorSpace(), params.GetNewPixelFormat(), GetLastPixelFormat());
 
@@ -840,6 +876,18 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     const auto& screenProperty = params->GetScreenProperty();
     auto screenInfo = screenProperty.GetScreenInfo();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    RSMultiDisplayInterpolationFilterParams interpolationFilterParams;
+    auto interpolationParam = RSMultiDisplayPostProcessingUtils::GetActiveInterpolationParams(
+        screenInfo.id, screenInfo.width, screenInfo.height);
+    if (interpolationParam.has_value()) {
+        interpolationFilterParams.filterOn = true;
+        interpolationFilterParams.paramA = static_cast<float>(interpolationParam->paramA);
+        interpolationFilterParams.paramN = static_cast<float>(interpolationParam->paramN);
+        interpolationFilterParams.realWidth = static_cast<float>(interpolationParam->realWidth);
+        interpolationFilterParams.realHeight = static_cast<float>(interpolationParam->realHeight);
+    }
+#endif
     CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     if (isHdrOn) {
         auto nonRGBA1010108Fmt = RSSystemProperties::GetXcomponentEdrEnabled() &&
@@ -891,18 +939,37 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     std::vector<RectI> curFrameVisibleRegionRects;
     Drawing::Region clipRegion;
     bool needSetDamageForPartialRender = uniParam->NeedSetDamageForPartialRender();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    bool isInterpolationFullRewrite = false;
+#endif
     if (LIKELY(uniParam->IsPartialRenderEnabled())) {
         damageRegionrects = RSUniRenderUtil::MergeDirtyHistory(
             *this, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx, *params);
         curFrameVisibleRegionRects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
         rsDirtyRectsDfx.SetCurrentFrameVisibleDirtyRects(curFrameVisibleRegionRects);
         uniParam->Reset();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+        std::vector<RectI> physicalDamageRects; // only interpolation screen holds content
+        isInterpolationFullRewrite = interpolationParam.has_value() && HasEffectiveDamage(damageRegionrects);
+        if (isInterpolationFullRewrite) {
+            damageRegionrects.assign(1, RectI(0, 0, static_cast<int32_t>(screenInfo.width),
+                static_cast<int32_t>(screenInfo.height)));
+            physicalDamageRects.assign(1, RectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth),
+                static_cast<int32_t>(screenInfo.phyHeight)));
+        }
+        const std::vector<RectI>& bufferDamageRects =
+            isInterpolationFullRewrite ? physicalDamageRects : damageRegionrects;
+#endif
         clipRegion = RSUniDirtyComputeUtil::GetFlippedRegion(damageRegionrects, screenInfo);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
             damageRegionrects.size(),
             RectVectorToString(damageRegionrects).substr(0, MAX_DAMAGE_REGION_INFO).c_str());
         if (LIKELY(needSetDamageForPartialRender && !uniParam->IsRegionDebugEnabled())) {
+#ifdef RS_MULTI_DISPLAY_FEATURES
+            renderFrame->SetDamageRegion(bufferDamageRects);
+#else
             renderFrame->SetDamageRegion(damageRegionrects);
+#endif
         }
         if (UNLIKELY(RSFrameStatsCollection::IsLevelAtLeast(FrameStatsLevel::Full))) {
             uint64_t damageArea = 0;
@@ -966,6 +1033,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 #ifdef USE_PRIMITIVE
     primListAdapter->PrimDrawResume();
+#endif
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    bool isInterpolationStaticFrame = interpolationParam.has_value() &&
+        uniParam->IsPartialRenderEnabled() && uniParam->NeedClipForPartialRender() &&
+        !uniParam->IsRegionDebugEnabled() && !isInterpolationFullRewrite;
+    bool needInterpolationPostProcessing = !isInterpolationStaticFrame &&
+        PrepareInterpolationOffscreen(*curCanvas_, interpolationFilterParams, screenInfo);
 #endif
 
     // canvas draw
@@ -1075,6 +1149,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!RSTvShutter3DManager::Instance().Process3DForFlush(RSMainThread::Instance()->GetUIMode3D(), curCanvas_)) {
         RS_LOGE("RSScreenRenderNodeDrawable::Flush failed to process 3D for flush");
     }
+#endif
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    RSMultiDisplayPostProcessingUtils::Process(*curCanvas_, interpolationFilterParams,
+        needInterpolationPostProcessing);
 #endif
 
 #ifdef RS_ENABLE_TV_PQ_METADATA

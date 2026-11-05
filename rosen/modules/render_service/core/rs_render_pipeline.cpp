@@ -56,6 +56,9 @@
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hetero_hdr_manager.h"
 #endif
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#include "rs_multi_display_feature_param.h"
+#endif
 #include "rs_profiler.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_property.h"
@@ -265,6 +268,9 @@ void RSRenderPipeline::InitCCMConfig()
 {
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    RSMultiDisplayFeatureParam::Load();
+#endif
 
     // need called after GraphicFeatureParamManager::GetInstance().Init();
     FilterCCMInit();

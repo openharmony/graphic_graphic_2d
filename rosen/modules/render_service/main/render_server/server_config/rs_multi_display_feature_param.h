@@ -28,17 +28,14 @@ public:
     RSMultiDisplayFeatureParam() = delete;
     ~RSMultiDisplayFeatureParam() = delete;
     static bool Load(const std::string& filePath = {});
-    static bool IsSplitScreenFeatureEnable();
     static bool IsInterpolationFeatureEnable();
     static bool IsCrossDomainFeatureEnable();
     static bool IsScreenInCrossDomain(ScreenId screenId);
-    static std::optional<SplitScreenParams> GetSplitScreenParams(ScreenId screenId);
     static std::optional<InterpolationParams> GetInterpolationParams(ScreenId screenId);
 
 private:
     static bool Parse(xmlDoc& doc);
     static void ParseFeatureParam(xmlNode& featuresNode);
-    inline static SplitScreenFeature splitFeature_;
     inline static InterpolationFeature interpolationFeature_;
     inline static CrossDomainFeature crossDomainFeature_;
 };
