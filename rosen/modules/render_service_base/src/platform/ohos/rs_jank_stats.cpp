@@ -35,6 +35,8 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
 #include "platform/ohos/rs_jank_report_thread.h"
+#include "xperf_service_action_type.h"
+#include "xperf_service_client.h"
 #ifdef RES_SCHED_ENABLE
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -663,14 +665,26 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse responseLatency is %" PRId64 "ms: %s",
                       responseLatency, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([info, inputTime, beginVsyncTime, responseLatency, renderTime]() {
-        RS_TRACE_NAME("RSJankStats::ReportEventResponse in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RESPONSE_LATENCY, RSEventType::RS_BEHAVIOR,
-            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
-            "VERSION_CODE", info.versionCode, "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName,
-            "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl,
-            "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
-            "ANIMATION_START_TIME", static_cast<uint64_t>(beginVsyncTime), "RENDER_TIME",
-            static_cast<uint64_t>(renderTime), "RESPONSE_LATENCY", static_cast<uint64_t>(responseLatency));
+        RS_TRACE_NAME("RSJankStats::ReportEventResponse in RSBackgroundThread uses NotifyToXperf");
+        std::string msg;
+        msg.append("#UNIQUE_ID:").append(std::to_string(info.uniqueId))
+            .append("#SCENE_ID:").append(info.sceneId)
+            .append("#APP_PID:").append(std::to_string(info.appPid))
+            .append("#VERSION_CODE:").append(std::to_string(info.versionCode))
+            .append("#VERSION_NAME:").append(info.versionName)
+            .append("#BUNDLE_NAME:").append(info.bundleName)
+            .append("#ABILITY_NAME:").append(info.abilityName)
+            .append("#PROCESS_NAME:").append(info.processName)
+            .append("#PAGE_URL:").append(info.pageUrl)
+            .append("#SOURCE_TYPE:").append(info.sourceType)
+            .append("#NOTE:").append(info.note)
+            .append("#INPUT_TIME:").append(std::to_string(static_cast<uint64_t>(inputTime)))
+            .append("#ANIMATION_START_TIME:").append(std::to_string(static_cast<uint64_t>(beginVsyncTime)))
+            .append("#RENDER_TIME:").append(std::to_string(static_cast<uint64_t>(renderTime)))
+            .append("#RESPONSE_LATENCY:").append(std::to_string(static_cast<uint64_t>(responseLatency)));
+        HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(
+            static_cast<int32_t>(HiviewDFX::DomainId::RS),
+            static_cast<int32_t>(HiviewDFX::RsEventCode::GRAPHIC_INTERACTION_RESPONSE_LATENCY), msg);
     });
 }
 
@@ -691,14 +705,27 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
                       completedLatency, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         info, inputTime, animationStartLatency, animationEndLatency, completedLatency]() {
-        RS_TRACE_NAME("RSJankStats::ReportEventComplete in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_COMPLETED_LATENCY, RSEventType::RS_BEHAVIOR,
-            "UNIQUE_ID", info.uniqueId, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
-            "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
-            "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
-            "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
-            "ANIMATION_START_LATENCY", static_cast<uint64_t>(animationStartLatency), "ANIMATION_END_LATENCY",
-            static_cast<uint64_t>(animationEndLatency), "E2E_LATENCY", static_cast<uint64_t>(completedLatency));
+        RS_TRACE_NAME("RSJankStats::ReportEventComplete in RSBackgroundThread uses NotifyToXperf");
+        std::string msg;
+        msg.append("#UNIQUE_ID:").append(std::to_string(info.uniqueId))
+            .append("#APP_PID:").append(std::to_string(info.appPid))
+            .append("#VERSION_CODE:").append(std::to_string(info.versionCode))
+            .append("#VERSION_NAME:").append(info.versionName)
+            .append("#BUNDLE_NAME:").append(info.bundleName)
+            .append("#ABILITY_NAME:").append(info.abilityName)
+            .append("#PROCESS_NAME:").append(info.processName)
+            .append("#PAGE_URL:").append(info.pageUrl)
+            .append("#SCENE_ID:").append(info.sceneId)
+            .append("#SOURCE_TYPE:").append(info.sourceType)
+            .append("#NOTE:").append(info.note)
+            .append("#INPUT_TIME:").append(std::to_string(static_cast<uint64_t>(inputTime)))
+            .append("#ANIMATION_START_LATENCY:")
+            .append(std::to_string(static_cast<uint64_t>(animationStartLatency)))
+            .append("#ANIMATION_END_LATENCY:")
+            .append(std::to_string(static_cast<uint64_t>(animationEndLatency)))
+            .append("#E2E_LATENCY:").append(std::to_string(static_cast<uint64_t>(completedLatency)));
+        HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(static_cast<int32_t>(HiviewDFX::DomainId::RS),
+            static_cast<int32_t>(HiviewDFX::RsEventCode::GRAPHIC_INTERACTION_COMPLETED_LATENCY), msg);
     });
 }
 
@@ -718,7 +745,6 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
         return;
     }
     const auto &info = jankFrames.info_;
-    // The first frame of animation does not participate in average frame time calculation
     float aveFrameTimeSteady = jankFrames.totalFrames_ > 1 ?
         jankFrames.totalFrameTimeSteady_ / static_cast<float>(jankFrames.totalFrames_ - 1) : 0;
     bool isReportTaskDelayed = false;
@@ -736,22 +762,30 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
         jankFrames.maxFrameRefreshRate_, GetSceneDescription(info).c_str(), shaderTimeStr.c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart,
- 	    maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
-        RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
-            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
-            "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
-            "PAGE_URL", info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES",
-            jankFrames.totalMissedFrames_, "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.maxFrameTimeSteady_),
-            "MAX_TECH_FRAMETIME", static_cast<uint64_t>(jankFrames.maxTechFrameTimeSteady_),
-            "MAX_REAL_FRAMETIME", static_cast<uint64_t>(jankFrames.maxRealFrameTimeSteady_),
-            "MAX_FRAMETIME_SINCE_START", static_cast<uint64_t>(maxFrameTimeFromStart), "AVERAGE_FRAMETIME",
-            aveFrameTimeSteady, "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP,
-            "BUNDLE_NAME_EX", info.note, "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.maxHitchTime_),
-            "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
-            "DURATION", static_cast<uint64_t>(duration),
-            "MAX_FRAME_REFRESH_RATE", static_cast<int32_t>(jankFrames.maxFrameRefreshRate_),
-            "SHADER_TIME", shaderTimeStr, "JANK_COUNT", GetJankCountStr(jankFrames.jankCount_));
+        maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
+        RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread uses NotifyToXperf");
+        std::string msg;
+        msg.append("#UNIQUE_ID:").append(std::to_string(info.uniqueId)).append("#SCENE_ID:").append(info.sceneId)
+            .append("#PROCESS_NAME:").append(info.processName).append("#MODULE_NAME:").append(info.bundleName)
+            .append("#ABILITY_NAME:").append(info.abilityName).append("#PAGE_URL:").append(info.pageUrl)
+            .append("#TOTAL_FRAMES:").append(std::to_string(jankFrames.totalFrames_))
+            .append("#TOTAL_MISSED_FRAMES:").append(std::to_string(jankFrames.totalMissedFrames_))
+            .append("#MAX_FRAMETIME:").append(std::to_string(static_cast<uint64_t>(jankFrames.maxFrameTimeSteady_)))
+            .append("#MAX_TECH_FRAMETIME:").append(std::to_string(jankFrames.maxTechFrameTimeSteady_))
+            .append("#MAX_REAL_FRAMETIME:").append(std::to_string(jankFrames.maxRealFrameTimeSteady_))
+            .append("#MAX_FRAMETIME_SINCE_START:").append(std::to_string(static_cast<uint64_t>(maxFrameTimeFromStart)))
+            .append("#AVERAGE_FRAMETIME:").append(std::to_string(aveFrameTimeSteady))
+            .append("#MAX_SEQ_MISSED_FRAMES:").append(std::to_string(jankFrames.maxSeqMissedFrames_))
+            .append("#IS_FOLD_DISP:").append(IS_FOLD_DISP ? "true" : "false")
+            .append("#BUNDLE_NAME_EX:").append(info.note)
+            .append("#MAX_HITCH_TIME:").append(std::to_string(static_cast<uint64_t>(jankFrames.maxHitchTime_)))
+            .append("#MAX_HITCH_TIME_SINCE_START:").append(std::to_string(static_cast<uint64_t>(maxHitchTimeFromStart)))
+            .append("#DURATION:").append(std::to_string(static_cast<uint64_t>(duration)))
+            .append("#MAX_FRAME_REFRESH_RATE:").append(std::to_string(jankFrames.maxFrameRefreshRate_))
+            .append("#SHADER_TIME:").append(shaderTimeStr)
+            .append("#JANK_COUNT:").append(GetJankCountStr(jankFrames.jankCount_));
+        HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(static_cast<int32_t>(HiviewDFX::DomainId::RS),
+            static_cast<int32_t>(HiviewDFX::RsEventCode::GRAPHIC_INTERACTION_RENDER_JANK), msg);
     });
 }
 
@@ -762,7 +796,6 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
         return;
     }
     const auto &info = jankFrames.info_;
-    // The first frame of animation does not participate in average frame time calculation
     float aveFrameTimeSteady = jankFrames.lastTotalFrames_ > 1 ?
         jankFrames.lastTotalFrameTimeSteady_ / static_cast<float>(jankFrames.lastTotalFrames_ - 1) : 0;
     bool isReportTaskDelayed = true;
@@ -780,24 +813,30 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
         jankFrames.lastMaxFrameRefreshRate_, GetSceneDescription(info).c_str(), shaderTimeStr.c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart,
- 	    maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
-        RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
-            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
-            "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
-            "PAGE_URL", info.pageUrl, "TOTAL_FRAMES", jankFrames.lastTotalFrames_,
-            "TOTAL_MISSED_FRAMES", jankFrames.lastTotalMissedFrames_,
-            "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.lastMaxFrameTimeSteady_),
-            "MAX_TECH_FRAMETIME", static_cast<uint64_t>(jankFrames.lastMaxTechFrameTimeSteady_),
-            "MAX_REAL_FRAMETIME", static_cast<uint64_t>(jankFrames.lastMaxRealFrameTimeSteady_),
-            "MAX_FRAMETIME_SINCE_START", static_cast<uint64_t>(maxFrameTimeFromStart),
-            "AVERAGE_FRAMETIME", aveFrameTimeSteady, "MAX_SEQ_MISSED_FRAMES", jankFrames.lastMaxSeqMissedFrames_,
-            "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note,
-            "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.lastMaxHitchTime_),
-            "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
-            "DURATION", static_cast<uint64_t>(duration),
-            "MAX_FRAME_REFRESH_RATE", static_cast<int32_t>(jankFrames.lastMaxFrameRefreshRate_),
-            "SHADER_TIME", shaderTimeStr, "JANK_COUNT", GetJankCountStr(jankFrames.lastJankCount_));
+        maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
+        RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread uses NotifyToXperf");
+        std::string msg;
+        msg.append("#UNIQUE_ID:").append(std::to_string(info.uniqueId)).append("#SCENE_ID:").append(info.sceneId)
+            .append("#PROCESS_NAME:").append(info.processName).append("#MODULE_NAME:").append(info.bundleName)
+            .append("#ABILITY_NAME:").append(info.abilityName).append("#PAGE_URL:").append(info.pageUrl)
+            .append("#TOTAL_FRAMES:").append(std::to_string(jankFrames.lastTotalFrames_))
+            .append("#TOTAL_MISSED_FRAMES:").append(std::to_string(jankFrames.lastTotalMissedFrames_))
+            .append("#MAX_FRAMETIME:").append(std::to_string(static_cast<uint64_t>(jankFrames.lastMaxFrameTimeSteady_)))
+            .append("#MAX_TECH_FRAMETIME:").append(std::to_string(jankFrames.lastMaxTechFrameTimeSteady_))
+            .append("#MAX_REAL_FRAMETIME:").append(std::to_string(jankFrames.lastMaxRealFrameTimeSteady_))
+            .append("#MAX_FRAMETIME_SINCE_START:").append(std::to_string(static_cast<uint64_t>(maxFrameTimeFromStart)))
+            .append("#AVERAGE_FRAMETIME:").append(std::to_string(aveFrameTimeSteady))
+            .append("#MAX_SEQ_MISSED_FRAMES:").append(std::to_string(jankFrames.lastMaxSeqMissedFrames_))
+            .append("#IS_FOLD_DISP:").append(IS_FOLD_DISP ? "true" : "false")
+            .append("#BUNDLE_NAME_EX:").append(info.note)
+            .append("#MAX_HITCH_TIME:").append(std::to_string(static_cast<uint64_t>(jankFrames.lastMaxHitchTime_)))
+            .append("#MAX_HITCH_TIME_SINCE_START:").append(std::to_string(static_cast<uint64_t>(maxHitchTimeFromStart)))
+            .append("#DURATION:").append(std::to_string(static_cast<uint64_t>(duration)))
+            .append("#MAX_FRAME_REFRESH_RATE:").append(std::to_string(jankFrames.lastMaxFrameRefreshRate_))
+            .append("#SHADER_TIME:").append(shaderTimeStr)
+            .append("#JANK_COUNT:").append(GetJankCountStr(jankFrames.lastJankCount_));
+        HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(static_cast<int32_t>(HiviewDFX::DomainId::RS),
+            static_cast<int32_t>(HiviewDFX::RsEventCode::GRAPHIC_INTERACTION_RENDER_JANK), msg);
     });
 }
 
