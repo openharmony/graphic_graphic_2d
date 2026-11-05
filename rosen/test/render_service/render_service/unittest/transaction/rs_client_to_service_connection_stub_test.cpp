@@ -8075,5 +8075,70 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOffE
     EXPECT_EQ(ret, ERR_OK);
 }
 
+/**
+ * @tc.name: CreateVirtualScreen_NullAgent
+ * @tc.desc: Test CreateVirtualScreen returns INVALID_SCREEN_ID with SCREEN_NOT_FOUND when
+ *           screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreen_NullAgent, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+ 
+    auto originalAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+ 
+    RSVirtualScreenOption option;
+    option.name = "nullAgent";
+    option.width = 100;
+    option.height = 100;
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(res, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::SCREEN_NOT_FOUND);
+ 
+    connection->screenManagerAgent_ = originalAgent;
+}
+ 
+/**
+ * @tc.name: CreateVirtualScreen_WithSurfaceSuccess
+ * @tc.desc: Test CreateVirtualScreen with a valid surface succeeds and errorCode is SUCCESS,
+ *           covering the NotifyRefreshRateEvent path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreen_WithSurfaceSuccess, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+ 
+    auto csurface = Surface::CreateSurfaceAsConsumer("StubSurfaceSuccess");
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+ 
+    RSVirtualScreenOption option;
+    option.name = "virtualWithSurface";
+    option.width = 320;
+    option.height = 180;
+    option.surface = psurface;
+    option.associatedScreenId = INVALID_SCREEN_ID;
+    option.flags = 0;
+    option.hdrMode = HDRMode::HDR_DYNAMIC;
+    int32_t errorCode = StatusCode::SCREEN_NOT_FOUND;
+    auto res = connection->CreateVirtualScreen(option, errorCode);
+    EXPECT_NE(res, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::SUCCESS);
+ 
+    connection->RemoveVirtualScreen(res);
+}
+
 } // namespace OHOS::Rosen
 #endif

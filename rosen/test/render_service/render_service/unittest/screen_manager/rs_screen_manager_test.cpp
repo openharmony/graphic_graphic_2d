@@ -4552,4 +4552,50 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_HdrDynamicAppliedToProperty, T
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
 }
+
+/*
+ * @tc.name: CreateVirtualScreen_NullErrorCodePointer
+ * @tc.desc: CreateVirtualScreen with nullptr errorCode still works (legacy call style),
+ *           covering the setError lambda no-op branch and the errorCode==nullptr init skip.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_NullErrorCodePointer, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->currentVirtualScreenNum_ = 0;
+ 
+    RSVirtualScreenOption option;
+    option.name = "nullErrorCode";
+    option.width = VIRTUAL_SCREEN_WIDTH;
+    option.height = VIRTUAL_SCREEN_HEIGHT;
+    option.surface = nullptr;
+    option.hdrMode = HDRMode::NONE;
+    // Pass nullptr errorCode — the setError lambda should be a no-op, no crash.
+    auto id = screenManager_->CreateVirtualScreen(option, nullptr);
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+    screenManager_->RemoveVirtualScreen(id);
+    usleep(SLEEP_TIME_US);
+}
+ 
+/*
+ * @tc.name: CreateVirtualScreen_NullErrorCodeInvalidArgs
+ * @tc.desc: CreateVirtualScreen with nullptr errorCode and invalid size returns INVALID_SCREEN_ID
+ *           without crash, covering the setError(INVALID_ARGUMENTS) no-op path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_NullErrorCodeInvalidArgs, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->currentVirtualScreenNum_ = 0;
+ 
+    RSVirtualScreenOption option;
+    option.name = "nullErrorCodeInvalid";
+    option.width = 68000;
+    option.height = 100;
+    option.surface = nullptr;
+    auto id = screenManager_->CreateVirtualScreen(option, nullptr);
+    EXPECT_EQ(id, INVALID_SCREEN_ID);
+}
 } // namespace OHOS::Rosen

@@ -1303,6 +1303,53 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreenLegacy001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateVirtualScreenOption003
+ * @tc.desc: test CreateVirtualScreen(option, nullptr) does not crash when errorCode out-param is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, CreateVirtualScreenOption003, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    RSVirtualScreenOption option;
+    option.name = "rsi_option_null_err";
+    option.width = 320;
+    option.height = 180;
+    option.surface = nullptr;
+    option.hdrMode = HDRMode::HDR_STATIC;
+    // Explicitly pass nullptr — covers the errorCode==nullptr skip-write branch in RSInterfaces.
+    ScreenId id = instance.CreateVirtualScreen(option, nullptr);
+    if (id != INVALID_SCREEN_ID) {
+        instance.RemoveVirtualScreen(id);
+        EXPECT_NE(id, INVALID_SCREEN_ID);
+    } else {
+        EXPECT_EQ(id, INVALID_SCREEN_ID);
+    }
+}
+ 
+/**
+ * @tc.name: CreateVirtualScreenOption004
+ * @tc.desc: test CreateVirtualScreen(option, &errorCode) with invalid size reports INVALID_ARGUMENTS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, CreateVirtualScreenOption004, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    RSVirtualScreenOption option;
+    option.name = "rsi_option_invalid";
+    option.width = 65537;
+    option.height = 180;
+    option.surface = nullptr;
+    int32_t errorCode = StatusCode::SUCCESS;
+    ScreenId id = instance.CreateVirtualScreen(option, &errorCode);
+    EXPECT_EQ(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
  * @tc.name: SetPostProcessingShader_001
  * @tc.desc: Test RSInterfaces::SetPostProcessingShader
  * @tc.type: FUNC

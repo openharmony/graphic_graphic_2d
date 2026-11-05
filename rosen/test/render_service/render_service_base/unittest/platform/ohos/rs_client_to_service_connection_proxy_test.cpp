@@ -2911,5 +2911,91 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, CreateVirtualScreen_SendRequestFa
     EXPECT_EQ(id, INVALID_SCREEN_ID);
     EXPECT_EQ(errorCode, StatusCode::RS_CONNECTION_ERROR);
 }
+
+/**
+ * @tc.name: CreateVirtualScreen_ReadIdFailed
+ * @tc.desc: Verify errorCode is set to READ_PARCEL_ERR when reply lacks the id field
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, CreateVirtualScreen_ReadIdFailed, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+ 
+    // reply is empty, ReadUint64(id) fails before reaching ReadInt32(errorCode)
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+            return NO_ERROR;
+        });
+ 
+    RSVirtualScreenOption option;
+    option.name = "name";
+    option.width = 1;
+    option.height = 1;
+    option.hdrMode = HDRMode::HDR_DYNAMIC;
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto id = mockProxy->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::READ_PARCEL_ERR);
+}
+ 
+/**
+ * @tc.name: CreateVirtualScreen_WriteHdrModeWithSurface
+ * @tc.desc: Verify proxy writes surface (WriteBool(true)+WriteRemoteObject) when surface is non-null
+ *          and reads back id+errorCode successfully
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, CreateVirtualScreen_WriteHdrModeWithSurface, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+ 
+    auto csurface = IConsumerSurface::Create("ProxySurfaceTest");
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+ 
+    const ScreenId expectedId = 99999;
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel& data, MessageParcel& reply, MessageOption&) {
+            data.ReadInterfaceToken();
+            data.ReadString();  // name
+            data.ReadUint32(); // width
+            data.ReadUint32(); // height
+            bool useSurface = data.ReadBool();
+            EXPECT_TRUE(useSurface);
+            if (useSurface) {
+                data.ReadRemoteObject();
+            }
+            data.ReadUint64(); // associatedScreenId
+            data.ReadInt32(); // flags
+            std::vector<uint64_t> whiteList;
+            data.ReadUInt64Vector(&whiteList);
+            uint32_t hdrMode = 0;
+            EXPECT_TRUE(data.ReadUint32(hdrMode));
+            EXPECT_EQ(hdrMode, static_cast<uint32_t>(HDRMode::HDR_DYNAMIC));
+            reply.WriteUint64(expectedId);
+            reply.WriteInt32(StatusCode::SUCCESS);
+            return NO_ERROR;
+        });
+ 
+    RSVirtualScreenOption option;
+    option.name = "withSurface";
+    option.width = 100;
+    option.height = 100;
+    option.surface = psurface;
+    option.associatedScreenId = 1;
+    option.flags = 0;
+    option.hdrMode = HDRMode::HDR_DYNAMIC;
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto id = mockProxy->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(id, expectedId);
+    EXPECT_EQ(errorCode, StatusCode::SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS
