@@ -5043,7 +5043,21 @@ HWTEST_F(RSPropertiesTest, DumpColorNGFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::string dumpInfo = properties.Dump();
-    EXPECT_TRUE(dumpInfo.find("ColorNGFilter001") == std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") == std::string::npos);
+}
+
+/**
+ * @tc.name: DumpColorNGFilter002
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") != std::string::npos);
 }
 } // namespace Rosen
 } // namespace OHOS
