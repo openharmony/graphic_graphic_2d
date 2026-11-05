@@ -1144,16 +1144,16 @@ void RSJankStats::ClearAllAnimation()
 
 std::string RSJankStats::GetJankCountStr(const std::vector<int32_t>& jankCount) const
 {
-        std::stringstream jankStr;
-        jankStr << "[";
-        for (size_t i = 0; i < jankCount.size(); ++i) {
-            if (i > 0) {
-                jankStr << ",";
-            }
-            jankStr << jankCount[i];
+    std::stringstream jankStr;
+    jankStr << "[";
+    for (size_t i = 0; i < jankCount.size(); ++i) {
+        if (i > 0) {
+            jankStr << ",";
         }
-        jankStr << "]";
-        return jankStr.str();
+        jankStr << jankCount[i];
+    }
+    jankStr << "]";
+    return jankStr.str();
 }
 
 std::string RSJankStats::GetSceneDescription(const DataBaseRs& info) const

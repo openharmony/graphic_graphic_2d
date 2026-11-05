@@ -29,7 +29,6 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MEM_MAX_SIZE = 2;
 constexpr uint32_t MEM_SIZE_STRING_LEN = 10;
-constexpr uint32_t MEM_ADDR_STRING_LEN = 16;
 constexpr uint32_t MEM_TYPE_STRING_LEN = 16;
 constexpr uint32_t PIXELMAP_INFO_STRING_LEN = 36;
 constexpr uint32_t MEM_PID_STRING_LEN = 8;
@@ -68,7 +67,6 @@ void MemoryNodeOfPid::SetDrawableMemSize(size_t size)
 {
     drawableNodeSize_ += size;
 }
-
 
 size_t MemoryNodeOfPid::GetMemSize()
 {
@@ -444,9 +442,8 @@ std::string MemoryTrack::GenerateDumpTitle()
     std::string surfaceNode_title = Data2String("SurfaceName", MEM_SURNODE_STRING_LEN);
     std::string frame_title = Data2String("Frame", MEM_FRAME_STRING_LEN);
     std::string nid_title = Data2String("NodeId", MEM_NODEID_STRING_LEN);
-    std::string addr_tile = Data2String("Addr", MEM_ADDR_STRING_LEN);
     return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + wid_title + "\t" +
-        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title + "\t" + addr_tile;
+        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title;
 }
 
 std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::string& wName, RectI& nFrame)

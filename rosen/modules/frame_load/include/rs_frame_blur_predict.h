@@ -31,7 +31,7 @@ public:
     void TakeEffectBlurScene(const EventInfo& eventInfo);
     void UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
     void PredictDrawLargeAreaBlur(RSRenderNode& node);
- 
+
 private:
     RsFrameBlurPredict();
     ~RsFrameBlurPredict();

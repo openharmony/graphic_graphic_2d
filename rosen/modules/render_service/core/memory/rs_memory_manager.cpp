@@ -109,7 +109,7 @@ constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
 const bool IS_BETA = RSSystemProperties::GetVersionType() == "beta";
 constexpr size_t GPU_REPORT_INTERVAL = 60;   // 60s
-constexpr size_t MAX_BYTES_LIMIT = 5 * 1024 * 1024;     // max string size: 5MB
+constexpr size_t MAX_BYTES_LIMIT = 5 * 1024 * 1024;    // max string size: 5MB
 constexpr size_t QUOTA_SCREEN_OFF_AND_CHARGE = 4;
 constexpr uint32_t POSTTASK_DELAY_TIME = 1000; // 1000ms
 constexpr uint64_t QUOTA_FAULT_TYPE = 0x400;

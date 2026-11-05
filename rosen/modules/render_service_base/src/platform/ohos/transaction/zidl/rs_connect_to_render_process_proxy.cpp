@@ -20,9 +20,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
-
+RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl) :
+    IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcessProxy::CreateRenderConnection(
     uint64_t tokenMaskId, const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
