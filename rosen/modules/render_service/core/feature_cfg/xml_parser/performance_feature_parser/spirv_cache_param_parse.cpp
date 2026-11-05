@@ -30,7 +30,11 @@ int32_t SpirvCacheParamParse::ParseFeatureParam(FeatureParamMapType &featureMap,
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        ParseSpirvCacheInternal(*currNode);
+
+        if (ParseSpirvCacheInternal(*currNode) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("SpirvCacheParamParse stop parsing, parse internal fail");
+            return PARSE_INTERNAL_FAIL;
+        }
     }
     RS_LOGI("SpirvCacheParamParse end, spirvCacheSize: %{public}s",
         SpirvCacheParam::GetSpirvCacheSize().c_str());
