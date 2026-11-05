@@ -145,7 +145,7 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
 {
     if (vaddr == nullptr || sendFd_ < 0) {
         LOGE("%{public}s failed, param is invalid", __func__);
-        return -1;
+        return ERRNO_OTHER;
     }
     ssize_t length = TEMP_FAILURE_RETRY(send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL));
     if (length <= 0) {
