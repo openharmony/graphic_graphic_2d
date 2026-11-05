@@ -73,7 +73,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         "hilog:libhilog",
         "init:libbegetutil",
     ]
-  }
+}
     configs += ddgr_compiler_src_set.configs
 
     deps = [ ":generate_shader_register_code" ]
