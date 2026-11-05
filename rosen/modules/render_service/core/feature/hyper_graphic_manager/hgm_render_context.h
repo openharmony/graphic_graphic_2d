@@ -69,6 +69,9 @@ public:
 
 private:
     void HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext);
+    bool IsShellAssistantAncoGameNode(const std::string& nodeName) const;
+    void EvaluateAdaptiveVsyncNodes(const std::shared_ptr<RSContext>& rsContext,
+        bool& isGameSelfNodeOnTree, bool& isOtherSelfNodeOnTree) const;
 
     bool hgmAbilityEnabled_ = true;
     const sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
