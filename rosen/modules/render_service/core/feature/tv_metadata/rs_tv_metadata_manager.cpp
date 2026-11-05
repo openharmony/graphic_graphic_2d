@@ -38,8 +38,8 @@ constexpr uint8_t VIDEO_PLAYING_SCENE = 1;
 constexpr uint8_t VIDEO_PLAYING_NO_AIHDR_SCENE = 2;
 constexpr uint8_t PRIORITY_FOR_FULLSCREEN = 2;
 constexpr uint8_t PRIORITY_FOR_SMALLSCREEN = 1;
-constexpr uint8_t PRIORITY_FOR_VPE = 1;
 constexpr uint8_t PRIORITY_FOR_VIDEO_EFFECT = 4;
+constexpr uint8_t PRIORITY_FOR_VPE = 1;
 constexpr uint8_t RESERVED_INDEX_FOR_NODE_ID = 0;
 constexpr uint8_t RESERVED_INDEX_FOR_CACHE = 1;
 constexpr uint8_t RESERVED_INDEX_FOR_DIM = 2;
@@ -146,6 +146,7 @@ void RSTvMetadataManager::UpdateTvMetadata(const RSSurfaceRenderParams& params, 
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = 0;
     info.reserved[RESERVED_INDEX_FOR_NODE_ID] = static_cast<uint8_t>(params.GetId());
+    info.reserved[RESERVED_INDEX_FOR_DIM] = videoDimType_ & 0x0f;
     sptr<SurfaceBuffer> mutableBuffer = buffer;
     static_cast<void>(MetadataHelper::SetVideoTVMetadata(mutableBuffer, info));
 }
