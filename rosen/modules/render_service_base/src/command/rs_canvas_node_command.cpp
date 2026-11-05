@@ -37,7 +37,9 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     std::shared_ptr<RSCanvasRenderNode> node;
     if (isSceneBoard) {
-        node = CreateRSCanvasRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
+        // TODO: SceneBoard-specific creation policy
+        node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
+            context.weak_from_this(), isTextureExportNode);
     } else {
         node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
             context.weak_from_this(), isTextureExportNode);

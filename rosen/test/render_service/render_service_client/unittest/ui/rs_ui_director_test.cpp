@@ -1897,4 +1897,47 @@ HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeSkipGroupAnimationNode, TestSize.Lev
     EXPECT_EQ(canvasNode->GetNodeState(), stateBefore);
 }
 
+
+/**
+ * @tc.name: MarkAsSceneBoard001
+ * @tc.desc: MarkAsSceneBoard sets the context flag and is idempotent on repeat calls.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, MarkAsSceneBoard001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto context = director->GetRSUIContext();
+    ASSERT_NE(context, nullptr);
+    EXPECT_FALSE(context->IsSceneBoard());
+
+    director->MarkAsSceneBoard();
+    EXPECT_TRUE(context->IsSceneBoard());
+
+    director->MarkAsSceneBoard();
+    EXPECT_TRUE(context->IsSceneBoard());
+}
+
+/**
+ * @tc.name: MarkAsSceneBoard002
+ * @tc.desc: Init takes the safety-net re-send branch when a second director is created
+ *           over an already-marked shared context (mark precedes this director's GoCreate).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, MarkAsSceneBoard002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> directorA = CreateRSUIDirector();
+    ASSERT_NE(directorA, nullptr);
+    directorA->MarkAsSceneBoard();
+    auto context = directorA->GetRSUIContext();
+    ASSERT_NE(context, nullptr);
+
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    ASSERT_NE(connectToRender, nullptr);
+    std::shared_ptr<RSUIDirector> directorB = RSUIDirector::Create(connectToRender, context);
+    ASSERT_NE(directorB, nullptr);
+    EXPECT_TRUE(context->IsSceneBoard());
+}
+
 } // namespace OHOS::Rosen

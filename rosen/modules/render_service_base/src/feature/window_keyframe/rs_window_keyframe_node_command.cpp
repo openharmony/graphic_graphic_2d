@@ -32,13 +32,8 @@ void RSWindowKeyFrameNodeCommandHelper::Create(
         return;
     }
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
-    RSWindowKeyFrameRenderNode::SharedPtr node;
-    if (isSceneBoard) {
-        node = CreateWindowKeyFrameRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
-    } else {
-        node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
-            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    }
+    auto node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     if (node == nullptr) {
         RS_LOGE("RSWindowKeyFrameNodeCommand Alloc render node object failed");
         return;

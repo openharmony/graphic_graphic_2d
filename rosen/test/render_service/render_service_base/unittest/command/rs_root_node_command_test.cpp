@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_root_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_root_render_node.h"
 #include "include/pipeline/rs_surface_render_node.h"
@@ -198,4 +199,26 @@ HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest003, TestSize.Level1)
     RootNodeCommandHelper::AttachToUniSurfaceNode(context, childId, parentId);
     EXPECT_TRUE(context.GetMutableNodeMap().UnRegisterUnTreeNode(parentId));
 }
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRootNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 811;
+    constexpr uint64_t token = 812;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    RootNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
+}
+
 } // namespace OHOS::Rosen

@@ -32,13 +32,8 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
         return;
     }
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
-    std::shared_ptr<RSCanvasDrawingRenderNode> node;
-    if (isSceneBoard) {
-        node = CreateCanvasDrawingRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
-    } else {
-        node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
-            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    }
+    auto node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }

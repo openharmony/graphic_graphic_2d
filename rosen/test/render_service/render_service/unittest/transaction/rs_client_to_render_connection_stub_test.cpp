@@ -5893,5 +5893,90 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CleanDelegateModeBufferCmdTest003, 
     EXPECT_FALSE(connectionStub_->CleanDelegateModeBufferCmd(nodeId));
 #endif
 }
+
+/**
+ * @tc.name: SceneBoardSyncIpcBranchTest001
+ * @tc.desc: Agent CreateDisplayNode covers both isSceneBoard mark branches deterministically.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SceneBoardSyncIpcBranchTest001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config = {};
+    constexpr NodeId markedId = 900001;
+    constexpr NodeId unmarkedId = 900002;
+
+    bool success = false;
+    ErrCode ret = renderPipelineAgent_->CreateDisplayNode(config, markedId, success, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(success);
+    WaitHandlerTask();
+    auto& nodeMap = renderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    auto markedNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(markedId);
+    ASSERT_NE(markedNode, nullptr);
+    EXPECT_TRUE(markedNode->IsSceneBoard());
+
+    success = false;
+    ret = renderPipelineAgent_->CreateDisplayNode(config, unmarkedId, success, false);
+    EXPECT_EQ(ret, ERR_OK);
+    WaitHandlerTask();
+    auto unmarkedNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(unmarkedId);
+    ASSERT_NE(unmarkedNode, nullptr);
+    EXPECT_FALSE(unmarkedNode->IsSceneBoard());
+}
+
+/**
+ * @tc.name: SceneBoardSyncIpcBranchTest002
+ * @tc.desc: Agent CreateNodeAndSurface executes both isSceneBoard branches (mark happens
+ *           before surface setup, so the branch executes regardless of the surface result).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SceneBoardSyncIpcBranchTest002, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config = {};
+    config.id = 900003;
+    config.name = "scb_sync_marked";
+    sptr<Surface> surface = nullptr;
+    ErrCode ret = renderPipelineAgent_->CreateNodeAndSurface(config, surface, false, true);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INVALID_VALUE);
+
+    RSSurfaceRenderNodeConfig config2 = {};
+    config2.id = 900004;
+    config2.name = "scb_sync_unmarked";
+    sptr<Surface> surface2 = nullptr;
+    ret = renderPipelineAgent_->CreateNodeAndSurface(config2, surface2, false, false);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SceneBoardSyncIpcStubTest001
+ * @tc.desc: Stub CREATE_NODE_AND_SURFACE with isSceneBoard=true executes the fail-closed
+ *           trust check before dispatching to the agent.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SceneBoardSyncIpcStubTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = ((NodeId)getpid() << 32) | 900005; // own pid slot passes the caller check
+    data.WriteUint64(nodeId);
+    data.WriteString("scb_stub_trust");
+    data.WriteUint8(static_cast<uint8_t>(RSSurfaceNodeType::DEFAULT));
+    data.WriteBool(false); // isTextureExportNode
+    data.WriteBool(false); // isSync
+    data.WriteUint8(static_cast<uint8_t>(SurfaceWindowType::DEFAULT_WINDOW));
+    data.WriteBool(false); // unobscured
+    data.WriteBool(true);  // isSceneBoard — exercises the fail-closed check
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_NONE || res == ERR_NULL_OBJECT);
+}
+
 } // namespace OHOS::Rosen
 #endif

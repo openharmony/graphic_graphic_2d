@@ -35,13 +35,8 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
         return;
     }
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
-    std::shared_ptr<RSRootRenderNode> node;
-    if (isSceneBoard) {
-        node = CreateRootRenderNodeForSceneBoard(id, context.weak_from_this(), isTextureExportNode);
-    } else {
-        node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
-            context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
-    }
+    auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,
+        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     node->ApplyInstanceIdentity(token, isSceneBoard);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         RS_LOGE("RootNodeCommandHelper::Create after add, id:%{public}" PRIu64, id);

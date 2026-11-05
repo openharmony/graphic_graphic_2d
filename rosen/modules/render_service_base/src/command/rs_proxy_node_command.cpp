@@ -36,13 +36,8 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
     // PLANNING: if we run in RS and target not found, we should display a warning
     auto targetNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(targetId);
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
-    std::shared_ptr<RSProxyRenderNode> node;
-    if (isSceneBoard) {
-        node = CreateProxyRenderNodeForSceneBoard(id, targetNode, targetId, context.weak_from_this());
-    } else {
-        node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,
-            targetNode, targetId, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    }
+    auto node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,
+        targetNode, targetId, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }

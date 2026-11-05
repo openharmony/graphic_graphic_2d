@@ -59,13 +59,8 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
         config.ToString().c_str());
 
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
-    std::shared_ptr<RSLogicalDisplayRenderNode> node;
-    if (isSceneBoard) {
-        node = CreateLogicalDisplayRenderNodeForSceneBoard(id, config, context.weak_from_this());
-    } else {
-        node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
-            config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    }
+    auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
+        config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     node->ApplyInstanceIdentity(token, isSceneBoard);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);

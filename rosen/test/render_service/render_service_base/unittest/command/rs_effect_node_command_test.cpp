@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "command/rs_effect_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_effect_render_node.h"
 
@@ -49,5 +50,26 @@ HWTEST_F(EffectNodeCommandTest, Create, TestSize.Level1)
     EffectNodeCommandHelper::Create(context, nodeId);
     EXPECT_TRUE(nodeId != -1);
 }
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001 * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 812;
+    constexpr uint64_t token = 813;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    EffectNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSEffectRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
+}
+
 } // namespace Rosen
 } // namespace OHOS

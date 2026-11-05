@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_canvas_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -250,6 +251,28 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposerModifierTypeOutOfRa
     bool res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, outOfRangeType);
     EXPECT_FALSE(res);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 810;
+    constexpr uint64_t token = 811;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
 }
 
 } // namespace OHOS::Rosen
