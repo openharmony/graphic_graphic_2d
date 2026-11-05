@@ -173,6 +173,8 @@ public:
 
     void SetParam(const std::string& name, const std::string& value) override;
 
+    void SetParam(const std::unordered_map<std::string, std::string>& params) override;
+
     void SetTextCacheEnforced(bool isEnforced) override;
 private:
     sk_sp<GrDirectContext> grContext_;

@@ -66,6 +66,9 @@ enum class ScreenPropertyType : uint32_t {
     IS_HDI_ROG_ENABLE,
     DUAL_SCREEN_STATE,
     SAMPLING_MODE,
+    VIRTUAL_SCREEN_HDR_MODE,
+    SKIP_COLOR_SPACE_CONVERSION,
+    POST_PROCESSING_SHADER,
 
     SCREEN_PROPERTY_TYPE_SIZE,  // record num of property type
 };
@@ -137,6 +140,7 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
 // Multi-surface virtual screen: vector of surface+region configs
 #ifndef ROSEN_CROSS_PLATFORM
@@ -151,6 +155,9 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::DUAL_SCREEN_STATE,
     uint64_t, static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_EXIT));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SAMPLING_MODE,
     uint32_t, static_cast<uint32_t>(ScreenSamplingMode::DEVICE_DSS));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE,
+    uint32_t, static_cast<uint32_t>(HDRMode::NONE));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::POST_PROCESSING_SHADER, std::vector<uint8_t>, std::vector<uint8_t>());
 
 class ScreenPropertyBase : public Parcelable {
 public:
@@ -213,6 +220,7 @@ public:
     float GetSamplingTranslateY() const;
     float GetSamplingScale() const;
     ScreenColorGamut GetScreenColorGamut() const;
+    HDRMode GetVirtualScreenHDRMode() const;
     ScreenGamutMap GetScreenGamutMap() const;
     ScreenState GetState() const;
     ScreenRotation GetScreenCorrection() const;
@@ -250,6 +258,7 @@ public:
     bool GetDisablePowerOffRenderControl() const;
     bool IsScreenSwitching() const;
     Gravity GetFrameGravity() const;
+    bool GetSkipColorSpaceConversion() const;
     bool IsMainScreen() const;
     bool IsRogResolution() const;
     bool GetHdiRogEnable() const;
@@ -257,6 +266,7 @@ public:
     {
         return static_cast<ScreenSamplingMode>(Get<ScreenPropertyType::SAMPLING_MODE>());
     }
+    std::vector<uint8_t> GetPostProcessingShader() const;
 
     ScreenInfo GetScreenInfo() const;
 

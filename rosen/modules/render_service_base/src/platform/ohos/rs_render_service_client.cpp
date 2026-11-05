@@ -1070,6 +1070,24 @@ int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return clientToService->SetScreenColorGamut(id, modeIdx);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSRenderServiceClient::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->GetVirtualScreenHDRMode(id, mode);
+}
+
 int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
@@ -1086,6 +1104,16 @@ int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation s
         return RENDER_SERVICE_NULL;
     }
     return clientToService->SetScreenCorrection(id, screenRotation);
+}
+
+int32_t RSRenderServiceClient::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetPostProcessingShader: clientToService is nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetPostProcessingShader(id, param);
 }
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
@@ -1367,6 +1395,15 @@ void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
         return;
     }
     clientToService->SetScreenFrameGravity(id, gravity);
+}
+
+void RSRenderServiceClient::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return;
+    }
+    clientToService->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 class CustomHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub

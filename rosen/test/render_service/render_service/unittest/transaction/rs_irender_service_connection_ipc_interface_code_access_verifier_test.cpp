@@ -59,6 +59,27 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfa
     code = static_cast<CodeUnderlyingType>(
         RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_UNI_RENDER_ENABLED);
     ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_POST_PROCESSING_SHADER);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+}
+
+/**
+ * @tc.name: IsInterfaceCodeAccessibleVirtualScreenHDRModeTest001
+ * @tc.desc: verify SET_VIRTUAL_SCREEN_HDR_MODE and GET_VIRTUAL_SCREEN_HDR_MODE are system-calling codes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest,
+    IsInterfaceCodeAccessibleVirtualScreenHDRModeTest001, testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
 }
 
 /**
@@ -396,6 +417,22 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
     auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
         RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
+}
+
+/**
+ * @tc.name: BlurPixelMapVerifier
+ * @tc.desc: test BLUR_PIXEL_MAP permission checking is enforced via IsSystemCalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, BlurPixelMapVerifier,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }

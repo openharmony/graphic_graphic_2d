@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "property/rs_effect_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_spatial_effect_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
-#include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
@@ -386,6 +386,16 @@ public:
     {
         return clipRRect_ && !clipRRect_->rect_.IsEmpty();
     }
+    void SetClipShape(const RRect& clipShape);
+    void ResetClipShape();
+    const std::shared_ptr<RRect>& GetClipShape() const
+    {
+        return clipShape_;
+    }
+    bool GetClipToShape() const
+    {
+        return clipShape_ != nullptr;
+    }
     void SetClipBounds(const std::shared_ptr<RSPath>& path);
     const std::shared_ptr<RSPath>& GetClipBounds() const
     {
@@ -453,13 +463,6 @@ public:
     bool HasHarmonium() const;
     bool HasSpatialGlassEffect() const;
     bool HasGlassEffect() const;
-
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
-    void ClearFilterCache();
-#endif
-
-    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
 
     // ---------------------------- filter effect delegations ---------------------------- //
     // material filter
@@ -612,6 +615,7 @@ public:
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowDisableSDFBlur(bool disable);
+    void SetShadowClipType(int clipType);
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowMaskValid() const;
     bool IsShadowValid() const;
@@ -625,6 +629,7 @@ public:
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
     bool GetShadowDisableSDFBlur() const;
+    int GetShadowClipType() const;
 
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 
@@ -772,6 +777,7 @@ public:
 
     void SetColorfulBrightnessBlenderParams(std::unique_ptr<RSColorfulBrightnessBlenderPara> params);
     const RSColorfulBrightnessBlenderPara* GetColorfulBrightnessBlenderParams() const;
+    bool GetColorfulBrightnessBlenderEnableEDR() const;
     bool IsColorfulBrightnessBlenderValid() const;
     std::string GetColorfulBrightnessBlenderDescription() const;
     template <typename T>
@@ -1010,6 +1016,7 @@ private:
     bool hasGlassEffect_ = false;
     bool alphaOffscreen_ = false;
     std::unique_ptr<RRect> clipRRect_;
+    std::shared_ptr<RRect> clipShape_ = nullptr;
     bool alphaNeedApply_ = false;
     bool localMagnificationCap_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode
@@ -1062,12 +1069,6 @@ private:
 
     Drawing::Matrix prevAbsMatrix_;
 
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void CreateFilterCacheManagerIfNeed();
-    std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
-    std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static bool filterCacheEnabled_;
-#endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
 

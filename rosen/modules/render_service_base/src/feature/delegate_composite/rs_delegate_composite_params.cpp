@@ -23,32 +23,26 @@ RsDelegateCompositeParams::RsDelegateCompositeParams(std::string name, NodeId no
     nodeId_ = nodeId;
 }
 
-void RsDelegateCompositeParams::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+void RsDelegateCompositeParams::SetDelegateDstRect(const RectF& delegateDstRect)
 {
-    delegateDstRect_.x_ = positionX;
-    delegateDstRect_.y_ = positionY;
-    delegateDstRect_.z_ = positionZ;
-    delegateDstRect_.w_ = positionW;
-    RS_TRACE_NAME_FMT("RsDelegateCompositeParams::SetDelegateDstRect: rect=[%.2f, %.2f, %.2f, %.2f], name=%s",
-        positionX, positionY, positionZ, positionW, name_.c_str());
+    delegateDstRect_ = delegateDstRect;
+    RS_TRACE_NAME_FMT("RsDelegateCompositeParams::SetDelegateDstRect: rect=[%s], name=%s",
+        delegateDstRect.ToString().c_str(), name_.c_str());
 }
 
-const Vector4f& RsDelegateCompositeParams::GetDelegateDstRect()
+const RectF& RsDelegateCompositeParams::GetDelegateDstRect()
 {
     return delegateDstRect_;
 }
 
-void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+void RsDelegateCompositeParams::SetDelegateSrcRect(const RectF& delegateSrcRect)
 {
-    delegateSrcRect_.x_ = positionX;
-    delegateSrcRect_.y_ = positionY;
-    delegateSrcRect_.z_ = positionZ;
-    delegateSrcRect_.w_ = positionW;
-    RS_TRACE_NAME_FMT("RsDelegateCompositeParams::SetDelegateSrcRect: rect=[%.2f, %.2f, %.2f, %.2f], name=%s",
-        positionX, positionY, positionZ, positionW, name_.c_str());
+    delegateSrcRect_ = delegateSrcRect;
+    RS_TRACE_NAME_FMT("RsDelegateCompositeParams::SetDelegateSrcRect: rect=[%s], name=%s",
+        delegateSrcRect.ToString().c_str(), name_.c_str());
 }
 
-const Vector4f& RsDelegateCompositeParams::GetDelegateSrcRect()
+const RectF& RsDelegateCompositeParams::GetDelegateSrcRect()
 {
     return delegateSrcRect_;
 }

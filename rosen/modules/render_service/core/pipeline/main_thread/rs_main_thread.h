@@ -73,6 +73,8 @@ class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 class RSVirtualScreenParallelManager;
+class RSProcessor;
+class RSSurfaceRenderNode;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -283,7 +285,7 @@ public:
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
-    void ClearInheritedProperties(pid_t pid);
+    void ClearPersistentProperties(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -469,7 +471,13 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
+    void ColorPickerNoticedNodeDirtyCallback(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
+
+    // Query bundleName by pid, used by base-layer commands (e.g. RecreateNodeAndSurface)
+    // to compensate bundleName lost during rebuild. RSMainThread is a singleton, no UAF risk.
+    std::string QueryBundleName(pid_t pid);
+    void RemoveBundleNameFromCache(pid_t pid);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -603,6 +611,8 @@ private:
     uint32_t GetForceCommitReason() const;
 
     void TraverseCanvasDrawingNodes();
+    void CheckDrawOpOverLimit();
+    void CheckCommandOverLimit(const std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool CheckIfNeedSplitTransaction();
 
     void SetFocusLeashWindowId();
@@ -655,6 +665,10 @@ private:
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    // SolidLayerEnabled node without buffer: create solid color layer directly and return true;
+    // Otherwise return false to fall through to the buffer-based path.
+    bool ProcessSolidLayerInDirectComposition(
+        RSSurfaceRenderNode& surfaceNode, RSSurfaceHandler& surfaceHandler, RSProcessor& processor);
     bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
@@ -678,7 +692,8 @@ private:
 
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
     bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
-    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor,
+        std::set<NodeId>& quickPrepareNodeIds);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();
     void ProcessDelegateCompositeCommand();
@@ -908,6 +923,8 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiUnobscuredExtensionListenners_ = {};
 
     std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
+    std::unordered_map<pid_t, int64_t> lastDrawOpReportTimeMap_;
+    std::unordered_map<pid_t, int64_t> lastCommandReportTimeMap_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
@@ -960,6 +977,10 @@ private:
 
     // for protectiveSolidNode
     std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
+
+    // for QueryBundleName
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    std::mutex pidToBundleMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

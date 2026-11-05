@@ -277,9 +277,15 @@ public:
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
 
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode);
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode);
+
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);
+
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param);
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
@@ -325,6 +331,8 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion);
 
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 

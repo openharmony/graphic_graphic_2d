@@ -92,8 +92,8 @@
 #include <v1_0/buffer_handle_meta_key_type.h>
 #include <v1_0/cm_color_space.h>
 #endif
-
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 // hpae offline
@@ -341,9 +341,11 @@ void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node)
 
 void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
 {
+    bool skipColorSpaceConversion = true;
     RSScreenType screenType = node.GetScreenProperty().GetScreenType();
     if (screenType == VIRTUAL_TYPE_SCREEN) {
         HandleVirtualScreenColorGamut(node);
+        skipColorSpaceConversion = false;
     } else if (IsWiredMirrorScreen(node)) {
         HandleWiredMirrorScreenColorGamut(node);
     } else if (IsWiredExtendedScreen(node)) {
@@ -351,6 +353,22 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
     } else {
         HandleMainScreenColorGamut(node);
     }
+    HandleSkipColorSpaceConversion(node, skipColorSpaceConversion);
+}
+
+void RSUniRenderVisitor::HandleSkipColorSpaceConversion(RSScreenRenderNode& node, bool skipColorSpaceConversion)
+{
+    if (!skipColorSpaceConversion || !node.GetScreenProperty().GetSkipColorSpaceConversion()) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(node.GetStagingRenderParams().get());
+    if (screenParams != nullptr) {
+        screenParams->SetDstColorSpace(node.GetColorSpace());
+    }
+    RS_LOGD("set screen %{public}" PRIu64 " skip colorspace conversion, original colorspace: %{public}d",
+        node.GetScreenId(), node.GetColorSpace());
+    // set color gamut native according to screenId in order to skip color space conversion
+    node.SetColorSpace(GRAPHIC_COLOR_GAMUT_NATIVE);
 }
 
 void RSUniRenderVisitor::HandleVirtualScreenColorGamut(RSScreenRenderNode& node)
@@ -2919,6 +2937,9 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             }
             continue;
         }
+#if !defined(ROSEN_CROSS_PLATFORM) && defined(RS_ENABLE_DELEGATE_COMPOSITE)
+        RsDelegateCompositeCallbackManager::GetInstance().UpdateHardWareForcedDisabledStateForDelegateMode(hwcNodePtr);
+#endif
         bool isHdrSurface = RSHdrUtil::CheckIsHdrSurface(*hwcNodePtr) != HdrStatus::NO_HDR;
         bool isHardwareHdrDisabled = RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
@@ -2963,8 +2984,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             surfaceHandler->SetGlobalZOrder(globalZOrder_++);
         }
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*hwcNodePtr);
-
-        UpdateHardWareForcedDisabledStateForDelegateMode(hwcNodePtr, isHardwareForcedDisabled);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
     if (nodeMap.GetProtectiveSolidNodeMapSize() > 0) {
@@ -2986,23 +3005,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         });
     }
     curScreenNode_->SetDisplayGlobalZOrder(globalZOrder_);
-}
-
-void RSUniRenderVisitor::UpdateHardWareForcedDisabledStateForDelegateMode(
-    std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled)
-{
-    if (hwcNodePtr && hwcNodePtr->GetDelegateMode()) {
-        if (!isHardwareForcedDisabled.has_value() && hwcNodePtr->IsHardwareForcedDisabled() &&
-            hwcNodePtr->GetName() == "delegate_child_video") {
-            RS_TRACE_NAME_FMT("nodeId: %" PRIu64 ", is delegateMode, dss disabled", hwcNodePtr->GetId());
-            isHardwareForcedDisabled = hwcNodePtr->IsHardwareForcedDisabled();
-        } else if (isHardwareForcedDisabled.has_value() && !hwcNodePtr->IsHardwareForcedDisabled() &&
-                   hwcNodePtr->GetName() == "delegate_child") {
-            RS_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " is disabled by other delegateMode node",
-                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-            hwcNodePtr->SetHardwareForcedDisabledState(isHardwareForcedDisabled.value());
-        }
-    }
 }
 
 void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
@@ -3284,7 +3286,8 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
     if (hwcNodePtr->GetHwcGlobalPositionEnabled() ||
         hwcNodePtr->IsHwcCrossNode() ||
         surfaceNode->IsLayerTop() ||
-        surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED) ||
+        hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
         needForceUpdateHwcNodes = true;
         return;
@@ -3830,7 +3833,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         }
         bool hasUnstableOpincNode = false;
         RSOpincManager::Instance().QuickCheckOpincStable(
-            node, unchangeMarkInApp_, unchangeMarkEnable_, hasUnstableOpincNode);
+            node, unchangeMarkInApp_, unchangeMarkEnable_, hasUnstableOpincNode, HasAncestorRenderGroup(node.GetId()));
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
@@ -4863,6 +4866,8 @@ void RSUniRenderVisitor::PrepareColorPickers()
     const auto& nodeMap = ctx->GetContext().GetNodeMap();
     const auto& surfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
     const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
+    const bool rebuildEnabled =
+        RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::RebuildDebugEnabled();
 
     const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
     for (auto nodeId : colorPickerNodeIds) {
@@ -4872,7 +4877,7 @@ void RSUniRenderVisitor::PrepareColorPickers()
         if (!filterNode || !surfaceNode) {
             continue;
         }
-        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode());
+        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode(), rebuildEnabled);
         if (resetState) {
             // Reset to PREPARING state after color pick is complete
             PostColorPickerStateTask(filterNode->weak_from_this(), DrawableV2::ColorPickerState::PREPARING, 0);

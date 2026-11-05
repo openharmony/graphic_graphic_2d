@@ -50,6 +50,7 @@
 #include "screen_manager/screen_types.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/rs_screen.h"
+#include "multiscreen_param.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "render/rs_typeface_cache.h"
@@ -538,7 +539,278 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_TYPE)), ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test001
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE with an existing physical screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test001, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+
+    // physical screen: GetVirtualScreenHDRMode is rejected with SCREEN_TYPE_ERROR, the result is
+    // written and ret is ERR_UNKNOWN_REASON
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_UNKNOWN_REASON);
+    int32_t result = StatusCode::SUCCESS;
+    ASSERT_TRUE(reply.ReadInt32(result));
+    ASSERT_EQ(result, StatusCode::SCREEN_TYPE_ERROR);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test002
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE with a nonexistent screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test002, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+
+    // screen not found: result is written and ret is ERR_UNKNOWN_REASON
+    MessageParcel dataNotFound;
+    MessageParcel replyNotFound;
+    dataNotFound.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataNotFound.WriteUint64(INVALID_SCREEN_ID);
+    ASSERT_EQ(ERR_UNKNOWN_REASON, connectionStub_->OnRemoteRequest(code, dataNotFound, replyNotFound, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test003
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE when writing the result to the reply fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test003, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+
+    // reply write failed
+    MessageParcel dataWriteFail;
+    MessageParcel replyWriteFail;
+    replyWriteFail.writable_ = false;
+    replyWriteFail.data_ = nullptr;
+    dataWriteFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataWriteFail.WriteUint64(screenId_);
+    ASSERT_EQ(ERR_INVALID_REPLY, connectionStub_->OnRemoteRequest(code, dataWriteFail, replyWriteFail, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_GetVirtualScreenHDRMode_Test004
+ * @tc.desc: Test GET_VIRTUAL_SCREEN_HDR_MODE when the reply has room for the result but not the mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_GetVirtualScreenHDRMode_Test004, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+
+    // reply has room for the result but not for mode: fill the parcel leaving exactly 4 bytes
+    // (WriteUint32 writes 4 bytes). A virtual screen is required here: a physical screen is
+    // rejected with SCREEN_TYPE_ERROR before the mode is written.
+    constexpr size_t PARCEL_CAPACITY = 200 * 1024; // 200K, minimum capacity accepted by SetMaxCapacity
+    std::vector<uint8_t> fillBuffer(PARCEL_CAPACITY - 4, 0xFF);
+    MessageParcel dataWriteModeFail;
+    MessageParcel replyWriteModeFail;
+    replyWriteModeFail.SetMaxCapacity(PARCEL_CAPACITY);
+    ASSERT_TRUE(replyWriteModeFail.WriteBuffer(fillBuffer.data(), fillBuffer.size()));
+    dataWriteModeFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    constexpr ScreenId virtualScreenId = 0xFFFFFFFF;
+    VirtualScreenConfigs configs;
+    configs.id = virtualScreenId;
+    configs.name = "hdr_mode_ut";
+    configs.width = 0;
+    configs.height = 0;
+    configs.associatedScreenId = INVALID_SCREEN_ID;
+    auto virtualScreen = std::make_shared<RSScreen>(configs);
+    ASSERT_NE(virtualScreen, nullptr);
+    ASSERT_TRUE(virtualScreen->IsVirtual());
+    screenManager_->MockHdiScreenConnected(virtualScreen);
+    screenManagerAgent_->screenManager_ = screenManager_;
+    static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr())->screenManagerAgent_ = screenManagerAgent_;
+    dataWriteModeFail.WriteUint64(virtualScreenId);
+    int res = connectionStub_->OnRemoteRequest(code, dataWriteModeFail, replyWriteModeFail, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+    screenManager_->screens_.erase(virtualScreenId);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_SetVirtualScreenHDRMode_Test001
+ * @tc.desc: Test SET_VIRTUAL_SCREEN_HDR_MODE with valid parcel, invalid mode and failed reply
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_SetVirtualScreenHDRMode_Test001, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+
+    // id is read but mode is missing
+    MessageParcel dataNoMode;
+    MessageParcel replyNoMode;
+    dataNoMode.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataNoMode.WriteUint64(screenId_);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, dataNoMode, replyNoMode, option));
+
+    // mode is out of range: rejected before reaching the screen
+    MessageParcel dataInvalidMode;
+    MessageParcel replyInvalidMode;
+    dataInvalidMode.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataInvalidMode.WriteUint64(screenId_);
+    dataInvalidMode.WriteUint32(static_cast<uint32_t>(HDRMode::HDR_MODE_BUTT));
+    ASSERT_EQ(ERR_INVALID_DATA,
+        connectionStub_->OnRemoteRequest(code, dataInvalidMode, replyInvalidMode, option));
+
+    // physical screen: not a virtual screen, result is SCREEN_TYPE_ERROR
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(screenId_);
+    data.WriteUint32(static_cast<uint32_t>(HDRMode::HDR_DYNAMIC));
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+    int32_t result = StatusCode::SUCCESS;
+    ASSERT_TRUE(reply.ReadInt32(result));
+    ASSERT_EQ(result, StatusCode::SCREEN_TYPE_ERROR);
+
+    // reply write failed
+    MessageParcel dataWriteFail;
+    MessageParcel replyWriteFail;
+    replyWriteFail.writable_ = false;
+    replyWriteFail.data_ = nullptr;
+    dataWriteFail.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataWriteFail.WriteUint64(screenId_);
+    dataWriteFail.WriteUint32(static_cast<uint32_t>(HDRMode::HDR_DYNAMIC));
+    res = connectionStub_->OnRemoteRequest(code, dataWriteFail, replyWriteFail, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: VirtualScreenHDRModeNullAgentTest001
+ * @tc.desc: Test SetVirtualScreenHDRMode and GetVirtualScreenHDRMode of RSClientToServiceConnection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, VirtualScreenHDRModeNullAgentTest001, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    HDRMode mode = HDRMode::HDR_DYNAMIC;
+    // screenManagerAgent_ is nullptr: both return SCREEN_NOT_FOUND
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ASSERT_EQ(connection->SetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+    ASSERT_EQ(connection->GetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+    // forwarding to the agent: no screen for INVALID_SCREEN_ID
+    connection->screenManagerAgent_ = screenManagerAgent;
+    ASSERT_EQ(connection->SetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+    ASSERT_EQ(connection->GetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+}
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER interface code with valid parcel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUInt8Vector({ 1, 2, 3 });
+    MessageParcel reply;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_NONE);
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_002
+ * @tc.desc: Test RSClientToServiceConnection::SetPostProcessingShader when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+
+    connection->screenManagerAgent_ = nullptr;
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    EXPECT_EQ(connection->SetPostProcessingShader(1, param),
+        static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND));
+    connection->screenManagerAgent_ = screenManagerAgent;
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_003
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER interface code when reply is not writable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    MessageParcel reply;
+    reply.writable_ = false;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUInt8Vector({ 1, 2, 3 });
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_004
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER when ReadUInt8Vector fails by invalid (negative) length
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteInt32(-1);
+    MessageParcel reply;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -824,6 +1096,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+                  RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+                  RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
@@ -2628,6 +2904,62 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest003, TestS
     connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::INVALID_POWER_STATUS);
     RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
     connection->hgmContext_ = preHgmContext_;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest004
+ * @tc.desc: Test SetScreenPowerStatus when IsSkipScreenPowerOffing enabled and status is OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest004, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_OFF);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest005
+ * @tc.desc: Test SetScreenPowerStatus when status is not OFF, pre-power-off branch is skipped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest005, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_ON);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
+}
+
+/**
+ * @tc.name: SetScreenPowerStatusTest006
+ * @tc.desc: Test SetScreenPowerStatus when IsSkipScreenPowerOffing is false, pre-power-off branch is skipped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest006, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_OFF);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
 }
 
 /**
@@ -4691,6 +5023,49 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEventTest001, TestSize.
     sourceType = -1;
     data2.WriteInt32(sourceType);
     connectionStub_->OnRemoteRequest(code, data2, reply, option);
+}
+
+/**
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion when reading parcel fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSkipColorSpaceConversionTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetSkipColorSpaceConversionTest002
+ * @tc.desc: Test SetSkipColorSpaceConversion when reading parcel succeeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSkipColorSpaceConversionTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SKIP_COLOR_SPACE_CONVERSION);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(0);
+    data.WriteBool(true);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    connection->SetSkipColorSpaceConversion(INVALID_SCREEN_ID, true);
+    connection->screenManagerAgent_ = screenManagerAgent;
 }
 
 /**
@@ -7516,5 +7891,34 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetMemoryGraphicsByRenderPid002, T
     int32_t ret = connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_STATE);
 }
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOff
+ * @tc.desc: Test SetApsConfigParams with event == ApsEventType::SWIPER_BOOST_OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOff, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params = { { "SWIPER_BOOST_OFF", "TRUE" } };
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOffEmptyParams
+ * @tc.desc: Test SetApsConfigParams SWIPER_BOOST_OFF with empty params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOffEmptyParams, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params;
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 } // namespace OHOS::Rosen
 #endif

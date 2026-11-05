@@ -47,6 +47,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_base_node_command.h"
 #include "command_modifier/rs_node_command_modifier.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
@@ -1554,6 +1555,13 @@ public:
     void SetShadowDisableSDFBlur(bool disable);
 
     /**
+     * @brief Sets the clip type of the shadow.
+     *
+     * @param clipType Indicates the clip type of the shadow.
+     */
+    void SetShadowClipType(int clipType);
+    
+    /**
      * @brief Sets the gravity for the frame of this node.
      *
      * @param gravity The gravity value to apply.
@@ -1575,6 +1583,13 @@ public:
      * @param rrect A shared pointer to an RRect object that defines the clipping region.
      */
     void SetClipRRect(const std::shared_ptr<RRect>& rrect);
+
+    /**
+     * @brief Sets the clip shape for this node using an RRect (animatable).
+     *
+     * @param shape An RRect that defines width, height, and corner radius for clipping.
+     */
+    void SetClipShape(const RRect& shape);
 
     /**
      * @brief Sets the clipping bounds for this node using the specified path.
@@ -1940,8 +1955,24 @@ public:
      * @param needCallback Boolean flag to control callback triggering
      */
     static void SetNeedCallbackNodeChange(bool needCallback);
-    bool GetIsDrawn();
-    void SetDrawNode();
+
+    bool GetIsDrawn() const noexcept
+    {
+        return isDrawNode_;
+    }
+
+    void SetDrawNode()
+    {
+        if (isDrawNode_) {
+            return;
+        }
+        LoadRenderNodeIfNeed();
+        isDrawNode_ = true;
+        if (GetType() == RSUINodeType::CANVAS_NODE && drawNodeChangeCallback_ != nullptr) {
+            drawNodeChangeCallback_(shared_from_this(), false);
+        }
+    }
+
     DrawNodeType GetDrawNodeType() const;
     void SyncDrawNodeType(DrawNodeType nodeType);
 
@@ -2042,7 +2073,9 @@ public:
     void SetRSCmdProperty(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = GetRSCmdModifier(ModifierType::Type);
 
         if (modifier == nullptr) {
@@ -2070,7 +2103,9 @@ public:
     RSCmdModifier::UpdateResult SetRSCmdPropertyWithResult(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = GetRSCmdModifier(ModifierType::Type);
 
         if (modifier == nullptr) {
@@ -2170,6 +2205,9 @@ protected:
     void PushRSCmdModifierToQueue(const ParamType& param)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!GetIsDrawn() && ModifierType::CmdParamAffectsRendering(param)) {
+            SetDrawNode();
+        }
         auto modifier = std::make_shared<ModifierType>(weak_from_this(), param);
         rsCmdModifierQueue_.push_back(modifier);
     }

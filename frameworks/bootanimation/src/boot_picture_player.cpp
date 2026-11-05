@@ -14,6 +14,8 @@
  */
 #include "boot_picture_player.h"
 
+#include <algorithm>
+
 #include "event_handler.h"
 #include "log.h"
 #include "rs_trace.h"
@@ -69,7 +71,8 @@ void BootPicturePlayer::Play()
         .userData_ = this,
         .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
-    int32_t changeFreq = static_cast<int32_t> (1000.0 / freq_ / 16);
+    uint32_t baseRefreshRate = (refreshRate_ > 0) ? refreshRate_ : 60;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(baseRefreshRate / freq_));
     ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         LOGE("SetVSyncRate failed: %{public}d %{public}d", ret, freq_);
@@ -86,6 +89,7 @@ void BootPicturePlayer::InitPicCoordinates(Rosen::ScreenId screenId)
     Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(screenId);
     windowWidth_ = modeinfo.GetScreenWidth();
     windowHeight_ = modeinfo.GetScreenHeight();
+    refreshRate_ = modeinfo.GetScreenRefreshRate();
     if (windowWidth_ >= windowHeight_) {
         realHeight_ = windowHeight_;
         realWidth_ = realHeight_;

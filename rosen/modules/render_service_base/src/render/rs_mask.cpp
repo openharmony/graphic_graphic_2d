@@ -15,6 +15,8 @@
 
 #include "render/rs_mask.h"
 
+#include <securec.h>
+
 #include "include/core/SkPictureRecorder.h"
 #include "recording/recording_handle.h"
 #include "draw/pen.h"
@@ -276,6 +278,56 @@ bool RSMask::Marshalling(Parcel& parcel) const
     return true;
 }
 
+// Zero the vtable pointer at offset 0 of each OpItem in the arena before cross-process
+// marshalling. OpItem is polymorphic, so placement new writes a vptr into every object;
+// playback dispatches on the serialized type_ field and never dereferences the vptr, so it
+// is dead weight in the wire format and leaking it discloses the lib2d_graphics module
+// base address of the sending process.
+bool RSMask::SanitizeArenaVptrs(const Drawing::CmdListData& cmdListData) const
+{
+    constexpr size_t VPTR_SIZE = sizeof(void*);
+    // Sole ABI assumption: the Itanium C++ ABI puts the vptr of a single-inheritance polymorphic
+    // class at offset 0 regardless of member order. Keep OpItem polymorphic and single-inheritance.
+
+    const void* data = cmdListData.first;
+    size_t size = cmdListData.second;
+    if (size == 0) {
+        return true;
+    }
+    if (data == nullptr) {
+        return false;
+    }
+    if (size < sizeof(Drawing::OpItem)) {
+        return true; // too small to hold any OpItem, so no vptr can be present
+    }
+    char* arena = const_cast<char*>(static_cast<const char*>(data));
+    size_t offset = 0;
+    // Each non-zero link advances offset by at least sizeof(OpItem) and keeps it bounded by
+    // size, so the loop terminates without a counter.
+    do {
+        // Arena objects are genuinely constructed by MemAllocator::Allocate, so member access
+        // via OpItem* is well-defined; the compiler computes field offsets the same way the
+        // playback side does, instead of hard-coding them here.
+        auto* op = reinterpret_cast<const Drawing::OpItem*>(arena + offset);
+        size_t nextOffset = op->GetNextOpItemOffset();
+        if (memset_s(arena + offset, size - offset, 0, VPTR_SIZE) != EOK) {
+            return false;
+        }
+        // nextOffset == 0 is the chain-end signal and must bypass this validation. The upper
+        // bound of a non-zero link must be validated with subtraction: a garbage-huge nextOffset
+        // would wrap the addition in "nextOffset + sizeof(OpItem) <= size" and pass it, causing
+        // an out-of-bounds access, while "size - sizeof(OpItem)" cannot underflow because the
+        // size >= sizeof(OpItem) guard holds here. A corrupted chain (backward, overlapping or
+        // out-of-range) fails closed so no unscrubbed byte is sent.
+        if (nextOffset != 0 &&
+            (nextOffset < offset + sizeof(Drawing::OpItem) || nextOffset > size - sizeof(Drawing::OpItem))) {
+            return false;
+        }
+        offset = nextOffset;
+    } while (offset != 0); // 0 means the end of the op chain
+    return true;
+}
+
 bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
 {
     Drawing::CmdListData listData;
@@ -322,7 +374,9 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
     auto pathHandle = Drawing::CmdListHelper::AddPathToCmdList(*maskCmdList, *maskPath_);
     maskCmdList->AddOp<Drawing::MaskPathOpItem>(pathHandle);
 
-    if (!RSMarshallingHelper::Marshalling(parcel, maskCmdList)) {
+    // Strip vptrs from the arena before it leaves the process (see SanitizeArenaVptrs);
+    // a sanitize failure is pinpointed by SanitizeArenaVptrs's own logs.
+    if (!SanitizeArenaVptrs(maskCmdList->GetData()) || !RSMarshallingHelper::Marshalling(parcel, maskCmdList)) {
         ROSEN_LOGE("RSMask::MarshallingPathAndBrush failed!");
         return false;
     }

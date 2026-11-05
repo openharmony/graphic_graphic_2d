@@ -126,6 +126,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
     ADD_PROPERTY_TAG(FrostedGlassEffect, AntiAlias),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, WeightPow),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgRates),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgPos),
@@ -361,6 +362,7 @@ DECLARE_SHADER(SpatialGlassEffect, SPATIAL_GLASS_EFFECT,
     ADD_PROPERTY_TAG(SpatialGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(SpatialGlassEffect, EdLightNeg),
     ADD_PROPERTY_TAG(SpatialGlassEffect, AntiAliasing),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, AntiAliasing2d),
     ADD_PROPERTY_TAG(SpatialGlassEffect, SdfShape),
     ADD_PROPERTY_TAG(SpatialGlassEffect, DepthImage),
     ADD_PROPERTY_TAG(SpatialGlassEffect, EnableSDFCache)
@@ -387,4 +389,14 @@ DECLARE_SHADER(GlassEffect, GLASS_EFFECT,
     ADD_PROPERTY_TAG(GlassEffect, ShapeMask),
     ADD_PROPERTY_TAG(GlassEffect, ContentMask),
     ADD_PROPERTY_TAG(GlassEffect, ReflectionImage)
+);
+
+DECLARE_SHADER(CosmosRingShadow, COSMOS_RING_SHADOW,
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRingWidth),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadius),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowRadialOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, Softness),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowOffset),
+    ADD_PROPERTY_TAG(CosmosRingShadow, ShadowColor)
 );

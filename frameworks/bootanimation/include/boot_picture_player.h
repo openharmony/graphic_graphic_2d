@@ -51,6 +51,7 @@ private:
     int32_t pointY_ = 0;
     int32_t imgVecSize_ = 0;
     int32_t freq_ = 30;
+    uint32_t refreshRate_ = 0;
     ImageStructVec imageVector_;
 
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;

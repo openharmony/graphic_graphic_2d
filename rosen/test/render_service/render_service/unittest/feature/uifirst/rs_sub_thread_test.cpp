@@ -446,7 +446,7 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest002, TestS
     ASSERT_NE(nodeDrawable, nullptr);
 
     auto& subCache = nodeDrawable->GetRsSubThreadCache();
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     EXPECT_EQ(subCache.GetTargetColorGamut(), subCache.GetCacheSurfaceColorSpace());
@@ -480,10 +480,10 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest003, TestS
     ASSERT_NE(nodeDrawable, nullptr);
 
     auto& subCache = nodeDrawable->GetRsSubThreadCache();
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    
+
     bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
     EXPECT_TRUE(isColorSpaceChanged);
     EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
@@ -510,13 +510,13 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageBufferFormatAndColorSpaceTest,
     ASSERT_NE(nodeDrawable, nullptr);
 
     auto& subCache = nodeDrawable->GetRsSubThreadCache();
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    
+
     bool bufferColorSpaceChange = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
     EXPECT_FALSE(bufferColorSpaceChange);
-    
+
     subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     bufferColorSpaceChange = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
     EXPECT_TRUE(bufferColorSpaceChange);
@@ -560,10 +560,10 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageHDRColorSpaceChangeTest, TestS
     auto& subCache = nodeDrawable->GetRsSubThreadCache();
     subCache.SetHDRPresent(true);
     EXPECT_TRUE(subCache.GetHDRPresent());
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    
+
     bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
     EXPECT_TRUE(isColorSpaceChanged);
 }
@@ -590,21 +590,21 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageMultipleColorSpaceChangesTest,
 
     auto& subCache = nodeDrawable->GetRsSubThreadCache();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
-    
+
     subCache.isOcclusionEnabled_ = false;
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
-    
+
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);

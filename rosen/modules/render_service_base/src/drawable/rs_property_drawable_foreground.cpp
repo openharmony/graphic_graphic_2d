@@ -261,6 +261,7 @@ RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -276,10 +277,15 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSForegroundFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
+    // Skip empty bounds (also covers the default value before the first OnSync) to avoid
+    // creating a zero-sized offscreen surface in BeginOffscreen.
+    if (ROSEN_LE(boundsRect_.width_, 0.0f) || ROSEN_LE(boundsRect_.height_, 0.0f)) {
+        return;
+    }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE, renderNodeId_);
 #endif
     RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, boundsRect_);
 }
@@ -290,6 +296,7 @@ void RSForegroundFilterDrawable::OnSync()
         return;
     }
     boundsRect_ = stagingBoundsRect_;
+    renderNodeId_ = stagingNodeId_;
     needSync_ = false;
 }
 
@@ -321,11 +328,12 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     stagingForegroundFilter_ = rsFilter;
     stagingDrawRect_ = nullptr;
+    stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
 
     if (rsFilter->IsDrawingFilter()) {
         auto rsDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
         if (RSNGRenderFilterHelper::HasCustomRegion(rsDrawingFilter->GetNGRenderFilter())) {
-            auto boundsRect = node.GetRenderProperties().GetBoundsRect();
+            auto boundsRect = stagingBoundsRect_;
             // consistent with RSForegroundFilterDrawable's logic for creating offscreenSurface
             // (directly passing the bounds width and height to the MakeSurface()).
             boundsRect.width_ = int(boundsRect.GetWidth());
@@ -338,6 +346,11 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
+    // Must stay symmetric with RSForegroundFilterDrawable::OnDraw's skip condition (same bounds
+    // source and sync gating), so the offscreen setup and the filter restore are skipped together.
+    if (ROSEN_LE(boundsRect_.width_, 0.0f) || ROSEN_LE(boundsRect_.height_, 0.0f)) {
+        return;
+    }
     if (foregroundFilter_ && foregroundFilter_->IsDrawingFilter() && rect) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
         drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(), Drawing::Rect{},
@@ -347,7 +360,7 @@ void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Dr
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE, renderNodeId_);
 #endif
     RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::OnDraw node[%llu] ", renderNodeId_);
     std::optional<RectF> drawRect = drawRect_ == nullptr ? std::nullopt : std::optional<RectF>(*drawRect_);
@@ -366,6 +379,7 @@ void RSForegroundFilterRestoreDrawable::OnSync()
     }
     drawRect_ = stagingDrawRect_ != nullptr ?
         std::make_unique<RectF>(*stagingDrawRect_) : nullptr;
+    boundsRect_ = stagingBoundsRect_;
     needSync_ = false;
 }
 

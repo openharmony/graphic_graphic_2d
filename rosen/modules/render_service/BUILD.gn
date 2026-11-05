@@ -301,6 +301,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/uifirst_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/vrate_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/video_metadata_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/ddgr_config_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/capture_base_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/drm_param_parse.cpp",
@@ -335,6 +336,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/vrate_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/video_metadata_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/vma_block_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/ddgr_config_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
@@ -382,6 +384,7 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/drawable/rs_union_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
+      "core/feature/capture/rs_blur_pixelmap.cpp",
       "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",

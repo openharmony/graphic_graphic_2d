@@ -244,5 +244,10 @@ void RSComposerClient::SetActiveRectSwitchStatus(bool flag, const RectI& activeR
 {
     rsComposerContext_->SetActiveRectSwitchStatus(flag, activeRect);
 }
+
+void RSComposerClient::SetSkipDelay(bool skipDelay)
+{
+    rsComposerContext_->SetSkipDelay(skipDelay);
+}
 } // namespace Rosen
 } // namespace OHOS

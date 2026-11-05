@@ -646,6 +646,9 @@ void SkiaGPUContext::VmaDefragment()
 void SkiaGPUContext::SetParam(const std::string& name, const std::string& value)
 {}
 
+void SkiaGPUContext::SetParam(const std::unordered_map<std::string, std::string>& params)
+{}
+
 void SkiaGPUContext::SetTextCacheEnforced(bool isEnforced)
 {
     // Skia Not Implement SetTextCacheEnforced

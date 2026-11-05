@@ -21,6 +21,11 @@
 
 using namespace OHOS;
 
+namespace {
+    constexpr uint32_t HDMI_POLL_MAX_RETRIES = 5;
+    constexpr uint32_t HDMI_POLL_INTERVAL_US = 20000;
+}
+
 bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& config)
 {
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
@@ -30,6 +35,9 @@ bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& con
         return false;
     }
     config.screenId = firstScreenId;
+    if (GetDeviceType() == DEVICE_TYPE_2IN1) {
+        config.screenId = SelectHdmiScreen(firstScreenId);
+    }
     if (config.rotateScreenId >= 0) {
         SubscribeActiveScreenIdChanged();
         Rosen::ScreenId activeScreenId = GetActiveScreenId();
@@ -58,6 +66,31 @@ bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& con
         return false;
     }
     return true;
+}
+
+Rosen::ScreenId BootCompatibleDisplayStrategy::SelectHdmiScreen(Rosen::ScreenId fallbackId)
+{
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    for (uint32_t i = 0; i < HDMI_POLL_MAX_RETRIES; i++) {
+        std::vector<Rosen::ScreenId> screenIds;
+        {
+            std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
+            for (const auto& [id, _] : connectToRenderMap_) {
+                screenIds.push_back(id);
+            }
+        }
+        for (auto id : screenIds) {
+            Rosen::ScreenInterfaceType intfType = interface.GetScreenCapability(id).GetType();
+            LOGI("PC: screen " BPUBU64 " interface type: %{public}u", id, static_cast<uint32_t>(intfType));
+            if (intfType == Rosen::DISP_INTF_HDMI) {
+                LOGI("PC: selected HDMI screen " BPUBU64 "", id);
+                return id;
+            }
+        }
+        usleep(HDMI_POLL_INTERVAL_US);
+    }
+    LOGW("PC: HDMI not found, fallback to first screen");
+    return fallbackId;
 }
 
 void BootCompatibleDisplayStrategy::RunAnimationAndOta(BootAnimationConfig& config, int32_t duration)

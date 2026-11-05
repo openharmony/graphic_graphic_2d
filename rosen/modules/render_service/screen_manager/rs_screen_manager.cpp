@@ -42,6 +42,7 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+constexpr size_t MAX_POST_PROCESSING_SHADER_SIZE = 8 * 1024; // 8 KB
 } // namespace
 using namespace HiviewDFX;
 
@@ -622,6 +623,26 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     }
     RS_LOGI("%{public}s: Record typeblacklist for id %{public}" PRIu64, __func__, id);
     virtualScreen->SetTypeBlackList({CURSOR_NODE_TYPE});
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (param.empty() || param.size() > MAX_POST_PROCESSING_SHADER_SIZE) {
+        RS_LOGW("%{public}s: invalid post processing shader param, size: %{public}zu", __func__, param.size());
+        return INVALID_ARGUMENTS;
+    }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (screen->IsVirtual()) {
+        RS_LOGW("%{public}s: screen %{public}" PRIu64 " is virtual, only physical screen is supported", __func__, id);
+        return VIRTUAL_SCREEN;
+    }
+    screen->SetPostProcessingShader(param);
+    RS_LOGI("%{public}s: set post processing shader for id %{public}" PRIu64, __func__, id);
     return SUCCESS;
 }
 
@@ -1363,6 +1384,28 @@ int32_t RSScreenManager::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return screen->SetScreenColorGamut(modeIdx);
 }
 
+int32_t RSScreenManager::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
+    return screen->SetVirtualScreenHDRMode(mode);
+}
+
+int32_t RSScreenManager::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
+    return screen->GetVirtualScreenHDRMode(mode);
+}
+
 int32_t RSScreenManager::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     auto screen = GetScreen(id);
@@ -1652,6 +1695,16 @@ void RSScreenManager::SetScreenFrameGravity(ScreenId id, int32_t gravity)
         return;
     }
     screen->SetScreenFrameGravity(gravity);
+}
+
+void RSScreenManager::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return;
+    }
+    screen->SetSkipColorSpaceConversion(skipColorSpaceConversion);
 }
 
 bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func) const

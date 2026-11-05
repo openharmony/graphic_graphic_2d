@@ -254,6 +254,10 @@ void RSRenderComposer::ClearRefreshRateCounts(std::string& dumpString)
 void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
 {
     RS_TRACE_NAME_FMT("%s: screenId: %" PRIu64 " PowerStatus: %d", __func__, screenId_, status);
+    screenPowerStatus_.store(status);
+    if (status == ScreenPowerStatus::POWER_STATUS_OFFING) {
+        return;
+    }
     PostTask([this, status]() { hgmHardwareUtils_->ResetRetryCount(status); });
 }
 
@@ -337,7 +341,8 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         lppLayerCollector_.AddLppLayerId(layers);
     }
     ResetScreenRCDRedrawState(layers);
-    bool doRepaint = hdiOutput_->IsDeviceValid() && !shouldDropFrame && !isHwcDead_;
+    bool isPowerOffing = (screenPowerStatus_.load() == ScreenPowerStatus::POWER_STATUS_OFFING);
+    bool doRepaint = hdiOutput_->IsDeviceValid() && !shouldDropFrame && !isHwcDead_ && !isPowerOffing;
     if (doRepaint) {
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
@@ -580,6 +585,11 @@ std::string RSRenderComposer::GetSurfaceNameInLayersForTrace(const std::vector<s
 
 bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pipelineParam)
 {
+    if (skipDelay_.load()) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers skip delay, skipDelay_ is true");
+        RS_TRACE_NAME("CommitAndReleaseLayers skip delay");
+        return false;
+    }
     if (pipelineParam.isForceRefresh) {
         RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Force Refresh");
         RS_TRACE_NAME("CommitAndReleaseLayers in Force Refresh");
@@ -1597,6 +1607,11 @@ void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)
 int64_t RSRenderComposer::GetDelayTime() const
 {
     return delayTime_.load();
+}
+
+void RSRenderComposer::SetSkipDelay(bool skipDelay)
+{
+    skipDelay_.store(skipDelay);
 }
 
 void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,

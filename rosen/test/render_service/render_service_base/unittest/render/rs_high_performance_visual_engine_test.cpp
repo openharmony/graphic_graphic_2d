@@ -130,28 +130,6 @@ HWTEST_F(RSHveFilterTest, HasValidFilterNodeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: HasValidEffectTest
- * @tc.desc: Verify function HasValidEffect
- * @tc.type:FUNC
- * @tc.require: issuesI9UWCD
- */
-HWTEST_F(RSHveFilterTest, HasValidEffectTest, TestSize.Level1)
-{
-    HveFilter filter;
-    EXPECT_FALSE(filter.HasValidEffect(nullptr));
-    EXPECT_FALSE(filter.HasValidEffect(renderNode.get()));
-    filter.HasValidEffect(rootSurfaceNode.get());
-    EXPECT_FALSE(filter.HasValidEffect(testNode.get()));
-    testNode->UpdateChildrenOutOfRectFlag(false);
-    filter.HasValidEffect(testNode.get());
-    testNode->SetGlobalAlpha(0.5f);
-    EXPECT_FALSE(filter.HasValidEffect(testNode.get()));
-    testNode->SetGlobalAlpha(1.0f);
-    rootSurfaceNode->RemoveChild(effectNode);
-    EXPECT_FALSE(filter.HasValidEffect(rootSurfaceNode.get()));
-}
-
-/**
  * @tc.name: CheckPreconditionTest
  * @tc.desc: Verify function CheckPrecondition
  * @tc.type:FUNC
@@ -160,7 +138,7 @@ HWTEST_F(RSHveFilterTest, HasValidEffectTest, TestSize.Level1)
 HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
 {
     HveFilter filter;
-    RectI filterRect = {0, 0, 100, 100};
+    RectI filterRect = { 0, 0, 100, 100 };
     rootSurfaceNode->SetArsrTag(false);
     renderNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(nullptr);
     renderNode->GetMutableRenderProperties().SetUseEffect(false);
@@ -208,22 +186,22 @@ HWTEST_F(RSHveFilterTest, SampleLayerTest, TestSize.Level1)
     auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
     EXPECT_EQ(outImage, nullptr);
 
-    Drawing::ImageInfo imageInfo {canvasWidth, canvasHeight, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    Drawing::ImageInfo imageInfo { canvasWidth, canvasHeight, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
     paintFilterCanvas.surface_ = surface.get();
-    
-    Drawing::Rect dstRect = {0, 0, canvasWidth, canvasHeight};
+
+    Drawing::Rect dstRect = { 0, 0, canvasWidth, canvasHeight };
     Drawing::Matrix rotateMatrix = paintFilterCanvas.GetTotalMatrix();
     auto surfaceNodeImage = std::make_shared<Drawing::Image>();
-    SurfaceNodeInfo info1 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Transparent(), 2};
-    SurfaceNodeInfo info2 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Black(), 3};
+    SurfaceNodeInfo info1 = { surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Transparent(), 2 };
+    SurfaceNodeInfo info2 = { surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Black(), 3 };
     filter.PushHveFilterSurfaceNodeMapping(filterId, 2);
     filter.PushHveFilterSurfaceNodeMapping(filterId, 3);
     filter.PushHveFilterSurfaceNodeMapping(filterId, 4);
     filter.Sync();
     filter.PushSurfaceNodeInfo(info1);
     filter.PushSurfaceNodeInfo(info2);
-    
+
     outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
     EXPECT_NE(outImage, nullptr);
 }

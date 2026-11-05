@@ -29,6 +29,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <vector>
 
 #include "message_parcel.h"
 #include "securec.h"
@@ -62,7 +63,10 @@ const uint8_t DO_GET_SCREEN_COLORSPACE = 8;
 const uint8_t DO_SET_SCREEN_COLORSPACE = 9;
 const uint8_t DO_GET_SCREEN_TYPE = 10;
 const uint8_t DO_SET_SCREEN_SKIP_FRAME_INTERVAL = 11;
-const uint8_t TARGET_SIZE = 12;
+const uint8_t DO_SET_VIRTUAL_SCREEN_HDR_MODE = 12;
+const uint8_t DO_GET_VIRTUAL_SCREEN_HDR_MODE = 13;
+const uint8_t DO_SET_POST_PROCESSING_SHADER = 14;
+const uint8_t TARGET_SIZE = 15;
 
 
 const uint8_t* DATA = nullptr;
@@ -245,6 +249,32 @@ void DoSetScreenHDRFormat()
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
+void DoSetVirtualScreenHDRMode()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint32_t mode = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(mode);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoGetVirtualScreenHDRMode()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_HDR_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 void DoGetScreenSupportedColorSpaces()
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
@@ -308,6 +338,24 @@ void DoSetScreenSkipFrameInterval()
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(skipFrameInterval);
     dataParcel.WriteInt32(statusCode);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetPostProcessingShader()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint16_t paramSize = GetData<uint16_t>();
+    std::vector<uint8_t> param;
+    for (uint16_t i = 0; i < paramSize; i++) {
+        param.push_back(GetData<uint8_t>());
+    }
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUInt8Vector(param);
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -506,6 +554,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_SKIP_FRAME_INTERVAL:
             OHOS::Rosen::DoSetScreenSkipFrameInterval();
+            break;
+        case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoSetVirtualScreenHDRMode();
+            break;
+        case OHOS::Rosen::DO_GET_VIRTUAL_SCREEN_HDR_MODE:
+            OHOS::Rosen::DoGetVirtualScreenHDRMode();
+            break;
+        case OHOS::Rosen::DO_SET_POST_PROCESSING_SHADER:
+            OHOS::Rosen::DoSetPostProcessingShader();
             break;
         default:
             return -1;

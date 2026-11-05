@@ -22,6 +22,7 @@
 #include "ipc_callbacks/rs_delegate_composite_callback.h"
 #include "iremote_stub.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
@@ -43,6 +44,8 @@ constexpr uint64_t SRC_ID_BASE = 900000;
 constexpr uint64_t SEQ_NUM_BASE = 910000;
 constexpr uint64_t TX_INDEX_FIRST = 1;
 constexpr uint64_t TX_INDEX_SECOND = 2;
+constexpr NodeId UPDATE_HW_NODE_ID_BASE = 78000;
+const char DELEGATE_CHILD_NAME[] = "delegate_child";
 } // namespace
 
 class MockNodeBufferReleaseCallback : public IRemoteStub<RSISurfaceNodeBufferReleaseCallback> {
@@ -74,6 +77,10 @@ public:
     static std::unique_ptr<TransactionBufferCommand> MakeRectCmd(NodeId nodeId, bool isSrcRect);
     static std::shared_ptr<RSSurfaceRenderNode> RegisterDelegateSurfaceNode(
         const std::shared_ptr<RSContext>& context, NodeId nodeId);
+    static std::shared_ptr<RSSurfaceRenderNode> MakeNamedSurfaceNode(
+        const std::shared_ptr<RSContext>& context, NodeId nodeId, const std::string& name);
+    static std::shared_ptr<RSSurfaceRenderNode> MakeDelegateModeNode(
+        const std::shared_ptr<RSContext>& context, NodeId nodeId, const std::string& name);
     static void PrepareCommands(pid_t pid, pid_t tid, uint64_t index,
         std::vector<std::unique_ptr<RSCommand>> cmds);
     static void DrainCmdQueues(RSContext& context);
@@ -134,6 +141,23 @@ std::shared_ptr<RSSurfaceRenderNode> RSDelegateCompositeCallbackManagerTest::Reg
     return node;
 }
 
+std::shared_ptr<RSSurfaceRenderNode> RSDelegateCompositeCallbackManagerTest::MakeNamedSurfaceNode(
+    const std::shared_ptr<RSContext>& context, NodeId nodeId, const std::string& name)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.id = nodeId;
+    config.name = name;
+    return std::make_shared<RSSurfaceRenderNode>(config, context);
+}
+
+std::shared_ptr<RSSurfaceRenderNode> RSDelegateCompositeCallbackManagerTest::MakeDelegateModeNode(
+    const std::shared_ptr<RSContext>& context, NodeId nodeId, const std::string& name)
+{
+    auto node = MakeNamedSurfaceNode(context, nodeId, name);
+    node->SetDelegateMode(true);
+    return node;
+}
+
 void RSDelegateCompositeCallbackManagerTest::PrepareCommands(pid_t pid, pid_t tid, uint64_t index,
     std::vector<std::unique_ptr<RSCommand>> cmds)
 {
@@ -162,7 +186,7 @@ void RSDelegateCompositeCallbackManagerTest::DrainCmdQueues(RSContext& context)
 HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand001, TestSize.Level1)
 {
     auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
-    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 654321));
+    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 0, 654321));
 }
 
 /**
@@ -206,17 +230,17 @@ HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand00
     secondQueue.push_back(MakeRectCmd((static_cast<NodeId>(nodePid) << 32) | 3, true)); // kept
     PrepareCommands(sendingPid, sendingTid, TX_INDEX_SECOND, std::move(secondQueue));
 
-    ASSERT_TRUE(manager.CleanDelegateCompositeCommand(targetNode, sendingPid));
+    ASSERT_TRUE(manager.CleanDelegateCompositeCommand(0, targetNode, sendingPid));
 
     DrainCmdQueues(*context);
 
+    RectF delegateSrcRect = RectF(5.0f, 6.0f, 7.0f, 8.0f);
+    RectF delegateDstRect = RectF(5.1f, 6.1f, 7.1f, 8.1f);
+    rectNode->SetDelegateSrcRect(delegateSrcRect);
+    rectNode->SetDelegateDstRect(delegateDstRect);
     // rect commands survived and were processed
-    EXPECT_EQ(rectNode->GetDelegateSrcRect(), Vector4f(
-        RectF(5.0f, 6.0f, 7.0f, 8.0f).GetTop(), RectF(5.0f, 6.0f, 7.0f, 8.0f).GetLeft(),
-        RectF(5.0f, 6.0f, 7.0f, 8.0f).GetWidth(), RectF(5.0f, 6.0f, 7.0f, 8.0f).GetHeight()));
-    EXPECT_EQ(rectNode->GetDelegateDstRect(), Vector4f(
-        RectF(5.0f, 6.0f, 7.0f, 8.0f).GetTop(), RectF(5.0f, 6.0f, 7.0f, 8.0f).GetLeft(),
-        RectF(5.0f, 6.0f, 7.0f, 8.0f).GetWidth(), RectF(5.0f, 6.0f, 7.0f, 8.0f).GetHeight()));
+    EXPECT_EQ(rectNode->GetDelegateSrcRect(), delegateSrcRect);
+    EXPECT_EQ(rectNode->GetDelegateDstRect(), delegateDstRect);
     // only the buffer command of the other node was flushed, target node's were cleaned
     ASSERT_EQ(listener->callCount, 1);
     ASSERT_EQ(listener->received.size(), 1);
@@ -246,7 +270,7 @@ HWTEST_F(RSDelegateCompositeCallbackManagerTest, CleanDelegateCompositeCommand00
     auto data = MakeTransactionData(sendingPid, sendingTid, TX_INDEX_FIRST);
     manager.PrepareDelegateCompositeCommand(data);
 
-    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(123, sendingPid));
+    EXPECT_TRUE(manager.CleanDelegateCompositeCommand(0, 123, sendingPid));
 
     auto context = std::make_shared<RSContext>();
     EXPECT_FALSE(manager.ProcessDelegateCompositeCommand(*context));
@@ -398,6 +422,223 @@ HWTEST_F(RSDelegateCompositeCallbackManagerTest, PrepareBufferReleaseInfo002, Te
     ASSERT_EQ(listener->received.size(), 1);
     EXPECT_EQ(listener->received.front().releaseFence, fence); // same sptr passes through
     manager.UnRegisterSurfaceNodeBufferReleaseListener(clientPid);
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState001
+ * @tc.desc: Verify null surface node input is a safe no-op without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState001, TestSize.Level1)
+{
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    std::shared_ptr<RSSurfaceRenderNode> nullNode = nullptr;
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(nullNode);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState002
+ * @tc.desc: Verify a node named delegate_child without delegate mode returns early and
+ *           keeps hardware enabled even when a disabled delegate sibling exists.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 1, "delegate_container");
+    auto disabledSibling = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 2, "web_view");
+    disabledSibling->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 3, DELEGATE_CHILD_NAME);
+    container->AddChild(disabledSibling);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState003
+ * @tc.desc: Verify a delegate mode node not named delegate_child returns early and
+ *           keeps hardware enabled even when a disabled delegate sibling exists.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState003, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 11, "delegate_container");
+    auto disabledSibling = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 12, "web_view");
+    disabledSibling->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 13, "other_child");
+    container->AddChild(disabledSibling);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState004
+ * @tc.desc: Verify an already hardware forced disabled delegate_child returns early
+ *           and stays disabled without touching siblings.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState004, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 21, "delegate_container");
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 22, DELEGATE_CHILD_NAME);
+    hwcNode->SetHardwareForcedDisabledState(true);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState005
+ * @tc.desc: Verify a delegate_child without parent returns early and keeps hardware enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState005, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 31, DELEGATE_CHILD_NAME);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState006
+ * @tc.desc: Verify siblings that do not satisfy delegate mode / not delegate child /
+ *           disabled conditions never disable the delegate_child node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState006, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 41, "delegate_container");
+    auto effectChild = std::make_shared<RSEffectRenderNode>(UPDATE_HW_NODE_ID_BASE + 42, context);
+    auto disabledNoDelegateMode = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 43, "web_view");
+    disabledNoDelegateMode->SetHardwareForcedDisabledState(true);
+    auto delegateModeNotDisabled = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 44, "web_view");
+    auto delegateChildDisabled = MakeDelegateModeNode(
+        context, UPDATE_HW_NODE_ID_BASE + 45, DELEGATE_CHILD_NAME);
+    delegateChildDisabled->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 46, DELEGATE_CHILD_NAME);
+    container->AddChild(effectChild);
+    container->AddChild(disabledNoDelegateMode);
+    container->AddChild(delegateModeNotDisabled);
+    container->AddChild(delegateChildDisabled);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState007
+ * @tc.desc: Verify a sibling with delegate mode, not delegate child and hardware forced
+ *           disabled disables the delegate_child node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState007, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 51, "delegate_container");
+    auto disabledSibling = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 52, "web_view");
+    disabledSibling->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 53, DELEGATE_CHILD_NAME);
+    container->AddChild(disabledSibling);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState008
+ * @tc.desc: Verify the sibling loop skips non-matching children and still disables the
+ *           delegate_child node when a matching disabled delegate sibling exists.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState008, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 61, "delegate_container");
+    auto effectChild = std::make_shared<RSEffectRenderNode>(UPDATE_HW_NODE_ID_BASE + 62, context);
+    auto disabledNoDelegateMode = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 63, "web_view");
+    disabledNoDelegateMode->SetHardwareForcedDisabledState(true);
+    auto delegateModeNotDisabled = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 64, "web_view");
+    auto disabledSibling = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 65, "web_view");
+    disabledSibling->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 66, DELEGATE_CHILD_NAME);
+    container->AddChild(effectChild);
+    container->AddChild(disabledNoDelegateMode);
+    container->AddChild(delegateModeNotDisabled);
+    container->AddChild(disabledSibling);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState009
+ * @tc.desc: Verify an expired child in the parent list is skipped by the loop and a
+ *           matching disabled sibling after it still disables the delegate_child node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState009, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 71, "delegate_container");
+    {
+        // destroyed while still referenced by the parent children list, leaves an expired weak_ptr
+        auto expiredChild = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 72, "web_view");
+        expiredChild->SetHardwareForcedDisabledState(true);
+        container->AddChild(expiredChild);
+    }
+    auto disabledSibling = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 73, "web_view");
+    disabledSibling->SetHardwareForcedDisabledState(true);
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 74, DELEGATE_CHILD_NAME);
+    container->AddChild(disabledSibling);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHardWareForcedDisabledState010
+ * @tc.desc: Verify an expired child alone never disables the delegate_child node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDelegateCompositeCallbackManagerTest, UpdateHardWareForcedDisabledState010, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto container = MakeNamedSurfaceNode(context, UPDATE_HW_NODE_ID_BASE + 81, "delegate_container");
+    {
+        // destroyed while still referenced by the parent children list, leaves an expired weak_ptr
+        auto expiredChild = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 82, "web_view");
+        expiredChild->SetHardwareForcedDisabledState(true);
+        container->AddChild(expiredChild);
+    }
+    auto hwcNode = MakeDelegateModeNode(context, UPDATE_HW_NODE_ID_BASE + 83, DELEGATE_CHILD_NAME);
+    container->AddChild(hwcNode);
+
+    auto& manager = RsDelegateCompositeCallbackManager::GetInstance();
+    manager.UpdateHardWareForcedDisabledStateForDelegateMode(hwcNode);
+    EXPECT_FALSE(hwcNode->IsHardwareForcedDisabled());
 }
 #endif // ROSEN_CROSS_PLATFORM
 } // namespace Rosen

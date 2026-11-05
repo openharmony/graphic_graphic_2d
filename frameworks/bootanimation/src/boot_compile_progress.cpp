@@ -69,10 +69,11 @@ namespace {
     constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t LOADING_FPS = 30;
-    constexpr const int32_t PERIOD_FPS = 10;
+    constexpr const int32_t STAGE_DURATION_MS = 667;
+    constexpr const int32_t NUM_STAGES = 3;
+    constexpr const int32_t CYCLE_DURATION_MS = STAGE_DURATION_MS * NUM_STAGES;
     constexpr const int32_t CHANGE_FREQ = 4;
-    constexpr const float TEN_FRAME_TIMES = 10.0f;
+    constexpr const int32_t BASE_REFRESH_RATE = 60;
     constexpr const float SHARP_CURVE_CTLX1 = 0.33f;
     constexpr const float SHARP_CURVE_CTLY1 = 0.0f;
     constexpr const float SHARP_CURVE_CTLX2 = 0.67f;
@@ -115,6 +116,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+    refreshRate_ = modeInfo.GetScreenRefreshRate();
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -227,7 +229,9 @@ bool BootCompileProgress::RegisterVsyncCallback()
         .userData_ = this,
         .callback_ = [this](int64_t, void*) { this->OnVsync(); },
     };
-    ret = receiver_->SetVSyncRate(fcb, CHANGE_FREQ);
+    uint32_t baseRefreshRate = (refreshRate_ > 0) ? refreshRate_ : BASE_REFRESH_RATE;
+    int32_t changeFreq = std::max(1, static_cast<int32_t>(baseRefreshRate * CHANGE_FREQ / BASE_REFRESH_RATE));
+    ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         compileRunner_->Stop();
         LOGE("set vsync rate failed");
@@ -237,7 +241,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
     startTimeMs_ = GetSystemCurrentTime();
     endTimePredictMs_ = startTimeMs_ + timeLimitSec_ * SEC_MS;
 
-    LOGI("RegisterVsyncCallback success");
+    LOGI("RegisterVsyncCallback success, rate: %{public}u, freq: %{public}d", baseRefreshRate, changeFreq);
     return true;
 }
 
@@ -323,9 +327,9 @@ void BootCompileProgress::DrawCompileProgress()
 
 void BootCompileProgress::DrawCircle(Rosen::Drawing::RecordingCanvas* canvas)
 {
-    int32_t freqNum = times_++;
+    int64_t now = GetSystemCurrentTime();
     for (int i = 0; i < CIRCLE_NUM; i++) {
-        canvas->AttachBrush(DrawProgressPoint(i, freqNum));
+        canvas->AttachBrush(DrawProgressPoint(i, now));
         int pointX = frameWidth_ / 2.0f + 4 * currentRadius_ * (i - 1);
         int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius_;
         canvas->DrawCircle({ pointX, pointY }, currentRadius_);
@@ -396,22 +400,22 @@ void BootCompileProgress::SetFrameForRog()
     currentRadius_ = TranslateVp2Pixel(rogMin, RADIUS);
 
     float frameHeight = rogHeight_ * HEIGHT_PERCENT;
-    rsCanvasNode_->SetFrame(posX, posY, rogWidth_, frameHeight);
-    frameWidth_ = rogWidth_;
+    rsCanvasNode_->SetFrame(posX, posY, windowWidth_, frameHeight);
+    frameWidth_ = windowWidth_;
     frameHeight_ = frameHeight;
     LOGI("SetFrame ROG Rect:[%{public}f, %{public}f, %{public}d, %{public}f], fontSize: %{public}d, "
          "currentRadius: %{public}f",
-        posX, posY, rogWidth_, frameHeight, fontSize_, currentRadius_);
+        posX, posY, windowWidth_, frameHeight, fontSize_, currentRadius_);
 }
 
-Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
+Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int64_t timeMs)
 {
-    int32_t fpsNo = frameNum % LOADING_FPS;
-    int32_t fpsStage = fpsNo / PERIOD_FPS;
-    float input  = fpsNo % PERIOD_FPS / TEN_FRAME_TIMES;
+    int32_t cyclePos = static_cast<int32_t>(timeMs % CYCLE_DURATION_MS);
+    int32_t stage = cyclePos / STAGE_DURATION_MS;
+    float input = static_cast<float>(cyclePos % STAGE_DURATION_MS) / static_cast<float>(STAGE_DURATION_MS);
 
-    float startOpaCity = OPACITY_ARR[idx][fpsStage][0];
-    float endOpaCity = OPACITY_ARR[idx][fpsStage][1];
+    float startOpaCity = OPACITY_ARR[idx][stage][0];
+    float endOpaCity = OPACITY_ARR[idx][stage][1];
 
     float fraction = sharpCurve_->Interpolate(input);
     float opacity = startOpaCity + (endOpaCity - startOpaCity) * fraction;

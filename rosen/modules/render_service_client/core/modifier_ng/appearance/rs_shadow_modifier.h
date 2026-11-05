@@ -42,6 +42,7 @@ public:
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowDisableSDFBlur(bool disable);
     void SetUseShadowBatching(bool useShadowBatching);
+    void SetClipType(int clipType);
 
     Color GetShadowColor() const;
     float GetShadowOffsetX() const;
@@ -55,6 +56,7 @@ public:
     bool GetShadowIsFilled() const;
     bool GetShadowDisableSDFBlur() const;
     bool GetUseShadowBatching() const;
+    int GetClipType() const;
 private:
     float shadowAlpha_;
 };

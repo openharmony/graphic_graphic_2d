@@ -367,6 +367,15 @@ int32_t RSScreenManagerAgent::SetVirtualScreenTypeBlackList(ScreenId id, const s
     return screenManager_->SetVirtualScreenTypeBlackList(id, typeBlackList);
 }
 
+int32_t RSScreenManagerAgent::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetPostProcessingShader(id, param);
+}
+
 int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
@@ -575,6 +584,24 @@ int32_t RSScreenManagerAgent::GetScreenColorGamut(ScreenId id, ScreenColorGamut&
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->GetScreenColorGamut(id, mode);
+}
+
+int32_t RSScreenManagerAgent::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetVirtualScreenHDRMode(id, mode);
+}
+
+int32_t RSScreenManagerAgent::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) const
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->GetVirtualScreenHDRMode(id, mode);
 }
 
 int32_t RSScreenManagerAgent::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
@@ -812,6 +839,14 @@ void RSScreenManagerAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
         return;
     }
     screenManager_->SetScreenFrameGravity(id, gravity);
+}
+
+void RSScreenManagerAgent::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
+{
+    if (!screenManager_) {
+        return;
+    }
+    screenManager_->SetSkipColorSpaceConversion(id, skipColorSpaceConversion);
 }
 
 int32_t RSScreenManagerAgent::SetDualScreenState(ScreenId id, DualScreenStatus status)

@@ -19,6 +19,8 @@
 #include <iremote_stub.h>
 #include "gtest/gtest.h"
 
+#include "memory/rs_memory_snapshot.h"
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
 #include "surface_buffer_impl.h"
@@ -1565,6 +1567,167 @@ HWTEST_F(RSRenderPipelineAgentTest, GetBitmap001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BlurPixelMap001
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap002
+ * @tc.desc: Verify BlurPixelMap returns ERR_INVALID_VALUE when pipeline is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = true;
+    auto ret = agent->BlurPixelMap(pixelMap, 1.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: BlurPixelMap003
+ * @tc.desc: Verify BlurPixelMap posts task to render thread and returns ERR_OK
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+ 
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    // In test env, renderEngine is null so BlurPixelMapOnRenderThread returns false
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
+ * @tc.name: BlurPixelMap004
+ * @tc.desc: Verify BlurPixelMap with zero blurRadius (too small, skip blur)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap004, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, 0.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
+ * @tc.name: BlurPixelMap005
+ * @tc.desc: Verify BlurPixelMap with negative blurRadius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, BlurPixelMap005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner->Run();
+    RSUniRenderThread::Instance().handler_ = handler;
+    RSUniRenderThread::Instance().runner_ = runner;
+
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> blurredPixelMap;
+    bool success = false;
+    auto ret = agent->BlurPixelMap(pixelMap, -5.0f, blurredPixelMap, success);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_FALSE(success);
+
+    RSUniRenderThread::Instance().handler_->RemoveAllEvents();
+    runner->Stop();
+    RSUniRenderThread::Instance().handler_ = nullptr;
+    RSUniRenderThread::Instance().runner_ = nullptr;
+}
+
+/**
  * @tc.name: ReportJankStats001
  * @tc.desc: Verify ReportJankStats when pipeline is null
  * @tc.type: FUNC
@@ -2513,5 +2676,39 @@ HWTEST_F(RSRenderPipelineAgentTest, ExecuteSynchronousTask_NullMainThread_TaskNo
     auto task = std::make_shared<MockSyncTask>(1000000000);
     agent->ExecuteSynchronousTask(task);
     EXPECT_FALSE(task->IsSuccess());
+}
+
+/**
+ * @tc.name: GetMemoryGraphics_FiltersPid0AndSelfPid
+ * @tc.desc: Verify GetMemoryGraphics filters pid=0 and self pid from snapshot without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetMemoryGraphics_FiltersPid0AndSelfPid, TestSize.Level1)
+{
+    pid_t selfPid = getpid();
+    pid_t normalPid = 99001;
+    size_t testSize = 1024;
+
+    MemorySnapshot::Instance().AddCpuMemory(0, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(selfPid, testSize);
+    MemorySnapshot::Instance().AddCpuMemory(normalPid, testSize);
+
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::vector<MemoryGraphic> memoryGraphics;
+    ErrCode ret = agent->GetMemoryGraphics(memoryGraphics);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotMap;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotMap);
+    EXPECT_TRUE(snapshotMap.find(0) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(selfPid) != snapshotMap.end());
+    EXPECT_TRUE(snapshotMap.find(normalPid) != snapshotMap.end());
+
+    std::set<pid_t> exitedPids = {0, selfPid, normalPid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 } // namespace OHOS::Rosen

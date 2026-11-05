@@ -61,9 +61,9 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
-#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_shadow.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
@@ -694,6 +694,9 @@ HWTEST_F(RSNodeTest2, SetPropertyNG_RSShadowModifierTest, TestSize.Level1)
     SetPropertyNGTest<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(1.f, 2.f); // 2.f
     SetPropertyNGTest<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowPath>(
         RSPath::CreateRSPath(), (std::shared_ptr<RSPath>)nullptr);
+    // clipType: DEFAULT_SHAPE(0) -> BOUNDS_SHAPE(1)
+    SetPropertyNGTest<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetClipType>(
+        static_cast<int>(ShadowClipType::DEFAULT_SHAPE), static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     auto node = RSCanvasNode::Create();
     auto modifier = node->GetModifierByType(ModifierNG::RSShadowModifier::Type);
     EXPECT_TRUE(modifier == nullptr);

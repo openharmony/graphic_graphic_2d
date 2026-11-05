@@ -37,6 +37,7 @@ public:
     ResType SetOffset(int32_t offsetX, int32_t offsetY);
     ResType SetSamplingOption(bool isSamplingOn, float translateX, float translateY, float samplingScale);
     ResType SetScreenColorGamut(ScreenColorGamut colorGamut);
+    ResType SetVirtualScreenHDRMode(HDRMode mode);
     ResType SetScreenGamutMap(ScreenGamutMap gamutMap);
     ResType SetState(ScreenState state);
     ResType SetScreenCorrection(ScreenRotation correction);
@@ -69,6 +70,7 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+    ResType SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
     ResType SetAsMainScreen(bool isMainScreen);
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
@@ -77,6 +79,7 @@ public:
     ResType SetHdiRogEnable(bool isHdiRogEnable);
     ResType SetDualScreenState(DualScreenStatus dualScreenStatus);
     ResType SetSamplingMode(ScreenSamplingMode samplingMode);
+    ResType SetPostProcessingShader(const std::vector<uint8_t>& param);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -93,6 +96,7 @@ public:
     float GetSamplingTranslateY() const;
     float GetSamplingScale() const;
     ScreenColorGamut GetScreenColorGamut() const;
+    HDRMode GetVirtualScreenHDRMode() const;
     ScreenGamutMap GetScreenGamutMap() const;
     ScreenState GetState() const;
     ScreenRotation GetScreenCorrection() const;
@@ -129,6 +133,7 @@ public:
     bool GetHdiRogEnable() const;
     DualScreenStatus GetDualScreenState() const;
     ScreenSamplingMode GetSamplingMode() const;
+    std::vector<uint8_t> GetPostProcessingShader() const;
 
     ScreenInfo GetScreenInfo() const;
 

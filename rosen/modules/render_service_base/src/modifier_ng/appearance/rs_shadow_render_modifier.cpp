@@ -35,6 +35,8 @@ const RSShadowRenderModifier::LegacyPropertyApplierMap RSShadowRenderModifier::L
         RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetShadowDisableSDFBlur> },
     { RSPropertyType::USE_SHADOW_BATCHING,
         RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetUseShadowBatching> },
+    { RSPropertyType::SHADOW_CLIP_TYPE,
+        RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetShadowClipType> },
 };
 
 void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
@@ -50,5 +52,6 @@ void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetShadowIsFilled(false);
     properties.SetShadowDisableSDFBlur(false);
     properties.SetUseShadowBatching(false);
+    properties.SetShadowClipType(static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
 } // namespace OHOS::Rosen::ModifierNG

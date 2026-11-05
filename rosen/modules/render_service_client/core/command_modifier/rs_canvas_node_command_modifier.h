@@ -28,6 +28,11 @@ class RSCanvasNode;
 
 struct HdrPresentCmdParam {
     bool hdrPresent_;
+
+    bool AffectsRendering() const
+    {
+        return hdrPresent_;
+    }
 };
 
 class HdrPresentCmdModifier : public RSCmdModifier {
@@ -65,6 +70,11 @@ private:
 
 struct ColorGamutCmdParam {
     uint32_t colorGamut_;
+
+    bool AffectsRendering() const
+    {
+        return colorGamut_ != static_cast<uint32_t>(OHOS::ColorManager::ColorSpaceName::SRGB);
+    }
 };
 
 class ColorGamutCmdModifier : public RSCmdModifier {
@@ -103,6 +113,11 @@ private:
 struct IsFreezeCmdParam {
     bool isFreeze_;
     bool isMarkedByUI_;
+
+    bool AffectsRendering() const
+    {
+        return isFreeze_;
+    }
 };
 
 class IsFreezeCmdModifier : public RSCmdModifier {
@@ -141,6 +156,11 @@ private:
 struct ClearRecordingCmdParam {
     int32_t width_;
     int32_t height_;
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class ClearRecordingCmdModifier : public RSCmdModifier {
@@ -179,6 +199,11 @@ private:
 struct FinishRecordCmdParam {
     uint16_t modifierType_;
     SimpleDrawCmdListPtr simpleDrawCmdList_ = nullptr; // Stored data, used when pushed to foreground
+
+    bool AffectsRendering() const
+    {
+        return false;
+    }
 };
 
 class FinishRecordCmdModifier : public RSCmdModifier {

@@ -299,6 +299,11 @@ void RSScreen::SetScreenFrameGravity(int32_t gravity)
     UPDATE_PROPERTY(FrameGravity, gravity);
 }
 
+void RSScreen::SetSkipColorSpaceConversion(bool skipColorSpaceConversion)
+{
+    UPDATE_PROPERTY(SkipColorSpaceConversion, skipColorSpaceConversion);
+}
+
 bool RSScreen::IsVirtual() const
 {
     return property_.IsVirtual();
@@ -563,6 +568,10 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
     HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id, powerStatus);
     hasLogBackLightAfterPowerStatusChanged_ = false;
+    if (powerStatus == ScreenPowerStatus::POWER_STATUS_OFF &&
+        MultiScreenParam::IsSkipScreenPowerOffing()) {
+        UPDATE_PROPERTY(PowerStatus, ScreenPowerStatus::POWER_STATUS_OFFING);
+    }
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         HILOG_COMM_WARN("[UL_POWER] SetPowerStatus failed to set power status");
         UPDATE_PROPERTY(PowerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);
@@ -895,6 +904,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
                      property_.GetEnableVisibleRect(),
                      property_.GetMainScreenVisibleRect().x, property_.GetMainScreenVisibleRect().y,
                      property_.GetMainScreenVisibleRect().w, property_.GetMainScreenVisibleRect().h);
+        AppendFormat(dumpString, "postProcessingShaderSize=%zu\n", property_.GetPostProcessingShader().size());
     }
 }
 
@@ -1111,6 +1121,32 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
     }
     currentPhysicalColorGamutIdx_ = modeIdx;
     UPDATE_PROPERTY(ScreenColorGamut, screenColorGamut);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::SetVirtualScreenHDRMode(HDRMode mode)
+{
+    if (mode >= HDRMode::HDR_MODE_BUTT) {
+        RS_LOGW("%{public}s: invalid HDR mode: %{public}u.", __func__, static_cast<uint32_t>(mode));
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (!IsVirtual()) {
+        RS_LOGW("%{public}s: physical screen(id %{public}" PRIu64 ") not support HDR mode.", __func__,
+            property_.GetId());
+        return StatusCode::SCREEN_TYPE_ERROR;
+    }
+    UPDATE_PROPERTY(VirtualScreenHDRMode, mode);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetVirtualScreenHDRMode(HDRMode& mode) const
+{
+    if (!IsVirtual()) {
+        RS_LOGW("%{public}s: physical screen(id %{public}" PRIu64 ") not support HDR mode.", __func__,
+            property_.GetId());
+        return StatusCode::SCREEN_TYPE_ERROR;
+    }
+    mode = property_.GetVirtualScreenHDRMode();
     return StatusCode::SUCCESS;
 }
 
@@ -1455,6 +1491,11 @@ void RSScreen::SetBlackList(const std::unordered_set<NodeId>& blackList)
 void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
 {
     UPDATE_PROPERTY(TypeBlackList, typeBlackList);
+}
+
+void RSScreen::SetPostProcessingShader(const std::vector<uint8_t>& param)
+{
+    UPDATE_PROPERTY(PostProcessingShader, param);
 }
 
 void RSScreen::AddBlackList(const std::vector<NodeId>& blackList)

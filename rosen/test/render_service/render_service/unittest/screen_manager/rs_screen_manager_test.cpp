@@ -676,6 +676,43 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: Test SetVirtualScreenHDRMode and GetVirtualScreenHDRMode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenHDRMode_001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    // no screen for the id
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->SetVirtualScreenHDRMode(SCREEN_ID, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SCREEN_NOT_FOUND, screenManager_->GetVirtualScreenHDRMode(SCREEN_ID, mode));
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    // invalid HDR mode
+    ASSERT_EQ(INVALID_ARGUMENTS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_MODE_BUTT));
+    ASSERT_EQ(SUCCESS, screenManager_->SetVirtualScreenHDRMode(id, HDRMode::HDR_DYNAMIC));
+    ASSERT_EQ(SUCCESS, screenManager_->GetVirtualScreenHDRMode(id, mode));
+    ASSERT_EQ(HDRMode::HDR_DYNAMIC, mode);
+
+    screenManager_->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
  * @tc.name: GetScreenType_001
  * @tc.desc: Test GetScreenType
  * @tc.type: FUNC
@@ -1446,6 +1483,86 @@ HWTEST_F(RSScreenManagerTest, SetScreenCorrection_002, TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
     screenManager_->MockHdiScreenConnected(rsScreen);
     ASSERT_EQ(screenManager_->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test SetPostProcessingShader, with INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    ScreenId invalidScreenId = INVALID_SCREEN_ID;
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    int32_t ret = screenManager_->SetPostProcessingShader(invalidScreenId, param);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    std::vector<uint8_t> emptyParam;
+    int32_t retWithEmptyParam = screenManager_->SetPostProcessingShader(invalidScreenId, emptyParam);
+    ASSERT_EQ(retWithEmptyParam, StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_002
+ * @tc.desc: Test SetPostProcessingShader, with virtual screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetPostProcessingShader_002, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    VirtualScreenConfigs cfgVirtual;
+    cfgVirtual.id = screenId;
+    auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
+    screenManager_->MockHdiScreenConnected(rsScreen);
+    ASSERT_EQ(screenManager_->SetPostProcessingShader(screenId, { 1, 2, 3 }), StatusCode::VIRTUAL_SCREEN);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_003
+ * @tc.desc: Test SetPostProcessingShader, with physical screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetPostProcessingShader_003, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    screenManager_->MockHdiScreenConnected(rsScreen);
+    ASSERT_EQ(screenManager_->SetPostProcessingShader(screenId, { 1, 2, 3 }), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_004
+ * @tc.desc: Test SetPostProcessingShader, with empty param
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetPostProcessingShader_004, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    screenManager_->MockHdiScreenConnected(rsScreen);
+    std::vector<uint8_t> emptyParam;
+    ASSERT_EQ(screenManager_->SetPostProcessingShader(screenId, emptyParam), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_005
+ * @tc.desc: Test SetPostProcessingShader, with oversize param
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetPostProcessingShader_005, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    screenManager_->MockHdiScreenConnected(rsScreen);
+    // Keep consistent with MAX_POST_PROCESSING_SHADER_SIZE in rs_screen_manager.cpp
+    constexpr size_t shaderSizeLimit = 8 * 1024;
+    std::vector<uint8_t> oversizeParam(shaderSizeLimit + 1, 0xAA);
+    ASSERT_EQ(screenManager_->SetPostProcessingShader(screenId, oversizeParam), StatusCode::INVALID_ARGUMENTS);
 }
 
 /*
@@ -3414,6 +3531,19 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
     screenManager_->SetScreenFrameGravity(0, 0);
     screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
     screenManager_->SetScreenFrameGravity(0, 0);
+}
+
+/*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, SetSkipColorSpaceConversionTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
+    screenManager_->SetSkipColorSpaceConversion(0, true);
 }
 
 /*

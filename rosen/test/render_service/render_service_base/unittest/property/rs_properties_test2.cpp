@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
@@ -147,30 +148,6 @@ HWTEST_F(PropertiesTest, SetClipToBoundsTest, TestSize.Level1)
     properties.SetClipToBounds(false);
     EXPECT_TRUE(properties.geoDirty_);
 }
-
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-/**
- * @tc.name: CreateFilterCacheManagerIfNeedTest
- * @tc.desc: test results of CreateFilterCacheManagerIfNeed
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, CreateFilterCacheManagerIfNeedTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    properties.CreateFilterCacheManagerIfNeed();
-
-    properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-    properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetCompositingFilter() != nullptr);
-
-    properties.CreateFilterCacheManagerIfNeed();
-    EXPECT_TRUE(properties.GetCompositingFilter() != nullptr);
-}
-#endif
 
 /**
  * @tc.name: OnApplyModifiersTest
@@ -1120,14 +1097,6 @@ HWTEST_F(PropertiesTest, CalculateFrameOffsetTest, TestSize.Level1)
 HWTEST_F(PropertiesTest, SetHaveEffectRegionTest, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetHaveEffectRegion(false);
-    EXPECT_NE(properties.isDrawn_, true);
-
-    properties.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    properties.backgroundFilterCacheManager_->cachedSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    properties.backgroundFilterCacheManager_->cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     properties.SetHaveEffectRegion(false);
     EXPECT_NE(properties.isDrawn_, true);
 }
@@ -2190,6 +2159,39 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithAnimation001, TestSize.Level
 }
 
 /**
+ * @tc.name: SetParticleRippleFieldsWithCurveAnimation001
+ * @tc.desc: Verify SetParticleRippleFields ignores a registered curve animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithCurveAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 6;
+    constexpr PropertyId propId = 6;
+    constexpr NodeId nodeId = 6;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto nullAnimationRippleFields = std::make_shared<ParticleRippleFields>();
+    EXPECT_NO_FATAL_FAILURE(
+        renderNode->GetMutableRenderProperties().SetParticleRippleFields(nullAnimationRippleFields));
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), nullAnimationRippleFields);
+
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto curveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(animId, propId, originValue, startValue, endValue);
+    ASSERT_TRUE(renderNode->AddAnimation(curveAnimation));
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->RegisterParticleAnimation(propId, animId);
+
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    EXPECT_NO_FATAL_FAILURE(renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields));
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), rippleFields);
+}
+
+/**
  * @tc.name: SetParticleVelocityFieldsWithAnimation001
  * @tc.desc: Verify SetParticleVelocityFields with non-null animationManager and particle animation
  * @tc.type: FUNC
@@ -3010,8 +3012,7 @@ HWTEST_F(PropertiesTest, SetDistortionKResetTest, TestSize.Level1)
     // Now set nullopt - should hit the else-if branch and reset
     properties.SetDistortionK(std::nullopt);
     auto distortionK = properties.GetDistortionK();
-    ASSERT_TRUE(distortionK.has_value());
-    EXPECT_FLOAT_EQ(*distortionK, 0.f);
+    ASSERT_FALSE(distortionK.has_value());
     EXPECT_FALSE(properties.GetDistortionDirty());
 }
 

@@ -60,4 +60,14 @@ std::shared_ptr<RSNGShapeBase> RSBoundsClipModifier::GetSDFShape() const
 {
     return Getter<std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, nullptr);
 }
+
+void RSBoundsClipModifier::SetClipShape(const RRect& shape)
+{
+    Setter(RSPropertyType::CLIP_SHAPE, shape);
+}
+
+RRect RSBoundsClipModifier::GetClipShape() const
+{
+    return Getter(RSPropertyType::CLIP_SHAPE, RRect());
+}
 } // namespace OHOS::Rosen::ModifierNG

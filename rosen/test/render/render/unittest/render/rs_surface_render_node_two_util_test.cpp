@@ -25,6 +25,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -1847,23 +1848,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoUtilTest, AccumulateOcclusionRegion, TestSize.Lev
 }
 
 /**
- * @tc.name: UpdateFilterNodesTest
- * @tc.desc: test results of UpdateFilterNodesTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTwoUtilTest, UpdateFilterNodesTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    std::shared_ptr<RSRenderNode> renderNode;
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 0);
-    renderNode = std::make_shared<RSRenderNode>(id + 1);
-    node->UpdateFilterNodes(renderNode);
-    EXPECT_EQ(node->filterNodes_.size(), 1);
-}
-
-/**
  * @tc.name: SetVisibleRegionRecursive
  * @tc.desc: test results of SetVisibleRegionRecursive
  * @tc.type: FUNC
@@ -1951,7 +1935,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoUtilTest, CheckValidFilterCacheFullyCoverTargetTe
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     }
     filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;

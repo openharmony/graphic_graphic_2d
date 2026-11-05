@@ -93,6 +93,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenColorGa
     return { ScreenPropertyType::COLOR_GAMUT, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetVirtualScreenHDRMode(HDRMode mode)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE>(static_cast<uint32_t>(mode));
+    return { ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenGamutMap(ScreenGamutMap gamutMap)
 {
     UniqueLock lock(propertyMutex_);
@@ -340,6 +347,14 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSkipColorSpaceConversion(
+    bool skipColorSpaceConversion)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION>(skipColorSpaceConversion);
+    return { ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
 {
     UniqueLock lock(propertyMutex_);
@@ -405,6 +420,14 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingMode(
     UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::SAMPLING_MODE>(static_cast<uint32_t>(samplingMode));
     return { ScreenPropertyType::SAMPLING_MODE, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPostProcessingShader(
+    const std::vector<uint8_t>& param)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::POST_PROCESSING_SHADER>(param);
+    return { ScreenPropertyType::POST_PROCESSING_SHADER, prop };
 }
 
 ScreenId RSScreenThreadSafeProperty::GetId() const
@@ -495,6 +518,12 @@ ScreenColorGamut RSScreenThreadSafeProperty::GetScreenColorGamut() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetScreenColorGamut();
+}
+
+HDRMode RSScreenThreadSafeProperty::GetVirtualScreenHDRMode() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetVirtualScreenHDRMode();
 }
 
 ScreenGamutMap RSScreenThreadSafeProperty::GetScreenGamutMap() const
@@ -711,6 +740,12 @@ ScreenSamplingMode RSScreenThreadSafeProperty::GetSamplingMode() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetSamplingMode();
+}
+
+std::vector<uint8_t> RSScreenThreadSafeProperty::GetPostProcessingShader() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetPostProcessingShader();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

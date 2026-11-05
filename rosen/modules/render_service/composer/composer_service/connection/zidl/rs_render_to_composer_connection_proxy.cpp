@@ -370,5 +370,25 @@ void RSRenderToComposerConnectionProxy::SetActiveRectSwitchStatus(bool flag, con
         RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
     }
 }
+
+void RSRenderToComposerConnectionProxy::SetSkipDelay(bool skipDelay)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!parcel.WriteBool(skipDelay)) {
+        RS_LOGE("%{public}s WriteBool failed", __func__);
+        return;
+    }
+    auto ret = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_SKIP_DELAY, parcel, reply, option);
+    if (ret != COMPOSITOR_ERROR_OK) {
+        RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

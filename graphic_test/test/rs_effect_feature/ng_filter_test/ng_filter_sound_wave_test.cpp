@@ -321,6 +321,9 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_Circle
     // CircleRadius only takes effect in circle light mode (LightMode == 1).
     soundWaveFilter->Setter<SoundWaveLightModeTag>(1);
 
+    // RS zero default would drop the circle-bar blend; keep the legacy 0.09 look.
+    soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(0.09f);
+
     // RS zero defaults hide the circle light (black colors, zero intensity), so seed a fixed
     // visible baseline for this case.
     soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.86f, 0.22f, 0.47f, 1.0f));
@@ -351,6 +354,9 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_Circle
     // CircleCenter only takes effect in circle light mode (LightMode == 1).
     soundWaveFilter->Setter<SoundWaveLightModeTag>(1);
     soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
+
+    // RS zero default would drop the circle-bar blend; keep the legacy 0.09 look.
+    soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(0.09f);
 
     // RS zero defaults hide the circle light (black colors, zero intensity), so seed a fixed
     // visible baseline for this case.
@@ -391,6 +397,9 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LightI
     soundWaveFilter->Setter<SoundWaveLightModeTag>(1);
     soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
 
+    // RS zero default would drop the circle-bar blend; keep the legacy 0.09 look.
+    soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(0.09f);
+
     // RS zero defaults hide the circle light (black colors, zero intensity), so seed a fixed
     // visible baseline for this case.
     soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.95f, 0.87f, 0.35f, 1.0f));
@@ -414,6 +423,41 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LightI
     }
 }
 
+GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_SmoothUnionThreshold_Test)
+{
+    auto soundWavePtr = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(soundWavePtr);
+
+    // SmoothUnionThreshold only takes effect in circle light mode (LightMode == 1).
+    soundWaveFilter->Setter<SoundWaveLightModeTag>(1);
+    soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
+    soundWaveFilter->Setter<SoundWaveCircleCenterTag>(Vector2f(0.0f, -0.1f));
+
+    // RS zero defaults hide the circle light (black colors, zero intensity), so seed a fixed
+    // visible baseline for this case.
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.83f, 0.24f, 0.68f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f(0.24f, 0.68f, 0.83f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f(0.9f, 0.5f, 0.1f, 1.0f));
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveLightIntensityTag>(1.0f);
+
+    // Set SmoothUnionThreshold tag
+    soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(0.09f);
+
+    int row = 4;
+
+    // 0.0 removes the circle-bar blend; 0.0657/0.09 match mode 0 low/high layouts; 0.15 widens it.
+    const std::vector<float> thresholdValues = { 0.0f, 0.0657f, 0.09f, 0.15f };
+
+    for (int i = 0; i < row; i++) {
+        auto backgroundNode = SetUpNodeBgImage(BG_PATH, circleLightNodeBounds[i]);
+        soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(thresholdValues[i]);
+        backgroundNode->SetForegroundNGFilter(soundWaveFilter);
+        GetRootNode()->AddChild(backgroundNode);
+        RegisterNode(backgroundNode);
+    }
+}
+
 GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LightMode_Test)
 {
     auto soundWavePtr = CreateFilter(RSNGEffectType::SOUND_WAVE);
@@ -428,6 +472,9 @@ GRAPHIC_TEST(NGFilterSoundWaveTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LightM
     soundWaveFilter->Setter<SoundWaveCircleRadiusTag>(0.2f);
     soundWaveFilter->Setter<SoundWaveCircleCenterTag>(Vector2f(0.0f, 0.0f));
     soundWaveFilter->Setter<SoundWaveLightIntensityTag>(1.0f);
+    // RS zero default would drop the circle-bar blend; keep the legacy 0.09 look
+    // for the LightMode == 1 nodes (ignored on the legacy nodes).
+    soundWaveFilter->Setter<SoundWaveSmoothUnionThresholdTag>(0.09f);
     soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f(0.55f, 0.13f, 0.93f, 1.0f));
     soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f(0.13f, 0.93f, 0.61f, 1.0f));
     soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f(0.93f, 0.55f, 0.13f, 1.0f));

@@ -741,6 +741,25 @@ HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetParamMapTest
+ * @tc.desc: Test for SetParam with a param map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetParamMapTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::unordered_map<std::string, std::string> params = {
+        { "IsSmartCacheEnabled", "true" },
+        { "SmartCacheUMDPoolSize", "100" },
+        { "SpirvCacheSize", "0" },
+    };
+    gpuContext->SetParam(params);
+    gpuContext->SetParam(std::unordered_map<std::string, std::string>());
+}
+
+/**
  * @tc.name: SetTextCacheEnforcedTest
  * @tc.desc: Test for SetTextCacheEnforced
  * @tc.type: FUNC

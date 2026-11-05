@@ -496,43 +496,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapForHybridTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderInClientTest001
- * @tc.desc: Test RenderInClient with null drawCmdList
- * @tc.type: FUNC
- */
-HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
-{
-    auto drawingNode = RSCanvasDrawingNode::Create(true);
-    auto ret = drawingNode->RenderInClient(nullptr);
-    EXPECT_FALSE(ret);
-
-    drawingNode = RSCanvasDrawingNode::Create(true);
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    ret = drawingNode->RenderInClient(drawCmdList);
-    EXPECT_FALSE(ret);
-
-    auto uidirector = CreateRSUIDirector();
-    auto rsUIContext = uidirector->GetRSUIContext();
-    rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
-    drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
-    drawingNode->hybridEnabled_ = true;
-    drawingNode->sizeOutOfGpuLimit_ = false;
-    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    ret = drawingNode->RenderInClient(drawCmdList);
-    EXPECT_FALSE(ret);
-    auto opItem = std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 5, 5), Drawing::Paint());
-    drawCmdList = std::make_shared<Drawing::DrawCmdList>(5, 5, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-    drawCmdList->AddDrawOp(opItem);
-    ret = drawingNode->RenderInClient(drawCmdList);
-    EXPECT_TRUE(ret);
-    ret = drawingNode->RenderInClient(nullptr);
-    EXPECT_FALSE(ret);
-    rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
-    rsUIContext->canvasModifiersDrawAgent_->Destroy();
-    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
-}
-
-/**
  * @tc.name: SetNodeStateTest001
  * @tc.desc: Test SetNodeState when not hybrid enabled
  * @tc.type: FUNC
@@ -604,6 +567,43 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_ForceDisableDmaPreAllocateTest, T
 #endif
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: RenderInClientTest001
+ * @tc.desc: Test RenderInClient with null drawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
+{
+    auto drawingNode = RSCanvasDrawingNode::Create(true);
+    auto ret = drawingNode->RenderInClient(nullptr);
+    EXPECT_FALSE(ret);
+
+    drawingNode = RSCanvasDrawingNode::Create(true);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_FALSE(ret);
+
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = uidirector->GetRSUIContext();
+    rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+    drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    drawingNode->hybridEnabled_ = true;
+    drawingNode->sizeOutOfGpuLimit_ = false;
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_FALSE(ret);
+    auto opItem = std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 5, 5), Drawing::Paint());
+    drawCmdList = std::make_shared<Drawing::DrawCmdList>(5, 5, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList->AddDrawOp(opItem);
+    ret = drawingNode->RenderInClient(drawCmdList);
+    EXPECT_TRUE(ret);
+    ret = drawingNode->RenderInClient(nullptr);
+    EXPECT_FALSE(ret);
+    rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
+    rsUIContext->canvasModifiersDrawAgent_->Destroy();
+    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
+}
+
 /**
  * @tc.name: OnCreate_NullCheckEarlyReturn
  * @tc.desc: Test OnCreate returns early on null uiContext/agent/renderInterface

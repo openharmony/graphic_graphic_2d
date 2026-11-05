@@ -863,7 +863,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 }
 
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
-    pid_t threadId, bool isNeedFP16, GraphicColorGamut colorGamut)
+    pid_t threadId, bool isNeedFP16, GraphicColorGamut colorGamut, bool skipColorSpaceConversion)
 {
     auto lock = RenderGroupCacheLock();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
@@ -903,6 +903,9 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorSpace = Drawing::ColorSpace::CreateSRGB();
+        }
+        if (skipColorSpaceConversion) {
+            colorSpace = nullptr;
         }
         SetCachedBackendTexture(NativeBufferUtils::MakeBackendTexture(
             RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
@@ -1275,7 +1278,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         }
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f], isFP16:%d, HdrStatus:%d, isScRGBEnable:%d",
             params.GetCacheSize().x_, params.GetCacheSize().y_, isNeedFP16, params.GetHDRStatus(), isScRGBEnable);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16, windowGamut);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16, windowGamut,
+            curCanvas->GetSkipColorSpaceConversion());
         RSLayerPartDrawCacheHelper::ResetUpdateLayerPartRenderCache(*this);
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {

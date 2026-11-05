@@ -311,6 +311,7 @@ void ProcessGpuOfflineForTopLayer(
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node);
     void HandleColorGamuts(RSScreenRenderNode& node);
+    void HandleSkipColorSpaceConversion(RSScreenRenderNode& node, bool skipColorSpaceConversion);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
@@ -419,8 +420,6 @@ void ProcessGpuOfflineForTopLayer(
      */
     void PrepareColorPickers();
 
-    void UpdateHardWareForcedDisabledStateForDelegateMode(
-        std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
     void CollectVirtualScreenNodeId(RSScreenRenderNode& node);
 
     friend class RSUniHwcVisitor;

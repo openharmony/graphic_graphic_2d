@@ -130,6 +130,7 @@ bool RSRenderInterface::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
+    captureConfig.windowSync = true;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     PrepareSyncCaptureIfNeeded(node, captureConfig);
 #endif // RS_MODIFIERS_DRAW_ENABLE
@@ -379,6 +380,20 @@ bool RSRenderInterface::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> 
         return false;
     }
     return renderPipelineClient_->GetPixelmap(id, pixelmap, rect, drawCmdList);
+}
+
+std::shared_ptr<Media::PixelMap> RSRenderInterface::BlurPixelMap(
+    std::shared_ptr<Media::PixelMap> pixelMap, float blurRadius)
+{
+    if (renderPipelineClient_ == nullptr) {
+        RS_LOGE("RSRenderInterface::BlurPixelMap renderPipelineClient_ == nullptr!");
+        return nullptr;
+    }
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRenderInterface::BlurPixelMap pixelMap is nullptr!");
+        return nullptr;
+    }
+    return renderPipelineClient_->BlurPixelMap(pixelMap, blurRadius);
 }
 
 bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)

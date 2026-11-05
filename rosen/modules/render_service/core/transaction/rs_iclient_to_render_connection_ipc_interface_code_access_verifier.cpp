@@ -70,12 +70,16 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GLOBAL_DARK_COLOR_MODE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::BLUR_PIXEL_MAP): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::BLUR_PIXEL_MAP");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_UI_CAPTURE_IN_RANGE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::TAKE_UI_CAPTURE_IN_RANGE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
-            hasPermission = CheckPermission(code);
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_POSITION");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ANCO_FORCE_DO_DIRECT): {

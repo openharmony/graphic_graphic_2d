@@ -89,6 +89,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT = 54,
     SURFACE_NODE_RECREATE_NODE_AND_SURFACE = 55,
     SURFACE_NODE_SET_DELEGATE_MODE = 56,
+    SURFACE_NODE_SET_SOLID_LAYER_ENABLED = 57,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -155,6 +156,7 @@ public:
     static void SetStaticCachedToRender(RSContext& context, NodeId nodeId, bool isStaticCached);
     static void SetHardwareEnabled(RSContext &context, NodeId nodeId, bool isHardwareEnabled,
         SelfDrawingNodeType isSelfDrawingNodeType, bool isDynamicHardwareEnable);
+    static void SetSolidLayerEnabled(RSContext &context, NodeId nodeId, bool isSolidLayerEnabled);
     static void SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent);
 #ifndef ROSEN_CROSS_PLATFORM
     static void RecreateNodeAndSurface(RSContext& context, const RSSurfaceRenderNodeConfig& config,
@@ -323,6 +325,9 @@ ADD_COMMAND(RSSurfaceNodeSetStaticCachedToRender,
 ADD_COMMAND(RSSurfaceNodeSetHardwareEnable,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLED,
         SurfaceNodeCommandHelper::SetHardwareEnabled, NodeId, bool, SelfDrawingNodeType, bool))
+ADD_COMMAND(RSSurfaceNodeSetSolidLayerEnabled,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOLID_LAYER_ENABLED,
+        SurfaceNodeCommandHelper::SetSolidLayerEnabled, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetHidePrivacyContent,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT,
         SurfaceNodeCommandHelper::SetHidePrivacyContent, NodeId, bool))

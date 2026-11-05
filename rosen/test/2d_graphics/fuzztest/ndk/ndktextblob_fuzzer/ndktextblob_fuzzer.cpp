@@ -183,7 +183,6 @@ void NativeDrawingTextBlobTest004(const uint8_t* data, size_t size)
     }
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    uint32_t encoding = GetObject<uint32_t>() % ENCODING_SIZE;
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char* str = new char[count];
     OH_Drawing_Point2D* point = new OH_Drawing_Point2D[count];
@@ -196,20 +195,19 @@ void NativeDrawingTextBlobTest004(const uint8_t* data, size_t size)
 
     OH_Drawing_TextBlob** textBlobs1 = nullptr;
     uint32_t textBlobsCount1 = 0;
-    OH_Drawing_TextBlobCreateFromTextWithFallback(str, strlen(str), font,
-        static_cast<OH_Drawing_TextEncoding>(encoding), &textBlobs1, &textBlobsCount1);
+    OH_Drawing_TextBlobCreateFromTextWithFallback(
+        str, strlen(str), font, TEXT_ENCODING_UTF8, &textBlobs1, &textBlobsCount1);
     OH_Drawing_TextBlobsArrayDestroy(textBlobs1, textBlobsCount1);
 
     OH_Drawing_TextBlob** textBlobs2 = nullptr;
     uint32_t textBlobsCount2 = 0;
-    OH_Drawing_TextBlobCreateFromPosTextWithFallback(str, strlen(str), point, font,
-        static_cast<OH_Drawing_TextEncoding>(encoding), &textBlobs2, &textBlobsCount2);
+    OH_Drawing_TextBlobCreateFromPosTextWithFallback(
+        str, strlen(str), point, font, TEXT_ENCODING_UTF8, &textBlobs2, &textBlobsCount2);
     OH_Drawing_TextBlobsArrayDestroy(textBlobs2, textBlobsCount2);
 
     OH_Drawing_TextBlob** textBlobs3 = nullptr;
     uint32_t textBlobsCount3 = 0;
-    OH_Drawing_TextBlobCreateFromStringWithFallback(str, font,
-        static_cast<OH_Drawing_TextEncoding>(encoding), &textBlobs3, &textBlobsCount3);
+    OH_Drawing_TextBlobCreateFromStringWithFallback(str, font, TEXT_ENCODING_UTF8, &textBlobs3, &textBlobsCount3);
     OH_Drawing_TextBlobsArrayDestroy(textBlobs3, textBlobsCount3);
 
     if (str != nullptr) {

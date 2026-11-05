@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "draw/surface.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "effect/rs_render_filter_base.h"
@@ -392,6 +393,115 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnDrawAndRunTest001, TestSize.Level1)
     foregroundFilterRestoreDrawable->needSync_ = true;
     foregroundFilterRestoreDrawable->OnSync();
     foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect);
+}
+
+/**
+ * @tc.name: ForegroundFilterDrawableOnDrawBoundsBranchTest001
+ * @tc.desc: Cover all four combinations of the empty-bounds guard (width_ <= 0 || height_ <= 0)
+ *           in RSForegroundFilterDrawable::OnDraw
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ForegroundFilterDrawableOnDrawBoundsBranchTest001, TestSize.Level1)
+{
+    // Four combinations of the guard as {width, height}; only {100, 100} passes the guard.
+    const std::pair<float, float> boundsCases[] = {
+        { 0.0f, 0.0f }, { 0.0f, 100.0f }, { 100.0f, 0.0f }, { 100.0f, 100.0f },
+    };
+    const auto surfaceSize = 100;
+    for (const auto& boundsCase : boundsCases) {
+        auto foregroundFilterDrawable = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
+        ASSERT_NE(foregroundFilterDrawable, nullptr);
+        foregroundFilterDrawable->stagingBoundsRect_ = RectF(0.0f, 0.0f, boundsCase.first, boundsCase.second);
+        foregroundFilterDrawable->needSync_ = true;
+        foregroundFilterDrawable->OnSync();
+        EXPECT_FALSE(foregroundFilterDrawable->needSync_);
+
+        auto surface = Drawing::Surface::MakeRasterN32Premul(surfaceSize, surfaceSize);
+        ASSERT_NE(surface, nullptr);
+        RSPaintFilterCanvas paintFilterCanvas(surface.get());
+        foregroundFilterDrawable->OnDraw(&paintFilterCanvas, nullptr);
+
+        if (boundsCase.first > 0 && boundsCase.second > 0) {
+            // guard passed: BeginOffscreen replaced the main surface with the bounds-sized offscreen one
+            EXPECT_FALSE(paintFilterCanvas.GetOffscreenDataList().empty());
+            EXPECT_NE(paintFilterCanvas.GetSurface(), surface.get());
+            EXPECT_EQ(paintFilterCanvas.GetSurface()->Width(), surfaceSize);
+            EXPECT_EQ(paintFilterCanvas.GetSurface()->Height(), surfaceSize);
+        } else {
+            // guard returned early: canvas state untouched
+            EXPECT_TRUE(paintFilterCanvas.GetOffscreenDataList().empty());
+            EXPECT_EQ(paintFilterCanvas.GetSurface(), surface.get());
+        }
+    }
+
+    // full chain with a real node: bounds go through OnUpdate staging and OnSync before reaching the guard
+    RSRenderNode renderNode(1);
+    renderNode.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(std::make_shared<RSFilter>());
+    auto foregroundFilterDrawable = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
+    ASSERT_NE(foregroundFilterDrawable, nullptr);
+    ASSERT_TRUE(foregroundFilterDrawable->OnUpdate(renderNode));
+    EXPECT_EQ(foregroundFilterDrawable->stagingBoundsRect_, renderNode.GetRenderProperties().GetBoundsRect());
+    foregroundFilterDrawable->OnSync();
+    auto surface = Drawing::Surface::MakeRasterN32Premul(surfaceSize, surfaceSize);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas paintFilterCanvas(surface.get());
+    foregroundFilterDrawable->OnDraw(&paintFilterCanvas, nullptr);
+    EXPECT_FALSE(paintFilterCanvas.GetOffscreenDataList().empty());
+    EXPECT_NE(paintFilterCanvas.GetSurface(), surface.get());
+}
+
+/**
+ * @tc.name: ForegroundFilterRestoreDrawableOnDrawBoundsBranchTest001
+ * @tc.desc: Cover all four combinations of the empty-bounds guard (width_ <= 0 || height_ <= 0)
+ *           in RSForegroundFilterRestoreDrawable::OnDraw
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, ForegroundFilterRestoreDrawableOnDrawBoundsBranchTest001, TestSize.Level1)
+{
+    // Four combinations of the guard as {width, height}; only {100, 100} passes the guard.
+    const std::pair<float, float> boundsCases[] = {
+        { 0.0f, 0.0f }, { 0.0f, 100.0f }, { 100.0f, 0.0f }, { 100.0f, 100.0f },
+    };
+    const auto drawSize = 100.0f;
+    const Drawing::Rect drawRect(0.0f, 0.0f, drawSize, drawSize);
+    for (const auto& boundsCase : boundsCases) {
+        // a fresh drawing filter per combination, so CanvasInfo is not polluted across iterations
+        auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+        auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+        std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+        shaderFilters.push_back(filterPtr);
+        uint32_t hash = 1;
+        std::shared_ptr<RSDrawingFilter> drawingFilter =
+            std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+        drawingFilter->SetImageFilter(imageFilter);
+
+        auto foregroundFilterRestoreDrawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+        ASSERT_NE(foregroundFilterRestoreDrawable, nullptr);
+        foregroundFilterRestoreDrawable->stagingForegroundFilter_ = drawingFilter;
+        foregroundFilterRestoreDrawable->stagingBoundsRect_ = RectF(0.0f, 0.0f, boundsCase.first, boundsCase.second);
+        foregroundFilterRestoreDrawable->needSync_ = true;
+        foregroundFilterRestoreDrawable->OnSync();
+        EXPECT_FALSE(foregroundFilterRestoreDrawable->needSync_);
+
+        Drawing::Canvas canvasTest;
+        RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+        foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &drawRect);
+
+        for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+            if (boundsCase.first > 0 && boundsCase.second > 0) {
+                // guard passed: SetGeometry applied with the draw rect size
+                EXPECT_EQ(filter->GetCanvasInfo().geoWidth, drawSize);
+                EXPECT_EQ(filter->GetCanvasInfo().geoHeight, drawSize);
+            } else {
+                // guard returned early: filter geometry stays uninitialized
+                EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+                EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+            }
+        }
+    }
 }
 
 /**

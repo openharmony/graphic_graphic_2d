@@ -412,6 +412,8 @@ public:
     bool GetRebuildingState() const;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetSolidLayerEnabled(bool enabled);
+    bool GetSolidLayerEnabled() const;
     void SetNeedMakeImage(bool enabled);
     bool GetNeedMakeImage() const override;
     void SetHardCursorStatus(bool status);
@@ -762,7 +764,13 @@ public:
     }
 
     Color GetSolidLayerColor() const { return solidLayerColor_; }
-    void SetSolidLayerColor(const Color& solidLayerColor) { solidLayerColor_ = solidLayerColor; }
+    void SetSolidLayerColor(const Color& solidLayerColor)
+    {
+        if (solidLayerColor_ != solidLayerColor) {
+            solidLayerColor_ = solidLayerColor;
+            needSync_ = true;
+        }
+    }
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
@@ -939,10 +947,10 @@ public:
 
     void SetDelegateMode(bool flag);
     bool GetDelegateMode() const;
-    void SetDelegateDstRect(const RectI& rect);
-    const RectI& GetDelegateDstRect() const;
-    void SetDelegateSrcRect(const RectI& rect);
-    const RectI& GetDelegateSrcRect() const;
+    void SetDelegateDstRect(const RectF& rect);
+    const RectF& GetDelegateDstRect() const;
+    void SetDelegateSrcRect(const RectF& rect);
+    const RectF& GetDelegateSrcRect() const;
 
     void SetTunnelState(RSTunnelRuntimeState::TunnelState state)
     {
@@ -1060,6 +1068,7 @@ private:
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
 #endif
     bool isHardwareEnabled_ = false;
+    bool isSolidLayerEnabled_ = false;
     bool needMakeImage_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1144,8 +1153,8 @@ private:
     ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
     int32_t rotationCorrectionDegree_ = 0;
 
-    RectI delegateDstRect_;
-    RectI delegateSrcRect_;
+    RectF delegateDstRect_;
+    RectF delegateSrcRect_;
     bool isWebProxyComposerNode_ = false;
 
     // for layer splitter

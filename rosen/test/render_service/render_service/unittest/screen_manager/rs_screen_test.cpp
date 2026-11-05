@@ -143,6 +143,26 @@ HWTEST_F(RSScreenTest, DisplayDump_004, testing::ext::TestSize.Level2)
 }
 
 /*
+ * @tc.name: DisplayDump_005
+ * @tc.desc: Test PhysicalScreen DisplayDump with post processing shader
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, DisplayDump_005, testing::ext::TestSize.Level2)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    rsScreen->SetPostProcessingShader(param);
+
+    std::string dumpString;
+    int32_t screenIndex = 0;
+    rsScreen->DisplayDump(screenIndex, dumpString);
+    ASSERT_NE(dumpString.find("postProcessingShaderSize"), std::string::npos);
+}
+
+/*
  * @tc.name: SetResolution_001
  * @tc.desc: SetResolution Test
  * @tc.type: FUNC
@@ -442,6 +462,22 @@ HWTEST_F(RSScreenTest, SetPowerStatus_007, testing::ext::TestSize.Level1)
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE_SUSPEND;
     rsScreen->SetPowerStatus(status);
     ASSERT_EQ(rsScreen->GetPowerStatus(), status);
+}
+
+/*
+ * @tc.name: SetPowerStatus_008
+ * @tc.desc: SetPowerStatus Test, when IsSkipScreenPowerOffing enabled and status is OFF, property is OFFING
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_008, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(mockScreenId_);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    MultiScreenParam::SetSkipScreenPowerOffing(true);
+    rsScreen->SetPowerStatus(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_OFF));
+    ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::POWER_STATUS_OFF);
+    MultiScreenParam::SetSkipScreenPowerOffing(false);
 }
 
 /*
@@ -885,6 +921,19 @@ HWTEST_F(RSScreenTest, SetScreenFrameGravityTest001, testing::ext::TestSize.Leve
     auto rsScreen = std::make_shared<RSScreen>(0);
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->SetScreenFrameGravity(100);
+}
+
+/*
+ * @tc.name: SetSkipColorSpaceConversionTest001
+ * @tc.desc: Test SetSkipColorSpaceConversion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetSkipColorSpaceConversionTest001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->SetSkipColorSpaceConversion(true);
 }
 
 /*
@@ -1753,6 +1802,35 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_006, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenHDRMode_001
+ * @tc.desc: SetVirtualScreenHDRMode Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetVirtualScreenHDRMode_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
+    // invalid HDR mode
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_MODE_BUTT), StatusCode::INVALID_ARGUMENTS);
+
+    // physical screen does not support HDR mode
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_EQ(rsScreen->SetVirtualScreenHDRMode(HDRMode::HDR_DYNAMIC), StatusCode::SCREEN_TYPE_ERROR);
+    HDRMode physicalMode = HDRMode::HDR_STATIC;
+    ASSERT_EQ(rsScreen->GetVirtualScreenHDRMode(physicalMode), StatusCode::SCREEN_TYPE_ERROR);
+    ASSERT_EQ(physicalMode, HDRMode::HDR_STATIC); // mode keeps unchanged on failure
+
+    // virtual screen: set and get
+    ASSERT_EQ(virtualScreen->SetVirtualScreenHDRMode(HDRMode::HDR_STATIC), StatusCode::SUCCESS);
+    HDRMode mode = HDRMode::NONE;
+    ASSERT_EQ(virtualScreen->GetVirtualScreenHDRMode(mode), StatusCode::SUCCESS);
+    ASSERT_EQ(mode, HDRMode::HDR_STATIC);
+}
+
+/*
  * @tc.name: SetScreenColorGamut_007
  * @tc.desc: SetScreenColorGamut Test, not virtual, expect SUCCESS
  * @tc.type: FUNC
@@ -2310,6 +2388,22 @@ HWTEST_F(RSScreenTest, SetTypeBlackList_001, testing::ext::TestSize.Level1)
 
     std::unordered_set<uint8_t> blackList {};
     rsScreen->SetTypeBlackList(blackList);
+}
+
+/*
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: SetPostProcessingShader Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetPostProcessingShader_001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    rsScreen->SetPostProcessingShader(param);
+    EXPECT_EQ(rsScreen->property_.GetPostProcessingShader(), param);
 }
 
 /*

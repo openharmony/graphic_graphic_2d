@@ -1130,6 +1130,186 @@ HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceTest001, TestSize.Level
     ASSERT_NE(node, nullptr);
     EXPECT_EQ(node->GetId(), config.id);
 }
+
+/**
+ * @tc.name: RSContextQueryBundleNameTest001
+ * @tc.desc: Test RSContext::QueryBundleName returns value from injected func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RSContextQueryBundleNameTest001, TestSize.Level1)
+{
+    RSContext context;
+    context.SetGetBundleNameFunc([](pid_t pid) -> std::string {
+        return "com.context.test";
+    });
+    EXPECT_EQ(context.QueryBundleName(100), "com.context.test");
+}
+
+/**
+ * @tc.name: RSContextQueryBundleNameTest002
+ * @tc.desc: Test RSContext::QueryBundleName returns empty when func is not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RSContextQueryBundleNameTest002, TestSize.Level1)
+{
+    RSContext context;
+    EXPECT_TRUE(context.QueryBundleName(100).empty());
+}
+
+/**
+ * @tc.name: RecreateNodeAndSurfaceBundleNameTest001
+ * @tc.desc: Test RecreateNodeAndSurface compensates bundleName for SELF_DRAWING_NODE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest001, TestSize.Level1)
+{
+    RSContext context;
+    context.SetGetBundleNameFunc([](pid_t pid) -> std::string {
+        return "com.example.app";
+    });
+    RSSurfaceRenderNodeConfig config;
+    config.id = static_cast<NodeId>(100) << 32;  // pid = 100
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    SurfaceId surfaceId = 100;
+    bool unobscured = false;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
+
+    SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
+
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(config.id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetBundleName(), "com.example.app");
+}
+
+/**
+ * @tc.name: RecreateNodeAndSurfaceBundleNameTest002
+ * @tc.desc: Test RecreateNodeAndSurface does not compensate bundleName for non-SELF_DRAWING_NODE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest002, TestSize.Level1)
+{
+    RSContext context;
+    context.SetGetBundleNameFunc([](pid_t pid) -> std::string {
+        return "com.example.app";
+    });
+    RSSurfaceRenderNodeConfig config;
+    config.id = static_cast<NodeId>(100) << 32;  // pid = 100
+    config.nodeType = RSSurfaceNodeType::DEFAULT;
+    SurfaceId surfaceId = 100;
+    bool unobscured = false;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
+
+    SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
+
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(config.id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->GetBundleName().empty());
+}
+
+/**
+ * @tc.name: RecreateNodeAndSurfaceBundleNameTest003
+ * @tc.desc: Test RecreateNodeAndSurface with QueryBundleName returning empty (compensation fails)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest003, TestSize.Level1)
+{
+    RSContext context;
+    context.SetGetBundleNameFunc([](pid_t pid) -> std::string {
+        return "";
+    });
+    RSSurfaceRenderNodeConfig config;
+    config.id = static_cast<NodeId>(100) << 32;  // pid = 100
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    SurfaceId surfaceId = 100;
+    bool unobscured = false;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
+
+    SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
+
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(config.id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->GetBundleName().empty());
+}
+
+/**
+ * @tc.name: RecreateNodeAndSurfaceBundleNameTest004
+ * @tc.desc: Test RecreateNodeAndSurface overwrites bundleName for SELF_DRAWING_NODE
+ *           when QueryBundleName returns non-empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceBundleNameTest004, TestSize.Level1)
+{
+    RSContext context;
+    context.SetGetBundleNameFunc([](pid_t pid) -> std::string {
+        return "com.query.result";
+    });
+    RSSurfaceRenderNodeConfig config;
+    config.id = static_cast<NodeId>(100) << 32;  // pid = 100
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = "com.already.set";
+    SurfaceId surfaceId = 100;
+    bool unobscured = false;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
+
+    SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
+
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(config.id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetBundleName(), "com.query.result");
+}
+
+/**
+ * @tc.name: SetBundleNameTest001
+ * @tc.desc: Test RSSurfaceRenderNode::SetBundleName and GetBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetBundleNameTest001, TestSize.Level1)
+{
+    RSContext context;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config, context.weak_from_this());
+    EXPECT_TRUE(node->GetBundleName().empty());
+
+    node->SetBundleName("com.test.bundle");
+    EXPECT_EQ(node->GetBundleName(), "com.test.bundle");
+}
 #endif
 #endif
 } // namespace OHOS::Rosen

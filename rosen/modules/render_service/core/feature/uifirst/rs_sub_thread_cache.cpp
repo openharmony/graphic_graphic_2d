@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "rs_sub_thread_cache.h"
 
 #include <memory>
@@ -69,7 +68,7 @@ static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
     return matrix;
 }();
 constexpr float SCALE_DIFF = 0.01f;
-}
+} // namespace
 
 namespace OHOS::Rosen::DrawableV2 {
 RsSubThreadCache::RsSubThreadCache()
@@ -393,6 +392,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             colorSpace = (targetColorGamut_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) ?
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3) :
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        }
+        if (GetSkipColorSpaceConversion()) {
+            colorSpace = nullptr;
         }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
@@ -1304,6 +1306,7 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
         RS_LOGE("DrawBehindWindowBeforeCache data is not valid");
         return;
     }
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_BEHINDWOENABLEVQMA, nodeId_);
     auto surface = canvas.GetSurface();
     if (!surface) {
         RS_LOGE("DrawBehindWindowBeforeCache surface is nullptr");

@@ -237,9 +237,15 @@ private:
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
+    int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) override;
+
+    int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) override;
+
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
+
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param) override;
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
@@ -286,6 +292,8 @@ private:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
+    void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) override;
 
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 

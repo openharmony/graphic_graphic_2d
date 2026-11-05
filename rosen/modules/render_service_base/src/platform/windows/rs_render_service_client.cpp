@@ -378,12 +378,27 @@ int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
     return {};
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenHDRMode(ScreenId id, HDRMode mode)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
     return {};
 }
 
 int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
 {
     return {};
 }
@@ -528,6 +543,10 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offsetX, int32_
 }
 
 void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
+void RSRenderServiceClient::SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion)
 {
 }
 

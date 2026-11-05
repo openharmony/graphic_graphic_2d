@@ -20,6 +20,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "engine/rs_uni_render_engine.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -622,18 +623,26 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources004, TestSize.Level2)
     captureConfig.useCurWindow = true;
 
     NodeId nodeId = 1000123;
+    NodeId childNodeId = 1000123 + 1;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     node->GetMutableRenderProperties().SetBounds({ 0, 0, 1260, 2720 });
     ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
+    childNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    node->AddChild(childNode, -1);
+    node->GenerateFullChildrenList();
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
+    nodeMap.RegisterRenderNode(childNode);
 
     node->shouldPaint_ = true;
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     ASSERT_EQ(true, task.CreateResources());
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.UnregisterRenderNode(childNodeId);
 }
 
 /*
@@ -709,6 +718,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources006, TestSize.Level2)
     appWindowNode->shouldPaint_ = true;
     appWindowNode->SetParent(leashNode);
     leashNode->AddChild(appWindowNode, -1);
+    leashNode->GenerateFullChildrenList();
 
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -717,11 +727,325 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources006, TestSize.Level2)
     nodeMap.RegisterRenderNode(appWindowNode);
 
     RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
-    ASSERT_EQ(true, task.CreateResources());
-    ASSERT_NE(task.errorCode_, CaptureError::AUTO_NOT_SUPPORT);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
 
     nodeMap.UnregisterRenderNode(leashNodeId);
     nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: CreateResources007
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateResources with no children (WINDOW_CAPTURE_NO_CHILD)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources007, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId nodeId = 1000300;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    node->shouldPaint_ = true;
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+
+    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: CreateResources008
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, drill down to appWindow with children → hasNoChild=false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources008, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000400;
+    NodeId appWindowNodeId = 1000401;
+    NodeId rootNodeId = 1000402;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
+    ASSERT_NE(rootNode, nullptr);
+    rootNode->SetParent(appWindowNode);
+    appWindowNode->AddChild(rootNode, -1);
+
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+    nodeMap.RegisterRenderNode(rootNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+    nodeMap.UnregisterRenderNode(rootNodeId);
+}
+
+/**
+ * @tc.name: CreateResources009
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, drill down to appWindow with no children (后台销毁空壳)
+ *           → hasNoChild=true → WINDOW_CAPTURE_NO_CHILD
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources009, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000500;
+    NodeId appWindowNodeId = 1000501;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    appWindowNode->SetHasDestoryRebuild(true);
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+    // appWindow has no children — simulates后台销毁: ROOT_NODE removed, appWindow shell remains
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: CreateResources010
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, leashChildren is empty → drill down fails
+ *           → contentNode stays leashWindow → hasNoChild=true (leash has 0 children)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources010, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId leashNodeId = 1000600;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+    // leashNode has no children at all
+    leashNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+
+    RSSurfaceCaptureTaskParallel task(leashNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+}
+
+/**
+ * @tc.name: CreateResources011
+ * @tc.desc: Test hasNoChild: curNode is leashWindow, first child is not appWindow → drill down fails
+ *           → contentNode stays leashWindow → hasNoChild based on leash children count
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources011, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId leashNodeId = 1000700;
+    NodeId nonAppChildNodeId = 1000701;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto nonAppChildNode = std::make_shared<RSSurfaceRenderNode>(nonAppChildNodeId);
+    ASSERT_NE(nonAppChildNode, nullptr);
+    nonAppChildNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    nonAppChildNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
+    nonAppChildNode->shouldPaint_ = true;
+    nonAppChildNode->SetParent(leashNode);
+    leashNode->AddChild(nonAppChildNode, -1);
+    // nonAppChild has no children, so leash's child count is 1 but contentNode stays leash.
+    // contentNode=leashWindow, leash has 1 child (nonAppChild) → hasNoChild=false
+    leashNode->GenerateFullChildrenList();
+    nonAppChildNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(nonAppChildNode);
+
+    RSSurfaceCaptureTaskParallel task(leashNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(nonAppChildNodeId);
+}
+
+/**
+ * @tc.name: CreateResources012
+ * @tc.desc: Test hasNoChild: curNode is appWindow (useCurWindow=true) with no children + BACKGROUND state
+ *           → hasNoChild=true → WINDOW_CAPTURE_NO_CHILD (original后台场景)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources012, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = true;
+
+    NodeId appWindowNodeId = 1000800;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    appWindowNode->SetHasDestoryRebuild(true);
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(appWindowNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(false, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::WINDOW_CAPTURE_NO_CHILD);
+
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: CreateResources013
+ * @tc.desc: Test hasNoChild: curNode is leashWindow (useCurWindow=false), parent leash not ShouldPaint
+ *           → curNode stays appWindow with children → hasNoChild=false → success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources013, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000900;
+    NodeId appWindowNodeId = 1000901;
+    NodeId rootNodeId = 1000902;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = false; // leash not paintable → curNode stays appWindow
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
+    ASSERT_NE(rootNode, nullptr);
+    rootNode->SetParent(appWindowNode);
+    appWindowNode->AddChild(rootNode, -1);
+
+    leashNode->GenerateFullChildrenList();
+    appWindowNode->GenerateFullChildrenList();
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+    nodeMap.RegisterRenderNode(rootNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+    ASSERT_EQ(task.errorCode_, CaptureError::CAPTURE_OK);
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+    nodeMap.UnregisterRenderNode(rootNodeId);
 }
 
 /**
@@ -1167,12 +1491,18 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
 
     NodeId nodeId= 1000235;
+    NodeId childNodeId = 1000236;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
     ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
+    childNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    node->AddChild(childNode, -1);
+    node->GenerateFullChildrenList();
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
+    nodeMap.RegisterRenderNode(childNode);
     // define callBack
 
     RSSurfaceCaptureTaskParallel task1(nodeId, captureConfig);
@@ -1188,6 +1518,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.UnregisterRenderNode(childNodeId);
     {
         auto& rt_ = RSUniRenderThread::Instance();
         if (rt_.uniRenderEngine_) {
@@ -1225,12 +1556,18 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run006, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
 
     NodeId nodeId= 1000777;
+    NodeId childNodeId = 1000778;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
     ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
+    childNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    node->AddChild(childNode, -1);
+    node->GenerateFullChildrenList();
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
+    nodeMap.RegisterRenderNode(childNode);
     // define callBack
     Drawing::Rect rect = {0, 0, 1260, 2720};
     RSSurfaceCaptureTaskParallel task1(nodeId, captureConfig);
@@ -1245,6 +1582,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run006, TestSize.Level2)
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.UnregisterRenderNode(childNodeId);
     {
         auto& rt_ = RSUniRenderThread::Instance();
         if (rt_.uniRenderEngine_) {
@@ -1473,6 +1811,225 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
     EXPECT_EQ(RSUniRenderThread::GetCaptureParam().needCaptureSpecialLayer_, true);
+}
+
+/*
+ * @tc.name: CaptureDisplayNodeBlacklistCacheFlag001
+ * @tc.desc: Test CaptureDisplayNode restores blacklist flag on ancestor cache root after capture
+ * @tc.type: FUNC
+ * @tc.require: issues/26642
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag001, TestSize.Level2)
+{
+    NodeId displayId = 888001;
+    NodeId cacheRootId = 888002;
+    NodeId blacklistedId = 888003;
+    auto displayNode = std::make_shared<RSRenderNode>(displayId);
+    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
+    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
+    blacklistedNode->SetParent(cacheRootNode);
+    cacheRootNode->SetParent(displayNode);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    ASSERT_NE(cacheRootDrawable, nullptr);
+    ASSERT_NE(DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(blacklistedNode), nullptr);
+    const auto& params = cacheRootDrawable->GetRenderParams();
+    ASSERT_NE(params, nullptr);
+    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.blackList.push_back(blacklistedId);
+    RSSurfaceCaptureParam captureParam;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
+        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
+    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+
+    nodeMap.UnregisterRenderNode(displayId);
+    nodeMap.UnregisterRenderNode(cacheRootId);
+    nodeMap.UnregisterRenderNode(blacklistedId);
+}
+
+/*
+ * @tc.name: CaptureDisplayNodeBlacklistCacheFlag002
+ * @tc.desc: Test CaptureDisplayNode keeps pre-existing blacklist flag after capture
+ * @tc.type: FUNC
+ * @tc.require: issues/26642
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag002, TestSize.Level2)
+{
+    NodeId displayId = 888011;
+    NodeId cacheRootId = 888012;
+    NodeId blacklistedId = 888013;
+    auto displayNode = std::make_shared<RSRenderNode>(displayId);
+    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
+    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
+    blacklistedNode->SetParent(cacheRootNode);
+    cacheRootNode->SetParent(displayNode);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    ASSERT_NE(cacheRootDrawable, nullptr);
+    ASSERT_NE(DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(blacklistedNode), nullptr);
+    const auto& params = cacheRootDrawable->GetRenderParams();
+    ASSERT_NE(params, nullptr);
+    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    // Pre-existing flag, e.g. set by the main-thread mechanism for a persistent blacklist.
+    params->SetNodeGroupHasChildInBlacklist(true);
+    EXPECT_TRUE(params->NodeGroupHasChildInBlacklist());
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.blackList.push_back(blacklistedId);
+    RSSurfaceCaptureParam captureParam;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
+        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    EXPECT_TRUE(params->NodeGroupHasChildInBlacklist());
+
+    nodeMap.UnregisterRenderNode(displayId);
+    nodeMap.UnregisterRenderNode(cacheRootId);
+    nodeMap.UnregisterRenderNode(blacklistedId);
+}
+
+/*
+ * @tc.name: CaptureDisplayNodeBlacklistCacheFlag003
+ * @tc.desc: Test CaptureDisplayNode skips blacklist ids absent from the node map and
+ *           nodes whose drawable was never generated, while still flagging the cache root
+ * @tc.type: FUNC
+ * @tc.require: issues/26642
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag003, TestSize.Level2)
+{
+    NodeId displayId = 888021;
+    NodeId cacheRootId = 888022;
+    NodeId blacklistedId = 888023;
+    NodeId unregisteredId = 888024;
+    NodeId noDrawableId = 888025;
+    auto displayNode = std::make_shared<RSRenderNode>(displayId);
+    auto cacheRootNode = std::make_shared<RSRenderNode>(cacheRootId);
+    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
+    auto noDrawableNode = std::make_shared<RSRenderNode>(noDrawableId);
+    blacklistedNode->SetParent(cacheRootNode);
+    cacheRootNode->SetParent(displayNode);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(cacheRootNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(noDrawableNode));
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    auto cacheRootDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cacheRootNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    ASSERT_NE(cacheRootDrawable, nullptr);
+    const auto& params = cacheRootDrawable->GetRenderParams();
+    ASSERT_NE(params, nullptr);
+    params->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.blackList.push_back(unregisteredId);
+    captureConfig.blackList.push_back(noDrawableId);
+    captureConfig.blackList.push_back(blacklistedId);
+    RSSurfaceCaptureParam captureParam;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
+        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
+    EXPECT_FALSE(params->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+
+    nodeMap.UnregisterRenderNode(displayId);
+    nodeMap.UnregisterRenderNode(cacheRootId);
+    nodeMap.UnregisterRenderNode(blacklistedId);
+    nodeMap.UnregisterRenderNode(noDrawableId);
+}
+
+/*
+ * @tc.name: CaptureDisplayNodeBlacklistCacheFlag004
+ * @tc.desc: Test CaptureDisplayNode skips ancestors whose cache type is DISABLED_CACHE so they
+ *           are not flagged, while a FORCED_CACHE ancestor above them is flagged and restored
+ * @tc.type: FUNC
+ * @tc.require: issues/26642
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNodeBlacklistCacheFlag004, TestSize.Level2)
+{
+    NodeId displayId = 888031;
+    NodeId disabledCacheRootId = 888032;
+    NodeId forcedCacheRootId = 888033;
+    NodeId blacklistedId = 888034;
+    auto displayNode = std::make_shared<RSRenderNode>(displayId);
+    auto disabledCacheNode = std::make_shared<RSRenderNode>(disabledCacheRootId);
+    auto forcedCacheNode = std::make_shared<RSRenderNode>(forcedCacheRootId);
+    auto blacklistedNode = std::make_shared<RSRenderNode>(blacklistedId);
+    blacklistedNode->SetParent(forcedCacheNode);
+    forcedCacheNode->SetParent(disabledCacheNode);
+    disabledCacheNode->SetParent(displayNode);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(disabledCacheNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(forcedCacheNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(blacklistedNode));
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    auto disabledCacheDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(disabledCacheNode));
+    auto forcedCacheDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(forcedCacheNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    ASSERT_NE(disabledCacheDrawable, nullptr);
+    ASSERT_NE(forcedCacheDrawable, nullptr);
+    const auto& disabledParams = disabledCacheDrawable->GetRenderParams();
+    const auto& forcedParams = forcedCacheDrawable->GetRenderParams();
+    ASSERT_NE(disabledParams, nullptr);
+    ASSERT_NE(forcedParams, nullptr);
+    ASSERT_EQ(disabledParams->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    forcedParams->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    EXPECT_FALSE(forcedParams->NodeGroupHasChildInBlacklist());
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.blackList.push_back(blacklistedId);
+    RSSurfaceCaptureParam captureParam;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceCaptureTaskParallel task(displayId, captureConfig);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    task.CaptureDisplayNode(*displayDrawable, canvas, captureParam,
+        RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    // The flag was set on the ancestor cache root during capture and must be restored afterwards.
+    EXPECT_FALSE(forcedParams->NodeGroupHasChildInBlacklist());
+    EXPECT_FALSE(disabledParams->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(RSUniRenderThread::Instance().GetBlackList().empty());
+
+    nodeMap.UnregisterRenderNode(displayId);
+    nodeMap.UnregisterRenderNode(disabledCacheRootId);
+    nodeMap.UnregisterRenderNode(forcedCacheRootId);
+    nodeMap.UnregisterRenderNode(blacklistedId);
 }
 
 /*

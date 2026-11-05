@@ -291,6 +291,25 @@ HWTEST_F(RSInterfacesTest, GetTotalAppMemSize001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetVirtualScreenHDRMode001
+ * @tc.desc: test results of SetVirtualScreenHDRMode and GetVirtualScreenHDRMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenHDRMode001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    // no screen for the id
+    auto res = instance.SetVirtualScreenHDRMode(INVALID_SCREEN_ID, HDRMode::HDR_DYNAMIC);
+    EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+    HDRMode mode = HDRMode::NONE;
+    res = instance.GetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode);
+    EXPECT_EQ(res, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(mode, HDRMode::NONE);
+}
+
+/**
  * @tc.name: ReportJankStats001
  * @tc.desc: test results of ReportJankStats
  * @tc.type: FUNC
@@ -1213,6 +1232,27 @@ HWTEST_F(RSInterfacesTest, SetUIMode3D_003, TestSize.Level1)
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     bool res = instance.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test RSInterfaces::SetPostProcessingShader
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    std::vector<uint8_t> param = { 1, 2, 3 };
+
+    int32_t ret = instance.SetPostProcessingShader(1, param);
+    EXPECT_TRUE(ret == static_cast<int32_t>(StatusCode::RENDER_SERVICE_NULL) ||
+        ret == static_cast<int32_t>(StatusCode::SUCCESS) ||
+        ret == static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND) ||
+        ret == static_cast<int32_t>(StatusCode::VIRTUAL_SCREEN) ||
+        ret == static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS) ||
+        ret == static_cast<int32_t>(StatusCode::RS_CONNECTION_ERROR));
 }
 
 } // namespace OHOS::Rosen

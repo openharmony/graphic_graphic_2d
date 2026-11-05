@@ -15,12 +15,16 @@
 
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 
+#include <charconv>
+#include <cstring>
+
 #include "hgm_frame_rate_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #include "rp_hgm_xml_parser.h"
 #include "system/rs_system_parameters.h"
 
@@ -40,6 +44,26 @@ HgmRenderContext::HgmRenderContext(const sptr<RSIRenderToServiceConnection>& ren
     convertFrameRateFunc_ = [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return rpFrameRatePolicy_->GetExpectedFrameRate(unit, velocity, area, length);
     };
+    int ret = RSSystemProperties::WatchSystemProperty("rosen.showRefreshRate.enabled",
+        ShowRefreshRateChangeProcess, nullptr);
+    if (ret != 0) {
+        HGM_LOGE("WatchSystemProperty rosen.showRefreshRate.enabled fail: %{public}d", ret);
+    }
+}
+
+void HgmRenderContext::ShowRefreshRateChangeProcess(const char* key, const char* value, void* context)
+{
+    if (value == nullptr) {
+        return;
+    }
+    int32_t intValue = 0;
+    auto result = std::from_chars(value, value + std::strlen(value), intValue);
+    if (result.ec != std::errc()) {
+        HGM_LOGE("ShowRefreshRateChangeProcess parse value failed");
+        return;
+    }
+    RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(intValue != 0,
+        static_cast<int32_t>(RealtimeRefreshRateType::SHOW));
 }
 
 int32_t HgmRenderContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,

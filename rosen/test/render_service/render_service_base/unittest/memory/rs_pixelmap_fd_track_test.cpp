@@ -1433,4 +1433,19 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdTotalMixedAllocTypeTest001, testing::ext:
     EXPECT_EQ(topFdCountPid, pid1);
     EXPECT_EQ(topFdCount, 20000);
 }
+
+/**
+ * @tc.name: KillProcessByPidTest002
+ * @tc.desc: Test function KillProcessByPid with non-zero pid to exercise RS_ENABLE_UNI_RENDER branch
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, KillProcessByPidTest002, testing::ext::TestSize.Level1)
+{
+    int32_t pid = 99999;
+    std::string reason = "fd count exceeds limit";
+    RSPixelMapFdTrack tracker;
+    bool success = tracker.KillProcessByPid(pid, reason);
+    EXPECT_FALSE(success);
+}
 } // namespace OHOS::Rosen

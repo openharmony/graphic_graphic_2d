@@ -72,6 +72,8 @@ struct supports_animatable_arithmetic<T,
     : std::true_type {};
 template<>
 struct supports_animatable_arithmetic<std::vector<float>> : std::true_type {};
+template<>
+struct supports_animatable_arithmetic<RRect> : std::true_type {};
 
 enum PropertyUpdateType : uint8_t {
     UPDATE_TYPE_OVERWRITE = 0,   // overwrite by given value
@@ -133,6 +135,7 @@ enum class RSPropertyType : uint8_t {
     PARTICLE_FIELDS,
     SIMPLE_DRAW_CMD_LIST,
     ATLAS_INFO,
+    CLIP_SHAPE,
 };
 
 enum class RSPropertyUnit : uint8_t {

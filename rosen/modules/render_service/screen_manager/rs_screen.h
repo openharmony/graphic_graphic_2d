@@ -113,6 +113,8 @@ public:
 
     int32_t SetScreenColorGamut(int32_t modeIdx);
     int32_t GetScreenColorGamut(ScreenColorGamut& mode) const;
+    int32_t SetVirtualScreenHDRMode(HDRMode mode);
+    int32_t GetVirtualScreenHDRMode(HDRMode& mode) const;
     int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut>& mode) const;
     int32_t SetScreenGamutMap(ScreenGamutMap mode);
     int32_t GetScreenGamutMap(ScreenGamutMap& mode) const;
@@ -164,6 +166,9 @@ public:
     // type blacklist
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
 
+    // post processing shader
+    void SetPostProcessingShader(const std::vector<uint8_t>& param);
+
     // whitelist
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
     std::unordered_set<NodeId> GetWhiteList() const;
@@ -178,6 +183,7 @@ public:
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(int32_t gravity);
+    void SetSkipColorSpaceConversion(bool skipColorSpaceConversion);
 
     void SetDisablePowerOffRenderControl(bool disable);
     void SetScreenSwitchStatus(bool status);

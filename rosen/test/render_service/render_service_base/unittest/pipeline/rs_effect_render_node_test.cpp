@@ -19,6 +19,7 @@
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "params/rs_effect_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
@@ -242,11 +243,17 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize
         std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
     backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
-    if (RSProperties::filterCacheEnabled_) {
+    if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
     } else {
         EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
     }
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(RSFilterCacheManager::IsFilterCacheEnabled());
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**
@@ -307,6 +314,13 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterHasEffectChildrenTest, TestSize.Level
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
     rsEffectRenderNode.MarkFilterHasEffectChildren();
     EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+
+    // Disable filter cache to cover the false branch
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(false);
+    rsEffectRenderNode.MarkFilterHasEffectChildren();
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+    // Re-enable for other tests
+    RSFilterCacheManager::SetFilterCacheEnabledByCCM(true);
 }
 
 /**

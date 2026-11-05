@@ -314,6 +314,24 @@ HWTEST_F(SkiaGPUContextTest, SetTextCacheEnforcedTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetParamTest001
+ * @tc.desc: Test SetParam with a param map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaGPUContextTest, SetParamTest001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::unordered_map<std::string, std::string> params = {
+        { "IsSmartCacheEnabled", "true" },
+        { "SmartCacheUMDPoolSize", "100" },
+    };
+    gpuContext->SetParam(params);
+    gpuContext->SetParam(std::unordered_map<std::string, std::string>());
+}
+
+/**
  * @tc.name: SetCurrentGpuResourceTag001
  * @tc.desc: Test SetCurrentGpuResourceTag
  * @tc.type: FUNC

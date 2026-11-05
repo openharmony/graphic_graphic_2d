@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_effect_utils.h"
 
 using namespace testing;
@@ -166,6 +167,133 @@ HWTEST_F(RSEffectUtilsTest, UpdateFilterCacheWithBelowDirtyAndPendingPurge002, T
 
     RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(*node, dirtyManager);
     EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: HasValidEffectNodeTest001
+ * @tc.desc: test HasValidEffectNode with null node, loop body skipped and return false
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidEffectNodeTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nullNode = nullptr;
+    EXPECT_FALSE(RSEffectUtils::HasValidEffectNode(nullNode));
+}
+
+/**
+ * @tc.name: HasValidEffectNodeTest002
+ * @tc.desc: test HasValidEffectNode with EFFECT_NODE type and all validity conditions met
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidEffectNodeTest002, TestSize.Level1)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id, context);
+    effectNode->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    effectNode->SetGlobalAlpha(1.0f);
+    effectNode->shouldPaint_ = true;
+    effectNode->hasEffectChildrenWithoutEmptyRect_ = true;
+    EXPECT_TRUE(RSEffectUtils::HasValidEffectNode(effectNode));
+}
+
+/**
+ * @tc.name: HasValidEffectNodeTest003
+ * @tc.desc: test HasValidEffectNode with SURFACE_NODE type, immediate return false
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidEffectNodeTest003, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    EXPECT_FALSE(RSEffectUtils::HasValidEffectNode(surfaceNode));
+}
+
+/**
+ * @tc.name: HasValidEffectNodeTest004
+ * @tc.desc: test HasValidEffectNode with CANVAS_NODE type, walk up parent chain without EFFECT_NODE
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidEffectNodeTest004, TestSize.Level1)
+{
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto parentNode = std::make_shared<RSRenderNode>(id + 1, context);
+    parentNode->AddChild(canvasNode);
+    EXPECT_FALSE(RSEffectUtils::HasValidEffectNode(canvasNode));
+}
+
+/**
+ * @tc.name: HasValidFilterOrEffectTest001
+ * @tc.desc: test HasValidFilterOrEffect with null BackgroundFilter and no other effect set
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidFilterOrEffectTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    // BackgroundFilter/MaterialFilter/UseEffect all default to null/false; BgBrightness invalid.
+    EXPECT_FALSE(RSEffectUtils::HasValidFilterOrEffect(*node));
+}
+
+/**
+ * @tc.name: HasValidFilterOrEffectTest002
+ * @tc.desc: test HasValidFilterOrEffect with only MaterialFilter set, short-circuit at second condition
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidFilterOrEffectTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->GetMutableRenderProperties().GetEffectProperties().SetMaterialFilter(std::make_shared<RSFilter>());
+    EXPECT_TRUE(RSEffectUtils::HasValidFilterOrEffect(*node));
+}
+
+/**
+ * @tc.name: HasValidFilterOrEffectTest003
+ * @tc.desc: test HasValidFilterOrEffect with only BackgroundFilter set, short-circuit at first condition
+ * @tc.type: FUNC
+ * @tc.require: issue33156
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidFilterOrEffectTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    EXPECT_TRUE(RSEffectUtils::HasValidFilterOrEffect(*node));
+}
+
+/**
+ * @tc.name: HasValidEffectTest001
+ * @tc.desc: test HasValidEffect: null input, surface-node termination, UseEffect/EFFECT_NODE walk
+ * @tc.type: FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSEffectUtilsTest, HasValidEffectTest001, TestSize.Level1)
+{
+    auto rootSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id + 1);
+    auto testNode = std::make_shared<RSEffectRenderNode>(id + 2);
+    auto renderNode = std::make_shared<RSRenderNode>(id + 3);
+
+    testNode->GetMutableRenderProperties().SetUseEffect(true);
+    testNode->SetGlobalAlpha(1.0f);
+    testNode->UpdateChildrenOutOfRectFlag(true);
+
+    rootSurfaceNode->AddChild(effectNode);
+    effectNode->AddChild(testNode);
+    testNode->AddChild(renderNode);
+
+    EXPECT_FALSE(RSEffectUtils::HasValidEffect(nullptr));
+    EXPECT_FALSE(RSEffectUtils::HasValidEffect(renderNode.get()));
+    RSEffectUtils::HasValidEffect(rootSurfaceNode.get());
+    EXPECT_FALSE(RSEffectUtils::HasValidEffect(testNode.get()));
+    testNode->UpdateChildrenOutOfRectFlag(false);
+    RSEffectUtils::HasValidEffect(testNode.get());
+    testNode->SetGlobalAlpha(0.5f);
+    EXPECT_FALSE(RSEffectUtils::HasValidEffect(testNode.get()));
+    testNode->SetGlobalAlpha(1.0f);
+    rootSurfaceNode->RemoveChild(effectNode);
+    EXPECT_FALSE(RSEffectUtils::HasValidEffect(rootSurfaceNode.get()));
 }
 } // namespace Rosen
 } // namespace OHOS

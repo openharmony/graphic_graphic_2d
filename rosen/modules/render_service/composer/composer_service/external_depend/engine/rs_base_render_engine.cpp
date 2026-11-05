@@ -40,6 +40,7 @@
 #include "smart_cache_param.h"
 #include "spirv_cache_param.h"
 #include "vma_block_param.h"
+#include "ddgr_config_param.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 
@@ -223,16 +224,12 @@ void RSBaseRenderEngine::Init(RenderEngineType type)
     skContext_ = renderContext_-> GetSharedDrGPUContext();
 #if defined(RS_ENABLE_VK)
     if (renderContext_->GetDrGPUContext()) {
-        renderContext_->GetDrGPUContext()->SetParam(
-            "IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
-        renderContext_->GetDrGPUContext()->SetParam(
-            "SmartCacheUMDPoolSize", SmartCacheParam::GetUMDPoolSize());
-        renderContext_->GetDrGPUContext()->SetParam(
-            "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
-        renderContext_->GetDrGPUContext()->SetParam(
-            "IsVMABlockEnabled", VMABlockParam::IsEnabled());
-        renderContext_->GetDrGPUContext()->SetParam(
-            "SpirvCacheSize", SpirvCacheParam::GetSpirvCacheSize());
+        renderContext_->GetDrGPUContext()->SetParam("IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
+        renderContext_->GetDrGPUContext()->SetParam("SmartCacheUMDPoolSize", SmartCacheParam::GetUMDPoolSize());
+        renderContext_->GetDrGPUContext()->SetParam("SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
+        renderContext_->GetDrGPUContext()->SetParam("IsVMABlockEnabled", VMABlockParam::IsEnabled());
+        renderContext_->GetDrGPUContext()->SetParam("SpirvCacheSize", SpirvCacheParam::GetSpirvCacheSize());
+        renderContext_->GetDrGPUContext()->SetParam(DDGRConfigParam::GetParams());
     }
 #endif
 

@@ -70,6 +70,7 @@ constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
 inline const std::string DEVICE_TYPE_PHONE = "phone";
 inline const std::string DEVICE_TYPE_WEARABLE = "wearable";
+inline const std::string DEVICE_TYPE_2IN1 = "2in1";
 
 inline const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 

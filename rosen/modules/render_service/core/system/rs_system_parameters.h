@@ -59,6 +59,7 @@ public:
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
     static bool GetShowRefreshRateEnabled(int *changed = nullptr);
+    static void SetShowRefreshRateEnabled(bool enabled);
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static RsParallelType GetRsParallelType();
     static RsSurfaceCaptureType GetRsSurfaceCaptureType();

@@ -620,6 +620,51 @@ ErrCode RSClientToRenderConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<
     return ERR_OK;
 }
 
+ErrCode RSClientToRenderConnectionProxy::BlurPixelMap(std::shared_ptr<Media::PixelMap> pixelMap,
+    float blurRadius, std::shared_ptr<Media::PixelMap>& blurredPixelMap, bool& success)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("BlurPixelMap: WriteInterfaceToken GetDescriptor err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    RSMarshallingHelper::MarshallingTransactionVer(data);
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!RSMarshallingHelper::Marshalling(data, pixelMap)) {
+        ROSEN_LOGE("BlurPixelMap: Marshalling pixelMap err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteFloat(blurRadius)) {
+        ROSEN_LOGE("BlurPixelMap: WriteFloat blurRadius err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::BLUR_PIXEL_MAP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("BlurPixelMap: SendRequest err=%{public}d", err);
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("BlurPixelMap: ReadBool result err.");
+        success = false;
+        return READ_PARCEL_ERR;
+    }
+    if (!result || !RSMarshallingHelper::Unmarshalling(reply, blurredPixelMap)) {
+        ROSEN_LOGE("BlurPixelMap: Unmarshalling blurredPixelMap err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    success = true;
+    return ERR_OK;
+}
+
 ErrCode RSClientToRenderConnectionProxy::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {

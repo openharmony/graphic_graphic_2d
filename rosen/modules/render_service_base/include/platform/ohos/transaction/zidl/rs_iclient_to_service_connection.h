@@ -246,9 +246,15 @@ public:
 
     virtual int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) = 0;
 
+    virtual int32_t SetVirtualScreenHDRMode(ScreenId id, HDRMode mode) = 0;
+
+    virtual int32_t GetVirtualScreenHDRMode(ScreenId id, HDRMode& mode) = 0;
+
     virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
 
     virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
+
+    virtual int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param) = 0;
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
@@ -293,6 +299,8 @@ public:
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
+
+    virtual void SetSkipColorSpaceConversion(ScreenId id, bool skipColorSpaceConversion) = 0;
 
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 

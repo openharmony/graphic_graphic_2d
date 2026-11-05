@@ -114,6 +114,9 @@ private:
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
+    static void UpdateRectInfoForDelegateMode(RSSurfaceRenderNode& node,
+        float& bufferWidth, float& bufferHeight, float& boundsWidth, float& boundsHeight);
+    static void UpdateLeftAndTopForDelegateMode(RSSurfaceRenderNode& node, Drawing::Rect &srcRect);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -124,6 +124,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     ScreenColorGamut screenColorGamut = (ScreenColorGamut)width;
     ScreenGamutMap screenGamutMap = (ScreenGamutMap)width;
     ScreenHDRFormat screenHDRFormat = (ScreenHDRFormat)width;
+    HDRMode virtualScreenHDRMode = (HDRMode)width;
     SystemAnimatedScenes systemAnimatedScenes = (SystemAnimatedScenes)width;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
     FrameRateRange range;
@@ -258,6 +259,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats);
     rsClientToServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat);
     rsClientToServiceConnectionProxy.SetScreenHDRFormat(id1, pid1);
+    rsClientToServiceConnectionProxy.SetVirtualScreenHDRMode(id1, virtualScreenHDRMode);
+    rsClientToServiceConnectionProxy.GetVirtualScreenHDRMode(id1, virtualScreenHDRMode);
     rsClientToServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces);
     rsClientToServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace);
     rsClientToServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace);
