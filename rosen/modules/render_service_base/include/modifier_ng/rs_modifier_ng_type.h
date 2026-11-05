@@ -372,6 +372,7 @@ public:
             case RSPropertyType::SPATIAL_EFFECT_MODE: return "SpatialEffectMode";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
             case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
+            case RSPropertyType::CLIP_SHAPE: return "ClipShape";
             default: return "Unknown";
         }
         return "Unknown";

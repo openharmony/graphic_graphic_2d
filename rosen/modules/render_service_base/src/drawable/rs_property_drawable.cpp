@@ -139,7 +139,16 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
-    if (properties.GetClipBounds() != nullptr) {
+    if (properties.GetClipToShape()) {
+        stagingType_ = RSClipToBoundsType::CLIP_RRECT;
+        const auto& shape = properties.GetClipShape();
+        auto bounds = properties.GetBoundsRect();
+        RRect rrect(RectT<float>(bounds.left_, bounds.top_,
+            shape->rect_.width_, shape->rect_.height_), Vector4f(shape->radius_[0][0], shape->radius_[1][0],
+            shape->radius_[2][0], shape->radius_[3][0]));
+        stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
+        stagingIsClipRRectOptimization_ = properties.NeedCornerOptimization();
+    } else if (properties.GetClipBounds() != nullptr) {
         stagingType_ = RSClipToBoundsType::CLIP_PATH;
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {

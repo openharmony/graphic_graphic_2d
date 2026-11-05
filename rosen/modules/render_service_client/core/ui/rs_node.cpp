@@ -2953,6 +2953,12 @@ void RSNode::SetClipRRect(const std::shared_ptr<RRect>& rrect)
     SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetClipRRect>(rrect);
 }
 
+void RSNode::SetClipShape(const RRect& shape)
+{
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier,
+        &ModifierNG::RSBoundsClipModifier::SetClipShape>(shape);
+}
+
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetClipBounds>(path);

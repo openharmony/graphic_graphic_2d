@@ -50,6 +50,7 @@ HWTEST_F(RSBoundsClipRenderModifierNGTypeTest, RSBoundsClipRenderModifierTest, T
     modifier.ResetProperties(properties);
 
     EXPECT_EQ(properties.GetClipRRect(), RRect());
+    EXPECT_FALSE(properties.GetClipToRRect());
     EXPECT_EQ(properties.GetClipBounds(), nullptr);
     EXPECT_EQ(properties.GetClipToBounds(), false);
     EXPECT_EQ(properties.GetCornerRadius(), Vector4f());

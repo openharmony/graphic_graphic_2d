@@ -83,6 +83,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::BG_BRIGHTNESS_FRACTION, ThresholdType::COARSE },
     { RSPropertyType::FRAME_GRAVITY, ThresholdType::ZERO },
     { RSPropertyType::CLIP_RRECT, ThresholdType::MEDIUM },
+    { RSPropertyType::CLIP_SHAPE, ThresholdType::MEDIUM },
     { RSPropertyType::CLIP_BOUNDS, ThresholdType::ZERO },
     { RSPropertyType::CLIP_TO_BOUNDS, ThresholdType::ZERO },
     { RSPropertyType::CLIP_TO_FRAME, ThresholdType::ZERO },

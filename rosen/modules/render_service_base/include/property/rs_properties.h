@@ -26,6 +26,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "property/rs_effect_properties.h"
 #include "property/rs_properties_def.h"
@@ -384,6 +385,16 @@ public:
     bool GetClipToRRect() const
     {
         return clipRRect_ && !clipRRect_->rect_.IsEmpty();
+    }
+    void SetClipShape(const RRect& clipShape);
+    void ResetClipShape();
+    const std::shared_ptr<RRect>& GetClipShape() const
+    {
+        return clipShape_;
+    }
+    bool GetClipToShape() const
+    {
+        return clipShape_ != nullptr;
     }
     void SetClipBounds(const std::shared_ptr<RSPath>& path);
     const std::shared_ptr<RSPath>& GetClipBounds() const
@@ -1005,6 +1016,7 @@ private:
     bool hasGlassEffect_ = false;
     bool alphaOffscreen_ = false;
     std::unique_ptr<RRect> clipRRect_;
+    std::shared_ptr<RRect> clipShape_ = nullptr;
     bool alphaNeedApply_ = false;
     bool localMagnificationCap_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode

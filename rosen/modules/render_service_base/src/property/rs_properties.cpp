@@ -2573,6 +2573,21 @@ void RSProperties::SetClipRRect(RRect clipRRect)
     geoDirty_ = true;  // [planning] all clip ops should be checked
 }
 
+void RSProperties::SetClipShape(const RRect& clipShape)
+{
+    clipShape_ = std::make_shared<RRect>(clipShape);
+    isDrawn_ = true;
+    SetDirty();
+    geoDirty_ = true;
+}
+ 
+void RSProperties::ResetClipShape()
+{
+    clipShape_ = nullptr;
+    SetDirty();
+    geoDirty_ = true;
+}
+
 void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     if (path) {
