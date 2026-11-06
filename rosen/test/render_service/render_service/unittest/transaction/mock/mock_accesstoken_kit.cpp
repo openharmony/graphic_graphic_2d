@@ -71,9 +71,4 @@ ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(AccessTokenID tokenId)
     }
     return Security::AccessToken::ATokenTypeEnum::TOKEN_INVALID;
 }
-
-int AccessTokenKit::VerifyAccessToken(AccessTokenID tokenID, const std::string& permissionName, bool crossIpc)
-{
-    return Security::AccessToken::PERMISSION_GRANTED;
-}
 } // namespace OHOS::Security::AccessToken
