@@ -18,7 +18,6 @@
 #include "text_global_config.h"
 
 using namespace OHOS::Rosen::SrvText;
-
 void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action)
 {
     auto result = TextGlobalConfig::SetTextHighContrast(static_cast<uint32_t>(action));

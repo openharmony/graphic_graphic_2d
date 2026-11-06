@@ -14,6 +14,7 @@
  */
 
 #include "text_line_impl.h"
+
 #include "drawing_painter_impl.h"
 #include "run_impl.h"
 
