@@ -316,6 +316,11 @@ DualScreenStatus RSScreenProperty::GetDualScreenState() const
     return static_cast<DualScreenStatus>(Get<ScreenPropertyType::DUAL_SCREEN_STATE>());
 }
 
+std::vector<uint8_t> RSScreenProperty::GetPostProcessingShader() const
+{
+    return Get<ScreenPropertyType::POST_PROCESSING_SHADER>();
+}
+
 ScreenInfo RSScreenProperty::GetScreenInfo() const
 {
     ScreenInfo info;
@@ -406,6 +411,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::SAMPLING_MODE)
         UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SCREEN_HDR_MODE)
         UNMARSHALL_CASE(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION)
+        UNMARSHALL_CASE(ScreenPropertyType::POST_PROCESSING_SHADER)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
             return false;

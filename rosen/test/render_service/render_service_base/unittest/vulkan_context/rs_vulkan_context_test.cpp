@@ -263,5 +263,31 @@ HWTEST_F(RsVulkanContextTest, ReleaseDrawingGPUContextValid001, TestSize.Level1)
     context.vulkanInterface_ = std::make_shared<RsVulkanInterface>(false, true, RenderEngineType::BASIC_RENDER);
 }
 
+/**
+ * @tc.name: GetForEffectKit001
+ * @tc.desc: Test GetForEffectKit
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(RsVulkanContextTest, GetForEffectKit001, TestSize.Level1)
+{
+    auto& context = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
+    ASSERT_NE(context.GetForEffectKit(), nullptr);
+}
+
+/**
+ * @tc.name: ReleaseContextForEffectKit001
+ * @tc.desc: Test ReleaseContextForEffectKit
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(RsVulkanContextTest, ReleaseContextForEffectKit001, TestSize.Level1)
+{
+    auto& context = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
+    auto vkContext = context.GetForEffectKit();
+    ASSERT_NE(vkContext, nullptr);
+    RsVulkanContext::ReleaseContextForEffectKit(vkContext);
+    ASSERT_EQ(vkContext, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

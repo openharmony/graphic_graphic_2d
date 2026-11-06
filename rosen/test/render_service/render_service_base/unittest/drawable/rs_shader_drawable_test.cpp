@@ -1092,6 +1092,325 @@ HWTEST_F(RSShaderDrawableTest, RSOverlayNGShaderDrawableFullFlow001, TestSize.Le
 }
 
 /**
+ * @tc.name: RSCoverageNGShaderDrawableOnGenerate001
+ * @tc.desc: OnGenerate returns nullptr without a coverage shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnGenerate001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> coverageDrawable =
+        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    EXPECT_EQ(coverageDrawable->OnGenerate(renderNode), nullptr);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnGenerate002
+ * @tc.desc: OnGenerate creates a drawable with a valid coverage shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnGenerate002, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    renderNode.renderProperties_.SetCoverageNGShader(shader);
+
+    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> coverageDrawable =
+        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto result = coverageDrawable->OnGenerate(renderNode);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnSync001
+ * @tc.desc: OnSync creates visual effect container from staging
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnSync001, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(0, 0, 100, 100);
+
+    coverageDrawable->OnSync();
+
+    EXPECT_NE(coverageDrawable->visualEffectContainer_, nullptr);
+    EXPECT_FALSE(coverageDrawable->needSync_);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnSync002
+ * @tc.desc: OnSync publishes draw rect from staging
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnSync002, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(10, 10, 50, 50);
+
+    coverageDrawable->OnSync();
+
+    EXPECT_EQ(coverageDrawable->drawRect_, RectF(10, 10, 50, 50));
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnSync003
+ * @tc.desc: OnSync without sync flag publishes nothing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnSync003, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->stagingCornerRadius_ = 10.0f;
+    coverageDrawable->stagingNodeId_ = 12345;
+    coverageDrawable->needSync_ = false;
+
+    coverageDrawable->OnSync();
+
+    EXPECT_EQ(coverageDrawable->cornerRadius_, 0.0f);
+    EXPECT_EQ(coverageDrawable->nodeId_, INVALID_NODEID);
+    EXPECT_FALSE(coverageDrawable->needSync_);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnSync004
+ * @tc.desc: OnSync with needSync true but stagingShader null keeps needSync
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnSync004, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingShader_ = nullptr;
+    coverageDrawable->stagingCornerRadius_ = 5.0f;
+    coverageDrawable->stagingNodeId_ = 123;
+
+    coverageDrawable->OnSync();
+
+    EXPECT_EQ(coverageDrawable->visualEffectContainer_, nullptr);
+    EXPECT_EQ(coverageDrawable->cornerRadius_, 0.0f);
+    EXPECT_EQ(coverageDrawable->nodeId_, INVALID_NODEID);
+    EXPECT_TRUE(coverageDrawable->needSync_);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnSync005
+ * @tc.desc: OnSync with needSync false and stagingShader valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnSync005, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = false;
+    coverageDrawable->stagingCornerRadius_ = 8.0f;
+
+    coverageDrawable->OnSync();
+
+    EXPECT_EQ(coverageDrawable->visualEffectContainer_, nullptr);
+    EXPECT_EQ(coverageDrawable->cornerRadius_, 0.0f);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw001
+ * @tc.desc: OnDraw with null canvas returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw001, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    coverageDrawable->OnDraw(nullptr, &rect);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw002
+ * @tc.desc: OnDraw with null rect returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw002, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    Drawing::Canvas canvas;
+    coverageDrawable->OnDraw(&canvas, nullptr);
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw003
+ * @tc.desc: OnDraw with null visualEffectContainer returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw003, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    coverageDrawable->visualEffectContainer_ = nullptr;
+    coverageDrawable->OnDraw(canvas.get(), rect.get());
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw004
+ * @tc.desc: OnDraw with valid visualEffectContainer walks the normal path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw004, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(0, 0, 100, 100);
+    coverageDrawable->stagingCornerRadius_ = 5.0f;
+    coverageDrawable->OnSync();
+
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    EXPECT_NE(coverageDrawable->visualEffectContainer_, nullptr);
+    coverageDrawable->OnDraw(canvas.get(), rect.get());
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw005
+ * @tc.desc: OnDraw with empty drawRect uses the input rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw005, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF();
+    coverageDrawable->OnSync();
+
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    EXPECT_TRUE(coverageDrawable->drawRect_.IsEmpty());
+    coverageDrawable->OnDraw(canvas.get(), rect.get());
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw006
+ * @tc.desc: OnDraw with non-empty drawRect uses drawRect_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw006, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(10, 10, 50, 50);
+    coverageDrawable->OnSync();
+
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    EXPECT_FALSE(coverageDrawable->drawRect_.IsEmpty());
+    coverageDrawable->OnDraw(canvas.get(), rect.get());
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw007
+ * @tc.desc: OnDraw with cached effect data and no DRM intersect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw007, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(0, 0, 100, 100);
+    coverageDrawable->stagingCornerRadius_ = 10.0f;
+    coverageDrawable->OnSync();
+
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    effectData->cachedImage_ = std::make_shared<Drawing::Image>();
+    effectData->cachedRect_ = Drawing::RectI(0, 0, 100, 100);
+    filterCanvas->SetEffectData(effectData);
+
+    coverageDrawable->OnDraw(filterCanvas.get(), rect.get());
+}
+
+/**
+ * @tc.name: RSCoverageNGShaderDrawableOnDraw008
+ * @tc.desc: OnDraw with DRM intersect enabled takes the DRM bypass path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnDraw008, TestSize.Level1)
+{
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    coverageDrawable->stagingShader_ = shader;
+    coverageDrawable->needSync_ = true;
+    coverageDrawable->stagingDrawRect_ = RectF(0, 0, 100, 100);
+    coverageDrawable->OnSync();
+
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    effectData->cachedImage_ = std::make_shared<Drawing::Image>();
+    filterCanvas->SetEffectData(effectData);
+    filterCanvas->SetEffectIntersectWithDRM(true);
+
+    coverageDrawable->OnDraw(filterCanvas.get(), rect.get());
+}
+
+/**
  * @tc.name: RSBackgroundNGShaderDrawableOnGenerate001
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC

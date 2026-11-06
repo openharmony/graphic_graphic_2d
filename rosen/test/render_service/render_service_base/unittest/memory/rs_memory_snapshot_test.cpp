@@ -1210,4 +1210,88 @@ HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidAbnormalProcessTest001, tes
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
     ASSERT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
 }
+
+/**
+ * @tc.name: UpdateGpuInfoCallbackFalseTest001
+ * @tc.desc: Test UpdateGpuInfo when memoryOverflowCallback_ returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoCallbackFalseTest001, testing::ext::TestSize.Level1)
+{
+    auto callback = [](pid_t, MemorySnapshotInfo, bool) { return false; };
+    MemorySnapshot::Instance().memoryOverflowCallback_ = nullptr;
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 10000, 500, 10000);
+
+    pid_t pid = 2100;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, 1000, true, true);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoHelperNativeGpuUnderflowTest001
+ * @tc.desc: Test UpdateGpuInfoHelper when nativeGpuMemory underflows (memorySize > nativeGpuMemory).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoHelperNativeGpuUnderflowTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2101;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 1024, true, false);
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 2048, false, false);
+
+    MemorySnapshotInfo info;
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(info.nativeGpuMemory, 0);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoHelperTotalGpuUnderflowTest001
+ * @tc.desc: Test UpdateGpuInfoHelper when totalGpuMemory_ underflows (memorySize > totalGpuMemory_).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoHelperTotalGpuUnderflowTest001, testing::ext::TestSize.Level1)
+{
+    std::vector<pid_t> dirtyList;
+    MemorySnapshot::Instance().GetDirtyMemorySnapshot(dirtyList);
+    std::unordered_map<pid_t, MemorySnapshotInfo> allSnapshots;
+    MemorySnapshot::Instance().GetMemorySnapshot(allSnapshots);
+    std::set<pid_t> allPids;
+    for (const auto& [snapshotPid, snapshotInfo] : allSnapshots) {
+        allPids.insert(snapshotPid);
+    }
+    for (auto dirtyPid : dirtyList) {
+        allPids.insert(dirtyPid);
+    }
+    if (!allPids.empty()) {
+        MemorySnapshot::Instance().EraseSnapshotInfoByPid(allPids);
+    }
+
+    pid_t pid = 2102;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 1024, true, true);
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 2048, false, true);
+
+    MemorySnapshotInfo info;
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(info.engineGpuMemory, 0);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
 } // namespace OHOS::Rosen

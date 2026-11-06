@@ -18,6 +18,7 @@
 #include <functional>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "impl_interface/gpu_context_impl.h"
 #include "trace_memory_dump.h"
@@ -53,6 +54,7 @@ struct GPUResourceTag {
     uint64_t fWid;  // id of window
     uint32_t fFid;  // id of type
     uint32_t fSid{0}; // id of source type in ondraw phase
+    uint64_t fNid{0}; // id of node for component deduplication
     std::string fName;
 
     static void SetCurrentNodeId(uint64_t nodeId);
@@ -414,6 +416,12 @@ public:
      * @param value             Value to set.
      */
     void SetParam(const std::string& name, const std::string& value);
+
+    /**
+     * @brief                   Set all params.
+     * @param params            A map of all params.
+     */
+    void SetParam(const std::unordered_map<std::string, std::string>& params);
 
     void SetTextCacheEnforced(bool isEnforced);
 private:

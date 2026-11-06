@@ -1306,6 +1306,7 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
         RS_LOGE("DrawBehindWindowBeforeCache data is not valid");
         return;
     }
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_BEHINDWOENABLEVQMA, nodeId_);
     auto surface = canvas.GetSurface();
     if (!surface) {
         RS_LOGE("DrawBehindWindowBeforeCache surface is nullptr");

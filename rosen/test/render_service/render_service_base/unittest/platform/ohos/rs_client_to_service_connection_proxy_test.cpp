@@ -1243,6 +1243,57 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenGamutMap, TestSize.Level
 }
 
 /**
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test SetPostProcessingShader with valid reply
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(
+        testing::Invoke([](uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) {
+            return reply.WriteInt32(static_cast<int32_t>(StatusCode::SUCCESS)) ? 0 : -1;
+        }));
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    EXPECT_EQ(mockProxy->SetPostProcessingShader(1, param), static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_002
+ * @tc.desc: Test SetPostProcessingShader when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetPostProcessingShader_002, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    EXPECT_EQ(mockProxy->SetPostProcessingShader(1, param), static_cast<int32_t>(RS_CONNECTION_ERROR));
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_003
+ * @tc.desc: Test SetPostProcessingShader when reply parcel ReadInt32 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetPostProcessingShader_003, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    EXPECT_EQ(mockProxy->SetPostProcessingShader(1, param), static_cast<int32_t>(READ_PARCEL_ERR));
+}
+
+/**
  * @tc.name: GetScreenHDRCapability Test
  * @tc.desc: GetScreenHDRCapability Test
  * @tc.type:FUNC

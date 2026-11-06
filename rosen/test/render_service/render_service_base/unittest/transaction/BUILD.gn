@@ -71,6 +71,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
     "ipc:ipc_core",
     "libxml2:libxml2",
     "skia:skia_canvaskit",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "graphic"

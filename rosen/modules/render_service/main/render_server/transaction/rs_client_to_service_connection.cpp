@@ -832,8 +832,16 @@ std::vector<int32_t> RSClientToServiceConnection::GetScreenSupportedRefreshRates
 
 ErrCode RSClientToServiceConnection::GetShowRefreshRateEnabled(bool& enable)
 {
-    enable = RSSystemParameters::GetShowRefreshRateEnabled();
-    return ERR_OK;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return serviceToRenderConns[0]->GetShowRefreshRateEnabled(enable);
 }
 
 void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_t type)
@@ -1376,6 +1384,15 @@ int32_t RSClientToServiceConnection::SetScreenCorrection(ScreenId id, ScreenRota
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetScreenCorrection(id, screenRotation);
+}
+
+int32_t RSClientToServiceConnection::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetPostProcessingShader(id, param);
 }
 
 bool RSClientToServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
@@ -2696,6 +2713,12 @@ ErrCode RSClientToServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
 ErrCode RSClientToServiceConnection::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    if (event == ApsEventType::SWIPER_BOOST_OFF) {
+        HgmTaskHandleThread::Instance().PostTask([params]() {
+            HgmEnergyConsumptionPolicy::Instance().EnableSwipeDynamicRefreshRate(params);
+        });
+        return ERR_OK;
+    }
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return ERR_INVALID_VALUE;

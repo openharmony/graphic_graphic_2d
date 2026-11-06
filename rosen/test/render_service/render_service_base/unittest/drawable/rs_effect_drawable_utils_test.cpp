@@ -340,5 +340,286 @@ HWTEST_F(RSEffectDrawableUtilsTest, CreateDefaultRRectShape001, testing::ext::Te
         RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
 }
 
+/**
+ * @tc.name: SetPointLightData001
+ * @tc.desc: Test SetPointLightData with null shader, FindShader returns null and returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData001, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    std::shared_ptr<RSNGRenderShaderBase> shader = nullptr;
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    EXPECT_EQ(shader, nullptr);
+}
+
+/**
+ * @tc.name: SetPointLightData002
+ * @tc.desc: Test SetPointLightData with a shader chain that contains no POINT_LIGHT shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData002, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    EXPECT_NE(shader->GetType(), RSNGEffectType::POINT_LIGHT);
+}
+
+/**
+ * @tc.name: SetPointLightData003
+ * @tc.desc: Test SetPointLightData with POINT_LIGHT shader but illuminated is null
+ *           (SetPointLightPropToShader early-return on !illuminated branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData003, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    EXPECT_EQ(node.GetRenderProperties().GetIlluminated(), nullptr);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_TRUE(pls->Getter<PointLightLightPositionsRenderTag>()->Get().empty());
+    EXPECT_TRUE(pls->Getter<PointLightLightColorsRenderTag>()->Get().empty());
+    EXPECT_TRUE(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().empty());
+}
+
+/**
+ * @tc.name: SetPointLightData004
+ * @tc.desc: Test SetPointLightData with POINT_LIGHT shader and illuminated not valid (NONE type)
+ *           (SetPointLightPropToShader !IsIlluminatedValid branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData004, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    node.GetMutableRenderProperties().SetIlluminatedBorderWidth(2.0f);
+    ASSERT_NE(node.GetRenderProperties().GetIlluminated(), nullptr);
+    EXPECT_FALSE(node.GetRenderProperties().GetIlluminated()->IsIlluminatedValid());
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_TRUE(pls->Getter<PointLightLightPositionsRenderTag>()->Get().empty());
+}
+
+/**
+ * @tc.name: SetPointLightData005
+ * @tc.desc: Test SetPointLightData with valid illuminated but empty lightMap
+ *           (SetPointLightPropToShader ClearPointLight branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData005, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::BORDER;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    ASSERT_NE(node.GetRenderProperties().GetIlluminated(), nullptr);
+    EXPECT_TRUE(node.GetRenderProperties().GetIlluminated()->IsIlluminatedValid());
+    EXPECT_TRUE(node.GetRenderProperties().GetIlluminated()->GetLightSourcesAndPosMap().empty());
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_TRUE(pls->Getter<PointLightLightPositionsRenderTag>()->Get().empty());
+    EXPECT_TRUE(pls->Getter<PointLightLightColorsRenderTag>()->Get().empty());
+    EXPECT_TRUE(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().empty());
+}
+
+/**
+ * @tc.name: SetPointLightData006
+ * @tc.desc: Test SetPointLightData with one valid light source, type BORDER (not NORMAL_BORDER_CONTENT)
+ *           so enableEDREffect is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData006, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::BORDER;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    RSLightSource lightSource;
+    lightSource.SetLightIntensity(2.0f);
+    lightSource.SetLightColor(Color(255, 128, 64, 255));
+    Vector4f pos(10.0f, 20.0f, 0.0f, 0.0f);
+    props.GetIlluminated()->AddLightSourcesAndPos(1001, lightSource, pos);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_EQ(pls->Getter<PointLightLightPositionsRenderTag>()->Get().size(), 1u);
+    EXPECT_EQ(pls->Getter<PointLightLightColorsRenderTag>()->Get().size(), 1u);
+    EXPECT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().size(), 1u);
+    EXPECT_FALSE(pls->Getter<PointLightEnableEDREffectRenderTag>()->Get());
+}
+
+/**
+ * @tc.name: SetPointLightData007
+ * @tc.desc: Test SetPointLightData with NORMAL_BORDER_CONTENT type and light intensity > 1.0
+ *           so enableEDREffect is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData007, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::NORMAL_BORDER_CONTENT;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    RSLightSource lightSource;
+    lightSource.SetLightIntensity(2.0f);
+    lightSource.SetLightColor(Color(255, 0, 0, 255));
+    Vector4f pos(5.0f, 5.0f, 0.0f, 0.0f);
+    props.GetIlluminated()->AddLightSourcesAndPos(1002, lightSource, pos);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_EQ(pls->Getter<PointLightLightPositionsRenderTag>()->Get().size(), 1u);
+    EXPECT_TRUE(pls->Getter<PointLightEnableEDREffectRenderTag>()->Get());
+}
+
+/**
+ * @tc.name: SetPointLightData008
+ * @tc.desc: Test SetPointLightData with NORMAL_BORDER_CONTENT type but light intensity <= 1.0
+ *           so enableEDREffect is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData008, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::NORMAL_BORDER_CONTENT;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    RSLightSource lightSource;
+    lightSource.SetLightIntensity(1.0f);
+    lightSource.SetLightColor(Color(255, 0, 0, 255));
+    Vector4f pos(5.0f, 5.0f, 0.0f, 0.0f);
+    props.GetIlluminated()->AddLightSourcesAndPos(1003, lightSource, pos);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().size(), 1u);
+    EXPECT_FALSE(pls->Getter<PointLightEnableEDREffectRenderTag>()->Get());
+}
+
+/**
+ * @tc.name: SetPointLightData009
+ * @tc.desc: Test SetPointLightData with more than MAX_LIGHTS(12) valid light sources
+ *           (SetPointLightPropToShader sort-and-truncate branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData009, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::BORDER;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    constexpr int lightCount = 13; // MAX_LIGHTS is 12, add one extra to trigger truncation
+    for (int i = 0; i < lightCount; ++i) {
+        RSLightSource lightSource;
+        lightSource.SetLightIntensity(1.0f);
+        Vector4f pos(static_cast<float>(i), static_cast<float>(i), 0.0f, 0.0f);
+        props.GetIlluminated()->AddLightSourcesAndPos(static_cast<NodeId>(2000 + i), lightSource, pos);
+    }
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_EQ(pls->Getter<PointLightLightPositionsRenderTag>()->Get().size(), 12u);
+    EXPECT_EQ(pls->Getter<PointLightLightColorsRenderTag>()->Get().size(), 12u);
+    EXPECT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().size(), 12u);
+}
+
+/**
+ * @tc.name: SetPointLightData010
+ * @tc.desc: Test SetPointLightData with invalid light sources (intensity 0) in the lightMap
+ *           (CollectLightSource skips invalid sources)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData010, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::BORDER;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    RSLightSource invalidSource;
+    invalidSource.SetLightIntensity(0.0f);
+    RSLightSource validSource;
+    validSource.SetLightIntensity(3.0f);
+    validSource.SetLightColor(Color(10, 20, 30, 255));
+    Vector4f pos1(1.0f, 1.0f, 0.0f, 0.0f);
+    Vector4f pos2(2.0f, 2.0f, 0.0f, 0.0f);
+    props.GetIlluminated()->AddLightSourcesAndPos(3001, invalidSource, pos1);
+    props.GetIlluminated()->AddLightSourcesAndPos(3002, validSource, pos2);
+    EXPECT_EQ(node.GetRenderProperties().GetIlluminated()->GetLightSourcesAndPosMap().size(), 2u);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(shader, nullptr);
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(shader, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    EXPECT_EQ(pls->Getter<PointLightLightPositionsRenderTag>()->Get().size(), 1u);
+    EXPECT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().size(), 1u);
+    EXPECT_FLOAT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get()[0], 3.0f);
+}
+
+/**
+ * @tc.name: SetPointLightData011
+ * @tc.desc: Test SetPointLightData with a shader chain where POINT_LIGHT is not the head,
+ *           FindShader walks the chain to find it
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectDrawableUtilsTest, SetPointLightData011, testing::ext::TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    auto& props = node.GetMutableRenderProperties();
+    props.SetIlluminatedBorderWidth(1.0f);
+    IlluminatedType type = IlluminatedType::BORDER;
+    props.GetEffectProperties().GetShaderEffect().illuminatedPtr_->SetIlluminatedType(type);
+    RSLightSource lightSource;
+    lightSource.SetLightIntensity(2.0f);
+    Vector4f pos(8.0f, 8.0f, 0.0f, 0.0f);
+    props.GetIlluminated()->AddLightSourcesAndPos(4001, lightSource, pos);
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    auto pointLight = RSNGRenderShaderBase::Create(RSNGEffectType::POINT_LIGHT);
+    ASSERT_NE(head, nullptr);
+    ASSERT_NE(pointLight, nullptr);
+    head->nextEffect_ = pointLight;
+    DrawableV2::RSEffectDrawableUtils::SetPointLightData(head, node);
+    auto pls = std::static_pointer_cast<RSNGRenderPointLight>(pointLight);
+    EXPECT_EQ(pls->Getter<PointLightLightPositionsRenderTag>()->Get().size(), 1u);
+    EXPECT_EQ(pls->Getter<PointLightLightIntensitiesRenderTag>()->Get().size(), 1u);
+}
+
 } // namespace OHOS::Rosen
 

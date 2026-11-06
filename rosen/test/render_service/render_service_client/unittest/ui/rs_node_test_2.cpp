@@ -61,7 +61,6 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
-#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"

@@ -52,6 +52,23 @@ RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContex
 #endif
 }
 
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    RSTagTracker::SOURCETYPE sourceType, NodeId nodeId) : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        return;
+    }
+    if (!g_releaseResourceEnabled_) {
+        return;
+    }
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    Drawing::GPUResourceTag tag = gpuContext_->GetCurrentGpuResourceTag();
+    tag.fSid = sourceType;
+    tag.fNid = nodeId;
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+
 void RSTagTracker::UpdateReleaseResourceEnabled(bool releaseResEnabled)
 {
     g_releaseResourceEnabled_ = releaseResEnabled;

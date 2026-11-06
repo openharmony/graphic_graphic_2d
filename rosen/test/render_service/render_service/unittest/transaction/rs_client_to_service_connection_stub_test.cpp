@@ -539,6 +539,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_TYPE)), ERR_INVALID_DATA);
 }
 
@@ -725,6 +728,89 @@ HWTEST_F(RSClientToServiceConnectionStubTest, VirtualScreenHDRModeNullAgentTest0
     connection->screenManagerAgent_ = screenManagerAgent;
     ASSERT_EQ(connection->SetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
     ASSERT_EQ(connection->GetVirtualScreenHDRMode(INVALID_SCREEN_ID, mode), StatusCode::SCREEN_NOT_FOUND);
+}
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER interface code with valid parcel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUInt8Vector({ 1, 2, 3 });
+    MessageParcel reply;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_NONE);
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_002
+ * @tc.desc: Test RSClientToServiceConnection::SetPostProcessingShader when screenManagerAgent_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+
+    connection->screenManagerAgent_ = nullptr;
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    EXPECT_EQ(connection->SetPostProcessingShader(1, param),
+        static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND));
+    connection->screenManagerAgent_ = screenManagerAgent;
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_003
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER interface code when reply is not writable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    MessageParcel reply;
+    reply.writable_ = false;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteUInt8Vector({ 1, 2, 3 });
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetPostProcessingShader_004
+ * @tc.desc: Test SET_POST_PROCESSING_SHADER when ReadUInt8Vector fails by invalid (negative) length
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetPostProcessingShader_004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    MessageOption option;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(1);
+    data.WriteInt32(-1);
+    MessageParcel reply;
+    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -7805,5 +7891,34 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetMemoryGraphicsByRenderPid002, T
     int32_t ret = connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_STATE);
 }
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOff
+ * @tc.desc: Test SetApsConfigParams with event == ApsEventType::SWIPER_BOOST_OFF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOff, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params = { { "SWIPER_BOOST_OFF", "TRUE" } };
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_SwiperBoostOffEmptyParams
+ * @tc.desc: Test SetApsConfigParams SWIPER_BOOST_OFF with empty params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_SwiperBoostOffEmptyParams, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::unordered_map<std::string, std::string> params;
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 } // namespace OHOS::Rosen
 #endif

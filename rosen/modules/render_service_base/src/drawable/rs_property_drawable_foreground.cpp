@@ -261,6 +261,7 @@ RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -284,7 +285,7 @@ void RSForegroundFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE, renderNodeId_);
 #endif
     RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, boundsRect_);
 }
@@ -295,6 +296,7 @@ void RSForegroundFilterDrawable::OnSync()
         return;
     }
     boundsRect_ = stagingBoundsRect_;
+    renderNodeId_ = stagingNodeId_;
     needSync_ = false;
 }
 
@@ -358,7 +360,7 @@ void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Dr
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE, renderNodeId_);
 #endif
     RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::OnDraw node[%llu] ", renderNodeId_);
     std::optional<RectF> drawRect = drawRect_ == nullptr ? std::nullopt : std::optional<RectF>(*drawRect_);

@@ -1583,17 +1583,21 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
     if (frameRateMgr == nullptr) {
         return;
     }
+    auto savedLastLTPORefreshRate = frameRateMgr->lastLTPORefreshRate_;
+    auto savedLastLTPOVoteTime = frameRateMgr->lastLTPOVoteTime_;
+    auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    frameRateMgr->lastLTPORefreshRate_ = 120;
+    frameRateMgr->lastLTPOVoteTime_ = curTime - 100;
 
-    frameRateMgr->frameVoter_.isDragScene_ = false;
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
-
-    frameRateMgr->frameVoter_.isDragScene_ = true;
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    frameRateMgr->lastLTPOVoteTime_ = 0;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
+
+    frameRateMgr->lastLTPORefreshRate_ = savedLastLTPORefreshRate;
+    frameRateMgr->lastLTPOVoteTime_ = savedLastLTPOVoteTime;
 }
 
 /**
@@ -2965,6 +2969,59 @@ HWTEST_F(HgmFrameRateMgrTest, MarkVoteChangeRsFrameRateChangedNoTouchIsolated, F
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.currRefreshRate_.load(), refreshRate);
     energyPolicy.SetRsFrameRateControlEnabled(oldRsFrameRateControlEnabled);
+}
+
+/**
+ * @tc.name: ProcessLtpoVote_ValidAndDragScene
+ * @tc.desc: Test ProcessLtpoVote with various scenarios
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessLtpoVote_ValidAndDragScene, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    auto savedDisableSwiperTouchHigh = HgmEnergyConsumptionPolicy::Instance().disableSwiperTouchHigh_;
+
+    mgr.currRefreshRate_ = 120;
+    FrameRateRange validDragRange = { 120, 120, 120, DRAG_FRAME_RATE_TYPE };
+    mgr.ProcessLtpoVote(validDragRange);
+    auto voteIter = mgr.frameVoter_.voteRecord_.find("VOTER_LTPO");
+    ASSERT_NE(voteIter, mgr.frameVoter_.voteRecord_.end());
+    ASSERT_FALSE(voteIter->second.first.empty());
+    ASSERT_EQ(voteIter->second.first.back().max, 120);
+
+    mgr.currRefreshRate_ = 90;
+    FrameRateRange validNotDragRange = { 90, 90, 90, DISPLAY_SYNC_FRAME_RATE_TYPE };
+    mgr.ProcessLtpoVote(validNotDragRange);
+    voteIter = mgr.frameVoter_.voteRecord_.find("VOTER_LTPO");
+    ASSERT_NE(voteIter, mgr.frameVoter_.voteRecord_.end());
+    ASSERT_FALSE(voteIter->second.first.empty());
+    ASSERT_EQ(voteIter->second.first.back().max, 90);
+
+    FrameRateRange invalidRange = { 0, 0, 0, 0 };
+    mgr.ProcessLtpoVote(invalidRange);
+    voteIter = mgr.frameVoter_.voteRecord_.find("VOTER_LTPO");
+    ASSERT_NE(voteIter, mgr.frameVoter_.voteRecord_.end());
+    ASSERT_TRUE(voteIter->second.first.empty());
+
+    HgmEnergyConsumptionPolicy::Instance().disableSwiperTouchHigh_ = true;
+    FrameRateRange swiperFlingRange = { 60, 60, 60, 0, ComponentScene::SWIPER_FLING };
+    mgr.frameVoter_.isDisableTouchHighFrame_ = false;
+    mgr.ProcessLtpoVote(swiperFlingRange);
+    ASSERT_TRUE(mgr.frameVoter_.isDisableTouchHighFrame_);
+
+    HgmEnergyConsumptionPolicy::Instance().disableSwiperTouchHigh_ = false;
+    mgr.frameVoter_.isDisableTouchHighFrame_ = false;
+    FrameRateRange dragRange = { 120, 120, 120, DRAG_FRAME_RATE_TYPE };
+    mgr.ProcessLtpoVote(dragRange);
+    ASSERT_TRUE(mgr.frameVoter_.isDisableTouchHighFrame_);
+
+    mgr.frameVoter_.isDisableTouchHighFrame_ = false;
+    FrameRateRange normalRange = { 60, 60, 60, DISPLAY_SYNC_FRAME_RATE_TYPE };
+    mgr.ProcessLtpoVote(normalRange);
+    ASSERT_FALSE(mgr.frameVoter_.isDisableTouchHighFrame_);
+
+    HgmEnergyConsumptionPolicy::Instance().disableSwiperTouchHigh_ = savedDisableSwiperTouchHigh;
 }
 } // namespace Rosen
 } // namespace OHOS

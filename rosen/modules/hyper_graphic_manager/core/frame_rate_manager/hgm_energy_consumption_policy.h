@@ -64,6 +64,10 @@ public:
     void HandleEnergyCommonData(const EnergyCommonDataMap& commonData);
     bool GetPowerIdle();
 
+    // component default fps
+    void EnableSwipeDynamicRefreshRate(const std::unordered_map<std::string, std::string>& configMap);
+    bool DisableTouchHighFrameRate(const FrameRateRange& finalRange);
+
 private:
     // <rateType, <isEnable, idleFps>>
     std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
@@ -98,6 +102,7 @@ private:
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
     const static std::unordered_map<EnergyEvent, HandleRPFunc> commonDataMapFunc_;
+    bool disableSwiperTouchHigh_ = false;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

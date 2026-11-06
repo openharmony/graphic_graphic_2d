@@ -75,7 +75,8 @@ const auto EMPTY_RECT = RectF();
 template<auto Setter, class T>
 void SetPointLightRenderTag(RSEffectProperties& prop, T value)
 {
-    auto shader = DrawableV2::RSEffectDrawableUtils::FindShader(prop.GetCoverageNGShader(), RSNGEffectType::POINT_LIGHT);
+    auto shader = DrawableV2::RSEffectDrawableUtils::FindShader(prop.GetCoverageNGShader(),
+        RSNGEffectType::POINT_LIGHT);
     if (shader == nullptr) {
         auto rsNGShader = std::make_shared<RSNGRenderPointLight>();
         std::invoke(Setter, rsNGShader, value, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
@@ -2654,6 +2655,21 @@ void RSProperties::SetClipRRect(RRect clipRRect)
     }
     SetDirty();
     geoDirty_ = true;  // [planning] all clip ops should be checked
+}
+
+void RSProperties::SetClipShape(const RRect& clipShape)
+{
+    clipShape_ = std::make_shared<RRect>(clipShape);
+    isDrawn_ = true;
+    SetDirty();
+    geoDirty_ = true;
+}
+ 
+void RSProperties::ResetClipShape()
+{
+    clipShape_ = nullptr;
+    SetDirty();
+    geoDirty_ = true;
 }
 
 void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)

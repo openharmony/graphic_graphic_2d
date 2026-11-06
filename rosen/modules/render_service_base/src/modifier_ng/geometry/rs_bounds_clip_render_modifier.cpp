@@ -27,6 +27,7 @@ const RSBoundsClipRenderModifier::LegacyPropertyApplierMap RSBoundsClipRenderMod
         RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetCornerApplyType> },
     { RSPropertyType::SDF_SHAPE,
         RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderShapeBase>, &RSProperties::SetSDFShape> },
+    { RSPropertyType::CLIP_SHAPE, RSRenderModifier::PropertyApplyHelper<RRect, &RSProperties::SetClipShape> },
 };
 
 void RSBoundsClipRenderModifier::ResetProperties(RSProperties& properties)
@@ -37,5 +38,6 @@ void RSBoundsClipRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetCornerRadius(Vector4f());
     properties.SetCornerApplyType(0);
     properties.SetSDFShape(nullptr);
+    properties.ResetClipShape();
 }
 } // namespace OHOS::Rosen::ModifierNG

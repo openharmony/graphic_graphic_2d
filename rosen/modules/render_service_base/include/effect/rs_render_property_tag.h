@@ -164,6 +164,7 @@ enum class RSNGEffectType : int16_t {
     ATLAS_FRAME_MASK,
     POINT_LIGHT,
     DISTORT_LIGHT,
+    COSMOS_RING,
     COSMOS_RING_SHADOW,
 };
 

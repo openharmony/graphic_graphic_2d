@@ -139,6 +139,7 @@ public:
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
             case RSNGEffectType::POINT_LIGHT: return "PointLight";
+            case RSNGEffectType::COSMOS_RING: return "CosmosRing";
             case RSNGEffectType::COSMOS_RING_SHADOW: return "CosmosRingShadow";
             default: return "UNKNOWN";
         }

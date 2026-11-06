@@ -42,6 +42,7 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+constexpr size_t MAX_POST_PROCESSING_SHADER_SIZE = 8 * 1024; // 8 KB
 } // namespace
 using namespace HiviewDFX;
 
@@ -622,6 +623,26 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     }
     RS_LOGI("%{public}s: Record typeblacklist for id %{public}" PRIu64, __func__, id);
     virtualScreen->SetTypeBlackList({CURSOR_NODE_TYPE});
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (param.empty() || param.size() > MAX_POST_PROCESSING_SHADER_SIZE) {
+        RS_LOGW("%{public}s: invalid post processing shader param, size: %{public}zu", __func__, param.size());
+        return INVALID_ARGUMENTS;
+    }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (screen->IsVirtual()) {
+        RS_LOGW("%{public}s: screen %{public}" PRIu64 " is virtual, only physical screen is supported", __func__, id);
+        return VIRTUAL_SCREEN;
+    }
+    screen->SetPostProcessingShader(param);
+    RS_LOGI("%{public}s: set post processing shader for id %{public}" PRIu64, __func__, id);
     return SUCCESS;
 }
 

@@ -42,11 +42,13 @@ ani_status ParseDrawingColorToNative(
     }
     if (result != ANI_OK || colorRef == nullptr) {
         TEXT_LOGD("Failed to find param color, ret %{public}d", result);
-        return result;
+        return ANI_ERROR;
     }
     Drawing::ColorQuad color;
     if (OHOS::Rosen::Drawing::GetColorQuadFromColorObj(env, reinterpret_cast<ani_object>(colorRef), color)) {
         colorSrc = Drawing::Color(color);
+    } else {
+        return ANI_ERROR;
     }
     return ANI_OK;
 }

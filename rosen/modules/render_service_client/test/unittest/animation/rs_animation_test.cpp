@@ -19,6 +19,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_animation.h"
 #include "animation/rs_curve_animation.h"
+#include "animation/rs_keyframe_animation.h"
 #include "animation/rs_path_animation.h"
 #include "animation/rs_property_animation.h"
 #include "animation/rs_spring_animation.h"
@@ -957,6 +958,70 @@ HWTEST_F(RSAnimationTest, CurveAnimationOnStartPropertyNull001, TestSize.Level1)
     curveAnimation->OnStart();
     EXPECT_FALSE(curveAnimation->IsRunning());
     GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationOnStartPropertyNull001 end";
+}
+
+/**
+ * @tc.name: AnimationGetType001
+ * @tc.desc: Verify the GetType of animation base class and subclass override
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationGetType001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetType001 start";
+    /**
+     * @tc.steps: step1. init dummy animation which does not override GetType
+     */
+    auto dummyAnimation = std::make_shared<RSDummyAnimation>(nullptr);
+    /**
+     * @tc.steps: step2. verify base class GetType returns UNKNOWN
+     */
+    EXPECT_EQ(dummyAnimation->GetType(), RSAnimationType::UNKNOWN);
+
+    /**
+     * @tc.steps: step3. init property animation mock which also does not override GetType
+     */
+    auto property = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_DEFAULT_VALUE);
+    auto propertyAnimationMock = std::make_shared<RSPropertyAnimationMock>(nullptr, property);
+    /**
+     * @tc.steps: step4. verify property animation mock inherits base class UNKNOWN
+     */
+    EXPECT_EQ(propertyAnimationMock->GetType(), RSAnimationType::UNKNOWN);
+
+    /**
+     * @tc.steps: step5. init curve animation and verify GetType returns CURVE
+     */
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_END_VALUE);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, endValue);
+    EXPECT_EQ(curveAnimation->GetType(), RSAnimationType::CURVE);
+
+    /**
+     * @tc.steps: step6. init keyframe animation and verify GetType returns KEYFRAME
+     */
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(nullptr, property);
+    EXPECT_EQ(keyframeAnimation->GetType(), RSAnimationType::KEYFRAME);
+
+    /**
+     * @tc.steps: step7. init path animation and verify GetType returns PATH
+     */
+    auto rsPath = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto pathProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE);
+    auto pathAnimation = std::make_shared<RSPathAnimation>(nullptr, pathProperty, rsPath);
+    EXPECT_EQ(pathAnimation->GetType(), RSAnimationType::PATH);
+
+    /**
+     * @tc.steps: step8. init spring animation and verify GetType returns SPRING
+     */
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, endValue);
+    EXPECT_EQ(springAnimation->GetType(), RSAnimationType::SPRING);
+
+    /**
+     * @tc.steps: step9. verify different animation types are distinguishable
+     */
+    EXPECT_NE(dummyAnimation->GetType(), curveAnimation->GetType());
+    EXPECT_NE(curveAnimation->GetType(), keyframeAnimation->GetType());
+    EXPECT_NE(keyframeAnimation->GetType(), pathAnimation->GetType());
+    EXPECT_NE(pathAnimation->GetType(), springAnimation->GetType());
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetType001 end";
 }
 
 } // namespace Rosen

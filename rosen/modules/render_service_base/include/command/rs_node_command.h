@@ -75,6 +75,7 @@ enum RSNodeCommandType : uint16_t {
     // 0x0130 deleted, do not use this value never
     UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
     UPDATE_MODIFIER_ATLAS_INFO = 0x0132,
+    UPDATE_MODIFIER_CLIP_SHAPE = 0x0134,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -327,6 +328,9 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
         RSNodeCommandHelper::UpdateProperty<Vector4f>, NodeId, Vector4f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_RRECT,
+        RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyClipShape,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_CLIP_SHAPE,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
