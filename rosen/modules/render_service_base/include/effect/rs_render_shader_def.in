@@ -317,6 +317,27 @@ DECLARE_SHADER(BorderSDFLGColor, BORDER_SDF_LG_COLOR,
     ADD_PROPERTY_TAG(BorderSDFLGColor, Position4),
     ADD_PROPERTY_TAG(BorderSDFLGColor, Shape)
 );
+
+DECLARE_SHADER(PointLight, POINT_LIGHT,
+    ADD_PROPERTY_TAG(PointLight, LightIntensity),
+    ADD_PROPERTY_TAG(PointLight, LightColor),
+    ADD_PROPERTY_TAG(PointLight, LightPosition),
+
+    ADD_PROPERTY_TAG(PointLight, IlluminatedBorderWidth),
+    ADD_PROPERTY_TAG(PointLight, IlluminatedType),
+    ADD_PROPERTY_TAG(PointLight, Bloom),
+
+    ADD_PROPERTY_TAG(PointLight, LightPositions),
+    ADD_PROPERTY_TAG(PointLight, LightColors),
+    ADD_PROPERTY_TAG(PointLight, LightIntensities),
+    ADD_PROPERTY_TAG(PointLight, DisplayHeadroom),
+    ADD_PROPERTY_TAG(PointLight, EnableEDREffect),
+    ADD_PROPERTY_TAG(PointLight, Shape),
+    ADD_PROPERTY_TAG(PointLight, ContentRRect),
+    ADD_PROPERTY_TAG(PointLight, BorderRRect),
+    ADD_PROPERTY_TAG(PointLight, DrawRect)
+);
+
 DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,
     ADD_PROPERTY_TAG(SpatialPointLight, LightIntensity),
     ADD_PROPERTY_TAG(SpatialPointLight, LightPosition),

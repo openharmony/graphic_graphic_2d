@@ -3907,6 +3907,22 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
     });
 }
 
+void RSNode::SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& coverageShader)
+{
+    if (!coverageShader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::COVERAGE_NG_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::COVERAGE_NG_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier,
+        &ModifierNG::RSCoverageNGShaderModifier::SetCoverageNGShader>(coverageShader);
+}
+
 void RSNode::SetLightIntensity(float lightIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));

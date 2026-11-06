@@ -19,7 +19,6 @@
 
 #include "common/rs_common_tools.h"
 #include "drawable/rs_color_picker_drawable.h"
-#include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"

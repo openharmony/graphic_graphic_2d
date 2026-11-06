@@ -1526,6 +1526,27 @@ HWTEST_F(RSNodeTest2, ReSortChildrenByZIndexTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetCoverageNGShader001
+ * @tc.desc: test results of SetCoverageNGShader001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetCoverageNGShader001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetCoverageNGShader(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER), nullptr);
+
+    auto shader = std::make_shared<RSNGPointLight>();
+    rsNode->SetBorderSDFShader(shader);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER), nullptr);
+
+    rsNode->SetBorderSDFShader(nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    ASSERT_NE(modifier, nullptr);
+    ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::COVERAGE_NG_SHADER), modifier->properties_.end());
+}
+
+/**
  * @tc.name: SetBorderSDFShader001
  * @tc.desc: test results of SetBorderSDFShader
  * @tc.type: FUNC

@@ -2515,6 +2515,7 @@ private:
 
     void SetBoundsInner(const Vector4f& bounds);
     void SetFrameInner(const Vector4f& frame);
+    void SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& coverageShader);
 
     uint32_t dirtyType_ = static_cast<uint32_t>(NodeDirtyType::NOT_DIRTY);
 

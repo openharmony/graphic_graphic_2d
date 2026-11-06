@@ -21,7 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "property/rs_properties_def.h"
-
+#include "effect/rs_render_property_tag.h"
 namespace OHOS::Rosen {
 class RSNGRenderShaderBase;
 class RSNGRenderShapeBase;
@@ -57,6 +57,11 @@ public:
     static void DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer);
 
+    static std::shared_ptr<RSNGRenderShaderBase> FindShader(
+        const std::shared_ptr<RSNGRenderShaderBase>& shader, RSNGEffectType type);
+
+    static void SetPointLightData(
+        const std::shared_ptr<RSNGRenderShaderBase>& shader, const RSRenderNode& node);
 private:
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
 };

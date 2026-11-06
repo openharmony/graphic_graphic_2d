@@ -109,6 +109,14 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::COVERAGE_NG_SHADER,
 };
 
+const std::unordered_set<RSDrawableSlot> pointLightConsumerSlots = {
+    RSDrawableSlot::COVERAGE_NG_SHADER,
+    RSDrawableSlot::BACKGROUND_NG_SHADER,
+    RSDrawableSlot::MATERIAL_SHADER,
+    RSDrawableSlot::FOREGROUND_SHADER,
+    RSDrawableSlot::OVERLAY_NG_SHADER,
+};
+
 // ensure the corresponding drawable type inherits from RSFilterDrawable.
 static const std::unordered_set<RSDrawableSlot> filterDrawableSlotsSupportGetRect = {
     RSDrawableSlot::MATERIAL_FILTER,
@@ -5138,16 +5146,25 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
-    auto& drawablePtr =
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER));
-    if (!drawablePtr) {
+    auto& drawableVec = GetDrawableVec(__func__);
+    bool hasPointLightDrawable = false;
+    bool enableHdrEffect = false;
+    for (auto slot : pointLightConsumerSlots) {
+        auto& drawablePtr = findMapValueRef(drawableVec, static_cast<int8_t>(slot));
+        if (!drawablePtr) {
+            return;
+        }
+        drawablePtr->OnUpdate(*shared_from_this());
+        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
+        enableHdrEffect = enableHdrEffect || drawablePtr->GetEnableEDR();
+        hasPointLightDrawable = true;
+    }
+    if (!hasPointLightDrawable) {
         return;
     }
-    drawablePtr->OnUpdate(*shared_from_this());
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
-    SetEnableHdrEffect(drawablePtr->GetEnableEDR());
+    SetEnableHdrEffect(enableHdrEffect);
 }
 
 void RSRenderNode::AddToPendingSyncList()

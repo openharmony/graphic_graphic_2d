@@ -740,6 +740,13 @@ public:
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
 
+    void NoticeLightIntensity(float lightIntensity);
+    void NoticeLightColor(Color lightColor);
+    void NoticeLightPosition(const Vector4f& lightPosition);
+    void NoticeIlluminatedBorderWidth(float illuminatedBorderWidth);
+    void NoticeIlluminatedType(int illuminatedType);
+    void NoticeBloom(float bloomIntensity);
+
     void SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
 

@@ -133,6 +133,18 @@ protected:
     std::shared_ptr<RSNGRenderShaderBase> GetShader(const RSProperties& properties) const override;
     void DfxOnDraw() const override;
 };
+
+class RSCoverageNGShaderDrawable : public RSShaderDrawable {
+public:
+    RSCoverageNGShaderDrawable() = default;
+    ~RSCoverageNGShaderDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+
+protected:
+    std::shared_ptr<RSNGRenderShaderBase> GetShader(const RSProperties& properties) const override;
+    void DfxOnDraw() const override;
+};
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_SHADER_DRAWABLE_H

@@ -3982,30 +3982,25 @@ HWTEST_F(RSPropertiesTest, SetCoverageNGShader001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCoverageNGShader002
- * @tc.desc: test results of SetCoverageNGShader with multiple shader types
+ * @tc.name: SetPointLight
+ * @tc.desc: test results of SetPointLight with diffrent set function
  * @tc.type:FUNC
  * @tc.require: issueNumber
  */
-HWTEST_F(RSPropertiesTest, SetCoverageNGShader002, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetPointLight001, TestSize.Level1)
 {
     RSProperties properties;
-    
-    auto coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
+    auto shader = std::make_shared<RSNGRenderPointLight>();
+    properties.SetOverlayNGShader(shader);
+    EXPECT_NE(properties.GetOverlayNGShader(), nullptr);
+    properties.SetBackgroundNGShader(shader);
+    EXPECT_NE(properties.GetBackgroundNGShader(), nullptr);
+    properties.SetForegroundShader(shader);
+    EXPECT_NE(properties.GetForegroundShader(), nullptr);
+    properties.SetMaterialShader(shader);
+    EXPECT_NE(properties.GetMaterialShader(), nullptr);
+    properties.SetCoverageNGShader(shader);
+    EXPECT_NE(properties.GetCoverageNGShader(), nullptr);
 }
 
 /**
