@@ -300,6 +300,82 @@ HWTEST_F(TvMetadataTest, UpdateTvMetadata_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateTvMetadata_002
+ * @tc.desc: Test UpdateTvMetadata writes videoDimType into reserved metadata field
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, UpdateTvMetadata_002, TestSize.Level1)
+{
+    auto rsSurface = CreateRsSurfaceOhos();
+    auto buffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(rsSurface, nullptr);
+    ASSERT_EQ(true, buffer != nullptr);
+
+    std::string bundleName = "com.test.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(bundleName, val);
+    RectI screenRect(0, 0, 3840, 2160);
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.w = 3840;
+    layerInfo.dstRect.h = 2160;
+    RSSurfaceRenderParams params(0);
+    params.RecordScreenRect(screenRect);
+    params.SetLayerInfo(layerInfo);
+    params.bundleName_ = bundleName;
+    MetadataHelper::SetSceneTag(buffer, 1);
+
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+    RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], static_cast<uint8_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+    RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
+    MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], static_cast<uint8_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+
+    RSTvMetadataManager::SetVideoDimType(0);
+}
+
+/**
+ * @tc.name: UpdateTvMetadata_003
+ * @tc.desc: Test UpdateTvMetadata masks videoDimType to low 4 bits
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, UpdateTvMetadata_003, TestSize.Level2)
+{
+    auto rsSurface = CreateRsSurfaceOhos();
+    auto buffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(rsSurface, nullptr);
+    ASSERT_EQ(true, buffer != nullptr);
+
+    std::string bundleName = "com.test.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(bundleName, val);
+    RectI screenRect(0, 0, 3840, 2160);
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.w = 3840;
+    layerInfo.dstRect.h = 2160;
+    RSSurfaceRenderParams params(0);
+    params.RecordScreenRect(screenRect);
+    params.SetLayerInfo(layerInfo);
+    params.bundleName_ = bundleName;
+    MetadataHelper::SetSceneTag(buffer, 1);
+
+    RSTvMetadataManager::SetVideoDimType(0x1F); // value beyond 4 bits
+    RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], 0xFU);
+
+    RSTvMetadataManager::SetVideoDimType(0);
+    RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
+    MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], 0U);
+}
+
+/**
  * @tc.name: RecordTvMetadata_001
  * @tc.desc: Test RecordTvMetadata
  * @tc.type: FUNC
