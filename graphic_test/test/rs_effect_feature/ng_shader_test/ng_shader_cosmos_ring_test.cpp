@@ -151,7 +151,7 @@ const std::vector<float> hlInnerRadiusValues = { 30.0f, 78.0f, 135.0f, 260.0f };
 const std::vector<float> hlOuterWidthValues = { 0.0f, 1.0f, 6.11f, 20.0f };
 const std::vector<float> hlInnerWidthValues = { 0.0f, 1.0f, 3.75f, 20.0f };
 const std::vector<float> hlDispersionStrengthValues = { 0.0f, 0.32f, 1.0f, 10.0f };
-const std::vector<float> hlRotationAngleValues = { 0.0f, 100.0f, 180.0f, 270.0f };
+const std::vector<float> hlRotationAngleValues = { 0.0f, 100.0f, 360.0f, 720.0f };
 const std::vector<float> hlRadialFeatherValues = { 0.0f, 1.0f, 10.0f, 30.0f };
 const std::vector<float> hlTangentFeatherValues = { 0.0f, 10.0f, 50.0f, 120.0f };
 const std::vector<float> hlAngularFadeValues = { 0.0f, 0.1f, 0.3f, 0.5f };
@@ -358,6 +358,7 @@ const std::vector<int> noiseSeedBoundaryValues = { -1, 0, 10000, 10001 };
 const std::vector<int> noisePeriodBoundaryValues = { -1, 1, 100, 101 };
 const std::vector<float> contrastBoundaryValues = { -1.0f, 0.0f, 10.0f, 11.0f };
 const std::vector<float> angleBoundaryValues = { -1.0f, 0.0f, 360.0f, 361.0f };
+const std::vector<float> rotationAngleBoundaryValues = { -1.0f, 0.0f, 720.0f, 721.0f };
 const std::vector<float> unitBoundaryValues = { -1.0f, 0.0f, 1.0f, 2.0f };
 const std::vector<float> countBoundaryValues = { -1.0f, 0.0f, 1000.0f, 1001.0f };
 const std::vector<float> extremeFloatValues = { -FLT_MAX, FLT_MAX, -1.0e9f, 1.0e9f };
@@ -2179,7 +2180,7 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_HL_DispersionStren
 
 /*
  * Test the highlight rotation boundaries
- * Three hundred sixty must equal zero
+ * Seven hundred twenty degrees must equal zero
  */
 GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_HL_RotationAngle_Boundary_Test)
 {
@@ -2188,10 +2189,10 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_HL_RotationAngle_B
         return;
     }
 
-    for (size_t i = 0; i < angleBoundaryValues.size(); i++) {
+    for (size_t i = 0; i < rotationAngleBoundaryValues.size(); i++) {
         auto cosmosRing = std::make_shared<RSNGCosmosRing>();
         InitCosmosRing(cosmosRing);
-        cosmosRing->Setter<CosmosRingHLRotationAngleTag>(angleBoundaryValues[i]);
+        cosmosRing->Setter<CosmosRingHLRotationAngleTag>(rotationAngleBoundaryValues[i]);
 
         SetUpCell(i, 2, 2, effectNode, cosmosRing);
     }
