@@ -361,6 +361,7 @@ const std::vector<float> angleBoundaryValues = { -1.0f, 0.0f, 360.0f, 361.0f };
 const std::vector<float> rotationAngleBoundaryValues = { -1.0f, 0.0f, 720.0f, 721.0f };
 const std::vector<float> unitBoundaryValues = { -1.0f, 0.0f, 1.0f, 2.0f };
 const std::vector<float> countBoundaryValues = { -1.0f, 0.0f, 1000.0f, 1001.0f };
+const std::vector<float> particleSizeBoundaryValues = { -1.0f, 0.0f, 10.0f, 11.0f };
 const std::vector<float> extremeFloatValues = { -FLT_MAX, FLT_MAX, -1.0e9f, 1.0e9f };
 const std::vector<float> invalidFloatValues = {
     std::numeric_limits<float>::quiet_NaN(),
@@ -2711,7 +2712,7 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_Particle_Count_Bou
 
 /*
  * Test the particle size boundaries
- * A zero size must not draw anything
+ * The upper bound is ten, zero hides the particles
  */
 GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_Particle_Size_Boundary_Test)
 {
@@ -2720,10 +2721,10 @@ GRAPHIC_TEST(NGShaderCosmosRingTest, EFFECT_TEST, Cosmos_Ring_Particle_Size_Boun
         return;
     }
 
-    for (size_t i = 0; i < pixelBoundaryValues.size(); i++) {
+    for (size_t i = 0; i < particleSizeBoundaryValues.size(); i++) {
         auto cosmosRing = std::make_shared<RSNGCosmosRing>();
         InitCosmosRing(cosmosRing);
-        cosmosRing->Setter<CosmosRingParticleSizeTag>(pixelBoundaryValues[i]);
+        cosmosRing->Setter<CosmosRingParticleSizeTag>(particleSizeBoundaryValues[i]);
 
         SetUpCell(i, 2, 2, effectNode, cosmosRing);
     }
