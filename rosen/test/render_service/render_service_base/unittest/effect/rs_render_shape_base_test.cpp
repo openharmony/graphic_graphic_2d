@@ -471,4 +471,17 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SkipNonRRectInner, TestS
     EXPECT_EQ(innerShape->GetType(), RSNGEffectType::SDF_TRIANGLE_SHAPE);
 }
 
+/**
+ * @tc.name: SDFUberShape_RegisteredInCreatorLutAndNamed
+ * @tc.desc: test the SDF uber shape is created from the creator LUT and has the expected type string
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderShapeBaseTest, SDFUberShape_RegisteredInCreatorLutAndNamed, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UBER_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    EXPECT_EQ(shape->GetType(), RSNGEffectType::SDF_UBER_SHAPE);
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_UBER_SHAPE), "SdfUber");
+}
+
 } // namespace OHOS::Rosen

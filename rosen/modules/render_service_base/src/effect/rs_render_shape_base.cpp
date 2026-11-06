@@ -78,6 +78,10 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFDistortOpShape>();
         }
     },
+    {RSNGEffectType::SDF_UBER_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFUberShape>();
+        }
+    },
 };
 
 using ShapeGetTransformRect = std::function<RectF(std::shared_ptr<RSNGRenderShapeBase>, RectF)>;
