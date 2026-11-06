@@ -168,6 +168,18 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGDistortLightFilter>();
         }
     },
+    {RSNGEffectType::BINARIZATION, [] {
+            return std::make_shared<RSNGBinarizationFilter>();
+        }
+    },
+    {RSNGEffectType::LIGHT_UP_EFFECT, [] {
+            return std::make_shared<RSNGLightUpEffectFilter>();
+        }
+    },
+    {RSNGEffectType::DYNAMIC_DIM, [] {
+            return std::make_shared<RSNGDynamicDimFilter>();
+        }
+    },
 };
 
 namespace {
@@ -640,6 +652,34 @@ std::shared_ptr<RSNGShapeBase> RSNGFilterHelper::CreateNGSDFDistortOpShape(
     distortShape->Setter<SDFDistortOpShapeRBCornerTag>(para->GetRBCorner());
     distortShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(para->GetBarrelDistortion());
     return shape;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGBinarizationFilter(
+    float low, float high, float threshold, float thresholdRange)
+{
+    auto filter = std::static_pointer_cast<RSNGBinarizationFilter>(
+        RSNGFilterBase::Create(RSNGEffectType::BINARIZATION));
+    filter->Setter<BinarizationLowTag>(low);
+    filter->Setter<BinarizationHighTag>(high);
+    filter->Setter<BinarizationThresholdTag>(threshold);
+    filter->Setter<BinarizationThresholdRangeTag>(thresholdRange);
+    return filter;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGLightUpEffectFilter(float value)
+{
+    auto filter = std::static_pointer_cast<RSNGLightUpEffectFilter>(
+        RSNGFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT));
+    filter->Setter<LightUpEffectValueTag>(value);
+    return filter;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGDynamicDimFilter(float value)
+{
+    auto filter = std::static_pointer_cast<RSNGDynamicDimFilter>(
+        RSNGFilterBase::Create(RSNGEffectType::DYNAMIC_DIM));
+    filter->Setter<DynamicDimValueTag>(value);
+    return filter;
 }
 } // namespace Rosen
 } // namespace OHOS

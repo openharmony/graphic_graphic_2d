@@ -66,6 +66,13 @@ public:
 
     RSC_EXPORT static std::shared_ptr<RSNGShapeBase> CreateNGSDFDistortOpShape(
         std::shared_ptr<VisualEffectPara> effectPara);
+
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGBinarizationFilter(
+        float low, float high, float threshold, float thresholdRange);
+
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGLightUpEffectFilter(float value);
+
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGDynamicDimFilter(float value);
 };
 } // namespace Rosen
 } // namespace OHOS

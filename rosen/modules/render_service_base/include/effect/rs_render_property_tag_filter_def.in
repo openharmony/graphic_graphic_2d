@@ -262,3 +262,12 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightWidth, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightSoft, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortLight, HighLightColor, Vector4f);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Binarization, Low, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Binarization, High, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Binarization, Threshold, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Binarization, ThresholdRange, float);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(LightUpEffect, Value, float);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DynamicDim, Value, float);

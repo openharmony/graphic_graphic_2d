@@ -51,10 +51,6 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COMPOSITING_FILTER);
 
-    Vector4f aiInvertValue(0.1f, 0.2f, 0.3f, 0.4f);
-    modifier->SetAiInvert(aiInvertValue);
-    EXPECT_EQ(modifier->GetAiInvert(), std::optional<Vector4f>(aiInvertValue));
-
     float grayScaleValue = 0.5f;
     modifier->SetGrayScale(grayScaleValue);
     EXPECT_EQ(modifier->GetGrayScale(), grayScaleValue);
@@ -86,14 +82,6 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     Color colorBlendValue(16, 15, 14, 16);
     modifier->SetColorBlend(colorBlendValue);
     EXPECT_EQ(modifier->GetColorBlend(), std::optional<Color>(colorBlendValue));
-
-    float lightUpEffectDegreeValue = 1.2f;
-    modifier->SetLightUpEffectDegree(lightUpEffectDegreeValue);
-    EXPECT_EQ(modifier->GetLightUpEffectDegree(), lightUpEffectDegreeValue);
-
-    float dynamicDimDegreeValue = 1.3f;
-    modifier->SetDynamicDimDegree(dynamicDimDegreeValue);
-    EXPECT_EQ(modifier->GetDynamicDimDegree(), std::optional<float>(dynamicDimDegreeValue));
 
     std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.0f}, {1.0f, 1.0f}};
     float blurRadius = 1.0f;
@@ -138,5 +126,27 @@ HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest,
     auto filter = RSNGFilterHelper::CreateNGBlurFilter(0.5, 0.5);
     modifier->SetNGFilterBase(filter);
     EXPECT_EQ(modifier->GetNGFilterBase(), filter);
+
+    auto binarizationFilter = RSNGFilterHelper::CreateNGBinarizationFilter(0.1f, 0.2f, 0.3f, 0.4f);
+    modifier->SetColorNGFilter(binarizationFilter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), binarizationFilter);
+
+    auto lightUpFilter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
+    modifier->SetColorNGFilter(lightUpFilter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), lightUpFilter);
+
+    auto dynamicDimFilter = RSNGFilterHelper::CreateNGDynamicDimFilter(0.5f);
+    modifier->SetColorNGFilter(dynamicDimFilter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), dynamicDimFilter);
+}
+
+HWTEST_F(RSCompositingFilterModifierNGTypeTest, SetColorNGFilterNullptr, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    auto filter = RSNGFilterHelper::CreateNGLightUpEffectFilter(0.5f);
+    modifier->SetColorNGFilter(filter);
+    EXPECT_EQ(modifier->GetColorNGFilter(), filter);
+    modifier->SetColorNGFilter(nullptr);
+    EXPECT_EQ(modifier->GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen

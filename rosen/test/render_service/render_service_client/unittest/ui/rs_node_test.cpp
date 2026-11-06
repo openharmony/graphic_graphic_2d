@@ -4658,7 +4658,7 @@ HWTEST_F(RSNodeTest, SetandGetLightUpEffectDegree001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     float lightUpEffectDegree = 1.0f;
     rsNode->SetLightUpEffectDegree(lightUpEffectDegree);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetLightUpEffectDegree(), lightUpEffectDegree));
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetLightUpEffectDegree(), lightUpEffectDegree);
 }
 
 /**

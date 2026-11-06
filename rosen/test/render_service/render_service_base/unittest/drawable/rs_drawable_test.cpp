@@ -21,6 +21,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 
@@ -54,9 +55,9 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     RSDrawable::Vec drawableVec;
-    std::optional<Vector4f> aiInvert = { Vector4f() };
-    node.GetMutableRenderProperties().SetAiInvert(aiInvert);
-    ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    node.GetMutableRenderProperties().SetColorNGFilter(filter);
+    ASSERT_TRUE(node.GetRenderProperties().GetColorNGFilter() != nullptr);
     ModifierNG::ModifierDirtyTypes dirtyTypesNG;
     dirtyTypesNG.set(static_cast<int>(ModifierNG::RSModifierType::SHADOW), true);
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG, drawableVec);
@@ -76,8 +77,8 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     RSDrawable::Vec drawableVec;
     ModifierNG::ModifierDirtyTypes dirtyTypes;
     dirtyTypes.set();
-    std::optional<Vector4f> aiInvert = { Vector4f() };
-    node.GetMutableRenderProperties().SetAiInvert(aiInvert);
+    auto colorFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION);
+    node.GetMutableRenderProperties().SetColorNGFilter(colorFilter);
     std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
     node.GetMutableRenderProperties().SetBackgroundShader(shader);
@@ -240,7 +241,6 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore002, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, ResetPixelStretchSlotTest, TestSize.Level1)
 {
     NodeId id = 1;
@@ -259,7 +259,6 @@ HWTEST_F(RSDrawableTest, ResetPixelStretchSlotTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, CanFusePixelStretchTest, TestSize.Level1)
 {
     NodeId id = 1;
@@ -284,7 +283,6 @@ HWTEST_F(RSDrawableTest, CanFusePixelStretchTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: wz
  */
-
 HWTEST_F(RSDrawableTest, CanFusePixelStretchTest002, TestSize.Level1)
 {
     NodeId id = 1;
@@ -304,7 +302,6 @@ HWTEST_F(RSDrawableTest, CanFusePixelStretchTest002, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_STYLE)] = drawable3;
     ASSERT_FALSE(RSDrawable::CanFusePixelStretch(drawableVec));
 }
-
 class BufferDirtyTestNode : public RSRenderNode {
 public:
     explicit BufferDirtyTestNode(NodeId id) : RSRenderNode(id) {}
@@ -347,6 +344,7 @@ HWTEST_F(RSDrawableTest, CalculateDrawableVecStatus_BufferNotDirty, TestSize.Lev
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_FALSE(drawableVecStatus & DrawableVecStatus::FRAME_NOT_EMPTY);
 }
+
 /**
  * @tc.name: CalculateDirtySlotsNG_Bounds
  * @tc.desc: Test CalculateDirtySlotsNG with BOUNDS dirty type
@@ -412,9 +410,6 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_CompositingFilter, TestSize.Level
     ModifierNG::ModifierDirtyTypes dirtyTypes;
     dirtyTypes.set(static_cast<size_t>(ModifierNG::RSModifierType::COMPOSITING_FILTER));
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::LIGHT_UP_EFFECT) != dirtySlots.end());
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::BINARIZATION) != dirtySlots.end());
-    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::DYNAMIC_DIM) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::COLOR_FILTER) != dirtySlots.end());
 }
 
@@ -572,5 +567,4 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsNG_MultipleDirtyTypes, TestSize.Leve
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::ENV_FOREGROUND_COLOR) != dirtySlots.end());
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::MATERIAL_SHADER) != dirtySlots.end());
 }
-
 } // namespace OHOS::Rosen

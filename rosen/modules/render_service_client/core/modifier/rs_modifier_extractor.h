@@ -506,13 +506,6 @@ public:
     float GetLightUpEffectDegree() const;
 
     /**
-     * @brief Gets the degree of dynamic dimension.
-     *
-     * @return The dynamic dimension degree.
-     */
-    float GetDynamicDimDegree() const;
-
-    /**
      * @brief Gets the transformation progress of the meteor animation effect.
      *
      * @return The transformation progress of the meteor animation effect.

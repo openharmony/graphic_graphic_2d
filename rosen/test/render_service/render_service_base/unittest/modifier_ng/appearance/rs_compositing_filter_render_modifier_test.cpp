@@ -57,7 +57,6 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::COMPOSITING_FILTER);
     EXPECT_EQ(modifier.IsForeground(), true);
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetAiInvert(), std::nullopt);
     EXPECT_EQ(properties.GetGrayScale(), std::nullopt);
     EXPECT_EQ(properties.GetBrightness(), std::nullopt);
     EXPECT_EQ(properties.GetContrast(), std::nullopt);
@@ -66,8 +65,6 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(properties.GetInvert(), std::nullopt);
     EXPECT_EQ(properties.GetHueRotate(), std::nullopt);
     EXPECT_EQ(properties.GetColorBlend(), std::nullopt);
-    EXPECT_EQ(properties.GetLightUpEffect(), 1.f);
-    EXPECT_EQ(properties.GetDynamicDimDegree(), std::nullopt);
     EXPECT_EQ(properties.GetCompositingFilter(), nullptr);
     EXPECT_EQ(properties.GetLinearGradientBlurPara(), nullptr);
     EXPECT_EQ(properties.GetCompositingBlurRadius(), 0.0f);
@@ -79,5 +76,6 @@ HWTEST_F(RSCompositingFilterRenderModifierNGTest, RSCompositingFilterRenderModif
     EXPECT_EQ(properties.GetCompositingBlurRadiusY(), 0.0f);
     EXPECT_EQ(properties.GetCtBlurDisableSystemAdaptation(), true);
     EXPECT_EQ(properties.GetCompositingNGFilter(), nullptr);
+    EXPECT_EQ(properties.GetColorNGFilter(), nullptr);
 }
 } // namespace OHOS::Rosen

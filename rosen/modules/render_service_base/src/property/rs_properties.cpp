@@ -2040,17 +2040,6 @@ void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
     contentDirty_ = true;
 }
 
-void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
-{
-    GetEffectProperties().SetDynamicDimDegree(DimDegree);
-    if (DimDegree.has_value()) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
 void RSProperties::SetDepthImage(const std::shared_ptr<RSImage>& depthImage)
 {
     auto renderNode = backref_.lock();
@@ -2322,19 +2311,9 @@ float RSProperties::GetDynamicLightUpDegree() const
     return GetEffectProperties().GetDynamicLightUpDegree();
 }
 
-const std::optional<float>& RSProperties::GetDynamicDimDegree() const
-{
-    return GetEffectProperties().GetDynamicDimDegree();
-}
-
 const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 {
     return GetEffectProperties().GetGreyCoef();
-}
-
-bool RSProperties::IsDynamicDimValid() const
-{
-    return GetEffectProperties().IsDynamicDimValid();
 }
 
 const std::shared_ptr<MotionBlurParam>& RSProperties::GetMotionBlurPara() const
@@ -2914,6 +2893,20 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetCompositingNGFilter() con
     return GetEffectProperties().GetCompositingNGFilter();
 }
 
+void RSProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
+{
+    GetEffectProperties().SetColorNGFilter(renderFilter);
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::shared_ptr<RSNGRenderFilterBase>& RSProperties::GetColorNGFilter() const
+{
+    return GetEffectProperties().GetColorNGFilter();
+}
+
 void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
 {
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
@@ -3055,27 +3048,6 @@ void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
 float RSProperties::GetCanvasNodeHDRBrightnessFactor() const
 {
     return canvasNodeHDRBrightnessFactor_;
-}
-
-void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
-{
-    GetEffectProperties().SetLightUpEffect(lightUpEffectDegree);
-    if (IsLightUpEffectValid()) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
-float RSProperties::GetLightUpEffect() const
-{
-    return GetEffectProperties().GetLightUpEffect();
-}
-
-bool RSProperties::IsLightUpEffectValid() const
-{
-    return GetEffectProperties().IsLightUpEffectValid();
 }
 
 // filter property
@@ -3523,7 +3495,8 @@ void RSProperties::StatBackgroundFilter()
 {
     ServerXXFilterCascadeParams params;
     params.functionType = ServerFilterFunctionType::BACKGROUND_FILTER;
-    if (GetAiInvert().has_value() || GetSystemBarEffect()) {
+    if ((GetColorNGFilter() != nullptr && GetColorNGFilter()->ContainsType(RSNGEffectType::BINARIZATION)) ||
+        GetSystemBarEffect()) {
         params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)]++;
     }
     if (GetEffectProperties().IsBackgroundMaterialFilterValid()) {
@@ -4046,21 +4019,6 @@ const std::optional<float>& RSProperties::GetInvert() const
     return GetEffectProperties().GetInvert();
 }
 
-
-void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
-{
-    GetEffectProperties().SetAiInvert(aiInvert);
-    colorFilterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-    isDrawn_ = true;
-}
-
-const std::optional<Vector4f>& RSProperties::GetAiInvert() const
-{
-    return GetEffectProperties().GetAiInvert();
-}
-
 void RSProperties::SetSystemBarEffect(bool systemBarEffect)
 {
     GetEffectProperties().SetSystemBarEffect(systemBarEffect);
@@ -4331,11 +4289,10 @@ std::string RSProperties::Dump() const
     // LightUpEffect
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
-        return "Failed to memset_s for LightUpEffect, ret=" + std::to_string(ret);
+        return "Failed to memset_s for ColorNGFilter, ret=" + std::to_string(ret);
     }
-    if (!ROSEN_EQ(GetLightUpEffect(), 1.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", LightUpEffect[%.1f]", GetLightUpEffect()) != -1) {
-        dumpInfo.append(buffer);
+    if (GetColorNGFilter() != nullptr) {
+        dumpInfo.append(", ColorNGFilter");
     }
 
     // ForegroundColor
@@ -4766,19 +4723,20 @@ void RSProperties::UpdateFilter()
     // If new effects are added, it is necessary to assess whether they can partial render,
     // and update NeedDisabledPartialRender.
     needFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || GetUseEffect() ||
-                  HasHarmonium() || IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
-                  GetLinearGradientBlurPara() != nullptr || IsDynamicDimValid() ||
+                  HasHarmonium() || GetColorNGFilter() != nullptr || IsDynamicLightUpValid() ||
+                  GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   GetForegroundFilter() != nullptr || IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || !GetPixelStretch().IsZero() ||
                   GetMaterialFilter() != nullptr || HasSpatialGlassEffect();
 
-    needHwcFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || IsLightUpEffectValid() ||
-                     IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
-                     IsDynamicDimValid() || IsFgBlenderEffectValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     !GetPixelStretch().IsZero() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
+    needHwcFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr ||
+                     GetColorNGFilter() != nullptr || IsDynamicLightUpValid() ||
+                     GetLinearGradientBlurPara() != nullptr || IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
+                     IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetColorFilter() != nullptr ||
+                     localMagnificationCap_ || !GetPixelStretch().IsZero() || GetMaterialFilter() != nullptr ||
+                     IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetCompositingFilter()) ||
@@ -4798,9 +4756,9 @@ bool RSProperties::DisableHWCForFilter() const
     }
     // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
     return GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || GetUseEffect() ||
-        IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
+        GetColorNGFilter() != nullptr || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
         GetLinearGradientBlurPara() != nullptr ||
-        IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+        GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
         (GetForegroundFilter() != nullptr && GetForegroundFilter()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
         (GetForegroundFilterCache() != nullptr &&

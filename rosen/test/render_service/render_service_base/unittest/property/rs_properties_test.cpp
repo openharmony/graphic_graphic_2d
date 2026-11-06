@@ -1859,22 +1859,6 @@ HWTEST_F(RSPropertiesTest, SetGreyCoef001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNGetDynamicDimDegree001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, SetNGetDynamicDimDegree001, TestSize.Level1)
-{
-    RSProperties properties;
-    std::optional<float> dimDegree(0.9f);
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
-}
-
-/**
  * @tc.name: GetFilter001
  * @tc.desc: test results of GetFilter
  * @tc.type:FUNC
@@ -2805,11 +2789,6 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurSaturationValid());
 
-    Vector4f aiInvert = { 1.f, 1.f, 1.f, 1.f };
-    properties.GetEffectProperties().GetFilterEffect().aiInvert_ = aiInvert;
-    properties.GenerateBackgroundFilter();
-    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().aiInvert_.has_value(), true);
-
     properties.GetEffectProperties().GetFilterEffect().systemBarEffect_ = true;
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().systemBarEffect_);
@@ -3161,8 +3140,9 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetLightUpEffect001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetLightUpEffect(1.0f);
-    EXPECT_NE(properties.isDrawn_, true);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    properties.SetColorNGFilter(filter);
+    EXPECT_EQ(properties.isDrawn_, true);
 }
 
 /**
@@ -3437,8 +3417,7 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter001, TestSize.Level1)
     properties.SetSaturate(saturate);
     std::optional<float> sepia = std::optional<float>(1.f);
     properties.SetSepia(sepia);
-    std::optional<float> aiInvert = std::optional<float>(1.f);
-    properties.SetAiInvert(aiInvert);
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
     std::optional<float> hueRotate = std::optional<float>(1.f);
     properties.SetHueRotate(hueRotate);
     Color color(255, 0, 0);
@@ -3813,7 +3792,7 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     RSProperties props;
     props.backref_ = node;
     props.hasReportedServerXXFilterCascade_.reset();
-    props.SetAiInvert(Vector4f(0.1f, 0.1f, 0.1f, 0.1f));
+    props.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
     props.SetAlwaysSnapshot(true);
     props.SetBackgroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     props.SetSystemBarEffect(true);
@@ -5176,6 +5155,34 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
     properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
+}
+
+
+/**
+ * @tc.name: DumpColorNGFilter001
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") == std::string::npos);
+}
+
+/**
+ * @tc.name: DumpColorNGFilter002
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") != std::string::npos);
 }
 } // namespace Rosen
 } // namespace OHOS

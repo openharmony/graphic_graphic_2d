@@ -131,10 +131,10 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     // FG properties in Bounds clip
     nullptr,                                                         // FG_SAVE_BOUNDS,
     nullptr,                                                         // FG_CLIP_TO_BOUNDS,
-    RSBinarizationDrawable::OnGenerate,                              // BINARIZATION,
+    nullptr,                                                         // BINARIZATION,
     RSColorFilterDrawable::OnGenerate,                               // COLOR_FILTER,
-    RSLightUpEffectDrawable::OnGenerate,                             // LIGHT_UP_EFFECT,
-    RSDynamicDimDrawable::OnGenerate,                                // DYNAMIC_DIM,
+    nullptr,                                                         // LIGHT_UP_EFFECT,
+    nullptr,                                                         // DYNAMIC_DIM,
     RSCompositingFilterDrawable::OnGenerate,                         // COMPOSITING_FILTER,
     RSForegroundColorDrawable::OnGenerate,                           // FOREGROUND_COLOR,
     RSForegroundShaderDrawable::OnGenerate,                          // FOREGROUND_SHADER,
@@ -438,9 +438,6 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     }
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::COMPOSITING_FILTER))) {
-        dirtySlots.emplace(RSDrawableSlot::LIGHT_UP_EFFECT);
-        dirtySlots.emplace(RSDrawableSlot::BINARIZATION);
-        dirtySlots.emplace(RSDrawableSlot::DYNAMIC_DIM);
         dirtySlots.emplace(RSDrawableSlot::COLOR_FILTER);
     }
 

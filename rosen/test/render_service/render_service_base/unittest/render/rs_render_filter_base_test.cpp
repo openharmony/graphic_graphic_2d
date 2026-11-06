@@ -1482,4 +1482,93 @@ HWTEST_F(RSRenderFilterBaseTest, ColorGradientFilterContains, TestSize.Level1)
     EXPECT_TRUE(filter->Contains<ColorGradientStrengthsRenderTag>());
     EXPECT_TRUE(filter->Contains<ColorGradientMaskRenderTag>());
 }
+
+HWTEST_F(RSRenderFilterBaseTest, CreateDynamicDimFilter001, TestSize.Level1)
+{
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::DYNAMIC_DIM);
+    ASSERT_NE(filter, nullptr);
+
+    EXPECT_EQ(filter->GetType(), RSNGEffectType::DYNAMIC_DIM);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect001, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
+    RSNGRenderFilterHelper::GenerateGEVisualEffect(nullFilter);
+
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(filter, nullptr);
+
+    RSNGRenderFilterHelper::GenerateGEVisualEffect(filter);
+    EXPECT_NE(filter, nullptr);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR002, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
+    EXPECT_FALSE(RSNGRenderFilterHelper::CheckEnableEDR(nullFilter));
+
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(filter, nullptr);
+
+    auto filter2 = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    ASSERT_NE(filter2, nullptr);
+
+    filter->nextEffect_ = filter2;
+
+    EXPECT_FALSE(RSNGRenderFilterHelper::CheckEnableEDR(filter));
+    EXPECT_NE(filter, nullptr);
+    EXPECT_NE(filter->nextEffect_, nullptr);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, CheckFilterSkipFrame001, TestSize.Level1)
+{
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(blurFilter, nullptr);
+
+    EXPECT_FALSE(RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(
+        RSNGEffectType::BLUR, blurFilter));
+
+    auto frostedGlassBlurFilter =
+        RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
+    ASSERT_NE(frostedGlassBlurFilter, nullptr);
+
+    bool result = RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(
+        RSNGEffectType::FROSTED_GLASS_BLUR, frostedGlassBlurFilter);
+    EXPECT_FALSE(result);
+
+    auto frostedGlassFilter =
+        RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(frostedGlassFilter, nullptr);
+
+    bool result2 = RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(
+        RSNGEffectType::FROSTED_GLASS, frostedGlassFilter);
+    EXPECT_FALSE(result2);
+}
+
+HWTEST_F(RSRenderFilterBaseTest, PrepareForForeground001, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderFilterBase> nullFilter = nullptr;
+    RSNGRenderFilterHelper::PrepareForForeground(nullFilter);
+
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(blurFilter, nullptr);
+
+    auto blurCast = std::static_pointer_cast<RSNGRenderBlurFilter>(blurFilter);
+    auto initialVal = blurCast->Getter<OHOS::Rosen::BlurExpandDrawRegionRenderTag>();
+    ASSERT_NE(initialVal, nullptr);
+    EXPECT_FALSE(initialVal->Get());
+
+    RSNGRenderFilterHelper::PrepareForForeground(blurFilter);
+
+    auto afterVal = blurCast->Getter<OHOS::Rosen::BlurExpandDrawRegionRenderTag>();
+    ASSERT_NE(afterVal, nullptr);
+    EXPECT_FALSE(afterVal->Get());
+
+    auto contentLightFilter =
+        RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    ASSERT_NE(contentLightFilter, nullptr);
+
+    RSNGRenderFilterHelper::PrepareForForeground(contentLightFilter);
+}
 } // namespace OHOS::Rosen

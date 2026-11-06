@@ -830,9 +830,8 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
         property.GetMask() != nullptr ||
         property.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
         property.GetCompositingFilter() != nullptr ||
-        property.IsLightUpEffectValid() ||
+        property.GetColorNGFilter() != nullptr ||
         property.GetLinearGradientBlurPara() != nullptr ||
-        property.IsDynamicDimValid() ||
         property.IsFgBlenderEffectValid() ||
         property.IsWaterRippleValid() ||
         property.GetColorFilter() != nullptr;

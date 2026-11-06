@@ -312,20 +312,6 @@ public:
     std::optional<float> GetHDRUIBrightness() const;
 
     /**
-     * @brief Gets the degree of light up effect.
-     *
-     * @return The light up effect degree.
-     */
-    std::optional<float> GetLightUpEffectDegree() const;
-
-    /**
-     * @brief Gets the degree of dynamic dimension.
-     *
-     * @return The dynamic dimension degree.
-     */
-    std::optional<float> GetDynamicDimDegree() const;
-
-    /**
      * @brief Gets the transformation progress of the meteor animation effect.
      *
      * @return The transformation progress of the meteor animation effect.
