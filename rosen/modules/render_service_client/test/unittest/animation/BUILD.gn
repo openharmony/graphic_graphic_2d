@@ -53,6 +53,7 @@ ohos_unittest("RSAnimationTest1") {
   sources = [
     "rs_animation_timing_curve_test.cpp",
     "rs_animation_timing_protocol_test.cpp",
+    "rs_atlas_info_animation_test.cpp",
     "rs_curve_animation_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_interactive_implict_animator_test.cpp",

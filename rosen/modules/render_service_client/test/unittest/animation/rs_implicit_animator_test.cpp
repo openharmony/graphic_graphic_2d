@@ -22,6 +22,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_keyframe_animation.h"
 #include "animation/rs_motion_path_option.h"
+#include "common/rs_atlas_info.h"
 #include "common/rs_vector2.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
@@ -1669,6 +1670,152 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitDurationKeyFrameEmptyParams001, Test
     implicitAnimator->EndImplicitDurationKeyFrameAnimation();
     EXPECT_EQ(implicitAnimator->implicitAnimationParams_.size(), 2u);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitDurationKeyFrameEmptyParams001 end";
+}
+
+/**
+ * @tc.name: CreateImplicitAnimationAtlasInfoSpringFallback001
+ * @tc.desc: AtlasInfo + SPRING triggers spring guard, falls back to direct property update.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationAtlasInfoSpringFallback001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    auto curve = RSAnimationTimingCurve::SPRING;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    ASSERT_FALSE(implicitAnimator->implicitAnimationParams_.empty());
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.top()->GetType(),
+        ImplicitAnimationParamType::SPRING);
+
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
+    AtlasInfo startInfo;
+    startInfo.frameIndex = 0.0f;
+    startInfo.totalFrame = 6;
+    AtlasInfo endInfo;
+    endInfo.frameIndex = 5.0f;
+    endInfo.totalFrame = 6;
+    auto property = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto startValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto endValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(endInfo);
+
+    // Spring guard: SetPropertyValue(property, endValue) then return. No animation created.
+    implicitAnimator->CreateImplicitAnimation(target, property, startValue, endValue);
+    EXPECT_TRUE(implicitAnimator->implicitAnimations_.top().empty());
+    // property stagingValue_ was set to endValue by SetPropertyValue -> SetValue.
+    EXPECT_FLOAT_EQ(property->Get().frameIndex, 5.0f);
+
+    implicitAnimator->CloseImplicitAnimation();
+    ASSERT_TRUE(implicitAnimator->globalImplicitParams_.empty());
+}
+
+/**
+ * @tc.name: CreateImplicitAnimationAtlasInfoInterpolatingSpringFallback001
+ * @tc.desc: AtlasInfo + INTERPOLATING_SPRING triggers spring guard fallback.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationAtlasInfoInterpolatingSpringFallback001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    constexpr float mass = 0.5f;
+    constexpr float stiffness = 0.0f;
+    constexpr float damping = 0.5f;
+    constexpr float velocity = 1.0f;
+    auto curve = RSAnimationTimingCurve::CreateInterpolatingSpring(mass, stiffness, damping, velocity);
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    ASSERT_FALSE(implicitAnimator->implicitAnimationParams_.empty());
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.top()->GetType(),
+        ImplicitAnimationParamType::INTERPOLATING_SPRING);
+
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
+    AtlasInfo startInfo;
+    startInfo.frameIndex = 0.0f;
+    startInfo.totalFrame = 6;
+    AtlasInfo endInfo;
+    endInfo.frameIndex = 5.0f;
+    endInfo.totalFrame = 6;
+    auto property = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto startValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto endValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(endInfo);
+
+    implicitAnimator->CreateImplicitAnimation(target, property, startValue, endValue);
+    EXPECT_TRUE(implicitAnimator->implicitAnimations_.top().empty());
+    EXPECT_FLOAT_EQ(property->Get().frameIndex, 5.0f);
+
+    implicitAnimator->CloseImplicitAnimation();
+    ASSERT_TRUE(implicitAnimator->globalImplicitParams_.empty());
+}
+
+/**
+ * @tc.name: CreateImplicitAnimationAtlasInfoCurveNoFallback001
+ * @tc.desc: AtlasInfo + CURVE bypasses spring guard, creates RSAtlasInfoAnimation.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationAtlasInfoCurveNoFallback001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    auto curve = RSAnimationTimingCurve::EASE;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    implicitAnimator->BeginImplicitCurveAnimation();
+    ASSERT_FALSE(implicitAnimator->implicitAnimationParams_.empty());
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.top()->GetType(),
+        ImplicitAnimationParamType::CURVE);
+
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
+    AtlasInfo startInfo;
+    startInfo.frameIndex = 0.0f;
+    startInfo.totalFrame = 6;
+    AtlasInfo endInfo;
+    endInfo.frameIndex = 5.0f;
+    endInfo.totalFrame = 6;
+    auto property = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto startValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(startInfo);
+    auto endValue = std::make_shared<RSAnimatableProperty<AtlasInfo>>(endInfo);
+
+    // CURVE branch: spring guard skipped, RSAtlasInfoAnimation created and added to target.
+    implicitAnimator->CreateImplicitAnimation(target, property, startValue, endValue);
+    EXPECT_FALSE(implicitAnimator->implicitAnimations_.top().empty());
+
+    implicitAnimator->EndImplicitAnimation();
+    implicitAnimator->CloseImplicitAnimation();
+    ASSERT_TRUE(implicitAnimator->globalImplicitParams_.empty());
+}
+
+/**
+ * @tc.name: CreateImplicitAnimationNonAtlasInfoSpringNoFallback001
+ * @tc.desc: Non-AtlasInfo + SPRING bypasses spring guard, creates spring animation.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationNonAtlasInfoSpringNoFallback001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    auto curve = RSAnimationTimingCurve::SPRING;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    ASSERT_FALSE(implicitAnimator->implicitAnimationParams_.empty());
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.top()->GetType(),
+        ImplicitAnimationParamType::SPRING);
+
+    auto rsUIContext = CreateRSUIContext();
+    auto target = RSCanvasNode::Create(false, false, rsUIContext);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+
+    // Non-AtlasInfo: spring guard skipped, spring animation created.
+    implicitAnimator->CreateImplicitAnimation(target, property, startValue, endValue);
+    EXPECT_FALSE(implicitAnimator->implicitAnimations_.top().empty());
+
+    implicitAnimator->CloseImplicitAnimation();
+    ASSERT_TRUE(implicitAnimator->globalImplicitParams_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

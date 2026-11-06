@@ -666,7 +666,15 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
     std::shared_ptr<RSAnimation> animation;
     auto params = implicitAnimationParams_.top();
     auto& repeatCallback = std::get<std::shared_ptr<AnimationRepeatCallback>>(globalImplicitParams_.top());
-    switch (params->GetType()) {
+    auto paramType = params->GetType();
+    if (property->GetPropertyType() == RSPropertyType::ATLAS_INFO &&
+        (paramType == ImplicitAnimationParamType::SPRING ||
+         paramType == ImplicitAnimationParamType::INTERPOLATING_SPRING)) {
+        ROSEN_LOGW("AtlasInfo does not support spring animation, fallback to direct property update.");
+        SetPropertyValue(property, endValue);
+        return;
+    }
+    switch (paramType) {
         case ImplicitAnimationParamType::CURVE: {
             auto curveImplicitParam = static_cast<RSImplicitCurveAnimationParam*>(params.get());
             if (property->GetPropertyType() == RSPropertyType::ATLAS_INFO) {

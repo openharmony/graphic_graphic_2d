@@ -60,6 +60,7 @@ protected:
 private:
     std::shared_ptr<RSRenderAtlasInfoAnimation> CreateRenderAnimation();
     PropertyId propertyId_ = 0;
+    std::shared_ptr<RSPropertyBase> property_;
     std::shared_ptr<RSPropertyBase> startValue_;
     std::shared_ptr<RSPropertyBase> endValue_;
 };
