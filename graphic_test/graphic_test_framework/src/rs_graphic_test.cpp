@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 #include "rs_parameter_parse.h"
 #include "rs_trace.h"
+#include "token_setproc.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -443,6 +446,28 @@ void RSGraphicTest::ClearCaptureCrop()
 {
     hasCaptureCrop_ = false;
     captureCrop_ = {0, 0, 0, 0};
+}
+
+void RSGraphicTest::SetCaptureScreenNativeToken()
+{
+    const char* perms[2];
+    perms[0] = "ohos.permission.CAPTURE_SCREEN";
+    perms[1] = "ohos.permission.MANAGE_DISPLAY_MANAGER";
+    const char* acls[1];
+    acls[0] = "ohos.permission.CAPTURE_SCREEN";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 2,
+        .aclsNum = 1,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = acls,
+        .processName = "foundation",
+        .aplStr = "system_basic",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -77,6 +77,9 @@ ohos_source_set("rs_graphic_test_src") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken_shared",
+    "access_token:libtoken_setproc",
     "ffrt:libffrt",
     "cJSON:cjson",
     "googletest:gtest",
