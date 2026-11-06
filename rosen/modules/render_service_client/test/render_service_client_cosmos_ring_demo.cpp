@@ -15,18 +15,18 @@
 
 #include <cerrno>
 #include <chrono>
+#include <csignal>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <pthread.h>
-#include <signal.h>
 #include <string>
 #include <sys/prctl.h>
 #include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
 #include <vector>
 
@@ -460,11 +460,8 @@ bool WaitForDemoExit(const sigset_t& exitSignals)
     for (int32_t elapsedSeconds = DEMO_LOG_INTERVAL_SECONDS; elapsedSeconds <= DEMO_DURATION_SECONDS;
          elapsedSeconds += DEMO_LOG_INTERVAL_SECONDS) {
         const auto nextLogTime = startTime + std::chrono::seconds(elapsedSeconds);
-        while (true) {
-            const auto now = std::chrono::steady_clock::now();
-            if (now >= nextLogTime) {
-                break;
-            }
+        auto now = std::chrono::steady_clock::now();
+        while (now < nextLogTime) {
             const auto remaining = std::chrono::duration_cast<std::chrono::nanoseconds>(nextLogTime - now);
             const auto remainingSeconds = std::chrono::duration_cast<std::chrono::seconds>(remaining);
             const timespec timeout = { static_cast<time_t>(remainingSeconds.count()),
@@ -479,6 +476,7 @@ bool WaitForDemoExit(const sigset_t& exitSignals)
                 std::cerr << "Failed to wait for demo exit: " << std::strerror(error) << std::endl;
                 return false;
             }
+            now = std::chrono::steady_clock::now();
         }
         std::cout << "CosmosRing demo elapsed: " << elapsedSeconds << "/" << DEMO_DURATION_SECONDS << " seconds"
                   << std::endl;
