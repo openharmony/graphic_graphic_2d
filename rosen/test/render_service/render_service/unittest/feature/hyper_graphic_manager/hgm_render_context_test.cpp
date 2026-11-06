@@ -39,12 +39,13 @@ constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 constexpr pid_t SHELL_APP_PID = 100;
 constexpr pid_t OTHER_APP_PID = 200;
+constexpr uint32_t NODE_ID_PID_SHIFT = 32;
 bool g_testEmptyPath = false;
 std::string g_customTestXmlPath;
 
 inline NodeId MakeNodeIdWithPid(pid_t pid, uint32_t uid)
 {
-    return (static_cast<uint64_t>(pid) << 32) | uid;
+    return (static_cast<uint64_t>(pid) << NODE_ID_PID_SHIFT) | uid;
 }
 
 // Helper func to create test XML file
@@ -437,12 +438,12 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAppNodeSamePi
 }
 
 /**
- * @tc.name: HandleAdaptiveVsyncConditionForShellAppNodeMultipleShellApps
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAppNodeMulti
  * @tc.desc: test multiple shell app nodes with same pid are all skipped
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAppNodeMultipleShellApps, Function | SmallTest | Level1)
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAppNodeMulti, Function | SmallTest | Level1)
 {
     sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
