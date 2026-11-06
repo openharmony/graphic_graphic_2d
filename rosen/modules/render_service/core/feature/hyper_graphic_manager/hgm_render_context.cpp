@@ -116,8 +116,8 @@ void HgmRenderContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_
 bool HgmRenderContext::IsShellAssistantAncoGameNode(const std::string& nodeName) const
 {
     return !gameNodeName_.empty() &&
-        nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0 &&
-        nodeName.find(gameNodeName_) != std::string::npos;
+        nodeName.find(gameNodeName_) != std::string::npos &&
+        nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0;
 }
 
 void HgmRenderContext::EvaluateAdaptiveVsyncNodes(const std::shared_ptr<RSContext>& rsContext,
@@ -135,12 +135,13 @@ void HgmRenderContext::EvaluateAdaptiveVsyncNodes(const std::shared_ptr<RSContex
                 return false;
             }
             const auto& nodeName = surfaceNode->GetName();
-            bool isShellAssistantAncoGameNode = IsShellAssistantAncoGameNode(nodeName);
-            if (gameNodeName_ == nodeName || isShellAssistantAncoGameNode) {
+            if (gameNodeName_ == nodeName) {
                 isGameSelfNodeOnTree = true;
-                if (isShellAssistantAncoGameNode) {
-                    shellAssistantAncoPid = ExtractPid(surfaceNode->GetId());
-                }
+                return false;
+            }
+            if (IsShellAssistantAncoGameNode(nodeName)) {
+                isGameSelfNodeOnTree = true;
+                shellAssistantAncoPid = ExtractPid(surfaceNode->GetId());
                 return false;
             }
             auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
