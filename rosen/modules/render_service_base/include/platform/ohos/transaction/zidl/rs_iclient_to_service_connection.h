@@ -97,8 +97,8 @@ public:
     virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
     virtual ScreenId CreateVirtualScreen(
-        const RSVirtualScreenOption &option,
-        int32_t &errorCode) = 0;
+        const RSVirtualScreenOption& option,
+        int32_t& errorCode) = 0;
 
     // Multi-surface virtual screen dynamic surface management
     virtual int32_t AddVirtualScreenSurface(

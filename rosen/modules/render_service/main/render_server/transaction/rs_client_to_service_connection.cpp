@@ -534,7 +534,7 @@ std::vector<ScreenId> RSClientToServiceConnection::GetAllScreenIds()
     return screenManagerAgent_->GetAllScreenIds();
 }
 
-ScreenId RSClientToServiceConnection::CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t &errorCode)
+ScreenId RSClientToServiceConnection::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
     errorCode = StatusCode::SUCCESS;
     if (!screenManagerAgent_) {

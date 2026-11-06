@@ -120,7 +120,12 @@ public:
         option.flags = flags;
         option.whiteList = std::move(whiteList);
         option.hdrMode = hdrMode;
-        return screenManager_->CreateVirtualScreen(option, errorCode);
+        int32_t err = StatusCode::SUCCESS;
+        ScreenId id = screenManager_->CreateVirtualScreen(option, err);
+        if (errorCode != nullptr) {
+            *errorCode = err;
+        }
+        return id;
     }
 };
 
@@ -4419,7 +4424,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_HdrStaticRejectedWhenHdrClosed
     luminanceControl.rSLuminanceControlInterface_ = mock.get();
 
     int32_t errorCode = StatusCode::SUCCESS;
-    auto id = screenManager_->CreateVirtualScreen(option, &errorCode);
+    auto id = screenManager_->CreateVirtualScreen(option, errorCode);
     EXPECT_EQ(id, INVALID_SCREEN_ID);
     EXPECT_EQ(errorCode, static_cast<int32_t>(StatusCode::HDR_NOT_SUPPORT));
 
@@ -4457,7 +4462,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_HdrStaticSucceeds, TestSize.Le
     luminanceControl.rSLuminanceControlInterface_ = mock.get();
 
     int32_t errorCode = static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND);
-    auto id = screenManager_->CreateVirtualScreen(option, &errorCode);
+    auto id = screenManager_->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(id, INVALID_SCREEN_ID);
     EXPECT_EQ(errorCode, static_cast<int32_t>(StatusCode::SUCCESS));
 
@@ -4487,7 +4492,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_ErrorCodeInvalidArguments, Tes
     option.surface = nullptr;
 
     int32_t errorCode = static_cast<int32_t>(StatusCode::SUCCESS);
-    auto id = screenManager_->CreateVirtualScreen(option, &errorCode);
+    auto id = screenManager_->CreateVirtualScreen(option, errorCode);
     EXPECT_EQ(id, INVALID_SCREEN_ID);
     EXPECT_EQ(errorCode, static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
 }
@@ -4571,8 +4576,9 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_NullErrorCodePointer, TestSize
     option.height = VIRTUAL_SCREEN_HEIGHT;
     option.surface = nullptr;
     option.hdrMode = HDRMode::NONE;
-    // Pass nullptr errorCode — the setError lambda should be a no-op, no crash.
-    auto id = screenManager_->CreateVirtualScreen(option, nullptr);
+    // errorCode is now a reference; pass a local variable and ignore its value, verifying no crash.
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto id = screenManager_->CreateVirtualScreen(option, errorCode);
     EXPECT_NE(id, INVALID_SCREEN_ID);
     screenManager_->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
@@ -4580,8 +4586,8 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_NullErrorCodePointer, TestSize
  
 /*
  * @tc.name: CreateVirtualScreen_NullErrorCodeInvalidArgs
- * @tc.desc: CreateVirtualScreen with nullptr errorCode and invalid size returns INVALID_SCREEN_ID
- *           without crash, covering the setError(INVALID_ARGUMENTS) no-op path.
+ * @tc.desc: CreateVirtualScreen with invalid size returns INVALID_SCREEN_ID and errorCode is
+ *           set to INVALID_ARGUMENTS, covering the direct errorCode assignment path.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -4595,7 +4601,9 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_NullErrorCodeInvalidArgs, Test
     option.width = 68000;
     option.height = 100;
     option.surface = nullptr;
-    auto id = screenManager_->CreateVirtualScreen(option, nullptr);
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto id = screenManager_->CreateVirtualScreen(option, errorCode);
     EXPECT_EQ(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
 }
 } // namespace OHOS::Rosen

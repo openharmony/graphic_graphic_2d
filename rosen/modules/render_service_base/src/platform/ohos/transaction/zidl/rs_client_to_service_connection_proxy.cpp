@@ -358,8 +358,8 @@ std::vector<ScreenId> RSClientToServiceConnectionProxy::GetAllScreenIds()
 }
 
 ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
-    const RSVirtualScreenOption &vsOption,
-    int32_t &errorCode)
+    const RSVirtualScreenOption& vsOption,
+    int32_t& errorCode)
 {
     MessageParcel data;
     MessageParcel reply;

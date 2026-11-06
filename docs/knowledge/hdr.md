@@ -115,7 +115,8 @@ HDRCast 流程：
   1. 客户端在 RSInterfaces::CreateVirtualScreen(RSVirtualScreenOption) 创建虚拟屏时带入
      HDRMode（HDRMode），RSScreen 构造时即写入属性，首帧生效；
      旧路径 RSInterfaces::SetVirtualScreenHDRMode 仍可用作事后调整，但创建后单独调用无法
-     保证首帧读到设置值。多屏关 HDR 的产品上 HDR_STATIC 创建直接失败（HDR_NOT_SUPPORT）
+     保证首帧读到设置值。多屏关 HDR 的产品（`RSLuminanceControl::IsCloseHdrWhenMultiDisplaysOn`判断）
+     上 HDR_STATIC 创建直接失败（HDR_NOT_SUPPORT）
   2. HandleVirtualScreenHDRStatus 读取 GetVirtualScreenHDRMode 按模式分发：
      - NONE：关闭 HDR，走 SDR 路径，不固定 10bit
      - HDR_STATIC：录制中色域不变，始终输出 HDR，内容 HDR/SDR 切换不改变输出效果

@@ -62,7 +62,7 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
     void MarkPowerOffNeedProcessOneFrame();
 
-    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t &errorCode);
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode);
     void RemoveVirtualScreen(ScreenId id);
     void CleanVirtualScreens();
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);

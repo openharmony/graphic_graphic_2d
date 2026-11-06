@@ -80,7 +80,8 @@ static ScreenId MakeVirtualScreen(sptr<RSScreenManager>& sm, const std::string& 
     option.associatedScreenId = associatedScreenId;
     option.flags = flags;
     option.whiteList = std::move(whiteList);
-    return sm->CreateVirtualScreen(option);
+    int32_t errCode = StatusCode::SUCCESS;
+    return sm->CreateVirtualScreen(option, errCode);
 }
 
 class RSSecondDrawableAdapter : public RSDrawable {

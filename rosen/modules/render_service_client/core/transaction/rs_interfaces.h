@@ -97,7 +97,7 @@ public:
      * @param errorCode Optional output parameter for error code, see StatusCode.
      * @return Virtual screen id, INVALID_SCREEN_ID means failed.
      */
-    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &option, int32_t *errorCode = nullptr);
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t* errorCode = nullptr);
 
     // ========== Multi-Surface Virtual Screen Dynamic Surface Management ==========
     // These methods are for managing surfaces on virtual screens.

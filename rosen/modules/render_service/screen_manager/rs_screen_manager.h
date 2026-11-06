@@ -147,8 +147,8 @@ public:
 
     // virtual screen
     // Core creation entry: the HDR mode is applied when the virtual screen is created. On failure
-    // INVALID_SCREEN_ID is returned and errorCode (when not null) carries the StatusCode reason.
-    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t *errorCode = nullptr);
+    // INVALID_SCREEN_ID is returned and errorCode carries the StatusCode reason.
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode);
     void RemoveVirtualScreen(ScreenId id);
     uint32_t GetCurrentVirtualScreenNum();
 

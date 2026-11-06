@@ -47,7 +47,8 @@
 ### 虚拟屏幕管理
 
 - **创建**：`CreateVirtualScreen`（`RSVirtualScreenOption` 携带 `HDRMode`，`RSScreen` 构造时写入
-  `SetVirtualScreenHDRMode`，首帧即生效；`HDRMode::HDR_STATIC` 在多屏关 HDR 的产品上创建失败，
+  `SetVirtualScreenHDRMode`，首帧即生效；`HDRMode::HDR_STATIC` 在多屏关 HDR 的产品
+  （`RSLuminanceControl::IsCloseHdrWhenMultiDisplaysOn`判断）上创建失败，
   错误码 `HDR_NOT_SUPPORT`）→ `CreateAndRegisterVirtualScreen`，支持多 Surface 配置
 - **销毁**：`RemoveVirtualScreen`，回收 ID
 - **ID 管理**：`GenerateVirtualScreenId` / `freeVirtualScreenIds_`，复用已释放 ID

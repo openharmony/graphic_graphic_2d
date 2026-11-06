@@ -52,7 +52,7 @@ public:
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
-    ScreenId CreateVirtualScreen(const RSVirtualScreenOption &option, int32_t &errorCode) override;
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t& errorCode) override;
 
     // Multi-surface virtual screen: dynamic surface management
     int32_t AddVirtualScreenSurface(

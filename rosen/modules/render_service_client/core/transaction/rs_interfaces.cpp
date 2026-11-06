@@ -97,7 +97,7 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     return CreateVirtualScreen(option);
 }
 
-ScreenId RSInterfaces::CreateVirtualScreen(const RSVirtualScreenOption &option, int32_t *errorCode)
+ScreenId RSInterfaces::CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t* errorCode)
 {
     int32_t errCode = StatusCode::SUCCESS;
     ScreenId screenId = renderServiceClient_->CreateVirtualScreen(option, errCode);

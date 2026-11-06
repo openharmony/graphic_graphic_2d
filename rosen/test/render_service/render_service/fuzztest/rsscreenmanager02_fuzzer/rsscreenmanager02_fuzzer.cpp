@@ -72,7 +72,8 @@ ScreenId CreateFuzzVirtualScreen(const std::string& name, uint32_t width, uint32
     option.associatedScreenId = associatedScreenId;
     option.flags = flags;
     option.whiteList = whiteList;
-    return g_screenManager->CreateVirtualScreen(option);
+    int32_t errCode = StatusCode::SUCCESS;
+    return g_screenManager->CreateVirtualScreen(option, errCode);
 }
 
 void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
@@ -96,7 +97,8 @@ void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
     option.associatedScreenId = associatedScreenId;
     option.flags = flags;
     option.whiteList = whiteList;
-    g_screenManager->CreateVirtualScreen(option);
+    int32_t errCode = StatusCode::SUCCESS;
+    g_screenManager->CreateVirtualScreen(option, errCode);
 }
 
 void DoRemoveVirtualScreen(FuzzedDataProvider& fdp)

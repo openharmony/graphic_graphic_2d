@@ -54,7 +54,8 @@ static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::st
     option.associatedScreenId = associatedScreenId;
     option.flags = flags;
     option.whiteList = std::move(whiteList);
-    return sm->CreateVirtualScreen(option);
+    int32_t errorCode = StatusCode::SUCCESS;
+    return sm->CreateVirtualScreen(option, errorCode);
 }
 
 constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;

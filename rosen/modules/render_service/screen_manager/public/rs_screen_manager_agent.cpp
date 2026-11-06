@@ -195,7 +195,7 @@ std::vector<ScreenId> RSScreenManagerAgent::GetAllScreenIds()
     return screenManager_->GetAllScreenIds();
 }
 
-ScreenId RSScreenManagerAgent::CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t &errorCode)
+ScreenId RSScreenManagerAgent::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
     errorCode = StatusCode::SUCCESS;
     if (!screenManager_) {
@@ -208,7 +208,7 @@ ScreenId RSScreenManagerAgent::CreateVirtualScreen(const RSVirtualScreenOption &
         errorCode = StatusCode::INVALID_ARGUMENTS;
         return INVALID_SCREEN_ID;
     }
-    auto screenId = screenManager_->CreateVirtualScreen(vsOption, &errorCode);
+    auto screenId = screenManager_->CreateVirtualScreen(vsOption, errorCode);
     if (screenId != INVALID_SCREEN_ID) {
         std::lock_guard<std::mutex> lock(mutex_);
         virtualScreenIds_.insert(screenId);

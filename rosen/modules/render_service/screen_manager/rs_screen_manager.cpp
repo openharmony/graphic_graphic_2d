@@ -506,18 +506,11 @@ ScreenId RSScreenManager::CreateAndRegisterVirtualScreen(VirtualScreenConfigs& c
     return newId;
 }
 
-ScreenId RSScreenManager::CreateVirtualScreen(const RSVirtualScreenOption &vsOption, int32_t *errorCode)
+ScreenId RSScreenManager::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
-    auto setError = [errorCode](int32_t code) {
-        if (errorCode != nullptr) {
-            *errorCode = code;
-        }
-    };
-    if (errorCode != nullptr) {
-        *errorCode = StatusCode::SUCCESS;
-    }
+    errorCode = StatusCode::SUCCESS;
     if (!ValidateVirtualScreenLimits(vsOption.width, vsOption.height)) {
-        setError(StatusCode::INVALID_ARGUMENTS);
+        errorCode = StatusCode::INVALID_ARGUMENTS;
         return INVALID_SCREEN_ID;
     }
     // HDR_STATIC requires a stable HDR output during recording/casting, which cannot be provided
@@ -525,7 +518,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(const RSVirtualScreenOption &vsOpt
     if (vsOption.hdrMode == HDRMode::HDR_STATIC && RSLuminanceControl::Get().IsCloseHdrWhenMultiDisplaysOn()) {
         RS_LOGE("%{public}s: HDR is closed when multi displays on, name[%{public}s] with HDR_STATIC"
             " create virtualScreen failed!", __func__, vsOption.name.c_str());
-        setError(StatusCode::HDR_NOT_SUPPORT);
+        errorCode = StatusCode::HDR_NOT_SUPPORT;
         return INVALID_SCREEN_ID;
     }
 
@@ -536,7 +529,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(const RSVirtualScreenOption &vsOpt
         if (!usedSurfaceIds.insert(vsOption.surface->GetUniqueId()).second) {
             RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is already used by another screen, "
                 "create virtualScreen failed!", __func__, vsOption.surface->GetUniqueId());
-            setError(StatusCode::SURFACE_NOT_UNIQUE);
+            errorCode = StatusCode::SURFACE_NOT_UNIQUE;
             return INVALID_SCREEN_ID;
         }
         surfaceConfigs.emplace_back(SurfaceRegionConfig{vsOption.surface,

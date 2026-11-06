@@ -283,7 +283,7 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
     return clientToService->GetAllScreenIds();
 }
 
-ScreenId RSRenderServiceClient::CreateVirtualScreen(const RSVirtualScreenOption &option, int32_t &errorCode)
+ScreenId RSRenderServiceClient::CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t& errorCode)
 {
     errorCode = StatusCode::SUCCESS;
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

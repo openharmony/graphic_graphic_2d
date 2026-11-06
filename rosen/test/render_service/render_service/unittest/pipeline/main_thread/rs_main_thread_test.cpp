@@ -90,7 +90,8 @@ static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::st
     option.associatedScreenId = associatedScreenId;
     option.flags = flags;
     option.whiteList = std::move(whiteList);
-    return sm->CreateVirtualScreen(option);
+    int32_t errCode = StatusCode::SUCCESS;
+    return sm->CreateVirtualScreen(option, errCode);
 }
 constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
