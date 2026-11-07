@@ -211,13 +211,17 @@ void RsFrameReport::RequestNextVSync()
 void RsFrameReport::ReportAddScreenId(const int screenId)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_ADD_SCREENID, {});
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["screenId"] =  std::to_string(screenId);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_ADD_SCREENID, payload);
 }
 
 void RsFrameReport::ReportDelScreenId(const int screenId)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, {});
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["screenId"] =  std::to_string(screenId);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, payload);
 }
 
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
