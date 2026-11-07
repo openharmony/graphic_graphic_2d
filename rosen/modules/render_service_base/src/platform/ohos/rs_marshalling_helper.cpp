@@ -2310,7 +2310,7 @@ static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val,
-    uint64_t /* uniqueId */)
+    uint64_t uniqueId)
 {
     if (parcel.ReadInt32() == -1) {
         val = nullptr;
@@ -2343,7 +2343,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     };
 
 #ifdef ROSEN_OHOS
-    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info, uniqueId);
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif

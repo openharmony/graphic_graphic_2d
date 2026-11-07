@@ -514,12 +514,12 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
         stats.nullWithoutDMASize, stats.nullWithoutDMA);
 }
 
-void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
+void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info, uint64_t uniqueId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memPicRecord_.emplace(addr, info);
     if (info.type == MEM_PIXELMAP) {
-        pixelMapFdTracker_.AddFdRecord(static_cast<int32_t>(info.pid), addr, info.allocType);
+        pixelMapFdTracker_.AddFdRecord(static_cast<int32_t>(info.pid), addr, info.allocType, uniqueId);
     }
 }
 

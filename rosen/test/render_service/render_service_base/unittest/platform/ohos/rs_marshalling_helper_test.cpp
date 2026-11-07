@@ -2710,6 +2710,47 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, T
 }
 
 /**
+ * @tc.name: UnmarshallingPixelMapWithTagTest
+ * @tc.desc: Verify function Unmarshalling PixelMap records the uniqueId tag into the fd tracker
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapWithTagTest, TestSize.Level1)
+{
+#ifdef RS_ENABLE_UNI_RENDER
+    constexpr int32_t TEST_PID = 10002;
+    constexpr uint64_t TEST_UNIQUE_ID = (static_cast<uint64_t>(TEST_PID) << 32) | 123;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    RSMarshallingHelper::SetCallingPid(TEST_PID);
+    std::shared_ptr<Media::PixelMap> unmarshalledVal;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledVal, TEST_UNIQUE_ID));
+    ASSERT_NE(unmarshalledVal, nullptr);
+
+    // the unmarshalling uniqueId param must be recorded as the pixelmap tag keyed by the fd addr
+    auto& addrTagMap = MemoryTrack::Instance().pixelMapFdTracker_.addrTracker_[TEST_PID];
+    auto it = addrTagMap.find(unmarshalledVal->GetFd());
+    ASSERT_TRUE(it != addrTagMap.end());
+    EXPECT_EQ(it->second, TEST_UNIQUE_ID);
+
+    MemoryTrack::Instance().RemovePictureRecord(unmarshalledVal->GetFd());
+    RSMarshallingHelper::SetCallingPid(0);
+#endif
+}
+
+/**
  * @tc.name: TransactionVersionCheckTest
  * @tc.desc: Verify function TransactionVersionCheck
  * @tc.type: FUNC
