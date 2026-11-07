@@ -343,7 +343,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     hgmRenderContext.gameNodeName_ = "gameNode";
 
-    config.id = 1;
+    config.id = MakeNodeIdWithPid(SHELL_APP_PID, 1);
     config.name = "ShellAssistantAnco_gameNode";
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
@@ -352,7 +352,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
     EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
 
-    config.id = 2;
+    config.id = MakeNodeIdWithPid(OTHER_APP_PID, 2);
     config.name = "ShellAssistantAnco_prefix_gameNode_suffix";
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode2->SetIsOnTheTree(true);
@@ -376,7 +376,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     hgmRenderContext.gameNodeName_ = "gameNode";
 
-    config.id = 1;
+    config.id = MakeNodeIdWithPid(SHELL_APP_PID, 1);
     config.name = "ShellAssistantAnco_otherNode";
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
@@ -386,7 +386,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
 
     hgmRenderContext.gameNodeName_ = "";
-    config.id = 2;
+    config.id = MakeNodeIdWithPid(SHELL_APP_PID, 2);
     config.name = "ShellAssistantAnco_gameNode";
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode2->SetIsOnTheTree(true);
@@ -395,7 +395,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
 
     hgmRenderContext.gameNodeName_ = "gameNode";
-    config.id = 3;
+    config.id = MakeNodeIdWithPid(OTHER_APP_PID, 1);
     config.name = "OtherPrefix_gameNode";
     auto surfaceNode3 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode3->SetIsOnTheTree(true);

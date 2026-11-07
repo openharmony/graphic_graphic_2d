@@ -146,7 +146,7 @@ void HgmRenderContext::EvaluateAdaptiveVsyncNodes(const std::shared_ptr<RSContex
             }
             auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
                 nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
-            if (!appNode || appNode->GetVisibleRegion().IsEmpty()) {
+            if (appNode && appNode->GetVisibleRegion().IsEmpty()) {
                 return false;
             }
             pid_t nodePid = ExtractPid(surfaceNode->GetId());
