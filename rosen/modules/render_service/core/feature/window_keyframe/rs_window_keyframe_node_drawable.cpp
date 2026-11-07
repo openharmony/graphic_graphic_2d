@@ -18,7 +18,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
-#include "memory/rs_tag_tracker.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen::DrawableV2 {
@@ -64,7 +63,7 @@ void RSWindowKeyFrameNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    const auto& params = GetRenderParams();
+    const auto& params = GetRenderParams();  
     Drawing::Rect bounds = params->GetBounds();
     RS_TRACE_NAME_FMT("WindowKeyFrameDraw LinkedNode:(%.0fx%.0f), CurNode:(%.0fx%.0f) alpha:%.2f, freeze:%d",
         linkedNodeBounds_.GetWidth(), linkedNodeBounds_.GetHeight(),
@@ -124,8 +123,7 @@ bool RSWindowKeyFrameNodeDrawable::OnLinkedNodeDraw(Drawing::Canvas& canvas,
         RS_LOGE("RSWindowKeyFrameNodeDrawable::OnLinkedRootNodeDraw surface is nullptr");
         return false;
     }
-    RSTagTracker tagTracker(
-        canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_RSWINDOWKEYFRAMEENABLEVQMA, GetId());
+
     float scale = 1.0f;
     std::shared_ptr<Drawing::Surface> cacheSurface;
     const auto& bounds = params->GetBounds();

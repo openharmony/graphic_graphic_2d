@@ -71,7 +71,7 @@ bool MultiScreenParam::IsSkipFrameByActiveRefreshRate()
 {
     return isSkipFrameByActiveRefreshRate_;
 }
-
+ 
 void MultiScreenParam::SetSkipFrameByActiveRefreshRate(bool isEnabled)
 {
     isSkipFrameByActiveRefreshRate_ = isEnabled;

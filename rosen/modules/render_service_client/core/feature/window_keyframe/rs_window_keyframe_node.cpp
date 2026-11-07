@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,7 +88,7 @@ void RSWindowKeyFrameNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGI("RSWindowKeyFrameNode::SetFreeze NodeId=%{public}" PRIu64 " freeze=%{public}d", GetId(), isFreeze);
     RS_OPTIONAL_TRACE_NAME_FMT("RSWindowKeyFrameNode::SetFreeze id:%llu freeze:%d", GetId(), isFreeze);
-    SetRSCmdProperty<WkfIsFreezeCmdModifier>(WkfIsFreezeCmdParam {
+    SetRSCmdProperty<WkfIsFreezeCmdModifier>(WkfIsFreezeCmdParam{
         isFreeze, isMarkedByUI
     });
 }
@@ -97,7 +96,7 @@ void RSWindowKeyFrameNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 void RSWindowKeyFrameNode::SetLinkedNodeId(NodeId nodeId)
 {
     linkedNodeId_ = nodeId;
-    SetRSCmdProperty<WkfLinkedNodeIdCmdModifier>(WkfLinkedNodeIdCmdParam {
+    SetRSCmdProperty<WkfLinkedNodeIdCmdModifier>(WkfLinkedNodeIdCmdParam{
         nodeId
     });
 }
