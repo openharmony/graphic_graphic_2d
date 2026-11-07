@@ -94,7 +94,8 @@ void RSPixelMapFdTrack::RemoveFdRecord(int32_t pid, const void* addr, Media::All
     if (it->second.empty()) {
         addrTracker_.erase(it);
         fdCountTracker_.erase(pid);
-        lastWarningTime_.erase(pid);
+        // lastWarningTime_ is kept on purpose: the rate limit is time based, not record based;
+        // entries are reclaimed by expiry pruning in CheckFdWarningAndReport instead
     }
 }
 
@@ -216,14 +217,19 @@ void RSPixelMapFdTrack::CheckFdWarningAndReport()
         }
         auto now = std::chrono::steady_clock::now();
         int64_t nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-        auto it = lastWarningTime_.find(topFdCountPid);
-        if (it != lastWarningTime_.end()) {
-            int64_t elapsedSeconds = (nowNs - it->second) / std::nano::den;
-            if (elapsedSeconds < WARNING_RATE_LIMIT_SECONDS) {
-                ROSEN_LOGD("RSPixelMapFdTrack::CheckFdWarningAndReport skip, pid %{public}" PRId32
-                    " rate limited, elapsed %{public}" PRId64 "s", topFdCountPid, elapsedSeconds);
-                return;
+        // prune entries whose window expired: they can no longer suppress a report, so this
+        // bounds the map to pids warned within the window without changing rate limit semantics
+        for (auto warnIt = lastWarningTime_.begin(); warnIt != lastWarningTime_.end();) {
+            if ((nowNs - warnIt->second) / std::nano::den >= WARNING_RATE_LIMIT_SECONDS) {
+                warnIt = lastWarningTime_.erase(warnIt);
+            } else {
+                ++warnIt;
             }
+        }
+        // every remaining entry is within its rate limit window, so presence alone means the
+        // top pid is still rate limited
+        if (lastWarningTime_.find(topFdCountPid) != lastWarningTime_.end()) {
+            return;
         }
         lastWarningTime_[topFdCountPid] = nowNs;
         ROSEN_LOGW("RSPixelMapFdTrack::CheckFdWarningAndReport warning, fd total %{public}" PRId32
