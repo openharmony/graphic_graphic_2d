@@ -2187,6 +2187,10 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
 ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline == nullptr) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (event == ApsEventType::HVE) {
         auto it = params.find("ENABLE");
         bool enabled = (it != params.end() && it->second == "true");
@@ -2200,6 +2204,22 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
             layerSplitManager->SetEnabled(enabled);
         }
         return ERR_OK;
+    } else if (event == ApsEventType::FILTER_CACHE_FRAME) {
+        std::string appName = "";
+        int rate = 0;
+        auto itName = params.find("BUNDLE_NAME");
+        if (itName != params.end()) {
+            appName = itName->second;
+        }
+        auto itRate = params.find("FRAME_RATE");
+        if (itRate != params.end()) {
+            rate = std::stoi(itRate->second);
+        }
+        RS_TRACE_NAME_FMT("SetApsConfigParams rate:%d, appName:%s", rate, appName.c_str());
+        auto mainThread = pipeline->GetMainThread();
+        if (mainThread != nullptr) {
+            mainThread->UpdateSurfaceFilterRate(appName, rate);
+        }
     }
     return ERR_OK;
 }

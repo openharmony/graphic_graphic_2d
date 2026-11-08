@@ -1870,6 +1870,8 @@ public:
 
     void SetFrameNodeInfo(int32_t id, std::string tag);
 
+    void AppSetNodeRate(int32_t nodeTargetRate);
+
     virtual void SetTextureExport(bool isTextureExportNode);
 
     void SyncTextureExport(bool isTextureExportNode);
@@ -2530,6 +2532,8 @@ private:
     bool isNodeGroup_ = false;
     bool isExcludedFromNodeGroup_ = false;
     bool isRepaintBoundary_ = false;
+
+    int32_t nodeTargetRate_ = -1;
 
     bool isSuggestOpincNode_ = false;
     bool isLayer_ = false;

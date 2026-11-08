@@ -203,6 +203,8 @@ public:
         return uiMode_;
     }
 
+    void UpdateSurfaceFilterRate(std::string param, int rate);
+
     void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
@@ -980,6 +982,10 @@ private:
     // for QueryBundleName
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     std::mutex pidToBundleMutex_;
+
+    // for filter cache skip frame
+    std::string lastApsParam_ = "";
+    int lastApsRate_ = INVALID_FILTER_RATE;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

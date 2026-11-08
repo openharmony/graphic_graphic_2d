@@ -16,6 +16,7 @@
 #include "pipeline/rs_effect_utils.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_property_drawable.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "platform/common/rs_log.h"
@@ -92,6 +93,58 @@ bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
 {
     return properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow() || properties.GetMaterialFilter();
 }
+
+using FilterRateUpdateFunc = std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>, int32_t)>;
+
+void UpdateNodeFilterRateToDrawable(
+    RSRenderNode& node, const FilterRateUpdateFunc& rateUpdateFunc, int32_t rate, const char* traceTag)
+{
+    const auto& properties = node.GetRenderProperties();
+    if (properties.GetMaterialFilter()) {
+        RS_TRACE_NAME_FMT("%s MaterialFilter", traceTag);
+        node.InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER,
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable)
+        {
+            rateUpdateFunc(drawable, rate);
+        });
+    }
+    if (properties.GetBackgroundFilter()) {
+        RS_TRACE_NAME_FMT("%s BackgroundFilter", traceTag);
+        node.InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER,
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable)
+        {
+            rateUpdateFunc(drawable, rate);
+        });
+    }
+    if (properties.GetCompositingFilter()) {
+        RS_TRACE_NAME_FMT("%s CompositingFilter", traceTag);
+        auto drawable = node.GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+        if (drawable != nullptr) {
+            rateUpdateFunc(drawable, rate);
+        }
+    }
+}
+
+void RSEffectUtils::UpdateNodeFilterApsRateToDrawable(RSRenderNode& node, int32_t nodeApsRate)
+{
+    UpdateNodeFilterRateToDrawable(
+        node,
+        [](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable, int32_t rate) {
+            drawable->UpdateNodeFilterApsRateToCacheManager(rate);
+        },
+        nodeApsRate, "UpdateNodeFilterApsRateToDrawable");
+}
+
+void RSEffectUtils::UpdateNodeFilterAppRateToDrawable(RSRenderNode& node, int32_t nodeAppRate)
+{
+    UpdateNodeFilterRateToDrawable(
+        node,
+        [](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable, int32_t rate) {
+            drawable->UpdateNodeFilterAppRateToCacheManager(rate);
+        },
+        nodeAppRate, "UpdateNodeFilterAppRateToDrawable");
+}
+
 
 void RSEffectUtils::Sync(int64_t vsyncStartTime)
 {

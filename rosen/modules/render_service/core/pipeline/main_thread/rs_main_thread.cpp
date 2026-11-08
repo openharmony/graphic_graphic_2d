@@ -98,6 +98,8 @@
 #include "metadata_helper.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -274,6 +276,8 @@ constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status"
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
+constexpr const char* XHS_SCENE_MARK = "xhs_hos";
+constexpr const char* WEATHER_SCENE_MARK = "totemweather";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
@@ -3176,6 +3180,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         receiver_->GetVSyncPeriod(rsPeriod);
     }
     rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
+    uint32_t refreshRate = impl::CalculateRefreshRate(rsPeriod);
+    RS_TRACE_NAME_FMT("RSMainThread::UniRender refreshRate -> %d", refreshRate);
+    RSCacheUpdateManager::SetCurrentVsyncRefreshRate(refreshRate);
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -3348,6 +3355,35 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSSingleFrameComposer::SetVisibleWinCount(visibleWinCount);
     }
 #endif
+}
+
+void RSMainThread::UpdateSurfaceFilterRate(std::string param, int rate)
+{
+    const auto& nodeMap = GetContext().GetNodeMap();
+    lastApsParam_ = param;
+    lastApsRate_ = rate;
+    std::string nodeNameMark;
+    auto lastDotPos = lastApsParam_.find_last_of(".");
+    if (lastDotPos != std::string::npos && lastDotPos + 1 < lastApsParam_.size()) {
+        nodeNameMark = lastApsParam_.substr(lastDotPos + 1);
+    }
+    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> updateSurfaceFilterRateFunc =
+        [this, nodeNameMark](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+    {
+        if (surfaceNode == nullptr) {
+            return;
+        }
+        const auto& nodeName = surfaceNode->GetName();
+        RS_TRACE_NAME_FMT("RSMainThread::UpdateSurfaceFilterRate surfaceNode->GetName: %s",
+            nodeName.c_str());
+        if (nodeNameMark.empty() || nodeName.find(nodeNameMark) == std::string::npos) {
+            return;
+        }
+        RS_TRACE_NAME_FMT("RSMainThread::UpdateSurfaceFilterRate -> modify lastApsParam: %s, targetRate: %d",
+            lastApsParam_.c_str(), lastApsRate_);
+        surfaceNode->SetApsFilterRate(lastApsRate_);
+    };
+    nodeMap.TraverseSurfaceNodes(updateSurfaceFilterRateFunc);
 }
 
 bool RSMainThread::IfStatusBarDirtyOnly()

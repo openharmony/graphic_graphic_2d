@@ -198,6 +198,10 @@ public:
 
     void UpdateFilterRectInfo(const RectF& bound, const std::shared_ptr<RSFilter>& filter);
 
+    void UpdateNodeFilterApsRateToCacheManager(int32_t nodeApsRate);
+
+    void UpdateNodeFilterAppRateToCacheManager(int32_t nodeAppRate);
+
 protected:
     struct FilterRectInfo {
         RectF snapshotRect_;

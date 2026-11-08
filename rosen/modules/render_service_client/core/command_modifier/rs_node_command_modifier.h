@@ -320,6 +320,43 @@ private:
     MarkNodeSingleFrameComposerCmdParam param_;
 };
 
+struct NodeTargetRateCmdParam {
+    int32_t nodeTargetRate_;
+};
+
+class NodeTargetRateCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::NODE_TARGET_RATE;
+
+    NodeTargetRateCmdModifier(std::weak_ptr<RSNode> node, const NodeTargetRateCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const NodeTargetRateCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const NodeTargetRateCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    NodeTargetRateCmdParam param_;
+};
+
 struct IsRepaintBoundaryCmdParam {
     bool isRepaintBoundary_;
 

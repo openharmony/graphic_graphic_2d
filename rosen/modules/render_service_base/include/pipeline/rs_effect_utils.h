@@ -49,6 +49,12 @@ public:
     static void UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
 
+    // Update node filter APS rate to drawable (material/background/compositing)
+    static void UpdateNodeFilterApsRateToDrawable(RSRenderNode& node, int32_t nodeApsRate);
+
+    // Update app filter rate to all filter drawables (material/background/compositing)
+    static void UpdateNodeFilterAppRateToDrawable(RSRenderNode& node, int32_t nodeAppRate);
+
     // true: has filter that only depends on background
     static bool HasBackgroundDependentFilter(const RSProperties& properties);
 
