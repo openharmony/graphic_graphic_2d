@@ -288,11 +288,11 @@ int32_t RSDisplaySoloist::FindMatchedRefreshRate(int32_t vsyncRate, int32_t targ
         return targetRate;
     }
 
-    if (!rateToFactors_.count(vsyncRate)) {
-        rateToFactors_[vsyncRate] = FindRefreshRateFactors(vsyncRate);
+    auto mapIt = rateToFactors_.find(vsyncRate);
+    if (mapIt == rateToFactors_.end()) {
+        mapIt = rateToFactors_.emplace(vsyncRate, FindRefreshRateFactors(vsyncRate)).first;
     }
-
-    std::vector<int32_t> refreshRateFactors = rateToFactors_[vsyncRate];
+    const std::vector<int32_t>& refreshRateFactors = mapIt->second;
     if (refreshRateFactors.empty()) {
         return 0;
     }
