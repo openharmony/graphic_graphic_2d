@@ -23,7 +23,6 @@
 #include <unordered_set>
 
 #include "system/rs_system_parameters.h"
-
 #include "common/rs_exception_check.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_render_node.h"
