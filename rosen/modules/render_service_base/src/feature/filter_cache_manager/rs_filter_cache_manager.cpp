@@ -452,7 +452,8 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     cacheManager->renderIsSkipFrame_ = GetRSCacheUpdateManager()->stagingIsSkipFrame_;
     cacheManager->renderClearType_ = GetRSCacheUpdateManager()->stagingClearType_;
 
-    cacheManager->GetRSCacheUpdateManager()->stagingFilterRegionChanged_ = GetRSCacheUpdateManager()->stagingFilterRegionChanged_;
+    cacheManager->GetRSCacheUpdateManager()->stagingFilterRegionChanged_ =
+        GetRSCacheUpdateManager()->stagingFilterRegionChanged_;
     cacheManager->GetRSCacheUpdateManager()->filterType_ = GetRSCacheUpdateManager()->filterType_;
     cacheManager->GetRSCacheUpdateManager()->stagingIsOccluded_ = GetRSCacheUpdateManager()->stagingIsOccluded_;
     cacheManager->ClearFilterCache();

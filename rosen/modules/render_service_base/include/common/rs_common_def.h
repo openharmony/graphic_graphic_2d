@@ -865,6 +865,7 @@ enum class ApsEventType : uint32_t {
     SPLIT_LAYER = 0,
     HVE = 1,
     FILTER_CACHE_FRAME = 2,
+    SWIPER_BOOST_OFF = 3,
 };
 using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen
