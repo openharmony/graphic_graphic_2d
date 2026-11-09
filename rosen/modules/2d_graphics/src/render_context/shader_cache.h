@@ -70,7 +70,7 @@ public:
     void SetMaxUniRenderSize(int maxUniRenderSize);
  
     int GetMaxUniRenderSize();
-    
+
 private:
     ShaderCache() = default;
     ~ShaderCache();

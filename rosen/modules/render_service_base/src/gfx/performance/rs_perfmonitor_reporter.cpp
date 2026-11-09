@@ -28,7 +28,7 @@ const int32_t COUNTER_SIZE = 4;
 const int32_t REASON_SIZE = 7;
 const char* CPU_ONDRAW = "CPU_ONDRAW";
 const char* CPU_FLUSH = "CPU_FLUSH";
-//for rendergroup subhealth
+// for rendergroup subhealth
 constexpr int32_t DRAWING_CACHE_UPDATE_TIME_THRESHOLD = 3;
 constexpr int32_t INTERVAL_THRESHOLD = 1000000;
 constexpr int32_t DRAWING_CACHE_DURATION_TIMEOUT_THRESHOLD = 1000;
