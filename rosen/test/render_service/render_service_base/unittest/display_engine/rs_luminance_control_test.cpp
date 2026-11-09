@@ -506,7 +506,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl021, TestSize.Level1)
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
- 
+
     ScreenId screenId{};
     ASSERT_NE(luminCtrl.GetPanelName(screenId), "");
 }
