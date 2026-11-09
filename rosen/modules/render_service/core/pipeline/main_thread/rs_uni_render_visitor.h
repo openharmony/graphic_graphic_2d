@@ -186,7 +186,6 @@ private:
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurfaceNode);
-    void TestNextVsync();
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();

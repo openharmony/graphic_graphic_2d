@@ -8140,5 +8140,26 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreen_WithSurfaceSuc
     connection->RemoveVirtualScreen(res);
 }
 
+/**
+ * @tc.name: SetApsConfigParams_FilterCacheFrameForward
+ * @tc.desc: Test SetApsConfigParams with event == ApsEventType::FILTER_CACHE_FRAME forwards to render conn
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_FilterCacheFrameForward, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    ASSERT_NE(connectionStub_->renderProcessManagerAgent_, nullptr);
+
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = connectionStub_->renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    ASSERT_NE(serviceToRenderConn, nullptr);
+
+    std::unordered_map<std::string, std::string> params = { { "BUNDLE_NAME", "com.test.demo" },
+        { "FRAME_RATE", "30" } };
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 } // namespace OHOS::Rosen
 #endif

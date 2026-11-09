@@ -10121,5 +10121,57 @@ HWTEST_F(RSMainThreadTest, CleanResourcesReportTimeMap001, TestSize.Level1)
     mainThread->lastDrawOpReportTimeMap_.clear();
     mainThread->lastCommandReportTimeMap_.clear();
 }
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate001
+ * @tc.desc: test UpdateSurfaceFilterRate with empty node map and param with or without dot separator
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UpdateSurfaceFilterRate001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->UpdateSurfaceFilterRate("nodotparam", 30);
+    EXPECT_EQ(mainThread->lastApsParam_, "nodotparam");
+    EXPECT_EQ(mainThread->lastApsRate_, 30);
+
+    mainThread->UpdateSurfaceFilterRate("com.test.demo", 60);
+    EXPECT_EQ(mainThread->lastApsParam_, "com.test.demo");
+    EXPECT_EQ(mainThread->lastApsRate_, 60);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate002
+ * @tc.desc: test UpdateSurfaceFilterRate updates matched surface nodes only
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UpdateSurfaceFilterRate002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& nodeMap = mainThread->GetContext().GetNodeMap();
+
+    NodeId matchedId = 910001;
+    NodeId unmatchedId = 910002;
+    RSSurfaceRenderNodeConfig matchedConfig = { .id = matchedId, .name = "demo_surface" };
+    RSSurfaceRenderNodeConfig unmatchedConfig = { .id = unmatchedId, .name = "other_surface" };
+    auto matchedNode = std::make_shared<RSSurfaceRenderNode>(matchedConfig, mainThread->context_);
+    auto unmatchedNode = std::make_shared<RSSurfaceRenderNode>(unmatchedConfig, mainThread->context_);
+    nodeMap.RegisterRenderNode(matchedNode);
+    nodeMap.RegisterRenderNode(unmatchedNode);
+
+    mainThread->UpdateSurfaceFilterRate("com.test.demo", 30);
+    EXPECT_EQ(matchedNode->GetApsFilterRate(), 30);
+    EXPECT_EQ(unmatchedNode->GetApsFilterRate(), INVALID_FILTER_RATE);
+
+    mainThread->UpdateSurfaceFilterRate("com.test.demo", 0);
+    EXPECT_EQ(matchedNode->GetApsFilterRate(), 0);
+
+    nodeMap.UnregisterRenderNode(matchedId);
+    nodeMap.UnregisterRenderNode(unmatchedId);
+}
 } // namespace OHOS::Rosen
 #endif
