@@ -2107,7 +2107,7 @@ void RSUniRenderVisitor::UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurface
         RS_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateNodeFilterApsRate visibleFilterChild size: %zu",
             visibleFilterChild.size());
         for (auto& child : visibleFilterChild) {
-            auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
             if (filterNode == nullptr) {
                 continue;
             }
