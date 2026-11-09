@@ -71,7 +71,14 @@ template("skia_libtxt") {
       "txt/paragraph_builder.cpp",
       "txt/paragraph_style.cpp",
       "txt/placeholder_run.cpp",
-      "txt/platform.cpp",
+      # NOTE: txt/platform.cpp is NOT compiled here on purpose.
+      # DefaultFamilyNameMgr is a stateful Meyers singleton and must have
+      # exactly one instance per process. Its only definition lives in the
+      # font_asset static library linked into lib2d_graphics.z.so, and
+      # rosen_text resolves the symbols from there at dynamic link time.
+      # A second copy here would give each so its own static instance and
+      # init guard while both export the member functions, so symbol
+      # interposition can bind reads and writes to different instances.
       "txt/sp_convert.cpp",
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
@@ -143,7 +150,7 @@ ohos_static_library("font_asset") {
   subsystem_name = "graphic"
 
   public_configs = [ "$rosen_text_root:rosen_text_config" ]
-  defines = [ "TEXT_SYSTEM_OHOS" ]
+  defines = []
   if (is_arkui_x) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
@@ -158,6 +165,10 @@ ohos_static_library("font_asset") {
       "hilog:libhilog",
       "skia:skia_canvaskit",
     ]
+    # Keep the seeding policy of the single platform.cpp copy aligned with
+    # skia_libtxt: TEXT_SYSTEM_OHOS selects the HarmonyOS-Sans seed, while
+    # arkui-x keeps the sans-serif/PingFang SC seed.
+    defines += [ "TEXT_SYSTEM_OHOS" ]
   }
 
   include_dirs = [
