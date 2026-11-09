@@ -1062,4 +1062,66 @@ HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexSuccess001, TestSize.Level1)
     EXPECT_EQ(typedProp->Get().mode, 1);
     EXPECT_EQ(typedProp->Get().totalFrame, 6);
 }
+
+/**
+ * @tc.name: NodeTargetRateTest001
+ * @tc.desc: Test NodeTargetRateCmdModifier GetType, SetParam, GetParam, DumpParam and UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandModifierTest, NodeTargetRateTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    NodeTargetRateCmdParam param{60};
+    auto mod = std::make_shared<NodeTargetRateCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::NODE_TARGET_RATE);
+    EXPECT_EQ(mod->GetParam().nodeTargetRate_, 60);
+
+    EXPECT_TRUE(mod->SetParam(NodeTargetRateCmdParam{30}));
+    EXPECT_EQ(mod->GetParam().nodeTargetRate_, 30);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("30"), std::string::npos);
+
+    // update to render with valid node should not crash
+    mod->UpdateToRender();
+
+    // update to render with expired node should not crash
+    std::weak_ptr<RSNode> expired;
+    {
+        auto n = RSCanvasNode::Create();
+        expired = n;
+    }
+    auto expiredMod = std::make_shared<NodeTargetRateCmdModifier>(expired, param);
+    expiredMod->UpdateToRender();
+}
+
+/**
+ * @tc.name: NodeTargetRateTest002
+ * @tc.desc: Test AppSetNodeRate creates and updates the node target rate modifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandModifierTest, NodeTargetRateTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
+
+    node->AppSetNodeRate(60);
+    auto modifier = node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE);
+    ASSERT_NE(modifier, nullptr);
+    auto rateModifier = std::static_pointer_cast<NodeTargetRateCmdModifier>(modifier);
+    EXPECT_EQ(rateModifier->GetParam().nodeTargetRate_, 60);
+
+    // setting the same rate should reuse the modifier without change
+    node->AppSetNodeRate(60);
+    EXPECT_EQ(node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE), modifier);
+
+    // setting a different rate should update the param
+    node->AppSetNodeRate(30);
+    auto updatedModifier = node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE);
+    ASSERT_NE(updatedModifier, nullptr);
+    auto updatedRateModifier = std::static_pointer_cast<NodeTargetRateCmdModifier>(updatedModifier);
+    EXPECT_EQ(updatedRateModifier->GetParam().nodeTargetRate_, 30);
+}
 } // namespace OHOS::Rosen

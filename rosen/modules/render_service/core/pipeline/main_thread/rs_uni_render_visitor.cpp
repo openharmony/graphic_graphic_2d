@@ -1414,7 +1414,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     globalShouldPaint_ &= node.ShouldPaint();
     node.SetSelfAndParentShouldPaint(globalShouldPaint_);
     UpdateNodeFilterApsRate(node);
-    TestNextVsync();
     CheckFilterCacheNeedForceClearOrSave(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
@@ -2114,13 +2113,6 @@ void RSUniRenderVisitor::UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurface
             }
             RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*filterNode, rate);
         }
-    }
-}
-
-void RSUniRenderVisitor::TestNextVsync()
-{
-    if (!(RSMainThread::Instance()->IsRequestedNextVSync())) {
-        RS_TRACE_NAME_FMT("do not request next vsync");
     }
 }
 
