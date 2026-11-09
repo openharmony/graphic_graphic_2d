@@ -85,8 +85,26 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     int flags,
     std::vector<NodeId> whiteList)
 {
-    return renderServiceClient_->CreateVirtualScreen(
-        name, width, height, surface, associatedScreenId, flags, whiteList);
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    option.hdrMode = HDRMode::NONE;
+    return CreateVirtualScreen(option);
+}
+
+ScreenId RSInterfaces::CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t* errorCode)
+{
+    int32_t errCode = StatusCode::SUCCESS;
+    ScreenId screenId = renderServiceClient_->CreateVirtualScreen(option, errCode);
+    if (errorCode != nullptr) {
+        *errorCode = errCode;
+    }
+    return screenId;
 }
 
 int32_t RSInterfaces::AddVirtualScreenSurface(

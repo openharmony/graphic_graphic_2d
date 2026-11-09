@@ -195,19 +195,20 @@ std::vector<ScreenId> RSScreenManagerAgent::GetAllScreenIds()
     return screenManager_->GetAllScreenIds();
 }
 
-ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint32_t width, uint32_t height,
-    sptr<Surface> surface, ScreenId associatedScreenId, int32_t flags, std::vector<NodeId> whiteList)
+ScreenId RSScreenManagerAgent::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
+    errorCode = StatusCode::SUCCESS;
     if (!screenManager_) {
         RS_LOGW("RSScreenManagerAgent::CreateVirtualScreen screenManager_ is nullptr");
+        errorCode = StatusCode::SCREEN_NOT_FOUND;
         return INVALID_SCREEN_ID;
     }
-    if (whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
+    if (vsOption.whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: whiteList is over max size!", __func__);
-        return StatusCode::INVALID_ARGUMENTS;
+        errorCode = StatusCode::INVALID_ARGUMENTS;
+        return INVALID_SCREEN_ID;
     }
-    auto screenId = screenManager_->CreateVirtualScreen(
-        name, width, height, surface, associatedScreenId, flags, whiteList);
+    auto screenId = screenManager_->CreateVirtualScreen(vsOption, errorCode);
     if (screenId != INVALID_SCREEN_ID) {
         std::lock_guard<std::mutex> lock(mutex_);
         virtualScreenIds_.insert(screenId);

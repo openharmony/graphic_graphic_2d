@@ -212,6 +212,12 @@ void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceClose
     }
 }
 
+bool RSLuminanceControl::IsCloseHdrWhenMultiDisplaysOn()
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsCloseHdrWhenMultiDisplaysOn() : false;
+}
+
 bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
 {
     return (rSLuminanceControlInterface_ != nullptr) ?

@@ -114,6 +114,9 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
     property_.SetScreenType(RSScreenType::VIRTUAL_TYPE_SCREEN);
     property_.SetWhiteList(configs.whiteList);
     property_.SetMultiSurfaceConfigs(configs.surfaceConfigs);
+    // Apply the HDR mode on construction so that the first frame handled by
+    // RSHdrUtil::HandleVirtualScreenHDRStatus always reads the expected value.
+    property_.SetVirtualScreenHDRMode(configs.hdrMode);
     property_.SetState(configs.surfaceConfigs.empty() ? ScreenState::DISABLED : ScreenState::PRODUCER_SURFACE_ENABLE);
     VirtualScreenInit();
     HILOG_COMM_WARN("init virtual screen: {id: %{public}" PRIu64 ", associatedScreenId: %{public}" PRIu64", "

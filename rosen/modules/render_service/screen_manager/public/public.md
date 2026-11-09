@@ -209,9 +209,7 @@ int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> 
 int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
 
 // Virtual screen
-ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
-    sptr<Surface> surface, ScreenId associatedScreenId = 0, int32_t flags = 0,
-    std::vector<NodeId> whiteList = {});
+ScreenId CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode);
 void RemoveVirtualScreen(ScreenId id);
 void CleanVirtualScreens();  // batch cleanup all agent-created virtual screens
 

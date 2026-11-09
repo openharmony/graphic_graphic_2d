@@ -534,23 +534,17 @@ std::vector<ScreenId> RSClientToServiceConnection::GetAllScreenIds()
     return screenManagerAgent_->GetAllScreenIds();
 }
 
-ScreenId RSClientToServiceConnection::CreateVirtualScreen(
-    const std::string &name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
+ScreenId RSClientToServiceConnection::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
+    errorCode = StatusCode::SUCCESS;
     if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        errorCode = StatusCode::SCREEN_NOT_FOUND;
         return INVALID_SCREEN_ID;
     }
-    auto screenId = screenManagerAgent_->CreateVirtualScreen(
-        name, width, height, surface, associatedScreenId, flags, whiteList);
-    if (screenId != INVALID_SCREEN_ID && surface != nullptr) {
-            EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
+    auto screenId = screenManagerAgent_->CreateVirtualScreen(vsOption, errorCode);
+    if (screenId != INVALID_SCREEN_ID && vsOption.surface != nullptr) {
+            EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, vsOption.name };
             NotifyRefreshRateEvent(event);
             ROSEN_LOGI("%{public}s vote 60hz", __func__);
     }

@@ -506,45 +506,51 @@ ScreenId RSScreenManager::CreateAndRegisterVirtualScreen(VirtualScreenConfigs& c
     return newId;
 }
 
-ScreenId RSScreenManager::CreateVirtualScreen(
-    const std::string& name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
+ScreenId RSScreenManager::CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode)
 {
-    if (!ValidateVirtualScreenLimits(width, height)) {
+    errorCode = StatusCode::SUCCESS;
+    if (!ValidateVirtualScreenLimits(vsOption.width, vsOption.height)) {
+        errorCode = StatusCode::INVALID_ARGUMENTS;
+        return INVALID_SCREEN_ID;
+    }
+    // HDR_STATIC requires a stable HDR output during recording/casting, which cannot be provided
+    // when the product force-closes HDR with multiple displays on, so reject it at creation.
+    if (vsOption.hdrMode == HDRMode::HDR_STATIC && RSLuminanceControl::Get().IsCloseHdrWhenMultiDisplaysOn()) {
+        RS_LOGE("%{public}s: HDR is closed when multi displays on, name[%{public}s] with HDR_STATIC"
+            " create virtualScreen failed!", __func__, vsOption.name.c_str());
+        errorCode = StatusCode::HDR_NOT_SUPPORT;
         return INVALID_SCREEN_ID;
     }
 
     std::vector<SurfaceRegionConfig> surfaceConfigs;
     std::lock_guard<std::mutex> lock(virtualScreenSurfaceMutex_);
-    if (surface != nullptr) {
+    if (vsOption.surface != nullptr) {
         auto usedSurfaceIds = CollectVirtualScreenSurfaceIds();
-        if (!usedSurfaceIds.insert(surface->GetUniqueId()).second) {
+        if (!usedSurfaceIds.insert(vsOption.surface->GetUniqueId()).second) {
             RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is already used by another screen, "
-                "create virtualScreen failed!", __func__, surface->GetUniqueId());
+                "create virtualScreen failed!", __func__, vsOption.surface->GetUniqueId());
+            errorCode = StatusCode::SURFACE_NOT_UNIQUE;
             return INVALID_SCREEN_ID;
         }
-        surfaceConfigs.emplace_back(SurfaceRegionConfig{
-            surface, RectI{0, 0, static_cast<int32_t>(width), static_cast<int32_t>(height)}});
+        surfaceConfigs.emplace_back(SurfaceRegionConfig{vsOption.surface,
+            RectI{0, 0, static_cast<int32_t>(vsOption.width), static_cast<int32_t>(vsOption.height)}});
     }
 
     VirtualScreenConfigs configs;
-    configs.associatedScreenId = associatedScreenId;
-    configs.name = name;
-    configs.width = width;
-    configs.height = height;
-    configs.flags = flags;
-    configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
+    configs.associatedScreenId = vsOption.associatedScreenId;
+    configs.name = vsOption.name;
+    configs.width = vsOption.width;
+    configs.height = vsOption.height;
+    configs.flags = vsOption.flags;
+    configs.whiteList = std::unordered_set<NodeId>(vsOption.whiteList.begin(), vsOption.whiteList.end());
     configs.surfaceConfigs = surfaceConfigs;
+    configs.hdrMode = vsOption.hdrMode;
 
-    ScreenId newId = CreateAndRegisterVirtualScreen(configs, associatedScreenId);
+    ScreenId newId = CreateAndRegisterVirtualScreen(configs, vsOption.associatedScreenId);
     RS_LOGI("%{public}s: name[%{public}s], screenId[%{public}" PRIu64 "], width[%{public}u], height[%{public}u], "
-        "hasSurface[%{public}d], associatedScreenId[%{public}" PRIu64 "], flags[%{public}d]",
-        __func__, name.c_str(), newId, width, height, surface != nullptr, associatedScreenId, flags);
+        "hasSurface[%{public}d], associatedScreenId[%{public}" PRIu64 "], flags[%{public}d], hdrMode[%{public}u]",
+        __func__, vsOption.name.c_str(), newId, vsOption.width, vsOption.height, vsOption.surface != nullptr,
+        vsOption.associatedScreenId, vsOption.flags, static_cast<uint32_t>(vsOption.hdrMode));
     RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_WHITE_LIST, newId, configs.whiteList);
     return newId;
 }

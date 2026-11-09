@@ -45,6 +45,7 @@
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <screen_manager/rs_screen_property.h>
 #include <screen_manager/rs_surface_region_config.h>
+#include <screen_manager/rs_virtual_screen_option.h>
 #include "rs_screen_preprocessor.h"
 #include "product_feature/fold/rs_fold_screen_manager.h"
 
@@ -145,8 +146,9 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
     // virtual screen
-    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
-        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
+    // Core creation entry: the HDR mode is applied when the virtual screen is created. On failure
+    // INVALID_SCREEN_ID is returned and errorCode carries the StatusCode reason.
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& vsOption, int32_t& errorCode);
     void RemoveVirtualScreen(ScreenId id);
     uint32_t GetCurrentVirtualScreenNum();
 
